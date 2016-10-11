@@ -1106,7 +1106,7 @@ post_save.connect(order_trigger, sender=SaleOrder, dispatch_uid='post_save_order
 def update_package_sku_item(sender, instance, created, **kwargs):
     """ 更新PackageSkuItem状态 """
     # if instance.status >= SaleOrder.WAIT_SELLER_SEND_GOODS and not instance.is_deposit():
-    if instance.status >= SaleOrder.WAIT_SELLER_SEND_GOODS and \
+    if instance.created > datetime.datetime(2016, 4, 21) and instance.status >= SaleOrder.WAIT_SELLER_SEND_GOODS and \
                     instance.sale_trade.order_type == SaleTrade.SALE_ORDER:
         from flashsale.pay.tasks import task_saleorder_update_package_sku_item
         task_saleorder_update_package_sku_item.delay(instance)
