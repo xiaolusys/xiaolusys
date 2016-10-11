@@ -153,29 +153,29 @@ class MamaFortuneViewSet(viewsets.ModelViewSet):
         customer = Customer.objects.normal_customer.filter(user=request.user).first()
         if not customer:
             return Response({})
-        
+
         mama = customer.get_xiaolumm()
         if not mama:
             return Response({})
-        
+
         mama_id = mama.id
-        
+
         fortune = self.queryset.filter(mama_id=mama_id).first()
         serializer = serializers.MamaFortuneBriefSerializer(fortune)
         data = serializer.data
 
         thumbnail = customer.thumbnail
         left_days = 0
-        
+
         today = datetime.date.today()
         today_time = datetime.datetime(today.year, today.month, today.day)
-        
+
         if mama.renew_time and mama.renew_time > today_time:
             diff = mama.renew_time - today_time
             left_days = diff.days
             if diff.seconds > 0:
                 left_days += 1
-        
+
         data.update({"thumbnail": customer.thumbnail, "left_days": left_days, "last_renew_type": mama.last_renew_type})
         return Response(data)
 
@@ -397,7 +397,7 @@ class ClickCarryViewSet(viewsets.ModelViewSet):
             res["visitor_num"] = 0
         res.update({"mama_id":mama_id})
         return Response(res)
-        
+
 
 class AwardCarryViewSet(viewsets.ModelViewSet):
     """
@@ -901,7 +901,7 @@ class ActivateMamaView(APIView):
     """
     GET /rest/v2/mama/activate
     """
-    
+
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
 
@@ -924,11 +924,11 @@ class CashOutToAppView(APIView):
     """
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
-    
+
     def get(self, request, *args, **kwargs):
         customer = Customer.objects.normal_customer.filter(user=request.user).first()
         mama = customer.get_xiaolumm()
-        
+
         if mama:
             task_mama_daily_tab_visit_stats.delay(mama.id, MamaTabVisitStats.TAB_WX_CASHOUT_APP_DOWNLOAD)
 
@@ -936,7 +936,7 @@ class CashOutToAppView(APIView):
         download_url = DOWNLOAD_APP_LINK
         return redirect(download_url)
 
-    
+
 from flashsale.promotion.models import ActivityEntry
 
 class RedirectActivityEntryView(APIView):
@@ -976,19 +976,21 @@ class RedirectStatsLinkView(APIView):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
 
-    links = [['',''],
-             ['http://mp.weixin.qq.com/s?__biz=MzA5MzQxMzU2Mg==&mid=2650808162&idx=2&sn=b1d6bbeaa3c02546bb8e6bb021f74e64&chksm=8baaf6b7bcdd7fa1e90c2763a7467abc27f8e94ce6a3f93d58803586c8f2fef1ab747d881b25&scene=0#wechat_redirect', MamaTabVisitStats.TAB_WX_ARTICLE_LINK],
-             ['http://mp.weixin.qq.com/s?__biz=MzA5MzQxMzU2Mg==&mid=2650808162&idx=2&sn=b1d6bbeaa3c02546bb8e6bb021f74e64&chksm=8baaf6b7bcdd7fa1e90c2763a7467abc27f8e94ce6a3f93d58803586c8f2fef1ab747d881b25&scene=0#wechat_redirect', MamaTabVisitStats.TAB_WX_TUTORIAL],
-             ['/mall/user/profile', MamaTabVisitStats.TAB_WX_BIND_MOBILE],
+    links = [
+        ['', ''],
+        ['http://mp.weixin.qq.com/s?__biz=MzA5MzQxMzU2Mg==&mid=2650808162&idx=2&sn=b1d6bbeaa3c02546bb8e6bb021f74e64&chksm=8baaf6b7bcdd7fa1e90c2763a7467abc27f8e94ce6a3f93d58803586c8f2fef1ab747d881b25&scene=0#wechat_redirect', MamaTabVisitStats.TAB_WX_ARTICLE_LINK],
+        ['http://mp.weixin.qq.com/s?__biz=MzA5MzQxMzU2Mg==&mid=2650808162&idx=2&sn=b1d6bbeaa3c02546bb8e6bb021f74e64&chksm=8baaf6b7bcdd7fa1e90c2763a7467abc27f8e94ce6a3f93d58803586c8f2fef1ab747d881b25&scene=0#wechat_redirect', MamaTabVisitStats.TAB_WX_TUTORIAL],
+        ['/mall/user/profile', MamaTabVisitStats.TAB_WX_BIND_MOBILE],
+        ['/mama_shop/html/personal.html', MamaTabVisitStats.TAB_WX_PUSH_CLICK_CARRY]
     ]
-    
+
     def get(self, request, *args, **kwargs):
         content = request.GET
         link_id = content.get("link_id", "")
 
         redirect_link = self.links[int(link_id)][0]
         tab_id = self.links[int(link_id)][1]
-        
+
         mama = None
         try:
             customer = Customer.objects.normal_customer.filter(user=request.user).first()

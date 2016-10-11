@@ -6,7 +6,8 @@ from django.db.models.signals import post_save, pre_save
 from django.conf import settings
 import datetime, urlparse
 from core.fields import JSONCharMyField
-from flashsale.xiaolumm.models import XiaoluMama
+from flashsale.xiaolumm.models.models import XiaoluMama
+from flashsale.xiaolumm.signals import clickcarry_signal
 import logging
 
 logger = logging.getLogger('django.request')
@@ -825,6 +826,13 @@ class ClickCarry(BaseModel):
         this must exists to bypass serializer check
         """
         return None
+
+
+def weixin_push_clickcarry(sender, instance, **kwargs):
+    from flashsale.xiaolumm.tasks_mama_push import task_weixin_push_clickcarry
+    task_weixin_push_clickcarry.delay(instance)
+
+clickcarry_signal.connect(weixin_push_clickcarry, sender=ClickCarry, dispatch_uid='add_clickcarry_weixin_push')
 
 
 def clickcarry_update_carryrecord(sender, instance, created, **kwargs):
