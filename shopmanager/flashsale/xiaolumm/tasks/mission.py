@@ -339,7 +339,8 @@ def task_cancel_mama_weekly_award(mama_id, mission_record_id):
 
         uni_key = mama_mission.gen_uni_key()
         award_carry = AwardCarry.objects.filter(uni_key= uni_key).first()
-        award_carry.cancel_award()
+        if award_carry:
+            award_carry.cancel_award()
     except Exception, exc:
         raise task_cancel_mama_weekly_award.retry(exc=exc)
 

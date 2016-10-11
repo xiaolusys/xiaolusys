@@ -395,7 +395,7 @@ class WeiXinAPI(object):
         key_pairs.sort()
 
         sign_params['signature'] = hashlib.sha1('&'.join(key_pairs)).hexdigest()
-        sign_params['app_id'] = self._wx_account.app_id
+        sign_params['app_id'] = self.getAppKey()
 
         return sign_params
 
