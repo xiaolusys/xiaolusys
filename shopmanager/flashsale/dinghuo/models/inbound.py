@@ -716,7 +716,7 @@ class InBoundDetail(models.Model):
     @property
     def out_stock_num(self):
         all_allocate_quantity = self.all_allocate_quantity
-        self.out_stock = self.arrival_quantity > all_allocate_quantity
+        #　self.out_stock = self.arrival_quantity > all_allocate_quantity
         return self.arrival_quantity - all_allocate_quantity
 
     @property
@@ -734,6 +734,8 @@ class InBoundDetail(models.Model):
     def get_allocate_info(self):
         if self.out_stock_num > 0:
             return u'多货'
+        elif self.out_stock_num < 0:
+            return u'过多分配'
         return u'完全分配'
 
     def sync_order_detail(self):
