@@ -5,6 +5,7 @@ import logging
 from celery.task import task
 
 from flashsale.xiaolumm import util_description
+from flashsale.xiaolumm.signals import clickcarry_signal
 
 logger = logging.getLogger('celery.handler')
 
@@ -143,6 +144,7 @@ def create_clickcarry_upon_click(mama_id, date_field):
                        carry_description=carry_description,
                        date_field=date_field, uni_key=uni_key, status=status)
     carry.save()
+    clickcarry_signal.send(sender=carry.__class__, instance=carry)
 
 
 def update_clickcarry_upon_order(click_carry, mama_id, date_field):
@@ -233,6 +235,7 @@ def task_visitor_increment_clickcarry(mama_id, date_field):
             click_carry.click_num = click_num
             click_carry.total_value = total_value
             click_carry.save(update_fields=['click_num', 'total_value', 'modified'])
+            clickcarry_signal.send(sender=click_carry.__class__, instance=click_carry)
         else:
             click_carrys.update(click_num=click_num)
 
