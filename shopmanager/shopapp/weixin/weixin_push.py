@@ -322,6 +322,44 @@ class WeixinPush(object):
 
         return self.push(customer, template_ids, template_data, to_url)
 
+    def push_pintuan_success(self, teambuy):
+        """
+        拼团成功通知
+
+        {{first.DATA}}
+        商品名称：{{keyword1.DATA}}
+        团长：{{keyword2.DATA}}
+        成团人数：{{keyword3.DATA}}
+        {{remark.DATA}}
+        """
+        template_id = 'ZlEFblgBFQqCSabHyr0MrSS6nREGxQHKjEMnrgs3w5Q'
+
+        template_data = {
+            'first': {
+                'value': template.header.decode('string_escape'),
+                'color': '#F87217',
+            },
+            'keyword1': {
+                'value': u'点击收益',
+                'color': '#000000',
+            },
+            'keyword2': {
+                'value': u'%.2f元' % (carry_money * 0.01),
+                'color': '#ff0000',
+            },
+            'keyword3': {
+                'value': u'%s' % clickcarry.modified.strftime('%Y-%m-%d %H:%M:%S'),
+                'color': '#000000',
+            },
+            'remark': {
+                'value': template.footer.decode('string_escape'),
+                'color': '#F87217',
+            },
+        }
+
+    def push_pintuan_fail(self):
+        pass
+
     def push_mama_clickcarry(self, clickcarry):
         """
         推送点击收益
@@ -358,9 +396,9 @@ class WeixinPush(object):
             carry_count = clickcarry.click_num - int(last_click_num)
             carry_money = clickcarry.total_value - int(last_total_value)
 
-            # 60秒内不许重复推送
+            # 60*60秒内不许重复推送
             delta = datetime.datetime.now() - last_event.created
-            if delta.seconds < 60 and clickcarry.click_num < clickcarry.init_click_limit:
+            if delta.seconds < 60*60 and clickcarry.click_num < clickcarry.init_click_limit:
                 return
         else:
             carry_count = clickcarry.click_num
@@ -391,7 +429,7 @@ class WeixinPush(object):
                 'color': '#000000',
             },
             'keyword4': {
-                'value': u'%.2f元（可提现）' % (mama.get_carry()[0] * 0.01),
+                'value': u'%.2f元（可提现）' % (mama.get_wallet_cash() * 0.01),
                 'color': '#000000',
             },
             'remark': {

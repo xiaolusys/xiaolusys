@@ -849,6 +849,15 @@ class XiaoluMama(BaseModel):
             mama_id=self.id, status=CarryRecord.PENDING).aggregate(Sum('carry_num'))
         return (carry_confirmed['carry_num__sum'], carry_pending['carry_num__sum'])
 
+    def get_wallet_cash(self):
+        """
+        获取小鹿妈妈钱包余额
+        """
+        from flashsale.xiaolumm.models.models_fortune import MamaFortune
+
+        fortune = MamaFortune.get_by_mamaid(self.id)
+        return fortune.cash_num_cents()
+
     def get_next_new_mama_task(self):
         """
         获取未完成的新手任务
