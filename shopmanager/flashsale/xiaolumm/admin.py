@@ -369,7 +369,7 @@ from django.contrib import messages
 
 
 class NinePicAdverAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'auther', 'turns_num', 'start_time', 'is_pushed')
+    list_display = ('id', 'title', 'auther', 'turns_num', 'start_time', 'is_pushed', 'save_times', 'share_times')
     search_fields = ['title', 'id']
     list_filter = ('start_time', 'cate_gory')
 
