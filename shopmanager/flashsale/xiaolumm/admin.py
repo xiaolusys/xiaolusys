@@ -5,7 +5,7 @@ from django.contrib import admin
 from django.contrib.auth.models import User
 from django.db.models import Sum
 
-from core.admin import ApproxAdmin
+from core.admin import ApproxAdmin, BaseAdmin
 from core.filters import DateFieldListFilter
 from flashsale.clickcount.models import ClickCount
 from flashsale.clickrebeta.models import StatisticsShoppingByDay
@@ -21,6 +21,7 @@ from flashsale.xiaolumm.models import (
     MamaTabVisitStats,
     MamaDeviceStats,
     MamaDailyTabVisit,
+    MamaSaleGrade,
     MamaMission,
     MamaMissionRecord,
     RankActivity,
@@ -369,7 +370,7 @@ from django.contrib import messages
 
 
 class NinePicAdverAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'auther', 'turns_num', 'start_time', 'is_pushed')
+    list_display = ('id', 'title', 'auther', 'turns_num', 'start_time', 'is_pushed', 'save_times', 'share_times')
     search_fields = ['title', 'id']
     list_filter = ('start_time', 'cate_gory')
 
@@ -811,6 +812,15 @@ class MamaDeviceStatsAdmin(ApproxAdmin):
 admin.site.register(MamaDeviceStats, MamaDeviceStatsAdmin)
 
 
+class MamaSaleGradeAdmin(BaseAdmin):
+    list_display = ('mama', 'grade', 'combo_count', 'last_record_time', 'total_finish_count', 'first_finish_time',
+                    'created', 'modified')
+    list_filter = ('grade',  ('first_finish_time', DateFieldListFilter),  ('created', DateFieldListFilter))
+    search_fields = ('=mama',)
+
+admin.site.register(MamaSaleGrade, MamaSaleGradeAdmin)
+
+
 class MamaMissionAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'target', 'cat_type', 'kpi_type', 'date_type',
                     'target_value', 'award_amount', 'start_time', 'end_time', 'status')
@@ -826,7 +836,7 @@ class MamaMissionRecordAdmin(ApproxAdmin):
                     'mission', 'year_week', 'target_value', 'finish_value', 'award_amount',
                     'status', 'finish_time', 'created')
     list_filter = ('year_week', 'status', 'mission__cat_type', 'mission__target',
-                   'mission__kpi_type', ('finish_time', DateFieldListFilter))
+                   'mission__kpi_type', ('finish_time', DateFieldListFilter),('created', DateFieldListFilter))
     search_fields = ('=id', '=mama_id', '^mission__name')
 
 admin.site.register(MamaMissionRecord, MamaMissionRecordAdmin)

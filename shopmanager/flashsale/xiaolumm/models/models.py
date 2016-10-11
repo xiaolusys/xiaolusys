@@ -34,7 +34,7 @@ MM_CLICK_DAY_BASE_COUNT = 10
 MM_CLICK_PER_ORDER_PLUS_COUNT = 50
 
 
-class XiaoluMama(models.Model):
+class XiaoluMama(BaseModel):
     EFFECT = 'effect'
     FROZEN = 'forzen'
     CANCEL = 'cancel'
@@ -121,8 +121,6 @@ class XiaoluMama(models.Model):
                                        db_index=True, blank=True, null=True, verbose_name=u'接管时间')
     renew_time = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name=u'下次续费时间')
 
-    created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建时间')
-    modified = models.DateTimeField(auto_now=True, verbose_name=u'修改时间')
     status = models.CharField(max_length=16, blank=True, choices=STATUS_CHOICES,
                               default=EFFECT, verbose_name=u'状态')
 

@@ -13,12 +13,189 @@ from flashsale.xiaolumm import constants
 import logging
 logger = logging.getLogger(__name__)
 
-def get_mama_week_sale_amount(mamaid_list, week_start, week_end):
+def get_mama_week_sale_orders(mamaid_list, week_start, week_end):
     from flashsale.xiaolumm.models import OrderCarry
     order_carrys = OrderCarry.objects.filter(
         date_field__range=(week_start, week_end), mama_id__in=mamaid_list,
         status__in=(OrderCarry.ESTIMATE, OrderCarry.CONFIRM))
-    return sum(order_carrys.values_list('order_value', flat=True))
+    return order_carrys
+
+def get_mama_week_sale_amount(mamaid_list, week_start, week_end):
+    carry_orders = get_mama_week_sale_orders(mamaid_list, week_start, week_end)
+    return sum(carry_orders.values_list('order_value', flat=True))
+
+def year_week_generator(end_year_week):
+    cnt = 0
+    while cnt < 100:
+        yield end_year_week
+        last_week = datetime.datetime.strptime('%s-0'%end_year_week, '%Y-%W-%w') - datetime.timedelta(days=7)
+        end_year_week = last_week.strftime('%Y-%W')
+        cnt += 1
+
+def get_mama_week_finish_and_combo_list(mama_id, end_year_week):
+    year_weeks = MamaMissionRecord.objects.filter(
+        mama_id=mama_id,
+        mission__cat_type=MamaMission.CAT_SALE_MAMA,
+        status=MamaMissionRecord.FINISHED,
+        year_week__lte=end_year_week
+    ).order_by('year_week').values_list('year_week', flat=True)
+    combo_week_list = []
+
+    for year_week in year_week_generator(end_year_week):
+        if year_week not in year_weeks:
+            break
+        combo_week_list.append(year_week)
+
+    return year_weeks, combo_week_list
+
+def year_week_range(year_week):
+    dt = datetime.datetime.strptime('%s-0' % year_week, '%Y-%W-%w')
+    return week_range(dt)
+
+
+def get_mama_week_sale_mission(mama_id, year_week):
+    mission = MamaMissionRecord.objects.filter(
+        mama_id=mama_id,
+        mission__cat_type=MamaMission.CAT_SALE_MAMA,
+        year_week=year_week
+    ).first()
+    return mission
+
+
+class MamaSaleGrade(BaseModel):
+
+    A_LEVEL = 30000
+    B_LEVEL = 60000
+    C_LEVEL = 90000
+    D_LEVEL = 120000
+    E_LEVEL = 150000
+    F_LEVEL = 180000
+    G_LEVEL = 210000
+    GRADE_CHOICES = (
+        (A_LEVEL, u'A级: <300元'),
+        (B_LEVEL, u'B级: <600元'),
+        (C_LEVEL, u'C级: <900元'),
+        (D_LEVEL, u'D级: <1200元'),
+        (E_LEVEL, u'E级: <1500元'),
+        (F_LEVEL, u'F级: <1800元'),
+        (G_LEVEL, u'G级: <2100元'),
+    )
+
+    mama    = models.OneToOneField('xiaolumm.XiaoluMama',related_name='sale_grade',verbose_name=u'关联妈妈')
+
+    grade   = models.IntegerField(default=0, choices=GRADE_CHOICES, db_index=True, verbose_name=u'销售级别')
+    combo_count = models.IntegerField(default=0, db_index=True, verbose_name=u'连击次数')
+    last_record_time = models.DateTimeField(null=True, blank=True, verbose_name=u'最后任务记录时间')
+
+    total_finish_count = models.IntegerField(default=0, verbose_name=u'累计完成次数')
+    first_finish_time = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name=u'最早完成时间')
+
+    class Meta:
+        db_table = 'flashsale_xlmm_salegrade'
+        app_label = 'xiaolumm'
+        verbose_name = u'V2/妈妈销售业绩'
+        verbose_name_plural = u'V2/妈妈销售业绩列表'
+
+    def __unicode__(self):
+        return '<%s, %s>' % (self.mama, self.grade)
+
+    @classmethod
+    def create_or_update_mama_sale_grade(cls, xiaolumama):
+        """
+        1, 第一次创建，直接保存妈妈上周销售等级，及妈妈连续达标次数,记录日期, 总达标次数, 第一次达标时间;
+        2, 如果记录日期非上周，则将上周任务等级更新成妈妈业绩等级,若升级连续达标次数不变，
+            达标加1,未达清零,更新总达标次数，更新记录时间，第一次达标时间;
+        """
+        mama_id = xiaolumama.id
+        sale_grade = cls.objects.filter(mama=xiaolumama).first()
+        last_year_week = (datetime.datetime.now() - datetime.timedelta(days=7)).strftime('%Y-%W')
+        if not sale_grade:
+            mama_last_mission = get_mama_week_sale_mission(mama_id, last_year_week)
+            finish_week_list, combo_week_list = get_mama_week_finish_and_combo_list(mama_id, last_year_week)
+            sale_grade = MamaSaleGrade(
+                mama=xiaolumama,
+                combo_count = 0,
+                grade=cls.calc_sale_amount_grade(mama_last_mission and mama_last_mission.finish_value or 0),
+                last_record_time= year_week_range(last_year_week)[1],
+                total_finish_count= len(finish_week_list),
+                first_finish_time= finish_week_list and year_week_range(finish_week_list[0])[1] or None
+            )
+            sale_grade.save()
+
+        record_year_week = sale_grade.last_record_time.strftime('%Y-%W')
+        if record_year_week != last_year_week:
+            mama_last_mission = get_mama_week_sale_mission(mama_id, last_year_week)
+            finish_week_list, combo_week_list = get_mama_week_finish_and_combo_list(mama_id, last_year_week)
+            last_week_grade = cls.calc_sale_amount_grade(mama_last_mission.finish_value)
+            if sale_grade.grade > last_week_grade and not mama_last_mission.is_finished():
+                sale_grade.combo_count = 0
+            elif sale_grade.grade == last_week_grade and mama_last_mission.is_finished():
+                sale_grade.combo_count += 1
+
+            sale_grade.grade = last_week_grade
+            sale_grade.combo_count = len(combo_week_list)
+            if not sale_grade.first_finish_time:
+                sale_grade.first_finish_time = finish_week_list and finish_week_list[0] or None
+            sale_grade.total_finish_count = len(finish_week_list)
+            sale_grade.last_record_time = year_week_range(last_year_week)[1]
+            sale_grade.save()
+
+        return sale_grade
+
+
+    @classmethod
+    def calc_sale_amount_grade(cls, sale_amount):
+        return min((int(sale_amount) / 30000  + 1)* 30000, cls.G_LEVEL)
+
+    def get_week_target_amount_award(self, target_amount, year_week):
+        """
+        妈妈周激励奖励生成规则:
+            1, 目标等级基础奖励 B: >300, >600, > 900 >1200 对应的最低奖励分别是: 15, 30, 45, 60;
+            2, 连续达标奖励 S: 连续达标次数 * 15 (升级后连续达标次数除2取整)
+            任务完成最终奖励: T = B + S
+        """
+        sale_grade = MamaSaleGrade.calc_sale_amount_grade(target_amount)
+        base_award = utils.get_mama_sale_grade_award(sale_grade)
+        if not self.last_record_time:
+            return base_award
+
+        next_record_week = (self.last_record_time + datetime.timedelta(days=7)).strftime('%Y-%W')
+        if next_record_week == year_week:
+            return base_award + utils.get_mama_sale_combo_award(self.combo_count)
+
+        return base_award
+
+    def get_week_target_amount(self, base_mission, year_week):
+        """
+        妈妈销售周激励目标生成规则：
+            1, 若妈妈上周未完成目标，则上周目标继续,　若连续两周及以上未完成目标，则将目标下调一个等级;
+            2, 如果上周任务完成或上周没有任务, 下周目标等级 = 完成值等级 + 1;
+            3, 如果上周任务未完成， 下周目标等级 = max(上周目标等级 - 1 , 完成值等级 + 1, 1);
+        """
+        this_weekend = datetime.datetime.strptime('%s-0'%year_week, '%Y-%W-%w')
+        last_weekend = (this_weekend - datetime.timedelta(days=7))
+        week_start, week_end = week_range(last_weekend)
+        mama_1st_record = MamaMissionRecord.objects.filter(
+            mission=base_mission,
+            year_week=last_weekend.strftime('%Y-%W'),
+            mama_id=self.mama_id
+        ).first()
+
+        last_week_target_value = mama_1st_record and mama_1st_record.target_value or 0
+        last_week_finish_value = get_mama_week_sale_amount([self.mama_id], week_start, week_end)
+        finish_stage = utils.get_mama_target_stage(last_week_finish_value)
+        last_target_stage = mama_1st_record and utils.get_mama_target_stage(last_week_target_value) or 0
+        print 'last week amount:', last_week_target_value, last_week_finish_value, finish_stage, last_target_stage
+        if mama_1st_record and mama_1st_record.is_finished():
+            target_stage = max(finish_stage + 1, last_target_stage + 1)
+        elif mama_1st_record and not mama_1st_record.is_finished():
+            target_stage = max(last_target_stage - 1, finish_stage + 1, 1)
+        else:
+            target_stage = finish_stage + 1
+        print 'target stage:', target_stage
+        target_amount = utils.get_mama_stage_target(target_stage)
+        return target_amount
+
 
 class MamaMission(BaseModel):
     TARGET_PERSONAL = 'personal'
@@ -106,52 +283,45 @@ class MamaMission(BaseModel):
     def __unicode__(self):
         return '<%s, %s>' %(self.id, self.name)
 
-    def is_receivable(self):
-        """ 任务是否可以接收 """
-        return self.status == MamaMission.PROGRESS
+    def is_receivable(self, mama_id):
+        """
+        妈妈周激励销售任务生成条件:
+             1, 连续两周有订单;
+        """
+        if self.status != MamaMission.PROGRESS:
+            return False
+
+        if self.cat_type == self.CAT_SALE_MAMA:
+            now_time = datetime.datetime.combine(datetime.datetime.today(), datetime.time.max)
+            week_day = int(now_time.strftime('%w'))
+            last_week_end = now_time - datetime.timedelta(days=week_day)
+            two_week_ago = now_time - datetime.timedelta(days=week_day + 14)
+            carry_orders = get_mama_week_sale_orders([mama_id], two_week_ago, last_week_end)
+            carry_weeks  = set([dt.strftime('%Y-%W') for dt in carry_orders.values_list('date_field', flat=True)])
+            return len(carry_weeks) > 1
+
+        return True
 
     def get_mama_target_value(self, xiaolumama, day_datetime):
         """
-            若妈妈上周未完成目标，则上周目标继续,　若连续两周及以上未完成目标，则将目标下调一个等级
         """
         from flashsale.xiaolumm.models import GroupRelationship, ReferalRelationship, XiaoluMama
 
-        last_week_daytime = day_datetime - datetime.timedelta(days=7)
-        week_start , week_end = week_range(last_week_daytime)
+        mama_id = xiaolumama.id
+        # last_week_daytime = day_datetime - datetime.timedelta(days=7)
+        # week_start , week_end = week_range(last_week_daytime)
         if self.kpi_type == self.KPI_AMOUNT and self.target == self.TARGET_PERSONAL:
-            # 如果上周任务完成或上周没有任务, 下周目标等级 = 完成值等级 + 1
-            # 如果上周任务未完成， 下周目标等级 = max(上周目标等级 - 1 , 完成值等级 + 1, 1)
-
-            last_1st_week = last_week_daytime.strftime('%Y-%W')
-            mama_ids = [xiaolumama.id]
-            award_rate = 15 * 100
-            mama_1st_record = MamaMissionRecord.objects.filter(
-                mission=self,
-                year_week=last_1st_week,
-                mama_id=xiaolumama.id
-            ).first()
-
-            last_week_target_value = mama_1st_record and (mama_1st_record.target_value / 100) or 0
-            last_week_finish_value = get_mama_week_sale_amount(mama_ids, week_start, week_end) / 100
-            finish_stage = utils.get_mama_target_stage(last_week_finish_value)
-            last_target_stage = mama_1st_record and utils.get_mama_target_stage(last_week_target_value) or 0
-
-            if mama_1st_record and mama_1st_record.is_finished():
-                target_stage = max(finish_stage + 1, last_target_stage + 1)
-            elif mama_1st_record and not mama_1st_record.is_finished():
-                target_stage = max(last_target_stage - 1, finish_stage + 1, 1)
-            else:
-                target_stage = finish_stage + 1
-
-            return utils.get_mama_stage_target(target_stage) * 100 , award_rate
+            this_year_week = day_datetime.strftime('%Y-%W')
+            sale_grade = MamaSaleGrade.create_or_update_mama_sale_grade(xiaolumama)
+            target_amount = sale_grade.get_week_target_amount(self, this_year_week)
+            award_amount  = sale_grade.get_week_target_amount_award(target_amount, this_year_week)
+            return target_amount, award_amount
 
         elif self.kpi_type == self.KPI_AMOUNT:
-
             # group_mamas = GroupRelationship.objects.filter(leader_mama_id=xiaolumama.id)
             # mama_ids = list(group_mamas.values_list('member_mama_id', flat=True))
             # target_stages = constants.GROUP_TARGET_STAGE
             # award_rate = 50 * 100
-
             return self.target_value * 10, self.award_amount
 
         if self.cat_type == MamaMission.CAT_REFER_MAMA:
@@ -256,7 +426,6 @@ class MamaMissionRecord(BaseModel):
         return '{0}-{1}-{2}'.format(self.UNI_NAME ,self.mama_id, self.id)
 
     def update_mission_value(self, finish_value):
-        # TODO@meron 如果任务中订单金额退款，任务完成状态需要变更？
         cur_year_week = datetime.datetime.now().strftime('%Y-%W')
         # 任务奖励确认
         if finish_value >= self.target_value:
@@ -266,14 +435,15 @@ class MamaMissionRecord(BaseModel):
                 self.finish_time = datetime.datetime.now()
                 self.save(update_fields=['finish_value', 'status', 'finish_time'])
 
-            # 妈妈邀请任务奖励已经单独发放, 该处值发放团队奖励, 妈妈销售奖励, 团队销售奖励
+            # 通知妈妈邀请任务奖励已发放, 该处值发放团队奖励, 妈妈销售奖励, 团队销售奖励
             if self.mission.kpi_type == MamaMission.KPI_AMOUNT \
                     or self.mission.target == MamaMission.TARGET_GROUP:
                 from flashsale.xiaolumm.tasks import task_send_mama_weekly_award
                 task_send_mama_weekly_award.delay(self.mama_id, self.id)
-        # 任务奖励取消
+
         else:
-            if self.is_finished():
+            has_old_finished = self.is_finished()
+            if has_old_finished:
                 self.status = self.STAGING
                 self.finish_value = finish_value
                 self.finish_time = datetime.datetime.now()
@@ -286,13 +456,13 @@ class MamaMissionRecord(BaseModel):
                 task_cancel_mama_weekly_award.delay(self.mama_id, self.id)
 
                 # 通知妈妈奖励取消
-                task_push_mission_state_msg_to_weixin_user.delay(self.id, MamaMissionRecord.CANCEL)
+                if has_old_finished:
+                    task_push_mission_state_msg_to_weixin_user.delay(self.id, MamaMissionRecord.CANCEL)
 
         if cur_year_week > self.year_week and self.is_staging():
             self.status = self.CLOSE
-            self.finish_time = None
             self.finish_value = finish_value
-            self.save(update_fields=['finish_value', 'status', 'finish_time'])
+            self.save(update_fields=['finish_value', 'status'])
 
         if self.finish_value != finish_value:
             self.finish_value = finish_value
@@ -464,6 +634,4 @@ def awardrecord_update_mission_record(sender, instance, *args, **kwargs):
 post_save.connect(awardrecord_update_mission_record,
                   sender=AwardCarry,
                   dispatch_uid='post_save_awardrecord_update_mission_record')
-
-# TODO@meron　团队妈妈邀请更新
 

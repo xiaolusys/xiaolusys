@@ -1,6 +1,7 @@
 # coding=utf-8
 import datetime
 from django.shortcuts import get_object_or_404
+from django.db import transaction
 from rest_framework import exceptions
 from rest_framework import filters
 from rest_framework import viewsets, permissions, authentication, renderers
@@ -86,6 +87,7 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
         task_mama_daily_tab_visit_stats.delay(xlmm.id, MamaTabVisitStats.TAB_DAILY_NINEPIC)
         return Response(serializer.data)
 
+    @transaction.atomic()
     def update(self, request, *args, **kwargs):
         """
         功能: 用户更新分享次数和保存次数
@@ -94,14 +96,16 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         save_times = request.data.get('save_times') or 0
         share_times = request.data.get('share_times') or 0
-
+        save_times = min(int(save_times), 1)
+        share_times = min(int(share_times), 1)
+        request.data._mutable = True
         request.data.update({'save_times': instance.save_times + save_times})
         request.data.update({'share_times': instance.share_times + share_times})
+        request.data._mutable = False
         serializer = serializers.ModifyTimesNinePicAdverSerialize(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response(serializer.data)
-
 
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException("方法不允许")
