@@ -4,6 +4,7 @@ import random
 import logging
 import datetime
 from django.conf import settings
+from flashsale.xiaolumm.models import XiaoluMama, WeixinPushEvent
 from shopapp.weixin.weixin_apis import WeiXinAPI
 from shopapp.weixin.models_base import (
     WeixinFans,
@@ -31,7 +32,7 @@ class WeixinPush(object):
         """
         if not (customer and customer.mobile):
             return False
-        
+
         temai_openid = WeixinFans.get_openid_by_unionid(customer.unionid, settings.WEIXIN_APPID)
         mm_openid = WeixinFans.get_openid_by_unionid(customer.unionid, settings.WXPAY_APPID)
 
@@ -69,7 +70,6 @@ class WeixinPush(object):
             })
 
         return resp
-
 
     def push_trade_pay_notify(self, saletrade):
         """
@@ -322,6 +322,88 @@ class WeixinPush(object):
 
         return self.push(customer, template_ids, template_data, to_url)
 
+    def push_mama_clickcarry(self, clickcarry):
+        """
+        推送点击收益
+
+        ---
+        收益通知
+
+        {{first.DATA}}
+        收益类型：{{keyword1.DATA}}
+        收益金额：{{keyword2.DATA}}
+        收益时间：{{keyword3.DATA}}
+        剩余金额：{{keyword4.DATA}}
+        {{remark.DATA}}
+
+
+        """
+        mama_id = clickcarry.mama_id
+        customer = utils.get_mama_customer(mama_id)
+        mama = XiaoluMama.objects.get(id=mama_id)
+        event_type = WeixinPushEvent.CLICK_CARRY
+
+        template_id = 'n9kUgavs_10Dz8RbIgY2F9r6rNdlNw3I6D1KLft0_2I'
+        template = WeixinTplMsg.objects.filter(wx_template_id=template_id, status=True).first()
+
+        if not template:
+            return
+
+        today = datetime.datetime.now().date().strftime('%Y%m%d')
+        q_str = '{mama_id}-{date}-clickcarry'.format(**{'mama_id': mama_id, 'date': today})
+        last_event = WeixinPushEvent.objects.filter(uni_key__contains=q_str).order_by('-created').first()
+
+        if last_event:
+            _, _, _, last_click_num, last_total_value = last_event.uni_key.split('-')
+            carry_count = clickcarry.click_num - int(last_click_num)
+            carry_money = clickcarry.total_value - int(last_total_value)
+
+            # 60秒内不许重复推送
+            delta = datetime.datetime.now() - last_event.created
+            if delta.seconds < 60 and clickcarry.click_num < clickcarry.init_click_limit:
+                return
+        else:
+            carry_count = clickcarry.click_num
+            carry_money = clickcarry.total_value
+
+        uni_key = '{mama_id}-{date}-clickcarry-{click_num}-{total_value}'.format(**{
+            'mama_id': mama_id,
+            'date': today,
+            'click_num': clickcarry.click_num,
+            'total_value': clickcarry.total_value
+        })
+
+        template_data = {
+            'first': {
+                'value': template.header.format(carry_count).decode('string_escape'),
+                'color': '#F87217',
+            },
+            'keyword1': {
+                'value': u'点击收益',
+                'color': '#000000',
+            },
+            'keyword2': {
+                'value': u'%.2f元' % (carry_money * 0.01),
+                'color': '#ff0000',
+            },
+            'keyword3': {
+                'value': u'%s' % clickcarry.modified.strftime('%Y-%m-%d %H:%M:%S'),
+                'color': '#000000',
+            },
+            'keyword4': {
+                'value': u'%.2f元（可提现）' % (mama.get_carry()[0] * 0.01),
+                'color': '#000000',
+            },
+            'remark': {
+                'value': template.footer.decode('string_escape'),
+                'color': '#F87217',
+            },
+        }
+        to_url = 'http://m.xiaolumeimei.com/rest/v2/mama/redirect_stats_link?link_id=4'
+
+        event = WeixinPushEvent(customer_id=customer.id, mama_id=mama_id, uni_key=uni_key, tid=template.id,
+                                event_type=event_type, params=template_data, to_url=to_url)
+        event.save()
 
     def push_mama_update_app(self, mama_id, user_version, latest_version, to_url, device=''):
         """
@@ -368,9 +450,8 @@ class WeixinPush(object):
 
         return self.push(customer, template_ids, template_data, to_url)
 
-    def push_mama_invite_trial(
-            self, referal_mama_id, potential_mama_id, diff_num, award_num,
-            invite_num, award_sum, trial_num, carry_num):
+    def push_mama_invite_trial(self, referal_mama_id, potential_mama_id, diff_num, award_num,
+                               invite_num, award_sum, trial_num, carry_num):
         """
         {{first.DATA}}
         姓名：{{keyword1.DATA}}
@@ -522,8 +603,6 @@ class WeixinPush(object):
         }
         return self.push(customer, template_ids, template_data, to_url)
 
-
-    
     def push_event(self, event_instance):
         customer = event_instance.get_effect_customer()
         if not customer:
@@ -542,7 +621,7 @@ class WeixinPush(object):
             template_data.update({'first': {'value': template.header.decode('string_escape'), 'color':'#F87217'}})
         footer = template_data.get('remark')
         if not footer:
-            template_data.update({'remark': {'value': template.footer.decode('string_escape'), 'color':'#F87217'}})        
+            template_data.update({'remark': {'value': template.footer.decode('string_escape'), 'color':'#F87217'}})
         to_url = event_instance.to_url
         if not to_url:
             from flashsale.promotion.models import ActivityEntry
@@ -556,7 +635,7 @@ class WeixinPush(object):
             desc = ''
             if remark:
                 desc = remark.get('value')
-                
+
             desc += u'\n\n今日热门:\n［%s］%s' % (entry.title, entry.act_desc)
             template_data.update({'remark': {'value': desc, 'color':'#ff6633'}})
 

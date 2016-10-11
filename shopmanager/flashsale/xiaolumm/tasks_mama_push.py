@@ -6,6 +6,7 @@ import datetime
 from celery.task import task
 from flashsale.xiaolumm.models import XiaoluMama, NinePicAdver, WeixinPushEvent
 from flashsale.push import push_mama
+from shopapp.weixin.weixin_push import WeixinPush
 from flashsale.xiaolumm.util_emoji import gen_emoji, match_emoji
 from shopapp.weixin.models import WeixinUnionID
 from django.db.models import Count, Sum
@@ -65,8 +66,14 @@ def task_weixin_push_awardcarry(awardcarry):
     to_url = 'http://m.xiaolumeimei.com'
     if awardcarry.carry_type == 1 or awardcarry.carry_type == 2:
         to_url = 'http://m.xiaolumeimei.com/rest/v2/mama/redirect_stats_link?link_id=1'
-        
+
     wp.push_mama_award(awardcarry, courage_remarks, to_url)
+
+
+@task
+def task_weixin_push_clickcarry(clickcarry):
+    wp = WeixinPush()
+    wp.push_mama_clickcarry(clickcarry)
 
 
 @task(max_retries=3, default_retry_delay=6)

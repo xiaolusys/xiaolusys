@@ -39,7 +39,8 @@ class MamaTabVisitStats(BaseModel):
     TAB_WX_ARTICLE_LINK = 22
     TAB_WX_TUTORIAL = 23 # 新手教程
     TAB_WX_BIND_MOBILE = 24
-    
+    TAB_WX_PUSH_CLICK_CARRY = 25
+
     STATS_TABS = ((TAB_UNKNOWN, 'Unknown'), (TAB_MAMA_FORTUNE, u'妈妈主页'), (TAB_DAILY_NINEPIC, u'每日推送'),
                   (TAB_NOTIFICATION, u'消息通知'), (TAB_MAMA_SHOP, u'店铺精选'), (TAB_INVITE_MAMA, u'邀请妈妈'),
                   (TAB_CARRY_LIST, u'选品佣金'), (TAB_VIP_EXAM, u'VIP考试'), (TAB_MAMA_TEAM, u'妈妈团队'),
@@ -48,7 +49,9 @@ class MamaTabVisitStats(BaseModel):
                   (TAB_WX_APP_DOWNLOAD, u'WX/APP下载'), (TAB_WX_REFERAL_QRCODE, u'WX/开店二维码'), (TAB_WX_MANAGER_QRCODE, u'WX/管理员二维码'),
                   (TAB_WX_KEFU, u'WX/客服菜单'), (TAB_WX_PERSONAL, u'WX/个人帐户'), (TAB_WX_CASHOUT_APP_DOWNLOAD, u'WX/提现页APP下载'),
                   (TAB_WX_PUSH_REDIRECT_LINK, u'WX/跳转专题链接'), (TAB_WX_ARTICLE_LINK, u'WX/跳转微信文章'), (TAB_WX_TUTORIAL, u'WX/新手教程'),
-                  (TAB_WX_BIND_MOBILE, u'WX/绑定手机'))
+                  (TAB_WX_BIND_MOBILE, u'WX/绑定手机'),
+                  (TAB_WX_PUSH_CLICK_CARRY, u'WX/点击收益推送')
+    )
 
     stats_tab = models.IntegerField(default=0, choices=STATS_TABS, db_index=True, verbose_name=u'功能TAB')
     uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')  # stats_tab+date
@@ -65,7 +68,7 @@ class MamaTabVisitStats(BaseModel):
 class MamaDeviceStats(BaseModel):
     device_type = models.IntegerField(default=0, choices=MamaDailyAppVisit.DEVICE_TYPES, db_index=True, verbose_name=u'设备')
     renew_type = models.IntegerField(default=0, choices=XiaoluMama.RENEW_TYPE, db_index=True, verbose_name=u'妈妈类型')
-    
+
     uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')  # device_type+date
     date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
     num_latest = models.IntegerField(default=0, verbose_name=u'最新版本数')
@@ -81,7 +84,7 @@ class MamaDeviceStats(BaseModel):
     @staticmethod
     def gen_uni_key(device_type, date_field, renew_type):
         return "%s-%s-%s" % (device_type, date_field, renew_type)
-    
+
     @property
     def outdated_percentage(self):
         total = self.num_outdated + self.num_latest
@@ -139,15 +142,23 @@ class WeixinPushEvent(BaseModel):
     ORDER_CARRY_INIT = 4
     FANS_SUBSCRIBE_NOTIFY = 5
     SUB_ORDER_CARRY_INIT = 6
-    
-    EVENT_TYPES = ((INVITE_FANS_NOTIFY, u'粉丝增加'), (INVITE_AWARD_INIT, u'邀请奖励生成'), (INVITE_AWARD_FINAL, u'邀请奖励确定'),
-                   (FANS_SUBSCRIBE_NOTIFY, u'关注公众号'), (ORDER_CARRY_INIT, u'订单佣金生成'), (SUB_ORDER_CARRY_INIT, u'下属订单佣金生成'))
+    CLICK_CARRY = 7
+
+    EVENT_TYPES = (
+        (INVITE_FANS_NOTIFY, u'粉丝增加'),
+        (INVITE_AWARD_INIT, u'邀请奖励生成'),
+        (INVITE_AWARD_FINAL, u'邀请奖励确定'),
+        (FANS_SUBSCRIBE_NOTIFY, u'关注公众号'),
+        (ORDER_CARRY_INIT, u'订单佣金生成'),
+        (SUB_ORDER_CARRY_INIT, u'下属订单佣金生成'),
+        (CLICK_CARRY, u'点击收益'),
+    )
 
     TEMPLATE_ORDER_CARRY_ID = 2
     TEMPLATE_INVITE_FANS_ID = 7
     TEMPLATE_SUBSCRIBE_ID = 8
     TEMPLATE_IDS = ((TEMPLATE_INVITE_FANS_ID, '模版/粉丝增加'),(TEMPLATE_SUBSCRIBE_ID, '模版/关注公众号'),(TEMPLATE_ORDER_CARRY_ID, '模版/订单佣金'))
-    
+
     customer_id = models.IntegerField(default=0, db_index=True, verbose_name=u'接收者用户id')
     mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'接收者妈妈id')
     uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')
@@ -156,14 +167,14 @@ class WeixinPushEvent(BaseModel):
     date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
     params = JSONCharMyField(max_length=512, default={}, blank=True, null=True, verbose_name=u"参数信息")
     to_url = models.CharField(max_length=128, blank=True, verbose_name=u'跳转链接')
-    
+
     class Meta:
         db_table = 'flashsale_xlmm_weixinpushevent'
         app_label = 'xiaolumm'
         verbose_name = u'V2/微信推送事件'
         verbose_name_plural = u'V2/微信推送事件列表'
 
-        
+
     @staticmethod
     def gen_uni_key(customer_id, event_type, date_field):
         return '%s-%s|%s' % (customer_id, event_type, date_field)
@@ -187,7 +198,7 @@ class WeixinPushEvent(BaseModel):
     @staticmethod
     def gen_ordercarry_unikey(event_type, sale_trade_id):
         return "%s-%s" % (event_type, sale_trade_id)
-    
+
 def send_weixin_push(sender, instance, created, **kwargs):
     if not created:
         return
@@ -195,6 +206,6 @@ def send_weixin_push(sender, instance, created, **kwargs):
     from shopapp.weixin.weixin_push import WeixinPush
     wxpush = WeixinPush()
     wxpush.push_event(instance)
-        
+
 post_save.connect(send_weixin_push, sender=WeixinPushEvent, dispatch_uid='post_save_weixinpushevent_send_weixin_push')
 

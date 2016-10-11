@@ -40,8 +40,17 @@ def test_push_new_mama_task():
     task_push_new_mama_task(xlmm, NewMamaTask.TASK_FIRST_FANS)
 
 
+def test_push_clickcarry():
+    from flashsale.xiaolumm.models.models_fortune import ClickCarry
+
+    push = WeixinPush()
+    clickcarry = ClickCarry.objects.filter().order_by('-created').first()
+    push.push_mama_clickcarry(clickcarry)
+
+
 if __name__ == '__main__':
     import django
     django.setup()
 
-    test_push_new_mama_task()
+    # test_push_new_mama_task()
+    test_push_clickcarry()

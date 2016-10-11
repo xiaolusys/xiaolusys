@@ -521,7 +521,7 @@ class XiaoluMama(models.Model):
         today_time = datetime.datetime(today.year, today.month, today.day)
         return self.agencylevel >= self.VIP_LEVEL and self.charge_status == self.CHARGED and \
             self.status == self.EFFECT and self.renew_time > today_time
-           
+
 
     def get_cash_iters(self):
         if not self.is_cashoutable():
@@ -598,7 +598,7 @@ class XiaoluMama(models.Model):
     @property
     def unionid(self):
         return self.openid
-    
+
     @property
     def customer_id(self):
         from flashsale.pay.models import Customer
@@ -837,6 +837,20 @@ class XiaoluMama(models.Model):
             return True
         return False
 
+    def get_carry(self):
+        """
+        获取妈妈收益
+
+        (确定收益，预计收益)
+        """
+        from flashsale.xiaolumm.models.models_fortune import CarryRecord
+
+        carry_confirmed = CarryRecord.objects.filter(
+            mama_id=self.id, status=CarryRecord.CONFIRMED).aggregate(Sum('carry_num'))
+        carry_pending = CarryRecord.objects.filter(
+            mama_id=self.id, status=CarryRecord.PENDING).aggregate(Sum('carry_num'))
+        return (carry_confirmed['carry_num__sum'], carry_pending['carry_num__sum'])
+
     def get_next_new_mama_task(self):
         """
         获取未完成的新手任务
@@ -1036,7 +1050,7 @@ class CashOut(BaseModel):
     cash_out_type = models.CharField(max_length=8, choices=TYPE_CHOICES, default=RED_PACKET, verbose_name=u'提现类型')
     date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
     uni_key = models.CharField(max_length=128, blank=True, null=True, unique=True, verbose_name=u'唯一ID')
-    
+
     class Meta:
         db_table = 'xiaolumm_cashout'
         app_label = 'xiaolumm'
@@ -1070,7 +1084,7 @@ class CashOut(BaseModel):
         date_field = datetime.date.today()
         count = cls.objects.filter(xlmm=mama_id, cash_out_type=cash_out_type, date_field=date_field).count()
         return '%s-%d-%d|%s' % (cash_out_type, mama_id, count+1, date_field)
-                    
+
     @property
     def value_money(self):
         return self.get_value_display()
