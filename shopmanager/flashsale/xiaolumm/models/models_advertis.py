@@ -83,6 +83,8 @@ class NinePicAdver(models.Model):
     turns_num = models.IntegerField(verbose_name=u'轮数(第几轮)')
     is_pushed = models.BooleanField(default=False, verbose_name=u'是否已经推送')
     detail_modelids = models.CharField(max_length=128, blank=True, null=True, verbose_name=u'详情页款式id')
+    save_times = models.IntegerField(default=0, verbose_name=u'保存次数')
+    share_times = models.IntegerField(default=0, verbose_name=u'分享次数')
 
     class Meta:
         db_table = 'flashsale_xlmm_nine_pic'
@@ -128,5 +130,3 @@ class MamaVebViewConf(BaseModel):
         app_label = 'xiaolumm'
         verbose_name = u'客户端妈妈页面配置表'
         verbose_name_plural = u'客户端妈妈页面配置列表'
-
-
