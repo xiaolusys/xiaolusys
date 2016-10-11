@@ -108,6 +108,8 @@ class TeamBuy(AdminModel):
             share_link = '/mall/order/spell/group/' + str(self.id) + '?mm_linkid=' + str(self.share_xlmm_id) + '&from_page=share'
         else:
             share_link = '/mall/order/spell/group/' + str(self.id) + '?from_page=share'
+
+        share_link = urlparse.urljoin(settings.M_SITE_URL, share_link)
         return {
             'id': self.id,
             'title': u'一起来团购 %s' %(self.sku.product.name,),
