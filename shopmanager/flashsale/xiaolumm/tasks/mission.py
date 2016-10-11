@@ -68,7 +68,7 @@ def task_push_mission_state_msg_to_weixin_user(mission_record_id, state):
             week_end_time = datetime.datetime.strptime('%s-0' % mama_mission.year_week, '%Y-%W-%w')
             mission_kpi_unit = base_mission.kpi_type == MamaMission.KPI_COUNT and u'个' or u'元'
             params = {
-                'header': u'女王，您有笔交易退款，导致(%s)周销售任务未达预期奖励取消，请到小鹿美美app任务列表查看吧！',
+                'header': u'女王，您有笔交易退款，导致(%s)周销售任务未达预期奖励取消，请到小鹿美美app任务列表查看吧！'%mama_mission.year_week,
                 'footer': u'妈妈销售奖励预计收益，需７天后变成确认收益，退款会影响收益到账哦( 如有疑问请咨询客服热线: 400-823-5355 )',
                 'task_name': base_mission.name,
                 'award_amount': u'￥%.2f' % mama_mission.get_award_amount(),
@@ -115,10 +115,10 @@ def func_push_award_mission_to_mama(xiaolumama, mission, year_week):
 def create_or_update_once_mission(xiaolumama, mission):
     """ 对应一次性任务进行更新 """
     year_week = datetime.datetime.now().strftime('%Y-%W')
-
+    mama_id = xiaolumama.id
     if mission.cat_type == mission.CAT_FIRST_ORDER:
         first_orderaward = AwardCarry.objects.filter(
-            mama_id=xiaolumama.id, carry_type=AwardCarry.AWARD_FIRST_ORDER)\
+            mama_id=mama_id, carry_type=AwardCarry.AWARD_FIRST_ORDER)\
             .exclude(status=AwardCarry.CANCEL).only('id').first()
         if first_orderaward:
             return
@@ -127,16 +127,18 @@ def create_or_update_once_mission(xiaolumama, mission):
 
     if mission.cat_type == mission.CAT_OPEN_COURSE:
         first_orderaward = AwardCarry.objects.filter(
-            mama_id=xiaolumama.id, carry_type=AwardCarry.AWARD_OPEN_COURSE) \
+            mama_id=mama_id, carry_type=AwardCarry.AWARD_OPEN_COURSE) \
             .exclude(status=AwardCarry.CANCEL).only('id').first()
         if first_orderaward:
             return
 
     mama_mission = MamaMissionRecord.objects.filter(
-        mission=mission, mama_id=xiaolumama.id).first()
-    if mission.is_receivable() and not mama_mission:
+        mission=mission, mama_id=mama_id).first()
+
+    mission_receiveable = mission.is_receivable(mama_id)
+    if mission_receiveable and not mama_mission:
         func_push_award_mission_to_mama(xiaolumama, mission, year_week)
-    elif mission.is_receivable() and not mama_mission.is_finished():
+    elif mission_receiveable and not mama_mission.is_finished():
         if mama_mission.year_week != year_week:
             mama_mission.year_week = year_week
             mama_mission.status = MamaMissionRecord.STAGING
@@ -144,7 +146,7 @@ def create_or_update_once_mission(xiaolumama, mission):
 
             # # 消息通知妈妈一次性任务还未完成
             # task_push_mission_state_msg_to_weixin_user.delay(mama_mission.id)
-    elif not mission.is_receivable() and not mama_mission.is_finished():
+    elif not mission_receiveable and not mama_mission.is_finished():
         mama_mission.status = MamaMissionRecord.CLOSE
         mama_mission.save()
 
@@ -152,10 +154,11 @@ def create_or_update_once_mission(xiaolumama, mission):
 def create_or_update_weekly_mission(xiaolumama, mission, year_week):
     """ 对应周任务进行更新 return: -1表示关闭或不存在, 0 正在进行, 1表示已完成"""
     cur_year_week = datetime.datetime.now().strftime('%Y-%W')
+    mama_id  = xiaolumama.id
     mama_mission = MamaMissionRecord.objects.filter(
-        mission=mission, mama_id=xiaolumama.id, year_week=year_week).first()
+        mission=mission, mama_id=mama_id, year_week=year_week).first()
 
-    if mission.is_receivable() and not mama_mission and year_week == cur_year_week:
+    if mission.is_receivable(mama_id) and not mama_mission and year_week == cur_year_week:
         func_push_award_mission_to_mama(xiaolumama, mission, year_week)
         return 0
 
@@ -186,7 +189,10 @@ def fresh_mama_weekly_mission_bycat(xiaolumama, cat_type, year_week):
 
 @task
 def task_create_or_update_mama_mission_state(mama_id):
-
+    """
+    妈妈周激励任务生成条件:
+      1, 连续两周有订单;
+    """
     # 首单任务检查, 如果未成交则更新year_week未当前时间；
     # 妈妈授课任务, 如果未成交则更新year_week未当前时间；
     # TODO@meron 需要修改之前首单红包十单红包逻辑, 已发放妈妈状态更新

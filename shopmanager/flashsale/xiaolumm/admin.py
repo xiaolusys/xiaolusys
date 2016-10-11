@@ -5,7 +5,7 @@ from django.contrib import admin
 from django.contrib.auth.models import User
 from django.db.models import Sum
 
-from core.admin import ApproxAdmin
+from core.admin import ApproxAdmin, BaseAdmin
 from core.filters import DateFieldListFilter
 from flashsale.clickcount.models import ClickCount
 from flashsale.clickrebeta.models import StatisticsShoppingByDay
@@ -21,6 +21,7 @@ from flashsale.xiaolumm.models import (
     MamaTabVisitStats,
     MamaDeviceStats,
     MamaDailyTabVisit,
+    MamaSaleGrade,
     MamaMission,
     MamaMissionRecord,
     RankActivity,
@@ -809,6 +810,15 @@ class MamaDeviceStatsAdmin(ApproxAdmin):
 
 
 admin.site.register(MamaDeviceStats, MamaDeviceStatsAdmin)
+
+
+class MamaSaleGradeAdmin(BaseAdmin):
+    list_display = ('mama', 'grade', 'combo_count', 'last_record_time', 'total_finish_count', 'first_finish_time',
+                    'created', 'modified')
+    list_filter = ('grade',  ('first_finish_time', DateFieldListFilter),  ('created', DateFieldListFilter))
+    search_fields = ('=mama',)
+
+admin.site.register(MamaSaleGrade, MamaSaleGradeAdmin)
 
 
 class MamaMissionAdmin(admin.ModelAdmin):

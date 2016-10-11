@@ -50,15 +50,24 @@ def get_group_carry_num(num):
 
 def get_mama_target_stage(value):
     # 根据目标值获取妈妈目标等级
-    if value < 30:
+    if value < 3000:
         return 0
-    if value <= 500:
-        return (value - 30) / 100 + 1
-    return (value - 500) / 120 + 6
+    if value <= 50000:
+        return (value - 3000) / 10000 + 1
+    return (value - 50000) / 12000 + 5
+
 
 def get_mama_stage_target(stage):
     if stage < 1:
-        return 100
+        return 10000
     if stage < 6:
-        return stage * 100
-    return 500 + (stage - 5) * 120
+        return stage * 10000
+    return 50000 + (stage - 5) * 12000
+
+
+def get_mama_sale_grade_award(grade):
+    return (grade / 30000) * 1500
+
+
+def get_mama_sale_combo_award(times):
+    return times * 1500
