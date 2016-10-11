@@ -836,7 +836,7 @@ class MamaMissionRecordAdmin(ApproxAdmin):
                     'mission', 'year_week', 'target_value', 'finish_value', 'award_amount',
                     'status', 'finish_time', 'created')
     list_filter = ('year_week', 'status', 'mission__cat_type', 'mission__target',
-                   'mission__kpi_type', ('finish_time', DateFieldListFilter))
+                   'mission__kpi_type', ('finish_time', DateFieldListFilter),('created', DateFieldListFilter))
     search_fields = ('=id', '=mama_id', '^mission__name')
 
 admin.site.register(MamaMissionRecord, MamaMissionRecordAdmin)
