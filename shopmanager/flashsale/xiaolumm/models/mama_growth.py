@@ -428,12 +428,11 @@ class MamaMissionRecord(BaseModel):
     def update_mission_value(self, finish_value):
         cur_year_week = datetime.datetime.now().strftime('%Y-%W')
         # 任务奖励确认
-        if finish_value >= self.target_value:
-            if not self.is_finished():
-                self.status = self.FINISHED
-                self.finish_value = finish_value
-                self.finish_time = datetime.datetime.now()
-                self.save(update_fields=['finish_value', 'status', 'finish_time'])
+        if finish_value >= self.target_value and not self.is_finished():
+            self.status = self.FINISHED
+            self.finish_value = finish_value
+            self.finish_time = datetime.datetime.now()
+            self.save(update_fields=['finish_value', 'status', 'finish_time'])
 
             # 通知妈妈邀请任务奖励已发放, 该处值发放团队奖励, 妈妈销售奖励, 团队销售奖励
             if self.mission.kpi_type == MamaMission.KPI_AMOUNT \
