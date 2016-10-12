@@ -276,11 +276,14 @@ class InBound(models.Model):
             完成质检
         :return:
         """
+        err_sku_ids = []
         for inbound_detail_id in data:
             inbound_detail = InBoundDetail.objects.get(id=inbound_detail_id)
             for record in inbound_detail.records.all():
                 if record.arrival_quantity > record.orderdetail.buy_quantity - record.orderdetail.arrival_quantity:
-                    raise Exception(u'分配的SKU数量超过了订货数，请重新分配')
+                    err_sku_ids.append(inbound_detail.sku_id)
+        if err_sku_ids:
+            raise Exception(u'分配的SKU数量超过了订货数，请重新分配:' + str(err_sku_ids))
         for inbound_detail_id in data:
             inbound_detail = InBoundDetail.objects.get(id=inbound_detail_id)
             if inbound_detail.checked:
