@@ -143,6 +143,7 @@ class WeixinPushEvent(BaseModel):
     FANS_SUBSCRIBE_NOTIFY = 5
     SUB_ORDER_CARRY_INIT = 6
     CLICK_CARRY = 7
+    PINTUAN_SUCCESS = 8
 
     EVENT_TYPES = (
         (INVITE_FANS_NOTIFY, u'粉丝增加'),
@@ -152,6 +153,7 @@ class WeixinPushEvent(BaseModel):
         (ORDER_CARRY_INIT, u'订单佣金生成'),
         (SUB_ORDER_CARRY_INIT, u'下属订单佣金生成'),
         (CLICK_CARRY, u'点击收益'),
+        (PINTUAN_SUCCESS, u'拼团成功'),
     )
 
     TEMPLATE_ORDER_CARRY_ID = 2

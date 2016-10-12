@@ -128,6 +128,13 @@ class TeamBuy(AdminModel):
         print qrcode_link
         return push_qrcode_to_remote('teambuy_' + str(self.id), qrcode_link)
 
+    def get_creator(self):
+        """
+        获取团长
+        """
+        customer = Customer.objects.filter(id=self.creator).first()
+        return customer
+
 
 def update_teambuy_status(sender, instance, created, **kwargs):
     if instance.status == 0:
