@@ -72,9 +72,7 @@ class WeiXinAPI(object):
     # 客服消息接口
     _send_custom_message_uri = '/cgi-bin/message/custom/send'
 
-    def __init__(self, **kwargs):
-        wxpubId = kwargs.get('wxpubId')
-        appKey  = kwargs.get('appKey')
+    def __init__(self, wxpubId=None, appKey=None, **kwargs):
         if wxpubId or appKey:
             self.setAccountId(wxpubId=wxpubId, appKey=appKey)
 
@@ -395,7 +393,7 @@ class WeiXinAPI(object):
         key_pairs.sort()
 
         sign_params['signature'] = hashlib.sha1('&'.join(key_pairs)).hexdigest()
-        sign_params['app_id'] = self._wx_account.app_id
+        sign_params['app_id'] = self.getAppKey()
 
         return sign_params
 

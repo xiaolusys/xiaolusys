@@ -138,7 +138,7 @@ def create_or_update_once_mission(xiaolumama, mission):
     mission_receiveable = mission.is_receivable(mama_id)
     if mission_receiveable and not mama_mission:
         func_push_award_mission_to_mama(xiaolumama, mission, year_week)
-    elif mission_receiveable and not mama_mission.is_finished():
+    elif mission_receiveable and mama_mission and not mama_mission.is_finished():
         if mama_mission.year_week != year_week:
             mama_mission.year_week = year_week
             mama_mission.status = MamaMissionRecord.STAGING
@@ -146,7 +146,7 @@ def create_or_update_once_mission(xiaolumama, mission):
 
             # # 消息通知妈妈一次性任务还未完成
             # task_push_mission_state_msg_to_weixin_user.delay(mama_mission.id)
-    elif not mission_receiveable and not mama_mission.is_finished():
+    elif not mission_receiveable and mama_mission and not mama_mission.is_finished():
         mama_mission.status = MamaMissionRecord.CLOSE
         mama_mission.save()
 
@@ -339,7 +339,8 @@ def task_cancel_mama_weekly_award(mama_id, mission_record_id):
 
         uni_key = mama_mission.gen_uni_key()
         award_carry = AwardCarry.objects.filter(uni_key= uni_key).first()
-        award_carry.cancel_award()
+        if award_carry:
+            award_carry.cancel_award()
     except Exception, exc:
         raise task_cancel_mama_weekly_award.retry(exc=exc)
 
