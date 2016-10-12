@@ -143,6 +143,8 @@ class SaleRefund(PayBaseModel):
         db_index=True, choices=REFUND_STATUS,
         default=REFUND_WAIT_SELLER_AGREE, blank=True, verbose_name=u'退款状态'
     )
+    postage_num = models.IntegerField(default=0, verbose_name=u'退邮费金额(分)')
+    coupon_num = models.IntegerField(default=0, verbose_name=u'优惠券金额(分)')
 
     objects = SaleRefundManager()
 
@@ -182,6 +184,13 @@ class SaleRefund(PayBaseModel):
     def get_oid(self):
         sorder = self.sale_order()
         return sorder.oid
+
+    def get_refund_budget_logs(self):
+        """
+        功能：　获取退到余额信息
+        """
+        from flashsale.pay.models import BudgetLog
+        return BudgetLog.objects.filter(referal_id=self.id, budget_log_type=BudgetLog.BG_REFUND)
 
     @property
     def is_refundapproved(self):
@@ -401,35 +410,96 @@ class SaleRefund(PayBaseModel):
         sale_order.save(update_fields=['refund_status', 'modified'])
         return
 
-    @property
-    def is_returngoodsable(self):
-        """ 是否可以退货: 退款单在申请状态 并且 用户已经收到包裹 """
-        return self.status == SaleRefund.REFUND_WAIT_SELLER_AGREE and self.good_status == SaleRefund.BUYER_RECEIVED
-
     def agree_return_goods(self):
         """ 同意退货 """
         if self.is_returngoodsable:
             self.status = SaleRefund.REFUND_WAIT_RETURN_GOODS
             self.save(update_fields=['status', 'modified'])
-            # self.update_sale_order_refund_status()  # 更新sale_order refund_status
             return True
         return False
+
+    @property
+    def postage_num_display(self):
+        return self.postage_num / 100.0
+
+    @property
+    def coupon_num_display(self):
+        return self.coupon_num / 100.0
+
+    @property
+    def is_returngoodsable(self):
+        """ 是否可以退货: 退款单在申请状态 并且 用户已经收到包裹 """
+        return self.status == SaleRefund.REFUND_WAIT_SELLER_AGREE and self.good_status == SaleRefund.BUYER_RECEIVED
+
+    @property
+    def is_modifiable(self):
+        return self.status not in [SaleRefund.NO_REFUND,
+                                   SaleRefund.REFUND_APPROVE,
+                                   SaleRefund.REFUND_SUCCESS,
+                                   SaleRefund.REFUND_CLOSED]
+
+    @property
+    def is_seller_responsible(self):
+        """
+        功能：　判断　退款原因　是否是　商家责任
+        """
+        from shopback.refunds.models import REFUND_REASON
+        # 商家责任
+        if self.reason in [REFUND_REASON[2][1],  # 缺货
+                           REFUND_REASON[3][1],  # 开线
+                           REFUND_REASON[4][1],  # 发错货
+                           REFUND_REASON[5][1],  # 没有发货
+                           REFUND_REASON[6][1],  # 未收到货
+                           REFUND_REASON[7][1],  # 与描述不符
+                           REFUND_REASON[8][1],  # 退运费
+                           REFUND_REASON[9][1]]:  # 发票问题
+            return True
+        return False
+
+    def send_return_goods_back_message(self):
+        """
+        功能：　同意退货　后　发送　消息给用户　让用户　填写物流信息和快递单号
+        """
+        # TODO: jie.lin
+        return
 
     def auto_approve_return_goods(self):
         """
         自动同意退货:
         1. 用户提交退款单　
-        if 如果是退货申请　& 是非质量原因退货　
-        then : 修改该退款单状态到　同意申请状态　REFUND_WAIT_RETURN_GOODS
+        如果是退货申请　& 非商家原因造成的退货 则　修改该退款单状态到　同意申请状态
         """
-        # 退款待审核状态 买家收到货　
-        from shopback.refunds.models import REFUND_REASON
-        if self.reason in [REFUND_REASON[3][1],
-                           REFUND_REASON[4][1],
-                           REFUND_REASON[10][1]]:  # 质量原因/错发/漏发/七天无理由
+        if not self.is_seller_responsible:
             self.agree_return_goods()
+            self.send_return_goods_back_message()
             return True
         return False
+
+    @transaction.atomic()
+    def return_fee_by_refund_product(self):
+        """
+        功能：　根据　refund app 的RefundProduct 来给用户退款
+        1. 状态检查
+        2. 退　退款　到余额
+        3. 退　邮费　到余额
+        4. 补贴　优惠券
+        5. 修改退款单状态
+        """
+        if self.good_status != SaleRefund.BUYER_RETURNED_GOODS or self.status != SaleRefund.REFUND_CONFIRM_GOODS:
+            return logger.error({'action': u'return_fee_by_refund_product',
+                                 'message': u'退款单状态错误 不予退款',
+                                 'salerefund': self.id})
+        from flashsale.pay.models import BudgetLog
+        from flashsale.coupon.models import UserCoupon
+        flow_amount = min(self.refund_fee, self.payment)*100
+        BudgetLog.create_salerefund_log(self, flow_amount)
+        if 0 < self.postage_num <= 2000:
+            BudgetLog.create_salerefund_log(self, self.postage_num)
+        if self.coupon_num > 0:
+            UserCoupon.create_salerefund_post_coupon(self.buyer_id, self.trade_id, money=(self.coupon_num / 100))
+        self.status = SaleRefund.REFUND_SUCCESS
+        self.save(update_fields=['status'])
+        return True
 
 
 def roll_back_usercoupon_status(sender, instance, created, *args, **kwargs):

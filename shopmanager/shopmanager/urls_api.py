@@ -11,4 +11,5 @@ urlpatterns = patterns('',
     url(r'^statistics/', include('statistics.urls_api')),
     url(r'^auth/', include('auth.urls_api')),
     url(r'^finance/', include('flashsale.finance.urls_api')),
+    url(r'^pay/', include('flashsale.pay.urls_api')),
 )

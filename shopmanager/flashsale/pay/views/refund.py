@@ -2,18 +2,22 @@
 import datetime
 from django.forms import model_to_dict
 from django.db.models import Sum
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import permissions
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework.views import APIView
-
-from flashsale.pay.models import SaleTrade, SaleOrder, Customer, SaleRefund
-from shopback.items.models import Product, ProductDaySale
+from rest_framework import viewsets
+from rest_framework import authentication
+from rest_framework import exceptions
 from core.options import log_action, CHANGE
+from shopback.items.models import Product, ProductDaySale
+from flashsale.pay.models import SaleTrade, SaleOrder, SaleRefund
 from flashsale.pay.tasks import task_send_msg_for_refund
+from flashsale.pay import serializers
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -126,11 +130,12 @@ class RefundPopPageView(APIView):
 
         refund_dict['refundd_message'] = ""
         if sale_refund.is_fastrefund():  # 如果是极速退款
-            refund_dict['refundd_message'] = "[1]退回小鹿钱包 %.2f 元 实付余额%.2f"%(
+            refund_dict['refundd_message'] = "[1]退回小鹿钱包 %.2f 元 实付余额%.2f" % (
                 sale_refund.refund_fee,
-                strade.payment > 0 and (sale_refund.refund_fee / strade.payment) * (strade.payment - strade.pay_cash) or 0)
+                strade.payment > 0 and (sale_refund.refund_fee / strade.payment) * (
+                    strade.payment - strade.pay_cash) or 0)
         else:
-            refund_dict['refundd_message'] = "[2]退回%s %.2f元"%(strade.get_channel_display(), sale_refund.refund_fee)
+            refund_dict['refundd_message'] = "[2]退回%s %.2f元" % (strade.get_channel_display(), sale_refund.refund_fee)
 
         refund_dict['tid'] = strade.tid
         refund_dict['channel'] = strade.get_channel_display()
@@ -140,9 +145,6 @@ class RefundPopPageView(APIView):
         refund_dict['payment'] = sale_order.payment
         refund_dict['order_s'] = sale_order.status
         refund_dict['pay_time'] = strade.pay_time
-        # refund_dict['merge_trade_status'] = merge_trade.get_status_display()
-        # refund_dict['merge_sys_status'] = merge_trade.get_sys_status_display()
-        # refund_dict['sys_memo'] = merge_trade.sys_memo
         refund_dict['logistics_company'] = strade.logistics_company
         refund_dict['out_sid'] = strade.out_sid
         refund_dict['logistics_time'] = strade.consign_time
@@ -176,8 +178,6 @@ class RefundPopPageView(APIView):
                                   SaleRefund.REFUND_WAIT_RETURN_GOODS,
                                   SaleRefund.REFUND_CONFIRM_GOODS):
                     strade = SaleTrade.objects.get(id=obj.trade_id)
-                    sorder = SaleOrder.objects.get(id=obj.order_id)
-                    customer = Customer.objects.get(id=strade.buyer_id)
                     if strade.channel == SaleTrade.WALLET:
                         obj.refund_wallet_approve()
 
@@ -224,4 +224,41 @@ class RefundPopPageView(APIView):
 
         task_send_msg_for_refund.s(obj).delay()
         return Response({"res": True})
+
+
+class SaleRefundViewSet(viewsets.ModelViewSet):
+    queryset = SaleRefund.objects.all()
+    serializer_class = serializers.SaleRefundSerializer
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated, permissions.DjangoModelPermissions, permissions.IsAdminUser)
+
+    def list(self, request, *args, **kwargs):
+        return Response({'code': 0, 'info': u'暂时为开放'})
+
+    def destroy(self, request, *args, **kwargs):
+        return Response({'code': 0, 'info': u'暂时为开放'})
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        status = int(request.data.get('status'))
+        if not instance.is_modifiable:
+            raise exceptions.APIException(u'退款单当前状态不予更新退款单!')
+        if instance.status == SaleRefund.REFUND_WAIT_RETURN_GOODS and \
+                        status != instance.status and \
+                        status != SaleRefund.REFUND_SUCCESS:
+            raise exceptions.APIException(u'退款单当前状态不予操作!')
+        if instance.status == SaleRefund.REFUND_WAIT_SELLER_AGREE and status == SaleRefund.REFUND_WAIT_RETURN_GOODS:
+            # 如果是从退款待审　到　同意退货　则发送　退回信息
+            instance.send_return_goods_back_message()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        log_action(request.user.id, instance, CHANGE, u'审核退款单')
+        return Response(serializer.data)
 

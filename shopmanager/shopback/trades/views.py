@@ -1645,7 +1645,6 @@ class TradeSearchView(APIView):
                 #     trade.sys_status, u'其他')                                #系统状态
                 trade_dict['sys_status'] = trade.get_assign_status_display()
                 trade_list.append(trade_dict)
-        print trade_list
         return Response(trade_list)
 
     def post(self, request, *args, **kwargs):

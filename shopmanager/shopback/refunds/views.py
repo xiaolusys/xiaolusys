@@ -256,8 +256,11 @@ class RefundView(APIView):
     def post(self, request, *args, **kwargs):
         content = request.REQUEST
         rf = RefundProduct()
-        refundproduct = RefundProduct.objects.filter(trade_id=content['trade_id'],outer_sku_id=content['outer_sku_id'],\
-                                     buyer_phone=content['buyer_phone'],title=content['title'],outer_id=content['outer_id']).first()
+        refundproduct = RefundProduct.objects.filter(trade_id=content['trade_id'],
+                                                     outer_sku_id=content['outer_sku_id'],
+                                                     buyer_phone=content['buyer_phone'],
+                                                     title=content['title'],
+                                                     outer_id=content['outer_id']).first()
         if refundproduct:
             return Response(serializers.RefundProductSerializer(refundproduct).data)
         for k, v in content.iteritems():
@@ -271,11 +274,20 @@ class RefundView(APIView):
         # 创建一条退货款单记录
         log_action(request.user.id, rf, CHANGE, u'创建退货商品记录')
         update_Unrelate_Prods_Product(pro=rf, req=request)  # 关联退货
-        update_Product_Collect_Num(pro=rf, req=request)  # 更新产品库存
 
-        # return rf
+        # 创建时候发送消息
+        refund_product = RefundProduct.objects.get(id=rf.id)  # 重新获取(避免缓存问题)
+        refund_product.send_goods_backed_message()
+
+        if refund_product.check_salerefund_conformably():  # 退货和退款单信息一致
+            sale_refund = refund_product.get_sale_refund()
+            if not sale_refund:
+                return
+            sale_refund.return_fee_by_refund_product()
+
+        update_Product_Collect_Num(pro=rf, req=request)  # 更新产品库存
         return Response(serializers.RefundProductSerializer(rf).data)
-        #return Response(True)
+
 
 @csrf_exempt
 @staff_member_required

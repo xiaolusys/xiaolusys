@@ -606,6 +606,14 @@ class UserCoupon(BaseModel):
         tasks.task_update_tpl_released_coupon_nums.delay(tpl)
         return cou
 
+    @classmethod
+    def create_salerefund_post_coupon(cls, buyer_id, trade_id, money):
+        tpl = CouponTemplate.objects.filter(coupon_type=CouponTemplate.TYPE_COMPENSATE,
+                                            value=money, status=CouponTemplate.SENDING).first()
+        template_id = tpl.id if tpl else 0
+        return cls.objects.create_refund_post_coupon(buyer_id, template_id, trade_id)
+
+
 # 注释代码:  2016-9-30
 # def update_unionid_download_record(sender, instance, created, **kwargs):
 #     if instance.coupon_type != UserCoupon.TYPE_ORDER_SHARE:  # 非的呢订单分享类型

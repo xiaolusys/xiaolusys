@@ -5,6 +5,7 @@ import time
 import datetime
 from common.utils import parse_datetime
 from django.db import models
+from django.utils.functional import cached_property
 from django.db.models import Sum
 from shopback import paramconfig as pcfg
 from shopback.users.models import User
@@ -265,6 +266,40 @@ class RefundProduct(models.Model):
         res = RefundProduct.objects.filter(
             sku_id=sku_id, can_reuse=can_reuse, created__gt=begin_time).aggregate(n=Sum("num")).get('n',0)
         return res or 0
+
+    @cached_property
+    def sale_trade(self):
+        if not hasattr(self, '_sale_trade_'):
+            from flashsale.pay.models import SaleTrade
+            self._sale_trade_ = SaleTrade.objects.filter(tid=self.trade_id).first()
+        return self._sale_trade_
+
+    def get_sale_refund(self):
+        trade_id = self.sale_trade.id if self.sale_trade else 0
+        from flashsale.pay.models import SaleRefund
+        if not hasattr(self, '_sale_refund_'):
+            self._sale_refund_ = SaleRefund.objects.filter(trade_id=trade_id, sku_id=self.sku_id).first()
+        return self._sale_refund_
+
+    def send_goods_backed_message(self):
+        """
+        功能：　发送　用户的退货　已经到达仓库的　消息给用户
+        """
+        # TODO: jie.lin
+        return
+
+    def check_salerefund_conformably(self):
+        """
+        功能：　检查是否  和　退款单　信息一致　（检查）
+        """
+        sale_refund = self.get_sale_refund()
+        if not sale_refund:
+            return False
+        # 数量　物流单号
+        if self.out_sid == sale_refund.sid and self.num == sale_refund.refund_num:
+            return True
+        return False
+
 
 def update_warehouse_receipt_status(sender, instance, created, **kwargs):
     """ 仓库接收客户退货拆包更新 warehouse APP 中的 ReceiptGoods 相同快递单记录的拆包状态到 拆包状态 """
