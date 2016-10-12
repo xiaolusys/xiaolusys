@@ -5,6 +5,8 @@ import logging
 import datetime
 from django.conf import settings
 from flashsale.xiaolumm.models import XiaoluMama, WeixinPushEvent
+from flashsale.pay.models.teambuy import TeamBuyDetail
+from flashsale.pay.models.trade import SaleTrade
 from shopapp.weixin.weixin_apis import WeiXinAPI
 from shopapp.weixin.models_base import (
     WeixinFans,
@@ -48,6 +50,9 @@ class WeixinPush(object):
 
         temai_openid = WeixinFans.get_openid_by_unionid(customer.unionid, settings.WEIXIN_APPID)
         mm_openid = WeixinFans.get_openid_by_unionid(customer.unionid, settings.WXPAY_APPID)
+
+        # mm_openid = 'our5huD8xO6QY-lJc1DTrqRut3us'
+        # temai_openid = None
 
         resp = None
         if mm_openid:
@@ -338,6 +343,10 @@ class WeixinPush(object):
         template_id = 'ZlEFblgBFQqCSabHyr0MrSS6nREGxQHKjEMnrgs3w5Q'
         template = WeixinTplMsg.objects.filter(wx_template_id=template_id, status=True).first()
 
+        template_ids = {
+            'meimei': 'ZlEFblgBFQqCSabHyr0MrSS6nREGxQHKjEMnrgs3w5Q',
+        }
+
         if not template:
             return
 
@@ -347,7 +356,7 @@ class WeixinPush(object):
                 'color': '#F87217',
             },
             'keyword1': {
-                'value': u'%s' % '',
+                'value': u'%s' % teambuy.sku.product.name,
                 'color': '#000000',
             },
             'keyword2': {
@@ -363,7 +372,10 @@ class WeixinPush(object):
                 'color': '#F87217',
             },
         }
-        to_url = 'http://m.xiaolumeimei.com/rest/v2/mama/redirect_stats_link?link_id=4'
+        to_url = 'http://m.xiaolumeimei.com/mall/order/spell/group/{teambuy_id}?mm_linkid={mama_id}&from_page=wx_push'.format(**{
+            'teambuy_id': teambuy.id,
+            'mama_id': teambuy.share_xlmm_id
+        })
 
         uni_key = 'pintuan_success-{teambuy_id}-{customer_id}'.format(**{
             'teambuy_id': teambuy.id,
@@ -371,12 +383,129 @@ class WeixinPush(object):
         })
         event_type = WeixinPushEvent.PINTUAN_SUCCESS
 
-        event = WeixinPushEvent(customer_id=customer.id, mama_id=mama_id, uni_key=uni_key, tid=template.id,
-                                event_type=event_type, params=template_data, to_url=to_url)
-        event.save()
+        # event = WeixinPushEvent(customer_id=customer.id, mama_id=mama_id, uni_key=uni_key, tid=template.id,
+        #                         event_type=event_type, params=template_data, to_url=to_url)
+        # event.save()
+        return self.push(customer, template_ids, template_data, to_url)
 
-    def push_pintuan_fail(self):
-        pass
+    def push_pintuan_fail(self, teambuy, customer):
+        """
+        拼团失败通知
+
+        {{first.DATA}}
+        拼团商品：{{keyword1.DATA}}
+        商品金额：{{keyword2.DATA}}
+        退款金额：{{keyword3.DATA}}
+        {{remark.DATA}}
+        """
+
+        mama = customer.get_xiaolumm()
+        mama_id = mama.id if mama else 0
+
+        template_id = 'wUOE2gHR9DdCcmtXXlWeSGHngl30i3bwZjMS7ZaVq7E'
+        template = WeixinTplMsg.objects.filter(wx_template_id=template_id, status=True).first()
+
+        template_ids = {
+            'meimei': 'wUOE2gHR9DdCcmtXXlWeSGHngl30i3bwZjMS7ZaVq7E',
+        }
+
+        detail = TeamBuyDetail.objects.filter(teambuy_id=teambuy.id, customer_id=customer.id).first()
+        trade = SaleTrade.objects.get(tid=detail.tid)
+
+
+        template_data = {
+            'first': {
+                'value': template.header.decode('string_escape'),
+                'color': '#F87217',
+            },
+            'keyword1': {
+                'value': u'%s' % teambuy.sku.product.name,
+                'color': '#000000',
+            },
+            'keyword2': {
+                'value': u'%.2f' % trade.total_fee,
+                'color': '#ff0000',
+            },
+            'keyword3': {
+                'value': u'%.2f' % trade.total_fee,
+                'color': '#000000',
+            },
+            'remark': {
+                'value': template.footer.decode('string_escape'),
+                'color': '#F87217',
+            },
+        }
+
+        to_url = 'http://m.xiaolumeimei.com/mall/order/spell/group/{teambuy_id}?mm_linkid={mama_id}&from_page=wx_push'.format(**{
+            'teambuy_id': teambuy.id,
+            'mama_id': teambuy.share_xlmm_id
+        })
+
+        uni_key = 'pintuan_fail-{teambuy_id}-{customer_id}'.format(**{
+            'teambuy_id': teambuy.id,
+            'customer_id': customer.id,
+        })
+        return self.push(customer, template_ids, template_data, to_url)
+
+    def push_pintuan_need_more_people(self, teambuy, customer):
+        """
+        参团人数不足提醒
+
+        {{first.DATA}}
+        团购商品：{{keyword1.DATA}}
+        剩余拼团时间：{{keyword2.DATA}}
+        剩余拼团人数：{{keyword3.DATA}}
+        {{remark.DATA}}
+        """
+        mama = customer.get_xiaolumm()
+        mama_id = mama.id if mama else 0
+
+        template_id = 'V14lbfObhpoyEltUUnk-pxzpow66kOO7CeKC6hIawGM'
+        template = WeixinTplMsg.objects.filter(wx_template_id=template_id, status=True).first()
+
+        template_ids = {
+            'meimei': 'V14lbfObhpoyEltUUnk-pxzpow66kOO7CeKC6hIawGM',
+        }
+
+        if teambuy.status != 0:  # 不是开团状态
+            return
+
+        remain_person_num = teambuy.limit_person_num - TeamBuyDetail.objects.filter(teambuy_id=teambuy.id).count()
+        remain_hour = (teambuy.limit_time - datetime.datetime.now()).seconds / 3600
+
+        template_data = {
+            'first': {
+                'value': template.header.decode('string_escape'),
+                'color': '#F87217',
+            },
+            'keyword1': {
+                'value': u'%s' % teambuy.sku.product.name,
+                'color': '#000000',
+            },
+            'keyword2': {
+                'value': u'%s小时' % remain_hour,
+                'color': '#ff0000',
+            },
+            'keyword3': {
+                'value': u'%s人' % remain_person_num,
+                'color': '#000000',
+            },
+            'remark': {
+                'value': template.footer.decode('string_escape'),
+                'color': '#F87217',
+            },
+        }
+
+        to_url = 'http://m.xiaolumeimei.com/mall/order/spell/group/{teambuy_id}?mm_linkid={mama_id}&from_page=wx_push'.format(**{
+            'teambuy_id': teambuy.id,
+            'mama_id': teambuy.share_xlmm_id
+        })
+
+        uni_key = 'pintuan_fail-{teambuy_id}-{customer_id}'.format(**{
+            'teambuy_id': teambuy.id,
+            'customer_id': customer.id,
+        })
+        return self.push(customer, template_ids, template_data, to_url)
 
     def push_mama_clickcarry(self, clickcarry):
         """
@@ -405,9 +534,9 @@ class WeixinPush(object):
         if not template:
             return
 
-        today = datetime.datetime.now().date().strftime('%Y%m%d')
-        q_str = '{mama_id}-{date}-clickcarry'.format(**{'mama_id': mama_id, 'date': today})
-        last_event = WeixinPushEvent.objects.filter(uni_key__startswith=q_str).order_by('-created').first()
+        today = datetime.datetime.now().date()
+        last_event = WeixinPushEvent.objects.filter(
+            mama_id=mama_id, date_field=today, event_type=WeixinPushEvent.CLICK_CARRY).order_by('-created').first()
 
         if last_event:
             _, _, _, last_click_num, last_total_value = last_event.uni_key.split('-')
@@ -424,7 +553,7 @@ class WeixinPush(object):
 
         uni_key = '{mama_id}-{date}-clickcarry-{click_num}-{total_value}'.format(**{
             'mama_id': mama_id,
-            'date': today,
+            'date': today.strftime('%Y%m%d'),
             'click_num': clickcarry.click_num,
             'total_value': clickcarry.total_value
         })
