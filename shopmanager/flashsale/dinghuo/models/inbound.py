@@ -428,7 +428,7 @@ class InBound(models.Model):
         if self.is_finished():
             orderlist_ids = self.order_list_ids
         else:
-            orderlist_ids = self.get_may_allocate_order_list_ids()
+            orderlist_ids = list(set(self.get_may_allocate_order_list_ids() + self.order_list_ids))
         orderlists_dict = {}
         for orderlist in OrderList.objects.filter(id__in=orderlist_ids):
             orderlists_dict[orderlist.id] = {
@@ -737,8 +737,11 @@ class InBoundDetail(models.Model):
     def get_allocate_info(self):
         if self.out_stock_num > 0:
             return u'多货'
-        elif self.out_stock_num < 0:
-            return u'过多分配'
+        elif not self.checked:
+            errs = self.get_overload_orderlist_ids()
+            if errs:
+                errs_str = ','.join(errs)
+                return u'超额分配到' + errs_str
         return u'完全分配'
 
     def sync_order_detail(self):
@@ -799,9 +802,25 @@ class InBoundDetail(models.Model):
         :param inferior_quantity:
         :return:
         """
+
         self.set_quantity(arrival_quantity, inferior_quantity)
+        overload_orderlist_ids = self.get_overload_orderlist_ids()
+        if overload_orderlist_ids:
+            errs_str = ','.join(overload_orderlist_ids)
+            raise Exception(u'入库单%d的SKU%d无法审核，否则会导致订货单%s超额' % (self.inbound_id, self.sku_id, errs_str))
         self.finish_check2()
         self.save()
+
+    def get_overload_orderlist_ids(self):
+        """
+            返回None表示无超额
+        """
+        errs = []
+        for record in self.records.all():
+            orderdetail = record.orderdetail
+            if orderdetail.buy_quantity < orderdetail.arrival_quantity + record.arrival_quantity:
+                errs.append(str(orderdetail.orderlist.id))
+        return errs
 
     def finish_check(self):
         """
@@ -810,6 +829,10 @@ class InBoundDetail(models.Model):
         """
         if self.wrong:
             raise Exception(u"错货无法通过质检")
+        overload_orderlist_ids = self.get_overload_orderlist_ids()
+        if overload_orderlist_ids:
+            errs_str = ','.join(overload_orderlist_ids)
+            raise Exception(u'入库单%d的SKU%d无法审核，否则会导致订货单%s超额' % (self.inbound_id, self.sku_id, errs_str))
         if not self.status == InBoundDetail.NORMAL:
             self.status = InBoundDetail.NORMAL
         if not self.checked:
