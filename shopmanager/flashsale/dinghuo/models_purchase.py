@@ -152,9 +152,9 @@ class PurchaseArrangement(BaseModel):
     oid = models.CharField(max_length=32, db_index=True, verbose_name=u'sku交易单号')
 
     # PurchaseRecord.uni_key + purchase_order_unikey
-    uni_key = models.CharField(max_length=32, unique=True, verbose_name=u'唯一id ')
+    uni_key = models.CharField(max_length=64, unique=True, verbose_name=u'唯一id ')
     purchase_order_unikey = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'订货单唯一id')
-    purchase_record_unikey = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'PR唯一id')
+    purchase_record_unikey = models.CharField(max_length=64, db_index=True, blank=True, verbose_name=u'PR唯一id')
 
     outer_id = models.CharField(max_length=32, db_index=True, verbose_name=u'产品外部编码')  # color-level code
     outer_sku_id = models.CharField(max_length=32, blank=True, verbose_name=u'规格ID')  # size-level code

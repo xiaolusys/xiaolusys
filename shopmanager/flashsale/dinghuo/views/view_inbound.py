@@ -407,8 +407,11 @@ class InBoundViewSet(viewsets.GenericViewSet):
         inbound = get_object_or_404(InBound, pk=pk)
         inferior_data = request.POST.get("data")
         sku_data = json.loads(inferior_data)
-        inbound.finish_check(sku_data)
-        return Response({'res': True})
+        try:
+            inbound.finish_check(sku_data)
+            return Response({'res': True})
+        except Exception, e0:
+            raise exceptions.ParseError(e0.message)
 
     @detail_route(methods=['post'])
     def finish_item_check(self, request, pk):
