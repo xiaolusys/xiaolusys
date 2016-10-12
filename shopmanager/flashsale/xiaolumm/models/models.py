@@ -518,8 +518,7 @@ class XiaoluMama(BaseModel):
         today = datetime.date.today()
         today_time = datetime.datetime(today.year, today.month, today.day)
         return self.agencylevel >= self.VIP_LEVEL and self.charge_status == self.CHARGED and \
-            self.status == self.EFFECT and self.renew_time > today_time
-
+            self.status == self.EFFECT
 
     def get_cash_iters(self):
         if not self.is_cashoutable():
