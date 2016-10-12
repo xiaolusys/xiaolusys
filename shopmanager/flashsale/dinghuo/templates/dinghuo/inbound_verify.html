@@ -198,7 +198,7 @@
                     </div>
                 </td>
                 <td>
-                    <div id="status_{{detail.sku.id}}">{{detail.get_status_info}}</div>
+                    <div id="status_{{detail.sku.id}}">{{detail.get_allocate_info}}</div>
                 </td>
                 <td>
                     <input type="number" class="arrival-quantity" style="width:30px" min="0" value="{{detail.arrival_quantity}}" readonly>
@@ -573,8 +573,8 @@
                          swal('质检通过', '', 'success');
                          window.location = '/sale/dinghuo/inbound/'+INBOUND_ID;
                      },
-                     function(result){
-                         alert("质检失败:"+ result);
+                     error: function(result){
+                         alert(result.responseJSON.detail);
                      }
                  });
              });
@@ -602,7 +602,7 @@
                         $btn_recheck.show();
                      },
                      error: function(result){
-                        alert(result);
+                        alert(result.responseJSON.detail);
                      }
                  });
              });
