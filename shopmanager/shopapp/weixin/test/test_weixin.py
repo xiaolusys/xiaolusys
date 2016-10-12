@@ -7,6 +7,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shopmanager.local_settings")
 from shopapp.weixin.weixin_push import WeixinPush
 from flashsale.pay.models.trade import SaleTrade, SaleOrder
 from flashsale.pay.models.refund import SaleRefund
+from flashsale.pay.models.user import Customer
 from flashsale.xiaolumm.models.models_fortune import OrderCarry, AwardCarry
 
 
@@ -48,9 +49,19 @@ def test_push_clickcarry():
     push.push_mama_clickcarry(clickcarry)
 
 
+def test_push_pintuan():
+    from flashsale.pay.models.teambuy import TeamBuy
+
+    customer = Customer.objects.filter(mobile='15716692522').first()
+    push = WeixinPush()
+    teambuy = TeamBuy.objects.filter(id=1).first()
+    push.push_pintuan_need_more_people(teambuy, customer)
+
+
 if __name__ == '__main__':
     import django
     django.setup()
 
     # test_push_new_mama_task()
-    test_push_clickcarry()
+    # test_push_clickcarry()
+    test_push_pintuan()
