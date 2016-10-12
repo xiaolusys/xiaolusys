@@ -232,8 +232,11 @@ def task_create_or_update_mama_mission_state(mama_id):
 
 @task
 def task_update_all_mama_mission_state():
-    xiaolumms = XiaoluMama.objects.filter(status=XiaoluMama.EFFECT,
-                                          charge_status=XiaoluMama.CHARGED)
+    xiaolumms = XiaoluMama.objects.filter(
+        status=XiaoluMama.EFFECT,
+        charge_status=XiaoluMama.CHARGED,
+        last_renew_type__in=(XiaoluMama.HALF, XiaoluMama.FULL)
+    )
     xiaolumama_ids = xiaolumms.values_list('id', flat=True)
     for mama_id in xiaolumama_ids:
        task_create_or_update_mama_mission_state.delay(mama_id)

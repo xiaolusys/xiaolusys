@@ -135,7 +135,7 @@ class ActivityGoodsViewSet(viewsets.ModelViewSet):
         if len(coupon_getafter_pic) != len(coupon_getbefore_pic):
             return Response({"code": 2, "info": "优惠券领前,领后数目不一致"})
 
-        coupon_getafter_pic_dict = dict([(p['model_id', p]) for p in coupon_getafter_pic])
+        coupon_getafter_pic_dict = dict([(p['model_id'], p) for p in coupon_getafter_pic])
         user_coupon_template_ids = []
         if customer:
             user_coupon_template_ids = UserCoupon.objects.filter(customer_id=customer.id)\
