@@ -85,7 +85,7 @@ def task_get_unserinfo_and_create_accounts(openid, wx_pubid):
             from shopapp.weixin.tasks.base import task_snsauth_update_weixin_userinfo
             task_snsauth_update_weixin_userinfo.delay(userinfo, app_key)
 
-        if not userinfo or not userinfo.get('headimgurl').strip():
+        if not userinfo or not userinfo.get('headimgurl'):
             return
 
         task_create_scan_customer.delay(userinfo)
@@ -491,7 +491,7 @@ def task_create_mama_referal_qrcode_and_response_weixin(wxpubId, openid, event, 
         
         userinfo = get_or_fetch_userinfo(openid, wxpubId)
         unionid = userinfo['unionid']
-        if not userinfo or not userinfo.get('headimgurl').strip():
+        if not userinfo or not userinfo.get('headimgurl'):
             return
 
         mama = XiaoluMama.objects.filter(openid=unionid).first()
@@ -523,7 +523,7 @@ def task_create_mama_and_response_manager_qrcode(wxpubId, openid, event, eventKe
 
         userinfo = get_or_fetch_userinfo(openid, wxpubId)
         unionid = userinfo['unionid']
-        if not userinfo or not userinfo.get('headimgurl').strip():
+        if not userinfo or not userinfo.get('headimgurl'):
             return
         mama = XiaoluMama.objects.filter(openid=unionid).first()
         # 获取创建用户小鹿妈妈信息,

@@ -123,7 +123,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.tz',
     #    'django.core.context_processors.request',
     'django.contrib.messages.context_processors.messages',
-    'core.middleware.context_processors.session',
+    # 'core.middleware.context_processors.session',
 )
 
 INSTALLED_APPS =(
