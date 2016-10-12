@@ -614,7 +614,6 @@ class BudgetLog(PayBaseModel):
         功能: 发送余额　信息　记录
         """
         # TODO: jie.lin  task.delay()
-        print "budget_log send_message: task ......"
         return
 
     def get_flow_amount_display(self):
