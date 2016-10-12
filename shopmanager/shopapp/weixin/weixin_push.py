@@ -322,7 +322,7 @@ class WeixinPush(object):
 
         return self.push(customer, template_ids, template_data, to_url)
 
-    def push_pintuan_success(self, teambuy):
+    def push_pintuan_success(self, teambuy, customer):
         """
         拼团成功通知
 
@@ -332,7 +332,14 @@ class WeixinPush(object):
         成团人数：{{keyword3.DATA}}
         {{remark.DATA}}
         """
+        mama = customer.get_xiaolumm()
+        mama_id = mama.id if mama else 0
+
         template_id = 'ZlEFblgBFQqCSabHyr0MrSS6nREGxQHKjEMnrgs3w5Q'
+        template = WeixinTplMsg.objects.filter(wx_template_id=template_id, status=True).first()
+
+        if not template:
+            return
 
         template_data = {
             'first': {
@@ -340,15 +347,15 @@ class WeixinPush(object):
                 'color': '#F87217',
             },
             'keyword1': {
-                'value': u'点击收益',
+                'value': u'%s' % '',
                 'color': '#000000',
             },
             'keyword2': {
-                'value': u'%.2f元' % (carry_money * 0.01),
+                'value': u'%s' % teambuy.get_creator().nick,
                 'color': '#ff0000',
             },
             'keyword3': {
-                'value': u'%s' % clickcarry.modified.strftime('%Y-%m-%d %H:%M:%S'),
+                'value': u'%s' % teambuy.limit_person_num,
                 'color': '#000000',
             },
             'remark': {
@@ -356,6 +363,17 @@ class WeixinPush(object):
                 'color': '#F87217',
             },
         }
+        to_url = 'http://m.xiaolumeimei.com/rest/v2/mama/redirect_stats_link?link_id=4'
+
+        uni_key = 'pintuan_success-{teambuy_id}-{customer_id}'.format(**{
+            'teambuy_id': teambuy.id,
+            'customer_id': customer.id,
+        })
+        event_type = WeixinPushEvent.PINTUAN_SUCCESS
+
+        event = WeixinPushEvent(customer_id=customer.id, mama_id=mama_id, uni_key=uni_key, tid=template.id,
+                                event_type=event_type, params=template_data, to_url=to_url)
+        event.save()
 
     def push_pintuan_fail(self):
         pass
@@ -389,7 +407,7 @@ class WeixinPush(object):
 
         today = datetime.datetime.now().date().strftime('%Y%m%d')
         q_str = '{mama_id}-{date}-clickcarry'.format(**{'mama_id': mama_id, 'date': today})
-        last_event = WeixinPushEvent.objects.filter(uni_key__contains=q_str).order_by('-created').first()
+        last_event = WeixinPushEvent.objects.filter(uni_key__startswith=q_str).order_by('-created').first()
 
         if last_event:
             _, _, _, last_click_num, last_total_value = last_event.uni_key.split('-')
