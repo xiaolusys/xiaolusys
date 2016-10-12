@@ -279,9 +279,8 @@ class InBound(models.Model):
         err_sku_ids = []
         for inbound_detail_id in data:
             inbound_detail = InBoundDetail.objects.get(id=inbound_detail_id)
-            for record in inbound_detail.records.all():
-                if record.arrival_quantity > record.orderdetail.buy_quantity - record.orderdetail.arrival_quantity:
-                    err_sku_ids.append(inbound_detail.sku_id)
+            if inbound_detail.get_overload_orderlist_ids():
+                err_sku_ids.append(inbound_detail.sku_id)
         if err_sku_ids:
             raise Exception(u'分配的SKU数量超过了订货数，请重新分配:' + str(err_sku_ids))
         for inbound_detail_id in data:
@@ -737,11 +736,12 @@ class InBoundDetail(models.Model):
     def get_allocate_info(self):
         if self.out_stock_num > 0:
             return u'多货'
-        elif not self.checked:
-            errs = self.get_overload_orderlist_ids()
-            if errs:
-                errs_str = ','.join(errs)
-                return u'超额分配到' + errs_str
+        errs = self.get_overload_orderlist_ids()
+        if errs:
+            errs_str = ','.join(errs)
+            return u'超额分配到' + errs_str
+        if self.out_stock_num < 0:
+            return u'相关订货单多货'
         return u'完全分配'
 
     def sync_order_detail(self):
@@ -818,7 +818,7 @@ class InBoundDetail(models.Model):
         errs = []
         for record in self.records.all():
             orderdetail = record.orderdetail
-            if orderdetail.buy_quantity < orderdetail.arrival_quantity + record.arrival_quantity:
+            if orderdetail.buy_quantity < orderdetail.arrival_quantity + (record.arrival_quantity if not self.checked else 0):
                 errs.append(str(orderdetail.orderlist.id))
         return errs
 
