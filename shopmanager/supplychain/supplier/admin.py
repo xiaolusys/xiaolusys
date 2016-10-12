@@ -392,7 +392,7 @@ class SaleProductAdmin(ApproxAdmin):
     list_filter = ('status', ('sale_time', DateScheduleFilter),CategoryFilter,'is_changed',
                    ('modified', DateFieldListFilter), 'platform', BuyerGroupFilter,
                    ('created', DateFieldListFilter), 'librarian', "buyer")
-    search_fields = ['=id', '=title', '=outer_id']
+    search_fields = ['=id', '^title', '=outer_id']
     list_per_page = 25
 
     # --------设置页面布局----------------

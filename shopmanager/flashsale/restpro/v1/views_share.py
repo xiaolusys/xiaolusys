@@ -1,10 +1,10 @@
 # -*- coding:utf8 -*-
 import urllib
 import datetime
-from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponseRedirect
 from django.conf import settings
+from django.core.cache import cache
 
 from rest_framework import viewsets
 from rest_framework.decorators import detail_route, list_route
@@ -115,9 +115,9 @@ class CustomShareViewSet(viewsets.ReadOnlyModelViewSet):
         referer_url = request.GET.get('referer', http_referer).split('#')[0]
 
         wx_api = WeiXinAPI(appKey=settings.WXPAY_APPID)
-        signparams = wx_api.getShareSignParams(referer_url)
+        cache_signs = wx_api.getShareSignParams(referer_url)
 
-        return Response(signparams)
+        return Response(cache_signs)
 
 
     @list_route(methods=['get'])

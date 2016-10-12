@@ -39,10 +39,10 @@ class STOThermalSet(viewsets.ViewSet):
         name = request.GET.get('name')
         mobile = request.GET.get('mobile')
         print_info = json.dumps(constant_extra.param_waybill_cloud_print_apply_new_request)
-        print_info.replace("wojia",detail)
-        print_info.replace("shanghai",province)
-        print_info.replace("denghui",name)
-        print_info.replace("15800972458",mobile)
+        print_info = print_info.replace("wojia",detail)
+        print_info = print_info.replace("shanghai",province)
+        print_info = print_info.replace("denghui",name)
+        print_info = print_info.replace("15800972458",mobile)
         a = {'param_waybill_cloud_print_apply_new_request': print_info}
         thermal_info = STOthermal_extra.get_exp_template(**a)
         if thermal_info:

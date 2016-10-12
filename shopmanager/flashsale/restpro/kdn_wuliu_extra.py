@@ -216,8 +216,9 @@ def write_traces(kwargs):
     if tradewuliu.first() is None:
         TradeWuliu.objects.create(**write_info)
         comfirm_get(write_info["out_sid"],write_info["status"])
-        PackageSkuItem.objects.filter(out_sid=write_info["out_sid"]).first().cancel_failed_time()
-
+        psi = PackageSkuItem.objects.filter(out_sid=write_info["out_sid"]).first()
+        if psi:
+            psi.cancel_failed_time()
     elif write_info["content"] != tradewuliu.first().content:
         tradewuliu.update(**write_info)
         comfirm_get(write_info["out_sid"], write_info["status"])
