@@ -49,7 +49,7 @@ class OrderListAdmin(BaseModelAdmin):
     list_display = (
         'id', 'buyer_select', 'order_amount', 'calcu_model_num', 'quantity', 'purchase_total_num', 'shelf_status',
         'created', 'press_num', 'stage', 'get_receive_status', 'is_postpay', 'changedetail', 'supplier', 'note_name',
-        'purchase_order_unikey_link', 'remind_link')
+        'purchase_order_unikey_link', 'express_no', 'remind_link')
     list_filter = (('created', DateFieldListFilter), 'stage', 'arrival_process', 'is_postpay', 'press_num',
                    'pay_status', BuyerNameFilter, 'last_pay_date', 'created_by')
     search_fields = ['id', 'supplier__supplier_name', 'supplier_shop', 'express_no', 'note', 'purchase_order_unikey']
