@@ -591,8 +591,31 @@ class BudgetLog(PayBaseModel):
             return mama.id
         return ''
 
+    @classmethod
+    def create_salerefund_log(cls, refund, flow_amount):
+        """
+        功能：　创建退款单对应的　余额记录
+        """
+        uni_key = cls.gen_uni_key(refund.buyer_id, BudgetLog.BUDGET_IN, BudgetLog.BG_REFUND)
+        budget_log = cls(customer_id=refund.buyer_id,
+                         flow_amount=flow_amount,
+                         budget_type=BudgetLog.BUDGET_IN,
+                         budget_log_type=BudgetLog.BG_REFUND,
+                         budget_date=datetime.date.today(),
+                         referal_id=refund.id,
+                         status=BudgetLog.CONFIRMED,
+                         uni_key=uni_key)
+        budget_log.save()
+        budget_log.send_message()
+        return budget_log
 
-        
+    def send_message(self):
+        """
+        功能: 发送余额　信息　记录
+        """
+        # TODO: jie.lin  task.delay()
+        return
+
     def get_flow_amount_display(self):
         """ 返回金额　"""
         return self.flow_amount / 100.0

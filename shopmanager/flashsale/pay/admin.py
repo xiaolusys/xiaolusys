@@ -374,7 +374,8 @@ class SaleRefundAdmin(BaseModelAdmin):
 
     def order_no(self, obj):
         strade = SaleTrade.objects.get(id=obj.trade_id)
-        html = '<a onclick="show_page({1})" class="click_row_{1}">{0}</a>'.format(strade.tid, obj.id)
+        # html = '<a onclick="show_page({1})" class="click_row_{1}">{0}</a>'.format(strade.tid, obj.id)
+        html = '<a onclick="showSaleRefundPage({0})" class="click_row_{0}">{1}</a>'.format(obj.id, strade.tid)
         return html
 
     order_no.allow_tags = True
@@ -417,7 +418,9 @@ class SaleRefundAdmin(BaseModelAdmin):
                      'classes': ('collapse',),
                      'fields': (('buyer_nick', 'mobile', 'phone',),
                                 ('item_id', 'sku_id', 'refund_id', 'charge',),
-                                ('amount_flow'))
+                                ('amount_flow'),
+                                ('postage_num', 'coupon_num')
+                                )
 
                  }),
                  ('审核信息:', {
@@ -569,7 +572,7 @@ class SaleRefundAdmin(BaseModelAdmin):
 
     class Media:
         css = {"all": ()}
-        js = ("script/slaerefund_poppage.js", "layer-v1.9.2/layer/layer.js")
+        js = ("salerefund/js/salerefund.js", "layer-v1.9.2/layer/layer.js")
 
 
 admin.site.register(SaleRefund, SaleRefundAdmin)
