@@ -36,7 +36,7 @@ def get_userinfo_from_database(openid, app_key):
 def get_or_fetch_userinfo(openid, wx_pubid):
     wx_api = WeiXinAPI()
     wx_api.setAccountId(wxpubId=wx_pubid)
-    app_key = wx_api.getAccount().app_id
+    app_key = wx_api.getAppKey()
 
     userinfo = get_userinfo_from_database(openid, app_key)
     if not userinfo:
@@ -66,30 +66,32 @@ def task_create_scan_xiaolumama(wx_userinfo):
         mama.save()
 
 
-@task
+@task(max_retries=3, default_retry_delay=15)
 def task_get_unserinfo_and_create_accounts(openid, wx_pubid):
     """
     Initially, this task should be invoked for every weixin user.
     In the future, this task should only be invoked upon user subscribe.
     """
-    wx_api = WeiXinAPI()
-    wx_api.setAccountId(wxpubId=wx_pubid)
-    app_key = wx_api.getAccount().app_id
+    try:
+        wx_api = WeiXinAPI(wxpubId=wx_pubid)
+        app_key = wx_api.getAppKey()
 
-    userinfo = get_userinfo_from_database(openid, app_key)
-    if not userinfo:
-        userinfo = wx_api.getCustomerInfo(openid)
-        if not userinfo or userinfo.get('subscribe') == 0:
+        userinfo = get_userinfo_from_database(openid, app_key)
+        if not userinfo:
+            userinfo = wx_api.getCustomerInfo(openid)
+            if not userinfo or userinfo.get('subscribe') == 0:
+                return
+
+            from shopapp.weixin.tasks.base import task_snsauth_update_weixin_userinfo
+            task_snsauth_update_weixin_userinfo.delay(userinfo, app_key)
+
+        if not userinfo or not userinfo.get('headimgurl').strip():
             return
 
-        from shopapp.weixin.tasks.base import task_snsauth_update_weixin_userinfo
-        task_snsauth_update_weixin_userinfo.delay(userinfo, app_key)
-    
-    if not userinfo or not userinfo.get('headimgurl').strip():
-        return
-    
-    task_create_scan_customer.delay(userinfo)
-    task_create_scan_xiaolumama.delay(userinfo)
+        task_create_scan_customer.delay(userinfo)
+        task_create_scan_xiaolumama.delay(userinfo)
+    except Exception, exc:
+        raise task_get_unserinfo_and_create_accounts.retry(exc=exc)
     
     
 @task    
@@ -113,45 +115,45 @@ def task_create_scan_potential_mama(referal_from_mama_id, potential_mama_id, pot
     pm.save()
 
 
-@task
+@task(max_retries=3, default_retry_delay=15)
 def task_create_or_update_weixinfans_upon_subscribe_or_scan(openid, wx_pubid, event, eventkey):
     """
     For subscribe.
     """
+    try:
+        qrscene = eventkey.lower().replace('qrscene_', '')
+        subscribe_time = datetime.datetime.now()
 
-    qrscene = eventkey.lower().replace('qrscene_', '')
-    subscribe_time = datetime.datetime.now()
+        wx_api = WeiXinAPI(wxpubId=wx_pubid)
+        app_key = wx_api.getAppKey()
 
-    wx_api = WeiXinAPI()
-    wx_api.setAccountId(wxpubId=wx_pubid)
-    app_key = wx_api.getAccount().app_id
+        userinfo = get_userinfo_from_database(openid, app_key)
+        if not userinfo:
+            userinfo = wx_api.getCustomerInfo(openid)
 
-    userinfo = get_userinfo_from_database(openid, app_key)
-    if not userinfo:
-        userinfo = wx_api.getCustomerInfo(openid)
-    
-    # if not set headimg return
-    if not (userinfo and userinfo.get('headimgurl') and userinfo.get('headimgurl').strip()):
-        return
+        # if not set headimg return
+        if not (userinfo and userinfo.get('headimgurl') and userinfo.get('headimgurl').strip()):
+            return
 
-    fan = WeixinFans.objects.filter(app_key=app_key, openid=openid).first()
-    if fan:
-        if event == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE.lower():
-            fan.subscribe_time = subscribe_time
-            fan.subscribe = True
-        elif event == WeiXinAutoResponse.WX_EVENT_SCAN.lower():
-            if not fan.subscribe:
+        fan = WeixinFans.objects.filter(app_key=app_key, openid=openid).first()
+        if fan:
+            if event == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE.lower():
+                fan.subscribe_time = subscribe_time
                 fan.subscribe = True
-        if not fan.get_qrscene() and qrscene:
-            fan.set_qrscene(qrscene)
+            elif event == WeiXinAutoResponse.WX_EVENT_SCAN.lower():
+                if not fan.subscribe:
+                    fan.subscribe = True
+            if not fan.get_qrscene() and qrscene:
+                fan.set_qrscene(qrscene)
+            fan.save()
+            return
+
+        unionid = userinfo['unionid']
+        fan = WeixinFans(openid=openid,app_key=app_key,unionid=unionid,subscribe=True,subscribe_time=subscribe_time)
+        fan.set_qrscene(qrscene)
         fan.save()
-        return
-
-    unionid = userinfo['unionid']
-    fan = WeixinFans(openid=openid,app_key=app_key,unionid=unionid,subscribe=True,subscribe_time=subscribe_time)
-    fan.set_qrscene(qrscene)
-    fan.save()
-
+    except Exception, exc:
+        raise task_create_or_update_weixinfans_upon_subscribe_or_scan.retry(exc=exc)
 
 @task
 def task_update_weixinfans_upon_unsubscribe(openid, wx_pubid):
@@ -160,7 +162,7 @@ def task_update_weixinfans_upon_unsubscribe(openid, wx_pubid):
     """
     wx_api = WeiXinAPI()
     wx_api.setAccountId(wxpubId=wx_pubid)
-    app_key = wx_api.getAccount().app_id
+    app_key = wx_api.getAppKey()
 
     unsubscribe_time = datetime.datetime.now()
     WeixinFans.objects.filter(app_key=app_key, openid=openid).update(subscribe=False, unsubscribe_time=unsubscribe_time)
@@ -170,7 +172,7 @@ def task_update_weixinfans_upon_unsubscribe(openid, wx_pubid):
 def task_activate_xiaolumama(openid, wx_pubid):
     wx_api = WeiXinAPI()
     wx_api.setAccountId(wxpubId=wx_pubid)
-    app_key = wx_api.getAccount().app_id
+    app_key = wx_api.getAppKey()
 
     fan = WeixinFans.objects.filter(openid=openid, app_key=app_key).first()
     if not fan:
@@ -268,7 +270,7 @@ def create_push_event_subscribe(mama_id, unionid, carry_num, date_field):
     
 
     
-@task(max_retries=3, default_retry_delay=5)
+@task(max_retries=3, default_retry_delay=60)
 def task_weixinfans_create_subscribe_awardcarry(unionid):
     carry_num = 100
     carry_type = AwardCarry.AWARD_SUBSCRIBE # 关注公众号
@@ -280,8 +282,8 @@ def task_weixinfans_create_subscribe_awardcarry(unionid):
         # We get here too fast that WeixinUserInfo objects have not been created yet,
         # and when we try to access, error comes.        
         userinfo = WeixinUserInfo.objects.filter(unionid=unionid).first()
-        uni_key = AwardCarry.gen_uni_key(mama_id, carry_type) 
-    
+
+        uni_key = AwardCarry.gen_uni_key(mama_id, carry_type)
         ac = AwardCarry.objects.filter(uni_key=uni_key).first()
         if ac:
             return
@@ -394,8 +396,6 @@ def task_weixinfans_create_fans_awardcarry(referal_from_mama_id, referal_to_unio
                         date_field=date_field, uni_key=uni_key, status=AwardCarry.CONFIRMED)
         ac.save()
 
-        
-
     except Exception,exc:
         #logger.error(str(exc), exc_info=True)
         raise task_weixinfans_create_fans_awardcarry.retry(exc=exc)
@@ -404,7 +404,7 @@ def task_weixinfans_create_fans_awardcarry(referal_from_mama_id, referal_to_unio
 def get_or_create_weixin_xiaolumm(wxpubId, openid, event, eventKey):
     wx_api = WeiXinAPI()
     wx_api.setAccountId(wxpubId=wxpubId)
-    app_key = wx_api.getAccount().app_id
+    app_key = wx_api.getAppKey()
 
     # 获取或创建用户信息,
     fans_obj = WeixinFans.objects.filter(openid=openid, app_key=app_key).first()
@@ -514,6 +514,7 @@ def task_create_mama_referal_qrcode_and_response_weixin(wxpubId, openid, event, 
     except Exception,exc:
         raise task_create_mama_referal_qrcode_and_response_weixin.retry(exc=exc)
 
+
 @task(max_retries=3, default_retry_delay=5)
 def task_create_mama_and_response_manager_qrcode(wxpubId, openid, event, eventKey):
     """ to_username: 公众号id, from_username: 关注用户id """
@@ -528,8 +529,7 @@ def task_create_mama_and_response_manager_qrcode(wxpubId, openid, event, eventKe
         # 获取创建用户小鹿妈妈信息,
         media_id = fetch_wxpub_mama_manager_qrcode_media_id(mama.id, wxpubId)
 
-        wx_api = WeiXinAPI()
-        wx_api.setAccountId(wxpubId=wxpubId)
+        wx_api = WeiXinAPI(wxpubId=wxpubId)
         try:
             if not media_id:
                 wx_api.send_custom_message({

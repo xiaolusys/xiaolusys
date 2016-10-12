@@ -72,9 +72,7 @@ class WeiXinAPI(object):
     # 客服消息接口
     _send_custom_message_uri = '/cgi-bin/message/custom/send'
 
-    def __init__(self, **kwargs):
-        wxpubId = kwargs.get('wxpubId')
-        appKey  = kwargs.get('appKey')
+    def __init__(self, wxpubId=None, appKey=None, **kwargs):
         if wxpubId or appKey:
             self.setAccountId(wxpubId=wxpubId, appKey=appKey)
 

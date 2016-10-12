@@ -122,10 +122,12 @@ def fetch_wxpub_mama_custom_qrcode_media_id(mama_id, userinfo, wxpubId):
 def fetch_wxpub_mama_manager_qrcode_media_id(mama_id, wxpubId):
 
     from flashsale.xiaolumm.models import MamaAdministrator
-    mama_administrator = MamaAdministrator.get_mama_administrator(mama_id)
+    xiaolumama = XiaoluMama.objects.get(id=mama_id)
+    mama_administrator = MamaAdministrator.get_or_create_by_mama(xiaolumama)
     if not mama_administrator:
         logger.warn('fetch_wxpub_mama_manager_qrcode_media_id administrator loss:  %s, %s' % (wxpubId, mama_id))
         return
+
     mama_manager_qrcode = mama_administrator.weixin_qr_img
     cache_key = hashlib.sha1('%s-%s'%(mama_manager_qrcode, wxpubId)).hexdigest()
     cache_value = cache.get(cache_key)
@@ -134,8 +136,7 @@ def fetch_wxpub_mama_manager_qrcode_media_id(mama_id, wxpubId):
         media_body = urllib2.urlopen(mama_manager_qrcode).read()
         media_stream = StringIO.StringIO(media_body)
 
-        wx_api = WeiXinAPI()
-        wx_api.setAccountId(wxpubId=wxpubId)
+        wx_api = WeiXinAPI(wxpubId=wxpubId)
         response = wx_api.upload_media(media_stream)
         cache_value = response['media_id']
         cache.set(cache_key, cache_value, 2 * 24 * 3600)
