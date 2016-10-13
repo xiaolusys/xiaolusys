@@ -433,7 +433,7 @@ class OrderList(models.Model):
         self.ware_by = self.supplier.ware_by
         if is_postpay:
             self.is_postpay = True
-        self.save(update_fields=['stage', 'status', 'is_postpay', 'checked_time'])
+        self.save(update_fields=['stage', 'status', 'is_postpay', 'checked_time', 'ware_by'])
 
     def set_stage_pay(self, pay_way=13):
         # 付款提货 进入付款状态

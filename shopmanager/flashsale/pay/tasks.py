@@ -625,6 +625,7 @@ def task_close_refund(days=None):
 
 
 @task
+@transaction.atomic
 def task_saleorder_update_package_sku_item(sale_order):
     from shopback.trades.models import PackageSkuItem
     from shopback.items.models import ProductSku, ProductSkuStats

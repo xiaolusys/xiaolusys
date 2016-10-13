@@ -368,7 +368,7 @@ class orderdetailAdmin(BaseModelAdmin):
     }),)
 
     list_display = (
-        'id', 'link_order', 'product_id', 'outer_id', 'product_name', 'chichu_id', 'product_chicun', 'buy_quantity',
+        'id', 'link_order', 'orderlist_status', 'product_id', 'outer_id', 'product_name', 'chichu_id', 'product_chicun', 'buy_quantity',
         'arrival_quantity', 'inferior_quantity', 'non_arrival_quantity', 'created', 'updated', 'purchase_order_unikey',
         'purchase_detail_unikey',
     )
@@ -387,7 +387,13 @@ class orderdetailAdmin(BaseModelAdmin):
         return link_str
 
     link_order.allow_tags = True
-    link_order.short_description = "订货单"
+    link_order.short_description = u"订货单"
+
+    def orderlist_status(self, obj):
+        order_list = obj.orderlist
+        return order_list.get_stage_display()
+
+    orderlist_status.short_description = u"订货状态"
 
     def queryset(self, request):
         qs = super(orderdetailAdmin, self).queryset(request)
