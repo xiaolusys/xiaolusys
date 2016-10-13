@@ -70,5 +70,10 @@ if __name__ == '__main__':
     django.setup()
 
     # test_push_new_mama_task()
+<<<<<<< HEAD
     test_push_clickcarry()
     # test_push_pintuan()
+=======
+    # test_push_clickcarry()
+    test_push_salerefund()
+>>>>>>> test pull request
