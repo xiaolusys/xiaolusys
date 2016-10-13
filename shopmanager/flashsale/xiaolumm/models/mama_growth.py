@@ -185,14 +185,12 @@ class MamaSaleGrade(BaseModel):
         last_week_finish_value = get_mama_week_sale_amount([self.mama_id], week_start, week_end)
         finish_stage = utils.get_mama_target_stage(last_week_finish_value)
         last_target_stage = mama_1st_record and utils.get_mama_target_stage(last_week_target_value) or 0
-        print 'last week amount:', last_week_target_value, last_week_finish_value, finish_stage, last_target_stage
         if mama_1st_record and mama_1st_record.is_finished():
             target_stage = max(finish_stage + 1, last_target_stage + 1)
         elif mama_1st_record and not mama_1st_record.is_finished():
             target_stage = max(last_target_stage - 1, finish_stage + 1, 1)
         else:
             target_stage = finish_stage + 1
-        print 'target stage:', target_stage
         target_amount = utils.get_mama_stage_target(target_stage)
         return target_amount
 
@@ -322,7 +320,7 @@ class MamaMission(BaseModel):
             # mama_ids = list(group_mamas.values_list('member_mama_id', flat=True))
             # target_stages = constants.GROUP_TARGET_STAGE
             # award_rate = 50 * 100
-            return self.target_value * 10, self.award_amount
+            return self.target_value , self.award_amount
 
         if self.cat_type == MamaMission.CAT_REFER_MAMA:
             last_referal_num = ReferalRelationship.objects.filter(
@@ -435,8 +433,8 @@ class MamaMissionRecord(BaseModel):
             self.save(update_fields=['finish_value', 'status', 'finish_time'])
 
             # 通知妈妈邀请任务奖励已发放, 该处值发放团队奖励, 妈妈销售奖励, 团队销售奖励
-            if self.mission.kpi_type == MamaMission.KPI_AMOUNT \
-                    or self.mission.target == MamaMission.TARGET_GROUP:
+            if self.mission.kpi_type == MamaMission.KPI_AMOUNT:
+                    # or self.mission.target == MamaMission.TARGET_GROUP:
                 from flashsale.xiaolumm.tasks import task_send_mama_weekly_award
                 task_send_mama_weekly_award.delay(self.mama_id, self.id)
 
