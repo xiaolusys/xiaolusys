@@ -444,7 +444,6 @@ class SaleRefund(PayBaseModel):
     @property
     def is_modifiable(self):
         return self.status not in [SaleRefund.NO_REFUND,
-                                   SaleRefund.REFUND_APPROVE,
                                    SaleRefund.REFUND_SUCCESS,
                                    SaleRefund.REFUND_CLOSED]
 
