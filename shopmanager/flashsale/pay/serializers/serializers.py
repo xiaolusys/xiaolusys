@@ -152,9 +152,11 @@ class SaleRefundSerializer(serializers.ModelSerializer):
     tid = serializers.CharField(source='sale_trade.tid')
     channel_display = serializers.CharField(source='sale_trade.get_channel_display')
     status_display = serializers.CharField(source='get_status_display', read_only=True)
-    trade_logistics_company = serializers.CharField(source='sale_trade.logistics_company.name')
-    trade_out_sid = serializers.CharField(source='sale_trade.out_sid')
-    trade_consign_time = serializers.DateTimeField(source='sale_trade.consign_time')
+
+    trade_logistics_company = serializers.CharField(source='package_skuitem.logistics_company_name')
+    trade_out_sid = serializers.CharField(source='package_skuitem.out_sid')
+    trade_consign_time = serializers.DateTimeField(source='package_skuitem.assign_time')
+
     order_pic_path = serializers.CharField(source='sale_order.pic_path')
     order_payment = serializers.FloatField(source='sale_order.payment')
     order_status = serializers.IntegerField(source='sale_order.status')
