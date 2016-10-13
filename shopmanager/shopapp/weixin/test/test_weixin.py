@@ -58,10 +58,18 @@ def test_push_pintuan():
     push.push_pintuan_need_more_people(teambuy, customer)
 
 
+def test_push_salerefund():
+    from flashsale.pay.models import SaleRefund
+    salerefund = SaleRefund.objects.get(id=54102)
+    push = WeixinPush()
+    push.push_refund_notify(salerefund, 9)
+
+
 if __name__ == '__main__':
     import django
     django.setup()
 
     # test_push_new_mama_task()
     # test_push_clickcarry()
-    test_push_pintuan()
+    # test_push_pintuan()
+    test_push_salerefund()

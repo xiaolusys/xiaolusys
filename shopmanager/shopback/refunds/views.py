@@ -30,6 +30,7 @@ from rest_framework.views import APIView
 from rest_framework import filters
 from . import serializers
 from rest_framework import status
+from django.db import transaction
 
 from renderers import *
 from unrelate_product_handler import update_Unrelate_Prods_Product, update_Product_Collect_Num
@@ -253,6 +254,7 @@ class RefundView(APIView):
 
         return Response(prod_list)
 
+    @transaction.atomic()
     def post(self, request, *args, **kwargs):
         content = request.REQUEST
         rf = RefundProduct()

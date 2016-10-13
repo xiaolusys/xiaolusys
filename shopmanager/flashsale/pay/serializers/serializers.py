@@ -155,7 +155,7 @@ class SaleRefundSerializer(serializers.ModelSerializer):
 
     trade_logistics_company = serializers.CharField(source='package_skuitem.logistics_company_name')
     trade_out_sid = serializers.CharField(source='package_skuitem.out_sid')
-    trade_consign_time = serializers.DateTimeField(source='package_skuitem.assign_time')
+    trade_consign_time = serializers.DateTimeField(source='package_skuitem.finish_time')
 
     order_pic_path = serializers.CharField(source='sale_order.pic_path')
     order_payment = serializers.FloatField(source='sale_order.payment')

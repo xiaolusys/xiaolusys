@@ -51,7 +51,8 @@ class WeixinPush(object):
         temai_openid = WeixinFans.get_openid_by_unionid(customer.unionid, settings.WEIXIN_APPID)
         mm_openid = WeixinFans.get_openid_by_unionid(customer.unionid, settings.WXPAY_APPID)
 
-        # mm_openid = 'our5huD8xO6QY-lJc1DTrqRut3us'
+        # mm_openid = 'our5huD8xO6QY-lJc1DTrqRut3us'  # bo.zhang
+        # mm_openid = 'our5huPpwbdmUz4pFHKL0DW5Hm34'  # jie.lin
         # temai_openid = None
 
         resp = None
@@ -173,7 +174,7 @@ class WeixinPush(object):
         to_url = 'http://m.xiaolumeimei.com/mall/od.html?id=%s' % saletrade.id
         return self.push(customer, template_ids, template_data, to_url)
 
-    def push_refund_notify(self, salerefund):
+    def push_refund_notify(self, salerefund, event_type):
         """
         {{first.DATA}}
 
@@ -191,9 +192,17 @@ class WeixinPush(object):
         if not template:
             return
 
+        uni_key = '{customer_id}-{date}-salerefund-{salerefund}-{salerefund_status}'.format(**{
+            'customer_id': customer.id,
+            'date': datetime.datetime.now().date().strftime('%Y%m%d'),
+            'salerefund': salerefund.id,
+            'salerefund_status': salerefund.status
+        })
         template_data = {
             'first': {
-                'value': template.header.format(customer.nick, salerefund.title).decode('string_escape'),
+                'value': template.header.format(customer.nick,
+                                                salerefund.title,
+                                                salerefund.get_weixin_push_content(event_type)).decode('string_escape'),
                 'color': '#000000',
             },
             'reason': {
@@ -209,8 +218,15 @@ class WeixinPush(object):
                 'color': '#000000',
             },
         }
-        to_url = 'http://m.xiaolumeimei.com/mall/od.html?id=%s' % salerefund.sale_trade.id
-        return self.push(customer, template_ids, template_data, to_url)
+        to_url = 'http://m.xiaolumeimei.com/mall/refunds/details/%s' % salerefund.id
+        event = WeixinPushEvent(customer_id=customer.id,
+                                uni_key=uni_key,
+                                tid=template.id,
+                                event_type=event_type,
+                                params=template_data,
+                                to_url=to_url)
+        event.save()
+        # return self.push(customer, template_ids, template_data, to_url)
 
     def push_mama_award(self, awardcarry, courage_remarks, to_url):
         """
