@@ -17,7 +17,9 @@ def get_mama_week_sale_orders(mamaid_list, week_start, week_end):
     from flashsale.xiaolumm.models import OrderCarry
     order_carrys = OrderCarry.objects.filter(
         date_field__range=(week_start, week_end), mama_id__in=mamaid_list,
-        status__in=(OrderCarry.ESTIMATE, OrderCarry.CONFIRM))
+        status__in=(OrderCarry.ESTIMATE, OrderCarry.CONFIRM),
+        carry_type__in=(OrderCarry.WAP_ORDER, OrderCarry.APP_ORDER)
+    )
     return order_carrys
 
 def get_mama_week_sale_amount(mamaid_list, week_start, week_end):
@@ -93,8 +95,8 @@ class MamaSaleGrade(BaseModel):
     class Meta:
         db_table = 'flashsale_xlmm_salegrade'
         app_label = 'xiaolumm'
-        verbose_name = u'V2/妈妈销售业绩'
-        verbose_name_plural = u'V2/妈妈销售业绩列表'
+        verbose_name = u'V2/妈妈周销售业绩'
+        verbose_name_plural = u'V2/妈妈周销售业绩列表'
 
     def __unicode__(self):
         return '<%s, %s>' % (self.mama, self.grade)
