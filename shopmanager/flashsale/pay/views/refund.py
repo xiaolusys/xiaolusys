@@ -250,9 +250,8 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
         if not instance.is_modifiable:
             raise exceptions.APIException(u'退款单当前状态不予更新退款单!')
         if instance.status == SaleRefund.REFUND_WAIT_RETURN_GOODS and \
-                        status != instance.status and \
-                        status != SaleRefund.REFUND_SUCCESS:
-            raise exceptions.APIException(u'退款单当前状态不予操作!')
+                        status not in (SaleRefund.REFUND_APPROVE, SaleRefund.REFUND_SUCCESS):
+            raise exceptions.APIException(u'同意状态,不予修改状态!')
         if instance.status == SaleRefund.REFUND_WAIT_SELLER_AGREE and status == SaleRefund.REFUND_WAIT_RETURN_GOODS:
             # 如果是从退款待审　到　同意退货　则发送　退回信息
             instance.send_return_goods_back_message()
