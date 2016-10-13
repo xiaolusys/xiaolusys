@@ -536,9 +536,9 @@ class WeixinPush(object):
             carry_count = clickcarry.click_num - int(last_click_num)
             carry_money = clickcarry.total_value - int(last_total_value)
 
-            # 60*60秒内不许重复推送
+            # 一段时间内不许重复推送
             delta = datetime.datetime.now() - last_event.created
-            if delta.seconds < 60*60 and clickcarry.click_num < clickcarry.init_click_limit:
+            if delta.seconds < 60*60*3 and clickcarry.click_num < clickcarry.init_click_limit:
                 return
         else:
             carry_count = clickcarry.click_num
