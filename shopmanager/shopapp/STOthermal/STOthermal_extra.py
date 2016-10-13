@@ -18,6 +18,7 @@ secret = '5d845250d49aea44c3a07d8c1d513db5'
 app_key = '12545735'
 method = 'cainiao.waybill.ii.search'
 
+temp = []
 def sign(secret, parameters):
     # ===========================================================================
     # '''签名方法
@@ -65,13 +66,16 @@ def format_delivery_address(address_info):
 
 @get_sign_param(method='cainiao.waybill.ii.get',session='6100013704d43273f44071e4a2ae123429ba28420068f5e174265168')
 def get_exp_template(**kwargs):
+    print '开始向菜鸟获取单号了'
     result = requests.post(url = 'http://gw.api.taobao.com/router/rest',data = kwargs)
     result = result.text
+    print result
     if result.find("print_data") != -1:
         result = result.encode('UTF-8')
         result = json.loads(result)
         print_data = result['cainiao_waybill_ii_get_response']['modules']['waybill_cloud_print_response'][0]['print_data']
         waybill_code = result['cainiao_waybill_ii_get_response']['modules']['waybill_cloud_print_response'][0]['waybill_code']
+        print waybill_code
         return {"print_data":print_data,"waybill_code":waybill_code}
     else:
         return False
@@ -83,14 +87,16 @@ def cancel_exp_number(**kwargs):
     result = result.encode('UTF-8')
     result = json.loads(result)
     if result["cainiao_waybill_ii_cancel_response"]["cancel_result"]:
+        print "True"
         return True
     else:
+        print "False"
         return False
 
 
 
 if __name__ == '__main__':
-    # get_delivery_address(cp_code='STO')
-    # a = {'param_waybill_cloud_print_apply_new_request':json.dumps(constant_extra.param_waybill_cloud_print_apply_new_request)}
+    # get_delivery_address(cp_code=
+    # a = {'param_waybill_cloud_print_apply_new_request':js'STO')on.dumps(constant_extra.param_waybill_cloud_print_apply_new_request)}
     # get_exp_template(**a)
-    cancel_exp_number(cp_code='STO',waybill_code="3315387783334")
+    cancel_exp_number(cp_code='STO',waybill_code="3315446465418")
