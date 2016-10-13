@@ -180,6 +180,7 @@ class ChuanTuAPIView(generics.ListCreateAPIView):
         elif type == "3":
             try:
                 product = Product.objects.get(id=pro_id)
+                model_product = ModelProduct.objects.filter(id=product.model_id)
                 detail, status = Productdetail.objects.get_or_create(product=product)
                 detail.head_imgs = pic_link
                 detail.save()
@@ -206,7 +207,7 @@ class ChuanTuAPIView(generics.ListCreateAPIView):
             logger.error('不在参数范围', exc_info=True)
             return Response({"result": u"error"})
 
-        if model_product.head_imgs.strip() and model_product.content_imgs.strip():
+        if model_product and model_product.head_imgs.strip() and model_product.content_imgs.strip():
             SaleProductManageDetail.objects.set_design_complete_by_saleproduct(model_product.saleproduct)
 
         return Response({"result": u"success"})
