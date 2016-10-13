@@ -1043,7 +1043,7 @@ class CashOut(BaseModel):
 
     TYPE_CHOICES = (
         (MAMA_RENEW, u'妈妈续费'),
-        (USER_BUDGET, u'提至余额'),
+        (USER_BUDGET, u'提至零钱帐户'),
         (RED_PACKET, u'微信红包'),
         (EXCHANGE_COUPON, u'兑换优惠券')
     )
