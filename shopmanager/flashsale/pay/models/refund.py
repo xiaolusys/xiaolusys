@@ -177,6 +177,16 @@ class SaleRefund(PayBaseModel):
             self.__sale_trade__ = SaleTrade.objects.filter(id=self.trade_id).first()
         return self.__sale_trade__
 
+    @property
+    def package_skuitem(self):
+        """包裹单
+        """
+        if not hasattr(self, '_package_sku_item_'):
+            from shopback.trades.models import PackageSkuItem
+            sale_order = self.sale_order()
+            self._package_sku_item_ = PackageSkuItem.objects.filter(oid=sale_order.oid).first()
+        return self._package_sku_item_
+
     def get_tid(self):
         strade = self.sale_trade
         return strade.tid
