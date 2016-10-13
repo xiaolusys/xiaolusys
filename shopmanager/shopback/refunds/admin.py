@@ -124,17 +124,16 @@ class RefundProductAdmin(admin.ModelAdmin):
         po = PackageSkuItem.objects.filter(sale_trade_id=obj.trade_id).first()
         if po:
             st = SaleTrade.objects.filter(tid=obj.trade_id).first()
+            color = 'red'
+            salerefund = obj.get_sale_refund()
+            if salerefund and salerefund.status == 7:
+                color = 'green'
             trade = u'{0}<br><br>' \
                     u'<a href="/admin/trades/packageorder/?pid={1}" target="_blank">订单</a>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp' \
-                    u'<a href="/admin/pay/salerefund/?q={2}" target="_blank">退款单</a>'.format(obj.trade_id,po.package_order_pid,st.receiver_mobile)
+                    u'<a href="/admin/pay/salerefund/?trade_id={2}&sku_id={3}" ' \
+                    u'target="_blank" style="color: {4}">退款单</a>'.format(obj.trade_id, po.package_order_pid,
+                                                                         st.id, obj.sku_id, color)
             return trade
-        # if mt:
-        #     st = SaleTrade.objects.filter(tid=mt.tid).first()
-        #     trade = u'{0}<br><br>' \
-        #             u'<a href="/admin/trades/mergetrade/?q={0}" target="_blank">订单</a>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp' \
-        #             u'<a href="/admin/pay/salerefund/?q={1}" target="_blank">退款单</a>'.format(obj.trade_id,st.receiver_mobile)
-        #     return trade
-
 
     trade_id_display.allow_tags = True
     trade_id_display.short_description = u"订单"
