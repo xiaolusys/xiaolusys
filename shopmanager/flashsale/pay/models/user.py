@@ -606,15 +606,7 @@ class BudgetLog(PayBaseModel):
                          status=BudgetLog.CONFIRMED,
                          uni_key=uni_key)
         budget_log.save()
-        budget_log.send_message()
         return budget_log
-
-    def send_message(self):
-        """
-        功能: 发送余额　信息　记录
-        """
-        # TODO: jie.lin  task.delay()
-        return
 
     def get_flow_amount_display(self):
         """ 返回金额　"""

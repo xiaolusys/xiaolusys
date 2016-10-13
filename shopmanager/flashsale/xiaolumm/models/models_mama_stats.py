@@ -144,6 +144,11 @@ class WeixinPushEvent(BaseModel):
     SUB_ORDER_CARRY_INIT = 6
     CLICK_CARRY = 7
     PINTUAN_SUCCESS = 8
+
+    SALE_REFUND_AGREE = 9
+    SALE_REFUND_ARRIVE = 10
+    SALE_REFUND_GOODS_SUCCESS = 11
+
     PINTUAN_FAIL = 81
     PINTUAN_NEED_MORE_PEOPLE = 82
 
@@ -158,12 +163,21 @@ class WeixinPushEvent(BaseModel):
         (PINTUAN_SUCCESS, u'拼团成功'),
         (PINTUAN_FAIL, u'拼团失败'),
         (PINTUAN_NEED_MORE_PEOPLE, u'拼团人数不足'),
+        (SALE_REFUND_AGREE, u'同意退货'),
+        (SALE_REFUND_ARRIVE, u'用户退货到达仓库'),
+        (SALE_REFUND_GOODS_SUCCESS, u'用户退货成功'),
     )
 
     TEMPLATE_ORDER_CARRY_ID = 2
     TEMPLATE_INVITE_FANS_ID = 7
     TEMPLATE_SUBSCRIBE_ID = 8
-    TEMPLATE_IDS = ((TEMPLATE_INVITE_FANS_ID, '模版/粉丝增加'),(TEMPLATE_SUBSCRIBE_ID, '模版/关注公众号'),(TEMPLATE_ORDER_CARRY_ID, '模版/订单佣金'))
+    TEMPLATE_SALE_REFUND = 3
+    TEMPLATE_IDS = (
+        (TEMPLATE_INVITE_FANS_ID, '模版/粉丝增加'),
+        (TEMPLATE_SUBSCRIBE_ID, '模版/关注公众号'),
+        (TEMPLATE_ORDER_CARRY_ID, '模版/订单佣金'),
+        (TEMPLATE_SALE_REFUND, '模版/退款消息')
+    )
 
     customer_id = models.IntegerField(default=0, db_index=True, verbose_name=u'接收者用户id')
     mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'接收者妈妈id')
