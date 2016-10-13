@@ -93,6 +93,9 @@ class TeamBuy(AdminModel):
         self.status = 1
         self.save()
 
+        from shopapp.weixin.tasks.tasks_order_push import task_pintuan_success_push
+        task_pintuan_success_push.delay(self)  # 拼团成功微信推送
+
     def set_status_failed(self):
         from shopback.trades.models import PackageSkuItem
         self.status = 2
@@ -102,6 +105,9 @@ class TeamBuy(AdminModel):
             SaleOrder.objects.get(oid=detail.oid).do_refund(u'开团失败')
             oids.append(detail.oid)
         PackageSkuItem.objects.filter(oid__in=oids).update(assign_status=3)
+
+        from shopapp.weixin.tasks.tasks_order_push import task_pintuan_fail_push
+        task_pintuan_fail_push.delay(self)  # 拼团失败微信推送
 
     def get_shareparams(self, **params):
         if self.share_xlmm_id:

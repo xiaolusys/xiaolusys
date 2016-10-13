@@ -285,7 +285,12 @@ class RefundProduct(models.Model):
         """
         功能：　发送　用户的退货　已经到达仓库的　消息给用户
         """
-        # TODO: jie.lin
+        from shopapp.weixin.weixin_push import WeixinPush
+        from flashsale.xiaolumm.models import WeixinPushEvent
+
+        salerefund = self.get_sale_refund()
+        push = WeixinPush()
+        push.push_refund_notify(salerefund, WeixinPushEvent.SALE_REFUND_ARRIVE)
         return
 
     def check_salerefund_conformably(self):

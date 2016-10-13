@@ -180,7 +180,7 @@ class ChuanTuAPIView(generics.ListCreateAPIView):
         elif type == "3":
             try:
                 product = Product.objects.get(id=pro_id)
-                model_product = ModelProduct.objects.filter(id=product.model_id)
+                model_product = ModelProduct.objects.filter(id=product.model_id).first()
                 detail, status = Productdetail.objects.get_or_create(product=product)
                 detail.head_imgs = pic_link
                 detail.save()

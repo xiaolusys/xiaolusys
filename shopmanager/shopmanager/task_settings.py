@@ -35,6 +35,7 @@ CELERY_IMPORTS = (
     'flashsale.pay.tasks',
     'shopback.items.tasks_stats',
     'shopback.items.tasks',
+    'shopapp.weixin.tasks.tasks_order_push',
     'statistics.tasks',
     'flashsale.restpro.tasks',
     'flashsale.forecast.apis',
@@ -826,6 +827,14 @@ CELERY_ROUTES = {
         'queue': 'notify',
         'routing_key': 'notify.task_weixin_push_invite_trial',
     },  # 妈妈邀请体验妈妈微信推送
+    'shopapp.weixin.tasks.tasks_order_push.task_pintuan_success_push': {
+        'queue': 'notify',
+        'routing_key': 'notify.task_order_push_pintuan_success',
+    },  # 拼团成功微信推送
+    'shopapp.weixin.tasks.tasks_order_push.task_pintuan_fail_push': {
+        'queue': 'notify',
+        'routing_key': 'notify.task_order_push_pintuan_fail',
+    },  # 拼团失败微信推送
     'flashsale.pay.tasks.task_release_coupon_push': {
         'queue': 'notify',
         'routing_key': 'notify.task_release_coupon_push',
@@ -1514,7 +1523,12 @@ SHOP_APP_SCHEDULE = {
         'schedule': crontab(minute="*/5"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-
+    },
+    u'每小时发送拼团人数不足提醒': {
+        'task': 'shopapp.weixin.tasks.tasks_order_push.task_pintuan_need_more_people_push',
+        'schedule': crontab(minute="0"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_pintuan_need_more_people_push'}
     }
 }
 

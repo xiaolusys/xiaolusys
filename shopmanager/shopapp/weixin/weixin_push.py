@@ -51,7 +51,8 @@ class WeixinPush(object):
         temai_openid = WeixinFans.get_openid_by_unionid(customer.unionid, settings.WEIXIN_APPID)
         mm_openid = WeixinFans.get_openid_by_unionid(customer.unionid, settings.WXPAY_APPID)
 
-        # mm_openid = 'our5huD8xO6QY-lJc1DTrqRut3us'
+        # mm_openid = 'our5huD8xO6QY-lJc1DTrqRut3us'  # bo.zhang
+        # mm_openid = 'our5huPpwbdmUz4pFHKL0DW5Hm34'  # jie.lin
         # temai_openid = None
 
         resp = None
@@ -173,7 +174,7 @@ class WeixinPush(object):
         to_url = 'http://m.xiaolumeimei.com/mall/od.html?id=%s' % saletrade.id
         return self.push(customer, template_ids, template_data, to_url)
 
-    def push_refund_notify(self, salerefund):
+    def push_refund_notify(self, salerefund, event_type):
         """
         {{first.DATA}}
 
@@ -191,9 +192,17 @@ class WeixinPush(object):
         if not template:
             return
 
+        uni_key = '{customer_id}-{date}-salerefund-{salerefund}-{salerefund_status}'.format(**{
+            'customer_id': customer.id,
+            'date': datetime.datetime.now().date().strftime('%Y%m%d'),
+            'salerefund': salerefund.id,
+            'salerefund_status': salerefund.status
+        })
         template_data = {
             'first': {
-                'value': template.header.format(customer.nick, salerefund.title).decode('string_escape'),
+                'value': template.header.format(customer.nick,
+                                                salerefund.title,
+                                                salerefund.get_weixin_push_content(event_type)).decode('string_escape'),
                 'color': '#000000',
             },
             'reason': {
@@ -209,8 +218,15 @@ class WeixinPush(object):
                 'color': '#000000',
             },
         }
-        to_url = 'http://m.xiaolumeimei.com/mall/od.html?id=%s' % salerefund.sale_trade.id
-        return self.push(customer, template_ids, template_data, to_url)
+        to_url = 'http://m.xiaolumeimei.com/mall/refunds/details/%s' % salerefund.id
+        event = WeixinPushEvent(customer_id=customer.id,
+                                uni_key=uni_key,
+                                tid=template.id,
+                                event_type=event_type,
+                                params=template_data,
+                                to_url=to_url)
+        event.save()
+        # return self.push(customer, template_ids, template_data, to_url)
 
     def push_mama_award(self, awardcarry, courage_remarks, to_url):
         """
@@ -343,10 +359,6 @@ class WeixinPush(object):
         template_id = 'ZlEFblgBFQqCSabHyr0MrSS6nREGxQHKjEMnrgs3w5Q'
         template = WeixinTplMsg.objects.filter(wx_template_id=template_id, status=True).first()
 
-        template_ids = {
-            'meimei': 'ZlEFblgBFQqCSabHyr0MrSS6nREGxQHKjEMnrgs3w5Q',
-        }
-
         if not template:
             return
 
@@ -383,10 +395,9 @@ class WeixinPush(object):
         })
         event_type = WeixinPushEvent.PINTUAN_SUCCESS
 
-        # event = WeixinPushEvent(customer_id=customer.id, mama_id=mama_id, uni_key=uni_key, tid=template.id,
-        #                         event_type=event_type, params=template_data, to_url=to_url)
-        # event.save()
-        return self.push(customer, template_ids, template_data, to_url)
+        event = WeixinPushEvent(customer_id=customer.id, mama_id=mama_id, uni_key=uni_key, tid=template.id,
+                                event_type=event_type, params=template_data, to_url=to_url)
+        event.save()
 
     def push_pintuan_fail(self, teambuy, customer):
         """
@@ -405,13 +416,8 @@ class WeixinPush(object):
         template_id = 'wUOE2gHR9DdCcmtXXlWeSGHngl30i3bwZjMS7ZaVq7E'
         template = WeixinTplMsg.objects.filter(wx_template_id=template_id, status=True).first()
 
-        template_ids = {
-            'meimei': 'wUOE2gHR9DdCcmtXXlWeSGHngl30i3bwZjMS7ZaVq7E',
-        }
-
         detail = TeamBuyDetail.objects.filter(teambuy_id=teambuy.id, customer_id=customer.id).first()
         trade = SaleTrade.objects.get(tid=detail.tid)
-
 
         template_data = {
             'first': {
@@ -445,7 +451,11 @@ class WeixinPush(object):
             'teambuy_id': teambuy.id,
             'customer_id': customer.id,
         })
-        return self.push(customer, template_ids, template_data, to_url)
+
+        event_type = WeixinPushEvent.PINTUAN_FAIL
+        event = WeixinPushEvent(customer_id=customer.id, mama_id=mama_id, uni_key=uni_key, tid=template.id,
+                                event_type=event_type, params=template_data, to_url=to_url)
+        event.save()
 
     def push_pintuan_need_more_people(self, teambuy, customer):
         """
@@ -462,10 +472,6 @@ class WeixinPush(object):
 
         template_id = 'V14lbfObhpoyEltUUnk-pxzpow66kOO7CeKC6hIawGM'
         template = WeixinTplMsg.objects.filter(wx_template_id=template_id, status=True).first()
-
-        template_ids = {
-            'meimei': 'V14lbfObhpoyEltUUnk-pxzpow66kOO7CeKC6hIawGM',
-        }
 
         if teambuy.status != 0:  # 不是开团状态
             return
@@ -501,11 +507,14 @@ class WeixinPush(object):
             'mama_id': teambuy.share_xlmm_id
         })
 
-        uni_key = 'pintuan_fail-{teambuy_id}-{customer_id}'.format(**{
+        uni_key = 'pintuan_need_more_people-{teambuy_id}-{customer_id}'.format(**{
             'teambuy_id': teambuy.id,
             'customer_id': customer.id,
         })
-        return self.push(customer, template_ids, template_data, to_url)
+        event_type = WeixinPushEvent.PINTUAN_NEED_MORE_PEOPLE
+        event = WeixinPushEvent(customer_id=customer.id, mama_id=mama_id, uni_key=uni_key, tid=template.id,
+                                event_type=event_type, params=template_data, to_url=to_url)
+        event.save()
 
     def push_mama_clickcarry(self, clickcarry):
         """
@@ -543,9 +552,9 @@ class WeixinPush(object):
             carry_count = clickcarry.click_num - int(last_click_num)
             carry_money = clickcarry.total_value - int(last_total_value)
 
-            # 60*60秒内不许重复推送
+            # 一段时间内不许重复推送
             delta = datetime.datetime.now() - last_event.created
-            if delta.seconds < 60*60 and clickcarry.click_num < clickcarry.init_click_limit:
+            if delta.seconds < 60*60*3 and clickcarry.click_num < clickcarry.init_click_limit:
                 return
         else:
             carry_count = clickcarry.click_num
@@ -580,7 +589,7 @@ class WeixinPush(object):
                 'color': '#000000',
             },
             'remark': {
-                'value': template.footer.decode('string_escape'),
+                'value': template.footer.format('%.2f' % (clickcarry.total_value * 0.01)).decode('string_escape'),
                 'color': '#F87217',
             },
         }

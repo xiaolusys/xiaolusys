@@ -40,6 +40,7 @@ class MamaTabVisitStats(BaseModel):
     TAB_WX_TUTORIAL = 23 # 新手教程
     TAB_WX_BIND_MOBILE = 24
     TAB_WX_PUSH_CLICK_CARRY = 25
+    TAB_WX_CLICK_CARRY_HTML = 26
 
     STATS_TABS = ((TAB_UNKNOWN, 'Unknown'), (TAB_MAMA_FORTUNE, u'妈妈主页'), (TAB_DAILY_NINEPIC, u'每日推送'),
                   (TAB_NOTIFICATION, u'消息通知'), (TAB_MAMA_SHOP, u'店铺精选'), (TAB_INVITE_MAMA, u'邀请妈妈'),
@@ -50,7 +51,8 @@ class MamaTabVisitStats(BaseModel):
                   (TAB_WX_KEFU, u'WX/客服菜单'), (TAB_WX_PERSONAL, u'WX/个人帐户'), (TAB_WX_CASHOUT_APP_DOWNLOAD, u'WX/提现页APP下载'),
                   (TAB_WX_PUSH_REDIRECT_LINK, u'WX/跳转专题链接'), (TAB_WX_ARTICLE_LINK, u'WX/跳转微信文章'), (TAB_WX_TUTORIAL, u'WX/新手教程'),
                   (TAB_WX_BIND_MOBILE, u'WX/绑定手机'),
-                  (TAB_WX_PUSH_CLICK_CARRY, u'WX/点击收益推送')
+                  (TAB_WX_PUSH_CLICK_CARRY, u'WX/点击收益推送'),
+                  (TAB_WX_CLICK_CARRY_HTML, u'WX/点击返现说明')
     )
 
     stats_tab = models.IntegerField(default=0, choices=STATS_TABS, db_index=True, verbose_name=u'功能TAB')
@@ -64,7 +66,14 @@ class MamaTabVisitStats(BaseModel):
         verbose_name = u'V2/妈妈tab访问统计'
         verbose_name_plural = u'V2/妈妈tab访问统计表'
 
-
+    @classmethod
+    def num_visit(cls, stats_tab):
+        record = cls.objects.filter(stats_tab).aggregate(n=Sum('visit_total'))
+        n = 0
+        if record:
+            n = record.get('n') or 0
+        return n
+                  
 class MamaDeviceStats(BaseModel):
     device_type = models.IntegerField(default=0, choices=MamaDailyAppVisit.DEVICE_TYPES, db_index=True, verbose_name=u'设备')
     renew_type = models.IntegerField(default=0, choices=XiaoluMama.RENEW_TYPE, db_index=True, verbose_name=u'妈妈类型')
@@ -145,6 +154,13 @@ class WeixinPushEvent(BaseModel):
     CLICK_CARRY = 7
     PINTUAN_SUCCESS = 8
 
+    SALE_REFUND_AGREE = 9
+    SALE_REFUND_ARRIVE = 10
+    SALE_REFUND_GOODS_SUCCESS = 11
+
+    PINTUAN_FAIL = 81
+    PINTUAN_NEED_MORE_PEOPLE = 82
+
     EVENT_TYPES = (
         (INVITE_FANS_NOTIFY, u'粉丝增加'),
         (INVITE_AWARD_INIT, u'邀请奖励生成'),
@@ -154,12 +170,23 @@ class WeixinPushEvent(BaseModel):
         (SUB_ORDER_CARRY_INIT, u'下属订单佣金生成'),
         (CLICK_CARRY, u'点击收益'),
         (PINTUAN_SUCCESS, u'拼团成功'),
+        (PINTUAN_FAIL, u'拼团失败'),
+        (PINTUAN_NEED_MORE_PEOPLE, u'拼团人数不足'),
+        (SALE_REFUND_AGREE, u'同意退货'),
+        (SALE_REFUND_ARRIVE, u'用户退货到达仓库'),
+        (SALE_REFUND_GOODS_SUCCESS, u'用户退货成功'),
     )
 
     TEMPLATE_ORDER_CARRY_ID = 2
     TEMPLATE_INVITE_FANS_ID = 7
     TEMPLATE_SUBSCRIBE_ID = 8
-    TEMPLATE_IDS = ((TEMPLATE_INVITE_FANS_ID, '模版/粉丝增加'),(TEMPLATE_SUBSCRIBE_ID, '模版/关注公众号'),(TEMPLATE_ORDER_CARRY_ID, '模版/订单佣金'))
+    TEMPLATE_SALE_REFUND = 3
+    TEMPLATE_IDS = (
+        (TEMPLATE_INVITE_FANS_ID, '模版/粉丝增加'),
+        (TEMPLATE_SUBSCRIBE_ID, '模版/关注公众号'),
+        (TEMPLATE_ORDER_CARRY_ID, '模版/订单佣金'),
+        (TEMPLATE_SALE_REFUND, '模版/退款消息')
+    )
 
     customer_id = models.IntegerField(default=0, db_index=True, verbose_name=u'接收者用户id')
     mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'接收者妈妈id')
