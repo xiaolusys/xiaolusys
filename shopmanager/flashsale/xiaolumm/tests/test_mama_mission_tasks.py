@@ -127,14 +127,25 @@ class MamaWeeklyAwardTestCase(TestCase):
         referal_from_mama = XiaoluMama.objects.filter(id=self.referal_from_mama_id).first()
         fresh_mama_weekly_mission_bycat(referal_from_mama, MamaMission.CAT_SALE_GROUP, year_week)
 
-        # 测试妈妈周销售目标是不是，按连续两周有交易条件限制
         signal_saletrade_pay_confirm.send(sender=SaleTrade, obj=saletrade)
+        # 测试妈妈周销售目标是不是，按连续两周有交易条件限制
         mama_record = MamaMissionRecord.objects.filter(
             mama_id=self.mama_id,
             year_week=year_week,
             mission__cat_type=MamaMission.CAT_SALE_MAMA).first()
         self.assertIsNone(mama_record)
 
+        # 测试团队销售奖励到账
+        mama_record = MamaMissionRecord.objects.filter(
+            mama_id=self.referal_from_mama_id,
+            year_week=year_week,
+            mission__cat_type=MamaMission.CAT_SALE_GROUP).first()
+        mama_award = AwardCarry.objects.filter(uni_key=mama_record.gen_uni_key()).first()
+        self.assertEqual(mama_record.status, MamaMissionRecord.FINISHED)
+        self.assertIsNotNone(mama_award)
+        self.assertGreaterEqual(mama_record.award_amount, mama_award.carry_num)  # >=
+
+        # 测试妈妈周销售目标是不是，按连续两周有交易条件限制
         mission = MamaMission.objects.filter(cat_type=MamaMission.CAT_SALE_MAMA).first()
         func_push_award_mission_to_mama(xiaolumama, mission, year_week)
         signal_saletrade_pay_confirm.send(sender=SaleTrade, obj=saletrade)
@@ -146,15 +157,6 @@ class MamaWeeklyAwardTestCase(TestCase):
         self.assertEqual(mama_record.status, MamaMissionRecord.FINISHED)
         self.assertIsNotNone(mama_award)
         self.assertEqual(mama_record.award_amount, mama_award.carry_num) # ==
-
-        mama_record = MamaMissionRecord.objects.filter(
-            mama_id=self.referal_from_mama_id,
-            year_week=year_week,
-            mission__cat_type=MamaMission.CAT_SALE_GROUP).first()
-        mama_award = AwardCarry.objects.filter(uni_key=mama_record.gen_uni_key()).first()
-        self.assertEqual(mama_record.status, MamaMissionRecord.FINISHED)
-        self.assertIsNotNone(mama_award)
-        self.assertGreaterEqual(mama_record.award_amount, mama_award.carry_num) # >=
 
         # refund cancel award
         call_command('loaddata', 'test.flashsale.pay.salerefund.json', verbosity=1)

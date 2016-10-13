@@ -132,7 +132,7 @@
     "created": "2016-08-22T16:56:46",
     "start_time": null,
     "modified": "2016-08-24T22:05:01",
-    "kpi_type": "count",
+    "kpi_type": "amount",
     "end_time": null,
     "award_amount": 1500,
     "cat_type": "sale_group",

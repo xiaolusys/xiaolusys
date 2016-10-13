@@ -291,7 +291,6 @@ def task_send_mama_weekly_award(mama_id, mission_record_id):
                                   AwardCarry.AWARD_MAMA_SALE)
         # 通知妈妈任务完成，奖励发放
         task_push_mission_state_msg_to_weixin_user.delay(mission_record_id, MamaMissionRecord.FINISHED)
-
     except Exception, exc:
         raise task_send_mama_weekly_award.retry(exc=exc)
 
