@@ -120,11 +120,10 @@ class ActivityGoodsViewSet(viewsets.ModelViewSet):
         type_pics_dict = defaultdict(list)
         for pic in desc_pics:
             mp = models_dict.get(pic['model_id'])
-            if mp:
-                pic.update({
-                    'lowest_agent_price':mp.detail_content.get('lowest_agent_price'),
-                    'lowest_std_sale_price': mp.detail_content.get('lowest_std_sale_price'),
-                })
+            pic.update({
+                'lowest_agent_price':mp and mp.detail_content.get('lowest_agent_price') or 0,
+                'lowest_std_sale_price': mp and mp.detail_content.get('lowest_std_sale_price') or 0,
+            })
             type_pics_dict[pic['pic_type']].append(pic)
 
         banners = type_pics_dict.get(ActivityProduct.BANNER_PIC_TYPE, [])
