@@ -132,7 +132,7 @@ class RefundProductAdmin(admin.ModelAdmin):
                     u'<a href="/admin/trades/packageorder/?pid={1}" target="_blank">订单</a>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp' \
                     u'<a href="/admin/pay/salerefund/?trade_id={2}&sku_id={3}" ' \
                     u'target="_blank" style="color: {4}">退款单</a>'.format(obj.trade_id, po.package_order_pid,
-                                                                         st.id, st.sku_id, color)
+                                                                         st.id, obj.sku_id, color)
             return trade
 
     trade_id_display.allow_tags = True
