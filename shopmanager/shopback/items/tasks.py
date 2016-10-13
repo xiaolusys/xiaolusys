@@ -1028,6 +1028,7 @@ def task_assign_stock_to_package_sku_item(stat):
 
 
 @task()
+@transaction.atomic
 def task_relase_package_sku_item(stat):
     sku_id = stat.sku_id
     from shopback.trades.models import PackageSkuItem
