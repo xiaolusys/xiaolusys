@@ -285,7 +285,10 @@ class RefundView(APIView):
             sale_refund = refund_product.get_sale_refund()
             if not sale_refund:
                 return
-            sale_refund.return_fee_by_refund_product()
+            is_finish = sale_refund.return_fee_by_refund_product()
+            if is_finish:
+                refund_product.is_finish = True
+                refund_product.save(update_fields=['is_finish'])
 
         update_Product_Collect_Num(pro=rf, req=request)  # 更新产品库存
         return Response(serializers.RefundProductSerializer(rf).data)

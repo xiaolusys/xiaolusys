@@ -750,7 +750,8 @@ def generate_refund_choices(obj):
     is_post_refund = obj.status != SaleTrade.WAIT_SELLER_SEND_GOODS
     refund_title = _default['refund_title_choice'][is_post_refund and 1 or 0]
     refund_channels = [obj.BUDGET]
-    if obj.channel != obj.BUDGET and not obj.has_budget_paid:
+    if obj.channel != obj.BUDGET and not obj.has_budget_paid and obj.channel not in [SaleTrade.ALIPAY,
+                                                                                     SaleTrade.ALIPAY_WAP]:
         refund_channels.append(obj.channel)
 
     refund_resp_list = []
