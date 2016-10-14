@@ -4,8 +4,8 @@ APP_KEY = '12545735'
 SESSION = '6100013704d43273f44071e4a2ae123429ba28420068f5e174265168'
 
 param_waybill_cloud_print_apply_new_request = {'cp_code': "STO",
-                                               'sender': {'name': '李家帅',
-                                                          'mobile': '15026869609',
+                                               'sender': {'name': '小鹿美美',
+                                                          'mobile': '4008235355',
                                                           'address': {
                                                               "city": "上海市",
                                                               "detail": "佘山镇吉业路245号",
