@@ -164,7 +164,11 @@ class SaleRefund(PayBaseModel):
 
     def is_fastrefund(self):
         """　是否极速退款 """
-        return self.refund_channel == constants.BUDGET or self.sale_trade.is_budget_paid()
+        from flashsale.pay.models import SaleTrade
+
+        return self.refund_channel == constants.BUDGET or \
+               self.sale_trade.is_budget_paid() or \
+               self.sale_trade.channel in (SaleTrade.ALIPAY, SaleTrade.ALIPAY_WAP)
 
     def is_postrefund(self):
         """　发货后退款 """
@@ -176,6 +180,20 @@ class SaleRefund(PayBaseModel):
         if not hasattr(self, '__sale_trade__'):
             self.__sale_trade__ = SaleTrade.objects.filter(id=self.trade_id).first()
         return self.__sale_trade__
+
+    def sale_order(self):
+        from .trade import SaleOrder
+        if not hasattr(self, '_sale_order_'):
+            self._sale_order_ = SaleOrder.objects.filter(id=self.order_id).first()
+        return self._sale_order_
+
+    @property
+    def refundproduct(self):
+        if not hasattr(self, '_refund_product_'):
+            from shopback.refunds.models import RefundProduct
+            self._refund_product_ = RefundProduct.objects.filter(trade_id=self.sale_trade.tid,
+                                                                 sku_id=self.sku_id).first()
+        return self._refund_product_
 
     @property
     def package_skuitem(self):
@@ -362,12 +380,6 @@ class SaleRefund(PayBaseModel):
         except Product.DoesNotExist:
             return None
 
-    def sale_order(self):
-        from .trade import SaleOrder
-        if not hasattr(self, '_sale_order_'):
-            self._sale_order_ = SaleOrder.objects.filter(id=self.order_id).first()
-        return self._sale_order_
-
     def get_return_address(self):
         """ 退货地址 """
         if self.status < self.REFUND_WAIT_RETURN_GOODS:
@@ -499,13 +511,13 @@ class SaleRefund(PayBaseModel):
         """
         自动同意退货:
         1. 用户提交退款单　
-        如果是退货申请　& 非商家原因造成的退货 则　修改该退款单状态到　同意申请状态
+        如果是退货申请　则　修改该退款单状态到　同意申请状态
         """
-        if not self.is_seller_responsible:
-            self.agree_return_goods()
-            self.send_return_goods_back_message()
-            return True
-        return False
+        # if not self.is_seller_responsible:  # 非商家原因造成的退货
+        self.agree_return_goods()
+        self.send_return_goods_back_message()
+        return True
+        # return False
 
     @transaction.atomic()
     def return_fee_by_refund_product(self):

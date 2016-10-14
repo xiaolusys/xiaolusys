@@ -289,6 +289,8 @@ class RefundProduct(models.Model):
         from flashsale.xiaolumm.models import WeixinPushEvent
 
         salerefund = self.get_sale_refund()
+        if not salerefund:
+            return
         push = WeixinPush()
         push.push_refund_notify(salerefund, WeixinPushEvent.SALE_REFUND_ARRIVE)
         return

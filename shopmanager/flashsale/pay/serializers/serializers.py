@@ -152,7 +152,7 @@ class SaleRefundSerializer(serializers.ModelSerializer):
     tid = serializers.CharField(source='sale_trade.tid')
     channel_display = serializers.CharField(source='sale_trade.get_channel_display')
     status_display = serializers.CharField(source='get_status_display', read_only=True)
-
+    good_status_display = serializers.CharField(source='get_good_status_display', read_only=True)
     trade_logistics_company = serializers.CharField(source='package_skuitem.logistics_company_name')
     trade_out_sid = serializers.CharField(source='package_skuitem.out_sid')
     trade_consign_time = serializers.DateTimeField(source='package_skuitem.finish_time')
@@ -164,6 +164,7 @@ class SaleRefundSerializer(serializers.ModelSerializer):
     order_status_display = serializers.CharField(source='sale_order.get_status_display')
     postage_num_money = serializers.FloatField(source='postage_num_display')
     coupon_num_money = serializers.FloatField(source='coupon_num_display')
+    manual_refund = serializers.SerializerMethodField()
 
     class Meta:
         model = SaleRefund
@@ -180,3 +181,12 @@ class SaleRefundSerializer(serializers.ModelSerializer):
             return '退回小鹿钱包%.2f元 实付金额%.2f'%(log_money, obj.payment)
         return "[2]退回%s %.2f元" % (trade.get_channel_display(), obj.refund_fee)
 
+    def get_manual_refund(self, obj):
+        """是否是手动退款
+        1. 退款单　买家已经退货　退货待审状态 仓库已经收到货(没有　退款给用户)
+        """
+        if obj.good_status == SaleRefund.BUYER_RETURNED_GOODS and \
+                obj.status == SaleRefund.REFUND_CONFIRM_GOODS and \
+                obj.refundproduct:
+            return True
+        return False
