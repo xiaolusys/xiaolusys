@@ -482,18 +482,10 @@ class SaleRefund(PayBaseModel):
         """
         from flashsale.xiaolumm.models import WeixinPushEvent
 
-        postage_coupon_info = u'附加信息:'
-        if (self.coupon_num + self.postage_num) == 0:
-            postage_coupon_info = u''
-        else:
-            if self.postage_num > 0:
-                postage_coupon_info += u'补邮费:￥%s' % self.postage_num / 100.0
-            if self.coupon_num > 0:
-                postage_coupon_info += u'现金券:￥%s' % self.coupon_num / 100.0
         content_map = {
-            WeixinPushEvent.SALE_REFUND_AGREE: u'公主殿下，你的退货申请已经审核通过！请及时填写退货＊物流单号＊，以便系统跟踪你的退货进度!',
+            WeixinPushEvent.SALE_REFUND_AGREE: u'退货申请审核通过！\n请及时填写退货 ==>物 流 单 号<== 以便系统更快处理退货!',
             WeixinPushEvent.SALE_REFUND_ARRIVE: u'仓库已收货，检验后即将完成退款。',
-            WeixinPushEvent.SALE_REFUND_GOODS_SUCCESS: u'已经退款成功。退款金额已经转入你的小鹿零钱帐户，请及时查看。%s' % postage_coupon_info
+            WeixinPushEvent.SALE_REFUND_GOODS_SUCCESS: u'已经退款成功\n退款金额已转入小鹿零钱帐户,请及时查看.'
         }
         return content_map[event_type]
 

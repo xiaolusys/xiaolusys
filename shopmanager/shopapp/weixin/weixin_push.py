@@ -198,6 +198,14 @@ class WeixinPush(object):
             'salerefund': salerefund.id,
             'salerefund_status': salerefund.status
         })
+        postage_coupon_info = u'附加信息: '
+        if (salerefund.coupon_num + salerefund.postage_num) == 0:
+            postage_coupon_info = u''
+        else:
+            if salerefund.postage_num > 0:
+                postage_coupon_info += u'补邮费:￥%s  ' % str(salerefund.postage_num / 100.0)
+            if salerefund.coupon_num > 0:
+                postage_coupon_info += u'现金券:￥%s' % str(salerefund.coupon_num / 100.0)
         template_data = {
             'first': {
                 'value': template.header.format(customer.nick,
@@ -206,7 +214,7 @@ class WeixinPush(object):
                 'color': '#000000',
             },
             'reason': {
-                'value': u'%s' % salerefund.desc,
+                'value': u'%s' % salerefund.reason,
                 'color': '#c0392b',
             },
             'refund': {
@@ -214,7 +222,7 @@ class WeixinPush(object):
                 'color': '#c0392b',
             },
             'remark': {
-                'value': template.footer.decode('string_escape'),
+                'value': template.footer.format(postage_coupon_info).decode('string_escape'),
                 'color': '#000000',
             },
         }
