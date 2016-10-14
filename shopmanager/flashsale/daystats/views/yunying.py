@@ -12,9 +12,6 @@ from flashsale.pay.models.trade import SaleTrade
 
 @login_required
 def index(req):
-    if not (req.GET.get('json') == ''):
-        return render(req, 'yunying/index.html', locals())
-
     now = datetime.now()
     today = datetime(now.year, now.month, now.day)
     yesterday = today - timedelta(days=1)
@@ -38,6 +35,4 @@ def index(req):
         .filter(pay_time__gte=yesterday, pay_time__lt=today) \
         .aggregate(Sum('total_fee'))['total_fee__sum']
 
-    resp = locals().copy()
-    resp.pop('req')
-    return JsonResponse(resp)
+    return render(req, 'yunying/index.html', locals())

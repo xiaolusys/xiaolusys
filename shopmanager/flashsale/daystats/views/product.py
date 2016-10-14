@@ -87,6 +87,32 @@ def index(req):
     return render(req, 'yunying/product/index.html', locals())
 
 
+@login_required
+def activity(req):
+    p_start_date, p_end_date, start_date, end_date = get_date_from_req(req)
+
+    sql = """
+        select
+            activity.activity_id,
+            ac.title,
+            sum(orders.total_fee) as sales,
+            count(orders.total_fee) as salenum
+        from
+            xiaoludb.flashsale_order as orders
+        join xiaoludb.shop_items_product as products on orders.item_id=products.id
+        join xiaoludb.flashsale_activity_product as activity on activity.model_id = products.model_id
+        join xiaoludb.flashsale_activity_entry as ac on ac.id = activity.activity_id
+        where orders.created > %s
+        and orders.created < %s
+        and products.model_id != 0
+        group by activity_id
+        order by sales desc
+    """
+    items = execute_sql(get_cursor(), sql, [format_datetime(start_date), format_datetime(end_date)])
+
+    return render(req, 'yunying/product/activity.html', locals())
+
+
 category_cache = {}
 
 
