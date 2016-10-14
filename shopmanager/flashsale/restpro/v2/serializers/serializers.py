@@ -152,6 +152,21 @@ class MamaFortuneSerializer(serializers.ModelSerializer):
         today_mama_carry_records = mama_carry_records.filter(date_field=datetime.date.today())
         today_carry_record_num = today_mama_carry_records.aggregate(t=Sum('carry_num')).get('t') or 0.0
         today_carry_record = round(today_carry_record_num / 100.0, 2) if today_carry_record_num > 0 else 0
+
+        year_week = time.strftime("%Y-%W")
+        missions_counts = MamaMissionRecord.mama_mission(obj.mama_id, year_week=year_week) \
+            .values('status').annotate(status_count=Count('id'))
+        task_percentage = 0
+        if missions_counts:
+            total_count = 0
+            finished = 0
+            for missions_count in missions_counts:
+                total_count += missions_count['status_count']
+                if missions_count['status'] == MamaMissionRecord.FINISHED:  # 已完成的
+                    finished += missions_count['status_count']
+            task_percentage = round(finished / float(total_count), 3) if total_count else 0
+        default.update({'task_percentage': task_percentage})
+
         default.update({'today_carry_record': today_carry_record})
         if not (week_mama_carry and week_mama_team_carry):
             default.update({'today_carry_record': 0.0})
@@ -161,20 +176,6 @@ class MamaFortuneSerializer(serializers.ModelSerializer):
                         'week_duration_rank': week_mama_carry.duration_rank,
                         'personal_total_rank': week_mama_carry.total_rank,
                         'team_total_rank': week_mama_team_carry.total_rank})
-        year_week = time.strftime("%Y-%W")
-        missions_counts = MamaMissionRecord.mama_mission(obj.mama_id,
-                                                         year_week=year_week).values('status').annotate(
-            status_count=Count('id'))
-        task_percentage = 0
-        if missions_counts:
-            total_count = 0
-            finished = 0
-            for missions_count in missions_counts:
-                total_count += missions_count['status_count']
-                if missions_count['status'] == MamaMissionRecord.FINISHED:  # 已完成的
-                    finished += missions_count['status_count']
-            task_percentage = round(finished/float(total_count), 3) if total_count else 0
-        default.update({'task_percentage': task_percentage})
         return default
 
 
