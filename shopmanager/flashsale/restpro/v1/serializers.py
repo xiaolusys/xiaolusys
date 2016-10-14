@@ -868,7 +868,10 @@ class NinePicAdverSerialize(serializers.ModelSerializer):
 
     class Meta:
         model = NinePicAdver
-        fields = ('id', "title", "start_time", 'sale_category', "turns_num", "pic_arry", 'could_share', 'description')
+        fields = ('id', "title", "start_time", 'sale_category',
+                  "turns_num", "pic_arry",
+                  'save_times', 'share_times',
+                  'could_share', 'description')
 
     def get_description(self, obj):
         """
