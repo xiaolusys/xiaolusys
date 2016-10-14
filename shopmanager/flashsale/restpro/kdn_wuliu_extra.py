@@ -229,6 +229,7 @@ def format_content(**kwargs):
     all_data = {"status":kwargs["status"],
                 "name":kwargs["name"],
                 "errcode":kwargs["errcode"],
+                "status_code":kwargs["status_code"],
                 "id":"",
                 "order": kwargs["out_sid"],
                 "message":kwargs["message"]}

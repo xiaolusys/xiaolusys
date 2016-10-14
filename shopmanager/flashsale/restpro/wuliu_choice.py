@@ -11,6 +11,7 @@ def one_tradewuliu(logistics_company,out_sid,tradewuliu):
     status = exp_status[tradewuliu.status]
     format_exp_info = {
         "status": status,
+        "status_code": tradewuliu.status,
         "name": tradewuliu.logistics_company,
         "errcode": tradewuliu.errcode,
         "id": "",
