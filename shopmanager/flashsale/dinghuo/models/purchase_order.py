@@ -491,7 +491,7 @@ class OrderList(models.Model):
             暂不支持订货单多账单
         """
         from flashsale.finance.models import BillRelation
-        br = BillRelation.objects.filter(object_id=self.id, type=1).first()
+        br = BillRelation.objects.filter(object_id=self.id, type=BillRelation.TYPE_DINGHUO_PAY).first()
         if br:
             return br.bill
 
@@ -515,7 +515,10 @@ class OrderList(models.Model):
             return bill
 
     def update_stage(self):
-        if self.stage == OrderList.STAGE_RECEIVE:
+        if self.stage == OrderList.STAGE_PAY:
+            if self.bill.is_finished():
+                self.set_stage_receive(self.bill_method)
+        elif self.stage == OrderList.STAGE_RECEIVE:
             change = self.set_stat()
             if self.lack is False:
                 self.set_stage_state()
@@ -588,7 +591,7 @@ post_save.connect(
 
 def order_list_update_stage(sender, instance, created, **kwargs):
     logger.info('post_save order_list_update_stage: %s' % instance)
-    if instance.stage in [OrderList.STAGE_RECEIVE, OrderList.STAGE_STATE]:
+    if instance.stage in [OrderList.STAGE_PAY, OrderList.STAGE_RECEIVE, OrderList.STAGE_STATE]:
         from flashsale.dinghuo.tasks import task_orderlist_update_self
         task_orderlist_update_self.delay(instance)
 
