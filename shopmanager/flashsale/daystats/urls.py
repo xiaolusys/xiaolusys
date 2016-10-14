@@ -49,6 +49,7 @@ urlpatterns += patterns(
 
     url(r'^yunying/product/$', 'product.index', name='yy-product-index'),
     url(r'^yunying/product/category$', 'product.salecategory', name='yy-product-salecategory'),
+    url(r'^yunying/product/activity$', 'product.activity', name='yy-product-activity'),
     url(r'^yunying/product/(?P<id>.*)', 'product.show', name='yy-product-show'),
 
     url(r'^yunying/mama/$', 'mama.index', name='yy-mama-index'),
@@ -60,6 +61,7 @@ urlpatterns += patterns(
     url(r'^yunying/mama/carry$', 'mama.carry', name='yy-mama-carry'),
     url(r'^yunying/mama/show$', 'mama.show', name='yy-mama-show'),
     url(r'^yunying/mama/click$', 'mama.click', name='yy-mama-click'),
+    url(r'^yunying/mama/score$', 'mama.score', name='yy-mama-score'),
 
     url(r'^yunying/sql/$', 'sql.index', name='yy-sql-index'),
     url(r'^yunying/sql/(?P<id>.*)/destroy$', 'sql.destroy', name='yy-sql-destroy'),

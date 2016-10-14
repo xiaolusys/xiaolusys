@@ -7,6 +7,7 @@ import simplejson
 from django.shortcuts import render
 from django.views.decorators.cache import cache_page
 from django.core.cache import cache
+from django.contrib.auth.decorators import login_required
 
 from flashsale.daystats.mylib.chart import (
     generate_chart,
@@ -16,6 +17,7 @@ from flashsale.daystats.mylib.chart import (
 from flashsale.daystats.mylib.db import (
     get_cursor,
     execute_sql,
+    mongo
 )
 from flashsale.daystats.mylib.util import (
     process_data,
@@ -29,7 +31,7 @@ from flashsale.daystats.mylib.util import (
 from flashsale.pay.models.user import Customer
 from flashsale.pay.models.trade import SaleTrade, SaleOrder
 from flashsale.coupon.models import OrderShareCoupon
-from flashsale.xiaolumm.models import XlmmFans, PotentialMama, XiaoluMama
+from flashsale.xiaolumm.models import XlmmFans, PotentialMama, XiaoluMama, CashOut
 from flashsale.xiaolumm.models.models_fortune import (
     CarryRecord, OrderCarry, ReferalRelationship, ClickCarry, AwardCarry,
     MamaDailyAppVisit
@@ -52,6 +54,7 @@ def insert_where_clause(tokens, pos, sql):
     return tokens
 
 
+@login_required
 def index(req):
     p_start_date, p_end_date, start_date, end_date = get_date_from_req(req)
     key = req.GET.get('key', 'created')
@@ -77,6 +80,7 @@ def index(req):
 
 
 # @cache_page(60 * 15)
+@login_required
 def show(req):
     mama_id = req.GET.get('mama_id') or None
     customer = None
@@ -186,6 +190,7 @@ def show(req):
     return render(req, 'yunying/mama/show.html', locals())
 
 
+@login_required
 def carry(req):
     # sql = """
     # SELECT mama_id, sum(carry_num) as money FROM xiaoludb.flashsale_xlmm_carry_record
@@ -234,6 +239,7 @@ def carry(req):
     return render(req, 'yunying/mama/carry.html', locals())
 
 
+@login_required
 def retain(req):
     p_start_date, p_end_date, start_date, end_date = get_date_from_req(req)
 
@@ -271,6 +277,7 @@ def retain(req):
     return render(req, 'yunying/mama/retain.html', locals())
 
 
+@login_required
 def home(req):
     pass
 
@@ -320,6 +327,7 @@ def fenzu(items, x=None, key=None, y=None, func_groupby=None):
 mama_cache = {}
 
 
+@login_required
 def new_mama(req):
     p_start_date, p_end_date, start_date, end_date = get_date_from_req(req)
 
@@ -335,7 +343,7 @@ def new_mama(req):
 
     p_mamas = ReferalRelationship.objects\
         .filter(created__gte=start_date).values('referal_from_mama_id')
-    p_mamas = set([x['referal_from_mama_id'] for x in p_mamas])
+    p_mamas = [x['referal_from_mama_id'] for x in p_mamas]
 
     xufei_mamas = PotentialMama.objects\
         .filter(created__gte=start_date, is_full_member=True).values('potential_mama')
@@ -353,7 +361,12 @@ def new_mama(req):
         return item['created']
 
     def pfunc(items):
-        return len(list(set([x['id'] for x in items]) & p_mamas))
+        return len(list(set([x['id'] for x in items]) & set(p_mamas)))
+
+    def yaoqing_count_func(items):
+        la = [x['id'] for x in items]
+        lb = p_mamas
+        return len(filter(lambda x: x in la, lb))
 
     def finish_task_func(items):
         o_mamas = set([x['id'] for x in items])
@@ -379,6 +392,8 @@ def new_mama(req):
         mamas, xaris='created', key=None, yaris=len, start_date=start_date, end_date=end_date)
     x_axis, chart_items = generate_chart_data(
         mamas, xaris='created', key=None, yaris=pfunc, start_date=start_date, end_date=end_date)
+    # x_axis, yaoqing_count_chart_items = generate_chart_data(
+    #     mamas, xaris='created', key=None, yaris=yaoqing_count_func, start_date=start_date, end_date=end_date)
     # x_axis, buy_chart_items = generate_chart_data(
     #     mamas, xaris='created', key=None, yaris=buyfunc, start_date=start_date, end_date=end_date)
     x_axis, open_app_chart_items = generate_chart_data(
@@ -390,6 +405,7 @@ def new_mama(req):
 
     z_items = {}
     yaoqing_data = chart_items.values()[0]
+    # yaoqing_count_data = yaoqing_count_chart_items.values()[0]
     new_mama_data = new_chart_items.values()[0]
     xufei_mama_data = xufei_chart_items.values()[0]
     finish_task_data = finish_task_chart_items.values()[0]
@@ -414,6 +430,7 @@ def new_mama(req):
     return render(req, 'yunying/mama/new_mama.html', locals())
 
 
+@login_required
 def tab(req):
     p_start_date, p_end_date, start_date, end_date = get_date_from_req(req)
     query = req.GET.get('sql', '')
@@ -528,6 +545,7 @@ def get_mama_new_task(mama_id):
     return mama_task
 
 
+@login_required
 def new_task(req):
     mama_id = req.GET.get('mama_id', '')
     if mama_id:
@@ -535,6 +553,7 @@ def new_task(req):
     return render(req, 'yunying/mama/new_task.html', locals())
 
 
+@login_required
 def click(req):
     p_start_date, p_end_date, start_date, end_date = get_date_from_req(req)
     sql = """
@@ -569,3 +588,70 @@ def click(req):
     charts.append(generate_chart('UV', x_axis, items, width='1000px'))
 
     return render(req, 'yunying/mama/click.html', locals())
+
+
+def get_mama_score(mama):
+    # 邀请人数
+    invite_count = ReferalRelationship.objects.filter(referal_from_mama_id=mama.id).count()
+
+    # 再邀请人数
+    second_mamas = ReferalRelationship.objects.filter(referal_from_mama_id=mama.id).values('referal_to_mama_id')
+    second_mamas_id = [x['referal_to_mama_id'] for x in second_mamas]
+    second_invite_count = ReferalRelationship.objects.filter(referal_from_mama_id__in=second_mamas_id).count()
+
+    # 登陆APP次数
+    login_app_count = MamaDailyAppVisit.objects.filter(mama_id=mama.id).count()
+
+    # 购买次数
+    customer = Customer.objects.filter(unionid=mama.openid).first()
+    buy_count = SaleOrder.objects.filter(buyer_id=customer.id).exclude(pay_time__isnull=True).count()
+
+    # 提现次数
+    cashout_count = CashOut.objects.filter(xlmm=mama.id).count()
+
+    score = (invite_count and 1) +\
+            (second_invite_count and 5) +\
+            (login_app_count and 2) + \
+            (buy_count and 10) + \
+            (cashout_count and 3)
+
+    return {
+        'invite_count': invite_count,
+        'second_invite_count': second_invite_count,
+        'login_app_count': login_app_count,
+        'buy_count': buy_count,
+        'cashout_count': cashout_count,
+        'score': score
+    }
+
+
+def get_mama_invite_score(mama):
+    second_mamas = ReferalRelationship.objects.filter(referal_from_mama_id=mama.id).values('referal_to_mama_id')
+    second_mamas_id = [x['referal_to_mama_id'] for x in second_mamas]
+    score = 0
+
+    for item in second_mamas_id:
+        xlmm = XiaoluMama.objects.filter(id=item).first()
+        score = score + get_mama_score(xlmm)['score']
+    return score
+
+
+def score(req):
+    start_date = datetime(2016, 9, 27)
+    end_date = datetime(2016, 9, 28)
+    # mamas = XiaoluMama.objects.filter(created__gte=start_date, created__lt=end_date)[:10]
+    # mamas = XiaoluMama.objects.filter(id='24543')[:10]
+    mamas = mongo.mama_score.find()  # .sort('score.score', -1).limit(100)
+    mamas = list(mamas)
+
+    def by_score(item):
+        return item['score']['score']
+
+    data = groupby(mamas, by_score)
+    data = process(data, len)
+
+    # for mama in mamas:
+    #     score = get_mama_score(mama)
+    #     mama.score = score
+    #     mama.invite_score = get_mama_invite_score(mama)
+    return render(req, 'yunying/mama/score.html', locals())

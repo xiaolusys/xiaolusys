@@ -52,9 +52,7 @@
             <a class="" data-toggle="collapse" href="#collapse1">用户分析</a>
             <ul class="nav nav-second-level collapse in" id="collapse1">
               <li> <a href="{% url 'yy-customer-list' %}">用户列表</a> </li>
-              <li>
-                <a href="{% url 'yy-customer-index' %}?start_date=2016-08-01">xxx</a>
-              </li>
+              <!-- <li> <a href="{% url 'yy-customer-index' %}?start_date=2016-08-01">xxx</a> </li> -->
             </ul>
           </li>
           <li>
@@ -66,10 +64,17 @@
               <li> <a href="{% url 'yy-mama-carry' %}">一元妈妈收益</a> </li>
               <li> <a href="{% url 'yy-mama-retain' %}">七日留存</a> </li>
               <li> <a href="{% url 'yy-mama-click' %}">点击统计</a> </li>
+              <!-- <li> <a href="{% url 'yy-mama-score' %}">妈妈分数</a> </li> -->
             </ul>
           </li>
-          <li><a href="{% url 'yy-product-index' %}">商品分析</a></li>
-          <li><a href="{% url 'yy-product-salecategory' %}">商品类目销量分析</a></li>
+          <li>
+            <a class="" data-toggle="collapse" href="#collapse2">商品分析</a>
+            <ul class="nav nav-second-level collapse in" id="collapse2">
+              <li><a href="{% url 'yy-product-index' %}">商品销量</a></li>
+              <li><a href="{% url 'yy-product-salecategory' %}">商品类目销量</a></li>
+              <li><a href="{% url 'yy-product-activity' %}">商品专题销量</a></li>
+            </ul>
+          </li>
           <li><a href="{% url 'yy-mama-tab' %}">SQL查询转图表</a></li>
           <li><a href="{% url 'yy-sql-index' %}">历史查询</a></li>
           <li><a href="{% url 'yy-database-index' %}">数据库</a></li>
