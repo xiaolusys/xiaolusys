@@ -2,15 +2,14 @@
 
 {% block main %}
 
-{% verbatim %}
 <div class="row" id="app">
   <div class="col-xs-4">
     <div class="panel panel-default">
       <div class="panel-heading">用户(Customer)</div>
       <div class="panel-body">
         <ul>
-          <li>今日新增用户：{{ data.customer_today_count }}</li>
-          <li>昨日新增用户：{{ data.customer_yesterday_count }}</li>
+          <li>今日新增用户：{{ customer_today_count }}</li>
+          <li>昨日新增用户：{{ customer_yesterday_count }}</li>
         </ul>
       </div>
     </div>
@@ -21,8 +20,8 @@
       <div class="panel-heading">小鹿妈妈</div>
       <div class="panel-body">
         <ul>
-          <li>今日新增用户：{{ data.xlmm_today_count }}</li>
-          <li>昨日新增用户：{{ data.xlmm_yesterday_count }}</li>
+          <li>今日新增用户：{{ xlmm_today_count }}</li>
+          <li>昨日新增用户：{{ xlmm_yesterday_count }}</li>
         </ul>
       </div>
     </div>
@@ -33,8 +32,8 @@
       <div class="panel-heading">订单(付款/全部)</div>
       <div class="panel-body">
         <ul>
-          <li>今日订单：{{ data.trade_pay_today_count }} / {{ data.trade_today_count }}</li>
-          <li>昨日订单：{{ data.trade_pay_yesterday_count }} / {{ data.trade_yesterday_count }} </li>
+          <li>今日订单：{{ trade_pay_today_count }} / {{ trade_today_count }}</li>
+          <li>昨日订单：{{ trade_pay_yesterday_count }} / {{ trade_yesterday_count }} </li>
         </ul>
       </div>
     </div>
@@ -45,13 +44,12 @@
       <div class="panel-heading">交易额</div>
       <div class="panel-body">
         <ul>
-          <li>今日交易额：{{ data.trade_pay_today_fee }}</li>
-          <li>昨日交易额：{{ data.trade_pay_yesterday_fee }}</li>
+          <li>今日交易额：{{ trade_pay_today_fee }}</li>
+          <li>昨日交易额：{{ trade_pay_yesterday_fee }}</li>
         </ul>
       </div>
     </div>
   </div>
 </div>
-{% endverbatim %}
 
 {% endblock %}

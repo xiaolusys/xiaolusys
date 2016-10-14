@@ -49,6 +49,7 @@ urlpatterns += patterns(
 
     url(r'^yunying/product/$', 'product.index', name='yy-product-index'),
     url(r'^yunying/product/category$', 'product.salecategory', name='yy-product-salecategory'),
+    url(r'^yunying/product/activity$', 'product.activity', name='yy-product-activity'),
     url(r'^yunying/product/(?P<id>.*)', 'product.show', name='yy-product-show'),
 
     url(r'^yunying/mama/$', 'mama.index', name='yy-mama-index'),
