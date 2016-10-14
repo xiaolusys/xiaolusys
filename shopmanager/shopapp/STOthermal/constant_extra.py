@@ -28,7 +28,10 @@ param_waybill_cloud_print_apply_new_request = {'cp_code': "STO",
                                                    "recipient": {
                                                        "address": {
                                                            "detail": "wojia",
-                                                           "province": "shanghai"
+                                                           "province": "shanghai",
+                                                           "city":"city_r",
+                                                           "district":"district_r"
+
                                                        },
                                                        "name": "denghui",
                                                        "mobile": "15800972458"
