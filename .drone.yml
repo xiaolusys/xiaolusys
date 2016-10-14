@@ -60,9 +60,9 @@ deploy:
     commands:
       - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
       - docker rm -f celery
-      - docker run --name=celery --restart=always -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
+      - docker run --name=celery --restart=always --memory=2048m --cpu-period=100000 --cpu-quota=100000 -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
         --volumes-from=static -d -e BLUEWARE_CONFIG_FILE=blueware.ini -e C_FORCE_ROOT=1 registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
-        blueware-admin run-program celery worker -c 2 -A shopmanager --time-limit=5400
+        blueware-admin run-program celery worker -c 4 -A shopmanager --time-limit=5400
         --loglevel=ERROR -Q apis,default,peroid,async,notify,logistics,dinghuo
   ssh:
     host: staging.xiaolumm.com
