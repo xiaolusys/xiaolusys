@@ -246,6 +246,7 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
+        manual_refund = request.data.get('manual_refund')
         status = int(request.data.get('status'))
         if not instance.is_modifiable:
             raise exceptions.APIException(u'退款单当前状态不予更新退款单!')
@@ -259,5 +260,8 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         log_action(request.user.id, instance, CHANGE, u'审核退款单')
+        instance = self.queryset.filter(id=serializer.data.get('id')).first()
+        if manual_refund == 'on':  # 开启手动退款
+            instance.return_fee_by_refund_product()
         return Response(serializer.data)
 
