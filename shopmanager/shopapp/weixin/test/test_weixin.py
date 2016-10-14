@@ -60,7 +60,7 @@ def test_push_pintuan():
 
 def test_push_salerefund():
     from flashsale.pay.models import SaleRefund
-    salerefund = SaleRefund.objects.get(id=54102)
+    salerefund = SaleRefund.objects.get(id=54103)
     push = WeixinPush()
     push.push_refund_notify(salerefund, 9)
 
