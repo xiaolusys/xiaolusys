@@ -616,6 +616,13 @@ class ModelProduct(BaseTagModel):
         if self.shelf_status != ModelProduct.OFF_SHELF:
             self.shelf_status = ModelProduct.OFF_SHELF
             self.save(update_fields=['shelf_status'])
+            if self.is_teambuy:
+                product = self.products.first()
+                if product:
+                    sku = product.prod_skus.first()
+                    if sku:
+                        from flashsale.pay.models import TeamBuy
+                        TeamBuy.end_teambuy(sku)
             return True
         return False
 
