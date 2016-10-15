@@ -45,7 +45,7 @@ class TeamBuy(AdminModel):
             teambuy = TeamBuy(
                 creator=saletrade.buyer_id,
                 sku_id=saleorder.sku_id,
-                limit_days=2, #model_product.limit_days, 目前限制全部是2天
+                limit_days=1, #model_product.limit_days, 目前限制全部是2天
                 limit_person_num=model_product.teambuy_person_num,
             )
             teambuy.limit_time = datetime.datetime.now() + datetime.timedelta(days=3)
@@ -73,7 +73,6 @@ class TeamBuy(AdminModel):
 
     def check_finish_teambuy(self):
         if TeamBuyDetail.objects.filter(teambuy_id=self.id).count() >= self.limit_person_num:
-            self.trigger_saleorder()
             self.set_status_success()
 
     def trigger_saleorder(self):
@@ -92,7 +91,7 @@ class TeamBuy(AdminModel):
     def set_status_success(self):
         self.status = 1
         self.save()
-
+        self.trigger_saleorder()
         from shopapp.weixin.tasks.tasks_order_push import task_pintuan_success_push
         task_pintuan_success_push.delay(self)  # 拼团成功微信推送
 
@@ -140,6 +139,14 @@ class TeamBuy(AdminModel):
         """
         customer = Customer.objects.filter(id=self.creator).first()
         return customer
+
+    @staticmethod
+    def end_teambuy(sku):
+        for teambuy in TeamBuy.objects.filter(status=0, sku=sku):
+            if teambuy.details.count() >= teambuy.limit_person_num:
+                teambuy.set_status_success()
+            else:
+                teambuy.set_status_failed()
 
 
 def update_teambuy_status(sender, instance, created, **kwargs):

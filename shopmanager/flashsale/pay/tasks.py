@@ -958,7 +958,6 @@ def task_schedule_check_teambuy():
     _now = datetime.datetime.now()
     for teambuy in TeamBuy.objects.filter(limit_time__lt=_now, status=0):
         if teambuy.details.count() >= teambuy.limit_person_num:
-            teambuy.trigger_saleorder()
             teambuy.set_status_success()
         else:
             teambuy.set_status_failed()

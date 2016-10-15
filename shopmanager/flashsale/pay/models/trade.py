@@ -1156,8 +1156,8 @@ class SaleOrderSyncLog(BaseModel):
     SALE_ORDER_SHOPPING_CART = 10
     SALE_ORDER_WAITING_PAY = 11
     TYPE_CHOICE = ((UNKNOWN, u'未知'), (SO_PSI, u'发货PSI'), (PSI_PR, u'订货PR'), (BOOKNUM, u'订货NUM'),
-                   (PACKAGE_SKU_FINISH_NUM, u'包裹SKU完成计数'), (INBOUND_OUT_STOCK, u'入库有多货'),
-                   (INBOUND_INFERIOR, u'入库有次品'), (PACKAGE_SKU_NUM, u'包裹SKU实时计数'),
+                   (PACKAGE_SKU_FINISH_NUM, u'包裹商品完成计数'), (INBOUND_OUT_STOCK, u'入库有多货'),
+                   (INBOUND_INFERIOR, u'入库有次品'), (PACKAGE_SKU_NUM, u'包裹商品实时计数'),
                    (PACKAGE_ASSIGN_NUM, u'备货计数'), (PACKAGE_STOCK_NOTASSIGN, u'有库存未备货'),
                    (SALE_ORDER_SHOPPING_CART, u'购物车订单数'), (SALE_ORDER_WAITING_PAY, u'待支付订单数'))
     OPEN = 1
