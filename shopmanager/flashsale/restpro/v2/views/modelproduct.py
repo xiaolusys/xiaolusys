@@ -11,6 +11,7 @@ from django.db.models import Q
 from django.core.urlresolvers import reverse
 from django.forms import model_to_dict
 
+from rest_framework import filters
 from rest_framework import generics
 from rest_framework import viewsets
 from rest_framework.decorators import detail_route, list_route
@@ -30,6 +31,12 @@ import logging
 logger = logging.getLogger('service.restpro')
 
 CACHE_VIEW_TIMEOUT = 30
+
+
+class ModelProductFilter(filters.FilterSet):
+    class Meta:
+        model = ModelProduct
+
 
 class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
     """
@@ -63,7 +70,8 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
     pagination_class = pagination.PageNumberPkPagination
-
+    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
+    filter_class = ModelProductFilter
     paginate_by = 10
     page_query_param = 'page'
 
@@ -149,7 +157,7 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
                       datetime.datetime.combine(cur_date, datetime.time.max))
         if only_onshelf:
             queryset = queryset.filter(
-                Q(onshelf_time__range=date_range) | Q(is_recommend=True),
+                Q(onshelf_time__range=date_range),
                 shelf_status=ModelProduct.ON_SHELF
             )
         else:
