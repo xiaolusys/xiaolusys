@@ -328,7 +328,7 @@ def sync_md_weight(sender, instance, raw, *args, **kwargs):
     md = ModelProduct.objects.filter(saleproduct=instance.sale_product_id).first()
     if not md:
         return
-    md.update_schedule_detail_info(instance.order_weight)
+    md.update_schedule_detail_info(instance.order_weight, instance.is_promotion)
 
 
 post_save.connect(sync_md_weight, SaleProductManageDetail,

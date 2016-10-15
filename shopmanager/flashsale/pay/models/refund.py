@@ -295,14 +295,8 @@ class SaleRefund(PayBaseModel):
         else:
             if payment > round(sorder.payment * 100, 0):
                 raise Exception(u'超过订单实际支付金额!')
-            BudgetLog.objects.create(
-                customer_id=strade.buyer_id,
-                referal_id=obj.order_id,
-                flow_amount=payment,
-                budget_type=BudgetLog.BUDGET_IN,
-                budget_log_type=BudgetLog.BG_REFUND,
-                status=BudgetLog.CONFIRMED
-            )
+            if payment > 0:  # 有退款金额才生成退款余额记录
+                BudgetLog.create_salerefund_log(self, payment)
         self.refund_confirm()
 
     def refund_charge_approve(self):
@@ -530,8 +524,9 @@ class SaleRefund(PayBaseModel):
         from shopapp.weixin.weixin_push import WeixinPush
         from flashsale.xiaolumm.models import WeixinPushEvent
 
-        flow_amount = min(self.refund_fee, self.payment)*100
-        BudgetLog.create_salerefund_log(self, flow_amount)
+        flow_amount = min(self.refund_fee, self.payment) * 100
+        if flow_amount > 0:
+            BudgetLog.create_salerefund_log(self, flow_amount)
         if 0 < self.postage_num <= 2000:
             BudgetLog.create_salerefund_log(self, self.postage_num)
         if self.coupon_num > 0:
