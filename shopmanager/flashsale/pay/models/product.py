@@ -567,12 +567,17 @@ class ModelProduct(BaseTagModel):
                 md.save(update_fields=update_fields)
                 log_action(action_user, md, CHANGE, u'同步上下架时间和专题类型')
 
-    def update_schedule_detail_info(self, order_weight):
-        """更新权重和是否推广字段"""
+    def update_schedule_detail_info(self, order_weight, is_recommend):
+        """
+        更新权重和是否推广字段
+        """
         update_fields = []
         if self.order_weight != order_weight:
             self.order_weight = order_weight
             update_fields.append('order_weight')
+        if self.is_recommend != is_recommend:
+            self.is_recommend = is_recommend
+            update_fields.append('is_recommend')
         if update_fields:
             self.save(update_fields=update_fields)
             return True
