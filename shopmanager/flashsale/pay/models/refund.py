@@ -516,9 +516,10 @@ class SaleRefund(PayBaseModel):
         5. 修改退款单状态
         """
         if self.good_status != SaleRefund.BUYER_RETURNED_GOODS or self.status != SaleRefund.REFUND_CONFIRM_GOODS:
-            return logger.error({'action': u'return_fee_by_refund_product',
-                                 'message': u'退款单状态错误 不予退款',
-                                 'salerefund': self.id})
+            logger.error({'action': u'return_fee_by_refund_product',
+                          'message': u'退款单状态错误 不予退款',
+                          'salerefund': self.id})
+            return False
         from flashsale.pay.models import BudgetLog
         from flashsale.coupon.models import UserCoupon
         from shopapp.weixin.weixin_push import WeixinPush
@@ -530,7 +531,10 @@ class SaleRefund(PayBaseModel):
         if 0 < self.postage_num <= 2000:
             BudgetLog.create_salerefund_log(self, self.postage_num)
         if self.coupon_num > 0:
-            UserCoupon.create_salerefund_post_coupon(self.buyer_id, self.trade_id, money=(self.coupon_num / 100))
+            try:
+                UserCoupon.create_salerefund_post_coupon(self.buyer_id, self.trade_id, money=(self.coupon_num / 100))
+            except Exception as e:
+                logger.info({'action': u'return_fee_by_refund_product', 'message': e.message})
         self.status = SaleRefund.REFUND_SUCCESS
         self.save(update_fields=['status'])
 

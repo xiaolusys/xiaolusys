@@ -289,7 +289,7 @@ class RefundView(APIView):
             is_finish = sale_refund.return_fee_by_refund_product()
             if is_finish:
                 refund_product.is_finish = True
-                refund_product.save(update_fields=['is_finish'])
+        refund_product.save(update_fields=['is_finish'])
 
         return Response(serializers.RefundProductSerializer(rf).data)
 

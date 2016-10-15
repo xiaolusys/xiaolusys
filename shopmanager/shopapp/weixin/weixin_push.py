@@ -227,13 +227,16 @@ class WeixinPush(object):
             },
         }
         to_url = 'http://m.xiaolumeimei.com/mall/refunds/details/%s' % salerefund.id
-        event = WeixinPushEvent(customer_id=customer.id,
-                                uni_key=uni_key,
-                                tid=template.id,
-                                event_type=event_type,
-                                params=template_data,
-                                to_url=to_url)
-        event.save()
+        try:
+            event = WeixinPushEvent(customer_id=customer.id,
+                                    uni_key=uni_key,
+                                    tid=template.id,
+                                    event_type=event_type,
+                                    params=template_data,
+                                    to_url=to_url)
+            event.save()
+        except:
+            pass
         # return self.push(customer, template_ids, template_data, to_url)
 
     def push_mama_award(self, awardcarry, courage_remarks, to_url):
