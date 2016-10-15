@@ -1347,7 +1347,7 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
         'id', 'sale_order_link_to', 'oid', 'sale_trade_id_link', 'receiver_mobile', 'out_sid', 'logistics_company_name',
         'package_order_link_to', 'package_sku_item_link_to', 'assign_status', 'sys_status',
         'pay_time', 'assign_time', 'product_title_link_to', 'ware_by', 'sku_id_link_to', 'sku_link_to', 'num', 'price',
-        'total_fee', 'payment', 'discount_fee', 'adjust_fee', 'purchase_order_unikey_link', 'modified', 'created')
+        'total_fee', 'payment', 'discount_fee', 'adjust_fee', 'purchase_order_unikey_link', 'orderlist_status', 'modified', 'created')
 
     search_fields = ['id', 'sale_order_id', 'sale_trade_id', 'receiver_mobile', 'out_sid', 'package_order_pid',
                      'package_order_id', 'oid', 'sku_id', 'purchase_order_unikey']
@@ -1369,6 +1369,42 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
     purchase_order_unikey_link.allow_tags = True
     purchase_order_unikey_link.short_description = u'订货单'
 
+    # def get_purchase_order(self):
+    #     from flashsale.dinghuo.models import OrderList
+    #     PackageSkuItem.objects.filter(assign_status)
+    #     return OrderList.objects.filter()
+
+    def orderlist_status(self, obj):
+        from flashsale.dinghuo.models import OrderList
+        ol = obj.order_list
+        now = datetime.datetime.now()
+        if not ol:
+            return u'未订货'
+        if ol.is_finished() and ol.third_package:
+            try:
+                delta = (now - ol.received_time).days
+            except:
+                delta = -1
+            return u'第三方返货已通知%d天' % delta
+        elif ol.is_finished():
+            try:
+                delta = (now - ol.received_time).days
+            except:
+                delta = -1
+            return u'已到货%d天' % delta
+        elif ol.stage == OrderList.STAGE_RECEIVE:
+            try:
+                delta = (now - ol.receive_time).days
+            except:
+                delta = -1
+            return u'已订货%d天' % delta
+        elif ol.stage == OrderList.STAGE_PAY:
+            return u'待付款'
+        elif ol.stage == OrderList.STAGE_CHECKED:
+            return u'审核待付款'
+        return u'异常'
+    orderlist_status.short_description = u'订货状态'
+
     def get_actions(self, request):
         return [i for i in super(PackageSkuItemAdmin, self).get_actions(request) if i != 'delete_selected']
 
@@ -1381,7 +1417,7 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
         return ''
 
     package_order_link_to.allow_tags = True
-    package_order_link_to.short_description = u'包裹SKU'
+    package_order_link_to.short_description = u'包裹商品'
 
     def sale_trade_id_link(self, obj):
         return '<a href="%(url)s" target="_blank"> %(text)s</a>' % {
@@ -1401,7 +1437,7 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
         return ''
 
     package_sku_item_link_to.allow_tags = True
-    package_sku_item_link_to.short_description = u'包裹SKU项'
+    package_sku_item_link_to.short_description = u'包裹商品列表'
 
     SALE_ORDER_LINK = (
         '<a href="%(sale_order_url)s" target="_blank">'
