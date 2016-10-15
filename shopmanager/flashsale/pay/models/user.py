@@ -595,6 +595,7 @@ class BudgetLog(PayBaseModel):
     def create_salerefund_log(cls, refund, flow_amount):
         """
         功能：　创建退款单对应的　余额记录
+        :arg  refund:SaleRefund instance,  flow_amount:退款金额(分)
         """
         uni_key = cls.gen_uni_key(refund.buyer_id, BudgetLog.BUDGET_IN, BudgetLog.BG_REFUND)
         budget_log = cls(customer_id=refund.buyer_id,
