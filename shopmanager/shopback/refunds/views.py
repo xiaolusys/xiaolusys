@@ -281,6 +281,7 @@ class RefundView(APIView):
         refund_product = RefundProduct.objects.get(id=rf.id)  # 重新获取(避免缓存问题)
         refund_product.send_goods_backed_message()
 
+        update_Product_Collect_Num(pro=rf, req=request)  # 更新产品库存
         if refund_product.check_salerefund_conformably():  # 退货和退款单信息一致
             sale_refund = refund_product.get_sale_refund()
             if not sale_refund:
@@ -290,7 +291,6 @@ class RefundView(APIView):
                 refund_product.is_finish = True
                 refund_product.save(update_fields=['is_finish'])
 
-        update_Product_Collect_Num(pro=rf, req=request)  # 更新产品库存
         return Response(serializers.RefundProductSerializer(rf).data)
 
 
