@@ -240,7 +240,7 @@ def task_update_all_mama_mission_state():
     )
     xiaolumama_ids = xiaolumms.values_list('id', flat=True)
 
-    jobs = group([task_create_or_update_mama_mission_state.s(mid, MamaMissionRecord.STAGING) for mid in xiaolumama_ids])
+    jobs = group([task_create_or_update_mama_mission_state.s(mid) for mid in xiaolumama_ids])
     jobs.delay()
 
 
