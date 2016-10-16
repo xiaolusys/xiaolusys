@@ -2,6 +2,7 @@
 import datetime
 
 from celery.task import task
+from celery import group
 from django.db import IntegrityError
 from django.conf import settings
 
@@ -238,8 +239,9 @@ def task_update_all_mama_mission_state():
         last_renew_type__in=(XiaoluMama.HALF, XiaoluMama.FULL)
     )
     xiaolumama_ids = xiaolumms.values_list('id', flat=True)
-    for mama_id in xiaolumama_ids:
-       task_create_or_update_mama_mission_state.delay(mama_id)
+
+    jobs = group([task_create_or_update_mama_mission_state.s(mid, MamaMissionRecord.STAGING) for mid in xiaolumama_ids])
+    jobs.delay()
 
 
 @task
@@ -254,14 +256,13 @@ def task_notify_all_mama_staging_mission():
         status = MamaMissionRecord.STAGING,
         # created__lte=twelve_hours_ago
     ).order_by('-mission__cat_type')
-    cnt = 0
+
     logger.info('task_notify_all_mama_staging_mission start: date=%s, count=%s'%(
         datetime.datetime.now(), mama_missions.count()))
-    for mama_mission_id in mama_missions.values_list('id', flat=True):
-        task_push_mission_state_msg_to_weixin_user.delay(mama_mission_id, MamaMissionRecord.STAGING)
-        cnt += 1
-        if cnt % 5000 == 0:
-            logger.info('task_notify_all_mama_staging_mission post: date=%s, post_num=%s' %(datetime.datetime.now(), cnt))
+    mission_ids = mama_missions.values_list('id', flat=True)
+
+    jobs = group([task_push_mission_state_msg_to_weixin_user.s(mid, MamaMissionRecord.STAGING) for mid in mission_ids])
+    jobs.delay()
 
     logger.info('task_notify_all_mama_staging_mission end: date=%s' % (
         datetime.datetime.now()))
@@ -327,9 +328,10 @@ def task_update_all_mama_mission_award_states():
                                                created__lt=aweek_ago,
                                                uni_key__startswith=MamaMissionRecord.UNI_NAME)
     staging_award_unikeys = staging_awards.values_list('uni_key', flat=True)
-    for award_unikey in staging_award_unikeys:
-        mission_record_id = award_unikey.split('-')[-1]
-        task_cancel_or_finish_mama_mission_award.delay(mission_record_id)
+    mission_record_ids = [award_unikey.split('-')[-1] for award_unikey in staging_award_unikeys]
+
+    jobs = group([task_cancel_or_finish_mama_mission_award.s(mid) for mid in mission_record_ids])
+    jobs.delay()
 
 
 @task(max_retries=3, default_retry_delay=5)

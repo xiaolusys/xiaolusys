@@ -221,18 +221,18 @@ class MergeTradeAdmin(ApproxAdmin):
     form = YundaCustomerForm
     # --------设置页面布局----------------
     fieldsets = (('订单基本信息:', {
-        'classes': ('collapse',),
-        'fields': (('tid', 'user', 'type', 'status')
-                   , ('buyer_nick', 'order_num', 'prod_num', 'trade_from')
-                   , ('total_fee', 'payment', 'discount_fee', 'adjust_fee', 'post_fee')
-                   , ('is_cod', 'seller_cod_fee', 'buyer_cod_fee', 'cod_fee', 'cod_status')
-                   , ('is_brand_sale', 'is_force_wlb', 'buyer_rate', 'seller_rate', 'seller_can_rate'
-                      , 'is_lgtype', 'lg_aging_type')
-                   , ('send_time', 'lg_aging', 'step_paid_fee', 'step_trade_status')
-                   , ('created', 'pay_time', 'consign_time')
-                   , ('buyer_message', 'seller_memo', 'sys_memo')
-                   )
-    }),
+                    'classes': ('collapse',),
+                    'fields': (('tid', 'user', 'type', 'status')
+                               , ('buyer_nick', 'order_num', 'prod_num', 'trade_from')
+                               , ('total_fee', 'payment', 'discount_fee', 'adjust_fee', 'post_fee')
+                               , ('is_cod', 'seller_cod_fee', 'buyer_cod_fee', 'cod_fee', 'cod_status')
+                               , ('is_brand_sale', 'is_force_wlb', 'buyer_rate', 'seller_rate', 'seller_can_rate'
+                                  , 'is_lgtype', 'lg_aging_type')
+                               , ('send_time', 'lg_aging', 'step_paid_fee', 'step_trade_status')
+                               , ('created', 'pay_time', 'consign_time')
+                               , ('buyer_message', 'seller_memo', 'sys_memo')
+                               )
+                }),
                  ('收货人及物流信息:', {
                      'classes': ('expand',),
                      'fields': (('receiver_name', 'receiver_state', 'receiver_city', 'receiver_district')
