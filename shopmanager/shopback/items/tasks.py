@@ -1010,10 +1010,40 @@ def task_Auto_Download_Shelf():
         log_action(systemoa.id, product, CHANGE, u'系统自动下架商品:%s' % log_sign)  # 保存操作日志
     logger.warn("{0}系统自动下架{1}个产品,含未通过审核{2}个产品".format(datetime.datetime.now(), count, unverify_no), exc_info=True)
 
+@task()
+@transaction.atomic
+def task_assign_stock_to_package_sku_item(sku_id):
+    instance = ProductSkuStats.objects.get(sku_id=sku_id)
+    if instance.realtime_quantity > instance.assign_num:
+        assign_stock_to_package_sku_item(instance)
+    elif instance.realtime_quantity < instance.assign_num:
+        relase_package_sku_item(instance)
+
+
+def assign_stock_to_package_sku_item(stat):
+    from shopback.trades.models import PackageSkuItem
+    available_num = stat.realtime_quantity - stat.assign_num
+    if available_num > 0:
+        package_sku_items = PackageSkuItem.objects.filter(sku_id=stat.sku_id,
+                                                          assign_status=PackageSkuItem.NOT_ASSIGNED,
+                                                          num__lte=available_num).order_by('pay_time')
+        if package_sku_items.count() > 0:
+            package_sku_item = package_sku_items.first()
+            package_sku_item.assign_status = PackageSkuItem.ASSIGNED
+            package_sku_item.set_assign_status_time()
+            package_sku_item.save()
+
+
+def relase_package_sku_item(stat):
+    sku_id = stat.sku_id
+    from shopback.trades.models import PackageSkuItem
+    pki = PackageSkuItem.objects.filter(sku_id=sku_id, assign_status=PackageSkuItem.ASSIGNED).order_by('-pay_time').first()
+    if pki:
+        pki.reset_assign_status()
 
 @task()
 @transaction.atomic
-def task_assign_stock_to_package_sku_item(stat):
+def task_assign_stock_to_package_sku_item_bak(stat):
     from shopback.trades.models import PackageSkuItem
     available_num = stat.realtime_quantity - stat.assign_num
     if available_num > 0:
