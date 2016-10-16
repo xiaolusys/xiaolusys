@@ -238,13 +238,10 @@ def invalid_apiskustat_cache(sender, instance, *args, **kwargs):
 
 post_save.connect(invalid_apiskustat_cache, sender=ProductSkuStats, dispatch_uid='post_save_invalid_apiskustat_cache')
 
+
 def assign_stock_to_package_sku_item(sender, instance, created, **kwargs):
-    if instance.realtime_quantity > instance.assign_num:
-        from shopback.items.tasks import task_assign_stock_to_package_sku_item
-        task_assign_stock_to_package_sku_item.delay(instance)
-    elif instance.realtime_quantity < instance.assign_num:
-        from shopback.items.tasks import task_relase_package_sku_item
-        task_relase_package_sku_item.delay(instance)
+    from shopback.items.tasks import task_assign_stock_to_package_sku_item
+    task_assign_stock_to_package_sku_item.delay(instance.sku_id)
 
 
 post_save.connect(assign_stock_to_package_sku_item, sender=ProductSkuStats,
