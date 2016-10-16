@@ -1,8 +1,6 @@
 # -*- coding:utf-8 -*-
-import time
 import datetime
 from django.db import models
-from django.db.models import Q, Sum
 from django.conf import settings
 from django.db import transaction
 from django.db.models.signals import post_save
@@ -10,7 +8,7 @@ from django.db.models import F
 
 from shopback.categorys.models import CategorySaleStat
 from common.modelutils import update_model_fields
-from core.options import log_action, ADDITION, CHANGE, get_systemoa_user
+from core.options import log_action, CHANGE, get_systemoa_user
 from core.fields import JSONCharMyField
 
 from shopback import paramconfig as pcfg
@@ -18,7 +16,7 @@ from shopback.items.models import Product
 from supplychain.supplier.models import SaleProduct
 from flashsale.pay.signals import signal_saletrade_refund_post
 from flashsale.pay import NO_REFUND, REFUND_CLOSED, REFUND_REFUSE_BUYER, REFUND_WAIT_SELLER_AGREE, \
-    REFUND_WAIT_RETURN_GOODS, REFUND_CONFIRM_GOODS, REFUND_APPROVE, REFUND_SUCCESS, REFUND_STATUS
+    REFUND_WAIT_RETURN_GOODS, REFUND_CONFIRM_GOODS, REFUND_APPROVE, REFUND_SUCCESS
 from flashsale.pay.managers import SaleRefundManager
 from shopback.warehouse.constants import WARE_THIRD, WARE_SH, WARE_GZ, WARE_COMPANY
 from ..signals import signal_saletrade_refund_confirm
@@ -27,9 +25,9 @@ from .base import PayBaseModel
 from .. import constants
 
 import pingpp
-pingpp.api_key = settings.PINGPP_APPKEY
-
 import logging
+
+pingpp.api_key = settings.PINGPP_APPKEY
 logger = logging.getLogger(__name__)
 
 
@@ -87,64 +85,62 @@ class SaleRefund(PayBaseModel):
         (SELLER_OUT_STOCK, u'卖家缺货'),
     )
 
-    id = models.AutoField(primary_key=True, verbose_name=u'ID')
-    refund_no = models.CharField(max_length=32, unique=True,
-                                 default=default_refund_no,
-                                 verbose_name=u'退款编号')
-    trade_id = models.IntegerField(verbose_name=u'交易ID')
-    order_id = models.IntegerField(verbose_name=u'订单ID')
+    id = models.AutoField(primary_key=True, verbose_name=u'ID')  # type: int
+    refund_no = models.CharField(max_length=32, unique=True, default=default_refund_no,
+                                 verbose_name=u'退款编号')  # type: text_type
+    trade_id = models.IntegerField(verbose_name=u'交易ID')  # type: int
+    order_id = models.IntegerField(verbose_name=u'订单ID')  # type: int
 
-    buyer_id = models.BigIntegerField(db_index=True, default=0, verbose_name=u"客户ID")
-    refund_id = models.CharField(max_length=28, blank=True, db_index=True, verbose_name=u'P++退款编号')
-    charge = models.CharField(max_length=28, blank=True, db_index=True, verbose_name=u'P++支付编号')
-    channel = models.CharField(max_length=16, db_index=True,
-                               choices=constants.CHANNEL_CHOICES, blank=True, verbose_name=u'付款方式')
+    buyer_id = models.BigIntegerField(db_index=True, default=0, verbose_name=u"客户ID")  # type: int
+    buyer_nick = models.CharField(max_length=64, blank=True, verbose_name=u'买家昵称')  # type: Optional[text_type]
+    mobile = models.CharField(max_length=20, db_index=True, blank=True, verbose_name=u'手机')  # type: Optional[text_type]
+    phone = models.CharField(max_length=20, blank=True, verbose_name=u'固话')  # type: Optional[text_type]
 
-    refund_channel = models.CharField(max_length=16, db_index=True,
-                               choices=constants.CHANNEL_CHOICES, blank=True, verbose_name=u'退款方式')
+    refund_id = models.CharField(max_length=28, blank=True, db_index=True,
+                                 verbose_name=u'P++退款编号')  # type: Optional[text_type]
+    charge = models.CharField(max_length=28, blank=True, db_index=True,
+                              verbose_name=u'P++支付编号')  # type: Optional[text_type]
+    channel = models.CharField(max_length=16, db_index=True, blank=True, choices=constants.CHANNEL_CHOICES,
+                               verbose_name=u'付款方式')  # type: Optional[text_type]
 
-    item_id = models.BigIntegerField(null=True, default=0, verbose_name=u'商品ID')
-    title = models.CharField(max_length=64, blank=True, verbose_name=u'出售标题')
-    ware_by = models.IntegerField(db_index=True, default=0, verbose_name=u'退回仓库')
+    refund_channel = models.CharField(max_length=16, db_index=True, choices=constants.CHANNEL_CHOICES, blank=True,
+                                      verbose_name=u'退款方式')  # type: text_type
+    item_id = models.BigIntegerField(null=True, default=0, verbose_name=u'商品ID')  # type: int
+    title = models.CharField(max_length=64, blank=True, verbose_name=u'出售标题')  # type: Optional[text_type]
+    sku_id = models.BigIntegerField(null=True, default=0, verbose_name=u'规格ID')  # type: int
+    sku_name = models.CharField(max_length=64, blank=True, verbose_name=u'规格标题')  # type: Optional[text_type]
+    ware_by = models.IntegerField(db_index=True, default=0, verbose_name=u'退回仓库')  # type: int
 
-    sku_id = models.BigIntegerField(null=True, default=0, verbose_name=u'规格ID')
-    sku_name = models.CharField(max_length=64, blank=True, verbose_name=u'规格标题')
-    refund_num = models.IntegerField(default=0, verbose_name=u'退货数量')
+    refund_num = models.IntegerField(default=0, verbose_name=u'退货数量')  # type: int
+    total_fee = models.FloatField(default=0.0, verbose_name=u'总费用')  # type: float
+    payment = models.FloatField(default=0.0, verbose_name=u'实付')  # type: float
+    refund_fee = models.FloatField(default=0.0, verbose_name=u'退款费用')  # type: float
+    amount_flow = JSONCharMyField(max_length=512, blank=True, default=u'{"desc":""}',
+                                  verbose_name=u'退款去向')  # type: Optional[text_type]
+    success_time = models.DateTimeField(db_index=True, blank=True, null=True,
+                                        verbose_name=u'退款成功时间')  # type:datetime.datetime
 
-    buyer_nick = models.CharField(max_length=64, blank=True, verbose_name=u'买家昵称')
-    mobile = models.CharField(max_length=20, db_index=True, blank=True, verbose_name=u'手机')
-    phone = models.CharField(max_length=20, blank=True, verbose_name=u'固话')
+    company_name = models.CharField(max_length=64, blank=True, verbose_name=u'退回快递公司')  # type: Optional[text_type]
+    sid = models.CharField(max_length=64, db_index=True, blank=True,
+                           verbose_name=u'退回快递单号')  # type: Optional[text_type]
 
-    total_fee   = models.FloatField(default=0.0, verbose_name=u'总费用')
-    payment     = models.FloatField(default=0.0, verbose_name=u'实付')
-    refund_fee  = models.FloatField(default=0.0, verbose_name=u'退款费用')
-    amount_flow = JSONCharMyField(max_length=512, blank=True, default=u'{"desc":""}', verbose_name=u'退款去向')
-    success_time = models.DateTimeField(db_index=True, blank=True, null=True, verbose_name=u'退款成功时间')
-
-    company_name = models.CharField(max_length=64, blank=True, verbose_name=u'退回快递公司')
-    sid = models.CharField(max_length=64, db_index=True, blank=True, verbose_name=u'退回快递单号')
-
-    reason = models.TextField(max_length=200, blank=True, verbose_name=u'退款原因')
+    reason = models.TextField(max_length=200, blank=True, verbose_name=u'退款原因')  # type: Optional[text_type]
     proof_pic = JSONCharMyField(max_length=10240, default=[],
-                                blank=True, null=True, verbose_name=u'佐证图片')
-    desc = models.TextField(max_length=1000, blank=True, verbose_name=u'描述')
-    feedback = models.TextField(max_length=1000, blank=True, verbose_name=u'审核意见')
+                                blank=True, null=True, verbose_name=u'佐证图片')  # type: Optional[text_type]
+    desc = models.TextField(max_length=1000, blank=True, verbose_name=u'描述')  # type: Optional[text_type]
+    feedback = models.TextField(max_length=1000, blank=True, verbose_name=u'审核意见')  # type: Optional[text_type]
 
-    has_good_return = models.BooleanField(default=False, verbose_name=u'有退货')
-    has_good_change = models.BooleanField(default=False, verbose_name=u'有换货')
-    is_lackrefund   = models.BooleanField(default=False, db_index=True, verbose_name=u'缺货自动退款')
-    lackorder_id    = models.IntegerField(null=True, db_index=True, verbose_name=u'缺货单ID')
+    has_good_return = models.BooleanField(default=False, verbose_name=u'有退货')  # type: bool
+    has_good_change = models.BooleanField(default=False, verbose_name=u'有换货')  # type: bool
+    is_lackrefund = models.BooleanField(default=False, db_index=True, verbose_name=u'缺货自动退款')  # type: bool
+    lackorder_id = models.IntegerField(null=True, db_index=True, verbose_name=u'缺货单ID')  # type: int
 
-    good_status = models.IntegerField(
-        db_index=True, choices=GOOD_STATUS_CHOICES,
-        default=BUYER_RECEIVED, blank=True, verbose_name=u'退货商品状态'
-    )
-    status = models.IntegerField(
-        db_index=True, choices=REFUND_STATUS,
-        default=REFUND_WAIT_SELLER_AGREE, blank=True, verbose_name=u'退款状态'
-    )
-    postage_num = models.IntegerField(default=0, verbose_name=u'退邮费金额(分)')
-    coupon_num = models.IntegerField(default=0, verbose_name=u'优惠券金额(分)')
+    good_status = models.IntegerField(db_index=True, choices=GOOD_STATUS_CHOICES, default=BUYER_RECEIVED, blank=True,
+                                      verbose_name=u'退货商品状态')  # type: int
+    status = models.IntegerField(db_index=True, choices=REFUND_STATUS, default=REFUND_WAIT_SELLER_AGREE, blank=True,
+                                 verbose_name=u'退款状态')  # type: int
+    postage_num = models.IntegerField(default=0, verbose_name=u'退邮费金额(分)')  # type: float
+    coupon_num = models.IntegerField(default=0, verbose_name=u'优惠券金额(分)')  # type: float
 
     objects = SaleRefundManager()
 
@@ -157,12 +153,15 @@ class SaleRefund(PayBaseModel):
         permissions = [("sale_refund_manage", u"特卖订单退款管理"), ]
 
     def __unicode__(self):
-        return '<%s>' % (self.id)
+        # type: () -> text_type
+        return '<%s>' % self.id
 
     def refund_desc(self):
+        # type: () -> text_type
         return u'退款(oid:%s),%s' % (self.order_id, self.reason)
 
     def is_fastrefund(self):
+        # type: () -> bool
         """　是否极速退款 """
         from flashsale.pay.models import SaleTrade
 
@@ -171,17 +170,20 @@ class SaleRefund(PayBaseModel):
                self.sale_trade.channel in (SaleTrade.ALIPAY, SaleTrade.ALIPAY_WAP)
 
     def is_postrefund(self):
+        # type: () -> int
         """　发货后退款 """
         return self.good_status in (self.BUYER_RECEIVED, self.BUYER_RETURNED_GOODS)
 
     @property
     def sale_trade(self):
+        # type: () -> SaleTrade
         from .trade import SaleTrade
         if not hasattr(self, '__sale_trade__'):
             self.__sale_trade__ = SaleTrade.objects.filter(id=self.trade_id).first()
         return self.__sale_trade__
 
     def sale_order(self):
+        # type: () -> SaleOrder
         from .trade import SaleOrder
         if not hasattr(self, '_sale_order_'):
             self._sale_order_ = SaleOrder.objects.filter(id=self.order_id).first()
@@ -189,6 +191,7 @@ class SaleRefund(PayBaseModel):
 
     @property
     def refundproduct(self):
+        # type: () -> RefundProduct
         if not hasattr(self, '_refund_product_'):
             from shopback.refunds.models import RefundProduct
             self._refund_product_ = RefundProduct.objects.filter(trade_id=self.sale_trade.tid,
@@ -197,6 +200,7 @@ class SaleRefund(PayBaseModel):
 
     @property
     def package_skuitem(self):
+        # type: () -> PackageSkuItem
         """包裹单
         """
         if not hasattr(self, '_package_sku_item_'):
@@ -206,14 +210,17 @@ class SaleRefund(PayBaseModel):
         return self._package_sku_item_
 
     def get_tid(self):
+        # type: () -> text_type
         strade = self.sale_trade
         return strade.tid
 
     def get_oid(self):
+        # type: () -> text_type
         sorder = self.sale_order()
         return sorder.oid
 
     def get_refund_budget_logs(self):
+        # type: () -> List[BudgetLog]
         """
         功能：　获取退到余额信息
         """
@@ -222,22 +229,23 @@ class SaleRefund(PayBaseModel):
 
     @property
     def is_refundapproved(self):
+        # type: () -> bool
         """　是否已同意退款 """
         return self.status in (self.REFUND_APPROVE, self.REFUND_SUCCESS)
 
     @transaction.atomic
     def refund_wallet_approve(self):
+        # type: () -> None
         """ deprecated 退款至妈妈钱包 """
         from .user import Customer
         from flashsale.xiaolumm.models import XiaoluMama, CarryLog
-
 
         strade = self.sale_trade
         sorder = self.sale_order
         customer = Customer.objects.normal_customer.filter(id=strade.buyer_id).first()
 
         payment = round(self.refund_fee * 100, 0)
-        xlmm  = XiaoluMama.objects.filter(openid=customer.unionid).first()
+        xlmm = XiaoluMama.objects.filter(openid=customer.unionid).first()
         if not xlmm:
             raise Exception(u'妈妈unoind:%s' % customer.unionid)
 
@@ -254,7 +262,7 @@ class SaleRefund(PayBaseModel):
                 clog.value = total_refund
                 clog.save()
                 # 操作记录
-                xlmm.cash=models.F('cash') + payment
+                xlmm.cash = models.F('cash') + payment
                 xlmm.save(update_fields=['cash'])
                 log_action(get_systemoa_user(), self, CHANGE, u'二次退款审核通过:%s' % self.refund_id)
         # assert clogs.count() == 0, u'订单已经退款！'
@@ -274,6 +282,7 @@ class SaleRefund(PayBaseModel):
 
     @transaction.atomic
     def refund_fast_approve(self):
+        # type: () -> None
         """　极速退款审核确认 """
         from .user import BudgetLog
         strade = self.sale_trade
@@ -282,8 +291,8 @@ class SaleRefund(PayBaseModel):
         obj = self
         payment = round(obj.refund_fee * 100, 0)
         blog = BudgetLog.objects.filter(customer_id=strade.buyer_id,
-                                         referal_id=obj.order_id,  # 以子订单为准
-                                         budget_log_type=BudgetLog.BG_REFUND).first()
+                                        referal_id=obj.order_id,  # 以子订单为准
+                                        budget_log_type=BudgetLog.BG_REFUND).first()
         if blog:
             total_refund = blog.flow_amount + payment  # 总的退款金额　等于已经退的金额　加上　现在要退的金额
             if total_refund > round(sorder.payment * 100, 0):
@@ -300,6 +309,7 @@ class SaleRefund(PayBaseModel):
         self.refund_confirm()
 
     def refund_charge_approve(self):
+        # type: () -> None
         ch = pingpp.Charge.retrieve(self.charge)
         re = ch.refunds.create(description=self.refund_desc(),
                                amount=round(self.refund_fee * 100, 0))
@@ -308,7 +318,7 @@ class SaleRefund(PayBaseModel):
         self.save(update_fields=['refund_id', 'status'])
 
     def refund_approve(self):
-
+        # type: () -> None
         from .trade import SaleTrade
         strade = self.sale_trade
         if strade.channel == SaleTrade.WALLET:
@@ -321,6 +331,7 @@ class SaleRefund(PayBaseModel):
             self.refund_charge_approve()
 
     def refund_confirm(self):
+        # type: () -> text_type
         """ 确认退款成功，修改退款状态 """
         srefund = SaleRefund.objects.get(id=self.id)
         if srefund.status == SaleRefund.REFUND_SUCCESS:
@@ -345,13 +356,15 @@ class SaleRefund(PayBaseModel):
         signal_saletrade_refund_confirm.send(sender=SaleRefund, obj=self)
 
     def pic_path(self):
+        # type: () -> text_type
         try:
             pro = Product.objects.get(id=self.item_id)
             return pro.pic_path
         except Product.DoesNotExist:
-            return None
+            return ''
 
     def sale_contactor(self):
+        # type: () -> int
         """ 选品买手　"""
         try:
             pro = Product.objects.get(id=self.item_id)
@@ -361,6 +374,7 @@ class SaleRefund(PayBaseModel):
             return None
 
     def pro_model(self):
+        # type: () -> int
         try:
             pro = Product.objects.get(id=self.item_id)
             return pro.model_id
@@ -368,6 +382,7 @@ class SaleRefund(PayBaseModel):
             return None
 
     def outer_id(self):
+        # type: () -> text_type
         try:
             pro = Product.objects.get(id=self.item_id)
             return pro.outer_id
@@ -375,6 +390,7 @@ class SaleRefund(PayBaseModel):
             return None
 
     def get_return_address(self):
+        # type: () -> text_type
         """ 退货地址 """
         if self.status < self.REFUND_WAIT_RETURN_GOODS:
             return u'退货状态未确定'
@@ -396,12 +412,14 @@ class SaleRefund(PayBaseModel):
         return u'退货地址请咨询小鹿美美客服哦'
 
     def get_refund_customer(self):
+        # type: () -> Customer
         """ 退款用户 """
         from flashsale.pay.models import Customer
         customer = Customer.objects.get(id=self.buyer_id)
         return customer
 
     def refund_status_shaft(self):
+        # type: () -> List[Dict[str, Any]]
         """状态轴"""
         if self.status in (SaleRefund.NO_REFUND, SaleRefund.REFUND_WAIT_SELLER_AGREE):
             return [{"status_display": self.get_status_display(), "time": self.modified}]
@@ -420,6 +438,7 @@ class SaleRefund(PayBaseModel):
         return data
 
     def update_sale_order_refund_status(self):
+        # type: () -> None
         """ 更新订单的退款状态等于退款单的状态 """
         sale_order = self.sale_order()
         sale_order.refund_status = self.status
@@ -427,6 +446,7 @@ class SaleRefund(PayBaseModel):
         return
 
     def agree_return_goods(self):
+        # type: () -> bool
         """ 同意退货 """
         if self.is_returngoodsable:
             self.status = SaleRefund.REFUND_WAIT_RETURN_GOODS
@@ -436,25 +456,30 @@ class SaleRefund(PayBaseModel):
 
     @property
     def postage_num_display(self):
+        # type: () -> float
         return self.postage_num / 100.0
 
     @property
     def coupon_num_display(self):
+        # type: () -> float
         return self.coupon_num / 100.0
 
     @property
     def is_returngoodsable(self):
+        # type: () -> bool
         """ 是否可以退货: 退款单在申请状态 并且 用户已经收到包裹 """
         return self.status == SaleRefund.REFUND_WAIT_SELLER_AGREE and self.good_status == SaleRefund.BUYER_RECEIVED
 
     @property
     def is_modifiable(self):
+        # type: () -> bool
         return self.status not in [SaleRefund.NO_REFUND,
                                    SaleRefund.REFUND_SUCCESS,
                                    SaleRefund.REFUND_CLOSED]
 
     @property
     def is_seller_responsible(self):
+        # type: () -> bool
         """
         功能：　判断　退款原因　是否是　商家责任
         """
@@ -472,6 +497,7 @@ class SaleRefund(PayBaseModel):
         return False
 
     def get_weixin_push_content(self, event_type):
+        # type: (int) -> text_type
         """ 返回对应的　推送类型　的　推送信息内容
         """
         from flashsale.xiaolumm.models import WeixinPushEvent
@@ -484,6 +510,7 @@ class SaleRefund(PayBaseModel):
         return content_map[event_type]
 
     def send_return_goods_back_message(self):
+        # type: () -> None
         """
         功能：　同意退货　后　发送　消息给用户　让用户　填写物流信息和快递单号
         """
@@ -494,19 +521,19 @@ class SaleRefund(PayBaseModel):
         push.push_refund_notify(self, WeixinPushEvent.SALE_REFUND_AGREE)
 
     def auto_approve_return_goods(self):
+        # type: () -> bool
         """
         自动同意退货:
         1. 用户提交退款单　
         如果是退货申请　则　修改该退款单状态到　同意申请状态
         """
-        # if not self.is_seller_responsible:  # 非商家原因造成的退货
         self.agree_return_goods()
         self.send_return_goods_back_message()
         return True
-        # return False
 
     @transaction.atomic()
     def return_fee_by_refund_product(self):
+        # type: () -> bool
         """
         功能：　根据　refund app 的RefundProduct 来给用户退款
         1. 状态检查

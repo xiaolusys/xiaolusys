@@ -23,12 +23,12 @@ class UserAdmin(admin.ModelAdmin):
 
     # --------设置页面布局----------------
     fieldsets = (('用户基本信息:', {
-        'classes': ('expand',),
-        'fields': (('user', 'visitor_id', 'uid')
-                   , ('type', 'nick')
-                   , ('user_code', 'contacter', 'phone')
-                   , ('mobile', 'area_code', 'location'))
-    }),
+                    'classes': ('expand',),
+                    'fields': (('user', 'visitor_id', 'uid')
+                               , ('type', 'nick')
+                               , ('user_code', 'contacter', 'phone')
+                               , ('mobile', 'area_code', 'location'))
+                }),
                  ('淘宝用户设置:', {
                      'classes': ('collapse',),
                      'fields': (('buyer_credit', 'seller_credit')
@@ -69,7 +69,8 @@ class UserAdmin(admin.ModelAdmin):
         from shopback.orders.tasks import saveUserDuringOrdersTask
         from shopback.fenxiao.tasks import saveUserPurchaseOrderTask
         from shopapp.jingdong.tasks import pullJDOrderByVenderIdTask
-        from shopapp.weixin.tasks import pullWaitPostWXOrderTask, WXOrder
+        from shopapp.weixin.tasks import pullWaitPostWXOrderTask
+        from shopapp.weixin.models import WXOrder
 
         pull_users = []
         for user in queryset:
