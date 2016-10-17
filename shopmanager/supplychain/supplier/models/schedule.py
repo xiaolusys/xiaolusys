@@ -251,10 +251,13 @@ class SaleProductManageDetail(models.Model):
         return self._item_products_
 
     @property
-    def product_model_id(self):
-        if not hasattr(self, '_model_id_'):
-            self._model_id_ = self.item_products.first()
-        return self._model_id_.model_id if self._model_id_ else 0
+    def modelproduct(self):
+        if not hasattr(self, '_model_product_'):
+            from flashsale.pay.models import ModelProduct
+
+            self._model_product_ = ModelProduct.objects.filter(saleproduct_id=self.sale_product_id,
+                                                               status=ModelProduct.NORMAL).first()
+        return self._model_product_
 
     @property
     def sale_memo(self):
