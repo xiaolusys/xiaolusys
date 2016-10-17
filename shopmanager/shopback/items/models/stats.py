@@ -178,6 +178,7 @@ class ProductSkuStats(models.Model):
         """
         from flashsale.dinghuo.models import OrderDetail
         from .product import Product
+        from flashsale.dinghuo.models import ReturnGoods
         order_skus = [o['chichu_id'] for o in OrderDetail.objects.filter(
             arrival_time__gt=(datetime.datetime.now() - datetime.timedelta(days=20)), arrival_quantity__gt=0).values(
             'chichu_id').distinct()]
