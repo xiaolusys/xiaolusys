@@ -241,7 +241,8 @@ post_save.connect(invalid_apiskustat_cache, sender=ProductSkuStats, dispatch_uid
 
 def assign_stock_to_package_sku_item(sender, instance, created, **kwargs):
     from shopback.items.tasks import task_assign_stock_to_package_sku_item
-    task_assign_stock_to_package_sku_item.delay(instance.sku_id)
+    if not created:
+        task_assign_stock_to_package_sku_item.delay(instance.sku_id)
 
 
 post_save.connect(assign_stock_to_package_sku_item, sender=ProductSkuStats,
