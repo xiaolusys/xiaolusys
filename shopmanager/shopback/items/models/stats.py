@@ -179,7 +179,7 @@ class ProductSkuStats(models.Model):
         from flashsale.dinghuo.models import OrderDetail
         from .product import Product
         from flashsale.dinghuo.models import ReturnGoods,RGDetail
-        rg_sku = RGDetail.objects.all().values('skuid')
+        rg_sku = RGDetail.objects.filter(return_goods__status__in=[1,3,31,4]).values('skuid')
         rg_sku = [i['skuid'] for i in rg_sku]
         order_skus = [o['chichu_id'] for o in OrderDetail.objects.filter(
             arrival_time__gt=(datetime.datetime.now() - datetime.timedelta(days=20)), arrival_quantity__gt=0).values(
