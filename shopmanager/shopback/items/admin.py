@@ -154,7 +154,7 @@ class ProductAdmin(ApproxAdmin):
                    CategoryFilter,
                    GroupNameFilter)
 
-    search_fields = ['=id', '^outer_id', '^name', '=barcode', '=sale_charger',
+    search_fields = ['=id', '^outer_id', 'name', '=barcode', '=sale_charger',
                      '=storage_charger', '=model_id']
 
     def outer_id_link(self, obj):
