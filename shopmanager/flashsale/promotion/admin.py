@@ -32,7 +32,7 @@ admin.site.register(ActivityProduct, ActivityProductAdmin)
 
 
 class ActivityEntryAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'act_type', 'start_time', 'end_time', 'created', 'is_active', 'order_val')
+    list_display = ('id', 'title', 'act_type', 'start_time', 'end_time', 'created', 'remarks', 'is_active', 'order_val')
 
     list_filter = ('is_active', 'act_type',
                    ('start_time', DateFieldListFilter),
@@ -46,6 +46,14 @@ class ActivityEntryAdmin(admin.ModelAdmin):
         models.CharField: {'widget': TextInput(attrs={'size': 128})},
         models.TextField: {'widget': Textarea(attrs={'rows': 6, 'cols': 128})},
     }
+
+    def remarks(self, obj):
+        if obj.extras.has_key('remarks'):
+            return obj.extras['remarks']
+        else:
+            return ""
+
+    remarks.short_description = u'备注'
 
 
 admin.site.register(ActivityEntry, ActivityEntryAdmin)
