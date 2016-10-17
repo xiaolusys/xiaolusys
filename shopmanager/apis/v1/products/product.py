@@ -30,6 +30,29 @@ class Product(object):
             self._sku_items_ = sku.SkuCtl.multiple(ids=self.sku_ids)
         return self._sku_items_
 
+    def sku_stats(self):
+        if not hasattr(self, '_sku_stats_'):
+            from . import stat
+            self._sku_stats_ = stat.SkustatCtl.multiple(ids=self.sku_ids)
+        return self._sku_stats_
+
+    def get_realtime_quantity(self):
+        sku_items = self.sku_stats()
+        if sku_items:
+            return sum([ss.get_realtime_quantity() for ss in sku_items])
+        return 0
+
+    def get_wait_post_num(self):
+        sku_items = self.sku_stats()
+        if sku_items:
+            return sum([ss.get_wait_post_num() for ss in sku_items])
+        return 0
+
+    def get_lock_num(self):
+        sku_items = self.sku_stats()
+        if sku_items:
+            return sum([ss.get_lock_num() for ss in sku_items])
+        return 0
 
 
 class ProductService(object):

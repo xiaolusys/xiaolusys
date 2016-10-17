@@ -26,7 +26,7 @@ from shopback import paramconfig as pcfg
 from core.options import log_action, ADDITION, CHANGE
 from shopback.items import permissions as perms
 from core.admin import ApproxAdmin
-from shopback.items.forms import ProductModelForm
+from shopback.items.forms import ProductModelForm, ProductSkuFormset
 from core.filters import DateFieldListFilter
 from shopback.items.filters import ChargerFilter, DateScheduleFilter, GroupNameFilter, CategoryFilter, \
     ProductVirtualFilter, ProductStatusFilter, ProductCategoryFilter
@@ -53,6 +53,7 @@ logger = logging.getLogger('django.request')
 
 class ProductSkuInline(admin.TabularInline):
     model = ProductSku
+    formset  = ProductSkuFormset
     fields = ('outer_id', 'properties_name', 'properties_alias', 'quantity',
               'warn_num', 'remain_num', 'wait_post_num', 'reduce_num',
               'lock_num', 'cost', 'std_sale_price', 'agent_price', 'sync_stock',
@@ -67,10 +68,7 @@ class ProductSkuInline(admin.TabularInline):
     }
 
     def get_readonly_fields(self, request, obj=None):
-        if not perms.has_change_product_skunum_permission(request.user):
-            return self.readonly_fields + ('quantity', 'warn_num', 'lock_num',
-                                           'wait_post_num', 'is_split')
-        return self.readonly_fields
+        return self.readonly_fields + ('quantity', 'warn_num', 'lock_num', 'wait_post_num')
 
 
 class ProductdetailInline(admin.StackedInline):
@@ -156,6 +154,57 @@ class ProductAdmin(ApproxAdmin):
 
     search_fields = ['=id', '^outer_id', 'name', '=barcode', '=sale_charger',
                      '=storage_charger', '=model_id']
+
+    inlines = [ProductdetailInline, ProductSkuInline]
+
+    # --------设置页面布局----------------
+    fieldsets = (('商品基本信息:', {
+                    'classes': ('expand',),
+                    'fields':
+                        (('outer_id', 'category'), ('name', 'pic_path'),
+                         ('collect_num', 'warn_num', 'remain_num', 'wait_post_num', 'reduce_num'),
+                         ('lock_num', 'inferior_num', 'std_purchase_price', 'staff_price'),
+                         ('sale_time', 'upshelf_time', 'offshelf_time'),
+                         ('cost', 'std_sale_price', 'agent_price'),
+                         ('status', 'shelf_status', 'model_id', 'sale_product', 'ware_by'))
+                 }),
+                 ('商品系统设置:', {
+                     'classes': ('collapse',),
+                     'fields': (('weight', 'sync_stock', 'is_assign', 'is_split', 'is_match', 'post_check', 'is_verify',
+                                 'is_watermark', 'is_flatten'), ('barcode', 'match_reason'),
+                                ('sale_charger', 'storage_charger'),
+                                ('buyer_prompt', 'memo'))
+                 }),)
+
+    formfield_overrides = {
+        models.CharField: {'widget': TextInput(attrs={'size': 64,
+                                                      'maxlength': '256',})},
+        models.FloatField: {'widget': TextInput(attrs={'size': 24})},
+        models.TextField: {'widget': Textarea(attrs={'rows': 4,
+                                                     'cols': 40})},
+    }
+
+    class Media:
+        css = {"all": (
+            "admin/css/forms.css", "css/admin/dialog.css",
+            "css/admin/common.css", "jquery/jquery-ui-1.10.1.css",
+            "jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css")
+        }
+        js = (
+            "js/admin/adminpopup.js", "js/item_change_list.js",
+            "jquery/jquery-ui-1.8.13.min.js",
+            "jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js",
+            "jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js")
+
+
+    def get_readonly_fields(self, request, obj=None):
+
+        if not perms.has_change_product_skunum_permission(request.user):
+            return self.readonly_fields + (
+                'model_id', 'sale_product', 'collect_num', 'warn_num',
+                'lock_num', 'inferior_num', 'wait_post_num', 'sale_charger',
+                'storage_charger', 'shelf_status', 'status', 'is_flatten')
+        return self.readonly_fields + ('collect_num', 'wait_post_num', 'lock_num')
 
     def outer_id_link(self, obj):
 
@@ -337,56 +386,6 @@ class ProductAdmin(ApproxAdmin):
     charger_select.allow_tags = True
     charger_select.short_description = u"所属仓管员"
 
-    inlines = [ProductdetailInline, ProductSkuInline]
-
-    # --------设置页面布局----------------
-    fieldsets = (('商品基本信息:', {
-                    'classes': ('expand',),
-                    'fields':
-                        (('outer_id', 'category'), ('name', 'pic_path'),
-                         ('collect_num', 'warn_num', 'remain_num', 'wait_post_num',
-                          'reduce_num'),
-                         ('lock_num', 'inferior_num', 'std_purchase_price', 'staff_price'),
-                         ('sale_time', 'upshelf_time', 'offshelf_time'),
-                         ('cost', 'std_sale_price', 'agent_price'),
-                         ('status', 'shelf_status', 'model_id', 'sale_product', 'ware_by'))
-                }),
-                ('商品系统设置:', {
-                     'classes': ('collapse',),
-                     'fields': (('weight', 'sync_stock', 'is_assign','is_split', 'is_match', 'post_check', 'is_verify',
-                                 'is_watermark', 'is_flatten'), ('barcode', 'match_reason'),
-                                ('sale_charger', 'storage_charger'),
-                                ('buyer_prompt', 'memo'))
-                 }),)
-
-    formfield_overrides = {
-        models.CharField: {'widget': TextInput(attrs={'size': 64,
-                                                      'maxlength': '256',})},
-        models.FloatField: {'widget': TextInput(attrs={'size': 24})},
-        models.TextField: {'widget': Textarea(attrs={'rows': 4,
-                                                     'cols': 40})},
-    }
-
-    class Media:
-        css = {"all": (
-            "admin/css/forms.css", "css/admin/dialog.css",
-            "css/admin/common.css", "jquery/jquery-ui-1.10.1.css",
-            "jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css")
-        }
-        js = (
-            "js/admin/adminpopup.js", "js/item_change_list.js",
-            "jquery/jquery-ui-1.8.13.min.js",
-            "jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js",
-            "jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js")
-
-    def get_readonly_fields(self, request, obj=None):
-
-        if not perms.has_change_product_skunum_permission(request.user):
-            return self.readonly_fields + (
-                'model_id', 'sale_product', 'collect_num', 'warn_num',
-                'lock_num', 'inferior_num', 'wait_post_num', 'sale_charger',
-                'storage_charger', 'shelf_status', 'status', 'is_flatten')
-        return self.readonly_fields
 
     def get_actions(self, request):
 

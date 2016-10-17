@@ -35,6 +35,13 @@ class Skustat(object):
         self.waitingpay_num = kwargs['waitingpay_num']
         self.remain_num = kwargs['remain_num']
 
+    def get_realtime_quantity(self):
+        return self.history_quantity + self.inbound_quantity + self.adjust_quantity \
+               + self.return_quantity - self.post_num - self.rg_quantity
+
+    def get_wait_post_num(self):
+        return self.sold_num - self.post_num
+
     def get_lock_num(self):
         return self.shoppingcart_num + self.waitingpay_num + self.sold_num - self.return_quantity - self.post_num
 
