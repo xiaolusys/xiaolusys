@@ -4,14 +4,18 @@
 {% include 'yunying/datepicker.html' %}
 
 <div class="row">
-  <table class="table table-bordered ">
+  <table class="table table-bordered sortable-theme-bootstrap" data-sortable>
+    <thead>
     <tr>
       <th></th>
       <th>专题ID</th>
       <th>销售额</th>
       <th>销量</th>
       <th>专题名称</th>
+      <th>专题创建时间</th>
     </tr>
+    </thead>
+    <tbody>
     {% for item in items %}
     <tr>
       <td>{{ forloop.counter }}</td>
@@ -19,8 +23,10 @@
       <td>{{ item.sales }}</td>
       <td>{{ item.salenum }}</td>
       <td><a href="http://m.xiaolumeimei.com/mall/activity/topTen/model/2?id={{item.activity_id}}" target="_blank">{{ item.title }}</a></td>
+      <td>{{ item.created }}</td>
     </tr>
     {% endfor %}
+    </tbody>
   </table>
 </div>
 

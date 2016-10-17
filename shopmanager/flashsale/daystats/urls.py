@@ -62,6 +62,7 @@ urlpatterns += patterns(
     url(r'^yunying/mama/show$', 'mama.show', name='yy-mama-show'),
     url(r'^yunying/mama/click$', 'mama.click', name='yy-mama-click'),
     url(r'^yunying/mama/score$', 'mama.score', name='yy-mama-score'),
+    url(r'^yunying/mama/rank$', 'mama.rank', name='yy-mama-rank'),
 
     url(r'^yunying/sql/$', 'sql.index', name='yy-sql-index'),
     url(r'^yunying/sql/(?P<id>.*)/destroy$', 'sql.destroy', name='yy-sql-destroy'),
