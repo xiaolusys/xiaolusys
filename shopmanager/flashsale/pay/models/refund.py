@@ -155,7 +155,6 @@ class SaleRefund(PayBaseModel):
         # type: () -> text_type
         return '<%s>' % self.id
 
-
     @property
     def customer(self):
         # type: () -> Customer
@@ -174,7 +173,8 @@ class SaleRefund(PayBaseModel):
             self.__sale_trade__ = SaleTrade.objects.filter(id=self.trade_id).first()
         return self.__sale_trade__
 
-    def sale_order(self):
+    @property
+    def saleorder(self):
         # type: () -> SaleOrder
         from .trade import SaleOrder
 
@@ -200,7 +200,7 @@ class SaleRefund(PayBaseModel):
         if not hasattr(self, '_package_sku_item_'):
             from shopback.trades.models import PackageSkuItem
 
-            sale_order = self.sale_order()
+            sale_order = self.saleorder
             self._package_sku_item_ = PackageSkuItem.objects.filter(oid=sale_order.oid).first()
         return self._package_sku_item_
 
@@ -256,8 +256,7 @@ class SaleRefund(PayBaseModel):
 
     def get_oid(self):
         # type: () -> text_type
-        sorder = self.sale_order()
-        return sorder.oid
+        return self.saleorder.oid
 
     def get_refund_desc(self):
         # type: () -> text_type
@@ -278,7 +277,7 @@ class SaleRefund(PayBaseModel):
         """　极速退款审核确认 """
         from .user import BudgetLog
 
-        sorder = self.sale_order()
+        sorder = self.saleorder
         payment = round(self.refund_fee * 100, 0)
         blog = BudgetLog.objects.filter(customer_id=self.buyer_id,
                                         referal_id=self.id,  # 以退款单
@@ -315,7 +314,7 @@ class SaleRefund(PayBaseModel):
             self.refund_charge_approve()
 
     def refund_confirm(self):
-        # type: () -> text_type
+        # type: () -> None
         """ 确认退款成功，修改退款状态 """
         srefund = SaleRefund.objects.get(id=self.id)
         if srefund.status == SaleRefund.REFUND_SUCCESS:
@@ -327,17 +326,16 @@ class SaleRefund(PayBaseModel):
 
         sorder = SaleOrder.objects.get(id=self.order_id)
         sorder.refund_status = SaleRefund.REFUND_SUCCESS
-        if sorder.status in (
-                SaleTrade.WAIT_SELLER_SEND_GOODS,
-                SaleTrade.WAIT_BUYER_CONFIRM_GOODS,
-                SaleTrade.TRADE_BUYER_SIGNED):
+        if sorder.status in (SaleTrade.WAIT_SELLER_SEND_GOODS,
+                             SaleTrade.WAIT_BUYER_CONFIRM_GOODS,
+                             SaleTrade.TRADE_BUYER_SIGNED):
             sorder.status = SaleTrade.TRADE_CLOSED
-        sorder.save()
+        sorder.save(update_fields=['status', 'modified'])
 
         strade = sorder.sale_trade
         if strade.normal_orders.count() == 0:
             strade.status = SaleTrade.TRADE_CLOSED
-            strade.save()
+            strade.save(update_fields=['status', 'modified'])
         signal_saletrade_refund_confirm.send(sender=SaleRefund, obj=self)
 
     def pic_path(self):
@@ -481,9 +479,6 @@ class SaleRefund(PayBaseModel):
         from shopapp.weixin.weixin_push import WeixinPush
         from flashsale.xiaolumm.models import WeixinPushEvent
 
-        flow_amount = min(self.refund_fee, self.payment) * 100
-        if flow_amount > 0:
-            BudgetLog.create_salerefund_log(self, flow_amount)
         if 0 < self.postage_num <= 2000:
             BudgetLog.create_salerefund_log(self, self.postage_num)
         if self.coupon_num > 0:
@@ -491,8 +486,7 @@ class SaleRefund(PayBaseModel):
                 UserCoupon.create_salerefund_post_coupon(self.buyer_id, self.trade_id, money=(self.coupon_num / 100))
             except Exception as e:
                 logger.info({'action': u'return_fee_by_refund_product', 'message': e.message})
-        self.status = SaleRefund.REFUND_SUCCESS
-        self.save(update_fields=['status'])
+        self.refund_fast_approve()  # 退订单金额(退款成功)　
 
         push = WeixinPush()
         push.push_refund_notify(self, WeixinPushEvent.SALE_REFUND_GOODS_SUCCESS)
