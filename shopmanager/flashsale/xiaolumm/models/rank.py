@@ -471,6 +471,7 @@ class WeekMamaTeamCarryTotal(BaseMamaTeamCarryTotal, WeekRank):
 def update_week_team_mama_carry_total_cache(sender, instance, created, **kwargs):
     for target in ['total', 'duration_total']:
         condtion = copy(WeekMamaTeamCarryTotal.filters()[target])
+        condtion['mama_id'] = instance.mama_id
         if WeekMamaTeamCarryTotal.objects.filter(**condtion).exists():
             WEEK_RANK_REDIS.update_cache(instance, [target])
 
