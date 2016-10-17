@@ -162,8 +162,8 @@ class SaleRefundSerializer(serializers.ModelSerializer):
     order_status = serializers.IntegerField(source='sale_order.status')
     order_pay_time = serializers.DateTimeField(source='sale_order.pay_time')
     order_status_display = serializers.CharField(source='sale_order.get_status_display')
-    postage_num_money = serializers.FloatField(source='postage_num_display')
-    coupon_num_money = serializers.FloatField(source='coupon_num_display')
+    postage_num_money = serializers.FloatField(source='get_postage_num_display')
+    coupon_num_money = serializers.FloatField(source='get_coupon_num_display')
     manual_refund = serializers.SerializerMethodField()
 
     class Meta:
@@ -171,7 +171,7 @@ class SaleRefundSerializer(serializers.ModelSerializer):
 
     def get_refund_fee_message(self, obj):
         trade = obj.sale_trade
-        if obj.is_fastrefund():  # 如果是极速退款
+        if obj.is_fastrefund:  # 如果是极速退款
             return "[1]退回小鹿钱包 %.2f 元 实付余额%.2f" % (
                 obj.refund_fee,
                 trade.payment > 0 and (obj.refund_fee / trade.payment) * (obj.payment - trade.pay_cash) or 0)

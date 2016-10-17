@@ -209,7 +209,7 @@ def his_refund_record():
 
 
 def record_pro(ref):
-    order = ref.sale_order()
+    order = ref.saleorder
     if order is None:
         return
     trade = order.sale_trade
