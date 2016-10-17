@@ -227,7 +227,6 @@ class SaleRefund(PayBaseModel):
         """　是否已同意退款 """
         return self.status in (self.REFUND_APPROVE, self.REFUND_SUCCESS)
 
-
     @property
     def is_returngoodsable(self):
         # type: () -> bool
@@ -436,16 +435,18 @@ class SaleRefund(PayBaseModel):
         }
         return content_map[event_type]
 
-    def send_return_goods_back_message(self):
+    def send_weixin_message(self):
         # type: () -> None
         """
         功能：　同意退货　后　发送　消息给用户　让用户　填写物流信息和快递单号
         """
         from shopapp.weixin.weixin_push import WeixinPush
         from flashsale.xiaolumm.models import WeixinPushEvent
-
         push = WeixinPush()
-        push.push_refund_notify(self, WeixinPushEvent.SALE_REFUND_AGREE)
+        if self.good_status in [SaleRefund.BUYER_RECEIVED, SaleRefund.BUYER_RETURNED_GOODS]:
+            push.push_refund_notify(self, WeixinPushEvent.SALE_REFUND_AGREE)
+        else:
+            push.push_refund_notify(self, WeixinPushEvent.SALE_REFUND_GOODS_SUCCESS)
 
     def auto_approve_return_goods(self):
         # type: () -> bool
@@ -455,7 +456,7 @@ class SaleRefund(PayBaseModel):
         如果是退货申请　则　修改该退款单状态到　同意申请状态
         """
         self.agree_return_goods()
-        self.send_return_goods_back_message()
+        self.send_weixin_message()
         return True
 
     @transaction.atomic()
@@ -514,16 +515,6 @@ def roll_back_usercoupon_status(sender, instance, created, *args, **kwargs):
 
 
 post_save.connect(roll_back_usercoupon_status, sender=SaleRefund, dispatch_uid='post_save_roll_back_usercoupon_status')
-
-
-def buyeridPatch():
-    from .trade import SaleTrade
-
-    sfs = SaleRefund.objects.all()
-    for sf in sfs:
-        st = SaleTrade.objects.get(id=sf.trade_id)
-        sf.buyer_id = st.buyer_id
-        sf.save()
 
 
 def handle_sale_refund_signal(sender, instance, created, raw, *args, **kwargs):
