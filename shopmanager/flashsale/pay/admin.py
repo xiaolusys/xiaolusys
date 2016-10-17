@@ -334,8 +334,8 @@ from .tasks import notifyTradeRefundTask
 
 
 class SaleRefundAdmin(BaseModelAdmin):
-    list_display = ('id_link', 'refund_no', 'order_no', 'package_sku_item_link_to', 'channel', 'title',
-                    'sku_id', 'refund_fee', 'has_good_return', 'has_good_change', 'created', 'success_time',
+    list_display = ('id_link', 'refund_no', 'order_no', 'package_sku_item_link_to', 'channel', 'refund_channel',
+                    'title', 'sku_id', 'refund_fee', 'has_good_return', 'has_good_change', 'created', 'success_time',
                     'order_status', 'is_lackrefund', 'status', 'refund_pro_link')
 
     list_filter = (
