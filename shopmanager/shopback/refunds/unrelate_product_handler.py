@@ -131,10 +131,8 @@ def update_Product_Collect_Num(pro, req):
             log_action(req.user.id, psk, CHANGE, action_desc)
 
             #加入新系统库存中去
-            pss = ProductSkuStats.objects.filter(sku=psk).first()
-            if pss:
-                pss.return_quantity = pss.return_quantity + pro.num
-                pss.save()
+
+            pss = ProductSkuStats.get_by_sku()
 
             # 添加库存商品的数量
             pro_collect_num = product.collect_num  # 原来的库存数量
