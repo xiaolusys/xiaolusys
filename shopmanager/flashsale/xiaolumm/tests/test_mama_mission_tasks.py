@@ -72,9 +72,9 @@ class MamaWeeklyAwardTestCase(TestCase):
         referal_mama.last_renew_type = XiaoluMama.TRIAL
         referal_mama.save()
 
-        ReferalRelationship.objects.all().update(created=now_datetime)
-        GroupRelationship.objects.all().update(created=now_datetime)
-        PotentialMama.objects.all().update(created=now_datetime)
+        ReferalRelationship.objects.all().update(created=now_datetime, modified=now_datetime)
+        GroupRelationship.objects.all().update(created=now_datetime, modified=now_datetime)
+        PotentialMama.objects.all().update(created=now_datetime, modified=now_datetime)
 
         signal_xiaolumama_register_success.send(sender=XiaoluMama, xiaolumama=referal_mama, renew=False)
         mama_record = MamaMissionRecord.objects.filter(
@@ -91,7 +91,10 @@ class MamaWeeklyAwardTestCase(TestCase):
 
         referal_mama.last_renew_type = XiaoluMama.FULL
         referal_mama.save()
+
+        ReferalRelationship.objects.all().update(referal_type=XiaoluMama.FULL)
         signal_xiaolumama_register_success.send(sender=XiaoluMama, xiaolumama=referal_mama, renew=False)
+        
         mama_record = MamaMissionRecord.objects.filter(
             mama_id=self.referal_from_mama_id,
             year_week=year_week,
