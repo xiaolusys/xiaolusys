@@ -866,7 +866,7 @@ def task_unitary_mama(obj):
     order.save(update_fields=['status'])
 
     # 妈妈一元试用事件
-    signal_xiaolumama_register_success.send(sender=XiaoluMama, xiaolumama=xlmm, renew=renew_state)
+    signal_xiaolumama_register_success.send_robust(sender=XiaoluMama, xiaolumama=xlmm, renew=renew_state)
 
     from django_statsd.clients import statsd
     from flashsale.pay.models import SaleOrder
@@ -944,7 +944,7 @@ def task_register_mama(obj):
     update_xlmm_referal_from(protentialmama, xlmm, order.oid)  # 潜在关系以订单为准　如果订单中没有则在　潜在关系列表中　找
 
     # 妈妈一元试用事件
-    signal_xiaolumama_register_success.send(sender=XiaoluMama, xiaolumama=xlmm, renew=renew_state)
+    signal_xiaolumama_register_success.send_robust(sender=XiaoluMama, xiaolumama=xlmm, renew=renew_state)
 
     from django_statsd.clients import statsd
     from django.utils.timezone import now, timedelta
@@ -997,7 +997,7 @@ def task_renew_mama(obj):
     protentialmama = PotentialMama.objects.filter(potential_mama=xlmm.id).first()
     update_xlmm_referal_from(protentialmama, xlmm, order.oid)  # 潜在关系以订单为准　如果订单中没有则在　潜在关系列表中　找
     # 妈妈续费成功事件
-    signal_xiaolumama_register_success.send(sender=XiaoluMama, xiaolumama=xlmm, renew=True)
+    signal_xiaolumama_register_success.send_robust(sender=XiaoluMama, xiaolumama=xlmm, renew=True)
 
     if state:
         sys_oa = get_systemoa_user()

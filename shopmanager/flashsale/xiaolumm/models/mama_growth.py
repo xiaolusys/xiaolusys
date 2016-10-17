@@ -124,6 +124,7 @@ class MamaSaleGrade(BaseModel):
             )
             sale_grade.save()
 
+        # 如果记录的日期不等于上周，则更新妈妈业绩记录
         record_year_week = sale_grade.last_record_time.strftime('%Y-%W')
         if record_year_week != last_year_week:
             mama_last_mission = get_mama_week_sale_mission(mama_id, last_year_week)
@@ -135,7 +136,7 @@ class MamaSaleGrade(BaseModel):
                 sale_grade.combo_count += 1
 
             sale_grade.grade = last_week_grade
-            sale_grade.combo_count = len(combo_week_list)
+            # sale_grade.combo_count = len(combo_week_list)
             if not sale_grade.first_finish_time:
                 sale_grade.first_finish_time = finish_week_list and finish_week_list[0] or None
             sale_grade.total_finish_count = len(finish_week_list)
@@ -292,10 +293,11 @@ class MamaMission(BaseModel):
             return False
 
         if self.cat_type == self.CAT_SALE_MAMA:
-            now_time = datetime.datetime.combine(datetime.datetime.today(), datetime.time.max)
-            week_day = int(now_time.strftime('%w'))
-            last_week_end = now_time - datetime.timedelta(days=week_day)
-            two_week_ago = now_time - datetime.timedelta(days=week_day + 14)
+            now_time_max = datetime.datetime.combine(datetime.datetime.today(), datetime.time.max)
+            now_time_min = datetime.datetime.combine(datetime.datetime.today(), datetime.time.min)
+            week_day     = int(now_time_max.strftime('%w')) or 7
+            last_week_end = now_time_max - datetime.timedelta(days=week_day)
+            two_week_ago = now_time_min - datetime.timedelta(days=week_day + 13)
             carry_orders = get_mama_week_sale_orders([mama_id], two_week_ago, last_week_end)
             carry_weeks  = set([dt.strftime('%Y-%W') for dt in carry_orders.values_list('date_field', flat=True)])
             return len(carry_weeks) > 1
@@ -487,7 +489,7 @@ def mama_register_update_mission_record(sender, xiaolumama, renew, *args, **kwar
         logger.info('mama_register_update_mission_record start: mama=%s, renew=%s'%(xiaolumama, renew))
         from flashsale.xiaolumm.models import XiaoluMama, ReferalRelationship, PotentialMama, GroupRelationship
         parent_mama_ids = xiaolumama.get_parent_mama_ids()
-        if not parent_mama_ids or renew:
+        if not parent_mama_ids:
             return
 
         parent_mama_id = parent_mama_ids[0]
@@ -499,21 +501,23 @@ def mama_register_update_mission_record(sender, xiaolumama, renew, *args, **kwar
             # 一元妈妈邀请数
             total_mama_count = PotentialMama.objects.filter(
                 created__range=(week_start, week_end),
-                referal_mama=parent_mama_id) \
-                .aggregate(mama_count=Count('potential_mama')).get('mama_count')
+                referal_mama=parent_mama_id,
+            ).aggregate(mama_count=Count('potential_mama')).get('mama_count')
             mission_record = base_missions.filter(
                 mission__target=MamaMission.TARGET_PERSONAL,
                 mission__cat_type= MamaMission.CAT_TRIAL_MAMA, # MamaMission.CAT_REFER_MAMA,
             ).order_by('-status').first()
             if mission_record:
                 mission_record.update_mission_value(total_mama_count)
+
         else:
             # 正式妈妈邀请数
             total_mama_count = ReferalRelationship.objects.filter(
                 modified__range=(week_start, week_end),
                 status=ReferalRelationship.VALID,
-                referal_from_mama_id=parent_mama_id)\
-                .aggregate(mama_count=Count('referal_to_mama_id')).get('mama_count')
+                referal_from_mama_id=parent_mama_id,
+                referal_type__in=XiaoluMama.REGULAR_MAMA_TYPES
+            ).aggregate(mama_count=Count('referal_to_mama_id')).get('mama_count')
             mission_record = base_missions.filter(
                 mission__target=MamaMission.TARGET_PERSONAL,
                 mission__cat_type=MamaMission.CAT_REFER_MAMA,
@@ -530,6 +534,7 @@ def mama_register_update_mission_record(sender, xiaolumama, renew, *args, **kwar
 
 signal_xiaolumama_register_success.connect(mama_register_update_mission_record,
                                            dispatch_uid='post_save_mama_register_update_mission_record')
+
 
 def _update_mama_salepayment_mission_record(sale_trade):
     from flashsale.xiaolumm.models import XiaoluMama, OrderCarry, GroupRelationship
@@ -615,8 +620,8 @@ def awardrecord_update_mission_record(sender, instance, *args, **kwargs):
     try:
         logger.info('awardrecord_update_mission_record start: awardrecord= %s' % instance.id)
 
-        year_week = datetime.datetime.now().strftime('%Y-%W')
-        if instance.carry_type == AwardCarry.AWARD_OPEN_COURSE:
+        if instance.carry_type == AwardCarry.AWARD_OPEN_COURSE and instance.date_field:
+            year_week = instance.date_field.strftime('%Y-%W')
             mama_mission = MamaMissionRecord(
                 mission__cat_type=MamaMission.CAT_OPEN_COURSE,
                 mama_id=instance.mama_id,

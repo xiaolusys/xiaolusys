@@ -90,6 +90,9 @@ class XiaoluMama(BaseModel):
         (HALF, u'半年'),
         (FULL, u'一年'),
     )
+
+    REGULAR_MAMA_TYPES = (HALF, FULL)
+
     is_staff = models.BooleanField(default=False, db_index=True, verbose_name=u'特殊账号（公司职员）')
     mobile = models.CharField(max_length=11, db_index=True, blank=False, verbose_name=u"手机")
     openid = models.CharField(max_length=64, blank=False, unique=True, verbose_name=u"UnionID")
