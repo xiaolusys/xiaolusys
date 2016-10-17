@@ -197,7 +197,7 @@ def add_DataSign(f):
 
 def comfirm_get(out_sid,status):
     packageskuitem = PackageSkuItem.objects.filter(out_sid = out_sid).values("oid")
-    if packageskuitem and status == 4:
+    if packageskuitem and status == 3:
         packageskuitem = [i['oid'] for i in packageskuitem]
         SaleOrder.objects.filter(oid__in = packageskuitem).update(status=SaleOrder.TRADE_BUYER_SIGNED)
 
@@ -318,9 +318,10 @@ def kdn_get_push(*args, **kwargs):
 
 
 if __name__ == '__main__':
-    test_info = {"expName" : '韵达快递',"expNo":"3936870447512"}
+    # test_info = {"expName" : '韵达快递',"expNo":"3936870447512"}
     #kdn_subscription(**test_info)
     # format_content()
+    comfirm_get(229785605639,4)
 
 
 
