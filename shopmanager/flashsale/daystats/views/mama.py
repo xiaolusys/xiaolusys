@@ -430,6 +430,16 @@ def new_mama(req):
     return render(req, 'yunying/mama/new_mama.html', locals())
 
 
+def _sort_by_x(x, y):
+    try:
+        x = int(x)
+        y = int(y)
+    except Exception:
+        pass
+
+    return cmp(x, y)
+
+
 @login_required
 def tab(req):
     p_start_date, p_end_date, start_date, end_date = get_date_from_req(req)
@@ -492,14 +502,14 @@ def tab(req):
         chart_items = dict(chart_items)
         x_axis += chart_items.keys()
         series[k] = chart_items
-    x_axis = sorted(list(set(x_axis)), reverse=False)
+    x_axis = sorted(list(set(x_axis)), cmp=_sort_by_x, reverse=False)
 
     for k, v in series.items():
         for x in x_axis:
             if not v.get(x, None):
                 v[x] = 0
 
-        v = sorted(v.items(), key=lambda x: x[0], reverse=False)
+        v = sorted(v.items(), key=lambda x: x[0], cmp=_sort_by_x, reverse=False)
         series[k] = v
 
     weixin_items = {}
@@ -655,3 +665,91 @@ def score(req):
     #     mama.score = score
     #     mama.invite_score = get_mama_invite_score(mama)
     return render(req, 'yunying/mama/score.html', locals())
+
+
+@cache_page(60 * 15)
+def rank(req):
+    p_start_date, p_end_date, start_date, end_date = get_date_from_req(req)
+    tab = req.GET.get('tab', 'total')
+
+    if tab == 'order':
+        sql = """
+            SELECT mama_id, SUM(carry_num)/100 as money FROM `flashsale_xlmm_order_carry`
+            where created > %s
+            and created < %s
+            and carry_num > 0
+            and status in (1,2)
+            group by mama_id
+            order by sum(carry_num) DESC
+             LIMIT 0, 100
+        """
+    if tab == 'click':
+        sql = """
+            SELECT mama_id, SUM(total_value)/100 as money FROM `flashsale_xlmm_click_carry`
+            where created > %s
+            and created < %s
+            and total_value > 0
+            and status in (1,2)
+            group by mama_id
+            order by sum(total_value) DESC
+             LIMIT 0, 100
+        """
+    if tab == 'invite':
+        sql = """
+            SELECT referal_from_mama_id as mama_id, count(*) as money FROM `flashsale_xlmm_referal_relationship`
+            where created > %s
+            and created < %s
+            group by referal_from_mama_id
+            order by count(*) desc
+            LIMIT 0, 100
+        """
+    if tab == 'award':
+        sql = """
+            SELECT mama_id, SUM(carry_num)/100 as money FROM `flashsale_xlmm_award_carry`
+            where created > %s
+            and created < %s
+            and carry_num > 0
+            and status in (2)
+            and mama_id > 0
+            group by mama_id
+            order by sum(carry_num) DESC
+             LIMIT 0, 100
+        """
+    if tab == 'total':
+        sql = """
+            SELECT mama_id, SUM(carry_num)/100 as money FROM `flashsale_xlmm_carry_record`
+            where created > %s
+            and created < %s
+            and status in (2)
+            GROUP by mama_id
+            order by sum(carry_num) desc
+             LIMIT 0, 100
+        """
+    items = execute_sql(get_cursor(), sql, [format_datetime(start_date), format_datetime(end_date)])
+    items = dict([(x['mama_id'], x['money']) for x in items])
+    mama_ids = [x for x in items.keys()]
+
+    sql = """
+        SELECT
+            xiaolumm_xiaolumama.id,
+            flashsale_customer.created,
+            flashsale_customer.mobile,
+            flashsale_customer.nick
+        FROM
+            `xiaolumm_xiaolumama`
+        JOIN flashsale_customer ON flashsale_customer.unionid = xiaolumm_xiaolumama.openid
+        WHERE
+            xiaolumm_xiaolumama.id IN %s
+    """
+    mamas = execute_sql(get_cursor(), sql, [mama_ids])
+    for mama in mamas:
+        money = items[mama['id']]
+        if isinstance(money, dict):
+            continue
+        mama['money'] = money
+        items[mama['id']] = mama
+
+    items = sorted(items.items(), key=lambda x: x[1]['money'], reverse=True)
+    items = [x[1] for x in items]
+
+    return render(req, 'yunying/mama/rank.html', locals())

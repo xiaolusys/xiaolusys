@@ -9,6 +9,7 @@
 
     <link rel="stylesheet" href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css">
     <link href="//cdn.bootcss.com/bootstrap-datepicker/1.6.4/css/bootstrap-datepicker.min.css" rel="stylesheet">
+    <link href="//cdn.bootcss.com/sortable/0.8.0/css/sortable-theme-bootstrap.min.css" rel="stylesheet">
     <script src="//cdn.bootcss.com/echarts/3.2.2/echarts.min.js"></script>
     <style type="text/css">
     body {
@@ -64,6 +65,7 @@
               <li> <a href="{% url 'yy-mama-carry' %}">一元妈妈收益</a> </li>
               <li> <a href="{% url 'yy-mama-retain' %}">七日留存</a> </li>
               <li> <a href="{% url 'yy-mama-click' %}">点击统计</a> </li>
+              <li> <a href="{% url 'yy-mama-rank' %}">排行榜<span class="label label-danger">New!</span></a> </li>
               <!-- <li> <a href="{% url 'yy-mama-score' %}">妈妈分数</a> </li> -->
             </ul>
           </li>
@@ -87,13 +89,14 @@
     </div>
   </div>
 
-    <script src="//cdn.bootcss.com/jquery/1.11.3/jquery.min.js"></script>
+    <script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
     <script src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
     <script src="//cdn.bootcss.com/bootstrap-datepicker/1.6.4/js/bootstrap-datepicker.min.js"></script>
     <script src="//cdn.bootcss.com/bootstrap-datepicker/1.6.4/locales/bootstrap-datepicker.zh-CN.min.js"></script>
-    <script src="//vuejs.org.cn/js/vue.js"></script>
-    <script src="//cdn.jsdelivr.net/vue.resource/1.0.2/vue-resource.min.js"></script>
-    <script src="/static/js/houtai.js"></script>
+    <script src="//cdn.bootcss.com/sortable/0.8.0/js/sortable.min.js"></script>
+    <!-- <script src="//vuejs.org.cn/js/vue.js"></script> -->
+    <!-- <script src="//cdn.jsdelivr.net/vue.resource/1.0.2/vue-resource.min.js"></script> -->
+    <!-- <script src="/static/js/houtai.js"></script> -->
 
     <script type="text/javascript">
         $('.datepicker').datepicker({
