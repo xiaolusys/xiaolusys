@@ -494,7 +494,7 @@ class SaleProductManageDetailSerializer(serializers.ModelSerializer):
     product_origin_price = serializers.CharField(source='sale_product.std_sale_price', read_only=True)
     product_pic = serializers.CharField(source='sale_product.pic_url', read_only=True)
     product_link = serializers.CharField(source='sale_product.product_link', read_only=True)
-    model_id = serializers.IntegerField(source='product_model_id', read_only=True)
+    model_id = serializers.IntegerField(source='modelproduct.id', read_only=True)
     material_status = MaterialStatusField()
     design_take_over = DesignTakeStatusField()
     today_use_status = ManageDetailUseStatusField()
