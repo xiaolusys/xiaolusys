@@ -101,7 +101,7 @@ class TeamBuy(AdminModel):
         self.save()
         oids = []
         for detail in self.details.all():
-            SaleOrder.objects.get(oid=detail.oid).do_refund(u'开团失败')
+            SaleOrder.objects.get(oid=detail.oid).do_refund(desc=u'开团失败')
             oids.append(detail.oid)
         PackageSkuItem.objects.filter(oid__in=oids).update(assign_status=3)
 

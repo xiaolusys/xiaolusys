@@ -14,34 +14,6 @@ from shopback.trades.models import PackageSkuItem
 logger = logging.getLogger(__name__)
 
 
-def create_refund(user=None, order=None, reason=None, num=None,
-                  refund_fee=None, desc=None, good_status=None,
-                  modify=None, proof_pic=None, refund_channel=None):
-    if num == 0 or None:  # 提交的退款产品数量为0
-        raise exceptions.APIException(u'退货数量为0')
-    if num > order.num:
-        raise exceptions.APIException(u'退货数量超过购买数量')
-    # 退款处理　生成退款单
-    if refund_fee > (order.payment / order.num) * num:  # 退款金额不能大于 单价乘以退款数量
-        raise exceptions.APIException(u'退货金额大于实付款')
-
-    refund, state = SaleRefund.objects.create_or_update_by_order(
-        good_status=good_status
-        , sale_order_id=order.id
-        , reason=reason
-        , refund_num=num
-        , refund_fee=refund_fee
-        , desc=desc
-        , refund_channel=refund_channel
-        , proof_pic=proof_pic
-    )
-    refund.auto_approve_return_goods()  # 处理　同意申请
-
-    if state:
-        log_action(user, refund, ADDITION, u'用户售后增加退货款单信息！')
-    tasks.pushTradeRefundTask.delay(refund.id)
-
-
 def modify_refund_fee(customer, order, refund, refund_fee,
                       good_status=None, reason=None, desc=None, num=None):
     refund_update_fields = []
@@ -92,18 +64,6 @@ def modify_logistic_refund(customer, company, order, sid, refund):
     log_action(customer, refund, CHANGE, u'用户退货填写物流信息！')
 
 
-def apply_fee_handler(num=None, order=None):
-    """ 计算退款费用　"""
-    if num == 0 or None:  # 提交的退款产品数量为0
-        return 0
-    if num == order.num:  # 退款数量等于购买数量 全额退款
-        apply_fee = order.payment  # 申请费用
-    else:
-        apply_fe = ((order.payment / order.num) * num)  # 申请费用
-        apply_fee = math.floor(apply_fe * 100) / 100
-    return apply_fee
-
-
 def refund_Handler(request):
     try:
         content = request.REQUEST
@@ -136,7 +96,7 @@ def refund_Handler(request):
             good_status = SaleRefund.BUYER_RECEIVED
         else:  # 已经付款　或者　确认签收 才允许退款
             return {"code": 6, "info": "请签收后申请退款!", "apply_fee": 0}
-        refund_fee = apply_fee_handler(num=num, order=order)
+        refund_fee = order.calculate_refund_fee(num)
         refund = SaleRefund.objects.filter(id=order.refund_id).first()
         if modify == 1:  # 修改该金额
             if not refund:
@@ -177,8 +137,21 @@ def refund_Handler(request):
             if d > 7:
                 return {"code": 10, "info": "您的订单已经超过七天,请选择重选原因申请", "apply_fee": 0}
 
-        create_refund(user=user, reason=reason, num=num, refund_fee=refund_fee, desc=desc, good_status=good_status,
-                      order=order, modify=modify, proof_pic=proof_p, refund_channel=refund_channel)
+        if num == 0 or None:  # 提交的退款产品数量为0
+            raise exceptions.APIException(u'退货数量为0')
+        if num > order.num:
+            raise exceptions.APIException(u'退货数量超过购买数量')
+        # 退款处理　生成退款单
+        if refund_fee > (order.payment / order.num) * num:  # 退款金额不能大于 单价乘以退款数量
+            raise exceptions.APIException(u'退货金额大于实付款')
+        refund = order.refund
+        if not refund:
+            refund = order.do_refund(reason=reason, refund_num=num, refund_fee=refund_fee,
+                                     good_status=good_status,
+                                     desc=desc, refund_channel=refund_channel, proof_pic=proof_p)
+            refund.auto_approve_return_goods()  # 处理　同意申请
+            log_action(user, refund, ADDITION, u'用户售后增加退货款单信息！')
+        tasks.pushTradeRefundTask.delay(refund.id)
 
         return {"code": 0, "info": "操作成功", "res": "ok"}
     except Exception, exc:

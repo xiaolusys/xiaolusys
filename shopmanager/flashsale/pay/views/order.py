@@ -555,9 +555,8 @@ def refund_fee(request):
         logger.error(u"交易状态不是已付款状态")
         return HttpResponse(u"交易状态不是已付款状态")
 
-    reason = ' '
     try:
-        s = sale_order.do_refund(reason)
+        s = sale_order.do_refund(reason=2)  # reason=2表示缺货
         log_action(request.user, s, CHANGE, 'SaleRefund退款单创建')
         log_action(request.user, sale_order, CHANGE, 'SaleOrder订单退款')
         return HttpResponse(True)
