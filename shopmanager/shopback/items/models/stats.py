@@ -178,11 +178,15 @@ class ProductSkuStats(models.Model):
         """
         from flashsale.dinghuo.models import OrderDetail
         from .product import Product
+        from flashsale.dinghuo.models import ReturnGoods,RGDetail
+        rg_sku = RGDetail.objects.all().values('skuid')
+        rg_sku = [i['skuid'] for i in rg_sku]
         order_skus = [o['chichu_id'] for o in OrderDetail.objects.filter(
             arrival_time__gt=(datetime.datetime.now() - datetime.timedelta(days=20)), arrival_quantity__gt=0).values(
             'chichu_id').distinct()]
+
         has_nouse_stock_sku_product = [(stat['id'], stat['product_id']) for stat in
-                                       ProductSkuStats.objects.filter(sku_id__in=order_skus,
+                                       ProductSkuStats.objects.exclude(sku_id__in=rg_sku).filter(sku_id__in=order_skus,
                                                                       sold_num__lt=F('history_quantity') + F(
                                                                           'adjust_quantity') + F(
                                                                           'inbound_quantity') + F('return_quantity') \

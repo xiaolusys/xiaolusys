@@ -182,7 +182,7 @@ class WeixinPush(object):
         退款金额：{{refund.DATA}}
         {{remark.DATA}}
         """
-        customer = salerefund.get_refund_customer()
+        customer = salerefund.customer
         template_ids = {
             'meimei': 'S9cIRfdDTM9yKeMTOj-HH5FPw79OofsfK6G4VRbKYQQ',
             'temai': '4TlQaNHO8MtVef33iCcPvxhRYS8Q1Nr3j_A9S-BtbLo'

@@ -129,7 +129,7 @@ class RefundPopPageView(APIView):
         refund_dict = model_to_dict(sale_refund)
 
         refund_dict['refundd_message'] = ""
-        if sale_refund.is_fastrefund():  # 如果是极速退款
+        if sale_refund.is_fastrefund:  # 如果是极速退款
             refund_dict['refundd_message'] = "[1]退回小鹿钱包 %.2f 元 实付余额%.2f" % (
                 sale_refund.refund_fee,
                 strade.payment > 0 and (sale_refund.refund_fee / strade.payment) * (
@@ -177,11 +177,7 @@ class RefundPopPageView(APIView):
                 if obj.status in (SaleRefund.REFUND_WAIT_SELLER_AGREE,
                                   SaleRefund.REFUND_WAIT_RETURN_GOODS,
                                   SaleRefund.REFUND_CONFIRM_GOODS):
-                    strade = SaleTrade.objects.get(id=obj.trade_id)
-                    if strade.channel == SaleTrade.WALLET:
-                        obj.refund_wallet_approve()
-
-                    elif obj.is_fastrefund():
+                    if obj.is_fastrefund:
                         obj.refund_fast_approve()
 
                     elif obj.refund_fee > 0 and obj.charge:  # 有支付编号

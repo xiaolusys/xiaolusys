@@ -112,7 +112,7 @@ def update_Unrelate_Prods_Product(pro, req):
 from shopback.items.models import Product, ProductSku
 from django.db.models import F
 from common.modelutils import update_model_fields
-
+from shopback.items.models import ProductSkuStats
 
 def update_Product_Collect_Num(pro, req):
     """
@@ -121,6 +121,7 @@ def update_Product_Collect_Num(pro, req):
     try:
         product = Product.objects.get(outer_id=pro.outer_id)
         psk = ProductSku.objects.get(product_id=product.id, outer_id=pro.outer_sku_id)
+
         if pro.can_reuse:  # 判断是二次销售　　则　添加库存数
             # 添加sku的库存数量
             psk_quantity = psk.quantity
@@ -128,6 +129,12 @@ def update_Product_Collect_Num(pro, req):
             update_model_fields(psk, update_fields=['quantity'])  # 更新字段方法
             action_desc = u"拆包退货商品添加->将原来库存{0}更新为{1}".format(psk_quantity, psk.quantity)
             log_action(req.user.id, psk, CHANGE, action_desc)
+
+            #加入新系统库存中去
+            pss = ProductSkuStats.objects.filter(sku=psk).first()
+            if pss:
+                pss.return_quantity = pss.return_quantity + pro.num
+                pss.save()
 
             # 添加库存商品的数量
             pro_collect_num = product.collect_num  # 原来的库存数量
