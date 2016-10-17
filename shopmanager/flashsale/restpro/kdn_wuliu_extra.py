@@ -263,8 +263,8 @@ def kdn_subscription(*args,**kwargs):
             write_traces(json.dumps(result))
     else:
         result.update({"info":"订阅失败"})
-        if PackageSkuItem.objects.filter(out_sid = kwargs['LogisticCode']).first():
-            PackageSkuItem.objects.filter(out_sid = kwargs['LogisticCode']).first().set_failed_time()
+        if PackageSkuItem.objects.filter(out_sid = kwargs['expNo']).first():
+            PackageSkuItem.objects.filter(out_sid = kwargs['expNo']).first().set_failed_time()
         logging.warn("订阅失败")
         logging.warn(result['Reason'])
     return result
