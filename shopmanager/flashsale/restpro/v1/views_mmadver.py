@@ -63,6 +63,7 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated,)
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
+    ordering_fields = '__all__'
     filter_class = NinePicAdverFilter
 
     def get_today_queryset(self, queryset):
@@ -76,8 +77,10 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         customer = Customer.objects.get(user=request.user)
         xlmm = customer.get_charged_mama()
-        queryset = self.filter_queryset(self.get_queryset())
-        queryset = self.get_today_queryset(queryset).order_by('-start_time')
+        queryset = self.get_today_queryset(self.get_queryset())
+        if request.data.get('ordering') is None:
+            queryset = queryset.order_by('-start_time')
+        queryset = self.filter_queryset(queryset)
         request.data._mutable = True
         request.data.update({"mama_id": xlmm.id})
         request.data._mutable = False
