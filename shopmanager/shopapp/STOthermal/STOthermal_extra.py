@@ -59,6 +59,7 @@ def get_delivery_address(*args,**kwargs):
 def format_delivery_address(address_info):
     address_info = address_info.encode('UTF-8')
     address_info = json.loads(address_info)
+    print address_info
     address_info = address_info["cainiao_waybill_ii_search_response"]["waybill_apply_subscription_cols"]\
     ["waybill_apply_subscription_info"][0]['branch_account_cols']["waybill_branch_account"][0]
     print address_info
