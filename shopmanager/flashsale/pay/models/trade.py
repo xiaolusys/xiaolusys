@@ -823,7 +823,7 @@ class SaleOrder(PayBaseModel):
 
     @property
     def refund(self):
-        refund = SaleRefund.objects.get(trade_id=self.sale_trade.id, order_id=self.id).first()
+        refund = SaleRefund.objects.filter(trade_id=self.sale_trade.id, order_id=self.id).first()
         return refund
 
     @property
@@ -871,35 +871,42 @@ class SaleOrder(PayBaseModel):
             return False  # 团购订单　在付款状态不能退款
         return True
 
-    def do_refund(self, reason=' '):
-        sale_trader = self.sale_trade  # 退款sale_trade对象
-        # 在saleorder订单状态为已经付款情况下，生成退款单salerefund，把退款单id 退款和退款状态赋值给sale_order中的三个字段
-        good_status = SaleRefund.SELLER_OUT_STOCK  # 默认为缺货　
+    def calculate_refund_fee(self, num):
+        # type: (int) -> float
+        """计算退款费用　
+        """
+        def fake_round(x, y):
+            # type: (float, int) -> float
+            return int(x/float(y) * 100) * 0.01
+        if num == 0:  # 提交的退款产品数量为0
+            return 0
+        elif num == self.num:  # 退款数量等于购买数量 全额退款
+            apply_fee = self.payment  # 申请费用
+        else:
+            apply_fee = fake_round(self.payment, self.num) * num
+        return apply_fee
+
+    def do_refund(self, reason=0, refund_num=None, refund_fee=None, good_status=None,
+                  desc='', refund_channel=None, proof_pic=None):
+        # type: (int, Any, Any, Any, text_type, Any, text_type) -> SaleRefund
+        """订单退款
+        """
+        from shopback.refunds.models import REFUND_REASON
+        from flashsale.pay.models import SaleRefund
+        reason = REFUND_REASON[reason][1]
         # 如果是发货或者确认签收状态则为　买家收到货
-        good_status = SaleRefund.BUYER_RECEIVED if self.status in(SaleOrder.WAIT_BUYER_CONFIRM_GOODS,
-                                                                  SaleOrder.TRADE_BUYER_SIGNED) else good_status
-        s = SaleRefund(
-            trade_id=self.sale_trade.id,
-            order_id=self.id,
-            buyer_id=self.buyer_id,
-            item_id=self.item_id,
-            charge=sale_trader.charge,
-            channel=sale_trader.channel,
-            sku_id=self.sku_id,
-            sku_name=self.sku_name,
-            refund_num=self.num,
-            buyer_nick=sale_trader.buyer_nick,
-            mobile=sale_trader.receiver_mobile,
-            phone=sale_trader.receiver_mobile,
-            total_fee=self.total_fee,
-            payment=self.payment,
-            refund_fee=self.payment,
-            title=self.title,
-            reason=reason,
-            good_status=good_status,
-            status=SaleRefund.REFUND_WAIT_SELLER_AGREE)
-        s.save()
-        return s
+        if good_status is None:
+            if self.status in (SaleOrder.WAIT_BUYER_CONFIRM_GOODS, SaleOrder.TRADE_BUYER_SIGNED):
+                good_status = SaleRefund.BUYER_RECEIVED
+            elif self.status == SaleOrder.WAIT_SELLER_SEND_GOODS:  # 已付款
+                good_status = SaleRefund.BUYER_NOT_RECEIVED  # 没有收到货
+            else:
+                raise Exception(u'订单状态不予退款操作!')
+        refund_num = refund_num if refund_num else self.num
+        refund_fee = refund_fee if refund_fee else self.payment
+        salerefund = SaleRefund.create_salerefund(self, refund_num, refund_fee, reason, good_status,
+                                                  desc=desc, refund_channel=refund_channel, proof_pic=proof_pic)
+        return salerefund
 
     def is_finishable(self):
         """
