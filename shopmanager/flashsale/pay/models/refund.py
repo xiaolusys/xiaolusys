@@ -16,7 +16,6 @@ from supplychain.supplier.models import SaleProduct
 from flashsale.pay.signals import signal_saletrade_refund_post
 from flashsale.pay import NO_REFUND, REFUND_CLOSED, REFUND_REFUSE_BUYER, REFUND_WAIT_SELLER_AGREE, \
     REFUND_WAIT_RETURN_GOODS, REFUND_CONFIRM_GOODS, REFUND_APPROVE, REFUND_SUCCESS
-from flashsale.pay.managers import SaleRefundManager
 from shopback.warehouse.constants import WARE_THIRD, WARE_SH, WARE_GZ, WARE_COMPANY
 from ..signals import signal_saletrade_refund_confirm
 from ..options import uniqid
@@ -140,8 +139,6 @@ class SaleRefund(PayBaseModel):
                                  verbose_name=u'退款状态')  # type: int
     postage_num = models.IntegerField(default=0, verbose_name=u'退邮费金额(分)')  # type: float
     coupon_num = models.IntegerField(default=0, verbose_name=u'优惠券金额(分)')  # type: float
-
-    objects = SaleRefundManager()
 
     class Meta:
         db_table = 'flashsale_refund'
@@ -269,6 +266,37 @@ class SaleRefund(PayBaseModel):
         from flashsale.pay.models import BudgetLog
 
         return BudgetLog.objects.filter(referal_id=self.id, budget_log_type=BudgetLog.BG_REFUND)
+
+    @classmethod
+    def create_salerefund(cls, saleorder, refund_num, refund_fee, reason, good_status=None,
+                          desc='', refund_channel=None, proof_pic=None):
+        # type: (SaleOrder, int, float, int, text_type, text_type, Any, Any) -> SaleRefund
+        """创建退款单
+        """
+        good_status = cls.SELLER_OUT_STOCK if good_status is None else good_status
+        salerefund = SaleRefund(trade_id=saleorder.sale_trade.id,
+                                order_id=saleorder.id,
+                                buyer_id=saleorder.buyer_id,
+                                item_id=saleorder.item_id,
+                                charge=saleorder.sale_trade.charge,
+                                channel=saleorder.sale_trade.channel,
+                                sku_id=saleorder.sku_id,
+                                sku_name=saleorder.sku_name,
+                                refund_num=refund_num,
+                                buyer_nick=saleorder.sale_trade.buyer_nick,
+                                mobile=saleorder.sale_trade.receiver_mobile,
+                                phone=saleorder.sale_trade.receiver_mobile,
+                                total_fee=saleorder.total_fee,
+                                payment=saleorder.payment,
+                                refund_fee=refund_fee,
+                                good_status=good_status,
+                                reason=reason,
+                                desc=desc,
+                                refund_channel=refund_channel,
+                                proof_pic=proof_pic,
+                                title=saleorder.title)
+        salerefund.save()
+        return salerefund
 
     @transaction.atomic
     def refund_fast_approve(self):
