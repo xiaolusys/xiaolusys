@@ -9,7 +9,7 @@ logger = logging.getLogger('celery.handler')
 from flashsale.xiaolumm.models.models_fans import XlmmFans
 from flashsale.pay.models import Customer, BudgetLog
 from flashsale.promotion.models import RedEnvelope, XLSampleApply, AwardWinner, AppDownloadRecord, \
-    DownloadMobileRecord, DownloadUnionidRecord
+    DownloadMobileRecord, DownloadUnionidRecord, ActivityEntry
 from utils import get_application
 
 import sys, random
@@ -416,3 +416,15 @@ def task_collect_union_download_record(instance):
         appdownload.modified = instance.modified
         update_fields.append('modified')
         appdownload.save(update_fields=update_fields)
+
+
+@task()
+def task_close_activity_everday():
+    now = datetime.datetime.now()
+    unclose_activity = ActivityEntry.objects.filter(is_active=True, end_time__lte=now)
+    if not unclose_activity:
+        return
+
+    for act in unclose_activity:
+        act.is_active = False
+        act.save()
