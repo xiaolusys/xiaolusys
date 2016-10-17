@@ -516,16 +516,6 @@ def roll_back_usercoupon_status(sender, instance, created, *args, **kwargs):
 post_save.connect(roll_back_usercoupon_status, sender=SaleRefund, dispatch_uid='post_save_roll_back_usercoupon_status')
 
 
-def buyeridPatch():
-    from .trade import SaleTrade
-
-    sfs = SaleRefund.objects.all()
-    for sf in sfs:
-        st = SaleTrade.objects.get(id=sf.trade_id)
-        sf.buyer_id = st.buyer_id
-        sf.save()
-
-
 def handle_sale_refund_signal(sender, instance, created, raw, *args, **kwargs):
     """ 特卖退款单生成触发更新库存数及锁定数信号 """
     if raw: return
