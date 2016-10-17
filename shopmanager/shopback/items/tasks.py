@@ -1010,8 +1010,9 @@ def task_Auto_Download_Shelf():
         log_action(systemoa.id, product, CHANGE, u'系统自动下架商品:%s' % log_sign)  # 保存操作日志
     logger.warn("{0}系统自动下架{1}个产品,含未通过审核{2}个产品".format(datetime.datetime.now(), count, unverify_no), exc_info=True)
 
+
+#@transaction.atomic
 @task()
-@transaction.atomic
 def task_assign_stock_to_package_sku_item(sku_id):
     instance = ProductSkuStats.objects.get(sku_id=sku_id)
     if instance.realtime_quantity > instance.assign_num:
