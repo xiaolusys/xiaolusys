@@ -273,8 +273,8 @@ def pushTradeRefundTask(refund_id):
             refund.status = Refund.REFUND_WAIT_SELLER_AGREE
         refund.save()
 
-        if not sale_refund.is_postrefund():
-            if sale_refund.is_fastrefund():
+        if not sale_refund.is_postrefund:
+            if sale_refund.is_fastrefund:
                 sale_refund.refund_fast_approve()
             else:
                 sale_refund.refund_charge_approve()
@@ -518,7 +518,7 @@ def make_refund_message(refund):
 
 def send_refund_msg(refund):
     """ 发送同意退款信息 """
-    customer = refund.get_refund_customer()
+    customer = refund.customer
     # 优先使用购买用户的手机号
     if customer.mobile:
         mobile = customer.mobile
