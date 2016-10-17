@@ -1383,21 +1383,21 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
         if ol.is_finished() and ol.third_package:
             try:
                 delta = (now - ol.received_time).days
+                return u'第三方返货已通知%d天' % delta
             except:
-                delta = -1
-            return u'第三方返货已通知%d天' % delta
+                return u'异常'
         elif ol.is_finished():
             try:
                 delta = (now - ol.received_time).days
+                return u'已到货%d天' % delta
             except:
-                delta = -1
-            return u'已到货%d天' % delta
+                return u'异常'
         elif ol.stage == OrderList.STAGE_RECEIVE:
             try:
                 delta = (now - ol.receive_time).days
+                return u'已订货%d天' % delta
             except:
-                delta = -1
-            return u'已订货%d天' % delta
+                return u'异常'
         elif ol.stage == OrderList.STAGE_PAY:
             return u'待付款'
         elif ol.stage == OrderList.STAGE_CHECKED:
