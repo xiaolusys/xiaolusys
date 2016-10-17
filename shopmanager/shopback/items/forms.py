@@ -7,9 +7,37 @@ import sys
 from django import forms
 
 from core.forms import BaseForm
+from apis.v1.products import ProductCtl, SkustatCtl
 
 from .models import Product, ProductSku
 from . import constants
+
+
+class ProductSkuFormset(forms.models.BaseInlineFormSet):
+    def __init__(self, data=None, files=None, instance=None,
+                 save_as_new=False, prefix=None, queryset=None, **kwargs):
+        if instance is None:
+            self.instance = self.fk.rel.to()
+        else:
+            self.instance = instance
+        self.save_as_new = save_as_new
+        if queryset is None:
+            queryset = self.model._default_manager
+        if self.instance.pk is not None:
+            qs = queryset.filter(**{self.fk.name: self.instance})
+        else:
+            qs = queryset.none()
+        print 'queryset', qs.count()
+        for sku in qs:
+            api_skustat = SkustatCtl.retrieve(sku.id)
+            sku.quantity = api_skustat.get_realtime_quantity()
+            sku.wait_post_num = api_skustat.get_wait_post_num()
+            sku.lock_num = api_skustat.get_lock_num()
+
+        # BaseInlineFormSet, self).__init__(data, files, prefix=prefix,
+        #                                         queryset=qs, **kwargs)
+        forms.BaseModelFormSet.__init__(self, data, files, prefix=prefix,
+                                                queryset=qs, **kwargs)
 
 
 class ProductModelForm(forms.ModelForm):
@@ -21,6 +49,13 @@ class ProductModelForm(forms.ModelForm):
     class Meta:
         model = Product
         exclude = ()
+
+    def __init__(self, *args, **kwargs):
+        super(ProductModelForm, self).__init__(*args, **kwargs)
+        api_product = ProductCtl.retrieve(self.instance.id)
+        self.initial['collect_num'] = api_product.get_realtime_quantity()
+        self.initial['wait_post_num'] =  api_product.get_wait_post_num()
+        self.initial['lock_num'] = api_product.get_lock_num()
 
 
 class ProductLocationForm(BaseForm):
