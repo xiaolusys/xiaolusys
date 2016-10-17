@@ -16,7 +16,6 @@ from supplychain.supplier.models import SaleProduct
 from flashsale.pay.signals import signal_saletrade_refund_post
 from flashsale.pay import NO_REFUND, REFUND_CLOSED, REFUND_REFUSE_BUYER, REFUND_WAIT_SELLER_AGREE, \
     REFUND_WAIT_RETURN_GOODS, REFUND_CONFIRM_GOODS, REFUND_APPROVE, REFUND_SUCCESS
-from flashsale.pay.managers import SaleRefundManager
 from shopback.warehouse.constants import WARE_THIRD, WARE_SH, WARE_GZ, WARE_COMPANY
 from ..signals import signal_saletrade_refund_confirm
 from ..options import uniqid
