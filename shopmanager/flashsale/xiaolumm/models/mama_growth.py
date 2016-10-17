@@ -500,7 +500,7 @@ def mama_register_update_mission_record(sender, xiaolumama, renew, *args, **kwar
         if xiaolumama.last_renew_type == XiaoluMama.TRIAL:
             # 一元妈妈邀请数
             total_mama_count = PotentialMama.objects.filter(
-                created__range=(week_start, week_end),
+                modified__range=(week_start, week_end),
                 referal_mama=parent_mama_id,
             ).aggregate(mama_count=Count('potential_mama')).get('mama_count')
             mission_record = base_missions.filter(

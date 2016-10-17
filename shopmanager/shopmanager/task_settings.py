@@ -1529,7 +1529,13 @@ SHOP_APP_SCHEDULE = {
         'schedule': crontab(minute="0"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_pintuan_need_more_people_push'}
-    }
+    },
+    u'每天自动下架已经过期的活动': {
+        'task': 'flashsale.promotion.tasks_activity.task_close_activity_everday',
+        'schedule': crontab(minute="00", hour="07"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
 }
 
 # nihao = {
