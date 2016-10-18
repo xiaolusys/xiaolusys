@@ -457,6 +457,7 @@ class InBound(models.Model):
                     'buy_quantity': orderdetail.buy_quantity,
                     'plan_quantity': orderdetail.need_arrival_quantity,
                     'arrival_quantity': orderdetail.arrival_quantity,
+                    'can_add':  orderdetail.buy_quantity > orderdetail.arrival_quantity,
                     'inferior_quantity': orderdetail.inferior_quantity,
                     'all_quantity': orderdetail.inferior_quantity + orderdetail.arrival_quantity,
                     'in_inbound': int(orderdetail.chichu_id) in self.sku_data,
@@ -473,6 +474,7 @@ class InBound(models.Model):
                         'has_out_stock': bool(relation.inbounddetail.out_stock_cnt if relation else 0),
                         'inbound_total': self.sku_data.get(sku.id, 0),
                         'inbound_arrival_quantity': relation.arrival_quantity if relation else 0,
+                        'can_plus': relation and relation.arrival_quantity >0,
                         'inbound_inferior_quantity': relation.inferior_quantity if relation else 0,
                         'inbound_status_info': relation.inbounddetail.get_allocate_info() if relation else '',
                         'inbound_relation_id': relation.id if relation else ''

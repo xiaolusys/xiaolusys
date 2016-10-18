@@ -326,15 +326,19 @@
             <td>{{sku.inbound_total}}</td>
             <td>{{sku.inbound_status_info}}</td>
             <td>
-                {{ if sku.in_inbound }}
+                {{if sku.can_add}}
                 <div class="col-md-1">
                     <a onclick="plusAllocateQuantity({{sku.orderdetail_id}}, 1)">
                         <span class="glyphicon glyphicon-plus"></span>
                     </a>
                 </div>
+                {{/if}}
+                {{ if sku.in_inbound }}
                 <div class="col-md-1">
                     {{sku.inbound_arrival_quantity}}
                 </div>
+                {{ /if }}
+                {{if sku.can_plus}}
                 <div class="col-md-1">
                     <a onclick="plusAllocateQuantity({{sku.orderdetail_id}}, -1)">
                         <span class="glyphicon glyphicon-minus"></span>
