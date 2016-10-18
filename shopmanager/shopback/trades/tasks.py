@@ -905,8 +905,7 @@ from shopback.trades.models import PackageSkuItem, PackageOrder
 from flashsale.pay.models import SaleOrder, SaleTrade, SaleRefund
 
 
-@task(max_retries=3, default_retry_delay=6)
-@transaction.atomic
+@task()
 def task_packageskuitem_update_productskustats(sku_id):
     """
     1) we added db_index=True for pay_time in packageskuitem;
@@ -929,28 +928,16 @@ def task_packageskuitem_update_productskustats(sku_id):
 
     sold_num = wait_assign_num + assign_num + post_num
     params = {"sold_num": sold_num, "assign_num": assign_num, "post_num": post_num}
-    stats = ProductSkuStats.objects.filter(sku_id=sku_id)
-    if stats.count() <= 0:
-        product_id = ProductSku.objects.get(id=sku_id).product.id
-        try:
-            stat = ProductSkuStats(sku_id=sku_id, product_id=product_id, **params)
-            stat.save()
-        except IntegrityError as exc:
-
-            logger.warn("IntegrityError - productskustat/sold_num | sku_id:%s, sold_num:%s, assign_num:%s, post_num:%s"
-                        % (sku_id, sold_num, assign_num, post_num))
-
-    else:
-        stat = stats[0]
-        update_fields = []
-        for k, v in params.iteritems():
-            if hasattr(stat, k):
-                if getattr(stat, k) != v:
-                    setattr(stat, k, v)
-                    update_fields.append(k)
-        if update_fields:
-            update_fields.append('modified')
-            stat.save(update_fields=update_fields)
+    stat = ProductSkuStats.get_by_sku(sku_id)
+    update_fields = []
+    for k, v in params.iteritems():
+        if hasattr(stat, k):
+            if getattr(stat, k) != v:
+                setattr(stat, k, v)
+                update_fields.append(k)
+    if update_fields:
+        update_fields.append('modified')
+        stat.save(update_fields=update_fields)
 
 
 @task(max_retries=3, default_retry_delay=6)
