@@ -457,6 +457,7 @@ class InBound(models.Model):
                     'buy_quantity': orderdetail.buy_quantity,
                     'plan_quantity': orderdetail.need_arrival_quantity,
                     'arrival_quantity': orderdetail.arrival_quantity,
+                    'can_add':  orderdetail.buy_quantity > orderdetail.arrival_quantity,
                     'inferior_quantity': orderdetail.inferior_quantity,
                     'all_quantity': orderdetail.inferior_quantity + orderdetail.arrival_quantity,
                     'in_inbound': int(orderdetail.chichu_id) in self.sku_data,
