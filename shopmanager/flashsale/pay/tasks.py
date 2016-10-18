@@ -248,36 +248,35 @@ def notifyTradeRefundTask(notify):
 def pushTradeRefundTask(refund_id):
     """ 发货前申请,　检查是否极速退款 """
     try:
-        sale_refund = SaleRefund.objects.get(id=refund_id)
-        trade_id = sale_refund.trade_id
+        from shopback.refunds.models import Refund
+        from shopback.warehouse.constants import WARE_THIRD
+
+        salerefund = SaleRefund.objects.get(id=refund_id)
+        trade_id = salerefund.trade_id
 
         strade = SaleTrade.objects.get(id=trade_id)
         saleservice = FlashSaleService(strade)
         saleservice.payTrade()
-        from shopback.refunds.models import Refund
 
         seller = getOrCreateSaleSeller()
-        sorder = SaleOrder.objects.get(id=sale_refund.order_id)
+        sorder = SaleOrder.objects.get(id=salerefund.order_id)
         refund, state = Refund.objects.get_or_create(id=refund_id,
                                                      tid=strade.tid,
                                                      oid=sorder.oid)
         refund.user = seller
         refund.title = sorder.title
-        refund.payment = sale_refund.payment
+        refund.payment = salerefund.payment
         refund.buyer_nick = strade.buyer_nick or strade.receiver_name
         refund.mobile = strade.receiver_mobile
-        if sale_refund.has_good_return:
+        if salerefund.has_good_return:
             refund.status = Refund.REFUND_WAIT_RETURN_GOODS
-            refund.has_good_return = sale_refund.has_good_return
+            refund.has_good_return = salerefund.has_good_return
         else:
             refund.status = Refund.REFUND_WAIT_SELLER_AGREE
         refund.save()
-
-        if not sale_refund.is_postrefund:
-            if sale_refund.is_fastrefund:
-                sale_refund.refund_fast_approve()
-            else:
-                sale_refund.refund_charge_approve()
+        # 不是发货后退款 并且　不是第三方发货
+        if not salerefund.is_postrefund and not salerefund.saleorder.product.ware_by == WARE_THIRD:
+            salerefund.refund_approve()  # 退款给用户
     except Exception, exc:
         raise pushTradeRefundTask.retry(exc=exc)
 

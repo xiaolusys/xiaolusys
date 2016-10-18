@@ -323,6 +323,7 @@ class SaleRefund(PayBaseModel):
             if payment > 0:  # 有退款金额才生成退款余额记录
                 BudgetLog.create_salerefund_log(self, payment)
         self.refund_confirm()
+        self.send_refund_success_weixin_message()   # 退款成功推送
 
     def refund_charge_approve(self):
         # type: () -> None
@@ -444,9 +445,10 @@ class SaleRefund(PayBaseModel):
     def agree_return_goods(self):
         # type: () -> bool
         """ 同意退货 """
-        if self.is_returngoodsable:
+        if self.is_returngoodsable:  # 退款待审　买家已经收到货
             self.status = SaleRefund.REFUND_WAIT_RETURN_GOODS
             self.save(update_fields=['status', 'modified'])
+            self.send_refund_agree_weixin_message()  # 发送同意退货申请
             return True
         return False
 
@@ -463,29 +465,45 @@ class SaleRefund(PayBaseModel):
         }
         return content_map[event_type]
 
-    def send_weixin_message(self):
-        # type: () -> None
-        """
-        功能：　同意退货　后　发送　消息给用户　让用户　填写物流信息和快递单号
-        """
-        from shopapp.weixin.weixin_push import WeixinPush
+    def send_refund_agree_weixin_message(self):
+        # type : () -> None
         from flashsale.xiaolumm.models import WeixinPushEvent
-        push = WeixinPush()
-        if self.good_status in [SaleRefund.BUYER_RECEIVED, SaleRefund.BUYER_RETURNED_GOODS]:
-            push.push_refund_notify(self, WeixinPushEvent.SALE_REFUND_AGREE)
-        else:
-            push.push_refund_notify(self, WeixinPushEvent.SALE_REFUND_GOODS_SUCCESS)
+        from shopapp.weixin.weixin_push import WeixinPush
 
-    def auto_approve_return_goods(self):
-        # type: () -> bool
+        push = WeixinPush()
+        push.push_refund_notify(self, WeixinPushEvent.SALE_REFUND_AGREE)  # 推送同意退款微信消息
+
+    def send_refund_success_weixin_message(self):
+        # type : () -> None
+        """发送退款成功微信推送
         """
-        自动同意退货:
-        1. 用户提交退款单　
-        如果是退货申请　则　修改该退款单状态到　同意申请状态
+        from flashsale.xiaolumm.models import WeixinPushEvent
+        from shopapp.weixin.weixin_push import WeixinPush
+
+        push = WeixinPush()
+        push.push_refund_notify(self, WeixinPushEvent.SALE_REFUND_GOODS_SUCCESS)  # 推送退款成功微信消息
+
+    def refund_postage(self):
+        # type : () -> None
+        """退邮费给用户
         """
-        self.agree_return_goods()
-        self.send_weixin_message()
-        return True
+        from flashsale.pay.models import BudgetLog
+
+        if 0 < self.postage_num <= 2000:
+            BudgetLog.create_salerefund_log(self, self.postage_num)
+
+    def refund_coupon(self):
+        # type : () -> None
+        """补邮费给用户
+        """
+        from flashsale.coupon.models import UserCoupon
+
+        if self.coupon_num > 0:
+            try:
+                UserCoupon.create_salerefund_post_coupon(self.buyer_id, self.trade_id, money=(self.coupon_num / 100))
+            except Exception as e:
+                logger.info({'action': u'return_fee_by_refund_product', 'message': e.message})
+                return None
 
     @transaction.atomic()
     def return_fee_by_refund_product(self):
@@ -503,22 +521,9 @@ class SaleRefund(PayBaseModel):
                           'message': u'退款单状态错误 不予退款',
                           'salerefund': self.id})
             return False
-        from flashsale.pay.models import BudgetLog
-        from flashsale.coupon.models import UserCoupon
-        from shopapp.weixin.weixin_push import WeixinPush
-        from flashsale.xiaolumm.models import WeixinPushEvent
-
-        if 0 < self.postage_num <= 2000:
-            BudgetLog.create_salerefund_log(self, self.postage_num)
-        if self.coupon_num > 0:
-            try:
-                UserCoupon.create_salerefund_post_coupon(self.buyer_id, self.trade_id, money=(self.coupon_num / 100))
-            except Exception as e:
-                logger.info({'action': u'return_fee_by_refund_product', 'message': e.message})
+        self.refund_postage()  # 补邮费
+        self.refund_coupon()  # 补优惠券
         self.refund_fast_approve()  # 退订单金额(退款成功)　
-
-        push = WeixinPush()
-        push.push_refund_notify(self, WeixinPushEvent.SALE_REFUND_GOODS_SUCCESS)
         return True
 
 
