@@ -62,7 +62,6 @@ urlpatterns = (
     url(r'^qiniu/$', views.QiniuAPIView.as_view()),
     url(r'^ref_reason/$', csrf_exempt(views.RefundReason.as_view())),
     url(r'^pro_ref_list/$', csrf_exempt(views.RefundAnaList.as_view())),
-    url(r'^refund_pop_page/$', csrf_exempt(views.RefundPopPageView.as_view())),
     url(r'^change_model_name_api/$', views.ModelChangeAPIView.as_view()),
     url(r'^post_poster/$', csrf_exempt(views.PostGoodShelf.as_view())),
     url(r'^change_sku_item/$', csrf_exempt(views.change_sku_item), name="change_sku_item"),

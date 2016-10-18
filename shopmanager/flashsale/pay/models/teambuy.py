@@ -97,11 +97,15 @@ class TeamBuy(AdminModel):
 
     def set_status_failed(self):
         from shopback.trades.models import PackageSkuItem
+        from shopback.warehouse.constants import WARE_THIRD
         self.status = 2
         self.save()
         oids = []
         for detail in self.details.all():
-            SaleOrder.objects.get(oid=detail.oid).do_refund(desc=u'开团失败')
+            saleorder = detail.saleorder
+            salerefund = saleorder.do_refund(desc=u'开团失败')
+            if not salerefund.is_postrefund and not saleorder.product.ware_by == WARE_THIRD:  # 不是发货后　不是第三方仓库
+                salerefund.refund_approve()  # 退款给用户
             oids.append(detail.oid)
         PackageSkuItem.objects.filter(oid__in=oids).update(assign_status=3)
 
@@ -169,3 +173,11 @@ class TeamBuyDetail(BaseModel):
         app_label = 'pay'
         verbose_name = u'团购详情'
         verbose_name_plural = u'团购详情列表'
+
+    @property
+    def saleorder(self):
+        if not hasattr(self, '_sale_order_'):
+            from flashsale.pay.models import SaleOrder
+
+            self._sale_order_ = SaleOrder.objects.filter(oid=self.oid).first()
+        return self._sale_order_
