@@ -177,12 +177,7 @@ class RefundPopPageView(APIView):
                 if obj.status in (SaleRefund.REFUND_WAIT_SELLER_AGREE,
                                   SaleRefund.REFUND_WAIT_RETURN_GOODS,
                                   SaleRefund.REFUND_CONFIRM_GOODS):
-                    if obj.is_fastrefund:
-                        obj.refund_fast_approve()
-
-                    elif obj.refund_fee > 0 and obj.charge:  # 有支付编号
-                        obj.refund_charge_approve()
-
+                    obj.refund_approve()  # 退款给用户
                     log_action(request.user.id, obj, CHANGE, u'退款审核通过:%s' % obj.refund_id)
                     # obj.amount_flow = calculate_amount_flow(obj)
                     # obj.save()
@@ -250,8 +245,7 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
                         status not in (SaleRefund.REFUND_APPROVE, SaleRefund.REFUND_SUCCESS):
             raise exceptions.APIException(u'同意状态,不予修改状态!')
         if instance.status == SaleRefund.REFUND_WAIT_SELLER_AGREE and status == SaleRefund.REFUND_WAIT_RETURN_GOODS:
-            # 如果是从退款待审　到　同意退货　则发送　退回信息
-            instance.send_weixin_message()
+            instance.agree_return_goods()  # 如果是从退款待审　到　同意退货　则发送　退回信息
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)

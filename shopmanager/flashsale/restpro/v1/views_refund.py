@@ -149,7 +149,7 @@ def refund_Handler(request):
             refund = order.do_refund(reason=reason, refund_num=num, refund_fee=refund_fee,
                                      good_status=good_status,
                                      desc=desc, refund_channel=refund_channel, proof_pic=proof_p)
-            refund.auto_approve_return_goods()  # 处理　同意申请
+            refund.agree_return_goods()  # 处理　同意申请
             log_action(user, refund, ADDITION, u'用户售后增加退货款单信息！')
         tasks.pushTradeRefundTask.delay(refund.id)
 
