@@ -557,8 +557,10 @@ def refund_fee(request):
 
     try:
         from flashsale.pay.constants import BUDGET
-        s = sale_order.do_refund(reason=2, refund_channel=BUDGET)  # reason=2表示缺货
-        log_action(request.user, s, CHANGE, 'SaleRefund退款单创建')
+        from flashsale.pay.tasks import pushTradeRefundTask
+        refund = sale_order.do_refund(reason=2, refund_channel=BUDGET)  # reason=2表示缺货
+        pushTradeRefundTask.delay(refund.id)
+        log_action(request.user, refund, CHANGE, 'SaleRefund退款单创建')
         log_action(request.user, sale_order, CHANGE, 'SaleOrder订单退款')
         return HttpResponse(True)
     except Exception, exc:
