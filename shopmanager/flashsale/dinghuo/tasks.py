@@ -1899,6 +1899,7 @@ def create_inbound_inferior_check_log(time_from, uni_key):
 
 @task()
 def task_inbound_check_inferior():
+    return
     type = SaleOrderSyncLog.INBOUND_INFERIOR
     log = SaleOrderSyncLog.objects.filter(type=type, status=SaleOrderSyncLog.COMPLETED).order_by('-time_from').first()
     if not log:
