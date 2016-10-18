@@ -309,7 +309,7 @@ def handler_Refund_Send_Num():
 def task_refundproduct_update_productskustats_return_quantity(sku_id):
     from shopback.refunds.models import RefundProduct
     from shopback.items.models import ProductSkuStats, ProductSku
-
+    logger.warn("开始更新新系统库存退货数")
     sum_res = RefundProduct.objects.filter(sku_id=sku_id, created__gt=ProductSkuStats.PRODUCT_SKU_STATS_COMMIT_TIME, can_reuse=True)\
         .aggregate(total=Sum('num'))
     total = sum_res["total"] or 0
