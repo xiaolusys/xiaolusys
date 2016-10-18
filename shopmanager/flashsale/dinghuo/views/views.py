@@ -2074,7 +2074,7 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
                 saleproduct = p.product_sku.product.get_sale_product()
                 items.append([str(o.pid), '', o.sys_status, str(o.buyer_id), str(p.id), saleproduct.supplier_sku if saleproduct else '', str(o.buyer_nick),
                             str(p.product_sku.product.name), str(p.product_sku.properties_name),
-                            '0', str(p.num), '0', '0', '0', '0', '', str(o.receiver_name),
+                            str(p.product_sku.product.cost), str(p.num), '0', '0', '0', '0', '', str(o.receiver_name),
                             str(o.receiver_address_detail), '', o.receiver_mobile, '', '', '', '',
                             p.sale_trade.created.strftime('%Y-%m-%D %H:%M:%S'), p.sale_trade.pay_time.strftime('%Y-%m-%D %H:%M:%S'),
                             p.sale_trade.logistics_company.name if p.sale_trade.logistics_company else '', '', u'小鹿美美，时尚健康美丽', '', '',saleproduct.product_link if saleproduct else ''])

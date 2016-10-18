@@ -1548,14 +1548,11 @@ def task_purchasearrangement_update_purchasedetail(pa):
     uni_key = utils.gen_purchase_detail_unikey(pa)
     pd = PurchaseDetail.objects.filter(uni_key=uni_key).first()
     if not pd:
-        try:
-            pd = PurchaseDetail(uni_key=uni_key, purchase_order_unikey=pa.purchase_order_unikey,
+        pd = PurchaseDetail(uni_key=uni_key, purchase_order_unikey=pa.purchase_order_unikey,
                                 unit_price=unit_price, book_num=total, need_num=total)
-            fields = ['outer_id', 'outer_sku_id', 'sku_id', 'title', 'sku_properties_name']
-            utils.copy_fields(pd, pa, fields)
-            pd.save()
-        except IntegrityError as exc:
-            raise task_purchasearrangement_update_purchasedetail.retry(exc=exc)
+        fields = ['outer_id', 'outer_sku_id', 'sku_id', 'title', 'sku_properties_name']
+        utils.copy_fields(pd, pa, fields)
+        pd.save()
     else:
         if pd.is_open():
             if pd.book_num != total or pd.unit_price != unit_price:
