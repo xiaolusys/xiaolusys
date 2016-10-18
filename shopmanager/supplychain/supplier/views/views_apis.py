@@ -623,7 +623,7 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
             manager = instance.schedule_manage
             self.perform_destroy(instance)
             if model_pro and model_pro.onshelf_time == instance.schedule_manage.upshelf_time:
-                model_pro.set_shelft_time_none()  # 删除明细后需要设置款式下架，　上下架时间设置为none
+                model_pro.reset_shelf_info()  # 删除明细后需要设置款式下架，　上下架时间设置为none
             manager.save(update_fields=['product_num'])
             # 删除之后　要给　大于delete_order_weight 减去1　方便后面排序接口
             schedule_details = manager.manage_schedule.filter(order_weight__gt=delete_order_weight)
