@@ -199,7 +199,10 @@ def comfirm_get(out_sid,status):
     packageskuitem = PackageSkuItem.objects.filter(out_sid = out_sid).values("oid")
     if packageskuitem and status == 3:
         packageskuitem = [i['oid'] for i in packageskuitem]
-        SaleOrder.objects.filter(oid__in = packageskuitem).update(status=SaleOrder.TRADE_BUYER_SIGNED)
+        so = SaleOrder.objects.filter(oid__in = packageskuitem,status=SaleOrder.WAIT_BUYER_CONFIRM_GOODS).first()
+        if so:
+            so.status = SaleOrder.TRADE_BUYER_SIGNED
+            so.save()
 
 def write_traces(kwargs):
     kwargs = json.loads(kwargs)
@@ -222,7 +225,8 @@ def write_traces(kwargs):
     elif write_info["content"] != tradewuliu.first().content:
         tradewuliu.update(**write_info)
         comfirm_get(write_info["out_sid"], write_info["status"])
-
+    comfirm_get(write_info["out_sid"], write_info["status"])
+    
 def format_content(**kwargs):
     content = kwargs["content"]
     content = json.loads(content)
