@@ -98,12 +98,13 @@ class TeamBuy(AdminModel):
     def set_status_failed(self):
         from shopback.trades.models import PackageSkuItem
         from shopback.warehouse.constants import WARE_THIRD
+        from flashsale.pay.constants import BUDGET
         self.status = 2
         self.save()
         oids = []
         for detail in self.details.all():
             saleorder = detail.saleorder
-            salerefund = saleorder.do_refund(desc=u'开团失败')
+            salerefund = saleorder.do_refund(desc=u'开团失败', refund_channel=BUDGET)
             if not salerefund.is_postrefund and not saleorder.product.ware_by == WARE_THIRD:  # 不是发货后　不是第三方仓库
                 salerefund.refund_approve()  # 退款给用户
             oids.append(detail.oid)
