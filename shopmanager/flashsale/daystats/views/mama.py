@@ -34,7 +34,8 @@ from flashsale.coupon.models import OrderShareCoupon
 from flashsale.xiaolumm.models import XlmmFans, PotentialMama, XiaoluMama, CashOut
 from flashsale.xiaolumm.models.models_fortune import (
     CarryRecord, OrderCarry, ReferalRelationship, ClickCarry, AwardCarry,
-    MamaDailyAppVisit
+    MamaDailyAppVisit,
+    MamaFortune
 )
 from shopapp.weixin.models_base import WeixinFans
 
@@ -112,6 +113,12 @@ def show(req):
     award_carry = AwardCarry.objects.filter(mama_id=mama_id).order_by('-created')
     order_carry = OrderCarry.objects.filter(mama_id=mama_id).order_by('-created')
     click_carry = ClickCarry.objects.filter(mama_id=mama_id).order_by('-created')
+
+    fortune = MamaFortune.objects.filter(mama_id=mama_id).first()
+    if fortune:
+        cash_num = fortune.cash_num_display()
+    else:
+        cash_num = 0
 
     sql = """
         SELECT * FROM xiaoludb.flashsale_xlmm_mamadailyappvisit
