@@ -106,9 +106,11 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-        log_action(request.user.id, instance, CHANGE, u'审核退款单')
         instance = self.queryset.filter(id=serializer.data.get('id')).first()
+        message = u'审核退款单'
         if manual_refund == 'on':  # 开启手动退款
             instance.return_fee_by_refund_product()
+            message = u'操作手动退款'
+        log_action(request.user.id, instance, CHANGE, message)
         return Response(serializer.data)
 
