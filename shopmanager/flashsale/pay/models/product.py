@@ -261,14 +261,6 @@ class ModelProduct(BaseTagModel):
             return ''
         return product.outer_id[0:-1]
 
-    # @property
-    # def is_recommend(self):
-    #     """ 是否推荐 """
-    #     product = self.item_product
-    #     if not product or not product.detail:
-    #         return False
-    #     return product.detail.is_recommend
-
     @property
     def sale_time(self):
         """  上架时间 """
@@ -292,22 +284,6 @@ class ModelProduct(BaseTagModel):
             return {}
         return {'id': product.category_id}
 
-    # @property
-    # def offshelf_time(self):
-    #     """ 下架时间 """
-    #     product = self.item_product
-    #     if not product or not product.detail:
-    #         return False
-    #     return product.offshelf_time
-
-    # @property
-    # def shelf_status(self):
-    #     """上架状态"""
-    #     product = self.item_product
-    #     if not product:
-    #         return 0
-    #     return product.shelf_status
-
     @property
     def is_saleopen(self):
         """ 是否新售 """
@@ -323,23 +299,6 @@ class ModelProduct(BaseTagModel):
         if not product or not product.detail:
             return False
         return product.new_good()
-
-    # @property
-    # def lowest_agent_price(self):
-    #     """ 最低售价 """
-    #     lowest_price = 0
-    #     for product in self.products:
-    #         if lowest_price == 0:
-    #             lowest_price = product.lowest_price()
-    #         else:
-    #             lowest_price = min(lowest_price, product.lowest_price())
-    #     return lowest_price
-
-    # @property
-    # def lowest_std_sale_price(self):
-    #     """ 最低吊牌价 """
-    #     product = self.item_product
-    #     return product and product.std_sale_price or 0
 
     @property
     def properties(self):
