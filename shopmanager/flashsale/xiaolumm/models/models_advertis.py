@@ -109,7 +109,7 @@ class NinePicAdver(models.Model):
         month = today.month
         day = today.day
         share_time = self.start_time.strftime("%H:%M")
-        return "%02d月%02d日｜第%d轮 分享时间：%s" (month, day, self.turns_num, share_time)
+        return "%02d月%02d日｜第%d轮 分享时间：%s" % (month, day, self.turns_num, share_time)
     
     def description_title(self):
         return self.description.replace('\r\n', '\r')
