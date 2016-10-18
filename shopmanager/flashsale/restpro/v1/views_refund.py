@@ -1,9 +1,7 @@
 # coding=utf-8
 import datetime
-import math
 import logging
 from core.options import log_action, ADDITION, CHANGE
-from django.shortcuts import get_object_or_404
 from rest_framework import exceptions
 from common.modelutils import update_model_fields
 from flashsale.pay.models import SaleOrder
