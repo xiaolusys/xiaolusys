@@ -905,41 +905,6 @@ from shopback.trades.models import PackageSkuItem, PackageOrder
 from flashsale.pay.models import SaleOrder, SaleTrade, SaleRefund
 
 
-@task()
-def task_packageskuitem_update_productskustats(sku_id):
-    """
-    1) we added db_index=True for pay_time in packageskuitem;
-    2) we should built joint-index for (sku_id, assign_status,pay_time)?
-    -- Zifei 2016-04-18
-    """
-
-    from shopback.items.models import ProductSkuStats
-    sum_res = PackageSkuItem.objects.filter(sku_id=sku_id, pay_time__gt=ProductSkuStats.PRODUCT_SKU_STATS_COMMIT_TIME). \
-        exclude(assign_status=PackageSkuItem.CANCELED).values("assign_status").annotate(total=Sum('num'))
-    wait_assign_num, assign_num, post_num = 0, 0, 0
-
-    for entry in sum_res:
-        if entry["assign_status"] == PackageSkuItem.NOT_ASSIGNED:
-            wait_assign_num = entry["total"]
-        elif entry["assign_status"] == PackageSkuItem.ASSIGNED:
-            assign_num = entry["total"]
-        elif entry["assign_status"] == PackageSkuItem.FINISHED:
-            post_num = entry["total"]
-
-    sold_num = wait_assign_num + assign_num + post_num
-    params = {"sold_num": sold_num, "assign_num": assign_num, "post_num": post_num}
-    stat = ProductSkuStats.get_by_sku(sku_id)
-    update_fields = []
-    for k, v in params.iteritems():
-        if hasattr(stat, k):
-            if getattr(stat, k) != v:
-                setattr(stat, k, v)
-                update_fields.append(k)
-    if update_fields:
-        update_fields.append('modified')
-        stat.save(update_fields=update_fields)
-
-
 @task(max_retries=3, default_retry_delay=6)
 def task_packageskuitem_update_productskusalestats_num(sku_id, pay_time):
     """

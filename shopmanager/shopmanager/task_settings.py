@@ -203,29 +203,38 @@ DINGHUO_ROUTES = {
 }
 
 SKU_STATS_ROUTES = {
+    'shopback.items.tasks_stats.task_productsku_create_productskustats': {
+        'queue': 'skustats',
+        'routing_key': 'skustats.task_productsku_create_productskustats',
+    },
     'flashsale.restpro.tasks.task_add_shoppingcart_num': {
         'queue': 'skustats',
         'routing_key': 'skustats.task_add_shoppingcart_num',
     },
-    'shopback.trades.tasks.task_packageskuitem_update_productskustats': {
-        'queue': 'skustats',
-        'routing_key': 'skustats.task_packageskuitem_update_productskustats',
-    },
-    'shopback.trades.tasks.task_packageskuitem_update_productskusalestats_num': {
-        'queue': 'skustats',
-        'routing_key': 'skustats.task_packageskuitem_update_productskusalestats_num',
-    },
-    'flashsale.pay.tasks_stats.task_shoppingcart_update_productskustats_shoppingcart_num': {
+    'shopback.items.tasks_stats.task_shoppingcart_update_productskustats_shoppingcart_num': {
         'queue': 'skustats',
         'routing_key': 'skustats.task_shoppingcart_update_productskustats_shoppingcart_num',
     },
-    'flashsale.pay.tasks_stats.task_saleorder_update_productskustats_waitingpay_num': {
+    'shopback.items.tasks_stats.task_packageskuitem_update_productskustats': {
+        'queue': 'skustats',
+        'routing_key': 'skustats.task_packageskuitem_update_productskustats',
+    },
+    'shopback.items.tasks_stats.task_saleorder_update_productskustats_waitingpay_num': {
         'queue': 'skustats',
         'routing_key': 'skustats.task_saleorder_update_productskustats_waitingpay_num',
     },
-    'shopback.items.tasks_stats.task_productsku_create_productskustats': {
+    'shopback.items.tasks_stats.task_update_product_sku_stat_rg_quantity': {
         'queue': 'skustats',
-        'routing_key': 'skustats.task_productsku_create_productskustats',
+        'routing_key': 'skustats.task_update_product_sku_stat_rg_quantity',
+    },
+    'shopback.items.tasks_stats.task_refundproduct_update_productskustats_return_quantity': {
+        'queue': 'skustats',
+        'routing_key': 'skustats.task_refundproduct_update_productskustats_return_quantity',
+    },
+
+    'shopback.trades.tasks.task_packageskuitem_update_productskusalestats_num': {
+        'queue': 'skustats',
+        'routing_key': 'skustats.task_packageskuitem_update_productskusalestats_num',
     },
     'shopback.items.tasks_stats.task_product_downshelf_update_productskusalestats': {
         'queue': 'skustats',
@@ -234,10 +243,6 @@ SKU_STATS_ROUTES = {
     'shopback.items.tasks_stats.task_product_upshelf_update_productskusalestats': {
         'queue': 'skustats',
         'routing_key': 'skustats.task_product_upshelf_update_productskusalestats',
-    },
-    'flashsale.dinghuo.tasks.task_inbounddetail_update_productsku_inbound_quantity': {
-        'queue': 'skustats',
-        'routing_key': 'skustats.task_inbounddetail_update_productsku_inbound_quantity',
     },
     'shopback.items.tasks_stats.task_product_upshelf_notify_favorited_customer': {
         'queue': 'skustats',

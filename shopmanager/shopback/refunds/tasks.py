@@ -304,16 +304,3 @@ def handler_Refund_Send_Num():
         rcd.ref_sed_num = ref_num - ref_num_out - ref_num_in  # 发货后等于总的减去２４外和内
         print "{0}记录,总退款 {1},发货后退款 {2}".format(rcd.date_cal, ref_num, rcd.ref_sed_num)
         rcd.save()
-
-@task
-def task_refundproduct_update_productskustats_return_quantity(sku_id):
-    from shopback.refunds.models import RefundProduct
-    from shopback.items.models import ProductSkuStats, ProductSku
-    logger.warn("开始更新新系统库存退货数")
-    sum_res = RefundProduct.objects.filter(sku_id=sku_id, created__gt=ProductSkuStats.PRODUCT_SKU_STATS_COMMIT_TIME, can_reuse=True)\
-        .aggregate(total=Sum('num'))
-    total = sum_res["total"] or 0
-    stat = ProductSkuStats.get_by_sku(sku_id)
-    if stat.return_quantity != total:
-        stat.return_quantity = total
-        stat.save(update_fields=['return_quantity'])
