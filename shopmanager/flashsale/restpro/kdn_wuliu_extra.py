@@ -205,6 +205,7 @@ def comfirm_get(out_sid,status):
             so.save()
 
 def write_traces(kwargs):
+    logging.warn({'action': "kdn", 'info': "start change status"})
     kwargs = json.loads(kwargs)
     write_info = {
         "out_sid": kwargs['LogisticCode'],
@@ -264,6 +265,7 @@ def kdn_subscription(*args,**kwargs):
         result.update({"info":"订阅成功"})
         print result
         if result['Traces']:
+            logging.warn({'action':"kdn",'info':"start sub"})
             write_traces(json.dumps(result))
     else:
         result.update({"info":"订阅失败"})
