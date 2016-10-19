@@ -125,7 +125,7 @@ def close_timeout_carts_and_orders_reset_cart_num(skus=[]):
         4移出购物车
     """
     from shopback.items.models import ProductSkuStats
-    from flashsale.pay.tasks_stats import task_shoppingcart_update_productskustats_shoppingcart_num
+    from shopback.items.tasks_stats import task_shoppingcart_update_productskustats_shoppingcart_num
     djuser, state = DjangoUser.objects.get_or_create(username='systemoa', is_active=True)
     now = datetime.datetime.now()
     extend_skus = []
