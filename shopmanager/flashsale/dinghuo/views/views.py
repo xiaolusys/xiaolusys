@@ -2083,7 +2083,7 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
             for p in need_send:
                 o = p.package_order
                 saleproduct = p.product_sku.product.get_sale_product()
-                items.append([str(o.pid) if o else '', '', p.get_assign_status_display(), p.sale_trade.buyer_id, str(p.id), saleproduct.supplier_sku if saleproduct else '', str(p.sale_trade.buyer_nick),
+                items.append([str(o.pid) if o else '', '', p.get_assign_status_display(), str(p.sale_trade.buyer_id), str(p.id), saleproduct.supplier_sku if saleproduct else '', str(p.sale_trade.buyer_nick),
                             str(p.product_sku.product.name), str(p.product_sku.properties_name),
                             str(p.product_sku.product.cost), str(p.num), '0', '0', '0', '0', '', str(p.sale_trade.receiver_name),
                             str(p.sale_trade.receiver_address_detail), '', p.sale_trade.receiver_mobile, '', '', '', '',
