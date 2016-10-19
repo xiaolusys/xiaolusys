@@ -995,6 +995,12 @@ class SaleOrder(PayBaseModel):
     def is_deposit(self):
         return self.outer_id.startswith('RMB')
 
+    def is_transfer_coupon(self):
+        return self.is_deposit() and \
+            (self.outer_sku_id == '58' or self.outer_sku_id == '62' or \
+             self.outer_sku_id == '70' or self.outer_sku_id == '80' or \
+             self.outer_sku_id == '98')
+    
     def is_1_deposit(self):
         return self.is_deposit() and self.outer_sku_id == '3'
 
@@ -1102,13 +1108,18 @@ def order_trigger(sender, instance, created, raw, **kwargs):
     if raw: return
     if instance.is_deposit():
         if instance.is_confirmed():
-            from flashsale.xiaolumm.tasks_mama_relationship_visitor import task_update_referal_relationship
             if instance.is_1_deposit():  # 一元开店 不记录推荐关系
                 return
+            if instance.is_transfer_coupon():
+                from flashsale.coupon.tasks import task_create_transfer_coupon
+                task_create_transfer_coupon.delay(instance)
+                return
+            
+            from flashsale.xiaolumm.tasks_mama_relationship_visitor import task_update_referal_relationship
             task_update_referal_relationship.delay(instance)
     else:
-        from flashsale.xiaolumm import tasks_mama
-        tasks_mama.task_order_trigger.delay(instance)
+        from flashsale.xiaolumm.tasks_mama import task_order_trigger
+        task_order_trigger.delay(instance)
 
 
 post_save.connect(order_trigger, sender=SaleOrder, dispatch_uid='post_save_order_trigger')
