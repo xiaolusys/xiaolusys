@@ -333,8 +333,8 @@ def task_release_coupon_for_mama_deposit(buyer_id, deposite_type):
     from flashsale.coupon.models import UserCoupon
 
     deposite_type_tplids_map = {
-        XiaoluMama.HALF: [117, 118,        79],
-        XiaoluMama.FULL: [117, 118, 121,   39]
+        XiaoluMama.HALF: [117, 118, 79],
+        XiaoluMama.FULL: [117, 118, 121, 39]
     }
     tpl_ids = deposite_type_tplids_map[deposite_type]
 
@@ -351,31 +351,33 @@ def task_release_coupon_for_mama_deposit_double_99(buyer_id):
     for template_id in tpl_ids:
         UserCoupon.objects.create_normal_coupon(buyer_id=buyer_id, template_id=template_id)
 
+
 @task()
 def task_create_transfer_coupon(sale_order):
+    # type: (SaleOrder) -> None
     """
     This function temporarily creates UserCoupon. In the future, we should
     create transfer coupon instead.
     """
-    from flashsale.coupon.models import UserCoupon
-    
+    from flashsale.coupon.models import UserCoupon, CouponTemplate
+
     num = sale_order.num
     customer_id = sale_order.sale_trade.buyer_id
     index = 0
-    template_id = 153 # transfer_coupon_template
+    template = CouponTemplate.objects.get(id=153)  # transfer_coupon_template
     title = u'小鹿精品专用券'
     coupon_type = UserCoupon.TYPE_TRANSFER
     coupon_value = 128
     trade_tid = sale_order.sale_trade.tid
     start_time = datetime.datetime.now()
-    end_time = datetime.datetime(start_time.year+5,start_time.month,start_time.day)
+    end_time = datetime.datetime(start_time.year + 5, start_time.month, start_time.day)
 
     while index < num:
-        uni_key = UserCoupon.create_transfer_coupon_unikey(order_id, index)
-
-        coupon = UserCoupon(template_id=template_id,title=title,coupon_type=coupon_type,customer_id=customer_id,
-                            coupon_no=uni_key,value=coupon_value,trade_tid=trade_tid,start_use_time=start_time,
-                            expires_time=end_time,uniq_id=uni_key)
+        uni_key = template.gen_usercoupon_unikey(order_id, index)
+        coupon = UserCoupon(template_id=template.id, title=title, coupon_type=coupon_type, customer_id=customer_id,
+                            coupon_no=uni_key, value=coupon_value, trade_tid=trade_tid, start_use_time=start_time,
+                            expires_time=end_time, uniq_id=uni_key)
         coupon.save()
-        
         index += 1
+
+    task_update_tpl_released_coupon_nums(template)  # 统计发放数量

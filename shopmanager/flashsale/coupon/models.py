@@ -43,7 +43,7 @@ class CouponTemplate(BaseModel):
     TYPE_ACTIVE_SHARE = 6
     TYPE_CASHOUT_EXCHANGE = 7
     TYPE_TRANSFER = 8
-    
+
     COUPON_TYPES = (
         (TYPE_NORMAL, u"普通类型"),  # 一般点击类型,或者普通发放类型
         (TYPE_ORDER_BENEFIT, u"下单红包"),  # 用户购买商品后发放
@@ -285,6 +285,13 @@ class CouponTemplate(BaseModel):
             raise Exception('Template type is tpl.coupon_type : %s !' % tpl.coupon_type)
         return '_'.join(uniqs)
 
+    def gen_usercoupon_unikey(self, order_id, index):
+        # type: () -> text_type
+        """生成对应优惠券的unique key
+        """
+        coupon_type = UserCoupon.TYPE_TRANSFER
+        return "%s-%s-%s-%s" % (self.id, coupon_type, order_id, index)
+
     def calculate_value_and_time(tpl):
         # type: (CouponTemplate) -> Tuple[float, datetime.datetime, datetime.datetime]
         """
@@ -448,7 +455,7 @@ class UserCoupon(BaseModel):
     TYPE_ACTIVE_SHARE = 6
     TYPE_CASHOUT_EXCHANGE = 7
     TYPE_TRANSFER = 8
-    
+
     COUPON_TYPES = (
         (TYPE_NORMAL, u"普通类型"),  # 一般点击类型,或者普通发放类型
         (TYPE_ORDER_BENEFIT, u"下单红包"),  # 用户购买商品后发放
@@ -528,23 +535,19 @@ class UserCoupon(BaseModel):
     @property
     def customer(self):
         # type: () -> Optional[Customer]
-        if not hasattr(self, "_coupon_customer_"):
+        if not hasattr(self, '_coupon_customer_'):
             from flashsale.pay.models import Customer
 
             self._coupon_customer_ = Customer.objects.normal_customer.filter(id=self.customer_id).first()
         return self._coupon_customer_
 
-    def create_transfer_coupon_unikey(order_id, index):
+    @task()
+    def release_coupon_for_renew(self, customer_id):
+        # type: (int) -> None
+        """发放优惠券给重复充值188的押金的用户
         """
-        template_id + coupon_type + order_id + num
-        """
+        pass
 
-        template_id = 153 # transfer coupon template
-        coupon_type = UserCoupon.TYPE_TRANSFER
-        
-        uni_key = "%s-%s-%s-%s" % (template_id, coupon_type, order_id, index)
-        return uni_key
-    
     def self_template(self):
         # type: CouponTemplate
         return CouponTemplate.objects.get(id=self.template_id)

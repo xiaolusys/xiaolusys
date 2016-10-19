@@ -928,6 +928,7 @@ def task_register_mama(obj):
 
     xlmm.update_renew_day(renew_days)   # 更新 status  last_renew_type renew_time
     mama_charged = xlmm.chargemama()
+    xlmm.deposit_pay()  # 支付押金
 
     if mama_charged:
         sys_oa = get_systemoa_user()

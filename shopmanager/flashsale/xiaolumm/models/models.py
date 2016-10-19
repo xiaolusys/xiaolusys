@@ -453,14 +453,21 @@ class XiaoluMama(BaseModel):
     def is_chargeable(self):
         return self.charge_status != self.CHARGED
 
+    def deposit_pay(self):
+        # type: () -> bool
+        """支付押金
+        """
+        if self.progress != XiaoluMama.PAY:
+            self.progress = XiaoluMama.PAY
+            self.save(update_fields=['progress'])
+            return True
+        return False
+
     def chargemama(self):
         """ 接管妈妈 """
         update_fields = []
         self.charge_time = datetime.datetime.now()  # 接管时间
         update_fields.append("charge_time")
-        if self.progress != XiaoluMama.PAY:
-            update_fields.append('progress')
-            self.progress = XiaoluMama.PAY
         if self.charge_status != XiaoluMama.CHARGED:
             update_fields.append('charge_status')
             self.charge_status = XiaoluMama.CHARGED  # 接管状态
