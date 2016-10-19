@@ -65,7 +65,7 @@ from flashsale.restpro import exp_map
 from flashsale.restpro import kdn_wuliu_extra
 
 API_key = "b2983220-a56b-4e28-8ca0-f88225ee2e0b"
-API_key_info = {"EBusinessID":"1264368","API_key":API_key,"requestType":"1002","DataType":"2"}
+API_key_info = {"EBusinessID":"1264368","API_key":API_key,"requestType":"1008","DataType":"2"}
 class WuliuViewSet(viewsets.ModelViewSet):
     """
     - {prefix}/get_wuliu_by_tid : 由tid获取物流信息
@@ -90,6 +90,7 @@ class WuliuViewSet(viewsets.ModelViewSet):
         if len(tradewuliu) == 0:
             wuliu_info = {"expName":logistics_company,"expNo":out_sid}
             kdn_wuliu_extra.kdn_subscription(**wuliu_info)
+            kdn_wuliu_extra.kdn_subscription_sub(**wuliu_info)
             return Response("物流信息暂未获得")
         if len(tradewuliu) > 1:
             for k,v in exp_map.iteritems():

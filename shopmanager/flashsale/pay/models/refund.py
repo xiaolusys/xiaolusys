@@ -274,6 +274,8 @@ class SaleRefund(PayBaseModel):
         """创建退款单
         """
         good_status = cls.SELLER_OUT_STOCK if good_status is None else good_status
+        # 有退货字段在退货商品状态为　买家收到　买家已经退货　　时候为true
+        has_good_return = True if good_status in (cls.BUYER_RECEIVED, cls.BUYER_RETURNED_GOODS) else False
         salerefund = SaleRefund(trade_id=saleorder.sale_trade.id,
                                 order_id=saleorder.id,
                                 buyer_id=saleorder.buyer_id,
@@ -290,6 +292,7 @@ class SaleRefund(PayBaseModel):
                                 payment=saleorder.payment,
                                 refund_fee=refund_fee,
                                 good_status=good_status,
+                                has_good_return=has_good_return,
                                 reason=reason,
                                 desc=desc,
                                 refund_channel=refund_channel,

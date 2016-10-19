@@ -84,7 +84,7 @@ EBusinessID = 1264368
 API_key = "b2983220-a56b-4e28-8ca0-f88225ee2e0b"
 exp_info = [expCode,expNo,API_key]
 business_info = {"EBusinessID":str(EBusinessID),"API_key":API_key,"DataType":"2","requestType":"1002"}
-
+business_info_sub = {"EBusinessID":str(EBusinessID),"API_key":API_key,"DataType":"2","requestType":"1008"}
 class KdnBaseAPI(object):
 
     EBusinessID = 1264368
@@ -148,6 +148,13 @@ def add_business_info(f):
     @functools.wraps(f)
     def wrapper(*args,**kwargs):
         kwargs.update(business_info)
+        return f(*args,**kwargs)
+    return wrapper
+
+def add_business_info_sub(f):
+    @functools.wraps(f)
+    def wrapper(*args,**kwargs):
+        kwargs.update(business_info_sub)
         return f(*args,**kwargs)
     return wrapper
 
@@ -253,7 +260,7 @@ def format_content(**kwargs):
 @add_requestData                                  #把expCode和expNo进行url编码
 @add_DataSign                                     #把请求数据加入API_key进行数字签名
 def kdn_subscription(*args,**kwargs):
-    logging.warn(kwargs)
+    logging.warn({'action': "kdn", 'info': "run kdn_subscription"})
     res = requests.post("http://api.kdniao.cc/api/dist",data=kwargs)
     result = res.text
     if res.status_code == 502:
@@ -268,6 +275,7 @@ def kdn_subscription(*args,**kwargs):
             logging.warn({'action':"kdn",'info':"start sub"})
             write_traces(json.dumps(result))
     else:
+        print result
         result.update({"info":"订阅失败"})
         if PackageSkuItem.objects.filter(out_sid = kwargs['expNo']).first():
             PackageSkuItem.objects.filter(out_sid = kwargs['expNo']).first().set_failed_time()
@@ -275,6 +283,31 @@ def kdn_subscription(*args,**kwargs):
         logging.warn(result['Reason'])
     return result
 
+@add_business_info_sub                               #扩充参数,参数字典加入商户id和key等信息
+@get_exp_code                                     #通过中文的物流公司获取相应的物流Code
+@add_requestData                                  #把expCode和expNo进行url编码
+@add_DataSign                                     #把请求数据加入API_key进行数字签名
+def kdn_subscription_sub(*args,**kwargs):
+    logging.warn(kwargs)
+    logging.warn({'action': "kdn", 'info': "run kdn_subscription_sub"})
+    res = requests.post("http://api.kdniao.cc/api/dist",data=kwargs)
+    result = res.text
+    if res.status_code == 502:
+        logging.warn("物流查询失败返回"+"502 Bad Gateway"+"快递鸟那边繁忙")
+        return result
+    result = json.loads(result.encode('UTF-8'))
+    if result["Success"] == True:
+        logging.warn("订阅成功")
+        result.update({"info":"订阅成功"})
+        print result
+    else:
+        print result
+        result.update({"info":"订阅失败"})
+        if PackageSkuItem.objects.filter(out_sid = kwargs['expNo']).first():
+            PackageSkuItem.objects.filter(out_sid = kwargs['expNo']).first().set_failed_time()
+        logging.warn("订阅失败")
+        logging.warn(result['Reason'])
+    return result
 
 def get_reverse_code(f):
     @functools.wraps(f)
@@ -324,10 +357,10 @@ def kdn_get_push(*args, **kwargs):
 
 
 if __name__ == '__main__':
-    # test_info = {"expName" : '韵达快递',"expNo":"3936870447512"}
-    #kdn_subscription(**test_info)
+    test_info = {"expName" : '中通速递',"expNo":"778886571839"}
+    kdn_subscription(**test_info)
     # format_content()
-    comfirm_get(229785605639,4)
+    # comfirm_get(229785605639,4)
 
 
 
