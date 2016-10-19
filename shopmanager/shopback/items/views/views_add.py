@@ -833,3 +833,24 @@ class ProductScheduleAPIView(generics.ListCreateAPIView):
                 status = form.cleaned_attrs.flag and 1 or 0
                 ProductSchedule.objects.filter(pk=schedule_id).update(status=status)
         return Response({'success': False})
+
+
+
+def test(schedule_id):
+    from flashsale.pay.models import ModelProduct
+    from supplychain.supplier.models import SaleProductManageDetail, SaleSupplier
+
+    prefix = SaleSupplier.objects.get(id=29700).supplier_code
+
+    details = SaleProductManageDetail.objects.filter(schedule_manage_id=schedule_id)
+    saleproduct_ids = [i['sale_product_id'] for i in details.values('sale_product_id')]
+    mds = ModelProduct.objects.filter(saleproduct_id__in=saleproduct_ids).exclude(id__in=[20047, 20048, 20049, 20053])
+
+    for md in mds:
+        try:
+            oldmemo = md.extras['properties']['memo']
+            memo = prefix + oldmemo
+            md.extras['properties'].update({'memo': memo})
+            md.save(update_fields=['extras'])
+        except:
+            pass

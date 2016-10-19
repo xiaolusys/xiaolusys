@@ -9,6 +9,7 @@ from django.contrib import admin
 from django.db import models
 from django.forms import TextInput, Textarea
 from django.http import HttpResponseRedirect
+from django.contrib import messages
 
 from core.admin import ApproxAdmin
 from core.options import log_action, ADDITION, CHANGE
@@ -939,6 +940,58 @@ class SaleProductManageAdmin(admin.ModelAdmin):
             form.base_fields['sale_suppliers'].queryset = form.base_fields['sale_suppliers'].queryset.none()
         return form
 
+    def copy_manager_action(self, request, queryset):
+        # type: (HttpRequest, QuerySet[SaleProductManage])
+        """ create new manage by the select manage and copy schedule details product
+        """
+
+        if queryset.count() > 1:
+            return
+        old_manage = queryset.first()
+        now = datetime.datetime.now()
+
+        if old_manage.upshelf_time < now < old_manage.offshelf_time:
+            self.message_user(request,
+                              u'not now',
+                              level=messages.ERROR)
+            return
+        manage = SaleProductManage(
+            sale_time=datetime.date.today(),
+            schedule_type=old_manage.schedule_type,
+            product_num=old_manage.product_num,
+            responsible_people_id=request.user.id,
+            responsible_person_name=old_manage.responsible_person_name,
+            is_sale_show=old_manage.is_sale_show)
+        manage.save()
+        for i in old_manage.sale_suppliers.values('id'):
+            manage.sale_suppliers.add(i['id'])
+        manage.save()
+        details = old_manage.normal_detail
+        for detail in details:
+            SaleProductManageDetail(
+                schedule_type=detail.schedule_type,
+                schedule_manage=manage,
+                sale_product_id=detail.sale_product_id,
+                name=detail.name,
+                pic_path=detail.pic_path,
+                sale_category=detail.sale_category,
+                product_link=detail.product_link,
+                material_status=detail.material_status,
+                design_take_over=detail.design_take_over,
+                today_use_status=detail.today_use_status,
+                design_person=detail.design_person,
+                design_complete=detail.design_complete,
+                pic_rating=detail.pic_rating,
+                is_approved=detail.is_approved,
+                is_promotion=detail.is_promotion,
+                order_weight=detail.order_weight).save()
+        self.message_user(request,
+                          u"Copy schedule manager successful , Please set the manage shelf time !!!",
+                          level=messages.WARNING)
+        return HttpResponseRedirect("./")
+
+    copy_manager_action.short_description = u"Copy Schedule"
+    actions = ['copy_manager_action', ]
 
 admin.site.register(SaleProductManage, SaleProductManageAdmin)
 
