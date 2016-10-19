@@ -117,7 +117,7 @@ def task_packageskuitem_update_productskustats(sku_id):
     -- Zifei 2016-04-18
     """
     from shopback.trades.models import PackageSkuItem
-    logger.info("%s -sku_id:%d" % (get_cur_info(), sku_id))
+    logger.info("%s -sku_id:%s" % (get_cur_info(), sku_id))
     sum_res = PackageSkuItem.objects.filter(sku_id=sku_id, pay_time__gt=ProductSkuStats.PRODUCT_SKU_STATS_COMMIT_TIME). \
         exclude(assign_status=PackageSkuItem.CANCELED).values("assign_status").annotate(total=Sum('num'))
     wait_assign_num, assign_num, post_num = 0, 0, 0
@@ -147,7 +147,7 @@ def task_packageskuitem_update_productskustats(sku_id):
 @task
 def task_refundproduct_update_productskustats_return_quantity(sku_id):
     from shopback.refunds.models import RefundProduct
-    logger.info("%s -sku_id:%d" % (get_cur_info(), sku_id))
+    logger.info("%s -sku_id:%s" % (get_cur_info(), sku_id))
     sum_res = RefundProduct.objects.filter(sku_id=sku_id, created__gt=ProductSkuStats.PRODUCT_SKU_STATS_COMMIT_TIME, can_reuse=True)\
         .aggregate(total=Sum('num'))
     total = sum_res["total"] or 0
@@ -166,7 +166,7 @@ def task_orderdetail_update_productskustats_inbound_quantity(sku_id):
     --Zifei 2016-04-18
     """
     from flashsale.dinghuo.models import OrderDetail
-    logger.info("%s -sku_id:%d" % (get_cur_info(), sku_id))
+    logger.info("%s -sku_id:%s" % (get_cur_info(), sku_id))
     sum_res = OrderDetail.objects.filter(chichu_id=sku_id,
                                          arrival_time__gt=ProductSkuStats.PRODUCT_SKU_STATS_COMMIT_TIME) \
         .aggregate(total=Sum('arrival_quantity'))
@@ -180,7 +180,7 @@ def task_orderdetail_update_productskustats_inbound_quantity(sku_id):
 @task()
 def task_update_product_sku_stat_rg_quantity(sku_id):
     from flashsale.dinghuo.models.purchase_return import RGDetail, ReturnGoods
-    logger.info("%s -sku_id:%d" % (get_cur_info(), sku_id))
+    logger.info("%s -sku_id:%s" % (get_cur_info(), sku_id))
     sum_res = RGDetail.objects.filter(skuid=sku_id,
                                       created__gte=ProductSkuStats.PRODUCT_SKU_STATS_COMMIT_TIME,
                                       return_goods__status__in=[ReturnGoods.DELIVER_RG,
