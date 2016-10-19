@@ -94,7 +94,7 @@ def activity(req):
     sql = """
         select
             activity.activity_id,
-            ac.created,
+            ac.start_time,
             ac.title,
             sum(orders.total_fee) as sales,
             count(orders.total_fee) as salenum
