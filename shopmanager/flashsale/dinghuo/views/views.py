@@ -2060,9 +2060,10 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
 
         need_send = PackageSkuItem.objects.filter(purchase_order_unikey=orderlist.purchase_order_unikey)
         need_send_ids = [n.id for n in need_send]
-        if PackageSkuItem.objects.filter(purchase_order_unikey=orderlist.purchase_order_unikey,
+        if orderlist.third_package:
+            if PackageSkuItem.objects.filter(purchase_order_unikey=orderlist.purchase_order_unikey,
                                          assign_status=0).exists():
-            raise exceptions.ValidationError(make_response(u'此订货单下存在未分配的包裹'))
+                raise exceptions.ValidationError(make_response(u'此订货单下存在未分配的包裹'))
         items = [columns]
         export_condition = {
             'id__in': need_send_ids
