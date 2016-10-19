@@ -42,6 +42,8 @@ class CouponTemplate(BaseModel):
     TYPE_ORDER_BENEFIT = 5
     TYPE_ACTIVE_SHARE = 6
     TYPE_CASHOUT_EXCHANGE = 7
+    TYPE_TRANSFER = 8
+    
     COUPON_TYPES = (
         (TYPE_NORMAL, u"普通类型"),  # 一般点击类型,或者普通发放类型
         (TYPE_ORDER_BENEFIT, u"下单红包"),  # 用户购买商品后发放
@@ -49,7 +51,8 @@ class CouponTemplate(BaseModel):
         (TYPE_MAMA_INVITE, u"推荐专享"),  # 在代理的专属链接购买商品后,给代理发放的类型
         (TYPE_COMPENSATE, u"售后补偿"),  # 不邮费等售后服务发放
         (TYPE_ACTIVE_SHARE, u"活动分享"),  # 不邮费等售后服务发放
-        (TYPE_CASHOUT_EXCHANGE, u"提现兑换")  # 提现兑换类型
+        (TYPE_CASHOUT_EXCHANGE, u"提现兑换"),  # 提现兑换类型
+        (TYPE_TRANSFER, u"可流通精品券")
     )
 
     TARGET_ALL = 1
@@ -444,6 +447,8 @@ class UserCoupon(BaseModel):
     TYPE_ORDER_BENEFIT = 5
     TYPE_ACTIVE_SHARE = 6
     TYPE_CASHOUT_EXCHANGE = 7
+    TYPE_TRANSFER = 8
+    
     COUPON_TYPES = (
         (TYPE_NORMAL, u"普通类型"),  # 一般点击类型,或者普通发放类型
         (TYPE_ORDER_BENEFIT, u"下单红包"),  # 用户购买商品后发放
@@ -451,7 +456,8 @@ class UserCoupon(BaseModel):
         (TYPE_MAMA_INVITE, u"推荐专享"),  # 在代理的专属链接购买商品后,给代理发放的类型
         (TYPE_COMPENSATE, u"售后补偿"),  # 不邮费等售后服务发放
         (TYPE_ACTIVE_SHARE, u"活动分享"),  # 不邮费等售后服务发放
-        (TYPE_CASHOUT_EXCHANGE, u"提现兑换")  # 提现兑换类型
+        (TYPE_CASHOUT_EXCHANGE, u"提现兑换"),  # 提现兑换类型
+        (TYPE_TRANSFER, u"精品专用券")
     )
 
     UNUSED = 0
@@ -528,6 +534,17 @@ class UserCoupon(BaseModel):
             self._coupon_customer_ = Customer.objects.normal_customer.filter(id=self.customer_id).first()
         return self._coupon_customer_
 
+    def create_transfer_coupon_unikey(order_id, index):
+        """
+        template_id + coupon_type + order_id + num
+        """
+
+        template_id = 153 # transfer coupon template
+        coupon_type = UserCoupon.TYPE_TRANSFER
+        
+        uni_key = "%s-%s-%s-%s" % (template_id, coupon_type, order_id, index)
+        return uni_key
+    
     def self_template(self):
         # type: CouponTemplate
         return CouponTemplate.objects.get(id=self.template_id)
