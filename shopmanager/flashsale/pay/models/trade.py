@@ -237,6 +237,10 @@ class SaleTrade(BaseModel):
         return subc
 
     @property
+    def receiver_address_detail(self):
+        return str(self.receiver_state) + str(self.receiver_city) + str(self.receiver_district) + str(self.receiver_address)
+
+    @property
     def order_buyer(self):
         return Customer.objects.get(id=self.buyer_id)
 
@@ -886,8 +890,8 @@ class SaleOrder(PayBaseModel):
             apply_fee = fake_round(self.payment, self.num) * num
         return apply_fee
 
-    def do_refund(self, reason=0, refund_num=None, refund_fee=None, good_status=None,
-                  desc='', refund_channel=None, proof_pic=None):
+    def do_refund(self, refund_channel, reason=0, refund_num=None, refund_fee=None, good_status=None,
+                  desc='', proof_pic=None):
         # type: (int, Any, Any, Any, text_type, Any, text_type) -> SaleRefund
         """订单退款
         """
