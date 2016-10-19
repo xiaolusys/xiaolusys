@@ -478,7 +478,7 @@ def update_product_sku_stat_rg_quantity(sender, instance, created, **kwargs):
         ReturnGoods.REFUND_RG, ReturnGoods.DELIVER_RG,
         ReturnGoods.SUCCEED_RG, ReturnGoods.FAILED_RG
     ]:
-        from flashsale.dinghuo.tasks import task_update_product_sku_stat_rg_quantity
+        from shopback.items.tasks_stats import task_update_product_sku_stat_rg_quantity
         for rg in instance.rg_details.all():
             task_update_product_sku_stat_rg_quantity.delay(rg.skuid)
 

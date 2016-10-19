@@ -1365,6 +1365,7 @@ def invalid_apiproductsku_cache(sender, instance, *args, **kwargs):
 
 post_save.connect(invalid_apiproductsku_cache, sender=ProductSku, dispatch_uid='post_save_invalid_apiproductsku_cache')
 
+
 def calculate_product_stock_num(sender, instance, *args, **kwargs):
     """修改SKU库存后，更新库存商品的总库存 """
     product = instance.product
@@ -1414,7 +1415,7 @@ def create_product_skustats(sender, instance, created, **kwargs):
     Whenever ProductSku gets created, we create ProductSkuStats
     """
     if created:
-        from shopback.items.tasks import task_productsku_update_productskustats
+        from shopback.items.tasks_stats import task_productsku_update_productskustats
         task_productsku_update_productskustats.delay(instance.id, instance.product.id)
 
 post_save.connect(create_product_skustats, sender=ProductSku, dispatch_uid='post_save_create_productskustats')

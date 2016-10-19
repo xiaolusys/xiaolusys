@@ -774,7 +774,7 @@ class OrderDetail(models.Model):
 def update_productskustats_inbound_quantity(sender, instance, created,
                                             **kwargs):
     # Note: chichu_id is actually the id of related ProductSku record.
-    from flashsale.dinghuo.tasks import task_orderdetail_update_productskustats_inbound_quantity
+    from shopback.items.tasks_stats import task_orderdetail_update_productskustats_inbound_quantity
     task_orderdetail_update_productskustats_inbound_quantity(instance.chichu_id)
 
 

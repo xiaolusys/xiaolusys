@@ -1068,14 +1068,6 @@ def task_relase_package_sku_item(stat):
         pki.reset_assign_status()
 
 
-@task()
-@transaction.atomic
-def task_productsku_update_productskustats(sku_id, product_id):
-    stats = ProductSkuStats.objects.filter(sku_id=sku_id)
-    if stats.count() <= 0:
-        stat = ProductSkuStats(sku_id=sku_id, product_id=product_id)
-        stat.save()
-
 
 @task()
 def task_update_productskustats_inferior_num(sku_id):
