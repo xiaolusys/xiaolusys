@@ -138,7 +138,7 @@ def shoppingcart_update_productskustats_shoppingcart_num(sender, instance, creat
         from flashsale.restpro.tasks import task_add_shoppingcart_num
         task_add_shoppingcart_num.delay(instance)
     else:
-        from flashsale.pay.tasks_stats import task_shoppingcart_update_productskustats_shoppingcart_num
+        from shopback.items.tasks_stats import task_shoppingcart_update_productskustats_shoppingcart_num
         task_shoppingcart_update_productskustats_shoppingcart_num.delay(instance.sku_id)
 
 post_save.connect(shoppingcart_update_productskustats_shoppingcart_num, sender=ShoppingCart,

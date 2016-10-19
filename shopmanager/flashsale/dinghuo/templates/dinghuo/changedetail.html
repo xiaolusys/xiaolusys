@@ -370,11 +370,9 @@ function initActions(){
         <a href="/sale/dinghuo/changedetail/{{ orderlist.id }}/export" target="_blank">
             <span class="label label-success" style="font-size: 15px">导出订货excel</span>
         </a>
-        {%if orderlist.third_package%}
         <a href="/sale/dinghuo/dinghuo_orderlist/{{ orderlist.id }}/export_package" target="_blank">
             <span class="label label-success" style="font-size: 15px">导出发货excel</span>
         </a>
-        {%endif%}
     </div>
     {%if orderlist.third_package%}
     <div class="col-lg-4">

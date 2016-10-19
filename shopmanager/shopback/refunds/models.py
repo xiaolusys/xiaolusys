@@ -320,7 +320,7 @@ post_save.connect(update_warehouse_receipt_status, sender=RefundProduct,
 
 
 def update_productskustats_refund_quantity(sender, instance, created, **kwargs):
-    from shopback.refunds.tasks import task_refundproduct_update_productskustats_return_quantity
+    from shopback.items.tasks_stats import task_refundproduct_update_productskustats_return_quantity
     from shopback.items.tasks import task_update_inferiorsku_return_quantity
     from shopback.items.models import ProductSku
     sku_id = ProductSku.get_by_outer_id(instance.outer_id,instance.outer_sku_id).id

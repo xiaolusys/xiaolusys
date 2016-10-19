@@ -1377,55 +1377,6 @@ def create_dinghuo():
 from django.db import IntegrityError
 
 
-@task(max_retries=3, default_retry_delay=6)
-def task_orderdetail_update_productskustats_inbound_quantity(sku_id):
-    """
-    Whenever we have products inbound, we update the inbound quantity.
-    0) OrderDetail arrival_time add db_index=True
-    1) we should build joint-index for (sku,arrival_time)?
-    --Zifei 2016-04-18
-    """
-    from flashsale.dinghuo.models import OrderDetail
-    from shopback.items.models import ProductSkuStats
-
-    sum_res = OrderDetail.objects.filter(chichu_id=sku_id,
-                                         arrival_time__gt=ProductSkuStats.PRODUCT_SKU_STATS_COMMIT_TIME) \
-        .aggregate(total=Sum('arrival_quantity'))
-    total = sum_res["total"] or 0
-
-    stats = ProductSkuStats.objects.filter(sku_id=sku_id)
-    if stats.count() <= 0:
-        product_id = ProductSku.objects.get(id=sku_id).product.id
-        try:
-            stat = ProductSkuStats(sku_id=sku_id, product_id=product_id, inbound_quantity=total)
-            stat.save()
-        except IntegrityError as exc:
-            logger.warn(
-                "IntegrityError - productskustat/inbound_quantity | sku_id: %s, inbound_quantity: %s" % (sku_id, total))
-            raise task_orderdetail_update_productskustats_inbound_quantity.retry(exc=exc)
-    else:
-        stat = stats[0]
-        if stat.inbound_quantity != total:
-            stat.inbound_quantity = total
-            stat.save(update_fields=['inbound_quantity', 'modified'])
-
-
-@task()
-def task_update_product_sku_stat_rg_quantity(sku_id):
-    from shopback.items.models import ProductSkuStats
-    sum_res = RGDetail.objects.filter(skuid=sku_id,
-                                      created__gte=ProductSkuStats.PRODUCT_SKU_STATS_COMMIT_TIME,
-                                      return_goods__status__in=[ReturnGoods.DELIVER_RG,
-                                                                ReturnGoods.REFUND_RG,
-                                                                ReturnGoods.SUCCEED_RG],
-                                      type=RGDetail.TYPE_REFUND).aggregate(total=Sum('num'))
-    total = sum_res["total"] or 0
-    stat = ProductSkuStats.objects.get(sku_id=sku_id)
-    if stat.rg_quantity != total:
-        stat.rg_quantity = total
-        stat.save(update_fields=['rg_quantity'])
-
-
 @task()
 def task_purchase_detail_update_purchase_order(pd):
     # print "debug: %s" % utils.get_cur_info()

@@ -2110,7 +2110,7 @@ def update_productskustats(sender, instance, created, **kwargs):
     """
     Whenever PackageSkuItem changes, PackageSkuItemStats has to change accordingly.
     """
-    from shopback.trades.tasks import task_packageskuitem_update_productskustats
+    from shopback.items.tasks_stats import task_packageskuitem_update_productskustats
     task_packageskuitem_update_productskustats.delay(instance.sku_id)
 
 
