@@ -237,6 +237,10 @@ class SaleTrade(BaseModel):
         return subc
 
     @property
+    def receiver_address_detail(self):
+        return str(self.receiver_state) + str(self.receiver_city) + str(self.receiver_district) + str(self.receiver_address)
+
+    @property
     def order_buyer(self):
         return Customer.objects.get(id=self.buyer_id)
 
