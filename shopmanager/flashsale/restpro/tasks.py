@@ -13,7 +13,7 @@ from shopback.items.models import Product, ProductSkuStats
 from flashsale.pay.models import SaleRefund
 from shopback.trades.models import TradeWuliu, PackageSkuItem,ReturnWuLiu
 from flashsale.restpro.utils import save_pro_info
-from flashsale.restpro.kdn_wuliu_extra import kdn_subscription,get_reverse_code
+from flashsale.restpro.kdn_wuliu_extra import kdn_subscription,get_reverse_code,kdn_subscription_sub,comfirm_get
 import logging
 import datetime
 logger = logging.getLogger(__name__)
@@ -222,19 +222,23 @@ def get_third_apidata_by_packetid_return(rid,packetid, company_code):   #by huaz
 def kdn_sub(rid, expName, expNo):
     logging.warn(expNo)
     logging.warn("开始订阅了")
+    logging.warn({'action': "kdn", 'info': "kdn_sub"})
     exp_info = {"expName": expName, "expNo": expNo}
     kdn_subscription(**exp_info)
+    kdn_subscription_sub(**exp_info)
 
 @task()
 def kdn_get_push(*args, **kwargs):
-    logger.warn("开始接受推送物流信息了")
+    logging.warn({'action': "kdn", 'info': "kdn_get_push"})
     tradewuliu = TradeWuliu.objects.filter(logistics_company=kwargs['logistics_company'],
                                            out_sid=kwargs['out_sid'])
     if tradewuliu.first() is None:
         TradeWuliu.objects.create(**kwargs)
+        comfirm_get(kwargs["out_sid"], kwargs["status"])
         print "写入成功"
     else:
         tradewuliu.update(**kwargs)
+        comfirm_get(kwargs["out_sid"], kwargs["status"])
         print "更新成功"
 
 
