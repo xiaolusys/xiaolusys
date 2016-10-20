@@ -334,19 +334,27 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
         if cart_qs.count() == 1 and cart_qs[0].type == ShoppingCart.TEAMBUY:
             order_type = SaleTrade.TEAMBUY_ORDER
-        params = {
-            'channel':channel,
-            'receiver_name':address.receiver_name,
-            'receiver_state':address.receiver_state,
-            'receiver_city':address.receiver_city,
-            'receiver_district':address.receiver_district,
-            'receiver_address':address.receiver_address,
-            'receiver_zip':address.receiver_zip,
-            'receiver_phone':address.receiver_phone,
-            'receiver_mobile':address.receiver_mobile,
-            'user_address_id':address.id,
-            'order_type':order_type
+        if address:
+            params = {
+                'channel':channel,
+                'receiver_name':address.receiver_name,
+                'receiver_state':address.receiver_state,
+                'receiver_city':address.receiver_city,
+                'receiver_district':address.receiver_district,
+                'receiver_address':address.receiver_address,
+                'receiver_zip':address.receiver_zip,
+                'receiver_phone':address.receiver_phone,
+                'receiver_mobile':address.receiver_mobile,
+                'user_address_id':address.id,
+                'order_type':order_type
+                }
+
+        if (not address) and (order_type == SaleTrade.ELECTRONIC_GOODS_ORDER):
+            params = {
+                'channel': channel,
+                'order_type': order_type
             }
+
         if order_type == SaleTrade.TEAMBUY_ORDER:
             try:
                 teambuy = TeamBuy.objects.filter(id=form.get('teambuy_id')).first()
@@ -364,7 +372,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             coupon_id = couponids.groupdict().get('couponid',coupon_id)
         logistics_company_id = form.get('logistics_company_id','').strip()
         logistic_company = None
-        if logistics_company_id and logistics_company_id != '0':
+        if address and logistics_company_id and logistics_company_id != '0':
             if logistics_company_id.replace('-','').isdigit():
                logistic_company = LogisticsCompany.objects.get(id=logistics_company_id)
             else:
