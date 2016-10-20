@@ -203,9 +203,10 @@ def add_DataSign(f):
     return wrapper
 
 def comfirm_get(out_sid,status):
-    logger.warn({'action': "kdn", 'info': "start_comfirm_get"+ out_sid})
+    logger.warn({'action': "kdn", 'info': "start_comfirm_get:"+ out_sid})
     packageskuitem = PackageSkuItem.objects.filter(out_sid = out_sid).values("oid")
-    if packageskuitem and status == 3:
+    logger.warn({'action': "kdn", 'info': "oid_by_out_sid:" + json.dumps(packageskuitem)})
+    if packageskuitem and int(status) == 3:
         logger.warn({'action': "kdn", 'info': "exp_num:" + out_sid})
         packageskuitem = [i['oid'] for i in packageskuitem]
         so = SaleOrder.objects.filter(oid__in = packageskuitem,status=SaleOrder.WAIT_BUYER_CONFIRM_GOODS).first()

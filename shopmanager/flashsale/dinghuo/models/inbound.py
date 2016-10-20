@@ -627,8 +627,12 @@ class InBound(models.Model):
         return change
 
     def add_order_detail(self, orderdetail, num):
-        oi = OrderDetailInBoundDetail.create(orderdetail, self, num)
         inbounddetail = self.details.filter(sku=orderdetail.sku).first()
+        if inbounddetail.out_stock_cnt < num:
+            raise Exception(u"入库数不足进行分配")
+        if orderdetail.need_arrival_quantity < num:
+            raise Exception(u"分配数超出订货待入库数")
+        oi = OrderDetailInBoundDetail.create(orderdetail, self, num)
         if inbounddetail.checked:
             ProductSku.objects.filter(id=inbounddetail.sku_id).update(quantity=F('quantity') + oi.arrival_quantity)
         return oi
