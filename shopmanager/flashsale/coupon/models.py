@@ -285,8 +285,8 @@ class CouponTemplate(BaseModel):
             raise Exception('Template type is tpl.coupon_type : %s !' % tpl.coupon_type)
         return '_'.join(uniqs)
 
-    def gen_usercoupon_unikey(self, order_id, index):
-        # type: () -> text_type
+    def gen_usercoupon_unikey(self, order_id, index=0):
+        # type: (int, int) -> text_type
         """生成对应优惠券的unique key
         """
         return "%s_%s_%s_%s" % (self.id, self.coupon_type, order_id, index)
