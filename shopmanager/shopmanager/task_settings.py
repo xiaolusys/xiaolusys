@@ -620,6 +620,10 @@ FLASHSALE_COUPON_ROUTES = {
         'queue': 'coupon',
         'routing_key': 'coupon.task_release_coupon_for_mama_deposit_double_99',
     },
+    'flashsale.coupon.tasks.task_release_coupon_for_mama_renew': {
+        'queue': 'coupon',
+        'routing_key': 'coupon.task_release_coupon_for_mama_renew',
+    },
 }
 
 FLASHSALE_INTEGRAL_ROUTES = {
