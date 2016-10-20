@@ -990,8 +990,46 @@ class SaleProductManageAdmin(admin.ModelAdmin):
                           level=messages.WARNING)
         return HttpResponseRedirect("./")
 
-    copy_manager_action.short_description = u"Copy Schedule"
-    actions = ['copy_manager_action', ]
+    def off_shelf_schedule(self, request, queryset):
+        # type: (HttpRequest, QuerySet[SaleProductManage])
+        if queryset.count() > 1:
+            self.message_user(request, u"只能下架一个排期 !~", level=messages.ERROR)
+            return HttpResponseRedirect("./")
+        manage = queryset.first()
+        now = datetime.datetime.now()
+        if manage.upshelf_time.date() == now.date():
+            self.message_user(request, u"上架时间是当天已经上架产品　无法下架　请**不要**修改排期上架时间后执行此操作　"
+                                       u"应为操作后自动上架代码会将自动上架该排期产品!~ ", level=messages.ERROR)
+            return HttpResponseRedirect("./")
+        if not manage.upshelf_time < now < manage.offshelf_time:
+            self.message_user(request, u"当前时间　不在排期时间内　不予操作!~ ", level=messages.ERROR)
+            return HttpResponseRedirect("./")
+
+        manage.offshelf_time = datetime.datetime.now() + datetime.timedelta(seconds=60 * 5)
+        details = manage.manage_schedule
+        saleproduct_ids = [i['sale_product_id'] for i in details.values('sale_product_id')]
+        mds = ModelProduct.objects.filter(saleproduct_id__in=saleproduct_ids)
+        try:
+            for md in mds:
+                md.offshelf_model()
+                for pro in md.products:
+                    pro.offshelf_product()
+            self.message_user(request,
+                              u"下架产品并且设置当前排期的下架时间为当前时间　成功!!!  由于线上商城缓存原因,　"
+                              u"商城首页产品会稍后显示下架状态　请及时检查　　。。。",
+                              level=messages.INFO)
+            manage.save()
+            log_action(request.user.id, manage, CHANGE, u'下架该排期产品')
+        except Exception as e:
+            self.message_user(request,
+                              u"异常错误 请重试 － %s　!!!" % e.message,
+                              level=messages.ERROR)
+
+        return HttpResponseRedirect("./")
+
+    copy_manager_action.short_description = u"拷贝排期！"
+    off_shelf_schedule.short_description = u"下架该排期商品!"
+    actions = ['copy_manager_action', 'off_shelf_schedule']
 
 admin.site.register(SaleProductManage, SaleProductManageAdmin)
 
