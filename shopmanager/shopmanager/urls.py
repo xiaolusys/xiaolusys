@@ -53,6 +53,7 @@ urlpatterns = patterns(
    url(r'^qrcode/(?P<url>.*)',
        HttpProxy.as_view(base_url='http://%s/qrcode' % settings.QINIU_PUBLIC_DOMAIN)),
    # (r'^admin/doc/', include('django.contrib.admindocs.urls')),
+   url('', include('django_prometheus.urls')),
    (r'^admin/', include(admin.site.urls)),
 
 )

@@ -126,7 +126,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     # 'core.middleware.context_processors.session',
 )
 
-INSTALLED_APPS =(
+INSTALLED_APPS =[
     'django.contrib.admin',
     'django.contrib.admindocs',
     'django.contrib.auth',
@@ -226,7 +226,7 @@ INSTALLED_APPS =(
     'shopapp.notify',
     # 'shopapp.zhongtong'
     'statistics',
-)
+]
 
 AUTH_PROFILE_MODULE = 'users.user'
 
