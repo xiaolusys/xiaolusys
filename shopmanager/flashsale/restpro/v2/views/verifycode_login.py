@@ -1,4 +1,3 @@
-
 # -*- coding:utf-8 -*-
 import datetime
 import logging
@@ -12,7 +11,6 @@ from rest_framework import views
 from rest_framework.response import Response
 from rest_framework import authentication
 from rest_framework import permissions
-
 
 from core.weixin.options import gen_wxlogin_sha1_sign
 from core.utils.regex import REGEX_MOBILE
@@ -29,6 +27,7 @@ CODE_TIME_LIMIT = 1800
 RESEND_TIME_LIMIT = 180
 SYSTEMOA_ID = 641
 MAX_DAY_LIMIT = 6
+
 
 def check_day_limit(reg):
     """
@@ -71,7 +70,7 @@ def validate_code(mobile, verify_code):
     """
     if not verify_code:
         return False
-    
+
     current_time = datetime.datetime.now()
     earliest_send_time = current_time - datetime.timedelta(seconds=CODE_TIME_LIMIT)
     reg = Register.objects.filter(vmobile=mobile).first()
@@ -147,6 +146,7 @@ def should_resend_code(reg):
         return False
     return True
 
+
 def should_generate_new_code(reg):
     """
     Only check whether or not code_time is within (CODE_TIME_LIMIT - RESEND_TIME_LIMIT).
@@ -158,7 +158,8 @@ def should_generate_new_code(reg):
         # we dont generate new code, only if this code still have enough time before expire.
         return False
     return True
-    
+
+
 def is_from_app(params):
     devtype = params.get("devtype")
     if devtype:
@@ -242,7 +243,7 @@ class SendCodeView(views.APIView):
         reg.mail_time = datetime.datetime.now()
         reg.submit_count += 1
         reg.save()
-        
+
         task_register_code.delay(mobile, "3")
         return Response({"rcode": 0, "code": 0, "msg": u"验证码已发送！", "info": u"验证码已发送！"})
 
@@ -268,7 +269,7 @@ class RequestCashoutVerifyCode(views.APIView):
             return Response({"code": 2, "info": u"系统维护中，请稍后再试!"})
 
         if not validate_mobile(mobile):
-            return Response({"code":1, "info": u"帐户未绑定手机号或手机号错误！"})
+            return Response({"code": 1, "info": u"帐户未绑定手机号或手机号错误！"})
 
         reg, created = get_register(mobile)
         if not created:
@@ -282,11 +283,11 @@ class RequestCashoutVerifyCode(views.APIView):
         if should_generate_new_code(reg):
             reg.verify_code = reg.genValidCode()
             reg.code_time = datetime.datetime.now()
-            
+
         reg.mail_time = datetime.datetime.now()
         reg.submit_count += 1
         reg.save()
-        
+
         task_register_code.delay(mobile, "4")
         return Response({"code": 0, "info": u"验证码已发送！"})
 
@@ -331,8 +332,8 @@ class VerifyCodeView(views.APIView):
             if action == 'find_pwd' or action == 'change_pwd' or action == 'bind':
                 return Response({"rcode": 3, "msg": u"该用户还不存在呢！"})
         if not customer:
-            django_user,state = DjangoUser.objects.get_or_create(username=mobile, is_active=True)
-            customer,state = Customer.objects.get_or_create(user=django_user)
+            django_user, state = DjangoUser.objects.get_or_create(username=mobile, is_active=True)
+            customer, state = Customer.objects.get_or_create(user=django_user)
 
         customer.mobile = mobile
         customer.save()
@@ -349,7 +350,7 @@ class VerifyCodeView(views.APIView):
 
             login(request, user)
 
-            #if is_from_app(content):
+            # if is_from_app(content):
             #    login_activate_appdownloadrecord(user)
 
             return Response({"rcode": 0, "msg": u"登录成功！"})
@@ -363,6 +364,7 @@ class ResetPasswordView(views.APIView):
 
     /reset_password?mobile=xxx&password1=xxx&password2=xxx&verify_code=xxx
     """
+
     def post(self, request):
         """
         reset password after verifying code
@@ -386,7 +388,7 @@ class ResetPasswordView(views.APIView):
         if not customer:
             return Response({"rcode": 3, "msg": u"该用户还不存在呢！"})
 
-        #wulei 20160929 重置密码前已经验证过手机号了,那么不需要再验证码检查
+        # wulei 20160929 重置密码前已经验证过手机号了,那么不需要再验证码检查
         #if not validate_code(mobile, verify_code):
         #    return Response({"rcode": 4, "msg": u"验证码不对或过期啦！"})  # 验证码过期或者不对
 
@@ -402,9 +404,10 @@ class PasswordLoginView(views.APIView):
     User login with username and password. She can login either via APP or H5 Web.
 
     """
+
     def post(self, request):
         content = request.POST
-        username = content.get('username','0')
+        username = content.get('username', '0')
         password = content.get('password', '')
         next_url = content.get('next', '/index.html')
         if not username or not password:
@@ -457,7 +460,7 @@ def check_sign(request):
         logger.error('wxapp sign timeout: %s' % params)
         return False
     origin_sign = params.pop('sign')
-    new_sign =gen_wxlogin_sha1_sign(params, settings.WXAPP_SECRET)
+    new_sign = gen_wxlogin_sha1_sign(params, settings.WXAPP_SECRET)
     if origin_sign and origin_sign == new_sign:
         return True
     params.update({'sign': origin_sign})
@@ -470,6 +473,7 @@ class WeixinAppLoginView(views.APIView):
     User login with Weixin authorization via APP.
 
     """
+
     def post(self, request):
         """
         app客户端微信授权登陆

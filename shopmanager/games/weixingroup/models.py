@@ -174,14 +174,6 @@ def write_download_unionid_record(sender, instance, created, **kwargs):
 post_save.connect(write_download_unionid_record, sender=GroupFans)
 
 
-def write_download_unionid_record(sender, instance, created, **kwargs):
-    from .tasks import task_write_download_unionid_record
-    task_write_download_unionid_record.delay(instance)
-
-
-post_save.connect(write_download_unionid_record, sender=GroupFans)
-
-
 class ActivityUsers(BaseModel):
     class Meta:
         app_label = 'weixingroup'
