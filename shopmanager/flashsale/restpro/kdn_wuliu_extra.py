@@ -203,9 +203,10 @@ def add_DataSign(f):
     return wrapper
 
 def comfirm_get(out_sid,status):
+    logging.warn("comfirm_get")
     logger.warn({'action': "kdn", 'info': "start_comfirm_get:"+ out_sid})
     packageskuitem = PackageSkuItem.objects.filter(out_sid = out_sid).values("oid")
-    logger.warn({'action': "kdn", 'info': "oid_by_out_sid:" + json.dumps(packageskuitem)})
+    logger.warn({'action': "kdn", 'info': "oid_by_out_sid:" + json.dumps(list(packageskuitem))})
     if packageskuitem and int(status) == 3:
         logger.warn({'action': "kdn", 'info': "exp_num:" + out_sid})
         packageskuitem = [i['oid'] for i in packageskuitem]
@@ -293,7 +294,7 @@ def kdn_subscription(*args,**kwargs):
 @add_DataSign                                     #把请求数据加入API_key进行数字签名
 def kdn_subscription_sub(*args,**kwargs):
     logging.warn(kwargs)
-    logger.warn({'action': "kdn", 'info': "run kdn_subscription_sub"})
+    logger.warn({'action': "kdn", 'info': "run kdn_subscription_sub" + json.dumps(kwargs)})
     res = requests.post("http://api.kdniao.cc/api/dist",data=kwargs)
     result = res.text
     if res.status_code == 502:
@@ -301,7 +302,7 @@ def kdn_subscription_sub(*args,**kwargs):
         return result
     result = json.loads(result.encode('UTF-8'))
     if result["Success"] == True:
-        logging.warn("订阅成功")
+        logger.warn({'action': "kdn", 'info': "run kdn_subscription_sub" + json.dumps(kwargs) + "success"})
         result.update({"info":"订阅成功"})
         print result
     else:
@@ -361,10 +362,10 @@ def kdn_get_push(*args, **kwargs):
 
 
 if __name__ == '__main__':
-    test_info = {"expName" : '韵达快递',"expNo":"3101131769194"}
-    kdn_subscription_sub(**test_info)
+    # test_info = {"expName" : '韵达快递',"expNo":"3101131769194"}
+    # kdn_subscription_sub(**test_info)
     # format_content()
-    # comfirm_get(229785605639,4)
+    comfirm_get('229785605639','3')
 
 
 
