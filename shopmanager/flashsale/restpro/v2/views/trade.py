@@ -545,6 +545,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         # 20161019 wulei add ,electronic goods scene, no order type user default sale-order type
         if not order_type:
             order_type = SaleTrade.SALE_ORDER
+        else:
+            order_type = int(order_type)
 
         item_ids = []
         for cart in cart_qs:
@@ -562,7 +564,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         try:
             cart_discount += self.calc_extra_discount(pay_extras,**extra_params)
         except Exception, exc:
-            logger.warn({'code':3, 'message':exc, 'stype':'restpro.trade',
+            logger.warn({'cointde':3, 'message':exc, 'stype':'restpro.trade',
                          'user_agent': user_agent, 'tid':tuuid , 'data': '%s'%CONTENT})
             return Response({'code':3,'info':exc.message})
 
