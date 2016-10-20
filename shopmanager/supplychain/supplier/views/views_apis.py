@@ -5,7 +5,7 @@ import json
 import datetime
 import urlparse
 import django_filters
-from django.db.models.query import QuerySet
+import hashlib
 from django.shortcuts import get_object_or_404
 from django.conf import settings
 from django.db import transaction
@@ -391,13 +391,15 @@ class SaleProductViewSet(viewsets.ModelViewSet):
         instance.set_special_fields_by_skuextras()
 
     def create(self, request, *args, **kwargs):
+
+        product_link = request.data.get('product_link')
+        outer_id  = product_link and hashlib.md5(product_link).hexdigest() or 'OO%d' % time.time()
         request.data.update({
-            'outer_id': 'OO%d' % time.time(),
+            'outer_id': outer_id,
             'contactor': request.user.id,
             'status': SaleProduct.PASSED
         })
-        product_link = request.data.get('product_link')
-        if product_link and str(product_link).strip() and self.queryset.filter(product_link=product_link).exists():
+        if product_link and str(product_link).strip() and self.queryset.filter(outer_id=outer_id).exists():
             raise exceptions.APIException(u'该款已经录入了!')
         serializer = serializers.ModifySaleProductSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
