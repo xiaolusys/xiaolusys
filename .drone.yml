@@ -1,5 +1,5 @@
 build:
-  image: registry.aliyuncs.com/xiaolu-img/xiaolusys-base:6b3f8b8bf402415adefa194674e709f03bab40f3
+  image: registry.aliyuncs.com/xiaolu-img/xiaolusys-base:0495d3d9afc505d2c1326bbe98a87aec3ce9ab71
   environment:
     - TARGET=staging
     - REDIS_AUTH=$$REDIS_AUTH
@@ -165,6 +165,12 @@ deploy:
       branch: [master, celery]
     commands:
       - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
+      - docker rm -f gunicorn-prometheus
+      - docker run --name=gunicorn-prometheus --restart=always
+        -e INSTANCE=mall -e TARGET=prometheus -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
+        --volumes-from=static -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9000:9000
+        -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
+        blueware-admin run-program gunicorn -k gevent -w 1 -c taobao_gunicorn_conf.py shopmanager.wsg
       - docker rm -f celery
       - docker run --name=celery --restart=always -d
         -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
