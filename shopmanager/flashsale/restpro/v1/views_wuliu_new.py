@@ -25,6 +25,7 @@ from shopback.trades.models import TradeWuliu
 from flashsale.restpro import exp_map
 from flashsale.restpro import wuliu_choice
 from shopback.logistics.models import LogisticsCompany
+logger = logging.getLogger(__name__)
 
 class WuliuViewSet(viewsets.ModelViewSet):
     """
@@ -142,12 +143,12 @@ class WuliuViewSet(viewsets.ModelViewSet):
             return Response({"info":"尚且还不支持"+company_code+"的物流公司查询"})
         tradewuliu = TradeWuliu.objects.filter(out_sid=out_sid).order_by("-id")
         if tradewuliu.first():
-            logging.warn({'action': "kdn", 'info': "run get_wuliu_by_packetid_1"})
+            logger.warn({'action': "kdn", 'info': "run get_wuliu_by_packetid_1"})
             result = wuliu_choice.result_choice[1](logistics_company,
                                                              out_sid,
                                                              tradewuliu.first())
         else:
-            logging.warn({'action': "kdn", 'info': "run get_wuliu_by_packetid_2"})
+            logger.warn({'action': "kdn", 'info': "run get_wuliu_by_packetid_2"})
             result = wuliu_choice.result_choice[0](logistics_company,
                                                              out_sid,
                                                              tradewuliu.first())
