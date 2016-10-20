@@ -206,9 +206,11 @@ def comfirm_get(out_sid,status):
     logger.warn({'action': "kdn", 'info': "start_comfirm_get"})
     packageskuitem = PackageSkuItem.objects.filter(out_sid = out_sid).values("oid")
     if packageskuitem and status == 3:
+        logger.warn({'action': "kdn", 'info': "exp_num:" + out_sid})
         packageskuitem = [i['oid'] for i in packageskuitem]
         so = SaleOrder.objects.filter(oid__in = packageskuitem,status=SaleOrder.WAIT_BUYER_CONFIRM_GOODS).first()
         if so:
+            logger.warn({'action': "kdn", 'info': "change_get_goods:" + out_sid})
             so.status = SaleOrder.TRADE_BUYER_SIGNED
             so.save()
 
@@ -358,7 +360,7 @@ def kdn_get_push(*args, **kwargs):
 
 
 if __name__ == '__main__':
-    test_info = {"expName" : '韵达快递',"expNo":"3101138251229"}
+    test_info = {"expName" : '韵达快递',"expNo":"3101131769194"}
     kdn_subscription_sub(**test_info)
     # format_content()
     # comfirm_get(229785605639,4)
