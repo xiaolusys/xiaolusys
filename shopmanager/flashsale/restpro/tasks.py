@@ -222,14 +222,14 @@ def get_third_apidata_by_packetid_return(rid,packetid, company_code):   #by huaz
 def kdn_sub(rid, expName, expNo):
     logging.warn(expNo)
     logging.warn("开始订阅了")
-    logging.warn({'action': "kdn", 'info': "kdn_sub"})
+    logger.warn({'action': "kdn", 'info': "kdn_sub"})
     exp_info = {"expName": expName, "expNo": expNo}
     kdn_subscription(**exp_info)
     kdn_subscription_sub(**exp_info)
 
 @task()
 def kdn_get_push(*args, **kwargs):
-    logging.warn({'action': "kdn", 'info': "kdn_get_push"})
+    logger.warn({'action': "kdn", 'info': "kdn_get_push"})
     tradewuliu = TradeWuliu.objects.filter(logistics_company=kwargs['logistics_company'],
                                            out_sid=kwargs['out_sid'])
     if tradewuliu.first() is None:

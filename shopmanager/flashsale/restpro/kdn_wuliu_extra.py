@@ -203,6 +203,7 @@ def add_DataSign(f):
     return wrapper
 
 def comfirm_get(out_sid,status):
+    logger.warn({'action': "kdn", 'info': "start comfirm_get"})
     packageskuitem = PackageSkuItem.objects.filter(out_sid = out_sid).values("oid")
     if packageskuitem and status == 3:
         packageskuitem = [i['oid'] for i in packageskuitem]
@@ -212,7 +213,7 @@ def comfirm_get(out_sid,status):
             so.save()
 
 def write_traces(kwargs):
-    logging.warn({'action': "kdn", 'info': "start change status"})
+    logger.warn({'action': "kdn", 'info': "start change status"})
     kwargs = json.loads(kwargs)
     write_info = {
         "out_sid": kwargs['LogisticCode'],
@@ -260,7 +261,7 @@ def format_content(**kwargs):
 @add_requestData                                  #把expCode和expNo进行url编码
 @add_DataSign                                     #把请求数据加入API_key进行数字签名
 def kdn_subscription(*args,**kwargs):
-    logging.warn({'action': "kdn", 'info': "run kdn_subscription"})
+    logger.warn({'action': "kdn", 'info': "run kdn_subscription"})
     res = requests.post("http://api.kdniao.cc/api/dist",data=kwargs)
     result = res.text
     if res.status_code == 502:
@@ -272,14 +273,14 @@ def kdn_subscription(*args,**kwargs):
         result.update({"info":"订阅成功"})
         print result
         if result['Traces']:
-            logging.warn({'action':"kdn",'info':"start sub"})
+            logger.warn({'action':"kdn",'info':"start sub"})
             write_traces(json.dumps(result))
     else:
         print result
         result.update({"info":"订阅失败"})
         if PackageSkuItem.objects.filter(out_sid = kwargs['expNo']).first():
             PackageSkuItem.objects.filter(out_sid = kwargs['expNo']).first().set_failed_time()
-        logging.warn("订阅失败")
+        logger.warn("订阅失败")
         logging.warn(result['Reason'])
     return result
 
@@ -289,7 +290,7 @@ def kdn_subscription(*args,**kwargs):
 @add_DataSign                                     #把请求数据加入API_key进行数字签名
 def kdn_subscription_sub(*args,**kwargs):
     logging.warn(kwargs)
-    logging.warn({'action': "kdn", 'info': "run kdn_subscription_sub"})
+    logger.warn({'action': "kdn", 'info': "run kdn_subscription_sub"})
     res = requests.post("http://api.kdniao.cc/api/dist",data=kwargs)
     result = res.text
     if res.status_code == 502:
@@ -305,8 +306,8 @@ def kdn_subscription_sub(*args,**kwargs):
         result.update({"info":"订阅失败"})
         if PackageSkuItem.objects.filter(out_sid = kwargs['expNo']).first():
             PackageSkuItem.objects.filter(out_sid = kwargs['expNo']).first().set_failed_time()
-        logging.warn("订阅失败")
-        logging.warn(result['Reason'])
+        logger.warn("订阅失败")
+        logger.warn(result['Reason'])
     return result
 
 def get_reverse_code(f):
@@ -357,8 +358,8 @@ def kdn_get_push(*args, **kwargs):
 
 
 if __name__ == '__main__':
-    test_info = {"expName" : '中通速递',"expNo":"778886571839"}
-    kdn_subscription(**test_info)
+    test_info = {"expName" : '韵达快递',"expNo":"3101138251229"}
+    kdn_subscription_sub(**test_info)
     # format_content()
     # comfirm_get(229785605639,4)
 
