@@ -545,6 +545,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         # 20161019 wulei add ,electronic goods scene, no order type user default sale-order type
         if not order_type:
             order_type = SaleTrade.SALE_ORDER
+        else:
+            order_type = int(order_type)
 
         item_ids = []
         for cart in cart_qs:
