@@ -102,20 +102,6 @@ def gen_emoji(desc):
     return desc
 
 
-def gen_emoji(desc):
-    import re
-    reg = re.compile('\[\d\]')
-    res_list = reg.findall(desc)
-    d = {}
-    for key in res_list:
-        if not key in d:
-            d[key] = gen_random_emoji()
-
-    for k, v in d.iteritems():
-        desc = desc.replace(k, v)
-    return desc
-
-
 def match_emoji(desc):
     import re
     reg = re.compile('U\+[\w]{4,5}')
