@@ -209,7 +209,7 @@ class CouponTemplate(BaseModel):
         raise AssertionError(u'%s至%s开放' % (self.release_start_time, self.release_end_time))
 
     def check_category(self, product_ids=None):
-        # type: (List(int)) -> None
+        # type: (List[int]) -> None
         """ 可用分类检查 """
         category_ids = self.bind_category_ids
         if not category_ids:  # 没有设置分类限制信息　则为全部分类可以使用
@@ -228,7 +228,7 @@ class CouponTemplate(BaseModel):
         return
 
     def check_bind_pros(self, product_ids=None):
-        # type: (List(int)) -> None
+        # type: (List[int]) -> None
         """ 检查绑定的产品 """
         from shopback.items.models import Product
         from flashsale.pay.models import ModelProduct
@@ -409,7 +409,7 @@ class OrderShareCoupon(BaseModel):
 
 
 def coupon_share_xlmm_newtask(sender, instance, **kwargs):
-    # type: (Any, OrderShareCoupon, Any) -> None
+    # type: (Any, Any, **Any) -> None
     """
     检测新手任务：分享第一个红包
     """
@@ -540,7 +540,7 @@ class UserCoupon(BaseModel):
         return self._coupon_customer_
 
     def self_template(self):
-        # type: CouponTemplate
+        # type: () -> CouponTemplate
         return CouponTemplate.objects.get(id=self.template_id)
 
     def share_record(self):
@@ -555,7 +555,7 @@ class UserCoupon(BaseModel):
         return True if tpl.template_valid_check() else False
 
     def min_payment(self):
-        # type: float
+        # type: () -> float
         """ 最低使用费用(满单额) """
         tpl = self.self_template()
         return tpl.use_min_payment
@@ -600,7 +600,7 @@ class UserCoupon(BaseModel):
         return coupon
 
     def check_user_coupon(self, product_ids=None, use_fee=None):
-        # type: () -> None
+        # type: (List[int], float) -> None
         """  用户优惠券检查是否可用 """
         tpl = CouponTemplate.objects.get(id=self.template_id)
         tpl.check_bind_pros(product_ids=product_ids)  # 绑定产品检查
@@ -720,7 +720,7 @@ class TmpShareCoupon(BaseModel):
 
 
 def update_mobile_download_record(sender, instance, created, **kwargs):
-    # type: (Any, TmpShareCoupon, bool, Any )
+    # type: (Any, TmpShareCoupon, bool, **Any) -> None
     from flashsale.coupon.tasks import task_update_mobile_download_record
 
     task_update_mobile_download_record.delay(instance)
