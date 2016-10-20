@@ -222,7 +222,7 @@ def get_third_apidata_by_packetid_return(rid,packetid, company_code):   #by huaz
 def kdn_sub(rid, expName, expNo):
     logging.warn(expNo)
     logging.warn("开始订阅了")
-    logger.warn({'action': "kdn", 'info': "kdn_sub"})
+    logger.warn({'action': "kdn", 'info': "kdn_sub_expNo:"+str(expNo)})
     exp_info = {"expName": expName, "expNo": expNo}
     kdn_subscription(**exp_info)
     kdn_subscription_sub(**exp_info)
@@ -332,12 +332,14 @@ def update_all_logistics():
             for psi in psi_queryset:
                 #print 'get logistics %s %s'%(psi.out_sid, psi.logistics_company_code)
                 if psi.out_sid and psi.logistics_company_code and temp_sid != psi.out_sid:
+                    logger = logging.getLogger(__name__)
+                    logger.warn({"action":"kdn","dingshi_out_sid":psi.out_sid})
                     num = num+1
                     kdn_sub(None,psi.logistics_company_name,psi.out_sid)
                     # get_third_apidata_by_packetid.delay(psi.out_sid, psi.logistics_company_code)
                     temp_sid = psi.out_sid
     logger = logging.getLogger(__name__)
-    logger.warn('update_all_logistics trades counts=%d, update counts=%d' % (sale_trades.count(), num))
+    logger.warn({"action":"kdn",'update_all_logistics_trades':'counts=%d,update_counts=%d' % (sale_trades.count(), num)})
 
 # @task()
 # def update_all_return_logistics():     #by huazi
@@ -381,6 +383,7 @@ def update_all_return_logistics_bykdn():
                     company_id = LogisticsCompany.objects.get(name=sim[0])
             if company_id and i.sid:
                 # logging.warn("物流公司代码和物流单号都存在")
+                logger.warn({"action": "kdn", "return_out_sid": i.sid})
                 kdn_sub(i.id,i.company_name,i.sid)
                 logging.warn("物流公司%s,物流单号%s" % (i.company_name,i.sid))
     logger.warn('update_all_return_logistics')
