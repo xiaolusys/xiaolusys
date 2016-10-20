@@ -928,6 +928,7 @@ def task_register_mama(obj):
 
     xlmm.update_renew_day(renew_days)   # 更新 status  last_renew_type renew_time
     mama_charged = xlmm.chargemama()
+    xlmm.deposit_pay()  # 支付押金
 
     if mama_charged:
         sys_oa = get_systemoa_user()
@@ -968,7 +969,9 @@ def task_renew_mama(obj):
     """
     :type obj: SaleTrade instance
     """
+    print 'in renew '
     from flashsale.pay.models import SaleTrade
+    from flashsale.coupon.tasks import task_release_coupon_for_mama_deposit_double_99, task_release_coupon_for_mama_renew
     if not (obj.status == SaleTrade.WAIT_SELLER_SEND_GOODS and obj.is_Deposite_Order()):
         return
     order = obj.sale_orders.all().first()
@@ -987,9 +990,7 @@ def task_renew_mama(obj):
         return
     if not xlmm.is_renewable():
         return
-    if xlmm.last_renew_type == XiaoluMama.HALF:  # 如果当前的妈妈已经是9半年元的代理则将会成为全年的代理
-        # 补发优惠券
-        from flashsale.coupon.tasks import task_release_coupon_for_mama_deposit_double_99
+    if xlmm.last_renew_type == XiaoluMama.HALF:  # 如果当前的妈妈已经是9半年元的代理则将会成为全年的代理 # 补发优惠券
         task_release_coupon_for_mama_deposit_double_99.delay(order_customer.id)
 
     state = xlmm.update_renew_day(renew_days)   # 更新 status  last_renew_type renew_time
@@ -998,6 +999,10 @@ def task_renew_mama(obj):
     update_xlmm_referal_from(protentialmama, xlmm, order.oid)  # 潜在关系以订单为准　如果订单中没有则在　潜在关系列表中　找
     # 妈妈续费成功事件
     signal_xiaolumama_register_success.send_robust(sender=XiaoluMama, xiaolumama=xlmm, renew=True)
+
+    print '\n\n ready release coupon'
+    if order.is_188_deposit():  # 如果是188重复续费
+        task_release_coupon_for_mama_renew.delay(order_customer, order)
 
     if state:
         sys_oa = get_systemoa_user()

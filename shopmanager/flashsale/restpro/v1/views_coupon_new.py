@@ -19,7 +19,6 @@ from flashsale.coupon.models import UserCoupon, OrderShareCoupon, CouponTemplate
 from flashsale.pay.models import Customer, ShoppingCart, SaleTrade
 from flashsale.pay.tasks import task_release_coupon_push
 from flashsale.promotion.models import XLSampleOrder
-from flashsale.coupon.managers import calculate_value_and_time
 from flashsale.coupon import constants
 from flashsale.pay.models import SaleTrade
 
@@ -652,7 +651,7 @@ class TmpShareCouponViewset(viewsets.ModelViewSet):
         try:
             tpl = coupon_share.template
             tmp_shre, state = TmpShareCoupon.objects.get_or_create(mobile=mobile, share_coupon_id=uniq_id)
-            value, start_use_time, expires_time = calculate_value_and_time(tpl)
+            value, start_use_time, expires_time = tpl.calculate_value_and_time()
             if state and tmp_shre.value != value:
                 tmp_shre.value = value
                 tmp_shre.save(update_fields=['value'])
