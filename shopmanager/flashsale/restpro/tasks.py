@@ -233,13 +233,13 @@ def kdn_get_push(*args, **kwargs):
     tradewuliu = TradeWuliu.objects.filter(logistics_company=kwargs['logistics_company'],
                                            out_sid=kwargs['out_sid'])
     if tradewuliu.first() is None:
+        logger.warn({'action': "kdn", 'info': "tradewuliu_first_is_None"})
         TradeWuliu.objects.create(**kwargs)
         comfirm_get(kwargs["out_sid"], kwargs["status"])
-        logger.warn({'action': "kdn", 'info': "tradewuliu.first()_is_None"})
     else:
-        tradewuliu.first().update(**kwargs)
+        tradewuliu.update(**kwargs)
+        logger.warn({'action': "kdn", 'info': "tradewuliu_first_update"})
         comfirm_get(kwargs["out_sid"], kwargs["status"])
-        logger.warn({'action': "kdn", 'info': "tradewuliu.first().update"})
 
 
 @task(max_retries=3, default_retry_delay=5)
