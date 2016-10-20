@@ -589,6 +589,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 logger.warn({'code':7, 'message':u'请选择收货地址', 'user_agent':user_agent,
                              'stype':'restpro.trade', 'tid':tuuid , 'data': '%s'%CONTENT})
                 return Response({'code': 7, 'info': u'请选择收货地址'})
+        else:
+            address = None
 
         channel = CONTENT.get('channel')
         if channel not in dict(SaleTrade.CHANNEL_CHOICES):
