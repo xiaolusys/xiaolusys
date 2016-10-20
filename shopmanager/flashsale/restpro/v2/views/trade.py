@@ -319,8 +319,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             ufrom = cookies.get('ufrom', '')
         return {'mm_linkid': mama_linkid, 'ufrom': ufrom}
 
-
-    def create_Saletrade(self, request, form, address, customer):
+    def create_Saletrade(self, request, form, address, customer, order_type=SaleTrade.SALE_ORDER):
         """ 创建特卖订单方法 """
         tuuid = form.get('uuid')
         assert UUID_RE.match(tuuid), u'订单UUID异常'
@@ -332,9 +331,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             id__in=cart_ids,
             buyer_id=customer.id
         )
-        order_type = 0
+
         if cart_qs.count() == 1 and cart_qs[0].type == ShoppingCart.TEAMBUY:
-            order_type = 3
+            order_type = SaleTrade.TEAMBUY_ORDER
         params = {
             'channel':channel,
             'receiver_name':address.receiver_name,
@@ -541,6 +540,11 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         pay_extras      = CONTENT.get('pay_extras')
         cart_total_fee  = 0
         cart_discount   = 0
+        order_type      = CONTENT.get('order_type')
+
+        # 20161019 wulei add ,electronic goods scene, no order type user default sale-order type
+        if not order_type:
+            order_type = SaleTrade.SALE_ORDER
 
         item_ids = []
         for cart in cart_qs:
@@ -575,14 +579,16 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                          'user_agent':user_agent, 'stype':'restpro.trade', 'tid':tuuid , 'data': '%s'%CONTENT})
             return Response({'code':11, 'info':u'付款金额异常'})
 
-        addr_id  = CONTENT.get('addr_id') or None
-        address  = UserAddress.objects.filter(id=addr_id,cus_uid=customer.id).first()
-        if not address:
-            logger.warn({'code':7, 'message':u'请选择收货地址', 'user_agent':user_agent,
-                         'stype':'restpro.trade', 'tid':tuuid , 'data': '%s'%CONTENT})
-            return Response({'code': 7, 'info': u'请选择收货地址'})
+        # 20161019 wulei add ,electronic goods not need any receive address
+        if order_type != SaleTrade.ELECTRONIC_GOODS_ORDER:
+            addr_id = CONTENT.get('addr_id') or None
+            address = UserAddress.objects.filter(id=addr_id,cus_uid=customer.id).first()
+            if not address:
+                logger.warn({'code':7, 'message':u'请选择收货地址', 'user_agent':user_agent,
+                             'stype':'restpro.trade', 'tid':tuuid , 'data': '%s'%CONTENT})
+                return Response({'code': 7, 'info': u'请选择收货地址'})
 
-        channel  = CONTENT.get('channel')
+        channel = CONTENT.get('channel')
         if channel not in dict(SaleTrade.CHANNEL_CHOICES):
             logger.warn({'code': 5, 'message': u'付款方式有误','channel':channel, 'user_agent':user_agent,
                          'stype': 'restpro.trade', 'tid': tuuid, 'data': '%s'%CONTENT})
@@ -590,7 +596,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
         try:
             with transaction.atomic():
-                sale_trade,state = self.create_Saletrade(request, CONTENT, address, customer)
+                sale_trade,state = self.create_Saletrade(request, CONTENT, address, customer, order_type)
                 if state:
                     self.create_Saleorder_By_Shopcart(sale_trade, cart_qs)
         except Exception, exc:
