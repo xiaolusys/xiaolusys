@@ -645,6 +645,8 @@ def push_trade_pay_notify(sender, obj, **kwargs):
     """
     订单支付成功推送
     """
+    if True:
+        return
     from flashsale.push.tasks import task_push_trade_pay_notify
     saletrade = obj
     customer = saletrade.order_buyer
