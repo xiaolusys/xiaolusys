@@ -353,6 +353,27 @@ def task_release_coupon_for_mama_deposit_double_99(buyer_id):
 
 
 @task()
+def task_release_coupon_for_mama_renew(customer, saleorder):
+    # type: (Customer, SaleOrder) -> None
+    """用户重复续费送优惠券
+    """
+    from flashsale.coupon.models import UserCoupon, CouponTemplate
+    from flashsale.pay.models import SaleOrder
+
+    deposite_type_tplids_map = {
+        XiaoluMama.FULL: [117, 118, 121, 39]
+    }
+    tpl_ids = deposite_type_tplids_map[XiaoluMama.FULL]
+    order_id = saleorder.id
+    sku_id_188 = '11873'
+    for tpl_id in tpl_ids:
+        index = SaleOrder.objects.filter(buyer_id=customer.id, sku_id=sku_id_188).count()   # 购买188的数量
+        template = CouponTemplate.objects.get(id=tpl_id)
+        uni_key = template.gen_usercoupon_unikey(order_id, index)
+        UserCoupon.send_coupon(customer, template, uniq_id=uni_key)
+
+
+@task()
 def task_create_transfer_coupon(sale_order):
     # type: (SaleOrder) -> None
     """
@@ -368,14 +389,14 @@ def task_create_transfer_coupon(sale_order):
     title = u'小鹿精品专用券'
     coupon_type = UserCoupon.TYPE_TRANSFER
     coupon_value = 128
-    trade_tid = sale_order.sale_trade.tid
     start_time = datetime.datetime.now()
     end_time = datetime.datetime(start_time.year + 5, start_time.month, start_time.day)
+    order_id = sale_order.id
 
     while index < num:
         uni_key = template.gen_usercoupon_unikey(order_id, index)
         coupon = UserCoupon(template_id=template.id, title=title, coupon_type=coupon_type, customer_id=customer_id,
-                            coupon_no=uni_key, value=coupon_value, trade_tid=trade_tid, start_use_time=start_time,
+                            coupon_no=uni_key, value=coupon_value, start_use_time=start_time,
                             expires_time=end_time, uniq_id=uni_key)
         coupon.save()
         index += 1

@@ -289,28 +289,26 @@ class CouponTemplate(BaseModel):
         # type: () -> text_type
         """生成对应优惠券的unique key
         """
-        coupon_type = UserCoupon.TYPE_TRANSFER
-        return "%s-%s-%s-%s" % (self.id, coupon_type, order_id, index)
+        return "%s_%s_%s_%s" % (self.id, self.coupon_type, order_id, index)
 
-    def calculate_value_and_time(tpl):
+    def calculate_value_and_time(self):
         # type: (CouponTemplate) -> Tuple[float, datetime.datetime, datetime.datetime]
+        """计算发放优惠券价值和开始使用时间和结束时间
         """
-        计算发放优惠券价值和开始使用时间和结束时间
-        """
-        value = tpl.value  # 默认取模板默认值
-        if tpl.is_random_val and tpl.min_val and tpl.max_val:  # 如果设置了随机值则选取随机值
-            value = float('%.1f' % random.uniform(tpl.max_val, tpl.min_val))  # 生成随机的value
+        value = self.value  # 默认取模板默认值
+        if self.is_random_val and self.min_val and self.max_val:  # 如果设置了随机值则选取随机值
+            value = float('%.1f' % random.uniform(self.max_val, self.min_val))  # 生成随机的value
 
-        expires_time = tpl.use_deadline
+        expires_time = self.use_deadline
         start_use_time = datetime.datetime.now()
-        if tpl.is_flextime:  # 如果是弹性时间
+        if self.is_flextime:  # 如果是弹性时间
             # 断言设置弹性时间的时候 仅仅设置一个 定制日期  否则报错
-            assert (tpl.limit_after_release_days == 0 or tpl.use_after_release_days == 0)
-            if tpl.limit_after_release_days:  # 发放后多少天内可用 days 使用时间即 领取时间 过期时间为领取时间+ days
-                expires_time = start_use_time + datetime.timedelta(days=tpl.limit_after_release_days)
-            if tpl.use_after_release_days:  # 发放多少天后可用 即开始时间 为 模板开始发放的时间+use_after_release_days
-                start_use_time = start_use_time + datetime.timedelta(days=tpl.use_after_release_days)
-                expires_time = tpl.use_deadline
+            assert (self.limit_after_release_days == 0 or self.use_after_release_days == 0)
+            if self.limit_after_release_days:  # 发放后多少天内可用 days 使用时间即 领取时间 过期时间为领取时间+ days
+                expires_time = start_use_time + datetime.timedelta(days=self.limit_after_release_days)
+            if self.use_after_release_days:  # 发放多少天后可用 即开始时间 为 模板开始发放的时间+use_after_release_days
+                start_use_time = start_use_time + datetime.timedelta(days=self.use_after_release_days)
+                expires_time = self.use_deadline
             assert (start_use_time < expires_time)  # 断言开始时间 < 结束时间
         return value, start_use_time, expires_time
 
@@ -541,13 +539,6 @@ class UserCoupon(BaseModel):
             self._coupon_customer_ = Customer.objects.normal_customer.filter(id=self.customer_id).first()
         return self._coupon_customer_
 
-    @task()
-    def release_coupon_for_renew(self, customer_id):
-        # type: (int) -> None
-        """发放优惠券给重复充值188的押金的用户
-        """
-        pass
-
     def self_template(self):
         # type: CouponTemplate
         return CouponTemplate.objects.get(id=self.template_id)
@@ -664,11 +655,11 @@ class UserCoupon(BaseModel):
         return False
 
     @staticmethod
-    def send_coupon(customer, tpl, ufrom='wap'):
+    def send_coupon(customer, tpl, ufrom='wap', uniq_id=None):
         # type: (Customer, CouponTemplate, text_type) -> UserCoupon
         if not tpl.can_send():
             raise Exception(u'优惠券已发送完毕')
-        uniq_id = tpl.make_uniq_id(customer.id)
+        uniq_id = tpl.make_uniq_id(customer.id) if uniq_id is None else uniq_id
         value, start_use_time, expires_time = tpl.calculate_value_and_time()
         extras = {'user_info': {'id': customer.id, 'nick': customer.nick, 'thumbnail': customer.thumbnail}}
         cou = UserCoupon.objects.filter(uniq_id=uniq_id).first()
