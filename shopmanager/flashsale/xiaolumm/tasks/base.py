@@ -969,7 +969,6 @@ def task_renew_mama(obj):
     """
     :type obj: SaleTrade instance
     """
-    print 'in renew '
     from flashsale.pay.models import SaleTrade
     from flashsale.coupon.tasks import task_release_coupon_for_mama_deposit_double_99, task_release_coupon_for_mama_renew
     if not (obj.status == SaleTrade.WAIT_SELLER_SEND_GOODS and obj.is_Deposite_Order()):
@@ -1000,7 +999,6 @@ def task_renew_mama(obj):
     # 妈妈续费成功事件
     signal_xiaolumama_register_success.send_robust(sender=XiaoluMama, xiaolumama=xlmm, renew=True)
 
-    print '\n\n ready release coupon'
     if order.is_188_deposit():  # 如果是188重复续费
         task_release_coupon_for_mama_renew.delay(order_customer, order)
 
