@@ -24,13 +24,22 @@ from flashsale.pay.models import ModelProduct
 from auth import apis
 from common.utils import format_datetime, parse_datetime, get_yesterday_interval_time
 from core.options import get_systemoa_user, log_action
-
+import sys
 import logging
 
 logger = logging.getLogger(__name__)
 
 PURCHASE_STOCK_PERCENT = 0.5
 UPDATE_WAIT_POST_DAYS = 20
+
+def get_cur_info():
+    """Return the frame object for the caller's stack frame."""
+    try:
+        raise Exception
+    except:
+        f = sys.exc_info()[2].tb_frame.f_back
+    # return (f.f_code.co_name, f.f_lineno)
+    return f.f_code.co_name
 
 
 @task()
@@ -1011,16 +1020,16 @@ def task_Auto_Download_Shelf():
     logger.warn("{0}系统自动下架{1}个产品,含未通过审核{2}个产品".format(datetime.datetime.now(), count, unverify_no), exc_info=True)
 
 
-#@transaction.atomic
 @task()
-def task_assign_stock_to_package_sku_item(sku_id):
-    instance = ProductSkuStats.objects.get(sku_id=sku_id)
+def task_assign_stock_to_package_sku_item(instance):
+    logger.info("%s -sku_id:%s,%s,%s" % (get_cur_info(), instance.sku_id, instance.realtime_quantity, instance.assign_num))
     if instance.realtime_quantity > instance.assign_num:
         assign_stock_to_package_sku_item(instance)
     elif instance.realtime_quantity < instance.assign_num:
         relase_package_sku_item(instance)
 
 
+@transaction.atomic
 def assign_stock_to_package_sku_item(stat):
     from shopback.trades.models import PackageSkuItem
     available_num = stat.realtime_quantity - stat.assign_num
@@ -1035,6 +1044,7 @@ def assign_stock_to_package_sku_item(stat):
             package_sku_item.save()
 
 
+@transaction.atomic
 def relase_package_sku_item(stat):
     sku_id = stat.sku_id
     from shopback.trades.models import PackageSkuItem
