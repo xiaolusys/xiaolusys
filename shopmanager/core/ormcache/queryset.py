@@ -20,9 +20,8 @@ logger = logging.getLogger(__name__.split('.')[-1])
 
 
 class CachedQuerySet(QuerySet):
-
     __CACHE_FOREVER = 100800  # 24 * 3600
-    
+
     def get(self, *args, **kwargs):
         """
         Adds a layer of caching around the Manager's built in 'get()' method.
@@ -30,30 +29,30 @@ class CachedQuerySet(QuerySet):
         'get()' method will be cached indefinitely (30 days) until invalidated.
         """
         orig_kwargs = kwargs.copy()
-        
+
         # If this queryset is filtered by a single column and no arguments
         # were passed to get(), treat the queryset filter as an argument to
         # get(). This lets Model.objects.filter(pk=42).get() work like
         # Model.objects.get(pk=42).
         can_ignore_filter = False
         if (len(self.query.where) == 1
-                and not kwargs
-                and django.VERSION >= (1, 7)
-                and not self.query.where.negated):
+            and not kwargs
+            and django.VERSION >= (1, 7)
+            and not self.query.where.negated):
             child, = self.query.where.children
             if isinstance(child, Exact) and isinstance(child.lhs, Col):
                 can_ignore_filter = True
                 kwargs[child.lhs.target.attname] = child.rhs
-                
+
         # Don't access cache if using a filtered queryset
         if self.query.where and not can_ignore_filter:
             return super(CachedQuerySet, self).get(*args, **orig_kwargs)
-        
+
         # Don't access cache if using a deferred queryset
         if len(self.query.deferred_loading[0]) > 0 or \
                 not self.query.deferred_loading[1]:
             return super(CachedQuerySet, self).get(*args, **orig_kwargs)
-        
+
         # Get the cache key from the model name and pk
         if "pk" in kwargs:
             pk = kwargs["pk"]
@@ -82,7 +81,7 @@ class CachedQuerySet(QuerySet):
 
     def from_ids(self, ids, lookup='pk__in'):
         assert isinstance(ids, collections.Iterable)
-        
+
         cache_keys = [self.cache_key(id_) for id_ in ids]
 
         instances = cache.get_many(cache_keys).values()
@@ -106,14 +105,15 @@ class CachedQuerySet(QuerySet):
         """
         Generate the cache key for an individual model
         """
-        return hashlib.md5("{}-{}-pk:{}".format(self.model._meta.app_label.strip(),self.model.__name__.strip(), pk)).hexdigest()
-    
+        return hashlib.md5(
+            "{}-{}-pk:{}".format(self.model._meta.app_label.strip(), self.model.__name__.strip(), pk)).hexdigest()
+
     def update(self, **kwargs):
         """
         Queryset update flush model cache
         """
-        lookup_ids = self.values_list('pk',flat=True)
-        resp = super(CachedQuerySet,self).update(**kwargs)
+        lookup_ids = self.values_list('pk', flat=True)
+        resp = super(CachedQuerySet, self).update(**kwargs)
         for pk in lookup_ids:
             self.invalidate(pk)
         return resp
@@ -124,19 +124,16 @@ class CachedQuerySet(QuerySet):
         """
         key = self.cache_key(pk)
         cache_invalidated.send(sender=self.model)
-#         if recache is True:
-#             try:
-#                 entry = super(CachedQuerySet, self).get(pk=pk)
-#             except (self.model.DoesNotExist,
-#                     self.model.MultipleObjectsReturned):
-#                 logger.error(
-#                     'Error retrieving single entry from database',
-#                     exc_info=True,
-#                     extra={'data': {'model': self.model, 'pk': pk}})
-#             else:
-#                 cache.set(key, entry, self.__CACHE_FOREVER)
-#         else:
+        # if recache is True:
+        #             try:
+        #                 entry = super(CachedQuerySet, self).get(pk=pk)
+        #             except (self.model.DoesNotExist,
+        #                     self.model.MultipleObjectsReturned):
+        #                 logger.error(
+        #                     'Error retrieving single entry from database',
+        #                     exc_info=True,
+        #                     extra={'data': {'model': self.model, 'pk': pk}})
+        #             else:
+        #                 cache.set(key, entry, self.__CACHE_FOREVER)
+        #         else:
         cache.delete(key)
-            
-            
-            
