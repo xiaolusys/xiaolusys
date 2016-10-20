@@ -103,7 +103,7 @@ class KdnView(APIView):
         }
         print write_info['logistics_company']
         logger.info(write_info)
-        logger.warn({'action': "kdn", 'info': "kdn_get_push"})
+        logger.warn({'action': "kdn", 'info': ShipperCode})
         try:
             kdn_get_push.delay(**write_info)
         except Exception, e:
