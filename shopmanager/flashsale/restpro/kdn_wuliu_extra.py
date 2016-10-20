@@ -203,7 +203,7 @@ def add_DataSign(f):
     return wrapper
 
 def comfirm_get(out_sid,status):
-    logger.warn({'action': "kdn", 'info': "start_comfirm_get"})
+    logger.warn({'action': "kdn", 'info': "start_comfirm_get"+ out_sid})
     packageskuitem = PackageSkuItem.objects.filter(out_sid = out_sid).values("oid")
     if packageskuitem and status == 3:
         logger.warn({'action': "kdn", 'info': "exp_num:" + out_sid})
