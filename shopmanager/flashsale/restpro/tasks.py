@@ -235,11 +235,11 @@ def kdn_get_push(*args, **kwargs):
     if tradewuliu.first() is None:
         TradeWuliu.objects.create(**kwargs)
         comfirm_get(kwargs["out_sid"], kwargs["status"])
-        print "写入成功"
+        logger.warn({'action': "kdn", 'info': "tradewuliu.first()_is_None"})
     else:
-        tradewuliu.update(**kwargs)
+        tradewuliu.first().update(**kwargs)
         comfirm_get(kwargs["out_sid"], kwargs["status"])
-        print "更新成功"
+        logger.warn({'action': "kdn", 'info': "tradewuliu.first().update"})
 
 
 @task(max_retries=3, default_retry_delay=5)
