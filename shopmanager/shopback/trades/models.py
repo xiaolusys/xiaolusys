@@ -1264,7 +1264,6 @@ class ReturnWuLiu(models.Model):
         return '<%d,%s,%s,%s>' % (self.id, self.status, self.content, dict(REPLAY_TRADE_STATUS).get(self.status, ''))
 
 
-
 class PackageOrder(models.Model):
     WARE_SH = 1
     WARE_GZ = 2
@@ -2111,7 +2110,8 @@ def update_productskustats(sender, instance, created, **kwargs):
     Whenever PackageSkuItem changes, PackageSkuItemStats has to change accordingly.
     """
     from shopback.items.tasks_stats import task_packageskuitem_update_productskustats
-    task_packageskuitem_update_productskustats.delay(instance.sku_id)
+    task_packageskuitem_update_productskustats(instance.sku_id)
+    # task_packageskuitem_update_productskustats.delay(instance.sku_id)
 
 
 post_save.connect(update_productskustats, sender=PackageSkuItem, dispatch_uid='post_save_update_productskustats')
