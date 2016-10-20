@@ -80,11 +80,13 @@ class SaleTrade(BaseModel):
     RESERVE_ORDER = 1
     DEPOSITE_ORDER = 2
     TEAMBUY_ORDER = 3
+    ELECTRONIC_GOODS_ORDER = 4
     ORDER_TYPE_CHOICES = (
         (SALE_ORDER, u"特卖订单"),
         (RESERVE_ORDER, u"预订制"),
         (TEAMBUY_ORDER, u"团购订单"),
         (DEPOSITE_ORDER, u"押金订单"),
+        (ELECTRONIC_GOODS_ORDER, u"电子商品订单"),
     )
 
     TRADE_NO_CREATE_PAY = 0
