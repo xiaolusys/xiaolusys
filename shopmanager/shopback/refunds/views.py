@@ -35,6 +35,7 @@ from django.db import transaction
 from renderers import *
 from unrelate_product_handler import update_Unrelate_Prods_Product, update_Product_Collect_Num
 
+
 logger = logging.getLogger('django.request')
 __author__ = 'meixqhi'
 
@@ -271,7 +272,9 @@ class RefundView(APIView):
             if k == 'can_reuse':
                 v = v == "true" and True or False
             hasattr(rf, k) and setattr(rf, k, v)
+        logger = logging.getLogger(__name__)
         rf.save()
+        logger.warn({"action": "buy_rf", "info": rf.id})
         # 创建一条退货款单记录
         log_action(request.user.id, rf, CHANGE, u'创建退货商品记录')
         update_Unrelate_Prods_Product(pro=rf, req=request)  # 关联退货
