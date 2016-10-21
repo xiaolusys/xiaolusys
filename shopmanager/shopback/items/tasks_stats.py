@@ -1,4 +1,5 @@
 import logging
+import json
 import sys
 from django.db import IntegrityError, transaction
 from django.db.models import Sum
@@ -129,9 +130,14 @@ def task_packageskuitem_update_productskustats(sku_id):
             assign_num = entry["total"]
         elif entry["assign_status"] == PackageSkuItem.FINISHED:
             post_num = entry["total"]
-
     sold_num = wait_assign_num + assign_num + post_num
     params = {"sold_num": sold_num, "assign_num": assign_num, "post_num": post_num}
+    klogger = logging.getLogger('service')
+    klogger.info({
+        'action': 'skustat.pstat.task_packageskuitem_update_productskustats',
+        'sku_id': sku_id,
+        'params': json.dumps(params),
+    })
     stat = ProductSkuStats.get_by_sku(sku_id)
     update_fields = []
     for k, v in params.iteritems():

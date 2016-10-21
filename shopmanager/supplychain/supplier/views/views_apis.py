@@ -1,16 +1,11 @@
 # -*- coding:utf8 -*-
-import re
 import time
-import json
 import datetime
-import urlparse
 import django_filters
 import hashlib
 from django.shortcuts import get_object_or_404
-from django.conf import settings
 from django.db import transaction
 from django.core.cache import cache
-from rest_framework.views import APIView
 from rest_framework import viewsets
 from rest_framework.parsers import JSONParser
 from rest_framework.decorators import detail_route, list_route
@@ -425,10 +420,11 @@ class SaleProductViewSet(viewsets.ModelViewSet):
 class SaleProductManageFilter(filters.FilterSet):
     sale_time_start = django_filters.DateFilter(name="sale_time", lookup_type='gte')
     sale_time_end = django_filters.DateFilter(name="sale_time", lookup_type='lte')
+    suppliers_name = django_filters.CharFilter(name="sale_suppliers__supplier_name", lookup_type='contains')
 
     class Meta:
         model = SaleProductManage
-        fields = ['sale_time_start', 'sale_time_end', 'schedule_type', 'sale_suppliers']
+        fields = ['sale_time_start', 'sale_time_end', 'schedule_type', 'sale_suppliers', 'suppliers_name']
 
 
 class SaleScheduleViewSet(viewsets.ModelViewSet):
@@ -594,12 +590,12 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
     def filter_queryset(self, queryset):
         for backend in list(self.filter_backends):
             queryset = backend().filter_queryset(self.request, queryset, self)
-        sale_product_ids = queryset.values('sale_product_id')
+        sale_product_ids = list(queryset.values_list('sale_product_id', flat=True))
 
         sakeproducts = SaleProduct.objects.filter(id__in=sale_product_ids)
         for bk in list(SaleProductViewSet.filter_backends):
             sakeproducts = bk().filter_queryset(self.request, sakeproducts, SaleProductViewSet)
-        p_ids = sakeproducts.values('id')
+        p_ids = list(sakeproducts.values_list('id', flat=True))
         return queryset.filter(sale_product_id__in=p_ids)
 
     def list(self, request, schedule_id=None, *args, **kwargs):
@@ -615,6 +611,7 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def destroy(self, request, *args, **kwargs):
+        # type: (HttpRequest, *Any, **Any)
         if request.user.has_perm('supplier.delete_schedule_detail'):
             instance = self.get_object()
             res = instance.get_status_salenum_in_schedule()  # 排期内有订单
