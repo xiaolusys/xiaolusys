@@ -95,6 +95,50 @@ class NinePicAdver(models.Model):
     def __unicode__(self):
         return u'<%s,%s>' % (self.id, self.title)
 
+    @property
+    def redirect_url(self):
+        # type: () -> text_type
+        return self.detail_modelids
+
+    @classmethod
+    def init_time(cls, assign_date=None):
+        # type: (Optional[datetime.date]) -> datetime.datetime
+        now = datetime.datetime.now() if assign_date is None else datetime.datetime(assign_date.year,
+                                                                                    assign_date.month,
+                                                                                    assign_date.day, 0, 0)
+        return datetime.datetime(now.year, now.month, now.day, 0, 0, 0)
+
+    @classmethod
+    def calculate_assign_turns_num(cls, assign_date=None):
+        # type: () -> int
+        init_time = cls.init_time(assign_date)
+        end_time = datetime.datetime(init_time.year, init_time.month, init_time.day, 23, 59, 59)
+        return cls.objects.filter(start_time__gte=init_time, start_time__lte=end_time).count()
+
+    @classmethod
+    def create(cls, auther, title, start_time,
+               pic_arry=None, description='', advertisement_type=9, category_id=None, is_pushed=False, redirect_url=''):
+        # type: (text_type, text_type, datetime.datetime,
+        # Optional[List[text_type]], text_type, int, Optional[int], bool, text_type) -> NinePicAdver
+        turns_num = cls.calculate_assign_turns_num(start_time.date())  # 轮数
+        verify_turns_num = cls.objects.filter(start_time__gte=cls.init_time(start_time.date()),
+                                              start_time__lt=start_time).count()
+
+        if turns_num != verify_turns_num:
+            raise Exception(u'请设置 **开始时间** 在当前最后一轮以后!')
+        n = cls(auther=auther,
+                title=title,
+                description=description,
+                cate_gory=advertisement_type,
+                sale_category=category_id,
+                pic_arry=pic_arry,
+                start_time=start_time,
+                turns_num=turns_num + 1,
+                is_pushed=is_pushed,
+                detail_modelids=redirect_url)
+        n.save()
+        return n
+
     def is_share(self):
         """ 是否可以分享 """
         now = datetime.datetime.now()  # 现在时间
@@ -110,7 +154,7 @@ class NinePicAdver(models.Model):
         day = today.day
         share_time = self.start_time.strftime("%H:%M")
         return "%02d月%02d日｜第%d轮 分享时间：%s" % (month, day, self.turns_num, share_time)
-    
+
     def description_title(self):
         return self.description.replace('\r\n', '\r')
 
