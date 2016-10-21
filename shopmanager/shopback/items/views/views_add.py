@@ -391,7 +391,6 @@ class BatchSetTime(generics.ListCreateAPIView):
             products = []
         rebeta_schemes = AgencyOrderRebetaScheme.objects.filter(
             status=AgencyOrderRebetaScheme.NORMAL)
-        print 'debug:', rebeta_schemes
         return Response({"all_product": products,
                          "model_id": model_id,
                          "target_shelf_date": target_shelf_date,
@@ -475,15 +474,25 @@ class BatchSetTime(generics.ListCreateAPIView):
                         k).verbose_name.title(), v))
 
                 if k == 'agent_price':
-                    pro.pskus.update(agent_price=v)
+                    for sku in pro.pskus.all():
+                        sku.agent_price=v
+                        sku.save()
 
                 if k == 'rebeta_scheme_id' and v != '':
-                    product_detail.rebeta_scheme_id = v
+                    product_detail.rebeta_scheme_id = int(v)
                     update_detail = True
                 if k == 'is_sale' and v != '':
                     product_detail.is_sale = int(v)
                     update_detail = True
             pro.save()
+
+            modelproduct = ModelProduct.objects.filter(id=pro.model_id).first()
+            lowest_price = pro.lowest_price()
+            if modelproduct and (modelproduct.rebeta_scheme_id != product_detail.rebeta_scheme_id
+                                 or modelproduct.lowest_agent_price != lowest_price):
+                modelproduct.rebeta_scheme_id = product_detail.rebeta_scheme_id
+                modelproduct.lowest_agent_price = lowest_price
+                modelproduct.save(update_fields=['rebeta_scheme_id', 'lowest_agent_price'])
 
             if update_detail:
                 product_detail.save()
