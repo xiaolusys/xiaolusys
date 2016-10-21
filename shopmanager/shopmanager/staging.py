@@ -43,7 +43,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
     # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'xiaoludb',  # Or path to database file if using sqlite3.
+        'NAME': 'test_xiaoludb',  # Or path to database file if using sqlite3.
         'USER': 'xiaoludev',  # Not used with sqlite3.
         'PASSWORD': MYSQL_AUTH,  # Not used with sqlite3.
         'HOST': MYSQL_HOST,
