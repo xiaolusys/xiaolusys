@@ -320,10 +320,12 @@ post_save.connect(update_warehouse_receipt_status, sender=RefundProduct,
 
 
 def update_productskustats_refund_quantity(sender, instance, created, **kwargs):
+    from shopback.items.models import ProductSku, ProductSkuStats
+    if instance.created < ProductSkuStats.PRODUCT_SKU_STATS_COMMIT_TIME:
+        return
     from shopback.items.tasks_stats import task_refundproduct_update_productskustats_return_quantity
     from shopback.items.tasks import task_update_inferiorsku_return_quantity
-    from shopback.items.models import ProductSku
-    sku_id = ProductSku.get_by_outer_id(instance.outer_id,instance.outer_sku_id).id
+    sku_id = ProductSku.get_by_outer_id(instance.outer_id, instance.outer_sku_id).id
     if sku_id:
         RefundProduct.objects.filter(id=instance.id).update(sku_id=sku_id)
         task_refundproduct_update_productskustats_return_quantity.delay(sku_id)
