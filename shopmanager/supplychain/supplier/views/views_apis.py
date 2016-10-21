@@ -1,16 +1,11 @@
 # -*- coding:utf8 -*-
-import re
 import time
-import json
 import datetime
-import urlparse
 import django_filters
 import hashlib
 from django.shortcuts import get_object_or_404
-from django.conf import settings
 from django.db import transaction
 from django.core.cache import cache
-from rest_framework.views import APIView
 from rest_framework import viewsets
 from rest_framework.parsers import JSONParser
 from rest_framework.decorators import detail_route, list_route
@@ -425,10 +420,11 @@ class SaleProductViewSet(viewsets.ModelViewSet):
 class SaleProductManageFilter(filters.FilterSet):
     sale_time_start = django_filters.DateFilter(name="sale_time", lookup_type='gte')
     sale_time_end = django_filters.DateFilter(name="sale_time", lookup_type='lte')
+    suppliers_name = django_filters.CharFilter(name="sale_suppliers__supplier_name", lookup_type='contains')
 
     class Meta:
         model = SaleProductManage
-        fields = ['sale_time_start', 'sale_time_end', 'schedule_type', 'sale_suppliers']
+        fields = ['sale_time_start', 'sale_time_end', 'schedule_type', 'sale_suppliers', 'suppliers_name']
 
 
 class SaleScheduleViewSet(viewsets.ModelViewSet):
