@@ -495,6 +495,10 @@ class SaleProductManageDetailSerializer(serializers.ModelSerializer):
     product_pic = serializers.CharField(source='sale_product.pic_url', read_only=True)
     product_link = serializers.CharField(source='sale_product.product_link', read_only=True)
     model_id = serializers.IntegerField(source='modelproduct.id', read_only=True)
+    model_head_image = serializers.CharField(source='modelproduct.head_img_url', read_only=True)
+    model_name = serializers.CharField(source='modelproduct.name', read_only=True)
+    model_lowest_agent_price = serializers.FloatField(source='modelproduct.lowest_agent_price', read_only=True)
+    model_lowest_std_sale_price = serializers.FloatField(source='modelproduct.lowest_std_sale_price', read_only=True)
     material_status = MaterialStatusField()
     design_take_over = DesignTakeStatusField()
     today_use_status = ManageDetailUseStatusField()
@@ -507,11 +511,17 @@ class SaleProductManageDetailSerializer(serializers.ModelSerializer):
         model = SaleProductManageDetail
         fields = (
             'id', 'supplier_id', 'sale_product_id', 'product_name', 'product_pic', 'product_link', 'design_person',
-            'order_weight', 'model_id', 'supplier_name',
+            'order_weight', 'supplier_name',
             'sale_category', 'material_status', 'today_use_status', 'product_purchase_price', 'product_sale_price',
             'product_origin_price', 'design_take_over', 'design_complete', 'is_approved', 'is_promotion',
             'reference_username', 'photo_username', 'product_contactor', 'product_memo', 'photo_user', 'reference_user',
-            'in_product', 'created', 'modified')
+            'in_product',
+            'model_id',
+            'model_head_image',
+            'model_name',
+            'model_lowest_agent_price',
+            'model_lowest_std_sale_price',
+            'created', 'modified')
 
     def reference_user_name(self, obj):
         """ 资料录入人 """
