@@ -611,6 +611,7 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def destroy(self, request, *args, **kwargs):
+        # type: (HttpRequest, *Any, **Any)
         if request.user.has_perm('supplier.delete_schedule_detail'):
             instance = self.get_object()
             res = instance.get_status_salenum_in_schedule()  # 排期内有订单
