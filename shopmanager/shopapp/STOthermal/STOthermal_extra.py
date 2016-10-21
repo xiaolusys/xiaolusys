@@ -97,7 +97,9 @@ def cancel_exp_number(**kwargs):
 
 
 if __name__ == '__main__':
+    visitor_ip = '114.55.3.64'
+    get_exp_template_test = 'http://192.168.1.8:8005/thermal/STOthermal/get_exp_number?detail=堂主小区&province=福建省&name=杨雪丹&mobile = 13956679696&trade_id=1232132131&city=莆田&district = 唐山区'
     # get_delivery_address(cp_code=
     # a = {'param_waybill_cloud_print_apply_new_request':js'STO')on.dumps(constant_extra.param_waybill_cloud_print_apply_new_request)}
     # get_exp_template(**a)
-    cancel_exp_number(cp_code='STO',waybill_code="3315446465418")
+    # cancel_exp_number(cp_code='STO',waybill_code="3315446465418")
