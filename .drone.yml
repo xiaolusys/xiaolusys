@@ -117,7 +117,7 @@ deploy:
       - docker rm -f gunicorn-prometheus
       - docker run --name=gunicorn-prometheus --restart=always
         -e INSTANCE=mall -e TARGET=prometheus -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
-        --volumes-from=static -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9003:9000
+        --volumes-from=static -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9004:9000
         -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
         blueware-admin run-program gunicorn -k gevent -w 1 -c taobao_gunicorn_conf.py shopmanager.wsgi
   ssh:
