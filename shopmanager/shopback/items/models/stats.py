@@ -246,6 +246,16 @@ post_save.connect(invalid_apiskustat_cache, sender=ProductSkuStats, dispatch_uid
 def assign_stock_to_package_sku_item(sender, instance, created, **kwargs):
     from shopback.items.tasks import task_assign_stock_to_package_sku_item
     if not created:
+        logger = logging.getLogger('service')
+        logger.info({
+            'action': 'skustat.pstat.assign_stock_to_package_sku_item',
+            'instance': instance.sku_id,
+            'realtime_quantity': instance.realtime_quantity,
+            'assign_num': instance.assign_num,
+            'sold_num': instance.sold_num,
+            'post_num': instance.post_num,
+            'not_assign_num': instance.not_assign_num,
+        })
         task_assign_stock_to_package_sku_item.delay(instance)
 
 
