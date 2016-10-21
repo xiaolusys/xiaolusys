@@ -121,7 +121,7 @@ def task_packageskuitem_update_productskustats(sku_id):
     logger.info("%s -sku_id:%s" % (get_cur_info(), sku_id))
     sum_res = PackageSkuItem.objects.filter(sku_id=sku_id, pay_time__gt=ProductSkuStats.PRODUCT_SKU_STATS_COMMIT_TIME). \
         exclude(assign_status=PackageSkuItem.CANCELED).values("assign_status").annotate(total=Sum('num'))
-    wait_assign_num, assign_num, post_num = 0, 0, 0
+    wait_assign_num, assign_num, post_num, third_assign_num= 0, 0, 0, 0
 
     for entry in sum_res:
         if entry["assign_status"] == PackageSkuItem.NOT_ASSIGNED:
@@ -130,7 +130,9 @@ def task_packageskuitem_update_productskustats(sku_id):
             assign_num = entry["total"]
         elif entry["assign_status"] == PackageSkuItem.FINISHED:
             post_num = entry["total"]
-    sold_num = wait_assign_num + assign_num + post_num
+        elif entry['assign_status'] == PackageSkuItem.VIRTUAL_ASSIGNED:
+            third_assign_num = entry["total"]
+    sold_num = wait_assign_num + assign_num + post_num + third_assign_num
     params = {"sold_num": sold_num, "assign_num": assign_num, "post_num": post_num}
     klogger = logging.getLogger('service')
     klogger.info({
