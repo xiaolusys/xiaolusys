@@ -1485,11 +1485,11 @@ def task_orderdetail_update_orderlist(od):
             ol.save(update_fields=['updated'])
 
 
-@task(max_retries=3, default_retry_delay=6)
+@task()
 @transaction.atomic
-def task_purchasearrangement_update_purchasedetail(pa):
+def task_purchasearrangement_update_purchasedetail(paid):
     # print "debug: %s" % utils.get_cur_info()
-
+    pa = PurchaseArrangement.objects.get(id=paid)
     res = PurchaseArrangement.objects.filter(purchase_order_unikey=pa.purchase_order_unikey,
                                              sku_id=pa.sku_id, status=PurchaseArrangement.EFFECT).aggregate(total=Sum('num'))
 

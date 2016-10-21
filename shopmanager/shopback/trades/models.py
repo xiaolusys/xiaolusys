@@ -1228,6 +1228,7 @@ class TradeWuliu(models.Model):
     modified = models.DateTimeField(null=True, auto_now=True, blank=True, verbose_name=u'修改日期')
     errcode = models.CharField(max_length=64, blank=True, verbose_name=u'错误代码')
     remark = models.CharField(max_length=64, blank=True, verbose_name=u'备注')
+    reason = models.CharField(max_length=128, blank=True, verbose_name=u'原因')
 
     class Meta:
         db_table = 'shop_trades_wuliudetail'

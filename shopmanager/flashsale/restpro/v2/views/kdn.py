@@ -80,6 +80,7 @@ class KdnView(APIView):
         LogisticCode = RequestData["Data"][0]["LogisticCode"]
         ShipperCode = RequestData["Data"][0]["ShipperCode"]
         State = RequestData["Data"][0]["State"]
+        Reason = RequestData["Data"][0]["Reason"]
         Traces = RequestData["Data"][0]["Traces"]
         print RequestData
         write_info = {
@@ -91,7 +92,8 @@ class KdnView(APIView):
             "ShipperCode" : ShipperCode,
             "Traces": json.dumps(Traces),
             "DataSign": DataSign,
-            "State": State
+            "State": State,
+            "Reason":Reason
                     }
         print ShipperCode
         write_info = {
@@ -99,9 +101,15 @@ class KdnView(APIView):
             "logistics_company": exp_map.reverse_map().get(write_info['ShipperCode'], None),
             "status": write_info['State'],
             "time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "content": write_info['Traces']
+            "content": write_info['Traces'],
+            "reason" : write_info['Reason']
         }
-        print write_info['logistics_company']
+        if write_info["reason"]:
+            logger.warn({'action':"kdn",'info':'wrong_reason'+ShipperCode+':'+write_info['reason']})
+        # if not write_info["content"]:
+        #     logger.warn({'action': "kdn", 'info': 'wrong_trace' + ShipperCode + ':' + 'trace_is_null'})
+        #     return Response({"Success": False, "EBusinessID": str(1264368),
+        #                      "UpdateTime": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Reason": "轨迹为空"})
         logger.info(write_info)
         logger.warn({'action': "kdn", 'info': ShipperCode})
         try:

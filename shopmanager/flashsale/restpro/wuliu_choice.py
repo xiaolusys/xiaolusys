@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-from tasks import kdn_sub
+from tasks import kdn_sub,kdn_search
 from .kdn_wuliu_extra import format_content
 import logging
 
@@ -31,6 +31,7 @@ def zero_tradewuliu(logistics_company,out_sid,tradewuliu):
     logger.warn({'action': "kdn", 'info': "zero_tradewuliu"})
     wuliu_info = {"expName": logistics_company, "expNo": out_sid}
     kdn_sub.delay(rid=None, expName=logistics_company, expNo=out_sid)
+    kdn_search.delay(rid=None, expName=logistics_company, expNo=out_sid)
     return "物流信息暂未获得"
 
 result_choice = {1:one_tradewuliu,0:zero_tradewuliu}

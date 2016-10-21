@@ -224,8 +224,15 @@ def kdn_sub(rid, expName, expNo):
     logging.warn("开始订阅了")
     logger.warn({'action': "kdn", 'info': "kdn_sub_expNo:"+str(expNo)})
     exp_info = {"expName": expName, "expNo": expNo}
-    kdn_subscription(**exp_info)
     kdn_subscription_sub(**exp_info)
+
+@task()
+def kdn_search(rid, expName, expNo):
+    logging.warn(expNo)
+    logging.warn("开始查询了")
+    logger.warn({'action': "kdn", 'info': "kdn_search_expNo:"+str(expNo)})
+    exp_info = {"expName": expName, "expNo": expNo}
+    kdn_subscription(**exp_info)
 
 @task()
 def kdn_get_push(*args, **kwargs):
