@@ -154,6 +154,7 @@ def task_packageskuitem_update_productskustats(sku_id):
 
 @task
 def task_refundproduct_update_productskustats_return_quantity(sku_id):
+    logger.warn({"action":"buy_rf","info":"start_update_new_goods_sys"+"sku_id"+sku_id})
     from shopback.refunds.models import RefundProduct
     logger.info("%s -sku_id:%s" % (get_cur_info(), sku_id))
     sum_res = RefundProduct.objects.filter(sku_id=sku_id, created__gt=ProductSkuStats.PRODUCT_SKU_STATS_COMMIT_TIME, can_reuse=True)\
