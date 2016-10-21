@@ -100,7 +100,6 @@ class TeamBuy(AdminModel):
         from shopback.warehouse.constants import WARE_THIRD
         from flashsale.pay.constants import BUDGET
         self.status = 2
-        self.save()
         oids = []
         for detail in self.details.all():
             saleorder = detail.saleorder
@@ -109,7 +108,9 @@ class TeamBuy(AdminModel):
                 salerefund.refund_approve()  # 退款给用户
             oids.append(detail.oid)
         PackageSkuItem.objects.filter(oid__in=oids).update(assign_status=3)
-
+        if len(oids) == 0:
+            raise Exception(u'此团购名下没有订单')
+        self.save()
         from shopapp.weixin.tasks.tasks_order_push import task_pintuan_fail_push
         task_pintuan_fail_push.delay(self)  # 拼团失败微信推送
 
