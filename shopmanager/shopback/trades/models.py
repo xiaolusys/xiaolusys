@@ -2110,6 +2110,13 @@ def update_productskustats(sender, instance, created, **kwargs):
     Whenever PackageSkuItem changes, PackageSkuItemStats has to change accordingly.
     """
     from shopback.items.tasks_stats import task_packageskuitem_update_productskustats
+    logger = logging.getLogger('service')
+    logger.info({
+        'action': 'skustat.pstat.update_productskustats',
+        'instance': instance.sku_id,
+        'psi_id': instance.id,
+        'assign_status': instance.assign_status,
+    })
     task_packageskuitem_update_productskustats(instance.sku_id)
     # task_packageskuitem_update_productskustats.delay(instance.sku_id)
 
