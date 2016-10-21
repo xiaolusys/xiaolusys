@@ -365,7 +365,7 @@ if __name__ == '__main__':
     # test_info = {"expName" : '韵达快递',"expNo":"3101131769194"}
     # kdn_subscription_sub(**test_info)
     # format_content()
-    comfirm_get('229785605639','3')
+    comfirm_get('3101131769194','3')
 
 
 
