@@ -254,7 +254,6 @@ class RefundView(APIView):
 
         return Response(prod_list)
 
-    @transaction.atomic()
     def post(self, request, *args, **kwargs):
         content = request.REQUEST
         rf = RefundProduct()
