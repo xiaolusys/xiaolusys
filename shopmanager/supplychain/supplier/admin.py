@@ -1037,15 +1037,16 @@ admin.site.register(SaleProductManage, SaleProductManageAdmin)
 class SaleProductManageDetailChangeList(ChangeList):
     def get_queryset(self, request):
         search_q = request.GET.get('q', '').strip()
-        if search_q:
+        if search_q.isdigit():
             md = ModelProduct.objects.filter(id=search_q).first()
             if md and md.saleproduct:
-                details = SaleProductManageDetail.objects.filter(models.Q(sale_product_id=md.saleproduct.id) |
-                                                                 models.Q(id=search_q) |
-                                                                 models.Q(sale_product_id=search_q))
-            else:
-                return super(SaleProductManageDetailChangeList, self).get_queryset(request)
-            return details
+                details = SaleProductManageDetail.objects.filter(
+                    models.Q(sale_product_id=md.saleproduct.id) |
+                    models.Q(id=search_q) |
+                    models.Q(sale_product_id=search_q)
+                )
+                return details
+
         return super(SaleProductManageDetailChangeList, self).get_queryset(request)
 
 

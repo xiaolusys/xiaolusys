@@ -590,12 +590,12 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
     def filter_queryset(self, queryset):
         for backend in list(self.filter_backends):
             queryset = backend().filter_queryset(self.request, queryset, self)
-        sale_product_ids = queryset.values('sale_product_id')
+        sale_product_ids = list(queryset.values_list('sale_product_id', flat=True))
 
         sakeproducts = SaleProduct.objects.filter(id__in=sale_product_ids)
         for bk in list(SaleProductViewSet.filter_backends):
             sakeproducts = bk().filter_queryset(self.request, sakeproducts, SaleProductViewSet)
-        p_ids = sakeproducts.values('id')
+        p_ids = list(sakeproducts.values_list('id', flat=True))
         return queryset.filter(sale_product_id__in=p_ids)
 
     def list(self, request, schedule_id=None, *args, **kwargs):

@@ -405,7 +405,8 @@ class SaleProductManageSerializer(serializers.ModelSerializer):
 
         category_product_nums = {}
         details = []
-        for d in obj.manage_schedule.all():
+        manage_schedules = obj.manage_schedule.all()
+        for d in manage_schedules:
             details.append(d.sale_product)
             if not category_product_nums.has_key(d.sale_category):
                 category_product_nums[d.sale_category] = 1
