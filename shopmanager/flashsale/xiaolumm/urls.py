@@ -11,7 +11,8 @@ from flashsale.xiaolumm.views import views_top100_iter
 from . import top_view_api
 from views import views, views_duokefu, views_xlmminfo, views_order_percent
 from views import views_register
-from views import views_xlmm_active, views_xlmm_adver, views_cashout
+from views import views_xlmm_active, views_cashout
+from flashsale.xiaolumm.views.views_advertis import NinePicAdverViewSet
 
 urlpatterns = patterns('',
                        url(r'^$', views.landing),
@@ -88,15 +89,6 @@ urlpatterns = patterns('',
                        url(r'^top/', staff_member_required(top_view_api.TopDataView.as_view()), name="xlmm_tp_api"),
                        url(r'^xlmm_active/', staff_member_required(views_xlmm_active.XlmmActive.as_view()),
                            name="xlmm_active"),
-                       url(r'^adver_nine_pic/', staff_member_required(views_xlmm_adver.NinepicView.as_view()),
-                           name="nine_pic"),
                        url(r'^cashout_bathandler/', staff_member_required(views_cashout.CashoutBatView.as_view()),
                            name="cashout_bat"),
-
                        )
-
-from flashsale.xiaolumm.views.views_advertis import NinePicAdverViewSet
-
-router = routers.DefaultRouter(trailing_slash=False)
-router.register(r'ninepic', NinePicAdverViewSet)
-urlpatterns += router.urls
