@@ -370,9 +370,18 @@ function initActions(){
         <a href="/sale/dinghuo/changedetail/{{ orderlist.id }}/export" target="_blank">
             <span class="label label-success" style="font-size: 15px">导出订货excel</span>
         </a>
-        <a href="/sale/dinghuo/dinghuo_orderlist/{{ orderlist.id }}/export_package" target="_blank">
-            <span class="label label-success" style="font-size: 15px">导出发货excel</span>
-        </a>
+    </div>
+    <div class="col-lg-2">
+        <div class="btn-group">
+            <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">导出发货excel
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" role="menu">
+                <li><a href="/sale/dinghuo/dinghuo_orderlist/{{ orderlist.id }}/export_package">普通</a></li>
+                <li><a href="/sale/dinghuo/dinghuo_orderlist/{{ orderlist.id }}/export_package?fo=third_package1">拆分地址</a></li>
+                <li class="divider"></li>
+            </ul>
+        </div>
     </div>
     {%if orderlist.third_package%}
     <div class="col-lg-4">
