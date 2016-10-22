@@ -2064,7 +2064,7 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         except Exception, e0:
             raise exceptions.ValidationError(e0.message)
             # 前段懒得美化了raise exceptions.ValidationError(make_response(e0.message))
-        items = columns + items
+        items = [columns] + items
         buff = StringIO()
         is_windows = request.META['HTTP_USER_AGENT'].lower().find(
             'windows') > -1
