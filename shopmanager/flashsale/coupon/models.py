@@ -769,11 +769,11 @@ class CouponTransferRecord(BaseModel):
     # 
     coupon_from_mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'源头妈妈ID')
     from_mama_thumbnail = models.CharField(max_length=256, blank=True, verbose_name=u'源头妈妈头像')
-    from_nama_nick = models.CharField(max_length=64, blank=True, verbose_name=u'源头妈妈昵称')
-
+    from_mama_nick = models.CharField(max_length=64, blank=True, verbose_name=u'源头妈妈昵称')
+    
     coupon_to_mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'终点妈妈ID')
     to_mama_thumbnail = models.CharField(max_length=256, blank=True, verbose_name=u'终点妈妈头像')
-    to_nama_nick = models.CharField(max_length=64, blank=True, verbose_name=u'终点妈妈昵称')
+    to_mama_nick = models.CharField(max_length=64, blank=True, verbose_name=u'终点妈妈昵称')
     
     template_id = models.IntegerField(default=TEMPLATE_ID, db_index=True, verbose_name=u'优惠券模版')
     coupon_value = models.IntegerField(default=COUPON_VALUE, verbose_name=u'面额')
@@ -795,7 +795,6 @@ class CouponTransferRecord(BaseModel):
         # from_mama_id + to_mama_id + template_id + date_field + idx
         idx = cls.objects.filter(coupon_from_mama_id=from_mama_id,coupon_to_mama_id=to_mama_id,template_id=template_id,date_field=date_field).count()
         idx = idx + 1
-        print idx
 
         if idx > cls.MAX_DAILY_TRANSFER:
             return None

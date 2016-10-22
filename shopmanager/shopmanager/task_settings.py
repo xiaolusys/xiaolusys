@@ -779,6 +779,10 @@ CELERY_ROUTES = {
         'queue': 'peroid',
         'routing_key': 'peroid.push_xlmm_pending_cash',
     },  # 结算小鹿妈妈们待确认提成
+    'flashsale.xiaolumm.tasks.mission.task_batch_execute_mission_update': {
+        'queue': 'peroid',
+        'routing_key': 'peroid.task_batch_execute_mission_update',
+    },
     #######################################################
     'shopapp.notify.tasks.process_trade_notify_task': {
         'queue': 'notify',
