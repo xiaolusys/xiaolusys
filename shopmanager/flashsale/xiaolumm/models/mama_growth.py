@@ -184,14 +184,18 @@ class MamaSaleGrade(BaseModel):
             mama_id=self.mama_id
         ).first()
 
-        last_week_target_value = mama_1st_record and mama_1st_record.target_value or 0
-        last_week_finish_value = get_mama_week_sale_amount([self.mama_id], week_start, week_end)
+        last_week_target_value = mama_1st_record and mama_1st_record.target_value or self.grade
+        last_week_finish_value = get_mama_week_sale_amount([self.mama_id], week_start, week_end) or self.grade
         finish_stage = utils.get_mama_target_stage(last_week_finish_value)
         last_target_stage = mama_1st_record and utils.get_mama_target_stage(last_week_target_value) or 0
+        delta_stage = max(last_target_stage - finish_stage, 0)
         if mama_1st_record and mama_1st_record.is_finished():
             target_stage = max(finish_stage + 1, last_target_stage + 1)
         elif mama_1st_record and not mama_1st_record.is_finished():
-            target_stage = max(last_target_stage - 1, finish_stage + 1, 1)
+            if delta_stage < 4:
+                target_stage = max(last_target_stage - 1, finish_stage + 1, 1)
+            else:
+                target_stage = max(finish_stage + delta_stage / 2, finish_stage + 1)
         else:
             target_stage = finish_stage + 1
         target_amount = utils.get_mama_stage_target(target_stage)
@@ -297,10 +301,10 @@ class MamaMission(BaseModel):
             now_time_min = datetime.datetime.combine(datetime.datetime.today(), datetime.time.min)
             week_day     = int(now_time_max.strftime('%w')) or 7
             last_week_end = now_time_max - datetime.timedelta(days=week_day)
-            two_week_ago = now_time_min - datetime.timedelta(days=week_day + 13)
+            two_week_ago = now_time_min - datetime.timedelta(days=week_day + 28)
             carry_orders = get_mama_week_sale_orders([mama_id], two_week_ago, last_week_end)
             carry_weeks  = set([dt.strftime('%Y-%W') for dt in carry_orders.values_list('date_field', flat=True)])
-            return len(carry_weeks) > 1
+            return len(carry_weeks) > 0
 
         return True
 
