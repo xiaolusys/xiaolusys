@@ -2062,7 +2062,7 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         try:
             columns, items = orderlist.to_excel_data(excel_format)
         except Exception, e0:
-            raise exceptions.ValidationError(e0.message)
+            raise exceptions.ValidationError(make_response(e0.message))
             # 前段懒得美化了raise exceptions.ValidationError(make_response(e0.message))
         items = [columns] + items
         buff = StringIO()
