@@ -15,3 +15,4 @@ from .misssion import MamaMissionRecordViewset
 from .kdn_wuliu import *
 from .checkin import CheckinViewSet
 from .qrcode import QRcodeViewSet
+from .views_coupon import CouponTransferRecordViewSet
