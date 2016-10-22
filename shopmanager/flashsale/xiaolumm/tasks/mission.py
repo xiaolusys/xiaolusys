@@ -232,6 +232,13 @@ def task_create_or_update_mama_mission_state(mama_id):
 
 
 @task
+def task_batch_execute_mission_update(params_list, task_func):
+    """ small batch execute a larget tasks """
+    jobs = group([task_func.s(*param) for param in params_list])
+    jobs.delay()
+
+
+@task
 def task_update_all_mama_mission_state():
     xiaolumms = XiaoluMama.objects.filter(
         status=XiaoluMama.EFFECT,
@@ -239,33 +246,36 @@ def task_update_all_mama_mission_state():
         last_renew_type__in=(XiaoluMama.HALF, XiaoluMama.FULL)
     )
     xiaolumama_ids = xiaolumms.values_list('id', flat=True)
-
-    jobs = group([task_create_or_update_mama_mission_state.s(mid) for mid in xiaolumama_ids])
-    jobs.delay()
+    batch_number = 500
+    for i in range(0, len(xiaolumama_ids), batch_number):
+        mama_ids = xiaolumama_ids[i : i + batch_number]
+        params = [(mama_id, ) for mama_id in mama_ids]
+        task_batch_execute_mission_update.delay(params, task_create_or_update_mama_mission_state)
 
 
 @task
 def task_notify_all_mama_staging_mission():
     """ 消息通知妈妈还有哪些未完成任务 """
     year_week = datetime.datetime.now().strftime('%Y-%W')
-    # twelve_hours_ago = datetime.datetime.now() - datetime.timedelta(seconds=12 * 60 * 60)
+    twelve_hours_ago = datetime.datetime.now() - datetime.timedelta(days=7)
     # 12小时内产生的任务不重复发送消息
     mama_missions = MamaMissionRecord.objects.filter(
         year_week = year_week,
         mission__date_type=MamaMission.TYPE_WEEKLY,
         status = MamaMissionRecord.STAGING,
-        # created__lte=twelve_hours_ago
+        created__gte=twelve_hours_ago
     ).order_by('-mission__cat_type')
 
     logger.info('task_notify_all_mama_staging_mission start: date=%s, count=%s'%(
         datetime.datetime.now(), mama_missions.count()))
     mission_ids = mama_missions.values_list('id', flat=True)
 
-    jobs = group([task_push_mission_state_msg_to_weixin_user.s(mid, MamaMissionRecord.STAGING) for mid in mission_ids])
-    jobs.delay()
+    batch_number = 500
+    for i in range(0, len(mission_ids), batch_number):
+        mama_ids = mission_ids[i: i + batch_number]
+        params = [(mama_id, MamaMissionRecord.STAGING) for mama_id in mama_ids]
+        task_batch_execute_mission_update.delay(params, task_push_mission_state_msg_to_weixin_user)
 
-    logger.info('task_notify_all_mama_staging_mission end: date=%s' % (
-        datetime.datetime.now()))
 
 
 @task(max_retries=3, default_retry_delay=5)
