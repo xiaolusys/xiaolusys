@@ -5,6 +5,7 @@ __author__ = 'yann'
 import re
 import sys
 import urllib2
+import json
 import datetime
 from collections import defaultdict
 
@@ -1488,8 +1489,13 @@ def task_orderdetail_update_orderlist(od):
 @task()
 @transaction.atomic
 def task_purchasearrangement_update_purchasedetail(paid):
-    # print "debug: %s" % utils.get_cur_info()
+    klogger = logging.getLogger('service')
+    klogger.info({
+        'action': 'skustat.pstat.task_purchasearrangement_update_purchasedetail.start',
+        'paid': paid
+    })
     pa = PurchaseArrangement.objects.get(id=paid)
+
     res = PurchaseArrangement.objects.filter(purchase_order_unikey=pa.purchase_order_unikey,
                                              sku_id=pa.sku_id, status=PurchaseArrangement.EFFECT).aggregate(total=Sum('num'))
 
@@ -1497,6 +1503,12 @@ def task_purchasearrangement_update_purchasedetail(paid):
 
     unit_price = int(utils.get_unit_price(pa.sku_id) * 100)
     uni_key = utils.gen_purchase_detail_unikey(pa)
+
+    klogger.info({
+        'action': 'skustat.pstat.task_purchasearrangement_update_purchasedetail',
+        'sku_id': pa.sku_id,
+        'params': json.dumps({'uni_key':uni_key, 'purchase_order_unikey':pa.purchase_order_unikey}),
+    })
     pd = PurchaseDetail.objects.filter(uni_key=uni_key).first()
     if not pd:
         pd = PurchaseDetail(uni_key=uni_key, purchase_order_unikey=pa.purchase_order_unikey,
