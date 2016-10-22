@@ -105,14 +105,35 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['GET'])
     def list_out_coupons(self, request, *args, **kwargs):
-        mama_id = get_mama_id(request.user)
-        coupons = self.queryset.filter(coupon_from_mama_id=mama_id)
+        content = request.GET
+        transfer_status = content.get("transfer_status") or None
+        status = CouponTransferRecord.EFFECT
+        
+        #mama_id = get_mama_id(request.user)
+        mama_id=44
+        coupons = self.queryset.filter(coupon_from_mama_id=mama_id,status=status)
+        if transfer_status:
+            coupons = coupons.filter(transfer_status=transfer_status.strip())
+            
         serializer = CouponTransferRecordSerializer(coupons, many=True)
-        return Response(serializer.data)
+        res = Response(serializer.data)
+        res["Access-Control-Allow-Origin"] = "*"
+        
+        return res
 
     @list_route(methods=['GET'])
     def list_in_coupons(self, request, *args, **kwargs):
-        mama_id = get_mama_id(request.user)
-        coupons = self.queryset.filter(coupon_to_mama_id=mama_id)
+        content = request.GET
+        transfer_status = content.get("transfer_status") or None
+        status = CouponTransferRecord.EFFECT
+        
+        #mama_id = get_mama_id(request.user)
+        mama_id=1
+        coupons = self.queryset.filter(coupon_to_mama_id=mama_id,status=status)
+        if transfer_status:
+            coupons = coupons.filter(transfer_status=transfer_status.strip())
+
         serializer = CouponTransferRecordSerializer(coupons, many=True)
-        return Response(serializer.data)
+        res = Response(serializer.data)
+        res["Access-Control-Allow-Origin"] = "*"
+        return res
