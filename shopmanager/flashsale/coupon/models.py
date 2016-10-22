@@ -31,6 +31,15 @@ def default_template_extras():
         'templates': {'post_img': ''}  # 优惠券模板
     }
 
+def get_choice_name(choices, val):
+    """
+    iterate over choices and find the name for this val
+    """
+    name = ""
+    for entry in choices:
+        if entry[0] == val:
+            name = entry[1]
+    return name
 
 class CouponTemplate(BaseModel):
     """ 优惠券模板 """
@@ -731,6 +740,8 @@ post_save.connect(update_mobile_download_record, sender=TmpShareCoupon,
 
 
 class CouponTransferRecord(BaseModel):
+    TEMPLATE_ID = 153
+    COUPON_VALUE = 128
     MAX_DAILY_TRANSFER = 60 # 每天两人间最大流通次数:60次
         
     OUT_CASHOUT = 1 #退券换钱/out
@@ -756,13 +767,19 @@ class CouponTransferRecord(BaseModel):
     # The design follows the route that a coupon is transfered from an agency (coupon_from_mama_id) to
     # another agency (coupon_to_mama_id).
     # 
-    coupon_from_mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'发起/妈妈ID')
-    coupon_to_mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'收到/妈妈ID')
-    template_id = models.IntegerField(default=0, db_index=True, verbose_name=u'优惠券模版')
-    coupon_value = models.IntegerField(default=0, verbose_name=u'面额')
+    coupon_from_mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'源头妈妈ID')
+    from_mama_thumbnail = models.CharField(max_length=256, blank=True, verbose_name=u'源头妈妈头像')
+    from_nama_nick = models.CharField(max_length=64, blank=True, verbose_name=u'源头妈妈昵称')
+
+    coupon_to_mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'终点妈妈ID')
+    to_mama_thumbnail = models.CharField(max_length=256, blank=True, verbose_name=u'终点妈妈头像')
+    to_nama_nick = models.CharField(max_length=64, blank=True, verbose_name=u'终点妈妈昵称')
+    
+    template_id = models.IntegerField(default=TEMPLATE_ID, db_index=True, verbose_name=u'优惠券模版')
+    coupon_value = models.IntegerField(default=COUPON_VALUE, verbose_name=u'面额')
     coupon_num = models.IntegerField(default=0, verbose_name=u'数量')
     transfer_type = models.IntegerField(default=0, db_index=True, choices=TRANSFER_TYPES, verbose_name=u'流通类型')
-    transfer_status = models.IntegerField(default=0, db_index=True, choices=TRANSFER_STATUS, verbose_name=u'流通状态')
+    transfer_status = models.IntegerField(default=1, db_index=True, choices=TRANSFER_STATUS, verbose_name=u'流通状态')
     status = models.IntegerField(default=1, db_index=True, choices=STATUS_TYPES, verbose_name=u'状态')
     uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')
     date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
@@ -770,14 +787,15 @@ class CouponTransferRecord(BaseModel):
     class Meta:
         db_table = "flashsale_coupon_transfer_record"
         app_label = 'coupon'
-        verbose_name = u"特卖/精品券流记录（入）"
-        verbose_name_plural = u"特卖/精品券流通记录表（入）"
+        verbose_name = u"特卖/精品券流通记录"
+        verbose_name_plural = u"特卖/精品券流通记录表"
 
     @classmethod
     def gen_unikey(cls, from_mama_id, to_mama_id, template_id, date_field):
         # from_mama_id + to_mama_id + template_id + date_field + idx
-        idx = cls.objects.filter(from_mama_id=from_mama_id,to_mama_id=to_mama_id,template_id=template_id,date_field=date_field).count()
+        idx = cls.objects.filter(coupon_from_mama_id=from_mama_id,coupon_to_mama_id=to_mama_id,template_id=template_id,date_field=date_field).count()
         idx = idx + 1
+        print idx
 
         if idx > cls.MAX_DAILY_TRANSFER:
             return None
@@ -796,5 +814,14 @@ class CouponTransferRecord(BaseModel):
         stock_num = in_num - out_num
         return stock_num
     
+    @property
+    def month_day(self):
+        return self.created.strftime('%m-%d')
 
-        
+    @property
+    def hour_minute(self):
+        return self.created.strftime('%H:%M')
+
+    @property
+    def transfer_status_display(self):
+        return get_choice_name(self.TRANSFER_STATUS, self.transfer_status)
