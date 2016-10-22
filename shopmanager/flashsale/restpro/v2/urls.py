@@ -50,6 +50,7 @@ v2_router.register(r'acteamrank', week_rank.ActivityMamaTeamCarryTotalViewSet)
 v2_router.register(r'message', views_message.XlmmMessageViewSet)
 v2_router.register(r'award', award.PotentialMamaAwardViewset)
 v2_router.register(r'mission', views.MamaMissionRecordViewset)
+v2_router.register(r'trancoupon', views.CouponTransferRecordViewSet)
 
 v2_router_urls = v2_router.urls
 v2_router_urls += format_suffix_patterns([
