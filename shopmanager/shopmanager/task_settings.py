@@ -1410,7 +1410,7 @@ SHOP_APP_SCHEDULE = {
 
     u'定时更新全部未收到货包裹的物流信息': {
         'task': 'flashsale.restpro.tasks.update_all_logistics',
-        'schedule': crontab(minute="0", hour="5"),
+        'schedule': crontab(minute="0", hour="1"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
@@ -1422,7 +1422,7 @@ SHOP_APP_SCHEDULE = {
     # },
     u'定时更新订阅客户退货的物流信息通过快递鸟': {  # by huazi
         'task': 'flashsale.restpro.tasks.update_all_return_logistics_bykdn',
-        'schedule': crontab(minute="0", hour="6"),
+        'schedule': crontab(minute="0", hour="2"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
