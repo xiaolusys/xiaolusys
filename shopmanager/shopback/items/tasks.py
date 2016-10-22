@@ -1029,7 +1029,6 @@ def task_assign_stock_to_package_sku_item(instance):
         relase_package_sku_item(instance)
 
 
-@transaction.atomic
 def assign_stock_to_package_sku_item(stat):
     from shopback.trades.models import PackageSkuItem
     available_num = stat.realtime_quantity - stat.assign_num
@@ -1064,7 +1063,6 @@ def assign_stock_to_package_sku_item(stat):
             })
 
 
-@transaction.atomic
 def relase_package_sku_item(stat):
     sku_id = stat.sku_id
     from shopback.trades.models import PackageSkuItem
