@@ -766,6 +766,14 @@ class XiaoluMama(BaseModel):
         }
         return level_map[self.agencylevel]
 
+    def can_buy_transfer_coupon(self):
+        """
+        We use referal_from to judge whether or not a mama can buy TransferCoupon directly.
+        """
+        if self.referal_from == 'DIRECT':
+            return True
+        return False
+    
     def fill_info(self, mobile, referal_from):
         update_fields = []
         if self.mobile is None or (not self.mobile.strip()):

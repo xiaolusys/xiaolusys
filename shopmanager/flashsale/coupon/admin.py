@@ -2,7 +2,7 @@
 from django.contrib import admin
 
 from core.filters import DateFieldListFilter
-from flashsale.coupon.models import CouponTemplate, OrderShareCoupon, UserCoupon, TmpShareCoupon
+from flashsale.coupon.models import CouponTemplate, OrderShareCoupon, UserCoupon, TmpShareCoupon, CouponTransferRecord
 
 
 class CouponTemplateAdmin(admin.ModelAdmin):
@@ -90,3 +90,13 @@ class TmpShareCouponAdmin(admin.ModelAdmin):
 
 
 admin.site.register(TmpShareCoupon, TmpShareCouponAdmin)
+
+
+class CouponTransferRecordAdmin(admin.ModelAdmin):
+    list_display = ('coupon_from_mama_id', 'coupon_to_mama_id', 'template_id',
+                    'coupon_value', 'coupon_num', 'transfer_type', 'transfer_status', 'status', 'uni_key', 'date_field',
+                    'modified', 'created')
+    list_filter = ('transfer_type', 'transfer_status', 'status')
+    search_fields = ['=coupon_from_mama_id', '=coupon_to_mama_id']
+
+admin.site.register(CouponTransferRecord, CouponTransferRecordAdmin)

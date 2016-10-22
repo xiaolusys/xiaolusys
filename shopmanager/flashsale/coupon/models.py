@@ -31,6 +31,15 @@ def default_template_extras():
         'templates': {'post_img': ''}  # 优惠券模板
     }
 
+def get_choice_name(choices, val):
+    """
+    iterate over choices and find the name for this val
+    """
+    name = ""
+    for entry in choices:
+        if entry[0] == val:
+            name = entry[1]
+    return name
 
 class CouponTemplate(BaseModel):
     """ 优惠券模板 """
@@ -728,3 +737,91 @@ def update_mobile_download_record(sender, instance, created, **kwargs):
 
 post_save.connect(update_mobile_download_record, sender=TmpShareCoupon,
                   dispatch_uid='post_save_update_mobile_download_record')
+
+
+class CouponTransferRecord(BaseModel):
+    TEMPLATE_ID = 153
+    COUPON_VALUE = 128
+    MAX_DAILY_TRANSFER = 60 # 每天两人间最大流通次数:60次
+        
+    OUT_CASHOUT = 1 #退券换钱/out
+    OUT_TRANSFER = 2 #转给下属/out
+    OUT_CONSUMED = 3 #直接买货/out
+    IN_BUY_COUPON = 4 #花钱买券/in
+    IN_RETURN_COUPON = 5 #下属退券/in
+    IN_RETURN_GOODS = 6 #退货退券/in
+    TRANSFER_TYPES = ((OUT_CASHOUT, u'退券换钱'),(OUT_TRANSFER, u'转给下属'),(OUT_CONSUMED, u'直接买货'),
+                      (IN_BUY_COUPON, u'花钱买券'),(IN_RETURN_COUPON, u'下属退券'),(IN_RETURN_GOODS, u'退货退券'))
+    
+    PENDING = 1
+    PROCESSED = 2
+    DELIVERED = 3
+    CANCELED = 4
+    TRANSFER_STATUS = ((PENDING, u'待审核'), (PROCESSED, u'待发送'), (DELIVERED, u'已完成'), (CANCELED, u'已取消'),)
+    
+    EFFECT = 1
+    CANCEL = 2
+    STATUS_TYPES = ((EFFECT, u'有效'), (CANCEL, u'无效'), )
+
+    # Note: 
+    # The design follows the route that a coupon is transfered from an agency (coupon_from_mama_id) to
+    # another agency (coupon_to_mama_id).
+    # 
+    coupon_from_mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'源头妈妈ID')
+    from_mama_thumbnail = models.CharField(max_length=256, blank=True, verbose_name=u'源头妈妈头像')
+    from_nama_nick = models.CharField(max_length=64, blank=True, verbose_name=u'源头妈妈昵称')
+
+    coupon_to_mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'终点妈妈ID')
+    to_mama_thumbnail = models.CharField(max_length=256, blank=True, verbose_name=u'终点妈妈头像')
+    to_nama_nick = models.CharField(max_length=64, blank=True, verbose_name=u'终点妈妈昵称')
+    
+    template_id = models.IntegerField(default=TEMPLATE_ID, db_index=True, verbose_name=u'优惠券模版')
+    coupon_value = models.IntegerField(default=COUPON_VALUE, verbose_name=u'面额')
+    coupon_num = models.IntegerField(default=0, verbose_name=u'数量')
+    transfer_type = models.IntegerField(default=0, db_index=True, choices=TRANSFER_TYPES, verbose_name=u'流通类型')
+    transfer_status = models.IntegerField(default=1, db_index=True, choices=TRANSFER_STATUS, verbose_name=u'流通状态')
+    status = models.IntegerField(default=1, db_index=True, choices=STATUS_TYPES, verbose_name=u'状态')
+    uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')
+    date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
+        
+    class Meta:
+        db_table = "flashsale_coupon_transfer_record"
+        app_label = 'coupon'
+        verbose_name = u"特卖/精品券流通记录"
+        verbose_name_plural = u"特卖/精品券流通记录表"
+
+    @classmethod
+    def gen_unikey(cls, from_mama_id, to_mama_id, template_id, date_field):
+        # from_mama_id + to_mama_id + template_id + date_field + idx
+        idx = cls.objects.filter(coupon_from_mama_id=from_mama_id,coupon_to_mama_id=to_mama_id,template_id=template_id,date_field=date_field).count()
+        idx = idx + 1
+        print idx
+
+        if idx > cls.MAX_DAILY_TRANSFER:
+            return None
+        
+        return "%s-%s-%s-%s-%s" % (from_mama_id, to_mama_id, template_id, date_field, idx)
+    
+    @classmethod
+    def get_stock_num(cls, mama_id):
+        from django.db.models import Sum
+        res = cls.objects.filter(coupon_from_mama_id=mama_id).aggregate(n=Sum('coupon_num'))
+        out_num = res['n'] or 0
+
+        res = cls.objects.filter(coupon_to_mama_id=mama_id).aggregate(n=Sum('coupon_num'))
+        in_num = res['n'] or 0
+
+        stock_num = in_num - out_num
+        return stock_num
+    
+    @property
+    def month_day(self):
+        return self.created.strftime('%m-%d')
+
+    @property
+    def hour_minute(self):
+        return self.created.strftime('%H:%M')
+
+    @property
+    def transfer_status_display(self):
+        return get_choice_name(self.TRANSFER_STATUS, self.transfer_status)
