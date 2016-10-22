@@ -103,15 +103,15 @@ class Envelop(PayBaseModel):
             self.send_time = self.send_time or datetime.datetime.now()
             self.status = Envelop.CONFIRM_SEND
             if self.subject == Envelop.XLAPP_CASHOUT:
-                BudgetLog.objects.filter(id=self.referal_id).update(status=BudgetLog.CONFIRMED,modified=modified)
+                BudgetLog.objects.filter(id=self.referal_id).update(status=BudgetLog.CONFIRMED, modified=modified)
             elif self.subject == Envelop.CASHOUT:
-                CashOut.objects.filter(id=self.referal_id).update(status=CashOut.APPROVED,modified=modified)
+                CashOut.objects.filter(id=self.referal_id).update(status=CashOut.APPROVED, modified=modified)
         elif status in (self.SEND_FAILED, self.REFUND) and self.status == self.WAIT_SEND:
             self.status = Envelop.FAIL
             if self.subject == Envelop.XLAPP_CASHOUT:
-                BudgetLog.objects.filter(id=self.referal_id).update(status=BudgetLog.CANCELED,modified=modified)
+                BudgetLog.objects.filter(id=self.referal_id).update(status=BudgetLog.CANCELED, modified=modified)
             elif self.subject == Envelop.CASHOUT:
-                CashOut.objects.filter(id=self.referal_id).update(status=CashOut.CANCEL,modified=modified)
+                CashOut.objects.filter(id=self.referal_id).update(status=CashOut.CANCEL, modified=modified)
             logger.warn('envelop warn:%s' % envelopd)
         self.save()
 

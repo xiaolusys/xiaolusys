@@ -10,6 +10,7 @@ from django.conf import settings
 from django.db.models import Sum, Count
 from django.forms import model_to_dict
 from django.shortcuts import get_object_or_404
+from django.db import transaction
 from rest_framework import authentication
 from rest_framework import exceptions
 from rest_framework import permissions
@@ -34,7 +35,7 @@ from flashsale.xiaolumm.models.models_fortune import MamaFortune
 from flashsale.pay.models import Envelop
 from shopapp.weixin.models import WeixinUnionID
 
-        
+
 from shopback.items.models import Product, ProductSku
 from . import serializers
 
@@ -815,8 +816,8 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         customer, xlmm = self.get_customer_and_xlmm(request)
         if not (xlmm and customer):
             info = u'你的帐号异常，请联系管理员！'
-            return Response({"code": 10, "info": info}) 
-        
+            return Response({"code": 10, "info": info})
+
         if not xlmm.is_cashoutable():
             return Response({"code": 5, 'msg': '只有正式小鹿妈妈会员才可大额提现！'})
 
@@ -829,8 +830,8 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         uni_key = CashOut.gen_uni_key(xlmm.id, cash_out_type)
         date_field = datetime.date.today()
 
-        cashout = CashOut(xlmm=xlmm.id,value=value,cash_out_type=cash_out_type,
-                          approve_time=datetime.datetime.now(),date_field=date_field,uni_key=uni_key)
+        cashout = CashOut(xlmm=xlmm.id, value=value, cash_out_type=cash_out_type,
+                          approve_time=datetime.datetime.now(), date_field=date_field, uni_key=uni_key)
         cashout.save()
 
         log_action(request.user, cashout, ADDITION, u'{0}用户提交提现申请！'.format(customer.id))
@@ -844,7 +845,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         customer, mama = self.get_customer_and_xlmm(request)
         if not (mama and customer):
             info = u'你的帐号异常，请联系管理员！'
-            return Response({"code": 10, "info": info}) 
+            return Response({"code": 10, "info": info})
 
         mama_id = mama.id
         cash_out_type = CashOut.RED_PACKET
@@ -873,17 +874,18 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         customer, mama = self.get_customer_and_xlmm(request)
         if not (mama and customer):
             info = u'你的帐号异常，请联系管理员！'
-            return Response({"code": 10, "info": info}) 
+            return Response({"code": 10, "info": info})
         mama_id = mama.id
         cash_out_type = CashOut.RED_PACKET
 
-        count = CashOut.objects.filter(xlmm=mama_id, cash_out_type=cash_out_type).exclude(status=CashOut.REJECTED).exclude(status=CashOut.CANCEL).count()
+        count = CashOut.objects.filter(xlmm=mama_id, cash_out_type=cash_out_type) \
+            .exclude(status=CashOut.REJECTED)  \
+            .exclude(status=CashOut.CANCEL).count()
         if count > 0:
             return Response({"code": 1, "info": u"由于微信提现请求繁忙，网页提现仅限首次使用，下载APP登录即可多次提现！"})
 
         return self.noaudit_cashout(request)
-        
-                
+
     @list_route(methods=['post', 'get'])
     def noaudit_cashout(self, request):
         """
@@ -893,7 +895,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         """
         content = request.POST or request.GET
 
-        amount = content.get('amount', None) # 以元为单位
+        amount = content.get('amount', None)  # 以元为单位
         verify_code = content.get('verify_code', None)
 
         if not (amount and verify_code):
@@ -902,20 +904,21 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
 
         from shopback.monitor.models import XiaoluSwitch
         if XiaoluSwitch.is_switch_open(5):
-            return Response({"code":11, "info":'系统维护，提现功能暂时关闭!'})
+            return Response({"code": 11, "info": '系统维护，提现功能暂时关闭!'})
 
         customer, mama = self.get_customer_and_xlmm(request)
         if not (mama and customer):
             info = u'你的帐号异常，请联系管理员！'
-            return Response({"code": 10, "info": info}) 
+            return Response({"code": 10, "info": info})
+
         mobile = customer.mobile
         if not (mobile and mobile.isdigit() and len(mobile) == 11):
             info = u'提现请先至个人中心绑定手机号，以便接收验证码！'
-            return Response({"code": 8, "info": info}) 
+            return Response({"code": 8, "info": info})
 
         from flashsale.restpro.v2.views.verifycode_login import validate_code
         if not validate_code(mobile, verify_code):
-            #info = u'快速提现功能内部测试中，请等待粉丝活动开始！'
+            # info = u'快速提现功能内部测试中，请等待粉丝活动开始！'
             info = u'验证码不对或已过期，请重新发送验证码！'
             return Response({"code": 9, "info": info})
 
@@ -931,7 +934,6 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         if amount < min_cashout_amount:
             info = u'提现金额不得低于%d元!' % int(min_cashout_amount * 0.01)
             return Response({"code": 3, "info": info})
-        
 
         if not mama.is_noaudit_cashoutable():
             info = u'您的店铺尚未激活，不满足快速提现条件!请点击公众号菜单［我的店铺］激活！'
@@ -947,29 +949,41 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         if CashOut.is_cashout_limited(mama_id):
             info = u'今日提现次数已达上限，请明天再来哦！'
             return Response({"code": 6, "info": info})
-        
+
         cash_out_type = CashOut.RED_PACKET
         cash_out_time = datetime.datetime.now()
         uni_key = CashOut.gen_uni_key(mama_id, cash_out_type)
         date_field = datetime.date.today()
-        
-        cashout = CashOut(xlmm=mama_id, value=amount, cash_out_type=cash_out_type, approve_time=cash_out_time,
-                          date_field=date_field, uni_key=uni_key)
-        cashout.save()
-
         wx_union = WeixinUnionID.objects.get(app_key=settings.WXPAY_APPID, unionid=mama.openid)
-
-        mama_memo = u"小鹿妈妈编号:{mama_id},提现前:{pre_cash}".format(mama_id=mama_id,pre_cash=pre_cash)
+        mama_memo = u"小鹿妈妈编号:{mama_id},提现前:{pre_cash}".format(mama_id=mama_id, pre_cash=pre_cash)
         body = u'一份耕耘，一份收获，谢谢你的努力！'
-        en = Envelop(referal_id=cashout.id,amount=amount,recipient=wx_union.openid,
-                     platform=Envelop.WXPUB,subject=Envelop.CASHOUT,status=Envelop.WAIT_SEND,
-                     receiver=mama_id, body=body,description=mama_memo)
-        en.save()
+
+        with transaction.atomic():
+            cashout = CashOut(xlmm=mama_id, value=amount, cash_out_type=cash_out_type, approve_time=cash_out_time,
+                              date_field=date_field, uni_key=uni_key)
+            cashout.save()
+            logger.info({
+                'action': 'xlmm.cashout',
+                'mama_id': mama_id,
+                'amount': amount
+            })
+
+            en = Envelop(referal_id=cashout.id, amount=amount, recipient=wx_union.openid,
+                         platform=Envelop.WXPUB, subject=Envelop.CASHOUT, status=Envelop.WAIT_SEND,
+                         receiver=mama_id, body=body, description=mama_memo)
+            en.save()
+            logger.info({
+                'action': 'xlmm.cashout.envelop',
+                'mama_id': mama_id,
+                'cashout_id': cashout.id,
+                'amount': amount,
+                'status': Envelop.WAIT_SEND,
+                'desc': mama_memo
+            })
         en.send_envelop()
-                          
+
         return Response({"code": 0, "info": u'提交成功！'})
-    
-        
+
     @list_route(methods=['post'])
     def cashout_to_budget(self, request):
         """ 代理提现到用户余额 """
@@ -977,8 +991,8 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         customer, xlmm = self.get_customer_and_xlmm(request)
         if not (xlmm and customer):
             info = u'你的帐号异常，请联系管理员！'
-            return Response({"code": 10, "info": info}) 
-        
+            return Response({"code": 10, "info": info})
+
         if not xlmm.is_cashoutable():
             return Response({"code": 5, 'msg': '只有正式妈妈会员才可大额提现'})
 
@@ -1054,7 +1068,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         customer, xlmm = self.get_customer_and_xlmm(request)
         if not (xlmm and customer):
             info = u'你的帐号异常，请联系管理员！'
-            return Response({"code": 10, "info": info}) 
+            return Response({"code": 10, "info": info})
 
         if not xlmm:
             default_return.update({"code": 3, "info": "用户异常"})
@@ -1118,7 +1132,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         customer, xlmm = self.get_customer_and_xlmm(request)
         if not (xlmm and customer):
             info = u'你的帐号异常，请联系管理员！'
-            return Response({"code": 10, "info": info}) 
+            return Response({"code": 10, "info": info})
 
         default_return = collections.defaultdict(code=0, info='兑换成功!')
         if exchange_type not in exchange_type_map:
