@@ -120,16 +120,16 @@ class WXMessageHttpProxy(HttpProxy):
             resp_drfxml = service.formatParam2XML(ret_params)
             return  HttpResponse(resp_drfxml, content_type="text/xml")
 
-        ret_params = {
-            'ToUserName': params['FromUserName'],
-            'FromUserName': params['ToUserName'],
-            'CreateTime': int(time.time()),
-            'MsgType': WeiXinAutoResponse.WX_TEXT,
-            'Content': u"亲，该公众号暂不支持客服接待功能，如有问题请点击下方菜单 [下载APP], 申请并登录妈妈帐号留言或在线咨询人工客服,谢谢合作！"
-        }
-        response = service.formatParam2XML(ret_params)
-        return HttpResponse(response, content_type="text/xml")
-        # return HttpResponse('success')
+        # ret_params = {
+        #     'ToUserName': params['FromUserName'],
+        #     'FromUserName': params['ToUserName'],
+        #     'CreateTime': int(time.time()),
+        #     'MsgType': WeiXinAutoResponse.WX_TEXT,
+        #     'Content': u"亲，该公众号暂不支持客服接待功能，如有问题请点击下方菜单 [下载APP], 申请并登录妈妈帐号留言或在线咨询人工客服,谢谢合作！"
+        # }
+        # response = service.formatParam2XML(ret_params)
+        # return HttpResponse(response, content_type="text/xml")
+        return HttpResponse('success')
 
         # request_url = self.get_full_url(self.url)
         # request_header = {'Content-type': request.META.get('CONTENT_TYPE'),
