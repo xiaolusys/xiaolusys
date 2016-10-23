@@ -167,7 +167,7 @@ def handleWeiXinMenuRequest(openid, wxpubId, event, eventKey):
             tips = u'(友情提示: 小鹿美美从未也不会发起任何形式的积赞活动，传播积赞活动者均为诈骗，请大家不要参与！)'
             ret_params.update({
                 'MsgType': WeiXinAutoResponse.WX_TEXT,
-                'Content': u"么么哒！终于等到你！\n小鹿妈妈现在可以免费开店啦!\n请点击下方菜单\n[我的收入]->[开店二维码]，\n获取您的专属开店二维码吧！\n"＋tips
+                'Content': u"么么哒！终于等到你！\n小鹿妈妈现在可以免费开店啦!\n请点击下方菜单\n[我的收入]->[开店二维码]，\n获取您的专属开店二维码吧！\n"+tips
                 #u'[玫瑰]亲，这是您的专属二维码，快告诉好友来开店赚佣金吧！'
             })
 
