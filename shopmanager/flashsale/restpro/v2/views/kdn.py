@@ -76,13 +76,13 @@ class KdnView(APIView):
         Count = RequestData["Count"]
         PushTime = RequestData["PushTime"]
         EBusinessID = RequestData["EBusinessID"]
-        Success = RequestData["Data"][0]["Success"]
-        LogisticCode = RequestData["Data"][0]["LogisticCode"]
-        ShipperCode = RequestData["Data"][0]["ShipperCode"]
-        State = RequestData["Data"][0]["State"]
-        Reason = RequestData["Data"][0]["Reason"]
-        Traces = RequestData["Data"][0]["Traces"]
-        print RequestData
+        data = RequestData["Data"]
+        Success = data and data[0].get('Success') or ''
+        LogisticCode = data and data[0].get('LogisticCode') or ''
+        ShipperCode = data and data[0].get('ShipperCode') or ''
+        State = data and data[0].get('State') or ''
+        Reason = data and data[0].get('Reason') or ''
+        Traces = data and data[0].get('Traces') or ''
         write_info = {
             'action': 'push.kdn',
             "EBusinessID":EBusinessID,
@@ -93,9 +93,11 @@ class KdnView(APIView):
             "Traces": json.dumps(Traces),
             "DataSign": DataSign,
             "State": State,
-            "Reason":Reason
-                    }
-        print ShipperCode
+            "Reason": Reason,
+            'Success': Success,
+            'Traces': Traces
+        }
+
         write_info = {
             "out_sid": write_info['LogisticCode'],
             "logistics_company": exp_map.reverse_map().get(write_info['ShipperCode'], None),
