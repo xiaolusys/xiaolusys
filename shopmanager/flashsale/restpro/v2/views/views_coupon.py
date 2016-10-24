@@ -100,10 +100,13 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
 
         mama_id = mama.id
         stock_num = CouponTransferRecord.get_stock_num(mama_id)
+        bought_num = 0
+        
         direct_buy = mama.can_buy_transfer_coupon() #可否直接购买精品券
         direct_buy_link = "http://m.xiaolumeimei.com"
         
-        res = Response({"mama_id": mama_id, "stock_num": stock_num, "direct_buy": direct_buy, "direct_buy_link": direct_buy_link})
+        res = Response({"mama_id": mama_id, "stock_num": stock_num, "bought_num": bought_num,
+                        "direct_buy": direct_buy, "direct_buy_link": direct_buy_link})
         res["Access-Control-Allow-Origin"] = "*"
 
         return res
