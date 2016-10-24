@@ -242,7 +242,10 @@ def write_traces(kwargs):
     
 def format_content(**kwargs):
     content = kwargs["content"]
-    content = json.loads(content)
+    try:
+        content = json.loads(content)
+    except:
+        content = eval(content)
     all_data = {"status":kwargs["status"],
                 "name":kwargs["name"],
                 "errcode":kwargs["errcode"],
