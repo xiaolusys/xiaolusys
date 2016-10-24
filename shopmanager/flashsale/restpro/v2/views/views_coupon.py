@@ -116,6 +116,18 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
 
         return res
 
+    @detail_route(methods=['POST'])
+    def process_coupon(self, request, *args, **kwargs):
+        record = CouponTransferRecord.objects.filter(id=pk).first()
+        info = u"no update"
+        if record and record.transfer_status == CouponTransferRecord.PENDING:
+            record.transfer_status=CouponTransferRecord.PROCESSED
+            record.save(update_fields=['transfer_status'])
+            info = u"update succeed"
+        res = Response({"code": 0, "info": info})
+        res["Access-Control-Allow-Origin"] = "*"
+        return res
+            
     @list_route(methods=['GET'])
     def list_out_coupons(self, request, *args, **kwargs):
         content = request.GET
