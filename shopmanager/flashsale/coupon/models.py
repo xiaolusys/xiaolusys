@@ -815,13 +815,13 @@ class CouponTransferRecord(BaseModel):
 
     @classmethod
     def get_waiting_in_num(cls, mama_id):
-        res = cls.objects.filter(coupon_from_mama_id=mama_id,transfer_status__lte=cls.PROCESSED).aggregate(n=Sum('coupon_num'))
+        res = cls.objects.filter(coupon_to_mama_id=mama_id,transfer_status__lte=cls.PROCESSED).aggregate(n=Sum('coupon_num'))
         num = res['n'] or 0
         return num
 
     @classmethod
     def get_waiting_out_num(cls, mama_id):
-        res = cls.objects.filter(coupon_to_mama_id=mama_id,transfer_status__lte=cls.PROCESSED).aggregate(n=Sum('coupon_num'))
+        res = cls.objects.filter(coupon_from_mama_id=mama_id,transfer_status__lte=cls.PROCESSED).aggregate(n=Sum('coupon_num'))
         num = res['n'] or 0
         return num
     
