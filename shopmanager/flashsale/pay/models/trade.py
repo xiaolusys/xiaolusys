@@ -366,6 +366,10 @@ class SaleTrade(BaseModel):
             from django_statsd.clients import statsd
             statsd.incr('xiaolumm.postpay_count')
             statsd.incr('xiaolumm.postpay_amount', self.payment)
+            for order in self.sale_orders.all():
+                if order.is_deposit():
+                    order.status = SaleTrade.TRADE_FINISHED
+                    order.save(update_fields=['status'])
             signal_saletrade_pay_confirm.send(sender=SaleTrade, obj=self)
         except Exception, exc:
             logger.error(str(exc), exc_info=True)
