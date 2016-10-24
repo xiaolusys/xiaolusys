@@ -94,24 +94,30 @@ class Envelop(PayBaseModel):
     def handle_envelop(self, envelopd):
         from flashsale.pay.models import BudgetLog
         from flashsale.xiaolumm.models import CashOut
+
         modified = datetime.datetime.now()
         status = envelopd['status']
         self.envelop_id = envelopd['id']
         self.livemode = envelopd['livemode']
         self.send_status = status
+
         if status in self.VALID_SEND_STATUS:
             self.send_time = self.send_time or datetime.datetime.now()
             self.status = Envelop.CONFIRM_SEND
+
             if self.subject == Envelop.XLAPP_CASHOUT:
                 BudgetLog.objects.filter(id=self.referal_id).update(status=BudgetLog.CONFIRMED, modified=modified)
             elif self.subject == Envelop.CASHOUT:
                 CashOut.objects.filter(id=self.referal_id).update(status=CashOut.APPROVED, modified=modified)
+
         elif status in (self.SEND_FAILED, self.REFUND) and self.status == self.WAIT_SEND:
             self.status = Envelop.FAIL
+
             if self.subject == Envelop.XLAPP_CASHOUT:
                 BudgetLog.objects.filter(id=self.referal_id).update(status=BudgetLog.CANCELED, modified=modified)
             elif self.subject == Envelop.CASHOUT:
                 CashOut.objects.filter(id=self.referal_id).update(status=CashOut.CANCEL, modified=modified)
+
             logger.warn('envelop warn:%s' % envelopd)
         self.save()
 
@@ -145,13 +151,15 @@ class Envelop(PayBaseModel):
             blog = BudgetLog.objects.get(id=self.referal_id, budget_log_type=BudgetLog.BG_CASHOUT)
             blog.cancel_and_return()
         else:
-            from flashsale.xiaolumm.models import CarryLog, CashOut
-            # clog = CarryLog.objects.get(order_num=self.referal_id,log_type=CarryLog.CASH_OUT)
-            # clog.cancel_and_return()
-            # 取消
-            cashouts = CashOut.objects.filter(id=self.referal_id)
-            if cashouts.exists():
-                cashouts[0].fail_and_return()
+            from flashsale.xiaolumm.models import CashOut
+            # 取消提现记录
+            cashout = CashOut.objects.filter(id=self.referal_id).first()
+            if not cashout:
+                return
+            if cashout.status == CashOut.PENDING:
+                cashout.cancel_cashout()
+            else:
+                cashout.fail_and_return()
 
     def cancel_envelop(self):
 

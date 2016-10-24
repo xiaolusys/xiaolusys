@@ -367,7 +367,7 @@ class SaleTrade(BaseModel):
             statsd.incr('xiaolumm.postpay_count')
             statsd.incr('xiaolumm.postpay_amount', self.payment)
             for order in self.sale_orders.all():
-                if order.is_deposit():
+                if order.is_deposit() and order.status == SaleTrade.WAIT_SELLER_SEND_GOODS:
                     order.status = SaleTrade.TRADE_FINISHED
                     order.save(update_fields=['status'])
             signal_saletrade_pay_confirm.send(sender=SaleTrade, obj=self)
