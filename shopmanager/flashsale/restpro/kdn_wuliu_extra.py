@@ -213,8 +213,7 @@ def comfirm_get(out_sid,status):
         so = SaleOrder.objects.filter(oid__in = packageskuitem,status=SaleOrder.WAIT_BUYER_CONFIRM_GOODS).first()
         if so:
             logger.warn({'action': "kdn", 'info': "change_get_goods:" + out_sid})
-            so.status = SaleOrder.TRADE_BUYER_SIGNED
-            so.save()
+            so.confirm_sign_order()
 
 def write_traces(kwargs):
     logger.warn({'action': "kdn", 'info': "start change status"})
