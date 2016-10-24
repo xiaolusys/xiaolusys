@@ -7,7 +7,7 @@ from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.decorators import list_route, detail_route
 
-from flashsale.xiaolumm.models import ReferalRelationship
+from flashsale.xiaolumm.models import ReferalRelationship, XiaoluMama
 
 from flashsale.restpro import permissions as perms
 
