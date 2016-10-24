@@ -836,3 +836,16 @@ class CouponTransferRecord(BaseModel):
     @property
     def transfer_status_display(self):
         return get_choice_name(self.TRANSFER_STATUS, self.transfer_status)
+
+    @property
+    def transfer_action_display(self):
+        if self.transfer_type <= self.OUT_CONSUMED:
+            if self.transfer_status == self.PENDING:
+                return u"审核"
+            if self.transfer_status == self.PROCESSED:
+                return u"发券"
+        if self.transfer_type > self.OUT_CONSUMED:
+            if self.transfer_status == self.PENDING:
+                return u"取消"
+            
+        return ""
