@@ -18,13 +18,14 @@ def clear_duplicate_address():
     # 由后往前，清除地址表中的重复地址
     # TODO注意处理外键
     res = {}
-    UserAddress.objects.filter(status=UserAddress.DELETE).delete()
+    # UserAddress.objects.filter(status=UserAddress.DELETE).delete()
+    need_delete = []
     for ua in UserAddress.objects.filter(status=UserAddress.NORMAL).order_by('-id'):
         # key = hashlib.sha256(str(ua.cus_uid) + ua.receiver_name + ua.receiver_mobile + ua.receiver_state + ua.receiver_city + ua.receiver_district + ua.receiver_address).hexdigest()
         key = '-'.join([str(ua.cus_uid) , ua.receiver_name , ua.receiver_phone , ua.receiver_mobile, ua.receiver_state , ua.receiver_city , ua.receiver_district , ua.receiver_address])
         key = key.strip()
         if key in res:
-            print 'repeat:' + str(ua.id) + '|' + str(res[key].id)
+            print 'repeat:' + str(ua.id) + '|' + str(res[key].id) + '|' + str(res[key].created)
             if ua.default and not res[key].default:
                 res[key].delete()
                 res[key] = ua

@@ -119,6 +119,10 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
 
     @detail_route(methods=['get'])
     def base_info(self, request, pk):
+        try:
+            pk = int(pk)
+        except:
+            raise exceptions.ValidationError(u'需要提供正确的小鹿妈妈ID')
         mama = get_object_or_404(XiaoluMama, pk=pk)
         if not mama:
             raise exceptions.ValidationError(u'此用户并非小鹿妈妈')
