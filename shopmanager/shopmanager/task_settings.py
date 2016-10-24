@@ -1058,8 +1058,9 @@ SYNC_MODEL_SCHEDULE = {
     },
     u'定时下载更新小鹿特卖订单': {
         'task': 'flashsale.pay.tasks.pull_Paid_SaleTrade',
-        'schedule': crontab(minute="20", hour="3"),
+        'schedule': crontab(minute="20", hour="3,12"),
         'args': (),
+        'kwargs': {'pre_day': 0, 'interval': 2},
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
 
