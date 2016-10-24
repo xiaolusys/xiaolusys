@@ -465,43 +465,80 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         )
 
     def parse_entry_params(self, pay_extras):
-        """ pid:1:value:2;pid:2:value:3:conponid:2 """
+        """
+        解析 pay_extras
+
+        示例
+        pid:1:value:2,pid:2:couponid:305463/305463/305463:value:50.00,pid:3:budget:46.00
+        pid:1:value:2;pid:2:value:3:conponid:2
+        """
+
         if not pay_extras:
             return []
-        pay_list = [e for e in re.split(',|;',pay_extras) if e.strip()]
+
+        pay_list = [e for e in re.split(',|;', pay_extras) if e.strip()]
         extra_list = []
-        already_exists_pids   = []
+        already_exists_pids = []
+
         for k in pay_list:
             pdict = {}
             keys = k.split(':')
-            for i in range(0,len(keys) / 2):
-                pdict.update({keys[2*i]:keys[2*i+1]})
-            if pdict.has_key('pid') and pdict['pid'] not in already_exists_pids:
+            for i in range(0, len(keys) / 2):
+                pdict.update({keys[2*i]: keys[2*i+1]})
+
+            if pdict.get('pid') and pdict['pid'] not in already_exists_pids:
                 extra_list.append(pdict)
                 already_exists_pids.append(pdict['pid'])
         return extra_list
 
     def calc_counpon_discount(self, coupon_id, item_ids, buyer_id, payment, **kwargs):
-        """ payment（单位分）按原始支付金额计算优惠信息 """
+        """
+        计算优惠券折扣
+        payment（单位分）按原始支付金额计算优惠信息
+        """
         user_coupon = UserCoupon.objects.filter(id=coupon_id, customer_id=buyer_id).first()
+
         if not user_coupon:
             raise exceptions.APIException(u'优惠券未找到')
+
         user_coupon.check_user_coupon(product_ids=item_ids, use_fee=payment / 100.0)
         return round(user_coupon.value * 100)
 
+    def check_multi_coupon_type(coupon_ids):
+        """
+        检查多张优惠券必须为同一类型优惠券，不同类型优惠券不许同时使用
+        """
+        template_ids = UserCoupon.objects.filter(id__in=coupon_ids).values('template_id')
+        if len(set([x['template_id'] for x in template_ids])) > 1:
+            raise Exception('优惠券不是同一模板')
+
     def calc_extra_discount(self, pay_extras, **kwargs):
-        """　优惠信息(分) """
+        """　
+        优惠信息(分)
+        """
         pay_extra_list = self.parse_entry_params(pay_extras)
         discount_fee = 0
+
         for param in pay_extra_list:
             pid = param['pid']
+
+            # 优惠券
             if pid == CONS.ETS_COUPON and CONS.PAY_EXTRAS[pid].get('type') == CONS.DISCOUNT:
-                if not param.has_key('couponid') or not param['couponid'].isdigit():
-                    raise Exception('请传入合法的couponid')
-                coupon_id  = int(param['couponid'])
-                discount_fee += self.calc_counpon_discount(coupon_id,**kwargs)
+                coupon_ids = param.get('couponid', '').split('/')
+
+                # 检查多张优惠券必须为同一类型优惠券，不同类型优惠券不许同时使用
+                self.check_multi_coupon_type(coupon_ids)
+
+                for coupon_id in coupon_ids:
+                    if not coupon_id or not coupon_id.isdigit():
+                        continue
+                    coupon_id = int(coupon_id)
+                    discount_fee += self.calc_counpon_discount(coupon_id, **kwargs)
+
+            # APP立减2元
             if pid == CONS.ETS_APPCUT and CONS.PAY_EXTRAS[pid].get('type') == CONS.DISCOUNT:
                 discount_fee += CONS.PAY_EXTRAS[pid]['value'] * 100
+
         return round(discount_fee)
 
     def calc_extra_budget(self, pay_extras, **kwargs):
@@ -524,31 +561,41 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['post'])
     def shoppingcart_create(self, request, *args, **kwargs):
-        """ 购物车订单支付接口 """
+        """
+        购物车订单支付接口
+        """
+
         self.logger_request(request)
         user_agent = request.META.get('HTTP_USER_AGENT')
-        CONTENT  = request.REQUEST
-        tuuid    = CONTENT.get('uuid')
+        CONTENT = request.REQUEST
+        tuuid = CONTENT.get('uuid')
         customer = Customer.objects.filter(user=request.user).first()
-        cart_ids = [i for i in CONTENT.get('cart_ids','').split(',') if i.isdigit()]
+        cart_ids = [i for i in CONTENT.get('cart_ids', '').split(',') if i.isdigit()]
         cart_qs = ShoppingCart.objects.filter(
             id__in=cart_ids,
             buyer_id=customer.id
         )
+
         # 这里不对购物车状态进行过滤，防止订单创建过程中购物车状态发生变化
         if cart_qs.count() != len(cart_ids):
-            logger.warn({'code':1, 'message':u'购物车已结算', 'stype':'restpro.trade',
-                         'tid':tuuid ,'data':'%s'%CONTENT})
-            return Response({'code':1, 'info':u'购物车已结算'})
-        xlmm            = self.get_xlmm(request)
-        total_fee       = round(float(CONTENT.get('total_fee','0')) * 100)
-        payment         = round(float(CONTENT.get('payment','0')) * 100)
-        post_fee        = round(float(CONTENT.get('post_fee','0')) * 100)
-        discount_fee    = round(float(CONTENT.get('discount_fee','0')) * 100)
-        pay_extras      = CONTENT.get('pay_extras')
-        cart_total_fee  = 0
-        cart_discount   = 0
-        order_type      = CONTENT.get('order_type')
+            logger.warn({
+                'code': 1,
+                'message': u'购物车已结算',
+                'stype': 'restpro.trade',
+                'tid': tuuid,
+                'data': '%s' % CONTENT
+            })
+            return Response({'code': 1, 'info': u'购物车已结算'})
+
+        xlmm = self.get_xlmm(request)
+        total_fee = round(float(CONTENT.get('total_fee', '0')) * 100)
+        payment = round(float(CONTENT.get('payment', '0')) * 100)
+        post_fee = round(float(CONTENT.get('post_fee', '0')) * 100)
+        discount_fee = round(float(CONTENT.get('discount_fee', '0')) * 100)
+        pay_extras = CONTENT.get('pay_extras')
+        cart_total_fee = 0
+        cart_discount = 0
+        order_type = CONTENT.get('order_type')
 
         # 20161019 wulei add ,electronic goods scene, no order type user default sale-order type
         if not order_type:
@@ -559,61 +606,107 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         item_ids = []
         for cart in cart_qs:
             if not cart.is_good_enough():
-                logger.warn({'code':2, 'message':u'商品已被抢光了', 'stype':'restpro.trade',
-                         'user_agent':user_agent, 'tid':tuuid , 'data': '%s'%CONTENT})
-                return Response({'code':2, 'info':u'商品已被抢光了'})
+                logger.warn({
+                    'code': 2,
+                    'message': u'商品已被抢光了',
+                    'stype': 'restpro.trade',
+                    'user_agent': user_agent,
+                    'tid': tuuid,
+                    'data': '%s' % CONTENT
+                })
+                return Response({'code': 2, 'info': u'商品已被抢光了'})
             cart_total_fee += round(cart.price * cart.num * 100)
-            cart_discount  += cart.calc_discount_fee(xlmm=xlmm) * cart.num * 100
+            cart_discount += cart.calc_discount_fee(xlmm=xlmm) * cart.num * 100
             item_ids.append(cart.item_id)
 
-        extra_params = {'item_ids': item_ids,
-                        'buyer_id':customer.id,
-                        'payment':cart_total_fee - cart_discount}
+        extra_params = {
+            'item_ids': item_ids,
+            'buyer_id': customer.id,
+            'payment': cart_total_fee - cart_discount
+        }
+
         try:
-            cart_discount += self.calc_extra_discount(pay_extras,**extra_params)
+            cart_discount += self.calc_extra_discount(pay_extras, **extra_params)
         except Exception, exc:
-            logger.warn({'code':3, 'message':exc, 'stype':'restpro.trade',
-                         'user_agent': user_agent, 'tid':tuuid , 'data': '%s'%CONTENT})
-            return Response({'code':3,'info':exc.message})
+            logger.warn({
+                'code': 3,
+                'message': exc,
+                'stype': 'restpro.trade',
+                'user_agent': user_agent,
+                'tid': tuuid,
+                'data': '%s' % CONTENT
+            })
+            return Response({'code': 3, 'info': exc.message})
 
         cart_discount = min(cart_discount, cart_total_fee)
         if discount_fee > cart_discount:
-            logger.warn({'code':4, 'message':u'优惠金额异常:discount_fee=%s, cart_discount=%s'% (discount_fee, cart_discount),
-                         'user_agent':user_agent, 'stype':'restpro.trade', 'tid':tuuid , 'data': '%s'%CONTENT})
-            return Response({'code':4, 'info':u'优惠金额异常'})
+            logger.warn({
+                'code': 4,
+                'message': u'优惠金额异常:discount_fee=%s, cart_discount=%s' % (discount_fee, cart_discount),
+                'user_agent': user_agent,
+                'stype': 'restpro.trade',
+                'tid': tuuid,
+                'data': '%s' % CONTENT
+            })
+            return Response({'code': 4, 'info': u'优惠金额异常'})
 
         cart_payment = cart_total_fee + post_fee - cart_discount
-        if (post_fee < 0 or payment < 0  or abs(payment - cart_payment) > 10
-            or abs(total_fee - cart_total_fee) > 10):
-            logger.warn({'code':11, 'message':u'付款金额异常:payment=%s, cart_payment=%s'%(payment,cart_payment),
-                         'user_agent':user_agent, 'stype':'restpro.trade', 'tid':tuuid , 'data': '%s'%CONTENT})
-            return Response({'code':11, 'info':u'付款金额异常'})
+        if (post_fee < 0 or payment < 0 or abs(payment - cart_payment) > 10 or abs(total_fee - cart_total_fee) > 10):
+            logger.warn({
+                'code': 11,
+                'message': u'付款金额异常:payment=%s, cart_payment=%s' % (payment, cart_payment),
+                'user_agent': user_agent,
+                'stype': 'restpro.trade',
+                'tid': tuuid,
+                'data': '%s' % CONTENT
+            })
+            return Response({'code': 11, 'info': u'付款金额异常'})
 
         # 20161019 wulei add ,electronic goods not need any receive address
         if order_type != SaleTrade.ELECTRONIC_GOODS_ORDER:
             addr_id = CONTENT.get('addr_id') or None
-            address = UserAddress.objects.filter(id=addr_id,cus_uid=customer.id).first()
+            address = UserAddress.objects.filter(id=addr_id, cus_uid=customer.id).first()
             if not address:
-                logger.warn({'code':7, 'message':u'请选择收货地址', 'user_agent':user_agent,
-                             'stype':'restpro.trade', 'tid':tuuid , 'data': '%s'%CONTENT})
+                logger.warn({
+                    'code': 7,
+                    'message': u'请选择收货地址',
+                    'user_agent': user_agent,
+                    'stype': 'restpro.trade',
+                    'tid': tuuid,
+                    'data': '%s' % CONTENT
+                })
                 return Response({'code': 7, 'info': u'请选择收货地址'})
         else:
             address = None
 
         channel = CONTENT.get('channel')
         if channel not in dict(SaleTrade.CHANNEL_CHOICES):
-            logger.warn({'code': 5, 'message': u'付款方式有误','channel':channel, 'user_agent':user_agent,
-                         'stype': 'restpro.trade', 'tid': tuuid, 'data': '%s'%CONTENT})
-            return Response({'code':5, 'info':u'付款方式有误'})
+            logger.warn({
+                'code': 5,
+                'message': u'付款方式有误',
+                'channel': channel,
+                'user_agent': user_agent,
+                'stype': 'restpro.trade',
+                'tid': tuuid,
+                'data': '%s' % CONTENT
+            })
+            return Response({'code': 5, 'info': u'付款方式有误'})
 
         try:
             with transaction.atomic():
-                sale_trade,state = self.create_Saletrade(request, CONTENT, address, customer, order_type)
+                sale_trade, state = self.create_Saletrade(request, CONTENT, address, customer, order_type)
                 if state:
                     self.create_Saleorder_By_Shopcart(sale_trade, cart_qs)
         except Exception, exc:
-            logger.error({'code': 8, 'message': u'订单创建异常:%s'%exc, 'channel':channel, 'user_agent':user_agent,
-                         'stype': 'restpro.trade', 'tid': tuuid, 'data': '%s'%CONTENT})
+            logger.error({
+                'code': 8,
+                'message': u'订单创建异常:%s' % exc,
+                'channel': channel,
+                'user_agent': user_agent,
+                'stype': 'restpro.trade',
+                'tid': tuuid,
+                'data': '%s' % CONTENT
+            })
             return Response({'code': 8, 'info': u'订单创建异常'})
 
         try:
@@ -622,27 +715,53 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 return Response({'code': 10, 'info': u'妈妈钱包支付功能已取消'})
                 # response_charge = self.wallet_charge(sale_trade)
             elif channel == SaleTrade.BUDGET:
-                #小鹿钱包
+                # 小鹿钱包
                 response_charge = self.budget_charge(sale_trade)
             else:
-                #pingpp 支付
+                # pingpp 支付
                 response_charge = self.pingpp_charge(sale_trade)
             if sale_trade.order_type == 3:
-                order_success_url = CONS.TEAMBUY_SUCCESS_URL.format(order_tid=sale_trade.tid) + '?from_page=order_commit'
+                order_success_url = CONS.TEAMBUY_SUCCESS_URL.format(order_tid=sale_trade.tid) \
+                                    + '?from_page=order_commit'
             else:
                 order_success_url = CONS.MALL_PAY_SUCCESS_URL.format(order_id=sale_trade.id, order_tid=sale_trade.tid)
-        except IntegrityError,exc:
-            logger.error({'code': 9, 'message': u'订单重复提交:%s'%exc, 'channel':channel, 'user_agent':user_agent,
-                         'stype': 'restpro.trade', 'tid': tuuid, 'data': '%s'%CONTENT}, exc_info=True)
+        except IntegrityError, exc:
+            logger.error({
+                'code': 9,
+                'message': u'订单重复提交:%s' % exc,
+                'channel': channel,
+                'user_agent': user_agent,
+                'stype': 'restpro.trade',
+                'tid': tuuid,
+                'data': '%s' % CONTENT
+            }, exc_info=True)
             return Response({'code': 9, 'info': u'订单重复提交'})
-        except Exception,exc:
-            logger.error({'code': 6, 'message': u'未知支付异常:%s'%exc, 'channel':channel, 'user_agent':user_agent,
-                         'stype': 'restpro.trade', 'tid': tuuid, 'data': '%s'%CONTENT},exc_info=True)
-            return Response({'code':6, 'info':str(exc) or u'未知支付异常'})
+        except Exception, exc:
+            logger.error({
+                'code': 6,
+                'message': u'未知支付异常:%s' % exc,
+                'channel': channel,
+                'user_agent': user_agent,
+                'stype': 'restpro.trade',
+                'tid': tuuid,
+                'data': '%s' % CONTENT
+            }, exc_info=True)
+            return Response({'code': 6, 'info': str(exc) or u'未知支付异常'})
 
-        return Response({'code':0, 'info':u'支付请求成功', 'channel':channel,
-                         'trade':{'id':sale_trade.id, 'tid':sale_trade.tid, 'channel':channel, 'type': sale_trade.order_type},
-                         'charge':response_charge, 'success_url': order_success_url, 'fail_url': CONS.MALL_PAY_CANCEL_URL})
+        return Response({
+            'code': 0,
+            'info': u'支付请求成功',
+            'channel': channel,
+            'trade': {
+                'id': sale_trade.id,
+                'tid': sale_trade.tid,
+                'channel': channel,
+                'type': sale_trade.order_type
+            },
+            'charge': response_charge,
+            'success_url': order_success_url,
+            'fail_url': CONS.MALL_PAY_CANCEL_URL
+        })
 
     @list_route(methods=['post'])
     def buynow_create(self, request, *args, **kwargs):
