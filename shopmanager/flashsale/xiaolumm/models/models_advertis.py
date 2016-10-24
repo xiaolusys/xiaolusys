@@ -105,7 +105,7 @@ class NinePicAdver(models.Model):
         return 1  # 否则可以分享
 
     def title_display(self):
-        today = datetime.date.today()
+        today = self.start_time
         month = today.month
         day = today.day
         share_time = self.start_time.strftime("%H:%M")

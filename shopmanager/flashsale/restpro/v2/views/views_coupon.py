@@ -52,7 +52,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
             return res
 
         to_customer = Customer.objects.normal_customer.filter(user=request.user).first()
-        to_mama = customer.get_charged_mama()
+        to_mama = to_customer.get_charged_mama()
 
         if to_mama.can_buy_transfer_coupon():
             res =  Response({"code":2, "info": u"无需申请，请直接支付购券!"})
