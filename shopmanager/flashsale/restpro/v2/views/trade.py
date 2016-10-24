@@ -504,7 +504,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         user_coupon.check_user_coupon(product_ids=item_ids, use_fee=payment / 100.0)
         return round(user_coupon.value * 100)
 
-    def check_multi_coupon_type(coupon_ids):
+    def check_multi_coupon_type(self, coupon_ids):
         """
         检查多张优惠券必须为同一类型优惠券，不同类型优惠券不许同时使用
         """
