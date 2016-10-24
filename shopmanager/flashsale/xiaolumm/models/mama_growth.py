@@ -140,7 +140,7 @@ class MamaSaleGrade(BaseModel):
             sale_grade.grade = last_week_grade
             # sale_grade.combo_count = len(combo_week_list)
             if not sale_grade.first_finish_time:
-                sale_grade.first_finish_time = finish_week_list and finish_week_list[0] or None
+                sale_grade.first_finish_time = finish_week_list and year_week_range(finish_week_list[0])[1] or None
             sale_grade.total_finish_count = len(finish_week_list)
             sale_grade.last_record_time = year_week_range(last_year_week)[1]
             sale_grade.save()
