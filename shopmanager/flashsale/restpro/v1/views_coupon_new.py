@@ -89,6 +89,28 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         `创建受限` {'res':'limit'}
         `创建成功` {'res':'success'}
         `暂未发放`{'res':'not_release'}
+
+    ## /rest/v1/usercoupons/get_user_coupons  获取用户优惠券
+
+    params:
+
+    - status　选填(默认为使用),
+             可选值
+             0:未使用,
+             1:已使用,
+             2:冻结中,
+             3:已经过期,
+             4:已经取消
+    - coupon_type 选填(默认为全部),
+                  可选值
+                  1:普通类型,
+                  2:下单红包,
+                  3:订单分享,
+                  4:推荐专享,
+                  5:售后补偿,
+                  6:活动分享,
+                  7:提现兑换,
+                  8:精品专用券
     """
 
     queryset = UserCoupon.objects.all()
@@ -102,25 +124,32 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         customer = get_object_or_404(Customer, user=request.user)
         return self.queryset.filter(customer_id=customer.id)
 
-    def list_unpast_coupon(self, queryset, status=UserCoupon.UNUSED):
-        """ 过滤券池状态 """
+    def list_unpast_coupon(self, queryset, status=UserCoupon.UNUSED, coupon_type=None):
+        """
+        过滤券池状态
+        """
+        filter_params = {'status': status}
+        if coupon_type:
+            filter_params['coupon_type'] = coupon_type
+
         if status in [str(UserCoupon.PAST), str(UserCoupon.USED)]:
-            queryset = queryset.filter(status=status)
+            queryset = queryset.filter(**filter_params)
             if queryset.count() > 10:
                 queryset = queryset.order_by("-created")[:10]
         else:
-            now = datetime.datetime.now()
-            queryset = queryset.filter(status=status, expires_time__gte=now).order_by('-created')
+            filter_params['expires_time__gte'] = datetime.datetime.now()
+            queryset = queryset.filter(**filter_params).order_by('-created')
         return queryset
 
     @list_route(methods=['get'])
     def get_user_coupons(self, request):
         content = request.REQUEST
         status = content.get("status") or None
+        coupon_type = content.get('coupon_type') or None
         customer = get_customer(request)
         release_tmp_share_coupon(customer)  # 查看临时优惠券 有则发放
         queryset = self.filter_queryset(self.get_owner_queryset(request))
-        queryset = self.list_unpast_coupon(queryset, status=status)
+        queryset = self.list_unpast_coupon(queryset, status=status, coupon_type=coupon_type)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
