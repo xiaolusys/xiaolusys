@@ -15,15 +15,13 @@ from flashsale.coupon.models import CouponTransferRecord
 from flashsale.pay.models import Customer
 from flashsale.restpro.v2.serializers import CouponTransferRecordSerializer
 
-def get_mama_id(user):
+def get_charged_mama(user):
     customer = Customer.objects.normal_customer.filter(user=user).first()
-    mama_id = None
     if customer:
         xlmm = customer.get_charged_mama()
         if xlmm:
-            mama_id = xlmm.id
-    # mama_id = 5 # debug test
-    return mama_id
+            return xlmm
+    return None
 
 
 def get_referal_from_mama_id(to_mama_id):
@@ -97,11 +95,21 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         pass
         
     @list_route(methods=['GET'])
-    def stock_num(self, request, *args, **kwargs):
-        mama_id = get_mama_id(request.user)
-        
+    def profile(self, request, *args, **kwargs):
+        mama = get_charged_mama(request.user)
+
+        mama_id = mama.id
         stock_num = CouponTransferRecord.get_stock_num(mama_id)
-        return Response({"stock_num": stock_num})
+        bought_num = 0
+        
+        direct_buy = mama.can_buy_transfer_coupon() #可否直接购买精品券
+        direct_buy_link = "http://m.xiaolumeimei.com"
+        
+        res = Response({"mama_id": mama_id, "stock_num": stock_num, "bought_num": bought_num,
+                        "direct_buy": direct_buy, "direct_buy_link": direct_buy_link})
+        res["Access-Control-Allow-Origin"] = "*"
+
+        return res
 
     @list_route(methods=['GET'])
     def list_out_coupons(self, request, *args, **kwargs):
@@ -109,8 +117,8 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         transfer_status = content.get("transfer_status") or None
         status = CouponTransferRecord.EFFECT
         
-        #mama_id = get_mama_id(request.user)
-        mama_id=44
+        mama = get_charged_mama(request.user)
+        mama_id = mama.id
         coupons = self.queryset.filter(coupon_from_mama_id=mama_id,status=status)
         if transfer_status:
             coupons = coupons.filter(transfer_status=transfer_status.strip())
@@ -127,8 +135,8 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         transfer_status = content.get("transfer_status") or None
         status = CouponTransferRecord.EFFECT
         
-        #mama_id = get_mama_id(request.user)
-        mama_id=1
+        mama = get_charged_mama(request.user)
+        mama_id = mama.id
         coupons = self.queryset.filter(coupon_to_mama_id=mama_id,status=status)
         if transfer_status:
             coupons = coupons.filter(transfer_status=transfer_status.strip())

@@ -35,6 +35,8 @@ MM_CLICK_PER_ORDER_PLUS_COUNT = 50
 
 
 class XiaoluMama(BaseModel):
+    DIRECT = 'DIRECT'
+    
     EFFECT = 'effect'
     FROZEN = 'forzen'
     CANCEL = 'cancel'
@@ -770,7 +772,7 @@ class XiaoluMama(BaseModel):
         """
         We use referal_from to judge whether or not a mama can buy TransferCoupon directly.
         """
-        if self.referal_from == 'DIRECT':
+        if self.referal_from == XiaoluMama.DIRECT:
             return True
         return False
 
