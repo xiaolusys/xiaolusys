@@ -773,7 +773,7 @@ class XiaoluMama(BaseModel):
         if self.referal_from == 'DIRECT':
             return True
         return False
-    
+
     def fill_info(self, mobile, referal_from):
         update_fields = []
         if self.mobile is None or (not self.mobile.strip()):
