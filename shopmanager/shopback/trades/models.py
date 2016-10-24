@@ -605,7 +605,6 @@ def update_package_sku_item(sender, instance, created, **kwargs):
         task_merge_trade_update_package_sku_item.delay(instance)
         task_merge_trade_update_sale_order.delay(instance)
 
-
 post_save.connect(update_package_sku_item, sender=MergeTrade, dispatch_uid='post_save_update_package_sku_item')
 
 # 平台名称与存储编码映射
@@ -1744,7 +1743,8 @@ class PackageOrder(models.Model):
 def check_package_order_status(sender, instance, created, **kwargs):
     from shopback.logistics.tasks import task_get_logistics_company
     if instance.sys_status == PackageOrder.WAIT_PREPARE_SEND_STATUS and not instance.logistics_company:
-        task_get_logistics_company.delay(instance)
+        # task_get_logistics_company.delay(instance)
+        task_get_logistics_company.apply_async(args=[instance.id], countdown=3)
 
 
 post_save.connect(check_package_order_status, sender=PackageOrder)

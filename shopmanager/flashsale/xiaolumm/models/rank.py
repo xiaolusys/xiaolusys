@@ -321,8 +321,8 @@ def update_week_mama_carry_total_cache(sender, instance, created, **kwargs):
         mm_ids = [r.mama_id for r in WeekMamaCarryTotal.objects.filter(stat_time=instance.stat_time, mama_id__in=mama.get_family_memeber_ids())]
         for mid in mm_ids:
             team = WeekMamaTeamCarryTotal.objects.filter(mama_id=mid, stat_time=instance.stat_time).first()
-            if not team:
-                WeekMamaTeamCarryTotal.generate(mama, instance.stat_time)
+            if not team and WeekMamaCarryTotal.objects.filter(mama_id=mid, stat_time=instance.stat_time).first():
+                WeekMamaTeamCarryTotal.generate(mid, instance.stat_time)
             else:
                 if instance.mama_id not in team.mama_ids:
                     team.reset_mama_ids()

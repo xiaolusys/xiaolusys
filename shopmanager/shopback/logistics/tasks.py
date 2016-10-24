@@ -10,6 +10,7 @@ from shopback.logistics.models import Logistics
 from shopback.orders.models import Trade
 from shopback.fenxiao.models import PurchaseOrder
 from shopback.monitor.models import TradeExtraInfo
+from shopback.trades.models import PackageOrder
 from shopback.users.models import User
 from common.utils import format_time, format_datetime, format_year_month, parse_datetime, update_model_fields
 from auth import apis
@@ -92,5 +93,7 @@ def updateAllUserUnfinishOrdersLogisticsTask(update_from=None, update_to=None):
 
 
 @task(max_retries=3, default_retry_delay=6)
-def task_get_logistics_company(package_order):
-    package_order.set_logistics_company()
+def task_get_logistics_company(package_order_id):
+    package_order = PackageOrder.objects.get(id=package_order_id)
+    if package_order.sys_status == PackageOrder.WAIT_PREPARE_SEND_STATUS and not package_order.logistics_company:
+        package_order.set_logistics_company()

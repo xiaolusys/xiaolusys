@@ -107,13 +107,13 @@ class KdnView(APIView):
             "reason" : write_info['Reason']
         }
         if write_info["reason"]:
-            logger.warn({'action':"kdn",'info':'wrong_reason'+ShipperCode+':'+write_info['reason']})
+            logger.warn({'action':"kdn",'info':'wrong_reason:'+LogisticCode+':'+write_info['reason']})
         # if not write_info["content"]:
         #     logger.warn({'action': "kdn", 'info': 'wrong_trace' + ShipperCode + ':' + 'trace_is_null'})
         #     return Response({"Success": False, "EBusinessID": str(1264368),
         #                      "UpdateTime": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Reason": "轨迹为空"})
         logger.info(write_info)
-        logger.warn({'action': "kdn", 'info': ShipperCode})
+        logger.warn({'action': "kdn", 'info': "get_kdn_return:" + LogisticCode})
         try:
             kdn_get_push.delay(**write_info)
         except Exception, e:
