@@ -548,8 +548,8 @@ def refund_fee(request):
     content = request.REQUEST
     sale_order = int(content.get("sale_order_id", None))
     sale_order = get_object_or_404(SaleOrder, id=sale_order)  # 退款sale_order对象
-
-    if sale_order.is_teambuy():
+    from flashsale.pay.models import TeamBuyDetail
+    if sale_order.is_teambuy() and TeamBuyDetail.objects.get(oid=sale_order.oid).teambuy.status == 0:
         return HttpResponse(u"团购到超时失败以后才可退款")
     if not (SaleOrder.WAIT_SELLER_SEND_GOODS <= sale_order.status < SaleOrder.TRADE_FINISHED):  # 状态为已付款
         logger.error(u"交易状态不是已付款状态")
