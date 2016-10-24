@@ -1542,7 +1542,7 @@ def trigger_mama_deposit_action(sender, obj, *args, **kwargs):
 
 signal_saletrade_pay_confirm.connect(trigger_mama_deposit_action,
                                      sender=SaleTrade,
-                                     dispatch_uid="post_save_trigger_mama_deposit_action")
+                                     dispatch_uid="signal_trigger_mama_deposit_action")
 
 
 # 首单红包，10单红包
