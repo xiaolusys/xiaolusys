@@ -130,9 +130,10 @@ class MamaSaleGrade(BaseModel):
             mama_last_mission = get_mama_week_sale_mission(mama_id, last_year_week)
             finish_week_list, combo_week_list = get_mama_week_finish_and_combo_list(mama_id, last_year_week)
             last_week_grade = cls.calc_sale_amount_grade(mama_last_mission.finish_value)
-            if sale_grade.grade > last_week_grade and not mama_last_mission.is_finished():
+            last_week_mission_finished = mama_last_mission and mama_last_mission.is_finished() or False
+            if sale_grade.grade > last_week_grade and not last_week_mission_finished:
                 sale_grade.combo_count = 0
-            elif sale_grade.grade == last_week_grade and mama_last_mission.is_finished():
+            elif sale_grade.grade == last_week_grade and last_week_mission_finished:
                 sale_grade.combo_count += 1
 
             sale_grade.grade = last_week_grade
