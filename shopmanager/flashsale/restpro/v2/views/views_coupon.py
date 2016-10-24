@@ -101,13 +101,16 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         mama = get_charged_mama(request.user)
 
         mama_id = mama.id
-        stock_num = CouponTransferRecord.get_stock_num(mama_id)
-        bought_num = 0
+        stock_num, in_num, out_num = CouponTransferRecord.get_stock_num(mama_id)
+        waiting_in_num = CouponTransferRecord.get_waiting_in_num(mama_id)
+        waiting_out_num = CouponTransferRecord.get_waiting_out_num(mama_id)
         
-        direct_buy = mama.can_buy_transfer_coupon() #可否直接购买精品券
+        #direct_buy = mama.can_buy_transfer_coupon() #可否直接购买精品券
+        direct_buy = False
         direct_buy_link = "http://m.xiaolumeimei.com"
         
-        res = Response({"mama_id": mama_id, "stock_num": stock_num, "bought_num": bought_num,
+        res = Response({"mama_id": mama_id, "stock_num": stock_num, "waiting_in_num": waiting_in_num,
+                        "waiting_out_num": waiting_out_num, "bought_num": in_num,
                         "direct_buy": direct_buy, "direct_buy_link": direct_buy_link})
         res["Access-Control-Allow-Origin"] = "*"
 

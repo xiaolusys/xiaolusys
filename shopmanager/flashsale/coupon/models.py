@@ -7,6 +7,7 @@
 import datetime
 import random
 from django.db import models
+from django.db.models import Sum        
 from django.db.models.signals import post_save, pre_save
 from flashsale.coupon import tasks
 from flashsale.pay.options import uniqid
@@ -803,15 +804,26 @@ class CouponTransferRecord(BaseModel):
     
     @classmethod
     def get_stock_num(cls, mama_id):
-        from django.db.models import Sum
-        res = cls.objects.filter(coupon_from_mama_id=mama_id).aggregate(n=Sum('coupon_num'))
+        res = cls.objects.filter(coupon_from_mama_id=mama_id,transfer_status=cls.DELIVERED).aggregate(n=Sum('coupon_num'))
         out_num = res['n'] or 0
 
-        res = cls.objects.filter(coupon_to_mama_id=mama_id).aggregate(n=Sum('coupon_num'))
+        res = cls.objects.filter(coupon_to_mama_id=mama_id,transfer_status=cls.DELIVERED).aggregate(n=Sum('coupon_num'))
         in_num = res['n'] or 0
 
         stock_num = in_num - out_num
-        return stock_num
+        return stock_num, in_num, out_num
+
+    @classmethod
+    def get_waiting_in_num(cls, mama_id):
+        res = cls.objects.filter(coupon_from_mama_id=mama_id,transfer_status__lte=cls.PROCESSED).aggregate(n=Sum('coupon_num'))
+        num = res['n'] or 0
+        return num
+
+    @classmethod
+    def get_waiting_out_num(cls, mama_id):
+        res = cls.objects.filter(coupon_to_mama_id=mama_id,transfer_status__lte=cls.PROCESSED).aggregate(n=Sum('coupon_num'))
+        num = res['n'] or 0
+        return num
     
     @property
     def month_day(self):
