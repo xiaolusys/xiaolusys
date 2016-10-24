@@ -8,7 +8,7 @@ build:
     - cd shopmanager;python manage.py migrate --noinput
     - python manage.py test -t . --keepdb
   when:
-    branch: [staging,alpha]
+    branch: [staging, alpha, warden]
 publish:
   docker:
     username: $$DOCKER_USERNAME
@@ -32,6 +32,17 @@ publish:
     mirror: https://n5fb0zgg.mirror.aliyuncs.com
     when:
       branch: django18
+  docker:
+    username: $$DOCKER_USERNAME
+    password: $$DOCKER_PASSWORD
+    email: $$DOCKER_EMAIL
+    registry: registry.aliyuncs.com
+    repo: xiaolu-img/xiaolusys
+    tag: warden
+    file: Dockerfile
+    mirror: https://n5fb0zgg.mirror.aliyuncs.com
+    when:
+      branch: warden
 deploy:
   ssh:
     host: staging.xiaolumm.com
@@ -89,6 +100,19 @@ deploy:
         -e INSTANCE=mall -e TARGET=django18 -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
         --volumes-from=static -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9002:9000
         -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:django18
+        blueware-admin run-program gunicorn -k gevent -w 1 -c staging_gunicorn_conf.py shopmanager.wsgi
+  ssh:
+    host: staging.xiaolumm.com
+    user: root
+    when:
+      branch: warden
+    commands:
+      - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:warden
+      - docker rm -f gunicorn-warden
+      - docker run --name=gunicorn-warden --restart=always
+        -e INSTANCE=mall -e TARGET=staging -e REDIS_AUTH=$$REDIS_AUTH
+        --volumes-from=static -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9009:9000
+        -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:warden
         blueware-admin run-program gunicorn -k gevent -w 1 -c staging_gunicorn_conf.py shopmanager.wsgi
   ssh:
     host:
