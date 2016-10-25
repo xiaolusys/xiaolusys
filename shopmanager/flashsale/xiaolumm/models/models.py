@@ -795,7 +795,7 @@ class XiaoluMama(BaseModel):
             return 'Director'
         if in_num >= 5:
             return 'Associate'
-        return None
+        return 'Associate'
         
     def fill_info(self, mobile, referal_from):
         update_fields = []
