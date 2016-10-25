@@ -758,7 +758,7 @@ class CouponTransferRecord(BaseModel):
     PROCESSED = 2
     DELIVERED = 3
     CANCELED = 4
-    TRANSFER_STATUS = ((PENDING, u'待审核'), (PROCESSED, u'待发送'), (DELIVERED, u'已完成'), (CANCELED, u'已取消'),)
+    TRANSFER_STATUS = ((PENDING, u'待审核'), (PROCESSED, u'待发放'), (DELIVERED, u'已完成'), (CANCELED, u'已取消'),)
     
     EFFECT = 1
     CANCEL = 2
