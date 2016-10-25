@@ -655,8 +655,8 @@ class ModelProduct(BaseTagModel):
         prices = self.products.values('agent_price', 'std_purchase_price')
         agent_prices = [i['agent_price'] for i in prices]
         std_purchase_price = [i['std_purchase_price'] for i in prices]
-        lowest_agent_price = sorted(agent_prices, reverse=False)[0]  # 递增
-        lowest_std_sale_price = sorted(std_purchase_price, reverse=False)[0]  # 递增
+        lowest_agent_price = agent_prices and sorted(agent_prices, reverse=False)[0] or 0  # 递增
+        lowest_std_sale_price = std_purchase_price and sorted(std_purchase_price, reverse=False)[0] or 0  # 递增
         self.update_lowest_price(lowest_agent_price, lowest_std_sale_price)
 
     def set_choose_colors(self):
