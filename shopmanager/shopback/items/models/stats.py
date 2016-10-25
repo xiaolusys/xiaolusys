@@ -405,7 +405,7 @@ class ProductSkuSaleStats(models.Model):
             condition['num'] = num
         else:
             condition['status'] = status
-        stat = ProductSkuSaleStats.objects.filter(condition).order_by('-id').first()
+        stat = ProductSkuSaleStats.objects.filter(**condition).order_by('-id').first()
         return stat
 
     @property
