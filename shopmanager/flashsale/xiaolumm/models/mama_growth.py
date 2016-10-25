@@ -314,7 +314,6 @@ class MamaMission(BaseModel):
         """
         """
         from flashsale.xiaolumm.models import GroupRelationship, ReferalRelationship, XiaoluMama
-
         mama_id = xiaolumama.id
         # last_week_daytime = day_datetime - datetime.timedelta(days=7)
         # week_start , week_end = week_range(last_week_daytime)
