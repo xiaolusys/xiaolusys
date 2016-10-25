@@ -74,7 +74,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         template_id = CouponTransferRecord.TEMPLATE_ID
         
         uni_key = CouponTransferRecord.gen_unikey(coupon_from_mama_id, coupon_to_mama_id, template_id, date_field)
-        order_no = CouponTransferRecord.gen_unikey(init_from_mama_id=init_from_mama_id,template_id,date_field)
+        order_no = CouponTransferRecord.gen_order_no(init_from_mama_id,template_id,date_field)
         
         if not uni_key:
             res = Response({"code": 2, "info": u"记录已生成或申请已达当日上限！"})
