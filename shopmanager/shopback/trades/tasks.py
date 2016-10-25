@@ -914,12 +914,12 @@ def task_packageskuitem_update_productskusalestats_num(sku_id, pay_time):
     sale_stat = ProductSkuSaleStats.get_by_sku(sku_id)
     if not sale_stat:
         return
-    if pay_time < sale_stat.sale_start_time:
+    if pay_time < sale_stat.sale_start_time or pay_time > sale_stat.sale_end_time:
         return
     assign_num_res = PackageSkuItem.objects.filter(sku_id=sku_id, pay_time__gte=sale_stat.sale_start_time,
-                                                   pay_time__lte=sale_stat.sale_end_time).exclude(
-        assign_status=PackageSkuItem.CANCELED).aggregate(total=Sum('num'))
-    total = assign_num_res['total'] or 0
+                                                   pay_time__lte=sale_stat.sale_end_time).\
+        values('assign_status').annotate(total=Sum('num'))
+    total = sum([line['total'] for line in assign_num_res if line['assign_status'] != 3])
 
     if sale_stat.num != total:
         sale_stat.num = total
