@@ -704,12 +704,13 @@ class Product(models.Model):
             49: '4',
             10: '1'
         }
-        if category_maps.has_key(item_category.parent_cid):
-            outer_id = category_maps.get(item_category.parent_cid) + str(item_category.cid) + "%05d" % supplier.id
+        if not item_category:
+            return None
         elif item_category.cid == 9:
             outer_id = "100" + "%05d" % supplier.id
         else:
-            return None
+            outer_id = category_maps.get(item_category.parent_cid, '0') + str(item_category.cid) + "%05d" % supplier.id
+
         count = cls.objects.filter(outer_id__startswith=outer_id).count() or 1
         inner_outer_id = outer_id + "%03d" % count
         while True:
@@ -783,23 +784,28 @@ class Product(models.Model):
             sku_info.update({'color': sss[sku_info['product']]})
         # 如果　已经存在的sku不在skus_list中则 设置　product_sku instance 预留为0
         current_skus_list = skus_info
-        current_tmp = {item['color'] + '|' + item['properties_name']: item for item in current_skus_list}
-        tmp = {i['color'] + '|' + i['properties_name']: i for i in skus_list}
+        current_tmp = dict([('%s|%s'%(item['color'], item['properties_name']), item) for item in current_skus_list])
+        tmp = dict([('%s|%s'%(item['color'], item['properties_name']), item) for item in skus_list])
         is_inschedule = model_pro.saleproduct.is_inschedule  # 是否在排期里面（用来取决删除状态,如果是在排期里面则不能删除,否则可以改变成删除状态）
         for t in current_tmp.keys():
-            if t not in tmp:
-                name = t.split('|')[0]
-                product = model_pro.products.filter(name=name).first()
-                if not product:
-                    continue
-                properties_name = t.split('|')[1] if len(t.split('|')) > 1 else ''
-                normal_skus = product.normal_skus.filter(properties_name=properties_name)
-                normal_skus.update(remain_num=0)
-                product.set_remain_num()  # 有效sku预留数之和
+            if t in tmp:
+                continue
+            name = t.split('|')[0]
+            product = model_pro.products.filter(name=name).first()
+            if not product:
+                continue
+            properties_name = t.split('|')[1] if len(t.split('|')) > 1 else ''
+            normal_skus = product.normal_skus.filter(properties_name=properties_name)
+            for normal_sku in normal_skus:
+                normal_sku.remain_num = 0
                 if not is_inschedule:  # 如果不在排期里面
-                    normal_skus.update(status=ProductSku.DELETE)
-                if not product.normal_skus:  # 没有正常sku则修改该product为删除状态
-                    product.set_to_delete()
+                    normal_sku.status = ProductSku.DELETE
+                normal_sku.save(update_fields=['remain_num', 'status'])
+
+            if not product.normal_skus.exists():  # 没有正常sku则修改该product为删除状态
+                product.set_to_delete()
+            else:
+                product.set_remain_num()  # 有效sku预留数之和
 
     @classmethod
     @transaction.atomic()

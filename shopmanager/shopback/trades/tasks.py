@@ -914,7 +914,8 @@ def task_packageskuitem_update_productskusalestats_num(sku_id, pay_time):
     sale_stat = ProductSkuSaleStats.get_by_sku(sku_id)
     if not sale_stat:
         return
-    if pay_time < sale_stat.sale_start_time or pay_time > sale_stat.sale_end_time:
+    if (sale_stat.sale_start_time and pay_time < sale_stat.sale_start_time) \
+            or (sale_stat.sale_end_time and pay_time > sale_stat.sale_end_time):
         return
     assign_num_res = PackageSkuItem.objects.filter(sku_id=sku_id, pay_time__gte=sale_stat.sale_start_time,
                                                    pay_time__lte=sale_stat.sale_end_time).\

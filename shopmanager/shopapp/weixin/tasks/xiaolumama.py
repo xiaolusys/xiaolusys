@@ -215,8 +215,12 @@ def task_activate_xiaolumama(openid, wx_pubid):
 
 @task(max_retries=3, default_retry_delay=6)
 def task_weixinfans_update_xlmmfans(referal_from_mama_id, referal_to_unionid):
+
     try:
         customer = Customer.objects.filter(unionid=referal_to_unionid).first()
+        if not customer:
+            raise Customer.DoesNotExist()
+
         fans_cusid = customer.id
         fans_nick = customer.nick
         fans_thumbnail = customer.thumbnail
@@ -277,8 +281,10 @@ def task_weixinfans_create_subscribe_awardcarry(unionid):
     
     try:
         mama = XiaoluMama.objects.filter(openid=unionid).first()
-        mama_id = mama.id
+        if not mama:
+            raise XiaoluMama.DoesNotExist()
 
+        mama_id = mama.id
         # We get here too fast that WeixinUserInfo objects have not been created yet,
         # and when we try to access, error comes.        
         userinfo = WeixinUserInfo.objects.filter(unionid=unionid).first()
@@ -374,9 +380,13 @@ def task_weixinfans_create_fans_awardcarry(referal_from_mama_id, referal_to_unio
         # been created yet, and when we try to access , error comes.        
         referal_to_mama = XiaoluMama.objects.filter(openid=referal_to_unionid).first()
         userinfo = WeixinUserInfo.objects.filter(unionid=referal_to_unionid).first()
-    
-        uni_key = AwardCarry.gen_uni_key(referal_to_mama.id, carry_type) 
-    
+        if not referal_to_mama :
+            raise XiaoluMama.DoesNotExist()
+
+        if not userinfo:
+            raise WeixinUserInfo.DoesNotExist()
+
+        uni_key = AwardCarry.gen_uni_key(referal_to_mama.id, carry_type)
         ac = AwardCarry.objects.filter(uni_key=uni_key).first()
         if ac:
             return
@@ -495,6 +505,8 @@ def task_create_mama_referal_qrcode_and_response_weixin(wxpubId, openid, event, 
             return
 
         mama = XiaoluMama.objects.filter(openid=unionid).first()
+        if not mama:
+            raise XiaoluMama.DoesNotExist()
 
         # 获取创建用户小鹿妈妈信息,
         media_id = fetch_wxpub_mama_custom_qrcode_media_id(mama.id, userinfo, wxpubId)
