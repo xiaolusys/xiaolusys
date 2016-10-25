@@ -182,7 +182,10 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_lastest_date(self, cur_date, predict=False, only_onshelf=False):
         """ 获取今日上架日期 """
-        queryset = self.queryset.filter(is_topic=False)
+        queryset = self.queryset
+        if not predict:
+            queryset = self.queryset.filter(is_topic=False)
+
         if only_onshelf:
             queryset = queryset.filter(shelf_status=ModelProduct.ON_SHELF)
 
