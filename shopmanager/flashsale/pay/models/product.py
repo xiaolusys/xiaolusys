@@ -577,6 +577,8 @@ class ModelProduct(BaseTagModel):
         if self.shelf_status != ModelProduct.OFF_SHELF:
             self.shelf_status = ModelProduct.OFF_SHELF
             self.save(update_fields=['shelf_status'])
+            for product in self.products:
+                product.offshelf_product()
             if self.is_teambuy:
                 product = self.products.first()
                 if product:
@@ -772,6 +774,15 @@ def update_product_details_info(sender, instance, created, **kwargs):
         logger.error(exc)
 
 post_save.connect(update_product_details_info, sender=ModelProduct,
+                  dispatch_uid=u'post_save_update_product_details_info')
+
+
+def update_product_onshelf_status(sender, instance, created, **kwargs):
+    if instance.shelf_status == ModelProduct.OFF_SHELF:
+        instance.offshelf_model()
+
+
+post_save.connect(update_product_onshelf_status, sender=ModelProduct,
                   dispatch_uid=u'post_save_update_product_details_info')
 
 

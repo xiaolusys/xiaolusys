@@ -2126,9 +2126,8 @@ post_save.connect(update_productskustats, sender=PackageSkuItem, dispatch_uid='p
 
 
 def update_productsku_salestats_num(sender, instance, created, **kwargs):
-    if created:
-        from shopback.trades.tasks import task_packageskuitem_update_productskusalestats_num
-        task_packageskuitem_update_productskusalestats_num(instance.sku_id, instance.pay_time)
+    from shopback.trades.tasks import task_packageskuitem_update_productskusalestats_num
+    task_packageskuitem_update_productskusalestats_num.delay(instance.sku_id, instance.pay_time)
 
 
 post_save.connect(update_productsku_salestats_num, sender=PackageSkuItem,
