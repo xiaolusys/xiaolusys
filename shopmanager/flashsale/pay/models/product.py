@@ -377,6 +377,7 @@ class ModelProduct(BaseTagModel):
             'head_imgs': self.head_images,
             'content_imgs': self.content_images,
             'is_sale_out': False, #self.is_sale_out,
+            'is_onsale': self.is_onsale,
             'is_recommend':self.is_recommend,
             'is_saleopen': self.is_saleopen,
             'is_flatten': self.is_flatten,
