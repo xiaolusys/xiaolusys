@@ -777,9 +777,11 @@ class XiaoluMama(BaseModel):
             return True
         return False
 
+    @property
     def is_elite_mama(self):
         return self.referal_from == XiaoluMama.DIRECT or self.referal_from == XiaoluMama.INDIRECT
 
+    @property
     def elite_level(self):
         stock_num, in_num, out_num = CouponTransferRecord.get_stock_num(self.id)
         if in_num >= 1000:
