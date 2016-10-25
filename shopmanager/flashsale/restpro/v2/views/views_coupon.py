@@ -116,9 +116,8 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         waiting_in_num = CouponTransferRecord.get_waiting_in_num(mama_id)
         waiting_out_num = CouponTransferRecord.get_waiting_out_num(mama_id)
         
-        #direct_buy = mama.can_buy_transfer_coupon() #可否直接购买精品券
-        direct_buy = False
-        direct_buy_link = "http://m.xiaolumeimei.com"
+        direct_buy = mama.can_buy_transfer_coupon() #可否直接购买精品券
+        direct_buy_link = "http://m.xiaolumeimei.com/mall/buycoupon"
         
         res = Response({"mama_id": mama_id, "stock_num": stock_num, "waiting_in_num": waiting_in_num,
                         "waiting_out_num": waiting_out_num, "bought_num": in_num,
