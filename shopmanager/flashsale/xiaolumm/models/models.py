@@ -36,6 +36,7 @@ MM_CLICK_PER_ORDER_PLUS_COUNT = 50
 
 class XiaoluMama(BaseModel):
     DIRECT = 'DIRECT'
+    INDIRECT = 'INDIRECT'
     
     EFFECT = 'effect'
     FROZEN = 'forzen'
@@ -776,6 +777,23 @@ class XiaoluMama(BaseModel):
             return True
         return False
 
+    def is_elite_mama(self):
+        return self.referal_from == XiaoluMama.DIRECT or self.referal_from == XiaoluMama.INDIRECT
+
+    def elite_level(self):
+        stock_num, in_num, out_num = CouponTransferRecord.get_stock_num(self.id)
+        if in_num >= 1000:
+            return 'SP'
+        if in_num >= 300:
+            return 'Partner'
+        if in_num >= 100:
+            return 'VP'
+        if in_num >= 30:
+            return 'Director'
+        if in_num >= 5:
+            return 'Associate'
+        return None
+        
     def fill_info(self, mobile, referal_from):
         update_fields = []
         if self.mobile is None or (not self.mobile.strip()):
