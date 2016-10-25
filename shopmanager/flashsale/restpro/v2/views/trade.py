@@ -632,7 +632,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 return Response({'code': 21, 'info': u'该商品只能使用优惠券购买'})
 
             cart = cart_qs[0]
-            coupon_template_ids = cart.get_modelproduct.extras.get('payinfo', {}).get('coupon_template_ids', [])
+            coupon_template_ids = cart.get_modelproduct().extras.get('payinfo', {}).get('coupon_template_ids', [])
             if coupon_template_id not in coupon_template_ids:  # 商品和优惠券相对应
                 return Response({'code': 22, 'info': u'请使用正确的优惠券'})
 
