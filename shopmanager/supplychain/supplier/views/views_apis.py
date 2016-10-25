@@ -359,6 +359,11 @@ class SaleProductViewSet(viewsets.ModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
+        model_product = instance.model_product
+        if model_product:
+            instance.title = model_product.name
+            instance.sale_category = model_product.salecategory
+
         serializer = serializers.RetrieveSaleProductSerializer(instance)
         return Response(serializer.data)
 
@@ -386,7 +391,6 @@ class SaleProductViewSet(viewsets.ModelViewSet):
         instance.set_special_fields_by_skuextras()
 
     def create(self, request, *args, **kwargs):
-
         product_link = request.data.get('product_link')
         outer_id  = product_link and hashlib.md5(product_link).hexdigest() or 'OO%d' % time.time()
         request.data.update({

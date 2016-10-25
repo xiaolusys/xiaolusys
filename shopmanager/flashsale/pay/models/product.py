@@ -472,6 +472,7 @@ class ModelProduct(BaseTagModel):
     def comparison(self):
         p_tables = []
         uni_set = set()
+        constrast_detail = ''
         try:
             product_ids = list(self.products.values_list('id', flat=True))
             skucontrasts = ProductSkuContrast.objects.filter(product__in=product_ids)\
@@ -483,7 +484,7 @@ class ModelProduct(BaseTagModel):
                     uni_set.add(uni_key)
                     p_tables.append({'table': self.format_contrast2table(contrast_origin)})
         except ProductSkuContrast.DoesNotExist:
-            logger.warn('ProductSkuContrast not exists:%s' % (p.outer_id))
+            logger.warn('ProductSkuContrast not exists:%s' % (constrast_detail))
         except Exception, exc:
             logger.error(exc.message, exc_info=True)
         return {
