@@ -409,7 +409,7 @@ def task_create_transfer_coupon(sale_order):
     transfer_type = CouponTransferRecord.IN_BUY_COUPON
     date_field = datetime.date.today()
     template_id = CouponTransferRecord.TEMPLATE_ID
-        
+    transfer_status = CouponTransferRecord.DELIVERED
     uni_key = order_id
     order_no = CouponTransferRecord.gen_order_no(init_from_mama_id,template_id,date_field)
 
@@ -418,7 +418,8 @@ def task_create_transfer_coupon(sale_order):
                                       from_mama_nick=from_mama_nick,coupon_to_mama_id=coupon_to_mama_id,
                                       to_mama_thumbnail=to_mama_thumbnail,to_mama_nick=to_mama_nick,
                                       init_from_mama_id=init_from_mama_id,order_no=order_no,coupon_num=coupon_num,
-                                      transfer_type=transfer_type,uni_key=uni_key, date_field=date_field)
+                                      transfer_type=transfer_type,uni_key=uni_key,date_field=date_field,
+                                      transfer_status=transfer_status)
         coupon.save()
     except IntegrityError as exc:
         pass
