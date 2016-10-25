@@ -968,7 +968,6 @@ class RedirectActivityEntryView(APIView):
         return redirect(redirect_link)
 
 
-
 class RedirectStatsLinkView(APIView):
     """
     GET /rest/v2/mama/redirect_stats_link?link_id=xx
@@ -1001,6 +1000,9 @@ class RedirectStatsLinkView(APIView):
 
         if mama:
             task_mama_daily_tab_visit_stats.delay(mama.id, tab_id)
+
+        if link_id == '4' and mama and mama.charge_status == 'uncharge':
+            mama.chargemama()
 
         return redirect(redirect_link)
 
