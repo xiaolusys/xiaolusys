@@ -4,6 +4,7 @@ import datetime
 from celery.task import task
 from django.db.models import F, Sum
 from flashsale.xiaolumm.models import XiaoluMama
+from django.db import IntegrityError
 
 logger = logging.getLogger(__name__)
 
@@ -378,17 +379,48 @@ def task_create_transfer_coupon(sale_order):
     This function temporarily creates UserCoupon. In the future, we should
     create transfer coupon instead.
     """
-    from flashsale.coupon.models import UserCoupon, CouponTemplate
+    from flashsale.coupon.models import UserCoupon, CouponTemplate, CouponTransferRecord
 
-    num = sale_order.num
+    coupon_num = sale_order.num
     customer = sale_order.sale_trade.order_buyer
-    index = 0
-    template = CouponTemplate.objects.get(id=153)  # transfer_coupon_template
+    template = CouponTemplate.objects.get(id=CouponTransferRecord.TEMPLATE_ID)
     order_id = sale_order.id
 
-    while index < num:
+    index = 0
+    while index < coupon_num:
         uni_key = template.gen_usercoupon_unikey(order_id, index)
-        UserCoupon.send_coupon(customer, template, uniq_id=uni_key)
+        try:
+            UserCoupon.send_coupon(customer, template, uniq_id=uni_key)
+        except IntegrityError as exc:
+            pass
         index += 1
 
+    to_mama = customer.get_charged_mama()
+    to_mama_nick = customer.nick
+    to_mama_thumbnail = customer.thumbnail
+
+    coupon_to_mama_id = to_mama.id
+    init_from_mama_id = to_mama.id
+
+    coupon_from_mama_id = 0
+    from_mama_thumbnail = 'http://7xogkj.com2.z0.glb.qiniucdn.com/222-ohmydeer.png?imageMogr2/thumbnail/60/format/png'
+    from_mama_nick = 'SYSTEM'
+    
+    transfer_type = CouponTransferRecord.IN_BUY_COUPON
+    date_field = datetime.date.today()
+    template_id = CouponTransferRecord.TEMPLATE_ID
+        
+    uni_key = order_id
+    order_no = CouponTransferRecord.gen_order_no(init_from_mama_id,template_id,date_field)
+
+    try:
+        coupon = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id,from_mama_thumbnail=from_mama_thumbnail,
+                                      from_mama_nick=from_mama_nick,coupon_to_mama_id=coupon_to_mama_id,
+                                      to_mama_thumbnail=to_mama_thumbnail,to_mama_nick=to_mama_nick,
+                                      init_from_mama_id=init_from_mama_id,order_no=order_no,coupon_num=coupon_num,
+                                      transfer_type=transfer_type,uni_key=uni_key, date_field=date_field)
+        coupon.save()
+    except IntegrityError as exc:
+        pass
+        
     task_update_tpl_released_coupon_nums(template)  # 统计发放数量

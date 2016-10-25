@@ -11,7 +11,7 @@ from flashsale.xiaolumm.models import ReferalRelationship, XiaoluMama
 
 from flashsale.restpro import permissions as perms
 
-from flashsale.coupon.models import CouponTransferRecord
+from flashsale.coupon.models import CouponTransferRecord, UserCoupon
 from flashsale.pay.models import Customer
 from flashsale.restpro.v2.serializers import CouponTransferRecordSerializer
 
@@ -168,14 +168,29 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
     def transfer_coupon(self, request, pk=None, *args, **kwargs):
         if not (pk and pk.isdigit()):
             res = {"code":1, "info": u"请求错误"}
-            
-        mama = get_charged_mama(request.user)
+
+        customer = Customer.objects.normal_customer.filter(user=request.user).first()
+        mama = customer.get_charged_mama()
         mama_id = mama.id
-        
-        record = CouponTransferRecord.objects.filter(id=pk).first()
+
         info = u"无取消记录或不能取消"
+        record = CouponTransferRecord.objects.filter(id=pk).first()
+        init_from_mama = XiaoluMama.objects.filter(id=record.init_from_mama_id).first()
+        init_from_customer = Customer.objects.filter(unionid=init_from_mama.unionid).first()
+        stock_num, in_num, out_num = CouponTransferRecord.get_stock_num(mama_id)
+        if stock_num < record.coupon_num:
+            info = u"精品券库存不足，请立即购买!"
+            return Response({"code":2, "info":info})
+
         if record and record.can_process(mama_id) and mama.can_buy_transfer_coupon():
+            coupons = UserCoupon.objects.filter(customer_id=customer.id,coupon_type=UserCoupon.TYPE_TRANSFER,status=UserCoupon.UNUSED)
+            if coupons.count() < record.coupon_num:
+                info = u"券库存不足，请立即购买!"
+                return Response({"code":3, "info":info})
             CouponTransferRecord.objects.filter(order_no=record.order_no).update(transfer_status=CouponTransferRecord.DELIVERED)
+            for in in xrange(0, record.coupon_num):
+                coupons[0].customer_id = init_from_customer.id
+                coupons[0].extras.update({"transfer_coupon_pk":pk})
             info = u"发放成功"
         res = Response({"code": 0, "info": info})
         res["Access-Control-Allow-Origin"] = "*"
