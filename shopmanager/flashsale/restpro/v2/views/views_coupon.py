@@ -61,6 +61,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         to_mama_thumbnail = to_customer.thumbnail
 
         coupon_to_mama_id = to_mama.id
+        init_from_mama_id = to_mama.id
 
         coupon_from_mama_id = get_referal_from_mama_id(coupon_to_mama_id)
         from_mama = XiaoluMama.objects.filter(id=coupon_from_mama_id).first()
@@ -73,6 +74,8 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         template_id = CouponTransferRecord.TEMPLATE_ID
         
         uni_key = CouponTransferRecord.gen_unikey(coupon_from_mama_id, coupon_to_mama_id, template_id, date_field)
+        order_no = CouponTransferRecord.gen_order_no(init_from_mama_id,template_id,date_field)
+        
         if not uni_key:
             res = Response({"code": 2, "info": u"记录已生成或申请已达当日上限！"})
             res["Access-Control-Allow-Origin"] = "*"
@@ -80,7 +83,8 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
 
         coupon = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id,from_mama_thumbnail=from_mama_thumbnail,
                                       from_mama_nick=from_mama_nick,coupon_to_mama_id=coupon_to_mama_id,
-                                      to_mama_thumbnail=to_mama_thumbnail,to_mama_nick=to_mama_nick,coupon_num=coupon_num,
+                                      to_mama_thumbnail=to_mama_thumbnail,to_mama_nick=to_mama_nick,
+                                      init_from_mama_id=init_from_mama_id,order_no=order_no,coupon_num=coupon_num,
                                       transfer_type=transfer_type,uni_key=uni_key, date_field=date_field)
         coupon.save()
         res = Response({"code": 0, "info": u"提交成功!"})
@@ -118,16 +122,34 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['POST'])
     def process_coupon(self, request, *args, **kwargs):
+        mama = get_charged_mama(request.user)
+        mama_id = mama.id
+
         record = CouponTransferRecord.objects.filter(id=pk).first()
-        info = u"no update"
-        if record and record.transfer_status == CouponTransferRecord.PENDING:
+        info = u"no record"
+        if record and record.can_process(mama_id):
             record.transfer_status=CouponTransferRecord.PROCESSED
             record.save(update_fields=['transfer_status'])
-            info = u"update succeed"
+            info = u"process succeed"
         res = Response({"code": 0, "info": info})
         res["Access-Control-Allow-Origin"] = "*"
         return res
-            
+
+    @detail_route(methods=['POST'])
+    def cancel_coupon(self, request, *args, **kwargs):
+        mama = get_charged_mama(request.user)
+        mama_id = mama.id
+        
+        record = CouponTransferRecord.objects.filter(id=pk).first()
+        info = u"no record"
+        if record and record.can_cancel(mama_id):
+            record.transfer_status=CouponTransferRecord.PROCESSED
+            record.save(update_fields=['transfer_status'])
+            info = u"cancel succeed"
+        res = Response({"code": 0, "info": info})
+        res["Access-Control-Allow-Origin"] = "*"
+        return res
+    
     @list_route(methods=['GET'])
     def list_out_coupons(self, request, *args, **kwargs):
         content = request.GET
