@@ -1,3 +1,4 @@
+# coding=utf-8
 __ALL__ = ["get_sku_stat_by_id", "get_sku_stat_by_ids", "Skustat", "SkustatCtl"]
 
 from apis.internal import get_model_by_id, get_multi_model_by_ids
