@@ -783,6 +783,7 @@ class XiaoluMama(BaseModel):
 
     @property
     def elite_level(self):
+        from flashsale.coupon.models import CouponTransferRecord
         stock_num, in_num, out_num = CouponTransferRecord.get_stock_num(self.id)
         if in_num >= 1000:
             return 'SP'
