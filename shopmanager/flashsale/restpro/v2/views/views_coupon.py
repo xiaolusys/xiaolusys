@@ -30,7 +30,7 @@ def get_referal_from_mama_id(to_mama_id):
         return rr.referal_from_mama_id
     return None
 
-def create_transfer_record(request_user, coupon_num, init_from_mama_id=None):
+def create_transfer_record(request_user, coupon_num, reference_record=None):
     to_customer = Customer.objects.normal_customer.filter(user=request_user).first()
     to_mama = to_customer.get_charged_mama()
 
@@ -42,7 +42,9 @@ def create_transfer_record(request_user, coupon_num, init_from_mama_id=None):
     to_mama_thumbnail = to_customer.thumbnail
 
     coupon_to_mama_id = to_mama.id
-    if not init_from_mama_id:
+    if reference_record:
+        init_from_mama_id = reference_record.init_from_mama_id
+    else:
         init_from_mama_id = to_mama.id
 
     coupon_from_mama_id = get_referal_from_mama_id(coupon_to_mama_id)
@@ -56,7 +58,10 @@ def create_transfer_record(request_user, coupon_num, init_from_mama_id=None):
     template_id = CouponTransferRecord.TEMPLATE_ID
         
     uni_key = CouponTransferRecord.gen_unikey(coupon_from_mama_id, coupon_to_mama_id, template_id, date_field)
-    order_no = CouponTransferRecord.gen_order_no(init_from_mama_id,template_id,date_field)
+    if reference_record:
+        order_no = reference_record.order_no
+    else:
+        order_no = CouponTransferRecord.gen_order_no(init_from_mama_id,template_id,date_field)
     
     if not uni_key:
         res = {"code": 2, "info": u"记录已生成或申请已达当日上限！"}
@@ -136,7 +141,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         if record and record.can_process(mama_id):
             record.transfer_status=CouponTransferRecord.PROCESSED
             record.save(update_fields=['transfer_status'])
-            res = create_transfer_record(request.user, record.coupon_num, record.init_from_mama_id)
+            res = create_transfer_record(request.user, record.coupon_num, record)
         
         res = Response(res)
         res["Access-Control-Allow-Origin"] = "*"
