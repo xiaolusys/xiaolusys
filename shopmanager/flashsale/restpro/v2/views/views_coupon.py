@@ -122,7 +122,10 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         return res
 
     @detail_route(methods=['POST'])
-    def process_coupon(self, request, *args, **kwargs):
+    def process_coupon(self, request, pk=None, *args, **kwargs):
+        if not (pk and pk.isdigit()):
+            res = {"code":1, "info": u"请求错误"}
+        
         mama = get_charged_mama(request.user)
         mama_id = mama.id
 
@@ -139,7 +142,10 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         return res
 
     @detail_route(methods=['POST'])
-    def cancel_coupon(self, request, *args, **kwargs):
+    def cancel_coupon(self, request, pk=None, *args, **kwargs):
+        if not (pk and pk.isdigit()):
+            res = {"code":1, "info": u"请求错误"}
+            
         mama = get_charged_mama(request.user)
         mama_id = mama.id
         
