@@ -623,7 +623,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         for cart in cart_qs:
             mp = cart.get_modelproduct()
             # 包含只允许优惠券购买的商品
-            if mp.extras.get('payinfo', {}).get('use_coupon_only', False):
+            if mp and mp.extras.get('payinfo', {}).get('use_coupon_only', False):
                 use_coupon_only = True
                 break
 
