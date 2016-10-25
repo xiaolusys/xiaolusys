@@ -1125,6 +1125,7 @@ class ProductSku(models.Model):
     @property
     def free_num(self):
         """ 可售库存数 """
+        # return max(self.remain_num - max(self.lock_num, 0), 0)
         sku_stats = self.stat
         if sku_stats:
             self.lock_num = sku_stats.lock_num
