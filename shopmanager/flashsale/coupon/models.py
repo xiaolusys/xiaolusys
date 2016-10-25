@@ -775,6 +775,9 @@ class CouponTransferRecord(BaseModel):
     coupon_to_mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'终点妈妈ID')
     to_mama_thumbnail = models.CharField(max_length=256, blank=True, verbose_name=u'终点妈妈头像')
     to_mama_nick = models.CharField(max_length=64, blank=True, verbose_name=u'终点妈妈昵称')
+
+    init_from_mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'终端妈妈ID')
+    order_no = models.CharField(max_length=64, db_index=True, verbose_name=u'订购标识ID')
     
     template_id = models.IntegerField(default=TEMPLATE_ID, db_index=True, verbose_name=u'优惠券模版')
     coupon_value = models.IntegerField(default=COUPON_VALUE, verbose_name=u'面额')
@@ -801,6 +804,14 @@ class CouponTransferRecord(BaseModel):
             return None
         
         return "%s-%s-%s-%s-%s" % (from_mama_id, to_mama_id, template_id, date_field, idx)
+
+    @classmethod
+    def gen_order_no(cls, init_from_mama_id, template_id, date_field):
+        idx = cls.objects.filter(init_from_mama_id=init_from_mama_id,template_id=template_id,date_field=date_field).count()
+        idx = idx + 1
+        if idx > cls.MAX_DAILY_TRANSFER:
+            return None
+        return "%s-%s-%s-%s" % (init_from_mama_id, template_id, date_field, idx)
     
     @classmethod
     def get_stock_num(cls, mama_id):
@@ -838,14 +849,21 @@ class CouponTransferRecord(BaseModel):
         return get_choice_name(self.TRANSFER_STATUS, self.transfer_status)
 
     @property
-    def transfer_action_display(self):
-        if self.transfer_type <= self.OUT_CONSUMED:
-            if self.transfer_status == self.PENDING:
-                return u"审核"
-            if self.transfer_status == self.PROCESSED:
-                return u"发券"
-        if self.transfer_type > self.OUT_CONSUMED:
-            if self.transfer_status == self.PENDING:
-                return u"取消"
-            
-        return ""
+    def is_cancelable(self):
+        return (self.transfer_status == self.PENDING) and \
+            ((self.init_from_mama_id == self.coupon_to_mama_id and self.transfer_type == self.OUT_TRANSFER) or \
+             self.transfer_type == self.IN_RETURN_GOODS)
+
+    @property
+    def is_processable(self):
+        return (self.transfer_type == self.OUT_TRANSFER or self.transfer_type == self.IN_RETURN_GOODS) and \
+            (self.transfer_status == self.PENDING)
+         
+    def can_cancel(self, mama_id):
+        return (self.transfer_type == self.OUT_TRANSFER and self.transfer_status == self.PENDING and \
+            self.inint_from_mama_id == mama_id) or (self.transfer_type == self.IN_RETURN_GOODS and \
+            self.transfer_status == self.PENDING and self.coupon_from_mama_id == mama_id)
+
+    def can_process(self, mama_id):
+        return (self.transfer_type == self.OUT_TRANSFER and self.transfer_status == self.PENDING and \
+                self.coupon_from_mama_id == mama_id)
