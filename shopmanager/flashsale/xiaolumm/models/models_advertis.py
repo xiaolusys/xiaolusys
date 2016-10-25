@@ -83,8 +83,10 @@ class NinePicAdver(models.Model):
     turns_num = models.IntegerField(verbose_name=u'轮数(第几轮)')
     is_pushed = models.BooleanField(default=False, verbose_name=u'是否已经推送')
     detail_modelids = models.CharField(max_length=128, blank=True, null=True, verbose_name=u'详情页款式id')
+    redirect_url = models.CharField(max_length=512, blank=True, null=True, verbose_name=u'跳转地址')
     save_times = models.IntegerField(default=0, verbose_name=u'保存次数')
     share_times = models.IntegerField(default=0, verbose_name=u'分享次数')
+    memo = models.CharField(max_length=512, blank=True, verbose_name=u'备注')
 
     class Meta:
         db_table = 'flashsale_xlmm_nine_pic'
@@ -94,11 +96,6 @@ class NinePicAdver(models.Model):
 
     def __unicode__(self):
         return u'<%s,%s>' % (self.id, self.title)
-
-    @property
-    def redirect_url(self):
-        # type: () -> text_type
-        return self.detail_modelids
 
     @classmethod
     def init_time(cls, assign_date=None):
@@ -117,7 +114,9 @@ class NinePicAdver(models.Model):
 
     @classmethod
     def create(cls, auther, title, start_time,
-               pic_arry=None, description='', advertisement_type=9, category_id=None, is_pushed=False, redirect_url=''):
+               pic_arry=None, description='', advertisement_type=9,
+               category_id=None, is_pushed=False, redirect_url='',
+               detail_modelids='', memo=''):
         # type: (text_type, text_type, datetime.datetime,
         # Optional[List[text_type]], text_type, int, Optional[int], bool, text_type) -> NinePicAdver
         turns_num = cls.calculate_assign_turns_num(start_time.date())  # 轮数
@@ -135,7 +134,9 @@ class NinePicAdver(models.Model):
                 start_time=start_time,
                 turns_num=turns_num + 1,
                 is_pushed=is_pushed,
-                detail_modelids=redirect_url)
+                detail_modelids=detail_modelids,
+                memo=memo,
+                redirect_url=redirect_url)
         n.save()
         return n
 

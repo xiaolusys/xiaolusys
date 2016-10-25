@@ -35,25 +35,23 @@ class NinePicAdvertisement(object):
         self.save_times = 0
         self.share_times = 0
         self.redirect_url = ''  # 跳转链接
+        self.detail_modelids = ''
+        self.memo = ''
 
     @classmethod
-    def create(cls, *args, **kwargs):
-        # type: (text_type, text_type, datetime.datetime,
-        # Optional[List[text_type]], text_type, int, Optional[int], bool, text_type) -> NinePicAdvertisement
+    def create(cls, auther, title, start_time, **kwargs):
+        # type: (text_type, text_type, datetime.datetime, *Any, **Any) -> NinePicAdvertisement
         from flashsale.xiaolumm.models import NinePicAdver
-
-        # 必须参数
-        auther = kwargs['auther']
-        title = kwargs['title']
-        start_time = kwargs['start_time']
-
+        print "debug kwargs  in create:", kwargs
         pic_arry = kwargs.get('pic_arry') or None
         description = kwargs.get('description') or ''
         advertisement_type = kwargs.get('advertisement_type') or 9
         category_id = kwargs.get('category_id') or None
         is_pushed = kwargs.get('is_pushed') or False
         redirect_url = kwargs.get('redirect_url') or ''
-
+        detail_modelids = kwargs.get('detail_modelids') or ''
+        memo = kwargs.get('memo') or ''
         return NinePicAdver.create(auther, title, start_time,
                                    pic_arry=pic_arry, description=description, advertisement_type=advertisement_type,
-                                   category_id=category_id, is_pushed=is_pushed, redirect_url=redirect_url)
+                                   category_id=category_id, is_pushed=is_pushed, redirect_url=redirect_url,
+                                   detail_modelids=detail_modelids, memo=memo)

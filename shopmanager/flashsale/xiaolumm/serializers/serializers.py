@@ -40,6 +40,10 @@ class NinePicAdverSerializer(serializers.ModelSerializer):
     # start_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", read_only=True)
     cate_gory_display = serializers.CharField(source='get_cate_gory_display', read_only=True)
 
+    category_name = serializers.CharField(source='sale_category.name')
+    advertisement_type = serializers.IntegerField(source='cate_gory')
+    advertisement_type_display = serializers.CharField(source='get_cate_gory_display', read_only=True)
+
     class Meta:
         model = NinePicAdver
         fields = (
@@ -53,7 +57,12 @@ class NinePicAdverSerializer(serializers.ModelSerializer):
             "turns_num",
             "is_pushed",
             "detail_modelids",
-            "cate_gory_display")
+            "cate_gory_display",
+            "sale_category",
+            'category_name',
+            'advertisement_type',
+            'advertisement_type_display',
+        )
 
 
 class XiaoluMamaSerializer(serializers.ModelSerializer):
@@ -94,7 +103,8 @@ class MamaTeamCarryTotalSerializer(serializers.ModelSerializer):
 class MamaTeamCarryTotalDurationSerializer(serializers.ModelSerializer):
     class Meta:
         model = MamaTeamCarryTotal
-        fields = ('mama', 'mama_nick', 'thumbnail', 'mobile', 'duration_total', 'duration_total_display', 'duration_rank')
+        fields = (
+        'mama', 'mama_nick', 'thumbnail', 'mobile', 'duration_total', 'duration_total_display', 'duration_rank')
 
 
 class ActivityMamaTeamCarryTotalSerializer(serializers.ModelSerializer):

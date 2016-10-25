@@ -1,5 +1,6 @@
 # coding=utf-8
 import datetime
+import django_filters
 
 from rest_framework import authentication
 from rest_framework import filters
@@ -17,14 +18,31 @@ from supplychain.supplier.models import SaleProductManageDetail
 from apis.v1.dailypush.ninepic import NinePicAdvertisement
 
 
+class NinepicFilter(filters.FilterSet):
+    title = django_filters.CharFilter(name="title", lookup_type='contains')
+    description = django_filters.CharFilter(name="description", lookup_type='contains')
+    time_start = django_filters.DateFilter(name="start_time", lookup_type='gte')
+    time_end = django_filters.DateFilter(name="start_time", lookup_type='lte')
+
+    class Meta:
+        model = NinePicAdver
+        fields = ['id',
+                  'sale_category_id',
+                  'time_start',
+                  'time_end',
+                  'title',
+                  'description']
+
+
 class NinePicAdverViewSet(viewsets.ModelViewSet):
     queryset = NinePicAdver.objects.all().order_by('-start_time')
     serializer_class = serializers.NinePicAdverSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser, permissions.DjangoModelPermissions)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
-    filter_backends = (filters.SearchFilter,)
+    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
     search_fields = ('detail_modelids', 'auther', 'start_time', '=id')
+    filter_class = NinepicFilter
 
     @list_route(methods=['get'])
     def get_promotion_product(self, request):
@@ -49,12 +67,22 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
         a = sorted(pms, key=lambda k: k['sale_product_id'], reverse=True)  # 按照选品id　排序
         return Response(a)
 
+    @list_route(methods=['get'])
+    def list_filters(self, request, *args, **kwargs):
+        from supplychain.supplier.models import SaleCategory
+
+        categorys = SaleCategory.objects.filter(status=SaleCategory.NORMAL, is_parent=True)
+        return Response({
+            'categorys': categorys.values_list('id', 'name', 'parent_cid', 'is_parent', 'sort_order'),
+        })
+
     def create(self, request, *args, **kwargs):
-        request.data.update({"auther": request.user.username})
-        request.data.update({"start_time": datetime.datetime.strptime(request.data.get('start_time'),
-                                                                      '%Y-%m-%d %H:%M:%S')})
         try:
-            n = NinePicAdvertisement.create(**request.data.dict())
+            auther = request.user.username
+            title = request.data.pop('title')
+            start_time = datetime.datetime.strptime(request.data.pop('start_time'),
+                                                    '%Y-%m-%d %H:%M:%S')
+            n = NinePicAdvertisement.create(auther, title, start_time, **request.data)
         except Exception as e:
             raise exceptions.APIException(e.message)
         serializer = self.get_serializer(n)
