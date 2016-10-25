@@ -30,7 +30,7 @@ def get_referal_from_mama_id(to_mama_id):
         return rr.referal_from_mama_id
     return None
 
-def create_transfer_record(request_user, coupon_num):
+def create_transfer_record(request_user, coupon_num, init_from_mama_id=None):
     to_customer = Customer.objects.normal_customer.filter(user=request_user).first()
     to_mama = to_customer.get_charged_mama()
 
@@ -42,7 +42,8 @@ def create_transfer_record(request_user, coupon_num):
     to_mama_thumbnail = to_customer.thumbnail
 
     coupon_to_mama_id = to_mama.id
-    init_from_mama_id = to_mama.id
+    if not init_from_mama_id:
+        init_from_mama_id = to_mama.id
 
     coupon_from_mama_id = get_referal_from_mama_id(coupon_to_mama_id)
     from_mama = XiaoluMama.objects.filter(id=coupon_from_mama_id).first()
@@ -135,7 +136,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         if record and record.can_process(mama_id):
             record.transfer_status=CouponTransferRecord.PROCESSED
             record.save(update_fields=['transfer_status'])
-            res = create_transfer_record(request.user, record.coupon_num)
+            res = create_transfer_record(request.user, record.coupon_num, record.init_from_mama_id)
         
         res = Response(res)
         res["Access-Control-Allow-Origin"] = "*"
