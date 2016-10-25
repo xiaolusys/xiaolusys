@@ -11,7 +11,8 @@ import json
 import requests
 import datetime
 import constant_extra
-
+import logging
+logger = logging.getLogger(__name__)
 
 session = '6100013704d43273f44071e4a2ae123429ba28420068f5e174265168'
 secret = '5d845250d49aea44c3a07d8c1d513db5'
@@ -70,13 +71,19 @@ def get_exp_template(**kwargs):
     print '开始向菜鸟获取单号了'
     result = requests.post(url = 'http://gw.api.taobao.com/router/rest',data = kwargs)
     result = result.text
-    print result
+    print {'result':result}
+    if result.find("error_response") != -1:
+        result = result.encode('UTF-8')
+        result = json.loads(result)
+        error_code = result['error_response']['code']
+        logger.warn({"action":"cainiao_wuliu","error_code":error_code})
+        return {"error_code":error_code}
     if result.find("print_data") != -1:
         result = result.encode('UTF-8')
         result = json.loads(result)
         print_data = result['cainiao_waybill_ii_get_response']['modules']['waybill_cloud_print_response'][0]['print_data']
         waybill_code = result['cainiao_waybill_ii_get_response']['modules']['waybill_cloud_print_response'][0]['waybill_code']
-        print waybill_code
+        print {"waybill_code":waybill_code}
         return {"print_data":print_data,"waybill_code":waybill_code}
     else:
         return False
@@ -98,7 +105,8 @@ def cancel_exp_number(**kwargs):
 
 if __name__ == '__main__':
     visitor_ip = '114.55.3.64'
-    get_exp_template_test = 'http://192.168.1.8:8005/thermal/STOthermal/get_exp_number?detail=堂主小区&province=福建省&name=杨雪丹&mobile = 13956679696&trade_id=1232132131&city=莆田&district = 唐山区'
+    # get_exp_template_test = 'http://192.168.1.8:8005/thermal/STOthermal/get_exp_number?detail=堂主小区&province=福建省&name=杨雪丹&mobile=13956679696&trade_id=1232132131&city=莆田&district=唐山区'
+    # requests.get(get_exp_template_test)
     # get_delivery_address(cp_code=
     # a = {'param_waybill_cloud_print_apply_new_request':js'STO')on.dumps(constant_extra.param_waybill_cloud_print_apply_new_request)}
     # get_exp_template(**a)
