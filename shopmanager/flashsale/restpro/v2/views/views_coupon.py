@@ -160,6 +160,23 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         res["Access-Control-Allow-Origin"] = "*"
         return res
     
+    @detail_route(methods=['POST'])
+    def transfer_coupon(self, request, pk=None, *args, **kwargs):
+        if not (pk and pk.isdigit()):
+            res = {"code":1, "info": u"请求错误"}
+            
+        mama = get_charged_mama(request.user)
+        mama_id = mama.id
+        
+        record = CouponTransferRecord.objects.filter(id=pk).first()
+        info = u"无取消记录或不能取消"
+        if record and record.can_process(mama_id) and mama.can_buy_transfer_coupon():
+            CouponTransferRecord.objects.filter(order_no=record.order_no).update(transfer_status=CouponTransferRecord.DELIVERED)
+            info = u"发放成功"
+        res = Response({"code": 0, "info": info})
+        res["Access-Control-Allow-Origin"] = "*"
+        return res
+    
     @list_route(methods=['GET'])
     def list_out_coupons(self, request, *args, **kwargs):
         content = request.GET
@@ -173,7 +190,15 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
             coupons = coupons.filter(transfer_status=transfer_status.strip())
             
         serializer = CouponTransferRecordSerializer(coupons, many=True)
-        res = Response(serializer.data)
+        data = serializer.data
+
+        for entry in data:
+            if mama.can_buy_transfer_coupon():
+                entry.update({"is_buyable": True})
+            else:
+                entry.update({"is_buyable": False})
+                
+        res = Response(data)
         res["Access-Control-Allow-Origin"] = "*"
         
         return res
