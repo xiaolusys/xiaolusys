@@ -193,7 +193,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         data = serializer.data
 
         for entry in data:
-            if mama.can_buy_transfer_coupon():
+            if mama.can_buy_transfer_coupon() and entry["transfer_status"] == CouponTransferRecord.PENDING:
                 entry.update({"is_buyable": True})
             else:
                 entry.update({"is_buyable": False})
