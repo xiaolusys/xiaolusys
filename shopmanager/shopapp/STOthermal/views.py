@@ -9,7 +9,8 @@ from rest_framework.response import Response
 import STOthermal_extra
 import constant_extra
 from models import STOThermal
-
+import logging
+logger = logging.getLogger(__name__)
 
 class STOThermalSet(viewsets.ViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
@@ -51,6 +52,9 @@ class STOThermalSet(viewsets.ViewSet):
         print_info = print_info.replace("132112", trade_id)
         a = {'param_waybill_cloud_print_apply_new_request': print_info}
         thermal_info = STOthermal_extra.get_exp_template(**a)
+        if thermal_info.get("error_code",None):
+            logger.warn({"acion":"cainiao_wuliu","error_code":thermal_info['error_code']})
+            return Response({"error_code":thermal_info['error_code']})
         if thermal_info:
             sto = STOThermal.objects.filter(waybill_code=thermal_info['waybill_code'])
             if sto.first():
