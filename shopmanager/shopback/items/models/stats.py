@@ -133,8 +133,17 @@ class ProductSkuStats(models.Model):
         return self.shoppingcart_num + self.waitingpay_num + self.sold_num - self.return_quantity - self.post_num
 
     @property
+    def new_lock_num(self):
+        salestat = ProductSkuSaleStats.get_by_sku(self.sku_id)
+        if salestat:
+            return salestat.init_waitassign_num + salestat.num + self.shoppingcart_num + self.waitingpay_num
+        else:
+            logger.error('can not get sku sale stats:' + str(self.sku_id))
+            return self.shoppingcart_num + self.waitingpay_num
+
+    @property
     def realtime_lock_num(self):
-        return self.shoppingcart_num + self.waitingpay_num
+        return self.shoppingcart_num + self.waitingpay_num + self.sold_num - self.post_num
 
     def realtime_lock_num_display(self):
         try:
@@ -263,14 +272,6 @@ post_save.connect(assign_stock_to_package_sku_item, sender=ProductSkuStats,
                   dispatch_uid='post_save_assign_stock_to_package_sku_item')
 
 
-def update_productsku(sender, instance, created, **kwargs):
-    from shopback.items.tasks import task_productskustats_update_productsku
-    task_productskustats_update_productsku.delay(instance)
-
-
-post_save.connect(update_productsku, sender=ProductSkuStats, dispatch_uid='post_save_productskustats_update_productsku')
-
-
 def product_sku_stats_agg(sender, instance, created, **kwargs):
     # import elasticsearch
     """ 统计实时库存的变化到统计app中"""
@@ -358,17 +359,19 @@ class ProductSkuSaleStats(models.Model):
     # uni_key = sku_id + number of finished records
     uni_key = models.CharField(max_length=32, null=True, unique=True, verbose_name='UNIQUE ID')
 
-    sku_id = models.IntegerField(null=True, db_index=True, verbose_name='商品SKU记录ID')
-    product_id = models.IntegerField(null=True, db_index=True, verbose_name='商品记录ID')
+    # sku_id = models.IntegerField(null=True, db_index=True, verbose_name=u'商品SKU记录ID')
+    # product_id = models.IntegerField(null=True, db_index=True, verbose_name=u'商品记录ID')
+    sku = models.ForeignKey('ProductSku', null=True, verbose_name=u'SKU')
+    product = models.ForeignKey('Product', null=True, verbose_name=u'商品')
 
-    init_waitassign_num = models.IntegerField(default=0, verbose_name='上架前待分配数')
-    num = models.IntegerField(default=0, verbose_name='上架期间购买数')
-    sale_start_time = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name='开始时间')
-    sale_end_time = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name='结束时间')
+    init_waitassign_num = models.IntegerField(default=0, verbose_name=u'上架前待分配数')
+    num = models.IntegerField(default=0, verbose_name=u'上架期间购买数')
+    sale_start_time = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name=u'开始时间')
+    sale_end_time = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name=u'结束时间')
 
-    created = models.DateTimeField(null=True, blank=True, db_index=True, auto_now_add=True, verbose_name='创建时间')
-    modified = models.DateTimeField(null=True, blank=True, auto_now=True, verbose_name='修改时间')
-    status = models.IntegerField(default=0, db_index=True, choices=STATUS, verbose_name='状态')
+    created = models.DateTimeField(null=True, blank=True, db_index=True, auto_now_add=True, verbose_name=u'创建时间')
+    modified = models.DateTimeField(null=True, blank=True, auto_now=True, verbose_name=u'修改时间')
+    status = models.IntegerField(default=0, db_index=True, choices=STATUS, verbose_name=u'状态')
 
     def __unicode__(self):
         return '<%s,%s:%s>' % (self.id, self.product_id, self.sku_id)
@@ -378,6 +381,36 @@ class ProductSkuSaleStats(models.Model):
         from .product import ProductSku
         product_sku = ProductSku.objects.get(id=self.sku_id)
         return ':'.join([product_sku.properties_name, product_sku.properties_alias])
+
+    @staticmethod
+    def create(sku_id):
+        from .product import ProductSku
+        sku = ProductSku.objects.get(id=sku_id)
+        product_id = sku.product_id
+        sku_stats = ProductSkuStats.get_by_sku(sku.id)
+        wait_assign_num = sku_stats.wait_assign_num
+        stats_uni_key = gen_productsksalestats_unikey(sku.id)
+        stat = ProductSkuSaleStats(uni_key=stats_uni_key,
+                                   sku_id=sku.id,
+                                   product_id=product_id,
+                                   init_waitassign_num=wait_assign_num,
+                                   sale_start_time=sku.product.sale_time)
+        stat.save()
+        return stat
+
+    @staticmethod
+    def get_by_sku(sku_id, status=0, num=None):
+        condition = {'sku_id': sku_id}
+        if num:
+            condition['num'] = num
+        else:
+            condition['status'] = status
+        stat = ProductSkuSaleStats.objects.filter(condition).order_by('-id').first()
+        return stat
+
+    @property
+    def lock_num(self):
+        return self.init_waitassign_num + self.num
 
 
 def gen_productsksalestats_unikey(sku_id):

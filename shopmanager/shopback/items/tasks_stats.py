@@ -47,8 +47,7 @@ def task_product_upshelf_update_productskusalestats(sku_id):
 
     product = ProductSku.objects.get(id=sku_id).product
     product_id = product.id
-    sku_stats,state = ProductSkuStats.objects.get_or_create(sku_id=sku_id,product_id=product_id)
-
+    sku_stats = ProductSkuStats.get_by_sku(sku_id)
     wait_assign_num = sku_stats.wait_assign_num
 
     stats_uni_key = gen_productsksalestats_unikey(sku_id)

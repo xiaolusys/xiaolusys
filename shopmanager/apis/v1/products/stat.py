@@ -43,6 +43,7 @@ class Skustat(object):
         return self.sold_num - self.post_num
 
     def get_lock_num(self):
+        # 购物车数+待支付数+待发数
         return self.shoppingcart_num + self.waitingpay_num + self.sold_num - self.return_quantity - self.post_num
 
     def get_free_num(self):
