@@ -724,9 +724,7 @@ from flashsale.xiaolumm.models.models_fortune import AwardCarry
 class XiaoluMamaSerialize(serializers.ModelSerializer):
     coulde_cashout = serializers.FloatField(source='get_cash_iters', read_only=True)
     can_trial = serializers.SerializerMethodField('can_trial_judgement', read_only=True)
-    is_buyable = serializers.CharField(source='can_buy_transfer_coupon', read_only=True)
-    is_elite_mama = serializers.BooleanField(source='is_elite_mama', read_only=True)
-    elite_level = serializers.CharField(source='elite_level', read_only=True)
+    is_buyable = serializers.BooleanField(source='can_buy_transfer_coupon', read_only=True)
     
     class Meta:
         model = XiaoluMama
