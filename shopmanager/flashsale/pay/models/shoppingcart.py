@@ -14,6 +14,7 @@ from shopback.items.models import Product, ProductSku
 import logging
 logger = logging.getLogger(__name__)
 
+
 class ShoppingCart(BaseModel):
     """ 购物车 """
 
@@ -48,7 +49,7 @@ class ShoppingCart(BaseModel):
     SECONDBUY = 4
     TYPE_CHOICES = ((0, u'特卖订单'), (TEAMBUY, u'团购订单'), (SECONDBUY, u'秒杀订单'))
     type = models.IntegerField(choices=TYPE_CHOICES, default=0)
-    
+
     class Meta:
         db_table = 'flashsale_shoppingcart'
         index_together = [('buyer_id', 'item_id', 'sku_id')]
@@ -64,6 +65,11 @@ class ShoppingCart(BaseModel):
         if not hasattr(self, '_product_'):
             self._product_ = Product.objects.filter(id=self.item_id).first()
         return self._product_
+
+    def get_modelproduct(self):
+        if not hasattr(self, '_modelproduct_'):
+            self._modelproduct_ = self.product.get_product_model()
+        return self._modelproduct_
 
     @transaction.atomic
     def close_cart(self, release_locknum=True):
