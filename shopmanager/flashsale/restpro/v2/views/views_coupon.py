@@ -187,10 +187,12 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
             if coupons.count() < record.coupon_num:
                 info = u"券库存不足，请立即购买!"
                 return Response({"code":3, "info":info})
-            CouponTransferRecord.objects.filter(order_no=record.order_no).update(transfer_status=CouponTransferRecord.DELIVERED)
+            now = datetime.datetime.now()
+            CouponTransferRecord.objects.filter(order_no=record.order_no).update(transfer_status=CouponTransferRecord.DELIVERED,modified=now)
             for i in xrange(0, record.coupon_num):
                 coupons[i].customer_id = init_from_customer.id
                 coupons[i].extras.update({"transfer_coupon_pk":pk})
+                coupons[i].save()
             info = u"发放成功"
         res = Response({"code": 0, "info": info})
         res["Access-Control-Allow-Origin"] = "*"
