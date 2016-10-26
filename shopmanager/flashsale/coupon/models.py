@@ -853,6 +853,7 @@ class CouponTransferRecord(BaseModel):
         num = res['n'] or 0
         return num
 
+    @classmethod
     def create_consume_record(cls, coupon_num, sale_trade, template_id):
         from flashsale.xiaolumm.models import XiaolMama
         from flashsale.pay.models import Customer
@@ -880,11 +881,12 @@ class CouponTransferRecord(BaseModel):
             res = {"code": 3, "info": u"记录已存在！"}
             return res
 
+        transfer_status = cls.DELIVERED
         coupon = cls(coupon_from_mama_id=coupon_from_mama_id,from_mama_thumbnail=from_mama_thumbnail,
                      from_mama_nick=from_mama_nick,coupon_to_mama_id=coupon_to_mama_id,
                      to_mama_thumbnail=to_mama_thumbnail,to_mama_nick=to_mama_nick,
                      init_from_mama_id=init_from_mama_id,order_no=order_no,coupon_num=coupon_num,
-                     transfer_type=transfer_type,uni_key=uni_key, date_field=date_field)
+                     transfer_type=transfer_type,uni_key=uni_key, date_field=date_field, transfer_status=transfer_status)
         coupon.save()
         res = {"code": 0, "info": u"成功!"}
         return res
