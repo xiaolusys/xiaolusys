@@ -7,7 +7,7 @@
 import datetime
 import random
 from django.db import models
-from django.db.models import Sum        
+from django.db.models import Sum
 from django.db.models.signals import post_save, pre_save
 from flashsale.coupon import tasks
 from flashsale.pay.options import uniqid
@@ -245,6 +245,16 @@ class CouponTemplate(BaseModel):
 
         model_ids = list(Product.objects.filter(id__in=product_ids).values_list('model_id', flat=True))
         model_products = ModelProduct.objects.filter(id__in=model_ids).only('extras')
+
+        # 商品只能使用指定优惠券
+        for mp in model_products:
+            use_coupon_only = mp.extras.get('payinfo', {}).get('use_coupon_only', False)
+            if not use_coupon_only:
+                continue
+            coupon_template_ids = mp.extras.get('payinfo', {}).get('coupon_template_ids', [])
+            if self.id not in coupon_template_ids:
+                raise AssertionError(u'该商品不能使用这个优惠券')
+
         is_coupon_allow = reduce(lambda x, y: x | y, [not mp.is_coupon_deny for mp in model_products])
         if not is_coupon_allow:
             raise AssertionError(u'该产品不支持使用优惠券')
@@ -552,7 +562,7 @@ class UserCoupon(BaseModel):
     def is_transfer_coupon(self):
         from flashsale.coupon.models import CouponTransferRecord
         return self.template_id == CouponTransferRecord.TEMPLATE_ID
-    
+
     def self_template(self):
         # type: () -> CouponTemplate
         return CouponTemplate.objects.get(id=self.template_id)
@@ -748,7 +758,7 @@ class CouponTransferRecord(BaseModel):
     TEMPLATE_ID = 153
     COUPON_VALUE = 128
     MAX_DAILY_TRANSFER = 60 # 每天两人间最大流通次数:60次
-        
+
     OUT_CASHOUT = 1 #退券换钱/out
     OUT_TRANSFER = 2 #转给下属/out
     OUT_CONSUMED = 3 #直接买货/out
@@ -757,32 +767,32 @@ class CouponTransferRecord(BaseModel):
     IN_RETURN_GOODS = 6 #退货退券/in
     TRANSFER_TYPES = ((OUT_CASHOUT, u'退券换钱'),(OUT_TRANSFER, u'转给下属'),(OUT_CONSUMED, u'直接买货'),
                       (IN_BUY_COUPON, u'花钱买券'),(IN_RETURN_COUPON, u'下属退券'),(IN_RETURN_GOODS, u'退货退券'))
-    
+
     PENDING = 1
     PROCESSED = 2
     DELIVERED = 3
     CANCELED = 4
     TRANSFER_STATUS = ((PENDING, u'待审核'), (PROCESSED, u'待发放'), (DELIVERED, u'已完成'), (CANCELED, u'已取消'),)
-    
+
     EFFECT = 1
     CANCEL = 2
     STATUS_TYPES = ((EFFECT, u'有效'), (CANCEL, u'无效'), )
 
-    # Note: 
+    # Note:
     # The design follows the route that a coupon is transfered from an agency (coupon_from_mama_id) to
     # another agency (coupon_to_mama_id).
-    # 
+    #
     coupon_from_mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'From妈妈ID')
     from_mama_thumbnail = models.CharField(max_length=256, blank=True, verbose_name=u'From妈妈头像')
     from_mama_nick = models.CharField(max_length=64, blank=True, verbose_name=u'From妈妈昵称')
-    
+
     coupon_to_mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'To妈妈ID')
     to_mama_thumbnail = models.CharField(max_length=256, blank=True, verbose_name=u'To妈妈头像')
     to_mama_nick = models.CharField(max_length=64, blank=True, verbose_name=u'To妈妈昵称')
 
     init_from_mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'终端妈妈ID')
     order_no = models.CharField(max_length=64, db_index=True, verbose_name=u'订购标识ID')
-    
+
     template_id = models.IntegerField(default=TEMPLATE_ID, db_index=True, verbose_name=u'优惠券模版')
     coupon_value = models.IntegerField(default=COUPON_VALUE, verbose_name=u'面额')
     coupon_num = models.IntegerField(default=0, verbose_name=u'数量')
@@ -791,7 +801,7 @@ class CouponTransferRecord(BaseModel):
     status = models.IntegerField(default=1, db_index=True, choices=STATUS_TYPES, verbose_name=u'状态')
     uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')
     date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
-        
+
     class Meta:
         db_table = "flashsale_coupon_transfer_record"
         app_label = 'coupon'
@@ -819,7 +829,7 @@ class CouponTransferRecord(BaseModel):
         if idx > cls.MAX_DAILY_TRANSFER:
             return None
         return "%s-%s-%s-%s" % (init_from_mama_id, template_id, date_field, idx)
-    
+
     @classmethod
     def get_stock_num(cls, mama_id):
         res = cls.objects.filter(coupon_from_mama_id=mama_id,transfer_status=cls.DELIVERED).aggregate(n=Sum('coupon_num'))
@@ -843,11 +853,10 @@ class CouponTransferRecord(BaseModel):
         num = res['n'] or 0
         return num
 
-    @classmethod
     def create_consume_record(cls, coupon_num, sale_trade, template_id):
         from flashsale.xiaolumm.models import XiaolMama
         from flashsale.pay.models import Customer
-        
+
         from_customer_id = sale_trade.buyer_id
         from_customer = Customer.objects.filter(id=from_customer_id).first()
         from_mama = XiaoluMama.objects.filter(openid=from_customer.unionid).first()
@@ -855,7 +864,7 @@ class CouponTransferRecord(BaseModel):
         from_mama_nick = from_customer.nick
         from_mama_thumbnail = from_customer.thumbnail
         init_from_mama_id = from_mama.id
-    
+
         coupon_to_mama_id = 0
         to_mama_nick = 'SYSTEM'
         to_mama_thumbnail = 'http://7xogkj.com2.z0.glb.qiniucdn.com/222-ohmydeer.png?imageMogr2/thumbnail/60/format/png'
@@ -870,7 +879,7 @@ class CouponTransferRecord(BaseModel):
         if coupon:
             res = {"code": 3, "info": u"记录已存在！"}
             return res
-    
+
         coupon = cls(coupon_from_mama_id=coupon_from_mama_id,from_mama_thumbnail=from_mama_thumbnail,
                      from_mama_nick=from_mama_nick,coupon_to_mama_id=coupon_to_mama_id,
                      to_mama_thumbnail=to_mama_thumbnail,to_mama_nick=to_mama_nick,
@@ -902,7 +911,7 @@ class CouponTransferRecord(BaseModel):
     def is_processable(self):
         return (self.transfer_type == self.OUT_TRANSFER or self.transfer_type == self.IN_RETURN_GOODS) and \
             (self.transfer_status == self.PENDING)
-         
+
     def can_cancel(self, mama_id):
         return (self.transfer_type == self.OUT_TRANSFER and self.transfer_status == self.PENDING and \
                 self.init_from_mama_id == mama_id and self.init_from_mama_id == self.coupon_to_mama_id) or \
