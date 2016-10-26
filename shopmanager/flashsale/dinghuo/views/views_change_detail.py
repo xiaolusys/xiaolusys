@@ -118,7 +118,8 @@ class ChangeDetailView(View):
         for inbound in order_list.get_inbounds():
             inbound_dicts.append({
                 'id': inbound.id,
-                'memo': inbound.memo
+                'memo': inbound.memo,
+                'info': inbound.get_easy_info()
             })
         return render_to_response("dinghuo/changedetail.html",
                                   {"orderlist": order_list,

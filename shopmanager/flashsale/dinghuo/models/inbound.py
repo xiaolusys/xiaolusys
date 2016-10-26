@@ -567,6 +567,13 @@ class InBound(models.Model):
                                                       self.all_inferior_quantity, wrong_str, more_str,
                                                       self.all_allocate_quantity)
 
+    def get_easy_info(self):
+        wrong_str = u'错%d' % (self.error_cnt,) if self.wrong else ''
+        more = self.all_arrival_quantity - self.all_allocate_quantity
+        more_str = u'多%d' % (more,) if more > 0 else ''
+        inferior_str =  u'次%d' % self.all_inferior_quantity if self.all_inferior_quantity > 0 else ''
+        return self.get_status_display() + wrong_str + more_str + inferior_str
+
     @property
     def all_quantity(self):
         return self.details.aggregate(n=Sum('arrival_quantity') + Sum('inferior_quantity')).get('n', 0) or 0
