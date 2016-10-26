@@ -59,7 +59,8 @@ def task_product_upshelf_update_productskusalestats(sku_id):
                                    sku_id=sku_id,
                                    product_id=product_id,
                                    init_waitassign_num=wait_assign_num,
-                                   sale_start_time=product.sale_time)
+                                   sale_start_time=sku.product.sale_start_time,
+                                   sale_end_time=sku.product.sale_end_time)
             stat.save()
         except IntegrityError as exc:
             logger.warn("IntegrityError - productskusalestat/init_waitassign_num | sku_id: %s, init_waitassign_num: %s" % (
