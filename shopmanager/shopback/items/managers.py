@@ -5,10 +5,10 @@ from django.contrib.auth.models import User
 from django.db.models import Sum
 
 from shopback import paramconfig as pcfg
-from core.ormcache.managers import CacheManager
+from core.managers import BaseManager
 
 
-class ProductManager(CacheManager):
+class ProductManager(BaseManager):
     def getProductByOuterid(self, outer_id):
 
         try:

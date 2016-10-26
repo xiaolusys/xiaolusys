@@ -38,7 +38,7 @@ class ShopProductCategoryManager(BaseManager):
         return self.get_queryset().filter(pro_category__in=pro_category).order_by("-position")
 
 
-class CustomerManager(CacheManager):
+class CustomerManager(BaseManager):
 
     @property
     def normal_customer(self):

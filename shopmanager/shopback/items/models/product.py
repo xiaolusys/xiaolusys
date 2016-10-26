@@ -71,6 +71,7 @@ class Product(models.Model):
         ]
 
     API_CACHE_KEY_TPL = 'api_product_{0}'
+    objects = managers.ProductManager()
 
     NORMAL = pcfg.NORMAL
     REMAIN = pcfg.REMAIN

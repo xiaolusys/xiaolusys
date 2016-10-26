@@ -139,6 +139,8 @@ class Customer(BaseModel):
     first_paytime = models.DateTimeField(null=True,blank=True,verbose_name=u'首次购买日期')
     #     latest_paytime  = models.DateTimeField(null=True,blank=True,verbose_name=u'最近购买日期')
 
+    objects = managers.CustomerManager()
+
     def __unicode__(self):
         return '%s(%s)' % (self.nick, self.id)
 
