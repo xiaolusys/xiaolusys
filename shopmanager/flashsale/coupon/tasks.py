@@ -410,7 +410,7 @@ def task_create_transfer_coupon(sale_order):
     date_field = datetime.date.today()
     template_id = CouponTransferRecord.TEMPLATE_ID
     transfer_status = CouponTransferRecord.DELIVERED
-    uni_key = order_id
+    uni_key = "%s-%s" % (to_mama.id, order_id)
     order_no = CouponTransferRecord.gen_order_no(init_from_mama_id,template_id,date_field)
 
     try:
