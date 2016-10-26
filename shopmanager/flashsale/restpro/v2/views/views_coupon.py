@@ -166,7 +166,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         record = CouponTransferRecord.objects.filter(id=pk).first()
         info = u"无取消记录或不能取消"
         if record and record.can_cancel(mama_id):
-            record.transfer_status=CouponTransferRecord.PROCESSED
+            record.transfer_status=CouponTransferRecord.CANCELED
             record.save(update_fields=['transfer_status'])
             info = u"取消成功"
         res = Response({"code": 0, "info": info})
