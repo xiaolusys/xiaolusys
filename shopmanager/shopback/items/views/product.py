@@ -394,6 +394,34 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         raise exceptions.APIException(u'Method Not Allowed!')
 
+    def get_request_properties(self, request, model_product=None):
+        content = request.data
+        extras = default_modelproduct_extras_tpl()  # 可选颜色 材质 备注 洗涤说明
+        if model_product:
+            extras = model_product.extras
+        properties = extras.get('new_properties')
+        model_properties = content.get('new_properties') or None
+        print 'new_properties', model_properties
+        if isinstance(model_properties, list):
+            model_properties_d = dict([(tt['name'], tt['value']) for tt in model_properties])
+            old_properties_d = dict(
+                [(tt['name'], tt['value']) for tt in properties]) if properties else model_properties_d
+            old_properties_d.update(model_properties_d)
+            properties = [{'name': k, "value": v} for k, v in old_properties_d.iteritems()]
+
+        properties_copy = []
+        thead = []
+        tbody = []
+        for propto in properties:
+            if propto['name'] == '尺码对照参数':
+                thead = propto['value']
+            elif propto['name'] == '尺码表':
+                tbody = propto['value']
+            else:
+                properties_copy.append(propto)
+        return  properties_copy
+
+
     def get_request_extras(self, request, model_product=None):
         """ 更新款式额外属性 """
         content = request.data
@@ -421,6 +449,7 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
                 tbody = propto['value']
             else:
                 properties_copy.append(propto)
+
         values = [thead]
         for body in tbody:
             line = []
@@ -480,8 +509,9 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
             request.data.update({'content_imgs': '\n'.join(content_imgs)})
         instance = saleproduct.model_product
         partial = kwargs.pop('partial', False)
+        new_properties = request.data.get('new_properties') or None
         request_extras = request.data.get('extras') or None
-        if request_extras is not None:
+        if request_extras is not None or new_properties :
             extras = self.get_request_extras(request, instance)
             request.data.update({'extras': extras})
 
