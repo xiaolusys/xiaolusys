@@ -628,10 +628,12 @@ class Product(models.Model):
             update_fields.append('is_verify')
         if update_fields:
             self.save(update_fields=update_fields)
+            self.finish_sale_stat()
             return True
         return False
 
     def finish_sale_stat(self):
+        """结束本轮销售统计"""
         from shopback.items.models import ProductSkuSaleStats
         for sku in self.normal_skus:
             sale_stat = ProductSkuSaleStats.get_by_sku(sku.id)
