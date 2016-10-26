@@ -1532,14 +1532,13 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
     inbound_quantity_link.admin_order_field = 'inbound_quantity'
 
     def return_quantity_link(self, obj):
-        return obj.return_quantity
-        # return ('<a href="%(url)s" target="_blank">%(num)s</a>') % {
-        #     'url': '/admin/dinghuo/orderdetail/?chichu_id=1&sku_id=%(sku)s',
-        #     'sku': obj.sku_id,
-        #     'num': obj.return_quantity
-        # }
+        return ('<a href="%(url)s" target="_blank">%(num)s</a>') % {
+            'url': '/admin/refunds/refundproduct?sku_id=%s' % obj.sku_id,
+            'sku': obj.sku_id,
+            'num': obj.return_quantity
+        }
 
-    # return_quantity_link.allow_tags = True
+    return_quantity_link.allow_tags = True
     return_quantity_link.short_description = u'用户退货数'
     return_quantity_link.admin_order_field = 'return_quantity'
 
