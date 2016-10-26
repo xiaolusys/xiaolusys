@@ -157,6 +157,9 @@ class Product(models.Model):
     def __unicode__(self):
         return '%s' % self.id
         # return '<%s,%s>'%(self.outer_id,self.name)
+    def is_common(self):
+        # 判定普通商品还是押金等虚拟商品
+        return not self.outer_id.startswith('RMB')
 
     def clean(self):
         for field in self._meta.fields:
@@ -942,6 +945,9 @@ from shopback.signals import signal_product_upshelf,signal_product_downshelf
 def change_obj_state_by_pre_save(sender, instance, raw, *args, **kwargs):
     if not raw and instance and instance.id :
         product = Product.objects.get(id=instance.id)
+        if not instance.is_common():
+            # 虚拟商品退散
+            return
         # 如果上架时间修改，则重置is_verify
         if product.sale_time != instance.sale_time:
             instance.is_verify = False
