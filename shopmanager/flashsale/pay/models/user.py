@@ -109,9 +109,6 @@ class Customer(BaseModel):
         verbose_name = u'特卖用户/客户'
         verbose_name_plural = u'特卖用户/客户列表'
 
-    objects = managers.CustomerManager()
-    cache_enabled = True
-
     INACTIVE = 0  # 未激活
     NORMAL = 1  # 正常
     DELETE = 2  # 删除

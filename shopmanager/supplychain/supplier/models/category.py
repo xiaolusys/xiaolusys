@@ -172,7 +172,17 @@ class SaleCategory(BaseModel):
         self_names = [x.strip() for x in self.full_name.split('/')]
         for pcnames in pcs_full_names:
             if self_names == pcnames.values()[0]:
-                return pcs.filter(cid=pcnames.keys()[0]).first()
+                self_cat = pcs.filter(cid=pcnames.keys()[0]).first()
+                if self_cat:
+                    return self_cat
+
+        first_cat = pcs.get(name=u'小鹿美美')
+        second_cat, state = ProductCategory.objects.get_or_create(parent_cid=first_cat.cid, name=self_names[0])
+        third_cat , state = ProductCategory.objects.get_or_create(parent_cid=second_cat.cid, name=self_names[1])
+        return third_cat
+
+
+
 
 
 def invalid_salecategory_data_cache(sender, instance, created, **kwargs):

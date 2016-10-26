@@ -123,6 +123,10 @@ def create_or_update_once_mission(xiaolumama, mission):
             .exclude(status=AwardCarry.CANCEL).only('id').first()
         if first_orderaward:
             return
+        order_carry = OrderCarry.objects.filter(mama_id=mama_id, carry_type__in=(
+            OrderCarry.WAP_ORDER, OrderCarry.APP_ORDER)).first()
+        if order_carry:
+            return
         if xiaolumama.charge_time < datetime.datetime(2016,7,23):
             return
 
