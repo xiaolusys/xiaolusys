@@ -271,9 +271,11 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         default_return = collections.defaultdict(usable_coupon=[], disable_coupon=[], info='', code=0)
         content = request.REQUEST
         cart_ids = content.get("cart_ids", None)
+
         if not cart_ids:
             default_return.update({'info': '购物车为空!', 'code': 1})
             return Response(default_return)
+
         cart_ids = cart_ids.split(',')  # 购物车id
         carts = ShoppingCart.objects.filter(id__in=cart_ids)
         product_ids = []  # 购物车中的产品id
@@ -281,6 +283,7 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         for cart in carts:
             total_fee += cart.price * cart.num
             product_ids.append(cart.item_id)
+
         queryset = self.get_owner_queryset(request)  # customer coupons
         queryset = self.list_unpast_coupon(queryset)  # customer not past coupon
         usable_set = []
@@ -291,6 +294,7 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
                 usable_set.append(coupon)
             except AssertionError:
                 disable_set.append(coupon)
+
         from flashsale.pay.models import ModelProduct
         # 检查款式　是否限制使用优惠券　如果是则设置usable_set 为空
         mds = ModelProduct.objects.filter(id__in=[i['model_id'] for i in
@@ -299,9 +303,11 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
             if md.is_coupon_deny:
                 usable_set = []
                 break
+
         usable_serialier = self.get_serializer(usable_set, many=True)
         disable_serialier = self.get_serializer(disable_set, many=True)
         default_return.update({'usable_coupon': usable_serialier.data, 'disable_coupon': disable_serialier.data})
+
         return Response(default_return)
 
     @list_route(methods=['get'])
