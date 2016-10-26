@@ -549,6 +549,10 @@ class UserCoupon(BaseModel):
             self._coupon_customer_ = Customer.objects.normal_customer.filter(id=self.customer_id).first()
         return self._coupon_customer_
 
+    def is_transfer_coupon(self):
+        from flashsale.coupon.models import CouponTransferRecord
+        return self.template_id == CouponTransferRecord.TEMPLATE_ID
+    
     def self_template(self):
         # type: () -> CouponTemplate
         return CouponTemplate.objects.get(id=self.template_id)
@@ -838,7 +842,44 @@ class CouponTransferRecord(BaseModel):
         res = cls.objects.filter(coupon_from_mama_id=mama_id,transfer_status=cls.PENDING).aggregate(n=Sum('coupon_num'))
         num = res['n'] or 0
         return num
+
+    @classmethod
+    def create_consume_record(cls, coupon_num, sale_trade, template_id):
+        from flashsale.xiaolumm.models import XiaolMama
+        from flashsale.pay.models import Customer
+        
+        from_customer_id = sale_trade.buyer_id
+        from_customer = Customer.objects.filter(id=from_customer_id).first()
+        from_mama = XiaoluMama.objects.filter(openid=from_customer.unionid).first()
+        coupon_from_mama_id = from_mama.id
+        from_mama_nick = from_customer.nick
+        from_mama_thumbnail = from_customer.thumbnail
+        init_from_mama_id = from_mama.id
     
+        coupon_to_mama_id = 0
+        to_mama_nick = 'SYSTEM'
+        to_mama_thumbnail = 'http://7xogkj.com2.z0.glb.qiniucdn.com/222-ohmydeer.png?imageMogr2/thumbnail/60/format/png'
+
+        transfer_type = cls.OUT_CONSUMED
+        date_field = datetime.date.today()
+
+        uni_key = sale_trade.tid
+        order_no = sale_trade.tid
+
+        coupon = cls.objects.filter(uni_key=uni_key).first()
+        if coupon:
+            res = {"code": 3, "info": u"记录已存在！"}
+            return res
+    
+        coupon = cls(coupon_from_mama_id=coupon_from_mama_id,from_mama_thumbnail=from_mama_thumbnail,
+                     from_mama_nick=from_mama_nick,coupon_to_mama_id=coupon_to_mama_id,
+                     to_mama_thumbnail=to_mama_thumbnail,to_mama_nick=to_mama_nick,
+                     init_from_mama_id=init_from_mama_id,order_no=order_no,coupon_num=coupon_num,
+                     transfer_type=transfer_type,uni_key=uni_key, date_field=date_field)
+        coupon.save()
+        res = {"code": 0, "info": u"成功!"}
+        return res
+
     @property
     def month_day(self):
         return self.created.strftime('%m-%d')
