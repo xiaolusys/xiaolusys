@@ -905,7 +905,7 @@ class CouponTransferRecord(BaseModel):
          
     def can_cancel(self, mama_id):
         return (self.transfer_type == self.OUT_TRANSFER and self.transfer_status == self.PENDING and \
-                self.inint_from_mama_id == mama_id and self.init_from_mama_id == self.coupon_to_mama_id) or \
+                self.init_from_mama_id == mama_id and self.init_from_mama_id == self.coupon_to_mama_id) or \
                 (self.transfer_type == self.IN_RETURN_GOODS and self.transfer_status == self.PENDING and\
                  self.coupon_from_mama_id == mama_id)
 
