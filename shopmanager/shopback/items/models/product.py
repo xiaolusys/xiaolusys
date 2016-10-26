@@ -612,6 +612,7 @@ class Product(models.Model):
         #     return False
         if self.shelf_status != Product.UP_SHELF:
             self.shelf_status = Product.UP_SHELF
+            self.upshelf()
             self.save(update_fields=['shelf_status'])
             return True
         return False
@@ -629,6 +630,15 @@ class Product(models.Model):
             self.save(update_fields=update_fields)
             return True
         return False
+
+    def finish_sale_stat(self):
+        from shopback.items.models import ProductSkuSaleStats
+        for sku in self.normal_skus:
+            sale_stat = ProductSkuSaleStats.get_by_sku(sku.id)
+            if sale_stat:
+                sale_stat.finish()
+            sku.lock_num = 0
+            sku.save()
 
     def update_shelf_time(self, upshelf_time, offshelf_time):
         """ 更新上下架时间 """

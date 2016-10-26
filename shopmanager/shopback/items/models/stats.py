@@ -409,9 +409,16 @@ class ProductSkuSaleStats(models.Model):
         stat = ProductSkuSaleStats.objects.filter(**condition).order_by('-id').first()
         return stat
 
-    @property
-    def lock_num(self):
-        return self.init_waitassign_num + self.num
+    # @property
+    # def lock_num(self):
+    #     return self.init_waitassign_num + self.num
+
+    def finish(self):
+        if not self.sale_end_time:
+            self.sale_end_time = self.product.offshelf_time
+        self.status = ProductSkuSaleStats.ST_FINISH
+        self.save(update_fields=["sale_end_time","status"])
+
 
 
 def gen_productsksalestats_unikey(sku_id):

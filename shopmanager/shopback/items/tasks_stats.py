@@ -85,6 +85,8 @@ def task_product_downshelf_update_productskusalestats(sku_id, sale_end_time):
     if stats.count() > 0:
         try:
             stat = stats[0]
+            if not stat.sale_end_time:
+                stat.sale_end_time = stat.product.offshelf_time
             stat.status = ProductSkuSaleStats.ST_FINISH
             stat.save(update_fields=["sale_end_time","status"])
         except IntegrityError as exc:
