@@ -855,7 +855,7 @@ class CouponTransferRecord(BaseModel):
 
     @classmethod
     def create_consume_record(cls, coupon_num, sale_trade, template_id):
-        from flashsale.xiaolumm.models import XiaolMama
+        from flashsale.xiaolumm.models import XiaoluMama
         from flashsale.pay.models import Customer
 
         from_customer_id = sale_trade.buyer_id
