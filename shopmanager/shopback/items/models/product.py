@@ -72,7 +72,6 @@ class Product(models.Model):
 
     API_CACHE_KEY_TPL = 'api_product_{0}'
     objects = managers.ProductManager()
-    cache_enabled = True
 
     NORMAL = pcfg.NORMAL
     REMAIN = pcfg.REMAIN
@@ -998,8 +997,6 @@ class ProductSku(models.Model):
         verbose_name_plural = u'库存商品规格列表'
 
     API_CACHE_KEY_TPL = 'api_productsku_{0}'
-    cache_enabled = True
-    objects = managers.CacheManager()
 
     NORMAL = pcfg.NORMAL
     REMAIN = pcfg.REMAIN

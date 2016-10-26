@@ -74,9 +74,6 @@ class WeiXinAccount(models.Model):
     refund_updated = models.DateTimeField(blank=True, null=True,
                                           verbose_name=u"维权更新时间")
 
-    cache_enabled = True
-    objects = managers.CacheManager()
-
     class Meta:
         db_table = 'shop_weixin_account'
         app_label = 'weixin'
@@ -400,9 +397,6 @@ class WeiXinAutoResponse(models.Model):
     news_json = JSONCharMyField(max_length=8192, blank=True, default={}, verbose_name=u'图文信息')
 
     fuzzy_match = models.BooleanField(default=True, verbose_name=u'模糊匹配')
-
-    cache_enabled = True
-    objects = ResponseManager()
 
     class Meta:
         db_table = 'shop_weixin_response'

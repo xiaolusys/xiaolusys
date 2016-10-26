@@ -72,9 +72,6 @@ class Productdetail(PayBaseModel):
 
     rebeta_scheme_id = models.IntegerField(default=0, verbose_name=u'返利计划')
 
-    cache_enabled = True
-    objects = managers.CacheManager()
-
     class Meta:
         db_table = 'flashsale_productdetail'
         app_label = 'pay'
@@ -126,7 +123,7 @@ class Productdetail(PayBaseModel):
 def default_modelproduct_extras_tpl():
     return {
         "saleinfos": {
-            "is_product_buy_limit": True,
+            "is_product_buy_limit": False,
             "per_limit_buy_num": 3,
         },
         "properties": {},
@@ -187,9 +184,6 @@ class ModelProduct(BaseTagModel):
     extras  = JSONCharMyField(max_length=5000, default=default_modelproduct_extras_tpl, verbose_name=u'附加信息')
     status = models.CharField(max_length=16, db_index=True, choices=STATUS_CHOICES,
                               default=NORMAL, verbose_name=u'状态')
-
-    cache_enabled = True
-    objects = managers.CacheManager()
 
     class Meta:
         db_table = 'flashsale_modelproduct'
@@ -589,30 +583,17 @@ class ModelProduct(BaseTagModel):
             return True
         return False
 
-    def update_title_and_category(self, name=None, salecategory=None):
+    def update_fields_with_kwargs(self, **kwargs):
         update_fields = []
-        if name and self.name != name:
-            self.name = name
-            update_fields.append('name')
-        if salecategory and self.salecategory != salecategory:
-            self.salecategory = salecategory
-            update_fields.append('salecategory')
-        if not update_fields:
-            return
-        self.save(update_fields=update_fields)
+        for k, v in kwargs.iteritems():
+            if hasattr(self, k) and getattr(self, k) != v:
+                setattr(self, k, v)
+                update_fields.append(k)
 
-    def update_lowest_price(self, lowest_agent_price, lowest_std_sale_price):
-        """ 更新最低价格 """
-        update_fields = []
-        if self.lowest_agent_price != lowest_agent_price:
-            self.lowest_agent_price = lowest_agent_price
-            update_fields.append('lowest_agent_price')
-        if self.lowest_std_sale_price != lowest_std_sale_price:
-            self.lowest_std_sale_price = lowest_std_sale_price
-            update_fields.append('lowest_std_sale_price')
         if update_fields:
             self.save(update_fields=update_fields)
             return True
+
         return False
 
     def reset_product_shelf_info(self):
@@ -652,12 +633,15 @@ class ModelProduct(BaseTagModel):
 
     def set_lowest_price(self):
         """ 设置款式最低价格 """
-        prices = self.products.values('agent_price', 'std_purchase_price')
+        prices = self.products.values('agent_price', 'std_sale_price')
         agent_prices = [i['agent_price'] for i in prices]
-        std_purchase_price = [i['std_purchase_price'] for i in prices]
-        lowest_agent_price = agent_prices and sorted(agent_prices, reverse=False)[0] or 0  # 递增
-        lowest_std_sale_price = std_purchase_price and sorted(std_purchase_price, reverse=False)[0] or 0  # 递增
-        self.update_lowest_price(lowest_agent_price, lowest_std_sale_price)
+        std_sale_price = [i['std_sale_price'] for i in prices]
+        lowest_agent_price = agent_prices and min(agent_prices) or 0  # 递增
+        lowest_std_sale_price = std_sale_price and min(std_sale_price) or 0  # 递增
+        self.update_fields_with_kwargs(**{
+            'lowest_agent_price': lowest_agent_price,
+            'lowest_std_sale_price': lowest_std_sale_price
+        })
 
     def set_choose_colors(self):
         """ 更新可选颜色 """
