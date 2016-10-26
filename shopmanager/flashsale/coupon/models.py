@@ -795,15 +795,18 @@ class CouponTransferRecord(BaseModel):
         verbose_name_plural = u"特卖/精品券流通记录表"
 
     @classmethod
-    def gen_unikey(cls, from_mama_id, to_mama_id, template_id, date_field):
+    def gen_unikey(cls, from_mama_id, to_mama_id, template_id, date_field, prev_coupon_id=0):
         # from_mama_id + to_mama_id + template_id + date_field + idx
-        idx = cls.objects.filter(coupon_from_mama_id=from_mama_id,coupon_to_mama_id=to_mama_id,template_id=template_id,date_field=date_field).count()
-        idx = idx + 1
+        if prev_coupon_id == 0:
+            idx = cls.objects.filter(coupon_from_mama_id=from_mama_id,coupon_to_mama_id=to_mama_id,
+                                     template_id=template_id,date_field=date_field,transfer_status__gte=cls.PROCESSED).count()
+            idx = idx + 1
 
-        if idx > cls.MAX_DAILY_TRANSFER:
-            return None
-        
-        return "%s-%s-%s-%s-%s" % (from_mama_id, to_mama_id, template_id, date_field, idx)
+            if idx > cls.MAX_DAILY_TRANSFER:
+                return None
+            return "%s-%s-%s-%s-%s" % (from_mama_id, to_mama_id, template_id, date_field, idx)
+
+        return "%s-%s-%s-%s" % (from_mama_id, to_mama_id, template_id, prev_coupon_id)
 
     @classmethod
     def gen_order_no(cls, init_from_mama_id, template_id, date_field):

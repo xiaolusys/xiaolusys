@@ -56,17 +56,23 @@ def create_transfer_record(request_user, coupon_num, reference_record=None):
     transfer_type = CouponTransferRecord.OUT_TRANSFER
     date_field = datetime.date.today()
     template_id = CouponTransferRecord.TEMPLATE_ID
-        
-    uni_key = CouponTransferRecord.gen_unikey(coupon_from_mama_id, coupon_to_mama_id, template_id, date_field)
+
     if reference_record:
+        uni_key = CouponTransferRecord.gen_unikey(coupon_from_mama_id, coupon_to_mama_id, template_id, date_field, reference_record.id)
         order_no = reference_record.order_no
     else:
+        uni_key = CouponTransferRecord.gen_unikey(coupon_from_mama_id, coupon_to_mama_id, template_id, date_field)
         order_no = CouponTransferRecord.gen_order_no(init_from_mama_id,template_id,date_field)
     
     if not uni_key:
         res = {"code": 2, "info": u"记录已生成或申请已达当日上限！"}
         return res
 
+    coupon = CouponTransferRecord.objects.filter(uni_key=uni_key).first()
+    if coupon:
+        res = {"code": 3, "info": u"记录已存在！"}
+        return res
+    
     coupon = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id,from_mama_thumbnail=from_mama_thumbnail,
                                   from_mama_nick=from_mama_nick,coupon_to_mama_id=coupon_to_mama_id,
                                   to_mama_thumbnail=to_mama_thumbnail,to_mama_nick=to_mama_nick,
