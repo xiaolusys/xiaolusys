@@ -121,7 +121,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         data = request.data
         product_id = data.get("item_id", None)
         sku_id = data.get("sku_id", None)
-        sku_num = data.get('num','1')
+        sku_num = data.get('num', '1')
         if not (product_id and sku_id) or not sku_num.isdigit():
             return Response({"code": 1, "info": u"参数错误"})
 
@@ -134,7 +134,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 
         sku = ProductSku.objects.filter(id=sku_id, product_id=product_id).first()
         if not sku:
-            logger.error(u'购物车商品id不一致: (%s, %s), agent=%s'%(product_id, sku_id, request.META.get('HTTP_USER_AGENT')))
+            logger.error(u'购物车商品id不一致: (%s, %s), agent=%s' % (product_id, sku_id, request.META.get('HTTP_USER_AGENT')))
             return Response({"code": 8, "info": u'商品提交信息不一致'})
 
         cart_id = data.get("cart_id", None)
@@ -186,6 +186,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         new_shop_cart.title = product.name
         new_shop_cart.remain_time = datetime.datetime.now() + datetime.timedelta(minutes=20)
         new_shop_cart.save()
+
         for cart in queryset:
             cart.remain_time = datetime.datetime.now() + datetime.timedelta(minutes=20)
             cart.save(update_fields=['remain_time'])
@@ -244,7 +245,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         lockable = Product.objects.isQuantityLockable(sku, cart.num + user_skunum + 1)
         if not lockable:
             return Response({"code": 1, "info": u'商品数量限购'})
-            
+
         lock_success = Product.objects.lockQuantity(sku, 1)
         if sku.free_num <= 0 or not lock_success:
             return Response({"code": 2, "info": u'商品库存不足'})
