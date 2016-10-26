@@ -186,8 +186,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     def check_before_charge(self, sale_trade):
         """ 支付前参数检查,如优惠券状态检查 """
 
-        coupon_id = sale_trade.extras_info.get('coupon')
-        if coupon_id:
+        coupon_ids = sale_trade.extras_info.get('coupon', [])
+        for coupon_id in coupon_ids:
             user_coupon = UserCoupon.objects.get(id=coupon_id, customer_id=sale_trade.buyer_id)
             user_coupon.coupon_basic_check()  # 优惠券基础检查
             user_coupon.use_coupon(sale_trade.tid)  # 使用优惠券
@@ -222,89 +222,109 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         return {'channel':channel,'success':True,'id':sale_trade.id,'info':'订单支付成功', 'from_page': 'order_commit'}
 
     def budget_charge(self, sale_trade, check_coupon=True, **kwargs):
-        """ 小鹿钱包支付实现 """
+        """
+        小鹿钱包支付实现
+        """
         if check_coupon:
             self.check_before_charge(sale_trade)
 
-        buyer         = Customer.objects.get(pk=sale_trade.buyer_id)
-        payment       = round(sale_trade.payment * 100)
-        strade_id     = sale_trade.id
-        channel       = sale_trade.channel
+        buyer = Customer.objects.get(pk=sale_trade.buyer_id)
+        payment = round(sale_trade.payment * 100)
+        strade_id = sale_trade.id
+        channel = sale_trade.channel
 
         if payment > 0:
             user_budget = UserBudget.objects.filter(user=buyer, amount__gte=payment).first()
             if not user_budget:
                 raise Exception(u'小鹿钱包余额不足')
 
-            BudgetLog.objects.create(customer_id=buyer.id,
-                                    referal_id=strade_id,
-                                    flow_amount=payment,
-                                    budget_log_type=BudgetLog.BG_CONSUM,
-                                    budget_type=BudgetLog.BUDGET_OUT,
-                                    status=BudgetLog.CONFIRMED)
+            BudgetLog.objects.create(
+                customer_id=buyer.id,
+                referal_id=strade_id,
+                flow_amount=payment,
+                budget_log_type=BudgetLog.BG_CONSUM,
+                budget_type=BudgetLog.BUDGET_OUT,
+                status=BudgetLog.CONFIRMED
+            )
 
-        #确认付款后保存
+        # 确认付款后保存
         if sale_trade.order_type == 3:
             confirmTradeChargeTask(strade_id)
         else:
             confirmTradeChargeTask.delay(strade_id)
+
         if sale_trade.order_type == 3:
             success_url = CONS.TEAMBUY_SUCCESS_URL.format(order_tid=sale_trade.tid) + '?from_page=order_commit'
         else:
-            success_url = CONS.MALL_PAY_SUCCESS_URL.format(order_id=sale_trade.id, order_tid=sale_trade.tid) + '?from_page=order_commit'
-        return {'channel':channel,'success':True,'id':sale_trade.id,
-                'info':u'订单支付成功', 'order_no':sale_trade.tid,
-                'success_url': success_url, 'fail_url': CONS.MALL_PAY_CANCEL_URL,
-                'type': sale_trade.order_type}
+            success_url = CONS.MALL_PAY_SUCCESS_URL.format(order_id=sale_trade.id, order_tid=sale_trade.tid) \
+                          + '?from_page=order_commit'
+
+        return {
+            'channel': channel,
+            'success': True,
+            'id': sale_trade.id,
+            'info': u'订单支付成功',
+            'order_no': sale_trade.tid,
+            'success_url': success_url,
+            'fail_url': CONS.MALL_PAY_CANCEL_URL,
+            'type': sale_trade.order_type
+        }
 
     def pingpp_charge(self, sale_trade, check_coupon=True, **kwargs):
-        """ pingpp支付实现 """
+        """
+        pingpp支付实现
+        """
         if check_coupon:
             self.check_before_charge(sale_trade)
 
-        payment       = sale_trade.get_cash_payment()
+        payment = sale_trade.get_cash_payment()
+
         if payment <= 0:
-            raise Exception(u'%s支付金额不能小于0' % sale_trade.get_channel_display().replace(u'支付',u''))
-        order_no      = sale_trade.tid
-        buyer_openid  = sale_trade.openid
-        channel       = sale_trade.channel
+            raise Exception(u'%s支付金额不能小于0' % sale_trade.get_channel_display().replace(u'支付', u''))
+
+        order_no = sale_trade.tid
+        buyer_openid = sale_trade.openid
+        channel = sale_trade.channel
         order_success_url = CONS.MALL_PAY_SUCCESS_URL.format(order_id=sale_trade.id, order_tid=sale_trade.tid)
+
         if sale_trade.order_type == SaleTrade.TEAMBUY_ORDER:
             order_success_url = CONS.TEAMBUY_SUCCESS_URL.format(order_tid=sale_trade.tid) + '?from_page=order_commit'
+
         payback_url = urlparse.urljoin(settings.M_SITE_URL, order_success_url)
-        cancel_url  = urlparse.urljoin(settings.M_SITE_URL, CONS.MALL_PAY_CANCEL_URL)
+        cancel_url = urlparse.urljoin(settings.M_SITE_URL, CONS.MALL_PAY_CANCEL_URL)
+
         if sale_trade.has_budget_paid:
             ubudget = UserBudget.objects.get(user=sale_trade.buyer_id)
             budget_charge_create = ubudget.charge_pending(sale_trade.id, sale_trade.budget_payment)
             if not budget_charge_create:
-                logger.error('budget payment err:tid=%s, payment=%s, budget_payment=%s'%(sale_trade.tid, sale_trade.payment, sale_trade.budget_payment))
+                logger.error('budget payment err:tid=%s, payment=%s, budget_payment=%s' % (
+                    sale_trade.tid, sale_trade.payment, sale_trade.budget_payment))
                 raise Exception(u'钱包余额不足')
 
         extra = {}
         if channel == SaleTrade.WX_PUB:
-            extra = {'open_id':buyer_openid,'trade_type':'JSAPI'}
-
+            extra = {'open_id': buyer_openid, 'trade_type': 'JSAPI'}
         elif channel == SaleTrade.ALIPAY_WAP:
-            extra = {"success_url":payback_url,
-                     "cancel_url":cancel_url}
-
+            extra = {"success_url": payback_url, "cancel_url": cancel_url}
         elif channel == SaleTrade.UPMP_WAP:
-            extra = {"result_url":payback_url}
+            extra = {"result_url": payback_url}
 
-        params ={ 'order_no':'%s'%order_no,
-                  'app':dict(id=settings.PINGPP_APPID),
-                  'channel':channel,
-                  'currency':'cny',
-                  'amount':'%d'%payment,
-                  'client_ip':settings.PINGPP_CLENTIP,
-                  'subject':u'小鹿美美平台交易',
-                  'body':u'用户订单金额[%s, %s, %.2f]'%(
-                      sale_trade.buyer_id,
-                      sale_trade.id,
-                      sale_trade.payment),
-                  'metadata':dict(color='red'),
-                  'extra':extra}
-        charge = pingpp.Charge.create(api_key=settings.PINGPP_APPKEY,**params)
+        params = {
+            'order_no': '%s' % order_no,
+            'app': dict(id=settings.PINGPP_APPID),
+            'channel': channel,
+            'currency': 'cny',
+            'amount': '%d' % payment,
+            'client_ip': settings.PINGPP_CLENTIP,
+            'subject': u'小鹿美美平台交易',
+            'body': u'用户订单金额[%s, %s, %.2f]' % (
+                sale_trade.buyer_id,
+                sale_trade.id,
+                sale_trade.payment),
+            'metadata': dict(color='red'),
+            'extra': extra
+        }
+        charge = pingpp.Charge.create(api_key=settings.PINGPP_APPKEY, **params)
         sale_trade.charge = charge.id
         update_model_fields(sale_trade, update_fields=['charge'])
         return charge
@@ -320,13 +340,14 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         return {'mm_linkid': mama_linkid, 'ufrom': ufrom}
 
     def create_Saletrade(self, request, form, address, customer, order_type=SaleTrade.SALE_ORDER):
-        """ 创建特卖订单方法 """
+        """
+        创建特卖订单方法
+        """
         tuuid = form.get('uuid')
         assert UUID_RE.match(tuuid), u'订单UUID异常'
         sale_trade = SaleTrade(tid=tuuid, buyer_id=customer.id)
-        # assert sale_trade.status in (SaleTrade.WAIT_BUYER_PAY,SaleTrade.TRADE_NO_CREATE_PAY), u'订单不可支付'
         channel = form.get('channel')
-        cart_ids = [i for i in form.get('cart_ids','').split(',') if i.isdigit()]
+        cart_ids = [i for i in form.get('cart_ids', '').split(',') if i.isdigit()]
         cart_qs = ShoppingCart.objects.filter(
             id__in=cart_ids,
             buyer_id=customer.id
@@ -334,20 +355,21 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
         if cart_qs.count() == 1 and cart_qs[0].type == ShoppingCart.TEAMBUY:
             order_type = SaleTrade.TEAMBUY_ORDER
+
         if address:
             params = {
-                'channel':channel,
-                'receiver_name':address.receiver_name,
-                'receiver_state':address.receiver_state,
-                'receiver_city':address.receiver_city,
-                'receiver_district':address.receiver_district,
-                'receiver_address':address.receiver_address,
-                'receiver_zip':address.receiver_zip,
-                'receiver_phone':address.receiver_phone,
-                'receiver_mobile':address.receiver_mobile,
-                'user_address_id':address.id,
-                'order_type':order_type
-                }
+                'channel': channel,
+                'receiver_name': address.receiver_name,
+                'receiver_state': address.receiver_state,
+                'receiver_city': address.receiver_city,
+                'receiver_district': address.receiver_district,
+                'receiver_address': address.receiver_address,
+                'receiver_zip': address.receiver_zip,
+                'receiver_phone': address.receiver_phone,
+                'receiver_mobile': address.receiver_mobile,
+                'user_address_id': address.id,
+                'order_type': order_type
+            }
 
         if (not address) and (order_type == SaleTrade.ELECTRONIC_GOODS_ORDER):
             params = {
@@ -361,56 +383,61 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             except:
                 teambuy = None
 
-        buyer_openid = options.get_openid_by_unionid(customer.unionid,settings.WXPAY_APPID)
+        buyer_openid = options.get_openid_by_unionid(customer.unionid, settings.WXPAY_APPID)
         buyer_openid = buyer_openid or customer.openid
-        payment      = round(float(form.get('payment')), 2)
-        pay_extras   = form.get('pay_extras','')
+        payment = round(float(form.get('payment')), 2)
+        pay_extras = form.get('pay_extras', '')
         budget_payment = self.calc_extra_budget(pay_extras)
-        coupon_id  = form.get('coupon_id','')
-        couponids  = re.compile('.*couponid:(?P<couponid>\d+)').match(pay_extras)
-        if couponids:
-            coupon_id = couponids.groupdict().get('couponid',coupon_id)
-        logistics_company_id = form.get('logistics_company_id','').strip()
+        coupon_ids = self.parse_coupon_ids_from_pay_extras(pay_extras)
+
+        if not coupon_ids:
+            coupon_id = form.get('coupon_id', None)
+            if coupon_id:
+                coupon_ids.append(coupon_id)
+
+        logistics_company_id = form.get('logistics_company_id', '').strip()
         logistic_company = None
+
         if address and logistics_company_id and logistics_company_id != '0':
-            if logistics_company_id.replace('-','').isdigit():
-               logistic_company = LogisticsCompany.objects.get(id=logistics_company_id)
+            if logistics_company_id.replace('-', '').isdigit():
+                logistic_company = LogisticsCompany.objects.get(id=logistics_company_id)
             else:
                 logistic_company = LogisticsCompany.objects.get(code=logistics_company_id)
             tasks_set_address_priority_logistics_code.delay(address.id, logistic_company.id)
+
         params.update({
-            'buyer_nick':customer.nick,
-            'buyer_message':form.get('buyer_message',''),
-            'payment':payment,
-            'pay_cash':max(0, round(payment * 100 - budget_payment) / 100.0),
-            'has_budget_paid':budget_payment > 0,
-            'total_fee':round(float(form.get('total_fee')),2),
-            'post_fee':round(float(form.get('post_fee')),2),
-            'discount_fee':round(float(form.get('discount_fee')),2),
-            'charge':'',
-            'logistics_company_id': logistic_company and logistic_company.id or None,
-            'status':SaleTrade.WAIT_BUYER_PAY,
-            'openid':buyer_openid,
-            'extras_info':{
-                'coupon': coupon_id,
-                'pay_extras':pay_extras,
+            'buyer_nick': customer.nick,
+            'buyer_message': form.get('buyer_message', ''),
+            'payment': payment,
+            'pay_cash': max(0, round(payment * 100 - budget_payment) / 100.0),
+            'has_budget_paid': budget_payment > 0,
+            'total_fee': round(float(form.get('total_fee')), 2),
+            'post_fee': round(float(form.get('post_fee')), 2),
+            'discount_fee': round(float(form.get('discount_fee')), 2),
+            'charge': '',
+            'logistics_company_id':  logistic_company and logistic_company.id or None,
+            'status': SaleTrade.WAIT_BUYER_PAY,
+            'openid': buyer_openid,
+            'extras_info': {
+                'coupon': coupon_ids,
+                'pay_extras': pay_extras,
                 'agent': request.META.get('HTTP_USER_AGENT')
             }
         })
         params['extras_info'].update(self.get_mama_referal_params(request))
-        for k,v in params.iteritems():
-            hasattr(sale_trade,k) and setattr(sale_trade,k,v)
+        for k, v in params.iteritems():
+            hasattr(sale_trade, k) and setattr(sale_trade, k, v)
         if order_type == SaleTrade.TEAMBUY_ORDER:
             sale_trade.extras_info['teambuy_id'] = teambuy.id if teambuy else ''
         sale_trade.save()
         # record prepay stats
         from django_statsd.clients import statsd
         statsd.incr('xiaolumm.prepay_count')
-        statsd.incr('xiaolumm.prepay_amount',sale_trade.payment)
+        statsd.incr('xiaolumm.prepay_amount', sale_trade.payment)
 
-        return sale_trade,True
+        return sale_trade, True
 
-    def create_Saleorder_By_Shopcart(self,saletrade,cart_qs):
+    def create_Saleorder_By_Shopcart(self, saletrade, cart_qs):
         """ 根据购物车创建订单明细方法 """
         total_fee = saletrade.total_fee
         total_payment = saletrade.payment - saletrade.post_fee
@@ -491,6 +518,26 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 already_exists_pids.append(pdict['pid'])
         return extra_list
 
+    def parse_pay_extras_to_dict(self, pay_extras):
+        """
+        [{'pid': 1, 'value': 2}] => {1: {'pid':1, 'value': 2}}
+        """
+        extra_list = self.parse_entry_params(pay_extras)
+        d = {}
+        for item in extra_list:
+            d[item['pid']] = item
+        return d
+
+    def parse_coupon_ids_from_pay_extras(self, pay_extras):
+        """
+        从pay_extras获取优惠券id
+        """
+        extras = self.parse_pay_extras_to_dict(pay_extras)
+        couponid_str = extras.get(CONS.ETS_COUPON, {}).get('couponid', '')
+        coupon_ids = couponid_str.split('/')
+        coupon_ids = filter(lambda x: x, coupon_ids)
+        return coupon_ids
+
     def calc_counpon_discount(self, coupon_id, item_ids, buyer_id, payment, **kwargs):
         """
         计算优惠券折扣
@@ -504,13 +551,13 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         user_coupon.check_user_coupon(product_ids=item_ids, use_fee=payment / 100.0)
         return round(user_coupon.value * 100)
 
-    def check_multi_coupon_type(self, coupon_ids):
+    def get_coupon_template_ids(self, coupon_ids):
         """
-        检查多张优惠券必须为同一类型优惠券，不同类型优惠券不许同时使用
+        根据优惠券id获取优惠券模板id
         """
         template_ids = UserCoupon.objects.filter(id__in=coupon_ids).values('template_id')
-        if len(set([x['template_id'] for x in template_ids])) > 1:
-            raise Exception('优惠券不是同一模板')
+        template_ids = list(set([x['template_id'] for x in template_ids]))
+        return template_ids
 
     def calc_extra_discount(self, pay_extras, **kwargs):
         """　
@@ -527,7 +574,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 coupon_ids = param.get('couponid', '').split('/')
 
                 # 检查多张优惠券必须为同一类型优惠券，不同类型优惠券不许同时使用
-                self.check_multi_coupon_type(coupon_ids)
+                coupon_template_ids = self.get_coupon_template_ids(coupon_ids)
+                if len(coupon_template_ids) > 1:
+                    raise Exception('优惠券不是同一模板')
 
                 for coupon_id in coupon_ids:
                     if not coupon_id or not coupon_id.isdigit():
@@ -544,7 +593,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     def calc_extra_budget(self, pay_extras, **kwargs):
         """　支付余额(分) """
         pay_extra_list = self.parse_entry_params(pay_extras)
-        pay_extra_dict = dict([(p['pid'],p) for p in pay_extra_list if p.has_key('pid')])
+        pay_extra_dict = dict([(p['pid'], p) for p in pay_extra_list if p.get('pid')])
         budget_amount = 0
         for param in pay_extra_dict.values():
             pid = param['pid']
@@ -554,10 +603,43 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
     def logger_request(self, request):
         data = request.POST
-        cookies = dict([(k,v) for k,v in request.COOKIES.items() if k in ('mm_linkid','ufrom')])
-        logger.info({'code': 0, 'message': u'付款请求v1', 'channel': data.get('channel'),
-                     'user_agent':request.META.get('HTTP_USER_AGENT'), 'cookies':cookies,
-                     'stype': 'restpro.trade', 'tid': data.get('uuid'), 'data': str(data)})
+        cookies = dict([(k, v) for k, v in request.COOKIES.items() if k in ('mm_linkid', 'ufrom')])
+        logger.info({
+            'code': 0,
+            'message': u'付款请求v1',
+            'channel': data.get('channel'),
+            'user_agent': request.META.get('HTTP_USER_AGENT'),
+            'cookies': cookies,
+            'stype': 'restpro.trade',
+            'tid': data.get('uuid'),
+            'data': str(data)
+        })
+
+    def check_use_coupon_only(self, cart_qs, cart_discount, cart_total_fee, coupon_template_id):
+        """
+        检测是否只允许优惠券购买商品，参数是否异常
+        """
+        use_coupon_only = False
+        for cart in cart_qs:
+            mp = cart.get_modelproduct()
+            # 包含只允许优惠券购买的商品
+            if mp and mp.extras.get('payinfo', {}).get('use_coupon_only', False):
+                use_coupon_only = True
+                break
+
+        if use_coupon_only:
+            if cart_qs.count() > 1:  # 商品种类大于一种
+                return Response({'code': 21, 'info': u'该商品只能使用优惠券购买'})
+
+            cart = cart_qs[0]
+            coupon_template_ids = cart.get_modelproduct().extras.get('payinfo', {}).get('coupon_template_ids', [])
+            if coupon_template_id not in coupon_template_ids:  # 商品和优惠券相对应
+                return Response({'code': 22, 'info': u'请使用正确的优惠券'})
+
+            if cart_discount < cart_total_fee:  # 优惠券价格 < 购物车需支付价格
+                return Response({'code': 23, 'info': u'优惠券不足'})
+
+        return False
 
     @list_route(methods=['post'])
     def shoppingcart_create(self, request, *args, **kwargs):
@@ -587,7 +669,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             })
             return Response({'code': 1, 'info': u'购物车已结算'})
 
-        xlmm = self.get_xlmm(request)
         total_fee = round(float(CONTENT.get('total_fee', '0')) * 100)
         payment = round(float(CONTENT.get('payment', '0')) * 100)
         post_fee = round(float(CONTENT.get('post_fee', '0')) * 100)
@@ -597,12 +678,12 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         cart_discount = 0
         order_type = CONTENT.get('order_type')
 
-        # 20161019 wulei add ,electronic goods scene, no order type user default sale-order type
         if not order_type:
             order_type = SaleTrade.SALE_ORDER
         else:
             order_type = int(order_type)
 
+        # 计算购物车价格
         item_ids = []
         for cart in cart_qs:
             if not cart.is_good_enough():
@@ -616,7 +697,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 })
                 return Response({'code': 2, 'info': u'商品已被抢光了'})
             cart_total_fee += round(cart.price * cart.num * 100)
-            cart_discount += cart.calc_discount_fee(xlmm=xlmm) * cart.num * 100
             item_ids.append(cart.item_id)
 
         extra_params = {
@@ -625,6 +705,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             'payment': cart_total_fee - cart_discount
         }
 
+        # 计算折扣
         try:
             cart_discount += self.calc_extra_discount(pay_extras, **extra_params)
         except Exception, exc:
@@ -650,6 +731,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             })
             return Response({'code': 4, 'info': u'优惠金额异常'})
 
+        # 计算购物车需要支付价格 = 购物车价格 + 邮费 - 折扣
         cart_payment = cart_total_fee + post_fee - cart_discount
         if (post_fee < 0 or payment < 0 or abs(payment - cart_payment) > 10 or abs(total_fee - cart_total_fee) > 10):
             logger.warn({
@@ -662,7 +744,15 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             })
             return Response({'code': 11, 'info': u'付款金额异常'})
 
-        # 20161019 wulei add ,electronic goods not need any receive address
+        # 检测是否只允许优惠券购买商品，参数是否异常
+        coupon_ids = self.parse_coupon_ids_from_pay_extras(pay_extras)
+        coupon_template_ids = self.get_coupon_template_ids(coupon_ids)
+        coupon_template_id = coupon_template_ids[0] if coupon_template_ids else None
+        error = self.check_use_coupon_only(cart_qs, cart_discount, cart_total_fee, coupon_template_id)
+        if error:
+            return error
+
+        # 检查收货地址
         if order_type != SaleTrade.ELECTRONIC_GOODS_ORDER:
             addr_id = CONTENT.get('addr_id') or None
             address = UserAddress.objects.filter(id=addr_id, cus_uid=customer.id).first()
@@ -679,6 +769,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         else:
             address = None
 
+        # 检查付款方式
         channel = CONTENT.get('channel')
         if channel not in dict(SaleTrade.CHANNEL_CHOICES):
             logger.warn({
@@ -692,6 +783,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             })
             return Response({'code': 5, 'info': u'付款方式有误'})
 
+        # 创建订单
         try:
             with transaction.atomic():
                 sale_trade, state = self.create_Saletrade(request, CONTENT, address, customer, order_type)

@@ -168,16 +168,18 @@ def task_release_mama_link_coupon(saletrade):
 
 @task()
 def task_change_coupon_status_used(saletrade):
-    coupon_id = saletrade.extras_info.get('coupon') or None
+    coupon_ids = saletrade.extras_info.get('coupon') or []
     from flashsale.coupon.models import UserCoupon
 
-    usercoupon = UserCoupon.objects.filter(id=coupon_id,
-                                           customer_id=saletrade.buyer_id,
-                                           status=UserCoupon.UNUSED
-                                           ).first()
-    if not usercoupon:
-        return
-    usercoupon.use_coupon(saletrade.tid)
+    for coupon_id in coupon_ids:
+        usercoupon = UserCoupon.objects.filter(
+            id=coupon_id,
+            customer_id=saletrade.buyer_id,
+            status=UserCoupon.UNUSED
+        ).first()
+        if not usercoupon:
+            continue
+        usercoupon.use_coupon(saletrade.tid)
 
 
 @task()
@@ -411,7 +413,7 @@ def task_create_transfer_coupon(sale_order):
     template_id = CouponTransferRecord.TEMPLATE_ID
     transfer_status = CouponTransferRecord.DELIVERED
     uni_key = "%s-%s" % (to_mama.id, order_id)
-    order_no = CouponTransferRecord.gen_order_no(init_from_mama_id,template_id,date_field)
+    order_no = sale_order.oid
 
     try:
         coupon = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id,from_mama_thumbnail=from_mama_thumbnail,
