@@ -104,7 +104,7 @@ class ProductSkuStats(models.Model):
     @property
     def realtime_quantity(self):
         return self.history_quantity + self.inbound_quantity + self.adjust_quantity + self.return_quantity - self.post_num - self.rg_quantity
-
+    #sum([p.realtime_quantity for p in ProductSkuStats.objects.filter(rg_quantity__lt=F('history_quantity')+F('inbound_quantity')+ F('adjust_quantity')+F('return_quantity')-F('post_num')).exclude(product__outer_id__startswith='RMB')])
     @property
     def aggregate_quantity(self):
         return self.history_quantity + self.inbound_quantity + self.adjust_quantity
@@ -409,9 +409,27 @@ class ProductSkuSaleStats(models.Model):
         stat = ProductSkuSaleStats.objects.filter(**condition).order_by('-id').first()
         return stat
 
-    @property
-    def lock_num(self):
-        return self.init_waitassign_num + self.num
+    def get_sold_num(self):
+        total = PackageSkuItem.objects.filter(sku_id=self.sku_id, pay_time__gte=self.sale_start_time,
+                                                   pay_time__lte=self.sale_end_time, assign_status__in=[0,1,2,4]).\
+            aggregate(total=Sum('num')).get('total') or 0
+        return total
+
+    def restat(self):
+        if self.num != self.get_sold_num():
+            self.num = self.get_sold_num()
+            self.save()
+
+    # @property
+    # def lock_num(self):
+    #     return self.init_waitassign_num + self.num
+
+    def finish(self):
+        if not self.sale_end_time:
+            self.sale_end_time = self.product.offshelf_time
+        self.status = ProductSkuSaleStats.ST_FINISH
+        self.save(update_fields=["sale_end_time","status"])
+
 
 
 def gen_productsksalestats_unikey(sku_id):
