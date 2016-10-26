@@ -73,7 +73,7 @@ class MamaTabVisitStats(BaseModel):
         if record:
             n = record.get('n') or 0
         return n
-                  
+
 class MamaDeviceStats(BaseModel):
     device_type = models.IntegerField(default=0, choices=MamaDailyAppVisit.DEVICE_TYPES, db_index=True, verbose_name=u'设备')
     renew_type = models.IntegerField(default=0, choices=XiaoluMama.RENEW_TYPE, db_index=True, verbose_name=u'妈妈类型')
@@ -152,6 +152,7 @@ class WeixinPushEvent(BaseModel):
     FANS_SUBSCRIBE_NOTIFY = 5
     SUB_ORDER_CARRY_INIT = 6
     CLICK_CARRY = 7
+    FAKE_CLICK_CARRY = 71
     PINTUAN_SUCCESS = 8
 
     SALE_REFUND_AGREE = 9
