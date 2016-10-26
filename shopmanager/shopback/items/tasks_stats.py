@@ -44,9 +44,8 @@ def task_product_upshelf_update_productskusalestats(sku_id):
     """
     from shopback.items.models import ProductSku, ProductSkuStats, \
         ProductSkuSaleStats, gen_productsksalestats_unikey
-
-    product = ProductSku.objects.get(id=sku_id).product
-    product_id = product.id
+    sku = ProductSku.objects.get(id=sku_id)
+    product_id = sku.product_id
     sku_stats = ProductSkuStats.get_by_sku(sku_id)
     wait_assign_num = sku_stats.wait_assign_num
 
@@ -80,22 +79,18 @@ def task_product_downshelf_update_productskusalestats(sku_id, sale_end_time):
         ProductSkuSaleStats, gen_productsksalestats_unikey
 
     product = ProductSku.objects.get(id=sku_id).product
-    product_id = product.id
-
     stats_uni_key   = gen_productsksalestats_unikey(sku_id)
     stats = ProductSkuSaleStats.objects.filter(uni_key= stats_uni_key, sku_id=sku_id)
 
     if stats.count() > 0:
         try:
             stat = stats[0]
-            stat.sale_end_time = sale_end_time
             stat.status = ProductSkuSaleStats.ST_FINISH
             stat.save(update_fields=["sale_end_time","status"])
         except IntegrityError as exc:
             logger.warn("IntegrityError - productskusalestat/init_waitassign_num | sku_id: %s, sale_end_time: %s" % (
                 sku_id, sale_end_time))
             raise task_product_downshelf_update_productskusalestats.retry(exc=exc)
-
     else:
         logger.warn("RepeatDownshelf- productskusalestat/init_waitassign_num | sku_id: %s, sale_end_time: %s" % (
             sku_id, sale_end_time))
