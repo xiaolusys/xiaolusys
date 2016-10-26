@@ -1,5 +1,6 @@
 # coding=utf-8
 import datetime
+import logging
 
 from rest_framework import viewsets
 from rest_framework import authentication
@@ -14,6 +15,8 @@ from flashsale.restpro import permissions as perms
 from flashsale.coupon.models import CouponTransferRecord, UserCoupon
 from flashsale.pay.models import Customer
 from flashsale.restpro.v2.serializers import CouponTransferRecordSerializer
+
+logger = logging.getLogger(__name__)
 
 def get_charged_mama(user):
     customer = Customer.objects.normal_customer.filter(user=user).first()
@@ -182,12 +185,14 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         info = u"无取消记录或不能取消"
         record = CouponTransferRecord.objects.filter(id=pk).first()
         init_from_mama = XiaoluMama.objects.filter(id=record.init_from_mama_id).first()
-        init_from_customer = Customer.objects.filter(unionid=init_from_mama.unionid).first()
+        init_from_customer = Customer.objects.filter(unionid=init_from_mama.unionid,status=Customer.NORMAL).first()
         stock_num, in_num, out_num = CouponTransferRecord.get_stock_num(mama_id)
         if stock_num < record.coupon_num:
             info = u"精品券库存不足，请立即购买!"
             return Response({"code":2, "info":info})
 
+        logger.error("%s, %s, %s, %s" % (mama_id, init_from_mama.id, init_from_customer.id, record.coupon_num))
+        
         if record and record.can_process(mama_id) and mama.can_buy_transfer_coupon():
             coupons = UserCoupon.objects.filter(customer_id=customer.id,coupon_type=UserCoupon.TYPE_TRANSFER,status=UserCoupon.UNUSED)
             if coupons.count() < record.coupon_num:
@@ -195,10 +200,12 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
                 return Response({"code":3, "info":info})
             now = datetime.datetime.now()
             CouponTransferRecord.objects.filter(order_no=record.order_no).update(transfer_status=CouponTransferRecord.DELIVERED,modified=now)
-            for i in xrange(0, record.coupon_num):
-                coupons[i].customer_id = init_from_customer.id
-                coupons[i].extras.update({"transfer_coupon_pk":pk})
-                coupons[i].save()
+            coupons = coupons[0:record.coupon_num]
+            for coupon in coupons:
+                coupon.customer_id = init_from_customer.id
+                coupon.extras.update({"transfer_coupon_pk":pk})
+                coupon.save()
+                logger.error("%s,%s" % (coupon.customer_id, coupon.extras))
             info = u"发放成功"
         res = Response({"code": 0, "info": info})
         res["Access-Control-Allow-Origin"] = "*"
