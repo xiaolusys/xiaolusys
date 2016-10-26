@@ -327,13 +327,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         return tlast
 
     def objets_from_cache(self, queryset, value_keys=['pk']):
-        if type(queryset) is list:
-            return queryset
-        if len(value_keys) == 1:
-            lookup_pks = queryset.values_list(*value_keys, flat=True)
-        else:
-            lookup_pks = [v[0] for v in queryset.values_list(*value_keys)]
-        return Product.objects.from_ids(lookup_pks)
+        return list(queryset)
 
     @cache_response(timeout=CACHE_VIEW_TIMEOUT, key_func='calc_items_cache_key')
     @list_route(methods=['get'])

@@ -137,11 +137,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         return self.get_preview_right_date(tlast.date())
 
     def objets_from_cache(self, queryset, value_keys=['pk']):
-        if type(queryset) is list:
-            return queryset
-
-        lookup_pks = queryset.values_list(*value_keys, flat=True)
-        return Product.objects.from_ids(lookup_pks)
+        return list(queryset)
 
     def order_queryset(self, request, queryset, order_by=None):
         """ 对集合列表进行排序 """

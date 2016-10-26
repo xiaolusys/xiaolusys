@@ -330,14 +330,12 @@ class ModelProduct(BaseTagModel):
     @property
     def productobj_list(self):
         if not hasattr(self, '_productobj_list_'):
-            product_ids = self.products.values_list('id',flat=True)
-            self._productobj_list_ = Product.objects.from_ids(product_ids)
+            self._productobj_list_ = list(self.products)
         return self._productobj_list_
 
     def product_simplejson(self, product):
         sku_list = []
-        sku_ids = product.normal_skus.values_list('id', flat=True)
-        skuobj_list = ProductSku.objects.from_ids(sku_ids)
+        skuobj_list = product.normal_skus
         for sku in skuobj_list:
             sku_list.append({
                 'type':'size',
