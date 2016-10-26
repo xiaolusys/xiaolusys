@@ -191,8 +191,6 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
             info = u"精品券库存不足，请立即购买!"
             return Response({"code":2, "info":info})
 
-        logger.error("%s, %s, %s, %s" % (mama_id, init_from_mama.id, init_from_customer.id, record.coupon_num))
-        
         if record and record.can_process(mama_id) and mama.can_buy_transfer_coupon():
             coupons = UserCoupon.objects.filter(customer_id=customer.id,coupon_type=UserCoupon.TYPE_TRANSFER,status=UserCoupon.UNUSED)
             if coupons.count() < record.coupon_num:
@@ -205,7 +203,6 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
                 coupon.customer_id = init_from_customer.id
                 coupon.extras.update({"transfer_coupon_pk":pk})
                 coupon.save()
-                logger.error("%s,%s" % (coupon.customer_id, coupon.extras))
             info = u"发放成功"
         res = Response({"code": 0, "info": info})
         res["Access-Control-Allow-Origin"] = "*"
