@@ -527,7 +527,7 @@ class WeixinPush(object):
                                 event_type=event_type, params=template_data, to_url=to_url)
         event.save()
 
-    def push_mama_clickcarry(self, clickcarry):
+    def push_mama_clickcarry(self, clickcarry, fake=False):
         """
         推送点击收益
 
@@ -546,7 +546,10 @@ class WeixinPush(object):
         mama_id = clickcarry.mama_id
         customer = utils.get_mama_customer(mama_id)
         mama = XiaoluMama.objects.get(id=mama_id)
-        event_type = WeixinPushEvent.CLICK_CARRY
+        if fake:
+            event_type = WeixinPushEvent.FAKE_CLICK_CARRY
+        else:
+            event_type = WeixinPushEvent.CLICK_CARRY
 
         template_id = 'n9kUgavs_10Dz8RbIgY2F9r6rNdlNw3I6D1KLft0_2I'
         template = WeixinTplMsg.objects.filter(wx_template_id=template_id, status=True).first()
@@ -556,7 +559,7 @@ class WeixinPush(object):
 
         today = datetime.datetime.now().date()
         last_event = WeixinPushEvent.objects.filter(
-            mama_id=mama_id, date_field=today, event_type=WeixinPushEvent.CLICK_CARRY).order_by('-created').first()
+            mama_id=mama_id, date_field=today, event_type=event_type).order_by('-created').first()
 
         if last_event:
             _, _, _, last_click_num, last_total_value = last_event.uni_key.split('-')
@@ -577,6 +580,8 @@ class WeixinPush(object):
             'click_num': clickcarry.click_num,
             'total_value': clickcarry.total_value
         })
+        if fake:
+            uni_key = 'fake-' + uni_key
 
         template_data = {
             'first': {
