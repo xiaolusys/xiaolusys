@@ -48,9 +48,9 @@ class Skustat(object):
         from shopback.items.models.stats import ProductSkuSaleStats
         salestat = ProductSkuSaleStats.get_by_sku(self.sku_id)
         if salestat:
-            return salestat.init_waitassign_num + salestat.num + self.shoppingcart_num + self.waitingpay_num
+            return salestat.init_waitassign_num + salestat.num + self.waitingpay_num # self.shoppingcart_num
         else:
-            return self.shoppingcart_num + self.waitingpay_num + self.sold_num - self.return_quantity - self.post_num
+            return self.waitingpay_num + self.sold_num - self.return_quantity - self.post_num# self.shoppingcart_num +
 
     def get_free_num(self):
         return max(self.remain_num - max(self.get_lock_num(), 0), 0)
