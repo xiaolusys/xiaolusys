@@ -284,7 +284,7 @@ class RefundView(APIView):
         refund_product.send_goods_backed_message()
 
         update_Product_Collect_Num(pro=rf, req=request)  # 更新产品库存
-        if refund_product.check_salerefund_conformably():  # 退货和退款单信息一致
+        if refund_product.check_salerefund_conformably() and refund_product.can_reuse:  # 退货和退款单信息一致 并且可以二次销售　则执行退款步骤
             sale_refund = refund_product.get_sale_refund()
             if not sale_refund:
                 return
