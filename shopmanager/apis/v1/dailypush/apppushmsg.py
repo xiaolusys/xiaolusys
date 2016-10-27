@@ -2,7 +2,8 @@
 __ALL__ = [
     'get_app_push_msg_by_id',
     'get_minutes_failed_msgs',
-    'app_msg_push_2_client_by_id',
+    'push_app_push_msg_2_client_by_id',
+    'push_msg_right_now_by_id',
 ]
 import datetime
 import logging
@@ -31,7 +32,7 @@ def get_minutes_failed_msgs(minutes=30):
     return allpushsmss
 
 
-def app_msg_push_2_client_by_id(id):
+def push_app_push_msg_2_client_by_id(id):
     # type: (int) -> None
     """推送消息给客户端
     """
