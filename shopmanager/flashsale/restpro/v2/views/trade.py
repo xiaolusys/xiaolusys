@@ -927,10 +927,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         channel  = CONTENT.get('channel')
         if channel not in dict(SaleTrade.CHANNEL_CHOICES):
             raise exceptions.ParseError(u'付款方式有误')
-
+        sku = ProductSku.objects.get(id=sku_id)
         try:
             lock_success =  Product.objects.lockQuantity(product_sku,sku_num)
-            if not lock_success:
+            if sku_num > sku.free_num:
                 raise exceptions.APIException(u'商品库存不足')
             with transaction.atomic():
                 sale_trade,state = self.create_Saletrade(request, CONTENT, address, customer)
