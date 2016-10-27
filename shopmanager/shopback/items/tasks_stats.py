@@ -200,6 +200,7 @@ def task_update_product_sku_stat_rg_quantity(sku_id):
 
 
 @task(max_retries=3, default_retry_delay=6)
+@transaction.atomic
 def task_shoppingcart_update_productskustats_shoppingcart_num(sku_id):
     """
     Recalculate and update shoppingcart_num.

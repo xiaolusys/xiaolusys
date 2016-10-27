@@ -87,6 +87,11 @@ class Product(models.Model):
     SHELF_CHOICES = ((UP_SHELF, u'已上架'),
                      (DOWN_SHELF, u'未上架'))
 
+    TYPE_CHOICES = (
+        (0, u'商品'),
+        (1, u'虚拟商品'),
+        (2, u'非卖品'),
+    )
     ProductCodeDefect = ProductDefectException
     DIPOSITE_CODE_PREFIX = 'RMB'  # 押金商品编码前缀
     PRODUCT_CODE_DELIMITER = '.'
@@ -101,6 +106,7 @@ class Product(models.Model):
     barcode = models.CharField(max_length=64, blank=True, db_index=True, verbose_name=u'条码')
     category = models.ForeignKey(ProductCategory, null=True, blank=True,
                                  related_name='products', verbose_name=u'内部分类')
+    type = models.IntegerField(choices=TYPE_CHOICES, default=0, verbose_name=u'商品类型')
     pic_path = models.CharField(max_length=256, blank=True, verbose_name=u'商品主图')
 
     collect_num = models.IntegerField(default=0, verbose_name=u'库存数')  # 库存数

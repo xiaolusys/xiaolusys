@@ -4,6 +4,7 @@ import datetime
 import urlparse
 from django.db import models
 from django.shortcuts import get_object_or_404
+from django.db.models import F
 from django.db.models.signals import post_save
 from django.conf import settings
 from django.db import transaction
@@ -147,11 +148,16 @@ signals.signal_product_downshelf.connect(off_the_shelf_func, sender=Product)
 
 def shoppingcart_update_productskustats_shoppingcart_num(sender, instance, created, **kwargs):
     if created:
-        from flashsale.restpro.tasks import task_add_shoppingcart_num
-        task_add_shoppingcart_num.delay(instance)
+        # from flashsale.restpro.tasks import task_add_shoppingcart_num
+        # task_add_shoppingcart_num.delay(instance)
+        from flashsale.restpro.tasks import close_timeout_carts_and_orders_reset_cart_num
+        from shopback.items.models.stats import ProductSkuStats
+        stat = ProductSkuStats.get_by_sku(instance.sku_id)
+        ProductSkuStats.objects.filter(sku_id=stat.sku_id).update(shoppingcart_num=F('shoppingcart_num')+instance.num)
+        return close_timeout_carts_and_orders_reset_cart_num([instance.sku_id])
     else:
         from shopback.items.tasks_stats import task_shoppingcart_update_productskustats_shoppingcart_num
-        task_shoppingcart_update_productskustats_shoppingcart_num.delay(instance.sku_id)
+        task_shoppingcart_update_productskustats_shoppingcart_num(instance.sku_id)
 
 post_save.connect(shoppingcart_update_productskustats_shoppingcart_num, sender=ShoppingCart,
                   dispatch_uid='post_save_shoppingcart_update_productskustats_shoppingcart_num')
