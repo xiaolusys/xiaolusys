@@ -101,7 +101,7 @@ class Envelop(PayBaseModel):
         self.livemode = envelopd['livemode']
         self.send_status = status
 
-        delta_hours = (now - self.send_time).seconds / (60*60)
+        delta_hours = self.send_time and (now - self.send_time).seconds / (60*60) or 0
         # 超过72小时，一直是发送中，则退回用户账户。
         # ping++接口bug，微信拦截风险账号的红包，状态一直是发放中，不会改变，红包默认24小时不领取会退回
         if status == self.SENDING and delta_hours > 72:

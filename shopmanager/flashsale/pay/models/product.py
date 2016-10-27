@@ -476,7 +476,7 @@ class ModelProduct(BaseTagModel):
     def comparison(self):
         uni_set = set()
         constrast_detail = ''
-        property_tables  = self.extras.get('tables')
+        property_tables  = self.extras.get('tables') or []
         p_tables = len(property_tables) > 0 and property_tables or []
         if not p_tables:
             try:
