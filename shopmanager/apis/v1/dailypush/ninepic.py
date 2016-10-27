@@ -8,6 +8,9 @@ __ALL__ = [
     'NinePicAdvertisement',
 ]
 import datetime
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def _init_time(assign_date=None):
