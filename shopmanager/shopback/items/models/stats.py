@@ -104,7 +104,9 @@ class ProductSkuStats(models.Model):
     @property
     def realtime_quantity(self):
         return self.history_quantity + self.inbound_quantity + self.adjust_quantity + self.return_quantity - self.post_num - self.rg_quantity
-    #sum([p.realtime_quantity for p in ProductSkuStats.objects.filter(rg_quantity__lt=F('history_quantity')+F('inbound_quantity')+ F('adjust_quantity')+F('return_quantity')-F('post_num')).exclude(product__outer_id__startswith='RMB')])
+    #sum([p.realtime_quantity for p in
+    # ProductSkuStats.objects.filter(rg_quantity__lt=F('history_quantity')+F('inbound_quantity')+ F('adjust_quantity')+F('return_quantity')-F('post_num'))
+    # .exclude(product__outer_id__startswith='RMB')])
     @property
     def aggregate_quantity(self):
         return self.history_quantity + self.inbound_quantity + self.adjust_quantity
