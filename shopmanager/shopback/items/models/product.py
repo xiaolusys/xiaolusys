@@ -633,10 +633,13 @@ class Product(models.Model):
         return False
 
     def begin_sale_stat(self):
+        """开始一轮销售统计"""
         from shopback.items.models import ProductSkuSaleStats
         ProductSkuSaleStats.stop_pre_stat(self.id)
         for sku in self.normal_skus:
             ProductSkuSaleStats.create(sku)
+            sku.lock_num = 0
+            sku.save()
 
     def finish_sale_stat(self):
         """结束本轮销售统计"""
@@ -645,8 +648,6 @@ class Product(models.Model):
             sale_stat = ProductSkuSaleStats.get_by_sku(sku.id)
             if sale_stat:
                 sale_stat.finish()
-            sku.lock_num = 0
-            sku.save()
 
     def update_shelf_time(self, upshelf_time, offshelf_time):
         """ 更新上下架时间 """
