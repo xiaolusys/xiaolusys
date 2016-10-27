@@ -495,6 +495,7 @@ class SaleTrade(BaseModel):
                 return
             usercoupon.release_usercoupon()  # 修改该优惠券的状态到未使用
 
+
     @property
     def unsign_orders(self):
         """ 允许签收的订单 （已经付款、已发货、货到付款签收）"""

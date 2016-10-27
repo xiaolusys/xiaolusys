@@ -23,7 +23,7 @@ STATICFILES_DIRS = (
 STATIC_ROOT = "/data/site_media/static"
 M_STATIC_URL = '/'
 
-ALLOWED_HOSTS = ['.huyi.so', '.xiaolu.so', '.xiaolumeimei.com', '.xiaolumm.com', '121.199.168.159']
+ALLOWED_HOSTS = ['.huyi.so', '.xiaolu.so', '.xiaolumeimei.com', '.xiaolumm.com', '.xip.io', '121.199.168.159']
 
 # WEB DNS
 SITE_URL = 'http://admin.xiaolumm.com/'
