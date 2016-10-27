@@ -1501,7 +1501,7 @@ def task_purchasearrangement_update_purchasedetail(paid):
 
     total = res['total'] or 0
 
-    unit_price = int(utils.get_unit_price(pa.sku_id) * 100)
+    unit_price = int(pa.sku.cost * 100)
     uni_key = utils.gen_purchase_detail_unikey(pa)
 
     klogger.info({

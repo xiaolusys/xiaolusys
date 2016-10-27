@@ -131,12 +131,12 @@ class ProductSkuStats(models.Model):
         return res if res > 0 else 0
 
     @property
-    def lock_num(self):
+    def old_lock_num(self):
         """老锁定数（仓库里待发货，加购物车待支付）"""
         return self.shoppingcart_num + self.waitingpay_num + self.sold_num - self.return_quantity - self.post_num
 
     @property
-    def new_lock_num(self):
+    def lock_num(self):
         salestat = ProductSkuSaleStats.get_by_sku(self.sku_id)
         if salestat:
             return salestat.init_waitassign_num + salestat.num + self.shoppingcart_num + self.waitingpay_num
@@ -435,6 +435,20 @@ class ProductSkuSaleStats(models.Model):
             self.sale_end_time = self.product.offshelf_time
         self.status = ProductSkuSaleStats.ST_FINISH
         self.save(update_fields=["sale_end_time","status"])
+
+    def teambuy_out_sale_check(self):
+        model_product = self.product.get_product_model()
+        if model_product and model_product.is_teambuy:
+            from flashsale.pay.models import TeamBuy
+            if self.num + model_product.teambuy_person_num  > self.sku.remain_num:
+                TeamBuy.end_teambuy(self.sku)
+
+
+def teambuy_out_sale_check(sender, instance, created, **kwargs):
+    if not created:
+        instance.teambuy_out_sale_check()
+
+post_save.connect(teambuy_out_sale_check, sender=ProductSkuSaleStats, dispatch_uid='post_save_invalid_apiskustat_cache')
 
 
 def gen_productsksalestats_unikey(sku_id):
