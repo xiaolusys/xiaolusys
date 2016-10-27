@@ -401,8 +401,8 @@ class ProductSkuSaleStats(models.Model):
                                    sku_id=sku.id,
                                    product_id=product_id,
                                    init_waitassign_num=wait_assign_num,
-                                   sale_start_time=sku.product.sale_start_time,
-                                   sale_end_time=sku.product.sale_end_time)
+                                   sale_start_time=sku.product.upshelf_time,
+                                   sale_end_time=sku.product.offshelf_time)
         stat.save()
         return stat
 
