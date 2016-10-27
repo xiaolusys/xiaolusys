@@ -1,7 +1,7 @@
 # coding: utf-8
 
 import datetime
-from django.db import models
+from django.db import models, Sum
 from django.db.models.signals import pre_save, post_save
 from django.db.models import F
 from django.db import transaction
@@ -104,7 +104,9 @@ class ProductSkuStats(models.Model):
     @property
     def realtime_quantity(self):
         return self.history_quantity + self.inbound_quantity + self.adjust_quantity + self.return_quantity - self.post_num - self.rg_quantity
-    #sum([p.realtime_quantity for p in ProductSkuStats.objects.filter(rg_quantity__lt=F('history_quantity')+F('inbound_quantity')+ F('adjust_quantity')+F('return_quantity')-F('post_num')).exclude(product__outer_id__startswith='RMB')])
+    #sum([p.realtime_quantity for p in
+    # ProductSkuStats.objects.filter(rg_quantity__lt=F('history_quantity')+F('inbound_quantity')+ F('adjust_quantity')+F('return_quantity')-F('post_num'))
+    # .exclude(product__outer_id__startswith='RMB')])
     @property
     def aggregate_quantity(self):
         return self.history_quantity + self.inbound_quantity + self.adjust_quantity
@@ -383,9 +385,11 @@ class ProductSkuSaleStats(models.Model):
         return ':'.join([product_sku.properties_name, product_sku.properties_alias])
 
     @staticmethod
-    def create(sku_id):
-        from .product import ProductSku
-        sku = ProductSku.objects.get(id=sku_id)
+    def stop_pre_stat(product_id):
+        ProductSkuSaleStats.objects.filter(product_id=product_id, status=0).update(status=ProductSkuSaleStats.ST_DISCARD)
+
+    @staticmethod
+    def create(sku):
         product_id = sku.product_id
         sku_stats = ProductSkuStats.get_by_sku(sku.id)
         wait_assign_num = sku_stats.wait_assign_num
@@ -410,6 +414,7 @@ class ProductSkuSaleStats(models.Model):
         return stat
 
     def get_sold_num(self):
+        from shopback.trades.models import PackageSkuItem
         total = PackageSkuItem.objects.filter(sku_id=self.sku_id, pay_time__gte=self.sale_start_time,
                                                    pay_time__lte=self.sale_end_time, assign_status__in=[0,1,2,4]).\
             aggregate(total=Sum('num')).get('total') or 0
@@ -424,13 +429,12 @@ class ProductSkuSaleStats(models.Model):
     # def lock_num(self):
     #     return self.init_waitassign_num + self.num
 
+
     def finish(self):
         if not self.sale_end_time:
             self.sale_end_time = self.product.offshelf_time
         self.status = ProductSkuSaleStats.ST_FINISH
         self.save(update_fields=["sale_end_time","status"])
-
-
 
 def gen_productsksalestats_unikey(sku_id):
     count = ProductSkuSaleStats.objects.filter(sku_id=sku_id, status=ProductSkuSaleStats.ST_FINISH).count()
