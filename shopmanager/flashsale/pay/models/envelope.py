@@ -95,20 +95,27 @@ class Envelop(PayBaseModel):
         from flashsale.pay.models import BudgetLog
         from flashsale.xiaolumm.models import CashOut
 
-        modified = datetime.datetime.now()
+        now = datetime.datetime.now()
         status = envelopd['status']
         self.envelop_id = envelopd['id']
         self.livemode = envelopd['livemode']
         self.send_status = status
 
+        delta_hours = (now - self.send_time).seconds / (60*60)
+        # 超过72小时，一直是发送中，则退回用户账户。
+        # ping++接口bug，微信拦截风险账号的红包，状态一直是发放中，不会改变，红包默认24小时不领取会退回
+        if status == self.SENDING and delta_hours > 72:
+            self.status = Envelop.FAIL
+            self.refund_envelop()
+
         if status in (self.SENDING, self.SENT, self.RECEIVED):
-            self.send_time = self.send_time or datetime.datetime.now()
+            self.send_time = self.send_time or now
             self.status = Envelop.CONFIRM_SEND
 
             if self.subject == Envelop.XLAPP_CASHOUT:
-                BudgetLog.objects.filter(id=self.referal_id).update(status=BudgetLog.CONFIRMED, modified=modified)
+                BudgetLog.objects.filter(id=self.referal_id).update(status=BudgetLog.CONFIRMED, modified=now)
             elif self.subject == Envelop.CASHOUT:
-                CashOut.objects.filter(id=self.referal_id).update(status=CashOut.APPROVED, modified=modified)
+                CashOut.objects.filter(id=self.referal_id).update(status=CashOut.APPROVED, modified=now)
 
         elif status in (self.SEND_FAILED, self.REFUND):
             self.status = Envelop.FAIL

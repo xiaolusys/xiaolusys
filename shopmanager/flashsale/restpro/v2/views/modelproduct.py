@@ -279,3 +279,13 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
                      'mama': mama,
                      "shop_product_num": len(object_list)})
         return self.get_paginated_response(serializer.data)
+
+    @list_route(methods=['get'])
+    def electronic_goods(self, request, *args, **kwargs):
+        """ electronic商品列表分页接口 """
+        queryset = ModelProduct.objects.filter(product_type=1)
+        page_ids = self.paginate_pks(queryset)
+        modelproducts = ModelProductCtl.multiple(ids=page_ids)
+        object_list = serializers_v2.APIModelProductSerializer(modelproducts, many=True).data
+        response = self.get_paginated_response(object_list)
+        return response
