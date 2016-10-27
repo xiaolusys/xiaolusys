@@ -439,7 +439,8 @@ class ProductSkuSaleStats(models.Model):
     def teambuy_out_sale_check(self):
         model_product = self.product.get_product_model()
         if model_product and model_product.is_teambuy:
-            if self.num + model_product.teambuy_person_num  > self.sku.remain_num
+            from flashsale.pay.models import TeamBuy
+            if self.num + model_product.teambuy_person_num  > self.sku.remain_num:
                 TeamBuy.end_teambuy(self.sku)
 
 
