@@ -232,18 +232,7 @@ def task_saleorder_update_productskustats_waitingpay_num(sku_id):
                                                        status=SaleOrder.WAIT_BUYER_PAY).aggregate(
         Sum('num'))
     total = waitingpay_num_res['num__sum'] or 0
-
-    stats = ProductSkuStats.objects.filter(sku_id=sku_id)
-    if stats.count() <= 0:
-        try:
-            stat = ProductSkuStats(sku_id=sku_id, product_id=product_id, waitingpay_num=total)
-            stat.save()
-        except IntegrityError as exc:
-            logger.warn(
-                "IntegrityError - productskustat/waitingpay_num | sku_id: %s, waitingpay_num: %s" % (sku_id, total))
-            raise task_saleorder_update_productskustats_waitingpay_num.retry(exc=exc)
-    else:
-        stat = stats[0]
-        if stat.waitingpay_num != total:
-            stat.waitingpay_num = total
-            stat.save(update_fields=["waitingpay_num"])
+    stat = ProductSkuStats.get_by_sku(sku_id)
+    if stat.waitingpay_num != total:
+        stat.waitingpay_num = total
+        stat.save(update_fields=["waitingpay_num"])
