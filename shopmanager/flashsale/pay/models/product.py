@@ -308,6 +308,10 @@ class ModelProduct(BaseTagModel):
 
     @property
     def attributes(self):
+        new_properties = self.extras.get('new_properties')
+        if new_properties :
+            return new_properties
+
         product = self.item_product
         if not product:
             return []
@@ -470,23 +474,25 @@ class ModelProduct(BaseTagModel):
 
     @property
     def comparison(self):
-        p_tables = []
         uni_set = set()
         constrast_detail = ''
-        try:
-            product_ids = list(self.products.values_list('id', flat=True))
-            skucontrasts = ProductSkuContrast.objects.filter(product__in=product_ids)\
-                .values_list('contrast_detail',flat=True)
-            for constrast_detail in skucontrasts:
-                contrast_origin = json.loads(constrast_detail)
-                uni_key = ''.join(sorted(contrast_origin.keys()))
-                if uni_key not in uni_set:
-                    uni_set.add(uni_key)
-                    p_tables.append({'table': self.format_contrast2table(contrast_origin)})
-        except ProductSkuContrast.DoesNotExist:
-            logger.warn('ProductSkuContrast not exists:%s' % (constrast_detail))
-        except Exception, exc:
-            logger.error(exc.message, exc_info=True)
+        property_tables  = self.extras.get('tables')
+        p_tables = len(property_tables) > 0 and property_tables or []
+        if not p_tables:
+            try:
+                product_ids = list(self.products.values_list('id', flat=True))
+                skucontrasts = ProductSkuContrast.objects.filter(product__in=product_ids)\
+                    .values_list('contrast_detail',flat=True)
+                for constrast_detail in skucontrasts:
+                    contrast_origin = json.loads(constrast_detail)
+                    uni_key = ''.join(sorted(contrast_origin.keys()))
+                    if uni_key not in uni_set:
+                        uni_set.add(uni_key)
+                        p_tables.append({'table': self.format_contrast2table(contrast_origin)})
+            except ProductSkuContrast.DoesNotExist:
+                logger.warn('ProductSkuContrast not exists:%s' % (constrast_detail))
+            except Exception, exc:
+                logger.error(exc.message, exc_info=True)
         return {
             'attributes': self.attributes,
             'tables': p_tables,
