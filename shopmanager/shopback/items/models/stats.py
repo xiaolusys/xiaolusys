@@ -430,12 +430,12 @@ class ProductSkuSaleStats(models.Model):
     # def lock_num(self):
     #     return self.init_waitassign_num + self.num
 
-
     def finish(self):
         if not self.sale_end_time:
             self.sale_end_time = self.product.offshelf_time
         self.status = ProductSkuSaleStats.ST_FINISH
         self.save(update_fields=["sale_end_time","status"])
+
 
 def gen_productsksalestats_unikey(sku_id):
     count = ProductSkuSaleStats.objects.filter(sku_id=sku_id, status=ProductSkuSaleStats.ST_FINISH).count()
