@@ -11,10 +11,20 @@ from django.db.models import Sum
 from django.db.models.signals import post_save, pre_save
 from flashsale.coupon import tasks
 from flashsale.pay.options import uniqid
+from flashsale.xiaolumm.models import ReferalRelationship, XiaoluMama
+
 from core.models import BaseModel
 from core.fields import JSONCharMyField
 from flashsale.coupon.managers import UserCouponManager
 from managers import OrderShareCouponManager
+
+
+
+def get_referal_from_mama_id(to_mama_id):
+    rr = ReferalRelationship.objects.filter(referal_to_mama_id=to_mama_id).first()
+    if rr:
+        return rr.referal_from_mama_id
+    return None
 
 
 def default_template_extras():
@@ -177,6 +187,13 @@ class CouponTemplate(BaseModel):
         """ 随机最大值 """
         return self.extras['randoms']['max_val']
 
+    @classmethod
+    def get_product_img(cls, template_id):
+        t = cls.objects.fitler(id=template_id).first()
+        if t:
+            return t.extras.get("product_img") or ''
+        return ''
+        
     def template_valid_check(self):
         # type: () -> CouponTemplate
         """
@@ -794,6 +811,8 @@ class CouponTransferRecord(BaseModel):
     order_no = models.CharField(max_length=64, db_index=True, verbose_name=u'订购标识ID')
 
     template_id = models.IntegerField(default=TEMPLATE_ID, db_index=True, verbose_name=u'优惠券模版')
+    product_img = models.CharField(max_length=256, blank=True, verbose_name=u'产品图片')
+    
     coupon_value = models.IntegerField(default=COUPON_VALUE, verbose_name=u'面额')
     coupon_num = models.IntegerField(default=0, verbose_name=u'数量')
     transfer_type = models.IntegerField(default=0, db_index=True, choices=TRANSFER_TYPES, verbose_name=u'流通类型')
@@ -808,6 +827,11 @@ class CouponTransferRecord(BaseModel):
         verbose_name = u"特卖/精品券流通记录"
         verbose_name_plural = u"特卖/精品券流通记录表"
 
+    @staticmethod
+    def gen_unikey_with_order_no(from_mama_id, to_mama_id, order_no):
+        return "%s-%s-%s" % (from_mama_id, to_mama_id, order_no)
+        
+        
     @classmethod
     def gen_unikey(cls, from_mama_id, to_mama_id, template_id, date_field, prev_coupon_id=0):
         # from_mama_id + to_mama_id + template_id + date_field + idx
@@ -881,15 +905,116 @@ class CouponTransferRecord(BaseModel):
             res = {"code": 3, "info": u"记录已存在！"}
             return res
 
+        product_img = CouponTemplate.get_product_img(template_id)
         transfer_status = cls.DELIVERED
         coupon = cls(coupon_from_mama_id=coupon_from_mama_id,from_mama_thumbnail=from_mama_thumbnail,
                      from_mama_nick=from_mama_nick,coupon_to_mama_id=coupon_to_mama_id,
                      to_mama_thumbnail=to_mama_thumbnail,to_mama_nick=to_mama_nick,
-                     init_from_mama_id=init_from_mama_id,order_no=order_no,coupon_num=coupon_num,
-                     transfer_type=transfer_type,uni_key=uni_key, date_field=date_field, transfer_status=transfer_status)
+                     init_from_mama_id=init_from_mama_id,order_no=order_no,template_id=template_id,
+                     product_img=product_img,coupon_num=coupon_num,transfer_type=transfer_type,
+                     uni_key=uni_key,date_field=date_field,transfer_status=transfer_status)
         coupon.save()
         res = {"code": 0, "info": u"成功!"}
         return res
+
+    @classmethod
+    def init_transfer_record(cls, request_user, coupon_num, template_id):
+        to_customer = Customer.objects.normal_customer.filter(user=request_user).first()
+        to_mama = to_customer.get_charged_mama()
+
+        if to_mama.can_buy_transfer_coupon():
+            res =  {"code":2, "info": u"无需申请，请直接支付购券!"}
+            return res
+        
+        to_mama_nick = to_customer.nick
+        to_mama_thumbnail = to_customer.thumbnail
+
+        coupon_to_mama_id = to_mama.id
+        init_from_mama_id = to_mama.id
+
+        coupon_from_mama_id = get_referal_from_mama_id(coupon_to_mama_id)
+        from_mama = XiaoluMama.objects.filter(id=coupon_from_mama_id).first()
+        from_customer = Customer.objects.filter(unionid=from_mama.unionid).first()
+        from_mama_thumbnail = from_customer.thumbnail
+        from_mama_nick = from_customer.nick
+    
+        transfer_type = CouponTransferRecord.OUT_TRANSFER
+        date_field = datetime.date.today()
+
+        uni_key = CouponTransferRecord.gen_unikey(coupon_from_mama_id, coupon_to_mama_id, template_id, date_field)
+        order_no = CouponTransferRecord.gen_order_no(init_from_mama_id,template_id,date_field)
+
+        product_img = CouponTemplate.get_product_img(template_id)
+    
+        if not uni_key:
+            res = {"code": 2, "info": u"记录已生成或申请已达当日上限！"}
+            return res
+
+        coupon = CouponTransferRecord.objects.filter(uni_key=uni_key).first()
+        if coupon:
+            res = {"code": 3, "info": u"记录已存在！"}
+            return res
+    
+        coupon = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id,from_mama_thumbnail=from_mama_thumbnail,
+                                      from_mama_nick=from_mama_nick,coupon_to_mama_id=coupon_to_mama_id,
+                                      to_mama_thumbnail=to_mama_thumbnail,to_mama_nick=to_mama_nick,
+                                      init_from_mama_id=init_from_mama_id,order_no=order_no,template_id=template_id,
+                                      product_img=product_img,coupon_num=coupon_num,
+                                      transfer_type=transfer_type,uni_key=uni_key, date_field=date_field)
+        coupon.save()
+        res = {"code": 0, "info": u"成功!"}
+        return res
+
+    @classmethod
+    def gen_transfer_record(cls, request_user, reference_record):
+        to_customer = Customer.objects.normal_customer.filter(user=request_user).first()
+        to_mama = to_customer.get_charged_mama()
+
+        if to_mama.can_buy_transfer_coupon():
+            res =  {"code":2, "info": u"无需申请，请直接支付购券!"}
+            return res
+        
+        to_mama_nick = to_customer.nick
+        to_mama_thumbnail = to_customer.thumbnail
+
+        coupon_to_mama_id = to_mama.id
+        init_from_mama_id = reference_record.init_from_mama_id
+
+        coupon_from_mama_id = get_referal_from_mama_id(coupon_to_mama_id)
+        from_mama = XiaoluMama.objects.filter(id=coupon_from_mama_id).first()
+        from_customer = Customer.objects.filter(unionid=from_mama.unionid).first()
+        from_mama_thumbnail = from_customer.thumbnail
+        from_mama_nick = from_customer.nick
+    
+        transfer_type = CouponTransferRecord.OUT_TRANSFER
+        date_field = datetime.date.today()
+
+        coupon_num = reference_record.coupon_num
+        order_no = reference_record.order_no
+        uni_key = CouponTransferRecord.gen_unikey_with_order_no(coupon_from_mama_id, coupon_to_mama_id, order_no)
+        template_id = reference_record.template_id
+
+        product_img = CouponTemplate.get_product_img(template_id)
+    
+        if not uni_key:
+            res = {"code": 2, "info": u"记录已生成或申请已达当日上限！"}
+            return res
+
+        coupon = CouponTransferRecord.objects.filter(uni_key=uni_key).first()
+        if coupon:
+            res = {"code": 3, "info": u"记录已存在！"}
+            return res
+    
+        coupon = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id,from_mama_thumbnail=from_mama_thumbnail,
+                                      from_mama_nick=from_mama_nick,coupon_to_mama_id=coupon_to_mama_id,
+                                      to_mama_thumbnail=to_mama_thumbnail,to_mama_nick=to_mama_nick,
+                                      init_from_mama_id=init_from_mama_id,order_no=order_no,template_id=template_id,
+                                      product_img=product_img,coupon_num=coupon_num,
+                                      transfer_type=transfer_type,uni_key=uni_key,date_field=date_field)
+        coupon.save()
+        res = {"code": 0, "info": u"成功!"}
+        return res
+
 
     @property
     def month_day(self):

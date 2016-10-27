@@ -6,23 +6,23 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.views.generic import View
 
+from flashsale.pay import tasks
+import pingpp
+
 import logging
 logger = logging.getLogger(__name__)
 
-from flashsale.pay import tasks
-
-import pingpp
 
 class PINGPPCallbackView(View):
     def post(self, request, *args, **kwargs):
-
         content = request.body
         logger.info('pingpp callback:%s' % content)
+
         try:
             # 读取异步通知数据
             message = json.loads(content)
         except Exception, exc:
-            logger.error('pingpp callback loaddata: %s, %s'%(content, exc), exc_info=True)
+            logger.error('pingpp callback loaddata: %s, %s' % (content, exc), exc_info=True)
             return HttpResponse('no params')
 
         data = message.get('data')
@@ -31,6 +31,7 @@ class PINGPPCallbackView(View):
 
         notify = data['object']
         response = 'success'
+
         # 对异步通知做处理
         if 'object' not in notify:
             response = 'fail'

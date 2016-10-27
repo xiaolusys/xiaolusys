@@ -365,19 +365,23 @@ from unrelate_product_handler import update_Product_Collect_Num_By_Delete
 @csrf_exempt
 @staff_member_required
 def delete_trade_order(request, id):
-    user_id = request.user.id
-    print id
     try:
         refund_prod = RefundProduct.objects.get(id=id)
     except:
         return HttpResponse(json.dumps({'code': 1, 'response_error': u'订单不存在'}),
                             content_type="application/json")
-
+    sku_id = refund_prod.sku_id
     refund_prod.delete()
     # 删除的时候更新商品库存
     update_Product_Collect_Num_By_Delete(refund_prod, request)
 
     ret_params = {'code': 0, 'response_content': {'success': True}}
+    if sku_id:
+        from shopback.items.tasks_stats import task_refundproduct_update_productskustats_return_quantity
+        from shopback.items.tasks import task_update_inferiorsku_return_quantity
+
+        task_refundproduct_update_productskustats_return_quantity.delay(sku_id)
+        task_update_inferiorsku_return_quantity.delay(sku_id)
 
     return HttpResponse(json.dumps(ret_params), content_type="application/json")
 
