@@ -448,7 +448,7 @@ def teambuy_out_sale_check(sender, instance, created, **kwargs):
     if not created:
         instance.teambuy_out_sale_check()
 
-post_save.connect(teambuy_out_sale_check, sender=ModelProduct, dispatch_uid='post_save_invalid_apiskustat_cache')
+post_save.connect(teambuy_out_sale_check, sender=ProductSkuSaleStats, dispatch_uid='post_save_invalid_apiskustat_cache')
 
 
 def gen_productsksalestats_unikey(sku_id):
