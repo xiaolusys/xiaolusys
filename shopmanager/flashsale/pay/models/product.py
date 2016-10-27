@@ -123,8 +123,8 @@ class Productdetail(PayBaseModel):
 def default_modelproduct_extras_tpl():
     return {
         "saleinfos": {
-            "is_product_buy_limit": False,
-            "per_limit_buy_num": 3,
+            "is_product_buy_limit": True,
+            "per_limit_buy_num": 5,
         },
         "properties": {},
     }
