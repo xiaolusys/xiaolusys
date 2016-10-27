@@ -186,7 +186,7 @@ class PurchaseArrangement(BaseModel):
     @property
     def sku(self):
         from shopback.items.models import ProductSku
-        return ProductSku.objects.get(id=sku_id)
+        return ProductSku.objects.get(id=self.sku_id)
 
     @staticmethod
     def create(psi, purchase_order_unikey=None):
