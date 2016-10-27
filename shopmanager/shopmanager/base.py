@@ -30,6 +30,8 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
+ALLOWED_HOSTS = ['.huyi.so', '.xiaolu.so', '.xiaolumeimei.com', '.xiaolumm.com', '.xip.io']
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
