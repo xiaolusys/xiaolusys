@@ -385,7 +385,16 @@ def task_create_transfer_coupon(sale_order):
 
     coupon_num = sale_order.num
     customer = sale_order.sale_trade.order_buyer
-    template = CouponTemplate.objects.get(id=CouponTransferRecord.TEMPLATE_ID)
+    product_item_id = sale_order.item_id
+
+    from shopback.items.models import Product
+    from flashsale.pay.models import ModelProduct
+    
+    product = Product.objects.fitler(id=product_item_id).first()
+    model_product = ModelProduct.objects.filter(id=product.model_id)
+    template_id = model_product.extras.get("template_id")
+    
+    template = CouponTemplate.objects.get(id=template_id)
     order_id = sale_order.id
 
     index = 0
@@ -410,18 +419,18 @@ def task_create_transfer_coupon(sale_order):
     
     transfer_type = CouponTransferRecord.IN_BUY_COUPON
     date_field = datetime.date.today()
-    template_id = CouponTransferRecord.TEMPLATE_ID
     transfer_status = CouponTransferRecord.DELIVERED
     uni_key = "%s-%s" % (to_mama.id, order_id)
     order_no = sale_order.oid
+    product_img = CouponTemplate.get_product_img(template_id)
 
     try:
         coupon = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id,from_mama_thumbnail=from_mama_thumbnail,
                                       from_mama_nick=from_mama_nick,coupon_to_mama_id=coupon_to_mama_id,
                                       to_mama_thumbnail=to_mama_thumbnail,to_mama_nick=to_mama_nick,
-                                      init_from_mama_id=init_from_mama_id,order_no=order_no,coupon_num=coupon_num,
-                                      transfer_type=transfer_type,uni_key=uni_key,date_field=date_field,
-                                      transfer_status=transfer_status)
+                                      init_from_mama_id=init_from_mama_id,order_no=order_no,template_id=template_id,
+                                      product_img=product_img,coupon_num=coupon_num,transfer_type=transfer_type,
+                                      uni_key=uni_key,date_field=date_field,transfer_status=transfer_status)
         coupon.save()
     except IntegrityError as exc:
         pass
