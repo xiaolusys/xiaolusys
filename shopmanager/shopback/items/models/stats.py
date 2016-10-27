@@ -131,12 +131,12 @@ class ProductSkuStats(models.Model):
         return res if res > 0 else 0
 
     @property
-    def old_lock_num(self):
+    def lock_num(self):
         """老锁定数（仓库里待发货，加购物车待支付）"""
         return self.shoppingcart_num + self.waitingpay_num + self.sold_num - self.return_quantity - self.post_num
 
     @property
-    def lock_num(self):
+    def new_lock_num(self):
         salestat = ProductSkuSaleStats.get_by_sku(self.sku_id)
         if salestat:
             return salestat.init_waitassign_num + salestat.num + self.waitingpay_num
