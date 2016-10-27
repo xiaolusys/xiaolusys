@@ -485,11 +485,15 @@ class SaleTrade(BaseModel):
     def release_coupon(self):
         """ 释放订单对应的优惠券 """
         from flashsale.coupon.models import UserCoupon
-        coupon_id = self.extras_info.get("coupon") or None
-        usercoupon = UserCoupon.objects.filter(id=coupon_id).first()
-        if usercoupon is None:
-            return
-        usercoupon.release_usercoupon()  # 修改该优惠券的状态到未使用
+        coupon_ids = self.extras_info.get("coupon") or []
+        if isinstance(coupon_ids, str):
+            coupon_ids = [coupon_ids]
+
+        for coupon_id in coupon_ids:
+            usercoupon = UserCoupon.objects.filter(id=coupon_id).first()
+            if usercoupon is None:
+                return
+            usercoupon.release_usercoupon()  # 修改该优惠券的状态到未使用
 
     @property
     def unsign_orders(self):
@@ -1008,7 +1012,7 @@ class SaleOrder(PayBaseModel):
             (self.outer_sku_id == '58' or self.outer_sku_id == '62' or \
              self.outer_sku_id == '70' or self.outer_sku_id == '80' or \
              self.outer_sku_id == '98')
-    
+
     def is_1_deposit(self):
         return self.is_deposit() and self.outer_sku_id == '3'
 
@@ -1122,7 +1126,7 @@ def order_trigger(sender, instance, created, raw, **kwargs):
                 from flashsale.coupon.tasks import task_create_transfer_coupon
                 task_create_transfer_coupon.delay(instance)
                 return
-            
+
             from flashsale.xiaolumm.tasks_mama_relationship_visitor import task_update_referal_relationship
             task_update_referal_relationship.delay(instance)
     else:
