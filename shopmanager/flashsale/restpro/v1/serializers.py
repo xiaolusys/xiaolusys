@@ -864,8 +864,8 @@ def get_mama_link(mama_id, jump_str):
 class NinePicAdverSerialize(serializers.ModelSerializer):
     pic_arry = JSONParseField()
     could_share = serializers.IntegerField(source='is_share', read_only=True)
-    title_content = serializers.CharField(source='title_display', read_only=True)
-    title = serializers.SerializerMethodField('get_description', read_only=True)  # serializers.CharField(source='description_title', read_only=True)
+    title_content = serializers.SerializerMethodField(read_only=True)
+    title = serializers.SerializerMethodField('get_description', read_only=True)
     description = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -874,6 +874,13 @@ class NinePicAdverSerialize(serializers.ModelSerializer):
                   "turns_num", "pic_arry",
                   'save_times', 'share_times',
                   'could_share', 'description')
+
+    def get_title_content(self, obj):
+        today = obj.start_time
+        month = today.month
+        day = today.day
+        share_time = obj.start_time.strftime("%H:%M")
+        return "%02d月%02d日｜第%d轮 分享时间：%s" % (month, day, obj.turns_num, share_time)
 
     def get_description(self, obj):
         """
