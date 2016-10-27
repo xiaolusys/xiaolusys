@@ -100,14 +100,25 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
     def start_transfer(self, request, *args, **kwargs):
         content = request.POST
         
-        coupon_num = content.get("coupon_num") or 0
-        template_id = content.get("template_id") or 153
-        
-        if coupon_num <= 0:
-            res = Response({"code": 1, "info": u"coupon_num必须大于0"})
+        coupon_num = content.get("coupon_num") or None
+        product_id = content.get("product_id") or 153
+        if not (coupon_num and coupon_num.isdigit() and product_id and product_id.isdigit()):
+            res = Response({"code": 1, "info": u"coupon_num或product_id错误！"})
             res["Access-Control-Allow-Origin"] = "*"
             return res
 
+        from shopback.items.models import Product
+        from flashsale.pay.models import ModelProduct
+        
+        product = Product.objects.fitler(id=product_id).first()
+        model_product = ModelProduct.objects.filter(id=product.model_id).first()
+        
+        template_id = model_product.extras.get("template_id")
+        if not (template_id and template_id.isdigit()):
+            res = Response({"code": 2, "info": u"template_id错误！"})
+            res["Access-Control-Allow-Origin"] = "*"
+            return res
+            
         res = CouponTransferRecord.init_transfer_record(request.user, coupon_num, tempalte_id)
         res = Response(res)
         res["Access-Control-Allow-Origin"] = "*"
