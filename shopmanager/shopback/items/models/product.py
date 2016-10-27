@@ -612,6 +612,7 @@ class Product(models.Model):
         #     return False
         if self.shelf_status != Product.UP_SHELF:
             self.shelf_status = Product.UP_SHELF
+            # self.begin_sale_stat()
             self.save(update_fields=['shelf_status'])
             return True
         return False
@@ -630,6 +631,12 @@ class Product(models.Model):
             self.finish_sale_stat()
             return True
         return False
+
+    def begin_sale_stat(self):
+        from shopback.items.models import ProductSkuSaleStats
+        ProductSkuSaleStats.stop_pre_stat(self.id)
+        for sku in self.normal_skus:
+            ProductSkuSaleStats.create(sku)
 
     def finish_sale_stat(self):
         """结束本轮销售统计"""
