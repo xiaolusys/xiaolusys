@@ -1,5 +1,6 @@
 # 　coding:utf-8
 import datetime
+import logging
 from django.conf import settings
 from django.db import models
 from django.db.models.signals import post_save
@@ -8,7 +9,6 @@ from .base import PayBaseModel
 import pingpp
 pingpp.api_key = settings.PINGPP_APPKEY
 
-import logging
 logger = logging.getLogger(__name__)
 
 
@@ -101,7 +101,7 @@ class Envelop(PayBaseModel):
         self.livemode = envelopd['livemode']
         self.send_status = status
 
-        if status in self.VALID_SEND_STATUS:
+        if status in (self.SENDING, self.SENT, self.RECEIVED):
             self.send_time = self.send_time or datetime.datetime.now()
             self.status = Envelop.CONFIRM_SEND
 
@@ -110,22 +110,23 @@ class Envelop(PayBaseModel):
             elif self.subject == Envelop.CASHOUT:
                 CashOut.objects.filter(id=self.referal_id).update(status=CashOut.APPROVED, modified=modified)
 
-        elif status in (self.SEND_FAILED, self.REFUND) and self.status == self.WAIT_SEND:
+        elif status in (self.SEND_FAILED, self.REFUND):
             self.status = Envelop.FAIL
-
-            if self.subject == Envelop.XLAPP_CASHOUT:
-                BudgetLog.objects.filter(id=self.referal_id).update(status=BudgetLog.CANCELED, modified=modified)
-            elif self.subject == Envelop.CASHOUT:
-                CashOut.objects.filter(id=self.referal_id).update(status=CashOut.CANCEL, modified=modified)
-
-            logger.warn('envelop warn:%s' % envelopd)
+            self.refund_envelop()
+            logger.info({
+                'action': 'envelop',
+                'status': self.status,
+                'enveop_id': self.envelop_id,
+                'mama_id': self.receiver
+            })
         self.save()
 
     def send_envelop(self):
-        try:
-            if self.envelop_id:
-                redenvelope = pingpp.RedEnvelope.retrieve(self.envelop_id)
-            else:
+        if self.envelop_id:
+            redenvelope = pingpp.RedEnvelope.retrieve(self.envelop_id)
+            self.handle_envelop(redenvelope)
+        else:
+            try:
                 redenvelope = pingpp.RedEnvelope.create(
                     order_no=str(self.id),
                     channel=self.platform,
@@ -138,21 +139,25 @@ class Envelop(PayBaseModel):
                     recipient=self.recipient,
                     description=self.description
                 )
-        except Exception, exc:
-            self.status = Envelop.FAIL
-            self.save()
-            raise exc
-        else:
-            self.handle_envelop(redenvelope)
+            except Exception, exc:
+                self.status = Envelop.FAIL
+                self.save()
+                self.refund_envelop()
+                raise exc
+            else:
+                self.handle_envelop(redenvelope)
 
     def refund_envelop(self):
-        if self.subject == self.XLAPP_CASHOUT:  # 用户钱包提现
-            from flashsale.pay.models import BudgetLog
+        from flashsale.pay.models import BudgetLog
+        from flashsale.xiaolumm.models import CashOut
+
+        # 小鹿钱包提现
+        if self.subject == self.XLAPP_CASHOUT:
             blog = BudgetLog.objects.get(id=self.referal_id, budget_log_type=BudgetLog.BG_CASHOUT)
             blog.cancel_and_return()
-        else:
-            from flashsale.xiaolumm.models import CashOut
-            # 取消提现记录
+
+        # 妈妈钱包提现
+        if self.subject == self.CASHOUT:
             cashout = CashOut.objects.filter(id=self.referal_id).first()
             if not cashout:
                 return
@@ -162,21 +167,12 @@ class Envelop(PayBaseModel):
                 cashout.fail_and_return()
 
     def cancel_envelop(self):
-
-        if not self.envelop_id or self.status == self.WAIT_SEND:
+        # 取消红包，同时退款
+        if not self.envelop_id:  # 只有待发放状态可以取消红包
             self.status = Envelop.CANCEL
             self.save(update_fields=['status'])
             self.refund_envelop()
-        else:
-            envelope = pingpp.RedEnvelope.retrieve(self.envelop_id)
-            self.handle_envelop(envelope)
-            if envelope['status'] in (self.SEND_FAILED, self.REFUND) and \
-                            self.status in (Envelop.WAIT_SEND, Envelop.FAIL, Envelop.CONFIRM_SEND):
-                self.status = Envelop.CANCEL
-                self.save()
-                self.refund_envelop()
-                return True
-
+            return True
         return False
 
 
