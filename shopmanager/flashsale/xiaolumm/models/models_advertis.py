@@ -106,11 +106,23 @@ class NinePicAdver(models.Model):
         return datetime.datetime(now.year, now.month, now.day, 0, 0, 0)
 
     @classmethod
-    def calculate_assign_turns_num(cls, assign_date=None):
-        # type: () -> int
-        init_time = cls.init_time(assign_date)
+    def calculate_create_assign_turns_num(cls, assign_datetime=None):
+        # type: (Optional[datetime.datetime]) -> int
+        init_time = cls.init_time(assign_datetime.date())
         end_time = datetime.datetime(init_time.year, init_time.month, init_time.day, 23, 59, 59)
         return cls.objects.filter(start_time__gte=init_time, start_time__lte=end_time).count()
+
+    @classmethod
+    def resort_turns_num(cls, date):
+        # type: (datetime.date) -> None
+        init_time = cls.init_time(date)
+        end_time = datetime.datetime(init_time.year, init_time.month, init_time.day, 23, 59, 59)
+        count = 1
+        for ninepic in cls.objects.filter(start_time__gte=init_time, start_time__lte=end_time).order_by('start_time'):
+            ninepic.turns_num = count
+            ninepic.save(update_fields=['turns_num'])
+            count += 1
+        return
 
     @classmethod
     def create(cls, auther, title, start_time,
@@ -119,7 +131,7 @@ class NinePicAdver(models.Model):
                detail_modelids='', memo=''):
         # type: (text_type, text_type, datetime.datetime,
         # Optional[List[text_type]], text_type, int, Optional[int], bool, text_type) -> NinePicAdver
-        turns_num = cls.calculate_assign_turns_num(start_time.date())  # 轮数
+        turns_num = cls.calculate_create_assign_turns_num(start_time)  # 轮数
         verify_turns_num = cls.objects.filter(start_time__gte=cls.init_time(start_time.date()),
                                               start_time__lt=start_time).count()
 
@@ -139,6 +151,40 @@ class NinePicAdver(models.Model):
                 redirect_url=redirect_url)
         n.save()
         return n
+
+    def destroy(self):
+        # type: () -> bool
+        """删除记录
+        1. 删除记录
+        2. 重新排轮数
+        """
+        date = self.start_time.date()
+        self.delete()
+        NinePicAdver.resort_turns_num(date)
+        return True
+
+    def update(self, **kwargs):
+        # type: (**Any) -> NinePivAdver
+        """更新记录
+        １. 如果有时间变化，则重新排轮数
+        """
+        if kwargs.has_key('turns_num'):  # 不更新传入的turns_num
+            kwargs.pop('turns_num')
+        if kwargs.has_key('sale_category'):
+            kwargs.update({'sale_category_id': kwargs.pop('sale_category')})
+        if not kwargs.has_key('start_time'):  # 没有重新设置时间则不去更新时间和　turns_num
+            kwargs.update({'turns_num': self.turns_num})
+        else:
+            start_time = datetime.datetime.strptime(kwargs.get('start_time'), '%Y-%m-%d %H:%M:%S')
+            old_start_time_date = self.start_time.date()
+            if old_start_time_date != start_time.date():  # 不相等则都重新排序修改　轮数
+                NinePicAdver.resort_turns_num(old_start_time_date)
+            NinePicAdver.resort_turns_num(start_time.date())
+        for k, v in kwargs.iteritems():
+            if hasattr(self, k) and getattr(self, k) != v:
+                setattr(self, k, v)
+        self.save()
+        return self
 
     def is_share(self):
         """ 是否可以分享 """

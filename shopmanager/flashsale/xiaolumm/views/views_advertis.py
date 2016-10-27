@@ -2,6 +2,7 @@
 import datetime
 import django_filters
 
+from rest_framework import status
 from rest_framework import authentication
 from rest_framework import filters
 from rest_framework import permissions
@@ -15,7 +16,7 @@ from flashsale.xiaolumm import serializers
 from flashsale.xiaolumm.models.models_advertis import NinePicAdver
 from shopback.items.models import Product
 from supplychain.supplier.models import SaleProductManageDetail
-from apis.v1.dailypush.ninepic import NinePicAdvertisement
+from apis.v1.dailypush.ninepic import NinePicAdvertisement, get_nine_pic_advertisement_by_id
 
 
 class NinepicFilter(filters.FilterSet):
@@ -90,23 +91,11 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=201, headers=headers)
 
     def update(self, request, *args, **kwargs):
-        pic_arry = request.data.get("pic_arry") or None
-        if pic_arry:
-            pic_arry = pic_arry.split(',')
-            try:
-                n = self.queryset.get(id=kwargs.get('pk'))
-            except Exception, exc:
-                headers = self.handle_exception(exc=exc)
-                return Response({}, status=404, headers=headers)
-            if len(pic_arry) == n.cate_gory:  # 图片张数不匹配　返回错误
-                request.data._mutable = True  # 开启可变
-                request.data.update({"pic_arry": pic_arry})
-                request.data._mutable = False  # 关闭可变
-            else:
-                return Response({}, status=400, headers=self.headers)
-        partial = kwargs.pop('partial', False)
+        NinePicAdvertisement.update(int(kwargs.get('pk')), **request.data)
         instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
+        serializer = self.get_serializer(instance)
         return Response(serializer.data)
+
+    def destroy(self, request, *args, **kwargs):
+        NinePicAdvertisement.destroy(int(kwargs.get('pk')))
+        return Response(status=status.HTTP_204_NO_CONTENT)
