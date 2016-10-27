@@ -1,7 +1,8 @@
 # coding: utf-8
 
 import datetime
-from django.db import models, Sum
+from django.db import models
+from django.db.models import Sum
 from django.db.models.signals import pre_save, post_save
 from django.db.models import F
 from django.db import transaction
