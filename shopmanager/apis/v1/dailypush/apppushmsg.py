@@ -88,14 +88,34 @@ def push_msg_right_now_by_id(id):
     return True
 
 
+def create_app_push_msg(desc, platform, push_time, **kwargs):
+    # type: (text_type, text_type, datetime.datetime, **Any) -> APPFullPushMessge
+    from flashsale.protocol.models import APPFullPushMessge
+
+    if platform not in dict(APPFullPushMessge.PLATFORM_CHOICES).keys():
+        raise Exception(u'推送设备平台选择错误!')
+    if push_time < datetime.datetime.now():
+        raise Exception(u'推送时间设置错误!')
+    target_url = kwargs.get('target_url') or 1
+    if target_url not in dict(APPFullPushMessge.TARGET_CHOICES).keys():
+        raise Exception(u'推送的跳转页面设置错误!')
+    msg = APPFullPushMessge(desc=desc,
+                            target_url=target_url,
+                            platform=platform,
+                            push_time=push_time)
+    msg.save()
+    return msg
+
+
 class AppPushMessge(object):
     def __init__(self, **kwargs):
+        self.id = kwargs['id']
         self.desc = kwargs['desc']
         self.target_url = 1
         self.params = {}
         self.cat = 0
         self.platform = kwargs['platform']
-        self.regid = kwargs['regid']
+        self.regid = ''
         self.result = {}
         self.status = 0
         self.push_time = kwargs['push_time']
