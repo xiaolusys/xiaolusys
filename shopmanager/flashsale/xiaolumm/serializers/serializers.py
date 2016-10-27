@@ -62,7 +62,8 @@ class NinePicAdverSerializer(serializers.ModelSerializer):
             'category_name',
             'advertisement_type',
             'advertisement_type_display',
-        )
+            'redirect_url',
+            'memo')
 
 
 class XiaoluMamaSerializer(serializers.ModelSerializer):
