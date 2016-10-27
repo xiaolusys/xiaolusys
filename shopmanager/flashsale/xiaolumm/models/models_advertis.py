@@ -97,25 +97,6 @@ class NinePicAdver(models.Model):
     def __unicode__(self):
         return u'<%s,%s>' % (self.id, self.title)
 
-    def is_share(self):
-        """ 是否可以分享 """
-        now = datetime.datetime.now()  # 现在时间
-        end_clock = datetime.datetime(now.year, now.month, now.day, 14, 0, 0, 0)  # 下架时间
-        yestoday = datetime.date.today() - datetime.timedelta(days=1)  # 昨天
-        if self.start_time.date() == yestoday and now > end_clock:  # 开始时间是昨天　并且是现在是下架以后则不能分享
-            return 0
-        return 1  # 否则可以分享
-
-    def title_display(self):
-        today = self.start_time
-        month = today.month
-        day = today.day
-        share_time = self.start_time.strftime("%H:%M")
-        return "%02d月%02d日｜第%d轮 分享时间：%s" % (month, day, self.turns_num, share_time)
-
-    def description_title(self):
-        return self.description.replace('\r\n', '\r')
-
 
 from flashsale.xiaolumm import util_emoji
 
@@ -126,7 +107,8 @@ def gen_emoji(sender, instance, created, **kwargs):
 
 
 post_save.connect(gen_emoji,
-                  sender=NinePicAdver, dispatch_uid='post_save_ninpicadver_gen_emoji')
+                  sender=NinePicAdver,
+                  dispatch_uid='post_save_ninpicadver_gen_emoji')
 
 
 class MamaVebViewConf(BaseModel):
