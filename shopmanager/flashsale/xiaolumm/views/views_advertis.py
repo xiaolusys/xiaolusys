@@ -16,7 +16,7 @@ from flashsale.xiaolumm import serializers
 from flashsale.xiaolumm.models.models_advertis import NinePicAdver
 from shopback.items.models import Product
 from supplychain.supplier.models import SaleProductManageDetail
-from apis.v1.dailypush.ninepic import NinePicAdvertisement, get_nine_pic_advertisement_by_id
+from apis.v1.dailypush.ninepic import create_nine_pic_advertisement, update_nine_pic_advertisement_by_id, delete_nine_pic_advertisement_by_id
 
 
 class NinepicFilter(filters.FilterSet):
@@ -83,7 +83,7 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
             title = request.data.pop('title')
             start_time = datetime.datetime.strptime(request.data.pop('start_time'),
                                                     '%Y-%m-%d %H:%M:%S')
-            n = NinePicAdvertisement.create(auther, title, start_time, **request.data)
+            n = create_nine_pic_advertisement(auther, title, start_time, **request.data)
         except Exception as e:
             raise exceptions.APIException(e.message)
         serializer = self.get_serializer(n)
@@ -91,11 +91,11 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=201, headers=headers)
 
     def update(self, request, *args, **kwargs):
-        NinePicAdvertisement.update(int(kwargs.get('pk')), **request.data)
+        update_nine_pic_advertisement_by_id(int(kwargs.get('pk')), **request.data)
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
     def destroy(self, request, *args, **kwargs):
-        NinePicAdvertisement.destroy(int(kwargs.get('pk')))
+        delete_nine_pic_advertisement_by_id(int(kwargs.get('pk')))
         return Response(status=status.HTTP_204_NO_CONTENT)
