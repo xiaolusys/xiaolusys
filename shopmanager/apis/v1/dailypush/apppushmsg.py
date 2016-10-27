@@ -85,3 +85,16 @@ def push_msg_right_now_by_id(id):
         push_msg.save(update_fields=['result', 'modified'])
         return False
     return True
+
+
+class AppPushMessge(object):
+    def __init__(self, **kwargs):
+        self.desc = kwargs['desc']
+        self.target_url = 1
+        self.params = {}
+        self.cat = 0
+        self.platform = kwargs['platform']
+        self.regid = kwargs['regid']
+        self.result = {}
+        self.status = 0
+        self.push_time = kwargs['push_time']

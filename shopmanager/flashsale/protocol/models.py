@@ -1,9 +1,7 @@
 # coding:utf-8
 from django.db import models
-
 from core.models import BaseModel
 from core.fields import JSONCharMyField
-
 from . import constants
 
 
@@ -75,13 +73,14 @@ class APPFullPushMessge(BaseModel):
         verbose_name = u'特卖/APP全站推送'
         verbose_name_plural = u'特卖/APP全站推送'
 
-    desc = models.TextField(max_length=256, verbose_name=u'推送内容(限200字)')
+    desc = models.TextField(max_length=256, verbose_name=u'推送内容(限200字)')  # type: text_type
     target_url = models.IntegerField(default=constants.TARGET_TYPE_HOME_TAB_1,
-                                     choices=TARGET_CHOICES, verbose_name='跳转页面')
-    params = JSONCharMyField(max_length=512, default= {}, blank=True, verbose_name=u'推送参数')
-    cat = models.PositiveIntegerField(blank=True, default=0, verbose_name=u'分类')
-    platform = models.CharField(db_index=True, choices=PLATFORM_CHOICES, max_length=16, verbose_name=u'平台')
-    regid = models.CharField(max_length=512, blank=True, verbose_name=u'小米regid')
-    result = JSONCharMyField(max_length=2048, default= {}, blank=True, verbose_name=u'推送结果')
-    status = models.SmallIntegerField(db_index=True, choices=STATUSES, default=FAIL, verbose_name=u'状态')
-    push_time = models.DateTimeField(db_index=True, blank=True, verbose_name=u'设置推送时间')
+                                     choices=TARGET_CHOICES, verbose_name='跳转页面')  # type: int
+    params = JSONCharMyField(max_length=512, default={}, blank=True, verbose_name=u'推送参数')  # type: text_type
+    cat = models.PositiveIntegerField(blank=True, default=0, verbose_name=u'分类')  # type: int
+    platform = models.CharField(db_index=True, choices=PLATFORM_CHOICES, max_length=16,
+                                verbose_name=u'平台')  # type: text_type
+    regid = models.CharField(max_length=512, blank=True, verbose_name=u'小米regid')  # type: text_type
+    result = JSONCharMyField(max_length=2048, default={}, blank=True, verbose_name=u'推送结果')  # type: text_type
+    status = models.SmallIntegerField(db_index=True, choices=STATUSES, default=FAIL, verbose_name=u'状态')  # type: int
+    push_time = models.DateTimeField(db_index=True, blank=True, verbose_name=u'设置推送时间')  # type: datetime.datetime
