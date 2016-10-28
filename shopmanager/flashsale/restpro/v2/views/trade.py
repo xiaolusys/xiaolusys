@@ -698,13 +698,13 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             if not cart.is_good_enough():
                 logger.warn({
                     'code': 2,
-                    'message': u'商品已被抢光了',
+                    'message': u'商品刚被抢光了',
                     'stype': 'restpro.trade',
                     'user_agent': user_agent,
                     'tid': tuuid,
                     'data': '%s' % CONTENT
                 })
-                return Response({'code': 2, 'info': u'商品已被抢光了'})
+                return Response({'code': 2, 'info': u'商品刚被抢光了'})
             cart_total_fee += round(cart.price * cart.num * 100)
             item_ids.append(cart.item_id)
 
