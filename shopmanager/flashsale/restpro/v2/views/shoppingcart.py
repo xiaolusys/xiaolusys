@@ -166,7 +166,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                 return Response({"code": 6, "info": u"该商品已加入购物车"})  # 购物车已经有了
 
         #if sku.free_num <= 0 or not Product.objects.lockQuantity(sku, sku_num):
-        if sku.free_num <= sku_num:
+        if sku.free_num < sku_num:
             return Response({"code": 5, "info": u'商品库存不足'})
 
         new_shop_cart = ShoppingCart()
