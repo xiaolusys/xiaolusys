@@ -241,7 +241,8 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         coupons = self.queryset.filter(coupon_from_mama_id=mama_id,status=status).order_by('-created')
         if transfer_status:
             coupons = coupons.filter(transfer_status=transfer_status.strip())
-            
+
+        coupons = self.paginate_queryset(coupons)
         serializer = CouponTransferRecordSerializer(coupons, many=True)
         data = serializer.data
 
@@ -250,10 +251,9 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
                 entry.update({"is_buyable": True})
             else:
                 entry.update({"is_buyable": False})
-                
-        res = Response(data)
+
+        res = self.get_paginated_response(data)
         res["Access-Control-Allow-Origin"] = "*"
-        
         return res
 
     @list_route(methods=['GET'])
