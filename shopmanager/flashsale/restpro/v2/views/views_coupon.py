@@ -110,7 +110,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         from shopback.items.models import Product
         from flashsale.pay.models import ModelProduct
         
-        product = Product.objects.fitler(id=product_id).first()
+        product = Product.objects.filter(id=product_id).first()
         model_product = ModelProduct.objects.filter(id=product.model_id).first()
         
         template_id = model_product.extras.get("template_id")
