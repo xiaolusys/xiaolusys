@@ -17,18 +17,31 @@ from flashsale.protocol.models import APPFullPushMessge
 from apis.v1.dailypush.apppushmsg import *
 
 
+class APPFullPushMessgeFilter(filters.FilterSet):
+
+    class Meta:
+        model = APPFullPushMessge
+        fields = [
+            'push_time',
+            'status'
+        ]
+
+
 class APPFullPushMessgeViewSet(viewsets.ModelViewSet):
-    queryset = APPFullPushMessge.objects.all()
+    queryset = APPFullPushMessge.objects.all().order_by('-push_time')
     serializer_class = serializers.APPPushMessgeSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser, permissions.DjangoModelPermissions)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
-    # filter_class = APPFullPushMessge
+    filter_class = APPFullPushMessgeFilter
 
     @list_route(methods=['get'])
     def list_filters(self, request, *args, **kwargs):
-        return Response()
+        return Response({
+            "target_url": APPFullPushMessge.TARGET_CHOICES,
+            "platform": APPFullPushMessge.PLATFORM_CHOICES,
+        })
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -38,7 +51,10 @@ class APPFullPushMessgeViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def destroy(self, request, *args, **kwargs):
-        exceptions.APIException(u'不予删除')
+        instance = self.get_object()
+        # self.perform_destroy(instance)
+        raise exceptions.APIException(u'不予删除操作!')
+        # return Response(status=status.HTTP_204_NO_CONTENT)
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
