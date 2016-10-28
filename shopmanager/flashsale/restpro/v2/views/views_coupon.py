@@ -101,7 +101,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         content = request.POST
         
         coupon_num = content.get("coupon_num") or None
-        product_id = content.get("product_id") or 153
+        product_id = content.get("product_id")
         if not (coupon_num and coupon_num.isdigit() and product_id and product_id.isdigit()):
             res = Response({"code": 1, "info": u"coupon_num或product_id错误！"})
             res["Access-Control-Allow-Origin"] = "*"
@@ -114,12 +114,12 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         model_product = ModelProduct.objects.filter(id=product.model_id).first()
         
         template_id = model_product.extras.get("template_id")
-        if not (template_id and template_id.isdigit()):
+        if not template_id:
             res = Response({"code": 2, "info": u"template_id错误！"})
             res["Access-Control-Allow-Origin"] = "*"
             return res
             
-        res = CouponTransferRecord.init_transfer_record(request.user, coupon_num, tempalte_id)
+        res = CouponTransferRecord.init_transfer_record(request.user, coupon_num, template_id)
         res = Response(res)
         res["Access-Control-Allow-Origin"] = "*"
         
