@@ -189,7 +189,7 @@ class CouponTemplate(BaseModel):
 
     @classmethod
     def get_product_img(cls, template_id):
-        t = cls.objects.fitler(id=template_id).first()
+        t = cls.objects.filter(id=template_id).first()
         if t:
             return t.extras.get("product_img") or ''
         return ''
