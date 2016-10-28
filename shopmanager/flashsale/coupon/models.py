@@ -919,6 +919,9 @@ class CouponTransferRecord(BaseModel):
 
     @classmethod
     def init_transfer_record(cls, request_user, coupon_num, template_id):
+        from flashsale.xiaolumm.models import XiaoluMama
+        from flashsale.pay.models import Customer
+        
         to_customer = Customer.objects.normal_customer.filter(user=request_user).first()
         to_mama = to_customer.get_charged_mama()
 
@@ -967,6 +970,9 @@ class CouponTransferRecord(BaseModel):
 
     @classmethod
     def gen_transfer_record(cls, request_user, reference_record):
+        from flashsale.xiaolumm.models import XiaoluMama
+        from flashsale.pay.models import Customer
+        
         to_customer = Customer.objects.normal_customer.filter(user=request_user).first()
         to_mama = to_customer.get_charged_mama()
 
