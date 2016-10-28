@@ -248,7 +248,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             return Response({"code": 1, "info": u'商品数量限购'})
 
         lock_success = Product.objects.lockQuantity(sku, 1)
-        if sku.free_num < cart.num or not lock_success:
+        if sku.free_num <= cart.num or not lock_success:
             return Response({"code": 2, "info": u'商品库存不足'})
 
         cart.num = models.F('num') + 1
