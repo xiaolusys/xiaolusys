@@ -24,6 +24,7 @@ class NinepicFilter(filters.FilterSet):
     description = django_filters.CharFilter(name="description", lookup_type='contains')
     time_start = django_filters.DateFilter(name="start_time", lookup_type='gte')
     time_end = django_filters.DateFilter(name="start_time", lookup_type='lte')
+    detail_modelids = django_filters.CharFilter(name="detail_modelids", lookup_type='contains')
 
     class Meta:
         model = NinePicAdver
@@ -31,6 +32,7 @@ class NinepicFilter(filters.FilterSet):
                   'sale_category_id',
                   'time_start',
                   'time_end',
+                  'detail_modelids',
                   'title',
                   'description']
 
