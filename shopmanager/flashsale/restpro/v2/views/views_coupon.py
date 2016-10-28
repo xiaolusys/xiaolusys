@@ -89,8 +89,14 @@ def get_referal_from_mama_id(to_mama_id):
 #    return res
 
 class CouponTransferRecordViewSet(viewsets.ModelViewSet):
+    paginate_by = 10
+    page_query_param = 'page'
+    paginate_by_param = 'page_size'
+    max_paginate_by = 100
+
     queryset = CouponTransferRecord.objects.all()
     serializer_class = CouponTransferRecordSerializer
+
     #authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     #permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
 
@@ -262,7 +268,8 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         if transfer_status:
             coupons = coupons.filter(transfer_status=transfer_status.strip())
 
+        coupons = self.paginate_queryset(coupons)
         serializer = CouponTransferRecordSerializer(coupons, many=True)
-        res = Response(serializer.data)
+        res = self.get_paginated_response(serializer.data)
         res["Access-Control-Allow-Origin"] = "*"
         return res
