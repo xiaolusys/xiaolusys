@@ -22,6 +22,7 @@ from shopback.logistics.models import LogisticsCompany
 from flashsale.pay.models import SaleTrade,SaleOrder
 from shopback.trades.models import PackageSkuItem
 import logging
+import re
 
 logger = logging.getLogger(__name__)
 import simplejson
@@ -182,6 +183,8 @@ def add_requestData(f):
     def wrapper(*args,**kwargs):
         expCode = kwargs.get('expCode',None)
         expNo = kwargs.get('expNo', None)
+        expNo = re.sub("\D","",expNo).strip()
+        kwargs['expNo'] = expNo
         if expNo and expCode:
             temp = KdnBaseAPI.format_exp_info(expCode,expNo)
             requestData = KdnBaseAPI.get_urlencode_value(temp)
