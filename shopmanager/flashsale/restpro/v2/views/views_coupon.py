@@ -232,7 +232,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         
         mama = get_charged_mama(request.user)
         mama_id = mama.id
-        coupons = self.queryset.filter(coupon_from_mama_id=mama_id,status=status)
+        coupons = self.queryset.filter(coupon_from_mama_id=mama_id,status=status).order_by('-created')
         if transfer_status:
             coupons = coupons.filter(transfer_status=transfer_status.strip())
             
@@ -258,7 +258,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         
         mama = get_charged_mama(request.user)
         mama_id = mama.id
-        coupons = self.queryset.filter(coupon_to_mama_id=mama_id,status=status)
+        coupons = self.queryset.filter(coupon_to_mama_id=mama_id,status=status).order_by('-created')
         if transfer_status:
             coupons = coupons.filter(transfer_status=transfer_status.strip())
 
