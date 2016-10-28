@@ -97,8 +97,8 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
     queryset = CouponTransferRecord.objects.all()
     serializer_class = CouponTransferRecordSerializer
 
-    #authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    #permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
 
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
@@ -127,7 +127,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
             
         res = CouponTransferRecord.init_transfer_record(request.user, coupon_num, template_id)
         res = Response(res)
-        res["Access-Control-Allow-Origin"] = "*"
+        #res["Access-Control-Allow-Origin"] = "*"
         
         return res
 
@@ -153,7 +153,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         res = Response({"mama_id": mama_id, "stock_num": stock_num, "waiting_in_num": waiting_in_num,
                         "waiting_out_num": waiting_out_num, "bought_num": in_num,
                         "direct_buy": direct_buy, "direct_buy_link": direct_buy_link})
-        res["Access-Control-Allow-Origin"] = "*"
+        #res["Access-Control-Allow-Origin"] = "*"
 
         return res
 
@@ -174,7 +174,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
             res = CouponTransferRecord.gen_transfer_record(request.user, record)
         
         res = Response(res)
-        res["Access-Control-Allow-Origin"] = "*"
+        #res["Access-Control-Allow-Origin"] = "*"
         return res
 
     @detail_route(methods=['POST'])
@@ -192,7 +192,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
             record.save(update_fields=['transfer_status'])
             info = u"取消成功"
         res = Response({"code": 0, "info": info})
-        res["Access-Control-Allow-Origin"] = "*"
+        #res["Access-Control-Allow-Origin"] = "*"
         return res
     
     @detail_route(methods=['POST'])
@@ -227,7 +227,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
                 coupon.save()
             info = u"发放成功"
         res = Response({"code": 0, "info": info})
-        res["Access-Control-Allow-Origin"] = "*"
+        #res["Access-Control-Allow-Origin"] = "*"
         return res
     
     @list_route(methods=['GET'])
@@ -253,7 +253,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
                 entry.update({"is_buyable": False})
 
         res = self.get_paginated_response(data)
-        res["Access-Control-Allow-Origin"] = "*"
+        #res["Access-Control-Allow-Origin"] = "*"
         return res
 
     @list_route(methods=['GET'])
@@ -271,5 +271,5 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         coupons = self.paginate_queryset(coupons)
         serializer = CouponTransferRecordSerializer(coupons, many=True)
         res = self.get_paginated_response(serializer.data)
-        res["Access-Control-Allow-Origin"] = "*"
+        #res["Access-Control-Allow-Origin"] = "*"
         return res
