@@ -106,6 +106,7 @@ def activity(req):
         where orders.created > %s
         and orders.created < %s
         and products.model_id != 0
+        and orders.pay_time is not null
         group by activity_id
         order by sales desc
     """
