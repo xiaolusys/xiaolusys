@@ -1,5 +1,5 @@
 # coding: utf-8
-
+import traceback
 import datetime
 from django.db import models
 from django.db.models import Sum
@@ -131,20 +131,26 @@ class ProductSkuStats(models.Model):
         return res if res > 0 else 0
 
     @property
-    def lock_num(self):
+    def new_lock_num(self):
         """老锁定数（仓库里待发货，加购物车待支付）"""
         return self.shoppingcart_num + self.waitingpay_num + self.sold_num - self.return_quantity - self.post_num
 
     @property
-    def new_lock_num(self):
+    def lock_num(self):
         salestat = ProductSkuSaleStats.get_by_sku(self.sku_id)
-        if salestat:
-            return salestat.init_waitassign_num + salestat.num + self.waitingpay_num
-            # shoppingcart_num
-        else:
-            logger.error('can not get sku sale stats:' + str(self.sku_id))
-            return self.waitingpay_num
+        # if salestat:
+        #     return salestat.init_waitassign_num + salestat.num + self.waitingpay_num
+        #     # shoppingcart_num
+        # else:
+        #     logger.error('can not get sku sale stats:' + str(self.sku_id))
+        #     return self.waitingpay_num
             # um + self.waitingpay_num
+        try:
+            return salestat.init_waitassign_num + salestat.num + self.waitingpay_num
+        except Exception, e0:
+            exstr = traceback.format_exc()
+            logger.error('can not get sku sale stats:' + str(self.sku_id) + ':' + exstr)
+            return self.sold_num - self.return_quantity - self.post_num + self.waitingpay_num
 
     @property
     def realtime_lock_num(self):
