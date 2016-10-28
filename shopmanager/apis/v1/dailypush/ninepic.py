@@ -25,7 +25,7 @@ def _calculate_create_assign_turns_num(assign_datetime=None):
     # type: (Optional[datetime.datetime]) -> int
     from flashsale.xiaolumm.models import NinePicAdver
 
-    init_time = NinePicAdver.init_time(assign_datetime.date())
+    init_time = _init_time(assign_datetime.date())
     end_time = datetime.datetime(init_time.year, init_time.month, init_time.day, 23, 59, 59)
     return NinePicAdver.objects.filter(start_time__gte=init_time, start_time__lte=end_time).count()
 
@@ -68,12 +68,11 @@ def create_nine_pic_advertisement(author, title, start_time, **kwargs):
     pic_arry = kwargs.get('pic_arry') or None
     description = kwargs.get('description') or ''
     advertisement_type = kwargs.get('advertisement_type') or 9
-    category_id = kwargs.get('category_id') or None
+    sale_category_id = kwargs.get('sale_category') or None
     is_pushed = kwargs.get('is_pushed') or False
     redirect_url = kwargs.get('redirect_url') or ''
     detail_modelids = kwargs.get('detail_modelids') or ''
     memo = kwargs.get('memo') or ''
-
     turns_num = _calculate_create_assign_turns_num(start_time)  # 轮数
     verify_turns_num = NinePicAdver.objects.filter(start_time__gte=_init_time(start_time.date()),
                                                    start_time__lt=start_time).count()
@@ -84,10 +83,9 @@ def create_nine_pic_advertisement(author, title, start_time, **kwargs):
                      start_time=start_time,
                      description=description,
                      cate_gory=advertisement_type,
-                     sale_category=category_id,
+                     sale_category_id=sale_category_id,
                      pic_arry=pic_arry,
                      turns_num=turns_num + 1,
-                     category_id=category_id,
                      is_pushed=is_pushed,
                      detail_modelids=detail_modelids,
                      redirect_url=redirect_url,
