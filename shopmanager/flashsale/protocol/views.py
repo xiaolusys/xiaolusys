@@ -52,9 +52,9 @@ class APPFullPushMessgeViewSet(viewsets.ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        # self.perform_destroy(instance)
-        raise exceptions.APIException(u'不予删除操作!')
-        # return Response(status=status.HTTP_204_NO_CONTENT)
+        self.perform_destroy(instance)
+        # raise exceptions.APIException(u'不予删除操作!')
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
