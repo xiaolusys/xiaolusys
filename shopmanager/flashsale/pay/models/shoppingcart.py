@@ -103,7 +103,7 @@ class ShoppingCart(BaseModel):
     def is_good_enough(self):
         product_sku = ProductSku.objects.get(id=self.sku_id)
         return (product_sku.product.shelf_status == Product.UP_SHELF
-                and product_sku.real_remainnum >= self.num)
+                and product_sku.free_num >= self.num)
 
     def calc_discount_fee(self, xlmm=None):
         product_sku = ProductSku.objects.get(id=self.sku_id)

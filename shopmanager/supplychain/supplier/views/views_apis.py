@@ -421,6 +421,8 @@ class SaleProductViewSet(viewsets.ModelViewSet):
                 'salecategory': instance.sale_category,
             })
             Product.create_or_update_skus(model_product, request.user)  # 保存saleproduct 之后才做更新
+
+        serializer = serializers.RetrieveSaleProductSerializer(instance)
         return Response(serializer.data)
 
 

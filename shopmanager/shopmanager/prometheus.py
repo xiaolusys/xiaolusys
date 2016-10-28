@@ -120,7 +120,7 @@ ANDROID_APP_SECRET = 'WHdmdNYgnXWokStntg87sg=='
 # ================ 小米推送 END ==================
 
 ################### PING++ SETTINGS ##################
-PINGPP_CLENTIP = "121.199.168.159"
+PINGPP_CLENTIP = "180.97.163.149"
 PINGPP_APPID = "app_LOOajDn9u9WDjfHa"
 PINGPP_APPKEY = "sk_live_HOS4OSW10u5CDyrn5Gn9izLC"
 
