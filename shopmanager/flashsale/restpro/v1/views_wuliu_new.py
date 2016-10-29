@@ -133,6 +133,8 @@ class WuliuViewSet(viewsets.ModelViewSet):
             return Response({"info":"物流运单号为空了"})
         if not company_code:
             return Response({"info":"物流公司code未获得"})
+        if not packetid.isdigit():
+            return Response({"info":"物流单号有误,包含非数字"})
         company_name = exp_map.reverse_map().get(company_code, None)
         if not company_name:
             company_name = kdn_wuliu_extra.get_logistics_name(company_code)

@@ -153,7 +153,7 @@ class ReturnGoods(models.Model):
         for supplier_id in supplier:
             if ReturnGoods.can_return(supplier_id=supplier_id,days=days):
                 rg_details = supplier[supplier_id]
-
+                ReturnGoods.objects.filter(supplier_id=supplier_id,type=0,status=0).update(status=2)
                 rg = ReturnGoods(supplier_id=supplier_id,
                                  noter=noter,
                                  return_num=sum([d.num for d in rg_details]),

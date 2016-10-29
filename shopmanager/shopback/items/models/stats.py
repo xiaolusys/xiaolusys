@@ -138,19 +138,17 @@ class ProductSkuStats(models.Model):
     @property
     def lock_num(self):
         salestat = ProductSkuSaleStats.get_by_sku(self.sku_id)
-        # if salestat:
-        #     return salestat.init_waitassign_num + salestat.num + self.waitingpay_num
-        #     # shoppingcart_num
-        # else:
-        #     logger.error('can not get sku sale stats:' + str(self.sku_id))
-        #     return self.waitingpay_num
-            # um + self.waitingpay_num
-        try:
+        if salestat:
             return salestat.init_waitassign_num + salestat.num + self.waitingpay_num
-        except Exception, e0:
-            exstr = traceback.format_exc()
-            logger.error('can not get sku sale stats:' + str(self.sku_id) + ':' + exstr)
+        else:
             return self.sold_num - self.return_quantity - self.post_num + self.waitingpay_num
+            # um + self.waitingpay_num
+        # try:
+        #     return salestat.init_waitassign_num + salestat.num + self.waitingpay_num
+        # except Exception, e0:
+        #     exstr = traceback.format_exc()
+        #     logger.error('can not get sku sale stats:' + str(self.sku_id) + ':' + exstr)
+        #     return self.sold_num - self.return_quantity - self.post_num + self.waitingpay_num
 
     @property
     def realtime_lock_num(self):

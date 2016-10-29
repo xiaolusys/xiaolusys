@@ -32,7 +32,7 @@ def task_productsku_create_productskustats(sku_id, product_id):
 @transaction.atomic
 def task_productsku_update_productskustats(sku_id, product_id):
     stats = ProductSkuStats.objects.filter(sku_id=sku_id)
-    if stats.count() <= 0:
+    if not stats.exists():
         stat = ProductSkuStats(sku_id=sku_id, product_id=product_id)
         stat.save()
 
