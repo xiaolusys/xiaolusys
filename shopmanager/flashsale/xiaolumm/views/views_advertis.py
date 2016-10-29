@@ -93,8 +93,9 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=201, headers=headers)
 
     def update(self, request, *args, **kwargs):
-        ninepic = update_nine_pic_advertisement_by_id(int(kwargs.get('pk')), **request.data)
-        serializer = self.get_serializer(ninepic)
+        update_nine_pic_advertisement_by_id(int(kwargs.get('pk')), **request.data)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
     def destroy(self, request, *args, **kwargs):
