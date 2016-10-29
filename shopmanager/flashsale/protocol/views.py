@@ -8,13 +8,14 @@ from rest_framework import filters
 from rest_framework import permissions
 from rest_framework import renderers
 from rest_framework import viewsets
-from rest_framework.decorators import list_route
+from rest_framework.decorators import list_route, detail_route
 from rest_framework.response import Response
 from rest_framework import exceptions
 
 from flashsale.protocol import serializers
 from flashsale.protocol.models import APPFullPushMessge
-from apis.v1.dailypush.apppushmsg import create_app_push_msg, delete_app_push_msg_by_id, update_app_push_msg_by_id
+from apis.v1.dailypush.apppushmsg import create_app_push_msg, delete_app_push_msg_by_id, update_app_push_msg_by_id, \
+    push_msg_right_now_by_id
 
 
 class APPFullPushMessgeFilter(filters.FilterSet):
@@ -76,3 +77,13 @@ class APPFullPushMessgeViewSet(viewsets.ModelViewSet):
             raise exceptions.APIException(e.message)
         serializer = self.get_serializer(app_push)
         return Response(serializer.data)
+
+    @detail_route(methods=['post'])
+    def push_msg(self, request, *args, **kwargs):
+        # type: (HttpRequest, *Any, **Any) -> Response
+        """推送指定记录
+        """
+        flag = push_msg_right_now_by_id(int(kwargs.get('pk')))
+        code = 0 if flag else 1
+        info = '操作成功' if flag else '操作出错'
+        return Response({'code': code, 'info': info})

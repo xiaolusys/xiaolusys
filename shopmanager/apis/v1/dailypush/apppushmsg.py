@@ -97,7 +97,7 @@ def push_app_push_msg_2_client_by_id(id):
 
 
 def push_msg_right_now_by_id(id):
-    # type: (id, Optional[int]) -> bool
+    # type: (int) -> bool
     """执行则立即推送（执行task）
     """
     from flashsale.protocol.tasks import task_site_push
