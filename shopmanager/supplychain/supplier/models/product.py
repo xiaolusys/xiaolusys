@@ -219,7 +219,7 @@ class SaleProduct(BaseTagModel):
             return self.sku_extras
         for pro in md.products:
             for psku in pro.normal_skus:
-                sku_list.append({'color': pro.name,
+                sku_list.append({'color': pro.name.find('/') > -1 and pro.name.split('/')[-1] or pro.name,
                                  'pic_path': pro.pic_path,
                                  'agent_price': psku.agent_price,
                                  'remain_num': psku.remain_num,
