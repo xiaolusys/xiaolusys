@@ -1,6 +1,8 @@
 # coding=utf-8
 import datetime
+import django_filters
 
+from rest_framework import status
 from rest_framework import authentication
 from rest_framework import filters
 from rest_framework import permissions
@@ -8,21 +10,42 @@ from rest_framework import renderers
 from rest_framework import viewsets
 from rest_framework.decorators import list_route
 from rest_framework.response import Response
+from rest_framework import exceptions
 
 from flashsale.xiaolumm import serializers
 from flashsale.xiaolumm.models.models_advertis import NinePicAdver
 from shopback.items.models import Product
 from supplychain.supplier.models import SaleProductManageDetail
+from apis.v1.dailypush.ninepic import create_nine_pic_advertisement, update_nine_pic_advertisement_by_id, delete_nine_pic_advertisement_by_id
+
+
+class NinepicFilter(filters.FilterSet):
+    title = django_filters.CharFilter(name="title", lookup_type='contains')
+    description = django_filters.CharFilter(name="description", lookup_type='contains')
+    time_start = django_filters.DateFilter(name="start_time", lookup_type='gte')
+    time_end = django_filters.DateFilter(name="start_time", lookup_type='lte')
+    detail_modelids = django_filters.CharFilter(name="detail_modelids", lookup_type='contains')
+
+    class Meta:
+        model = NinePicAdver
+        fields = ['id',
+                  'sale_category_id',
+                  'time_start',
+                  'time_end',
+                  'detail_modelids',
+                  'title',
+                  'description']
 
 
 class NinePicAdverViewSet(viewsets.ModelViewSet):
     queryset = NinePicAdver.objects.all().order_by('-start_time')
     serializer_class = serializers.NinePicAdverSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser)
+    permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser, permissions.DjangoModelPermissions)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
-    filter_backends = (filters.SearchFilter,)
+    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
     search_fields = ('detail_modelids', 'auther', 'start_time', '=id')
+    filter_class = NinepicFilter
 
     @list_route(methods=['get'])
     def get_promotion_product(self, request):
@@ -44,47 +67,36 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
             if len(x) > 0:
                 p.update({'model_id': x[0]['model_id']})
                 p.update({'sale_time': x[0]['sale_time']})
-        a = sorted(pms, key=lambda k: k['sale_product_id'], reverse=True)   # 按照选品id　排序
+        a = sorted(pms, key=lambda k: k['sale_product_id'], reverse=True)  # 按照选品id　排序
         return Response(a)
 
+    @list_route(methods=['get'])
+    def list_filters(self, request, *args, **kwargs):
+        from supplychain.supplier.models import SaleCategory
+
+        categorys = SaleCategory.objects.filter(status=SaleCategory.NORMAL, is_parent=True)
+        return Response({
+            'categorys': categorys.values_list('id', 'name', 'parent_cid', 'is_parent', 'sort_order'),
+        })
+
     def create(self, request, *args, **kwargs):
-        start_time = request.data.get("start_time") or None
-        if start_time is None:
-            today = datetime.date.today()
-            tomorrow = today + datetime.timedelta(days=1)
-            turns_num = self.queryset.filter(start_time__gte=today, start_time__lt=tomorrow).count() + 1
-        else:
-            # 计算开始时间天数的轮数
-            start_time = datetime.datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')
-            date = start_time.date()
-            next_date = date + datetime.timedelta(days=1)
-            turns_num = self.queryset.filter(start_time__gte=date, start_time__lt=next_date).count() + 1
-        request.data.update({"turns_num": turns_num})
-        request.data.update({"auther": request.user.username})
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
+        try:
+            auther = request.user.username
+            title = request.data.pop('title')
+            start_time = datetime.datetime.strptime(request.data.pop('start_time'),
+                                                    '%Y-%m-%d %H:%M:%S')
+            n = create_nine_pic_advertisement(auther, title, start_time, **request.data)
+        except Exception as e:
+            raise exceptions.APIException(e.message)
+        serializer = self.get_serializer(n)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=201, headers=headers)
 
     def update(self, request, *args, **kwargs):
-        pic_arry = request.data.get("pic_arry") or None
-        if pic_arry:
-            pic_arry = pic_arry.split(',')
-            try:
-                n = self.queryset.get(id=kwargs.get('pk'))
-            except Exception, exc:
-                headers = self.handle_exception(exc=exc)
-                return Response({}, status=404, headers=headers)
-            if len(pic_arry) == n.cate_gory:  # 图片张数不匹配　返回错误
-                request.data._mutable = True  # 开启可变
-                request.data.update({"pic_arry": pic_arry})
-                request.data._mutable = False  # 关闭可变
-            else:
-                return Response({}, status=400, headers=self.headers)
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
+        ninepic = update_nine_pic_advertisement_by_id(int(kwargs.get('pk')), **request.data)
+        serializer = self.get_serializer(ninepic)
         return Response(serializer.data)
+
+    def destroy(self, request, *args, **kwargs):
+        delete_nine_pic_advertisement_by_id(int(kwargs.get('pk')))
+        return Response(status=status.HTTP_204_NO_CONTENT)
