@@ -972,8 +972,6 @@ class RedirectStatsLinkView(APIView):
     """
     GET /rest/v2/mama/redirect_stats_link?link_id=xx
     """
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated,)
 
     links = [
         ['', ''],
