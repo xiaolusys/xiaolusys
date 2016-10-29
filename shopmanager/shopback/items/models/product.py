@@ -771,24 +771,25 @@ class Product(models.Model):
         #  ]}
         """
         from flashsale.pay.models import Productdetail
-        product = model_pro.products.filter(name=kwargs['name']).first()
+        product = Product.objects.filter(model_id=model_pro.id, name=kwargs['name']).first()
         if not product:  # 没有则创建 product
             product = Product()
         for k, v in kwargs.iteritems():  # 有变化则更新
             if hasattr(product, k) and getattr(product, k) != v:
                 setattr(product, k, v)
+        product.status = Product.NORMAL
         product.save()
-        Productdetail(product=product).save()  # 创建detail
-
+        # Productdetail(product=product).save()  # 创建detail
         product_skus = kwargs['product_skus_list']
         for sku in product_skus:
-            product_sku = product.normal_skus.filter(properties_name=sku['properties_name']).first()
+            product_sku = product.prod_skus.filter(properties_name=sku['properties_name']).first()
             if not product_sku:
                 product_sku = ProductSku()
             sku.update({'product': product})
             for sku_k, sku_v in sku.iteritems():
                 if hasattr(product_sku, sku_k) and getattr(product_sku, sku_k) != sku_v:
                     setattr(product_sku, sku_k, sku_v)
+            product_sku.status = ProductSku.NORMAL
             product_sku.save()
             product.set_remain_num()  # 有效sku预留数之和
             product.set_price()  # 有效sku 设置 成品 售价 吊牌价 的平均价格
@@ -800,39 +801,14 @@ class Product(models.Model):
         处理删除的ｓｋｕ方法
         # 如果　已经当前已经存在的sku　不在变更后 skus_list 中则 设置　product_sku instance 预留为0
         """
-        products = model_pro.products.values('id', 'name')
-        product_ids = [p['id'] for p in products]
-        skus_info = ProductSku.objects.filter(product_id__in=product_ids,
-                                              status=pcfg.NORMAL).values('product', 'properties_name')
-        sss = {}
-        for p in products:
-            sss.update({p['id']: p['name']})
-        for sku_info in skus_info:
-            sku_info.update({'color': sss[sku_info['product']]})
-        # 如果　已经存在的sku不在skus_list中则 设置　product_sku instance 预留为0
-        current_skus_list = skus_info
-        current_tmp = dict([('%s|%s'%(item['color'], item['properties_name']), item) for item in current_skus_list])
-        tmp = dict([('%s|%s'%(item['color'], item['properties_name']), item) for item in skus_list])
-        is_inschedule = model_pro.saleproduct.is_inschedule  # 是否在排期里面（用来取决删除状态,如果是在排期里面则不能删除,否则可以改变成删除状态）
-        for t in current_tmp.keys():
-            if t in tmp:
-                continue
-            name = t.split('|')[0]
-            product = model_pro.products.filter(name=name).first()
-            if not product:
-                continue
-            properties_name = t.split('|')[1] if len(t.split('|')) > 1 else ''
-            normal_skus = product.normal_skus.filter(properties_name=properties_name)
-            for normal_sku in normal_skus:
-                normal_sku.remain_num = 0
-                if not is_inschedule:  # 如果不在排期里面
-                    normal_sku.status = ProductSku.DELETE
-                normal_sku.save(update_fields=['remain_num', 'status'])
-
-            if not product.normal_skus.exists():  # 没有正常sku则修改该product为删除状态
-                product.set_to_delete()
-            else:
-                product.set_remain_num()  # 有效sku预留数之和
+        products = Product.objects.filter(model_id=model_pro.id)
+        for product in products:
+            for sku in product.normal_skus.all():
+                sku.remain_num = 0
+                sku.status = ProductSku.DELETE
+                sku.save(update_fields=['remain_num', 'status'])
+            product.status = Product.DELETE
+            product.save()
 
     @classmethod
     @transaction.atomic()
@@ -842,6 +818,13 @@ class Product(models.Model):
         inner_outer_id: 生成的内部编码
         model_pro: 产品款式
         """
+        def _get_valid_procount(outerid, pro_count , id_maps):
+            next_id = outerid + str(pro_count)
+            while next_id in id_maps:
+                pro_count += 1
+                next_id = outerid + str(pro_count)
+            return pro_count
+
         saleproduct = model_pro.saleproduct
         skus_list = saleproduct.sku_extras
         cls.handle_delete_sku(model_pro, skus_list)  # 处理删除的sku
@@ -854,17 +837,39 @@ class Product(models.Model):
             colors.add(x['color'])
 
         pro_count = 1
-
         supplier = saleproduct.sale_supplier
         sale_category = saleproduct.sale_category
         product_category = sale_category.get_product_category()  # 获取选品类别对应的产品类别
         inner_outer_id = cls.get_inner_outer_id(supplier, product_category)
         if not inner_outer_id:
             raise Exception(u'编码出错!!')
+
+        product_valuelist = Product.objects.filter(model_id=model_pro.id).values('id','outer_id', 'name')
+        for p in product_valuelist:
+            if  p['name'].find('/') > -1:
+                p['name'] = p['name'].split('/')[1]
+
+        productname_maps = dict([(e['name'], e) for e in product_valuelist])
+        productid_maps = dict([(e['outer_id'], e) for e in product_valuelist])
+
+        product_ids = [p['id'] for p in product_valuelist]
+        productsku_valuelist = ProductSku.objects.filter(product_id__in=product_ids)\
+                                      .values('id', 'outer_id', 'product__name', 'product_id', 'properties_name', 'barcode')
+        for ps in productsku_valuelist:
+            if ps['product__name'].find('/') > -1:
+                ps['name'] = ps['product__name'].split('/')[1] + '-' + ps['properties_name']
+            else:
+                ps['name'] = ps['product__name'] + '-' + ps['properties_name']
+
+        skuname_maps = dict([(e['name'], e) for e in productsku_valuelist])
+        skuid_maps = dict([(e['outer_id'], e) for e in productsku_valuelist])
+
         for pro in products_list:
             if (pro_count % 10) == 1 and pro_count > 1:  # product除第一个颜色外, 其余的颜色的outer_id末尾不能为1
                 pro_count += 1
-            outer_id = inner_outer_id + str(pro_count)
+            pro_count = _get_valid_procount(inner_outer_id, pro_count, productid_maps)
+            pro_dict  = productname_maps.get(pro['name'])
+            outer_id  = pro_dict and pro_dict['outer_id'] or inner_outer_id + str(pro_count)
             kwargs = {'name': pro['name'],
                       'pic_path': pro['pic_path'],
                       'outer_id': outer_id,
@@ -879,12 +884,15 @@ class Product(models.Model):
             for sku in skus_list:
                 if sku['color'] == pro['name']:
                     color_skus.append(sku)
-            count = 1
+            sku_count = 1
             product_skus_list = []
             for color_sku in color_skus:
-                barcode = '%s%d' % (outer_id, count)
+                sku_count = _get_valid_procount(outer_id, sku_count, skuname_maps)
+                sku_dict  = skuid_maps.get('%s-%s'%(pro['name'],color_sku['properties_name']))
+                outer_id  = sku_dict and sku_dict['outer_id'] or outer_id + str(sku_count)
+                barcode   = sku_dict and sku_dict['barcode'] or '%s%d' % (outer_id, sku_count)
                 product_skus_list.append(
-                    {'outer_id': barcode,
+                    {'outer_id': outer_id,
                      'remain_num': color_sku['remain_num'],
                      'cost': color_sku['cost'],
                      'std_sale_price': color_sku['std_sale_price'],
@@ -892,8 +900,9 @@ class Product(models.Model):
                      'properties_name': color_sku['properties_name'],
                      'properties_alias': color_sku['properties_alias'],
                      'barcode': barcode})
-                count += 1
+                sku_count += 1
             kwargs.update({'product_skus_list': product_skus_list})
+
             cls.update_or_create_product_and_skus(model_pro, **kwargs)
         model_pro.set_is_flatten()  # 设置平铺字段
         model_pro.set_lowest_price()  # 设置款式最低价格
