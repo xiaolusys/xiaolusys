@@ -5,8 +5,10 @@ __ALL__ = [
     'create_nine_pic_advertisement',
     'delete_nine_pic_advertisement_by_id',
     'update_nine_pic_advertisement_by_id',
+    'get_nine_pic_descriptions_by_modelids',
     'NinePicAdvertisement',
 ]
+import re
 import datetime
 import logging
 
@@ -89,7 +91,7 @@ def create_nine_pic_advertisement(author, title, start_time, **kwargs):
                      redirect_url=redirect_url,
                      memo=memo)
     n.save()
-    if turns_num != verify_turns_num:   # 轮数不想等则重新排序
+    if turns_num != verify_turns_num:  # 轮数不想等则重新排序
         _resort_turns_num(start_time.date)
     return n
 
@@ -130,6 +132,20 @@ def update_nine_pic_advertisement_by_id(id, **kwargs):
             setattr(ninepic, k, v)
     ninepic.save()
     return ninepic
+
+
+def get_nine_pic_descriptions_by_modelids(modelids):
+    # type: (List[int]) -> List[Dict[str, Any]]
+    from flashsale.xiaolumm.models.models_advertis import NinePicAdver
+
+    descriptions = []
+    for modelid in modelids:
+        x = r'(,|^)\s*' + str(modelid) + r'\s*(,|$)'
+        descriptions.extend(
+            NinePicAdver.objects.filter(detail_modelids__regex=x).values('id',
+                                                                         'detail_modelids',
+                                                                         'description'))
+    return descriptions
 
 
 class NinePicAdvertisement(object):

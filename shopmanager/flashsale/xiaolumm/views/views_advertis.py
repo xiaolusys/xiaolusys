@@ -8,7 +8,7 @@ from rest_framework import filters
 from rest_framework import permissions
 from rest_framework import renderers
 from rest_framework import viewsets
-from rest_framework.decorators import list_route
+from rest_framework.decorators import list_route, detail_route
 from rest_framework.response import Response
 from rest_framework import exceptions
 
@@ -16,7 +16,8 @@ from flashsale.xiaolumm import serializers
 from flashsale.xiaolumm.models.models_advertis import NinePicAdver
 from shopback.items.models import Product
 from supplychain.supplier.models import SaleProductManageDetail
-from apis.v1.dailypush.ninepic import create_nine_pic_advertisement, update_nine_pic_advertisement_by_id, delete_nine_pic_advertisement_by_id
+from apis.v1.dailypush.ninepic import create_nine_pic_advertisement, \
+    update_nine_pic_advertisement_by_id, delete_nine_pic_advertisement_by_id, get_nine_pic_descriptions_by_modelids
 
 
 class NinepicFilter(filters.FilterSet):
@@ -79,6 +80,13 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
             'is_pushed': [{'name': '稍后推送', 'value': False}, {'name': '不推送', 'value': True}],
             'categorys': categorys.values_list('id', 'name', 'parent_cid', 'is_parent', 'sort_order'),
         })
+
+    @detail_route(methods=['get'])
+    def get_descriptions_by_modelids(self, request, *args, **kwargs):
+        modelids = kwargs.get('pk').split(',')
+        print "modelids:", modelids
+        res = get_nine_pic_descriptions_by_modelids(modelids=modelids)
+        return Response(res)
 
     def create(self, request, *args, **kwargs):
         try:
