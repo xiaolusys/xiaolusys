@@ -4,11 +4,39 @@ __ALL__ = [
     'get_minutes_failed_msgs',
     'push_app_push_msg_2_client_by_id',
     'push_msg_right_now_by_id',
+    'delete_app_push_msg',
 ]
 import datetime
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+def _validate_record(k, v):
+    # type: (text_type, Any) -> None
+    """校验选择项参数
+    """
+    from flashsale.protocol.models import APPFullPushMessge
+
+    def test_platform(v):
+        if v not in dict(APPFullPushMessge.PLATFORM_CHOICES).keys():
+            raise Exception(u'推送设备平台选择错误!')
+
+    def test_push_time(v):
+        if v < datetime.datetime.now():
+            raise Exception(u'推送时间应该大于当前时间!')
+
+    def test_target_url(v):
+        if v not in dict(APPFullPushMessge.TARGET_CHOICES).keys():
+            raise Exception(u'推送的跳转页面设置错误!')
+
+    key_map = {
+        'platform': test_platform,
+        'push_time': test_push_time,
+        'target_url': test_target_url,
+    }
+    if k in key_map.keys():
+        return key_map[k](v)
 
 
 def get_app_push_msg_by_id(id):
@@ -92,19 +120,44 @@ def create_app_push_msg(desc, platform, push_time, **kwargs):
     # type: (text_type, text_type, datetime.datetime, **Any) -> APPFullPushMessge
     from flashsale.protocol.models import APPFullPushMessge
 
-    if platform not in dict(APPFullPushMessge.PLATFORM_CHOICES).keys():
-        raise Exception(u'推送设备平台选择错误!')
-    if push_time < datetime.datetime.now():
-        raise Exception(u'推送时间设置错误!')
     target_url = kwargs.get('target_url') or 1
-    if target_url not in dict(APPFullPushMessge.TARGET_CHOICES).keys():
-        raise Exception(u'推送的跳转页面设置错误!')
+    params_url = kwargs.get('params_url') or {}
+    _validate_record('target_url', target_url)
+    _validate_record('params_url', params_url)
+    _validate_record('push_time', push_time)
+
     msg = APPFullPushMessge(desc=desc,
                             target_url=target_url,
                             platform=platform,
-                            push_time=push_time)
+                            push_time=push_time,
+                            params={'url': params_url})
     msg.save()
     return msg
+
+
+def delete_app_push_msg_by_id(id):
+    # type: (int) -> bool
+    from flashsale.protocol.models import APPFullPushMessge
+
+    app_push = get_app_push_msg_by_id(id)
+    if app_push.status == APPFullPushMessge.SUCCESS:
+        raise Exception(u'推送生效的记录不予删除!')
+    app_push.delete()
+    return True
+
+
+def update_app_push_msg_by_id(id, **kwargs):
+    # type(int, **Any) -> APPFullPushMessge
+    app_push = get_app_push_msg_by_id(id)
+    if kwargs.has_key('params_url'):  # 不更新传入的turns_num
+        params_url = kwargs.pop('params_url')
+        app_push.params.update({'url': params_url})
+    for k, v in kwargs.iteritems():
+        if hasattr(app_push, k) and getattr(app_push, k) != v:
+            _validate_record(k, v)
+            setattr(app_push, k, v)
+    app_push.save()
+    return app_push
 
 
 class AppPushMessge(object):

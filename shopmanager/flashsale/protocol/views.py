@@ -14,11 +14,10 @@ from rest_framework import exceptions
 
 from flashsale.protocol import serializers
 from flashsale.protocol.models import APPFullPushMessge
-from apis.v1.dailypush.apppushmsg import *
+from apis.v1.dailypush.apppushmsg import create_app_push_msg, delete_app_push_msg_by_id, update_app_push_msg_by_id
 
 
 class APPFullPushMessgeFilter(filters.FilterSet):
-
     class Meta:
         model = APPFullPushMessge
         fields = [
@@ -39,27 +38,41 @@ class APPFullPushMessgeViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def list_filters(self, request, *args, **kwargs):
         return Response({
-            "target_url": APPFullPushMessge.TARGET_CHOICES,
-            "platform": APPFullPushMessge.PLATFORM_CHOICES,
+            'status': APPFullPushMessge.STATUSES,
+            'target_url': APPFullPushMessge.TARGET_CHOICES,
+            'platform': APPFullPushMessge.PLATFORM_CHOICES,
         })
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
+        # type: (HttpRequest, *Any, **Any) -> Response
+        try:
+            desc = request.data.pop('desc')
+            platform = request.data.pop('platform')
+            push_time = datetime.datetime.strptime(request.data.pop('push_time'),
+                                                   '%Y-%m-%d %H:%M:%S')
+            p = create_app_push_msg(desc, platform, push_time, **request.data)
+        except Exception as e:
+            raise exceptions.APIException(e.message)
+        serializer = self.get_serializer(p)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        self.perform_destroy(instance)
-        # raise exceptions.APIException(u'不予删除操作!')
+        # type: (HttpRequest, *Any, **Any) -> Response
+        try:
+            delete_app_push_msg_by_id(int(kwargs.get('pk')))
+        except Exception as e:
+            raise exceptions.APIException(e.message)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
+        # type: (HttpRequest, *Any, **Any) -> Response
+        try:
+            push_time = datetime.datetime.strptime(request.data.pop('push_time'),
+                                                   '%Y-%m-%d %H:%M:%S')
+            request.data.update({'push_time': push_time})
+            app_push = update_app_push_msg_by_id(int(kwargs.get('pk')), **request.data)
+        except Exception as e:
+            raise exceptions.APIException(e.message)
+        serializer = self.get_serializer(app_push)
         return Response(serializer.data)
