@@ -41,6 +41,7 @@ class MamaTabVisitStats(BaseModel):
     TAB_WX_BIND_MOBILE = 24
     TAB_WX_PUSH_CLICK_CARRY = 25
     TAB_WX_CLICK_CARRY_HTML = 26
+    TAB_APP_ELITE_MAMA = 27
 
     STATS_TABS = ((TAB_UNKNOWN, 'Unknown'), (TAB_MAMA_FORTUNE, u'妈妈主页'), (TAB_DAILY_NINEPIC, u'每日推送'),
                   (TAB_NOTIFICATION, u'消息通知'), (TAB_MAMA_SHOP, u'店铺精选'), (TAB_INVITE_MAMA, u'邀请妈妈'),
@@ -52,7 +53,8 @@ class MamaTabVisitStats(BaseModel):
                   (TAB_WX_PUSH_REDIRECT_LINK, u'WX/跳转专题链接'), (TAB_WX_ARTICLE_LINK, u'WX/跳转微信文章'), (TAB_WX_TUTORIAL, u'WX/新手教程'),
                   (TAB_WX_BIND_MOBILE, u'WX/绑定手机'),
                   (TAB_WX_PUSH_CLICK_CARRY, u'WX/点击收益推送'),
-                  (TAB_WX_CLICK_CARRY_HTML, u'WX/点击返现说明')
+                  (TAB_WX_CLICK_CARRY_HTML, u'WX/点击返现说明'),
+                  (TAB_APP_ELITE_MAMA, u'APP/精英妈妈'),
     )
 
     stats_tab = models.IntegerField(default=0, choices=STATS_TABS, db_index=True, verbose_name=u'功能TAB')
