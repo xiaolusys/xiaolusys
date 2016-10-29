@@ -72,10 +72,11 @@ class APPFullPushMessgeViewSet(viewsets.ModelViewSet):
             push_time = datetime.datetime.strptime(request.data.pop('push_time'),
                                                    '%Y-%m-%d %H:%M:%S')
             request.data.update({'push_time': push_time})
-            app_push = update_app_push_msg_by_id(int(kwargs.get('pk')), **request.data)
+            update_app_push_msg_by_id(int(kwargs.get('pk')), **request.data)
+            instance = self.get_object()
+            serializer = self.get_serializer(instance)
         except Exception as e:
             raise exceptions.APIException(e.message)
-        serializer = self.get_serializer(app_push)
         return Response(serializer.data)
 
     @detail_route(methods=['post'])
