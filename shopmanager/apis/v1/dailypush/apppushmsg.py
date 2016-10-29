@@ -73,7 +73,6 @@ def push_app_push_msg_2_client_by_id(id):
     push_msg = get_app_push_msg_by_id(id)
     if now < push_msg.push_time:  # 定义的推送时间　没有到　则不推送
         return
-    raise Exception(u'上线去掉!')
     target_url = get_target_url(push_msg.target_url, push_msg.params)
     msg = util_emoji.match_emoji(push_msg.desc)  # 生成推送内容
 
