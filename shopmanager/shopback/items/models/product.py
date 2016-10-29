@@ -770,8 +770,8 @@ class Product(models.Model):
         #  {'outer_id':"",'remain_num':0,'cost':0,'std_sale_price':0,'agent_price':0,'properties_name':0,'properties_alias':0,'barcode':0},
         #  ]}
         """
-        from flashsale.pay.models import Productdetail
-        product = Product.objects.filter(model_id=model_pro.id, name=kwargs['name']).first()
+        kwargs['name'] = '%s/%s'%(model_pro.name, kwargs['name'])
+        product = Product.objects.filter(name=kwargs['name'], model_id=model_pro.id).first()
         if not product:  # 没有则创建 product
             product = Product()
         for k, v in kwargs.iteritems():  # 有变化则更新
@@ -782,7 +782,9 @@ class Product(models.Model):
         # Productdetail(product=product).save()  # 创建detail
         product_skus = kwargs['product_skus_list']
         for sku in product_skus:
-            product_sku = product.prod_skus.filter(properties_name=sku['properties_name']).first()
+            product_sku = ProductSku.objects.filter(
+                product=product,
+                properties_name=sku['properties_name']).first()
             if not product_sku:
                 product_sku = ProductSku()
             sku.update({'product': product})
