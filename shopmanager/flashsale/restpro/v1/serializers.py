@@ -863,7 +863,7 @@ def get_mama_link(mama_id, jump_str):
 
 class NinePicAdverSerialize(serializers.ModelSerializer):
     pic_arry = JSONParseField()
-    could_share = serializers.IntegerField(source='is_share', read_only=True)
+    could_share = serializers.SerializerMethodField(read_only=True)
     title_content = serializers.SerializerMethodField(read_only=True)
     title = serializers.SerializerMethodField('get_description', read_only=True)
     description = serializers.SerializerMethodField(read_only=True)
@@ -881,6 +881,15 @@ class NinePicAdverSerialize(serializers.ModelSerializer):
         day = today.day
         share_time = obj.start_time.strftime("%H:%M")
         return "%02d月%02d日｜第%d轮 分享时间：%s" % (month, day, obj.turns_num, share_time)
+
+    def get_could_share(self, obj):
+        """ 是否可以分享 """
+        now = datetime.datetime.now()  # 现在时间
+        end_clock = datetime.datetime(now.year, now.month, now.day, 14, 0, 0, 0)  # 下架时间
+        yestoday = datetime.date.today() - datetime.timedelta(days=1)  # 昨天
+        if obj.start_time.date() == yestoday and now > end_clock:  # 开始时间是昨天　并且是现在是下架以后则不能分享
+            return 0
+        return 1  # 否则可以分享
 
     def get_description(self, obj):
         """
