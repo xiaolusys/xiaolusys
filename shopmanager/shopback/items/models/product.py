@@ -771,7 +771,8 @@ class Product(models.Model):
         #  ]}
         """
         kwargs['name'] = '%s/%s'%(model_pro.name, kwargs['name'])
-        product = Product.objects.filter(name=kwargs['name'], model_id=model_pro.id).first()
+        product = Product.objects.filter(models.Q(name=kwargs['name'])|models.Q(name=kwargs['name']),
+                                         model_id=model_pro.id).first()
         if not product:  # 没有则创建 product
             product = Product()
         for k, v in kwargs.iteritems():  # 有变化则更新
