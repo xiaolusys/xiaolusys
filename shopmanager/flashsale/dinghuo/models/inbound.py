@@ -537,7 +537,7 @@ class InBound(models.Model):
         :return:
         """
         orderlist_ids = self.get_may_allocate_order_list_ids()
-        first_orderlist = OrderList.objects.filter(id=self.ori_orderlist_id).first()
+        first_orderlist = OrderList.objects.filter(id=self.ori_orderlist_id).exclude(stage=OrderList.STAGE_DRAFT).first()
         if first_orderlist and first_orderlist.id in orderlist_ids:
             orderlists = [first_orderlist] + list(OrderList.objects.filter(id__in=orderlist_ids).exclude(
                 id=first_orderlist.id).order_by('id'))

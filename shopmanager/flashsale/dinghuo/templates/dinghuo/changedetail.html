@@ -513,8 +513,11 @@ function initActions(){
         <div class="col-lg-2">
             催货{{orderlist.press_num}}次
         </div>
-        <div class="col-lg-2">
+        <div class="col-lg-1">
             <button type="button" class="btn-mini btn-primary" data-toggle="modal" data-target="#myModal">催货</button>
+        </div>
+        <div class="col-lg-1">
+            <button type="button" class="btn-mini btn-primary" id="btn_replenishment">补货</button>
         </div>
     </div>
     {% if orderlist.press_num %}
@@ -547,6 +550,7 @@ function initActions(){
     <div>
         <table id="orderdetailtable" border="1" class="table table-striped table-bordered table-hover">
             <thead>
+            <th class="sku_select" style="display:none"></th>
             <th>SKU ID</th>
             <th>商品编码</th>
             <th style="min-width:80px">选品备注</th>
@@ -566,6 +570,7 @@ function initActions(){
 
             {% for order in orderdetails %}
             <tr id="orderdetail_{{ forloop.counter }}">
+                <td class="sku_select_input" style="display:none"><input type="checkbox" value=""></td>
                 <td><a href="/admin/items/productskustats/?sku_id={{ order.chichu_id}}" target="_blank">{{order.chichu_id }}</a></td>
                 <td><a href="/admin/items/product/?q={{ order.outer_id }}" target="_blank">{{ order.outer_id }}</a></td>
                 <td>{{order.memo}}</td>
@@ -1256,6 +1261,11 @@ $(function () {
 
            });
         });
+    $('#btn_replenishment').click(function(){
+        alert("test");
+        $(".sku_select").show();
+        $(".sku_select_input").show();
+    });
 });
 
 </script>
