@@ -556,7 +556,7 @@ class OrderList(models.Model):
 
     def set_by_package_sku_item(self):
         from shopback.trades.models import PackageSkuItem
-        psis = PackageSkuItem.objects.filter(purchase_order_unikey=self.purchase_order_unikey)
+        psis = PackageSkuItem.objects.filter(purchase_order_unikey=self.purchase_order_unikey, assign_status=2)
         sku_nums = {i['sku_id']: i['total'] for i in psis.values('sku_id').annotate(total=Sum('num'))}
         for sku_id in sku_nums:
             od = self.order_list.filter(chichu_id=str(sku_id)).first()
