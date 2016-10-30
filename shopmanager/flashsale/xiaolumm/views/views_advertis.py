@@ -76,6 +76,7 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
 
         categorys = SaleCategory.objects.filter(status=SaleCategory.NORMAL, is_parent=True)
         return Response({
+            'is_pushed': [{'name': '稍后推送', 'value': False}, {'name': '不推送', 'value': True}],
             'categorys': categorys.values_list('id', 'name', 'parent_cid', 'is_parent', 'sort_order'),
         })
 

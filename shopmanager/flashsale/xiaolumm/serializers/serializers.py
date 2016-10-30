@@ -39,7 +39,7 @@ class CarryLogSerializer(serializers.ModelSerializer):
 class NinePicAdverSerializer(serializers.ModelSerializer):
     # start_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", read_only=True)
     cate_gory_display = serializers.CharField(source='get_cate_gory_display', read_only=True)
-
+    push_status = serializers.SerializerMethodField(read_only=True)
     category_name = serializers.CharField(source='sale_category.name')
     advertisement_type = serializers.IntegerField(source='cate_gory')
     advertisement_type_display = serializers.CharField(source='get_cate_gory_display', read_only=True)
@@ -56,6 +56,7 @@ class NinePicAdverSerializer(serializers.ModelSerializer):
             "start_time",
             "turns_num",
             "is_pushed",
+            'push_status',
             "detail_modelids",
             "cate_gory_display",
             "sale_category",
@@ -64,6 +65,14 @@ class NinePicAdverSerializer(serializers.ModelSerializer):
             'advertisement_type_display',
             'redirect_url',
             'memo')
+
+    def get_push_status(self, obj):
+        # type: (NinePicAdver) -> text_type
+        text_map = {
+            True: u'已推/不推',
+            False: u'将要推送'
+        }
+        return text_map[obj.is_pushed]
 
 
 class XiaoluMamaSerializer(serializers.ModelSerializer):
