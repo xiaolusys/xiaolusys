@@ -1005,7 +1005,7 @@ SYNC_MODEL_SCHEDULE = {
     },
     u'定时淘宝商城待发货订单下载任务': {
         'task': 'shopback.orders.tasks.updateAllUserWaitPostOrderTask',
-        'schedule': crontab(minute="30", hour="23"),
+        'schedule': crontab(minute="30", hour="8,12,16,17"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
@@ -1015,11 +1015,11 @@ SYNC_MODEL_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
-    #     u'定时淘宝退款订单下载任务':{     #更新昨日退货退款单
-    #          'task':'shopback.refunds.tasks.updateAllUserRefundOrderTask',
-    #          'schedule':crontab(minute="0",hour='2'),
-    #          'args':(1,None,None,)
-    #      },
+    u'定时淘宝退款订单下载任务':{     #更新昨日退货退款单
+         'task':'shopback.refunds.tasks.updateAllUserRefundOrderTask',
+         'schedule':crontab(minute="0",hour='8,12,16'),
+         'args':(1,None,None,)
+     },
     u'定时更新设置提醒的订单入问题单': {  # 更新定时提醒订单
         'task': 'shopback.trades.tasks.regularRemainOrderTask',
         'schedule': crontab(minute="0", hour='0,12,17'),
