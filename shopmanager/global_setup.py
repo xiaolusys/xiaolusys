@@ -43,3 +43,10 @@ def enable_urllib2_debugmode():
 
     urllib2.install_opener(opener)
 
+def cancel_pingpp_charge_ssl_verify():
+    try:
+        import pingpp
+        pingpp.verify_ssl_certs = False
+    except Exception, exc:
+        print 'cancel pingpp verify error:%s'% exc
+
