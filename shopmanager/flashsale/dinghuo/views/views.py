@@ -1139,7 +1139,9 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         bill = get_object_or_404(Bill, id=pk)
         orderlist = bill.get_orderlist()
         if bill.status in [Bill.STATUS_DEALED, Bill.STATUS_COMPLETED]:
-            return Response({"res": False, "data": [], "desc": u"订单已支付不能编辑"})
+            return Response({"res": False, "data": [], "desc": u"账单已支付不能从订货单编辑"})
+        if bill.is_merged():
+            return Response({"res": False, "data": [], "desc": u"合并账单不能从订货单编辑"})
         if pay_way == Bill.SELF_PAY:
             return Response({"res": False, "data": [], "desc": u"无法选择自付"})
         if float(plan_amount) == 0:
@@ -1147,9 +1149,13 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         pay_method = pay_tool
         if pay_method == '0':
             return Response({"res": False, "data": [], "desc": u"请选择支付方式"})
+        if int(pay_way) == OrderList.PC_POD_TYPE:
+            status = Bill.STATUS_PENDING
+        else:  # 判断如果pay_way是货到付款，那么bill状态是延期付款，否则是待付款状态
+            status = Bill.STATUS_DELAY
         try:
             bill.pay_method = pay_method
-            bill.status = Bill.STATUS_PENDING
+            bill.status = status
             bill.plan_amount = plan_amount
             bill.supplier = orderlist.supplier
             bill.receive_account = receive_account
