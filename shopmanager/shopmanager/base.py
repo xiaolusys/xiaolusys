@@ -15,9 +15,9 @@ sys.setdefaultencoding('utf-8')
 import os.path
 import posixpath
 
-from global_setup import install_pymysqldb
+from global_setup import install_pymysqldb, cancel_pingpp_charge_ssl_verify
 install_pymysqldb()
-
+cancel_pingpp_charge_ssl_verify()
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
