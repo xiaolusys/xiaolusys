@@ -180,7 +180,7 @@ deploy:
         --volumes-from=static -e C_FORCE_ROOT=1 -e BLUEWARE_CONFIG_FILE=blueware.ini -e C_FORCE_ROOT=1
         registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program
         celery worker -P gevent -A shopmanager --loglevel=ERROR -c 300 --time-limit=300
-        -Q notify,frency,mama,coupon,activevalue,mamafortune,relationship,carryrecord,logistics,qrcode
+        -Q notify,frency,mama,coupon,activevalue,mamafortune,relationship,carryrecord,logistics,qrcode,weixin
       - docker rm -f celery3
       - docker run --name=celery3 --restart=always -d
         -e INSTANCE=celery-gevent -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
