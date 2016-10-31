@@ -5,8 +5,10 @@ __ALL__ = [
     'create_nine_pic_advertisement',
     'delete_nine_pic_advertisement_by_id',
     'update_nine_pic_advertisement_by_id',
+    'get_nine_pic_descriptions_by_modelids',
     'NinePicAdvertisement',
 ]
+import re
 import datetime
 import logging
 
@@ -76,8 +78,6 @@ def create_nine_pic_advertisement(author, title, start_time, **kwargs):
     turns_num = _calculate_create_assign_turns_num(start_time)  # 轮数
     verify_turns_num = NinePicAdver.objects.filter(start_time__gte=_init_time(start_time.date()),
                                                    start_time__lt=start_time).count()
-    if turns_num != verify_turns_num:
-        raise Exception(u'请设置 **开始时间** 在当前最后一轮以后!')
     n = NinePicAdver(auther=author,
                      title=title,
                      start_time=start_time,
@@ -91,6 +91,8 @@ def create_nine_pic_advertisement(author, title, start_time, **kwargs):
                      redirect_url=redirect_url,
                      memo=memo)
     n.save()
+    if turns_num != verify_turns_num:  # 轮数不想等则重新排序
+        _resort_turns_num(start_time.date)
     return n
 
 
@@ -130,6 +132,20 @@ def update_nine_pic_advertisement_by_id(id, **kwargs):
             setattr(ninepic, k, v)
     ninepic.save()
     return ninepic
+
+
+def get_nine_pic_descriptions_by_modelids(modelids):
+    # type: (List[int]) -> List[Dict[str, Any]]
+    from flashsale.xiaolumm.models.models_advertis import NinePicAdver
+
+    descriptions = []
+    for modelid in modelids:
+        x = r'(,|^)\s*' + str(modelid) + r'\s*(,|$)'
+        descriptions.extend(
+            NinePicAdver.objects.filter(detail_modelids__regex=x).values('id',
+                                                                         'detail_modelids',
+                                                                         'description'))
+    return descriptions
 
 
 class NinePicAdvertisement(object):
