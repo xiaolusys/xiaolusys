@@ -391,7 +391,7 @@ def task_create_transfer_coupon(sale_order):
     from flashsale.pay.models import ModelProduct
     
     product = Product.objects.filter(id=product_item_id).first()
-    model_product = ModelProduct.objects.filter(id=product.model_id)
+    model_product = ModelProduct.objects.filter(id=product.model_id).first()
     template_id = model_product.extras.get("template_id")
     
     template = CouponTemplate.objects.get(id=template_id)
