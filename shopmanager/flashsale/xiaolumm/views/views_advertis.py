@@ -70,6 +70,7 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
             if len(x) > 0:
                 p.update({'model_id': x[0]['model_id']})
                 p.update({'sale_time': x[0]['sale_time']})
+                p.update({'history_descriptions': get_nine_pic_descriptions_by_modelids([x[0]['model_id']])})
         a = sorted(pms, key=lambda k: k['sale_product_id'], reverse=True)  # 按照选品id　排序
         a.sort(key=itemgetter('sale_category'))  # 为分类提前排序
         group_category_name = []
