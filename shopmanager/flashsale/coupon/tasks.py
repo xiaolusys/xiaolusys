@@ -390,7 +390,7 @@ def task_create_transfer_coupon(sale_order):
     from shopback.items.models import Product
     from flashsale.pay.models import ModelProduct
     
-    product = Product.objects.filler(id=product_item_id).first()
+    product = Product.objects.filter(id=product_item_id).first()
     model_product = ModelProduct.objects.filter(id=product.model_id)
     template_id = model_product.extras.get("template_id")
     
