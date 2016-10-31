@@ -286,7 +286,7 @@ def product_sku_stats_agg(sender, instance, created, **kwargs):
     """ 统计实时库存的变化到统计app中"""
     try:
         from statistics.tasks import task_update_product_sku_stats
-        task_update_product_sku_stats.delay(instance)
+        task_update_product_sku_stats.apply_async(args=[instance], countdown=3)
     except Exception, exc:
         logger.error(exc.message)
 
