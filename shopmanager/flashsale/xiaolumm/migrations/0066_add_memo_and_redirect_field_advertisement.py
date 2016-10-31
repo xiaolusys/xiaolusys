@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('xiaolumm', '0065_add_save_times_and share_times'),
+        ('xiaolumm', '0065_add_save_times_and_share_times'),
     ]
 
     operations = [

@@ -395,6 +395,10 @@ class SaleProductViewSet(viewsets.ModelViewSet):
         })
         if product_link and str(product_link).strip() and self.queryset.filter(outer_id=outer_id).exists():
             raise exceptions.APIException(u'该款已经录入了!')
+        salesupplier_id = request.data.get('sale_supplier')
+        salesupplier  = SaleSupplier.objects.get(id=salesupplier_id)
+        if not salesupplier.ware_by:
+            raise exceptions.APIException(u'请先设置供应商所属仓库!')
         serializer = serializers.ModifySaleProductSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
