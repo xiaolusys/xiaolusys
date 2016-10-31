@@ -891,7 +891,7 @@ class Product(models.Model):
             product_skus_list = []
             for color_sku in color_skus:
                 sku_count = _get_valid_procount(outer_id, sku_count, skuid_maps)
-                sku_dict  = skuid_maps.get('%s-%s'%(pro['name'],color_sku['properties_name']))
+                sku_dict  = skuname_maps.get('%s-%s'%(pro['name'],color_sku['properties_name']))
                 outer_id  = sku_dict and sku_dict['outer_id'] or outer_id + str(sku_count)
                 barcode   = sku_dict and sku_dict['barcode'] or '%s%d' % (outer_id, sku_count)
                 product_skus_list.append(

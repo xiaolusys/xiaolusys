@@ -86,22 +86,25 @@ class SupplierFigureSerializer(serializers.ModelSerializer):
 
 class SaleSupplierSerializer(serializers.ModelSerializer):
     # category = SaleCategorySerializer()
-    status = SupplierStatusField()
-    progress = ProgressField()
     figures = SupplierFigureSerializer(read_only=True)
     zone_name = serializers.CharField(source='zone.name', read_only=True)
+
 
     class Meta:
         model = SaleSupplier
         fields = ('id',
+                  'main_page',
                   'supplier_name',
                   'supplier_code',
                   'brand_url',
+                  'platform',
+                  "supplier_type",
                   "product_link",
                   'total_sale_num',
                   "description",
                   'progress',
                   "mobile",
+                  'contact',
                   'category',
                   "address",
                   'status',
@@ -111,8 +114,12 @@ class SaleSupplierSerializer(serializers.ModelSerializer):
                   'qq',
                   'weixin',
                   'figures',
+                  'ware_by',
                   'zone_name',
                   'get_ware_by_display')
+
+    def get_province(self, obj):
+        return obj.address
 
 
 class SaleSupplierSimpleSerializer(serializers.ModelSerializer):
