@@ -11,10 +11,9 @@ from . import views
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'pending_dinghuo', views.PendingDingHuoViewSet)
 router.register(r'instant_dinghuo', views.InstantDingHuoViewSet, 'dinghuo')
-router.register(r'dinghuo_orderlist', views.DingHuoOrderListViewSet,
-                'dinghuo_orderlist')
-router.register(r'purchase_return', views.ReturnGoodsViewSet,
-                'purchase_return')
+router.register(r'dinghuo_orderlist', views.DingHuoOrderListViewSet, 'dinghuo_orderlist')
+router.register(r'repurchase', views.RePurchaseViewSet, 'repurchase')
+router.register(r'purchase_return', views.ReturnGoodsViewSet, 'purchase_return')
 router.register(r'inbound', views.InBoundViewSet, 'inbound')
 
 urlpatterns = [
@@ -212,7 +211,6 @@ urlpatterns = [
     url(r'^add_ding_huo/$',
         staff_member_required(views.AddDingHuoView.as_view()),
         name="add_ding_huo"),
-
     # update订货单部分信息
     url(r'^update_dinghuo/$', views.update_dinghuo_part_information, name="update_dinghuo_part_information"),
     # 生成退货单

@@ -20,3 +20,4 @@ from .views_product import SetRemainNumView
 from .views_line_show import InventoryDataLineShow
 from .views_lackgood import LackGoodOrderViewSet
 from .views_stats import PurchaseStatsApiView
+from .repurchase import RePurchaseViewSet

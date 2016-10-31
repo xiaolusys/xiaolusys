@@ -1,0 +1,131 @@
+{% extends "dinghuo/dinghuo_base.html" %}
+{% block title %}增加订单{% endblock %}
+{% block head_script %}
+    <srcipt src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js"></srcipt>
+    <script type="text/javascript">
+        function delcaogao() {
+            $.get("/sale/dinghuo/delcaogao");
+            $("#drafttable thead").eq(0).nextAll().remove();
+            document.getElementById("orderAdd").disabled = true;
+        }
+    </script>
+    <style type="text/css">
+        .float-view {
+            margin-right: 0px;
+            top: 50px;
+            left: -100px;
+            position: absolute;
+        }
+    </style>
+{% endblock %}
+{% block container %}
+    <div class="row" style="margin-top: 40px">
+        <div class="col-lg-8">
+            <div class="row" style="margin-left: 80px">
+                <span class="label label-default" style="font-size: 20px">添加购买</span>
+            </div>
+
+            <form method="post" action="/sale/dinghuo/initdraft/">
+                <input type="text" name="product_counter" value="{{ productRestult|length }}" hidden="hidden">
+                {% for product in productRestult %}
+                    <input type="text" value="{{ product.id }}" hidden="hidden"
+                           name="product_id_{{ forloop.counter }}">
+
+                    <div class="row" style="margin-top: 20px">
+                        <div class="col-lg-3">
+                            <div><h5>{{ product.name }}</h5><img class="img-responsive" src="{{ product.pic_path }}"
+                                                                 width="80px"><br>{{product.supplier_sku}}</div>
+                        </div>
+                        <div class="col-lg-9">
+                            <table class="table table-striped table-bordered">
+                                <thead>
+                                <th>规格</th>
+                                <th>数量</th>
+                                <th>买入价格</th>
+                                </thead>
+                                {% for guige in product.prod_skus %}
+                                    <tr>
+                                        <td>
+                                            <div>
+                                                <label>{{ guige.properties_name|default:guige.properties_alias }}</label>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                <input name="{{ guige.product }}_tb_quantity_{{ guige.id }}"
+                                                       type="number" value="{{ guige.wait_post_num }}" min="0"
+                                                       class="quantity form-control"
+                                                       onkeyup="this.value=this.value.replace(/\D/g,'')"
+                                                       onblur="this.value=this.value.replace(/\D/g,'')"
+                                                       onafterpaste="this.value=this.value.replace(/\D/g,'')"
+                                                       aria-describedby="basic-addon1">
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                <input name="{{ guige.product }}_tb_cost_{{ guige.id }}"
+                                                       type="text" min="0" value="{{ guige.cost }}"
+                                                       class="mairucost form-control"
+                                                       t_value=""
+                                                       o_value=""
+                                                       onkeypress="if(!this.value.match(/^[\+\-]?\d*?\.?\d*?$/))this.value=this.t_value;else this.t_value=this.value;if(this.value.match(/^(?:[\+\-]?\d+(?:\.\d+)?)?$/))this.o_value=this.value"
+                                                       onblur="if(!this.value.match(/^[\+\-]?\d*?\.?\d*?$/))this.value=this.t_value;else this.t_value=this.value;if(this.value.match(/^(?:[\+\-]?\d+(?:\.\d+)?)?$/))this.o_value=this.value"
+                                                       onkeyup="if(!this.value.match(/^[\+\-]?\d*?\.?\d*?$/))this.value=this.t_value;else this.t_value=this.value;if(this.value.match(/^(?:[\+\-]?\d+(?:\.\d+)?)?$/))this.o_value=this.value"
+                                                       onafterpaste="if(!this.value.match(/^[\+\-]?\d*?\.?\d*?$/))this.value=this.t_value;else this.t_value=this.value;if(this.value.match(/^(?:[\+\-]?\d+(?:\.\d+)?)?$/))this.o_value=this.value"
+                                                       aria-describedby="basic-addon1">
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </table>
+                        </div>
+                    </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-danger float-view" id="baocun">添加到订单</button>
+            </form>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="row">
+                <span class="label label-default" style="font-size: 20px">购物车</span>
+            </div>
+
+            <div class="row" style="margin-top: 20px">
+                <table class="table table-striped table-bordered table-hover" id="drafttable">
+                    <thead>
+                    <th width="200px">商品id</th>
+                    <th>规格id</th>
+                    <th>数量</th>
+                    </thead>
+                    {% for draft in drafts %}
+                        <tr>
+                            <td>{{ draft.product_name }}</td>
+                            <td>{{ draft.product_chicun }}</td>
+                            <td>{{ draft.buy_quantity }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+                {% if drafts %}
+                    <input class="btn btn-default" id="orderAdd" type="button" value="生成订单"
+                           onclick="window.location.href='/sale/dinghuo/dingdan'"/>
+                {% else %}
+                    <input class="btn btn-default" id="orderAdd" type="button" value="生成订单" disabled="disabled"
+                           onclick="window.location.href='/sale/dinghuo/dingdan'"/>
+                {% endif %}
+                <input class="btn btn-default" id="orderAdd" type="button" value="删除商品" onclick="delcaogao()"/>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block tail_script %}
+    <script type="text/javascript">
+        $(function () {
+            $(window).scroll(function () {
+                var w_height = $(window).height();//浏览器高度
+                var scroll_top = $(document).scrollTop();//滚动条到顶部的垂直高度
+                $(".float-view").css("position", "fixed").css("left","40px");
+            });
+        });
+
+    </script>
+{% endblock %}

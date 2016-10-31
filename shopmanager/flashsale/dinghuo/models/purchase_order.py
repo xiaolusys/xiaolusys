@@ -67,8 +67,9 @@ class OrderList(models.Model):
         (ST_CLOSE, u'已取消'),
     )
 
-    CREATED_BY_PERSON = 1
-    CREATED_BY_MACHINE = 2
+    CREATED_BY_PERSON = 1  # 手工订购
+    CREATED_BY_MACHINE = 2  # 自动订货
+    CREATED_BY_REPURCHASE = 3  # 补货
 
     ORDER_PRODUCT_STATUS = ((SUBMITTING, u'草稿'), (APPROVAL, u'审核'), (BE_PAID, u'已付款'),
                             (ZUOFEI, u'作废'), (QUESTION, u'有次品又缺货'),
@@ -164,7 +165,7 @@ class OrderList(models.Model):
     completed_time = models.DateTimeField(blank=True, null=True, verbose_name=u'完成时间')
     note = models.TextField(default="", blank=True, verbose_name=u'备注信息')
     created_by = models.SmallIntegerField(
-        choices=((CREATED_BY_PERSON, u'手工订货'), (CREATED_BY_MACHINE, u'订单自动订货')),
+        choices=((CREATED_BY_PERSON, u'手工订货'), (CREATED_BY_MACHINE, u'订单自动订货'), (CREATED_BY_REPURCHASE, u'补货')),
         default=CREATED_BY_PERSON,
         verbose_name=u'创建方式')
 
@@ -583,24 +584,30 @@ class OrderList(models.Model):
         need_send = PackageSkuItem.objects.filter(purchase_order_unikey=self.purchase_order_unikey)
         items = []
         if not format:
-            columns = [u'订单号', u'产品条码', u'订单状态', u'买家id', u'子订单编号', u'供应商编码', u'买家昵称', u'商品名称', u'产品规格', u'商品单价', u'商品数量',
-                   u'商品总价', u'运费', u'购买优惠信息', u'总金额', u'买家购买附言', u'收货人姓名', u'收货地址', u'邮编',
-                   u'收货人手机', u'收货人电话', u'买家选择运送方式', u'卖家备忘内容', u'订单创建时间', u'付款时间', u'物流公司', u'物流单号', u'发货附言',
-                   u'发票抬头', u'电子邮件', u'商品链接']
+            columns = [u'订单号', u'产品条码', u'订单状态', u'买家id', u'子订单编号', u'供应商编码', u'买家昵称', u'商品名称', u'产品规格', u'商品单价',
+                       u'商品数量',
+                       u'商品总价', u'运费', u'购买优惠信息', u'总金额', u'买家购买附言', u'收货人姓名', u'收货地址', u'邮编',
+                       u'收货人手机', u'收货人电话', u'买家选择运送方式', u'卖家备忘内容', u'订单创建时间', u'付款时间', u'物流公司', u'物流单号', u'发货附言',
+                       u'发票抬头', u'电子邮件', u'商品链接']
             for p in need_send:
                 o = p.package_order
                 saleproduct = p.product_sku.product.get_sale_product()
-                items.append([str(o.pid) if o else '', '', p.get_assign_status_display(), str(p.sale_trade.buyer_id), str(p.id), saleproduct.supplier_sku if saleproduct else '', str(p.sale_trade.buyer_nick),
-                            str(p.product_sku.product.name), str(p.product_sku.properties_name),
-                            str(p.product_sku.cost), str(p.num), '0', '0', '0', '0', '', str(p.sale_trade.receiver_name),
-                            str(p.sale_trade.receiver_address_detail), '', p.sale_trade.receiver_mobile, '', '', '', '',
-                            p.sale_trade.created.strftime('%Y-%m-%D %H:%M:%S'), p.sale_trade.pay_time.strftime('%Y-%m-%D %H:%M:%S'),
-                            p.sale_trade.logistics_company.name if p.sale_trade.logistics_company else '', '', u'小鹿美美，时尚健康美丽', '', '',saleproduct.product_link if saleproduct else ''])
+                items.append(
+                    [str(o.pid) if o else '', '', p.get_assign_status_display(), str(p.sale_trade.buyer_id), str(p.id),
+                     saleproduct.supplier_sku if saleproduct else '', str(p.sale_trade.buyer_nick),
+                     str(p.product_sku.product.name), str(p.product_sku.properties_name),
+                     str(p.product_sku.cost), str(p.num), '0', '0', '0', '0', '', str(p.sale_trade.receiver_name),
+                     str(p.sale_trade.receiver_address_detail), '', p.sale_trade.receiver_mobile, '', '', '', '',
+                     p.sale_trade.created.strftime('%Y-%m-%D %H:%M:%S'),
+                     p.sale_trade.pay_time.strftime('%Y-%m-%D %H:%M:%S'),
+                     p.sale_trade.logistics_company.name if p.sale_trade.logistics_company else '', '', u'小鹿美美，时尚健康美丽',
+                     '', '', saleproduct.product_link if saleproduct else ''])
         elif format == 'third_package1':
-            columns = [u'订单号', u'产品条码', u'订单状态', u'买家id', u'子订单编号', u'供应商编码', u'买家昵称', u'商品名称', u'产品规格', u'商品单价', u'商品数量',
-                   u'商品总价', u'运费', u'购买优惠信息', u'总金额', u'买家购买附言', u'收货人姓名', u'省', u'市', u'区/县', u'收货详细地址', u'邮编',
-                   u'收货人手机', u'收货人电话', u'买家选择运送方式', u'卖家备忘内容', u'订单创建时间', u'付款时间', u'物流公司', u'物流单号', u'发货附言',
-                   u'发票抬头', u'电子邮件', u'商品链接']
+            columns = [u'订单号', u'产品条码', u'订单状态', u'买家id', u'子订单编号', u'供应商编码', u'买家昵称', u'商品名称', u'产品规格', u'商品单价',
+                       u'商品数量',
+                       u'商品总价', u'运费', u'购买优惠信息', u'总金额', u'买家购买附言', u'收货人姓名', u'省', u'市', u'区/县', u'收货详细地址', u'邮编',
+                       u'收货人手机', u'收货人电话', u'买家选择运送方式', u'卖家备忘内容', u'订单创建时间', u'付款时间', u'物流公司', u'物流单号', u'发货附言',
+                       u'发票抬头', u'电子邮件', u'商品链接']
             if not self.third_package:
                 raise Exception(u'此订货单不是第三方发货订货单')
             if PackageSkuItem.objects.filter(purchase_order_unikey=self.purchase_order_unikey,
@@ -610,19 +617,39 @@ class OrderList(models.Model):
                 o = p.package_order
                 saleproduct = p.product_sku.product.get_sale_product()
                 items.append([str(o.pid), '', o.sys_status, str(o.buyer_id), str(p.id),
-                            saleproduct.supplier_sku if saleproduct else '', str(o.buyer_nick),
-                            str(p.product_sku.product.name), str(p.product_sku.properties_name),
-                            str(p.product_sku.product.cost), str(p.num), '0', '0', '0', '0', '', str(o.receiver_name),
-                            str(o.receiver_state), str(o.receiver_city), str(o.receiver_district),
-                            str(o.receiver_address), '', o.receiver_mobile, '', '', '',
-                            p.sale_trade.created.strftime('%Y-%m-%D %H:%M:%S'), p.sale_trade.pay_time.strftime('%Y-%m-%D %H:%M:%S'),
-                            p.sale_trade.logistics_company.name if p.sale_trade.logistics_company else '', '',
-                            u'小鹿美美，时尚健康美丽', '', '',saleproduct.product_link if saleproduct else ''])
+                              saleproduct.supplier_sku if saleproduct else '', str(o.buyer_nick),
+                              str(p.product_sku.product.name), str(p.product_sku.properties_name),
+                              str(p.product_sku.product.cost), str(p.num), '0', '0', '0', '0', '', str(o.receiver_name),
+                              str(o.receiver_state), str(o.receiver_city), str(o.receiver_district),
+                              str(o.receiver_address), '', o.receiver_mobile, '', '', '',
+                              p.sale_trade.created.strftime('%Y-%m-%D %H:%M:%S'),
+                              p.sale_trade.pay_time.strftime('%Y-%m-%D %H:%M:%S'),
+                              p.sale_trade.logistics_company.name if p.sale_trade.logistics_company else '', '',
+                              u'小鹿美美，时尚健康美丽', '', '', saleproduct.product_link if saleproduct else ''])
+        elif format == 'third_package_wangli':
+            columns = [u'订单号', u'<必填>下单时间', u'付款时间', u'交易类型', u'备注', u'买家留言', u'总金额',
+                       u'运费', u'<必填>实付总额', u'<必填>收货人姓名', u'手机', u'固话', u'<必填>地址', u'邮编',
+                       u'电子邮箱', u'<必填>商品编码', u'<必填>商品名称', u'规格名称', u'<必填>数量',
+                       u'<必填>单价', u'<必填>实付']
+            if not self.third_package:
+               raise Exception(u'此订货单不是第三方发货订货单')
+            if PackageSkuItem.objects.filter(purchase_order_unikey=self.purchase_order_unikey,
+                                             assign_status=0).exists():
+                raise Exception(u'此订货单下存在未分配的包裹')
+            for p in need_send.exclude(package_order_pid=None):
+                o = p.package_order
+                saleproduct = p.product_sku.product.get_sale_product()
+                items.append([str(p.id), p.book_time.strftime('%Y-%m-%D %H:%M:%S'), p.pay_time.strftime('%Y-%m-%D %H:%M:%S'),
+                              u'货到付款', u'小鹿美美，时尚健康美丽', '', str(p.num * p.product_sku.cost),
+                              '0', str(p.num * p.product_sku.cost), str(o.receiver_name), o.receiver_mobile, '', str(o.receiver_address_detail_wb), '',
+                              '', saleproduct.supplier_sku if saleproduct else '', saleproduct.title if saleproduct else p.product_sku.product.name,
+                              str(p.product_sku.properties_name), str(p.num), str(p.product_sku.cost), str(p.num * p.product_sku.cost)])
         elif format == 'third_package':
-            columns = [u'订单号', u'产品条码', u'订单状态', u'买家id', u'子订单编号', u'供应商编码', u'买家昵称', u'商品名称', u'产品规格', u'商品单价', u'商品数量',
-                   u'商品总价', u'运费', u'购买优惠信息', u'总金额', u'买家购买附言', u'收货人姓名', u'收货地址', u'邮编',
-                   u'收货人手机', u'收货人电话', u'买家选择运送方式', u'卖家备忘内容', u'订单创建时间', u'付款时间', u'物流公司', u'物流单号', u'发货附言',
-                   u'发票抬头', u'电子邮件', u'商品链接']
+            columns = [u'订单号', u'产品条码', u'订单状态', u'买家id', u'子订单编号', u'供应商编码', u'买家昵称', u'商品名称', u'产品规格', u'商品单价',
+                       u'商品数量',
+                       u'商品总价', u'运费', u'购买优惠信息', u'总金额', u'买家购买附言', u'收货人姓名', u'收货地址', u'邮编',
+                       u'收货人手机', u'收货人电话', u'买家选择运送方式', u'卖家备忘内容', u'订单创建时间', u'付款时间', u'物流公司', u'物流单号', u'发货附言',
+                       u'发票抬头', u'电子邮件', u'商品链接']
             if not self.third_package:
                 raise Exception(u'此订货单不是第三方发货订货单')
             if PackageSkuItem.objects.filter(purchase_order_unikey=self.purchase_order_unikey,
@@ -631,12 +658,15 @@ class OrderList(models.Model):
             for p in need_send.exclude(package_order_pid=None):
                 o = p.package_order
                 saleproduct = p.product_sku.product.get_sale_product()
-                items.append([str(o.pid), '', o.sys_status, str(o.buyer_id), str(p.id), saleproduct.supplier_sku if saleproduct else '', str(o.buyer_nick),
-                            str(p.product_sku.product.name), str(p.product_sku.properties_name),
-                            str(p.product_sku.product.cost), str(p.num), '0', '0', '0', '0', '', str(o.receiver_name),
-                            str(o.receiver_address_detail), '', o.receiver_mobile, '', '', '',
-                            p.sale_trade.created.strftime('%Y-%m-%D %H:%M:%S'), p.sale_trade.pay_time.strftime('%Y-%m-%D %H:%M:%S'),
-                            p.sale_trade.logistics_company.name if p.sale_trade.logistics_company else '', '', u'小鹿美美，时尚健康美丽', '', '',saleproduct.product_link if saleproduct else ''])
+                items.append([str(o.pid), '', o.sys_status, str(o.buyer_id), str(p.id),
+                              saleproduct.supplier_sku if saleproduct else '', str(o.buyer_nick),
+                              str(p.product_sku.product.name), str(p.product_sku.properties_name),
+                              str(p.product_sku.product.cost), str(p.num), '0', '0', '0', '0', '', str(o.receiver_name),
+                              str(o.receiver_address_detail), '', o.receiver_mobile, '', '', '',
+                              p.sale_trade.created.strftime('%Y-%m-%D %H:%M:%S'),
+                              p.sale_trade.pay_time.strftime('%Y-%m-%D %H:%M:%S'),
+                              p.sale_trade.logistics_company.name if p.sale_trade.logistics_company else '', '',
+                              u'小鹿美美，时尚健康美丽', '', '', saleproduct.product_link if saleproduct else ''])
         return columns, items
 
 
