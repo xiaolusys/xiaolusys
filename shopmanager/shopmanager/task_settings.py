@@ -571,7 +571,7 @@ FLASHSALE_COUPON_ROUTES = {
     'flashsale.coupon.tasks.task_create_transfer_coupon': {
         'queue': 'coupon',
         'routing_key': 'coupon.task_create_transfer_coupon',
-    },    
+    },
     'flashsale.coupon.tasks.task_update_tpl_released_coupon_nums': {
         'queue': 'coupon',
         'routing_key': 'coupon.task_update_tpl_released_coupon_nums',
@@ -1553,6 +1553,12 @@ SHOP_APP_SCHEDULE = {
         'schedule': crontab(minute="00", hour="07"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
+    u'每天检查排期有没有锁定': {
+        'task': 'supplychain.supplier.tasks.task_check_schedule_is_lock',
+        'schedule': crontab(minute="0", hour="18"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_check_schedule_is_lock'}
     },
 }
 

@@ -13,6 +13,7 @@ from .models import SaleProduct, SaleSupplier, SaleCategory
 import logging
 from django.db.models import Sum
 from supplychain.supplier.models import SupplierFigure
+from supplychain.supplier.models.schedule import SaleProductManage
 logger = logging.getLogger('celery.handler')
 
 ZHE_ITEM_NO_RE = re.compile('^.+ze(?P<item_no>[0-9]{16,22})')
@@ -260,7 +261,7 @@ class CrawZhe800ItemsTask(CrawTask):
             self.crawBrands(craw_url, category=category_name)
 
 
-#############################################################     
+#############################################################
 class CrawXiaoherItemsTask(CrawTask):
     category_urls = (('http://www.xiaoher.com/v2/children', u'母婴'),
                      ('http://www.xiaoher.com/v2/ladys', u'女装'),)
@@ -364,7 +365,7 @@ class CrawXiaoherItemsTask(CrawTask):
             self.crawBrands(craw_url, category=category_name)
 
 
-#############################################################     
+#############################################################
 class CrawVIPItemsTask(CrawTask):
     category_urls = (('http://category.vip.com/search-2-0-{0}.html?q=1|7830', u'女装'),
                      ('http://category.vip.com/search-2-0-{0}.html?q=1|8053', u'母婴'),)
@@ -668,7 +669,7 @@ class CrawBBWItemsTask(CrawTask):
             #                     self.crawItems(brand_url,category=category)
             #                 ##
             #                 self.crawItemUrl(bsoup, category=category)
-            #    
+            #
             self.crawItemUrl(csoup, category=category)
             has_next = False
 
@@ -676,8 +677,8 @@ class CrawBBWItemsTask(CrawTask):
 
         for craw_url, category_name in self.category_urls:
             self.crawBrands(craw_url, category=category_name)
-            
-                        
+
+
 @task()
 def task_calculate_supplier_stats_data(stats_record):
     """
@@ -741,3 +742,27 @@ def task_calculate_supplier_stats_data(stats_record):
         trade_num = figure.return_good_num + figure.pay_num
         figure.return_good_rate = round(float(figure.return_good_num) / trade_num, 4) if trade_num > 0 else 0
         figure.save()
+
+
+@task
+def task_check_schedule_is_lock():
+    """
+    检查排期是否锁定
+    """
+    from common.dingding import DingDingAPI
+
+    now = datetime.datetime.now()
+    tomorrow = (now + datetime.timedelta(days=1)).date()
+    items = SaleProductManage.objects.filter(sale_time=tomorrow, lock_status=False)
+
+    if not items:
+        return
+
+    name = ','.join(set([x.responsible_person_name for x in items]))
+    date = tomorrow.strftime('%Y-%m-%d')
+    count = items.count()
+    msg = u"""%s\n %s日还有%s个排期没有锁定哦。\n\n 点这里进去锁定吧=>http://admin.xiaolumm.com/console/#/schedule\n\n by 小鹿精灵""" % (name, date, count)
+
+    dd = DingDingAPI()
+    dd.sendMsg(msg, toparty='4486273')
+    dd.sendMsg(msg, touser='0550581811782786')
