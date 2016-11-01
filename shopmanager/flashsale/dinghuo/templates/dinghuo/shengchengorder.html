@@ -164,51 +164,23 @@
                         <tr>
                             <td>
                                 <div class="input-group">
-                                    <span class="input-group-addon">仓库</span>
-                                    <input id="id_storehouseId" name="storehouseId" type="text"
-                                           class="form-control"
-                                           placeholder="" aria-describedby="sizing-addon2">
-                                </div>
-                            </td>
-                            <td>
-                                <div class="input-group">
                                     <span class="input-group-addon">快递费</span>
                                     <input id="costofemsid" name="costofems" type="number"
                                            class="form-control"
                                            placeholder="" aria-describedby="sizing-addon2">
                                 </div>
                             </td>
-                        </tr>
-                        <tr>
                             <td rowspan="2">
                                 <div class="input-group">
                                     <span class="input-group-addon">备注</span>
                                     <textarea style="width: 400px;resize: none;" id="id_remarks" name="remarks"
                                               type="text" class="form-control"></textarea>
-                                </div>
-                            </td>
-                            <td style="text-align:center;padding-top:20px;">
-                                <div class="input-group">
-                                    <select class="form-control" style="width: 200px; display: inline"
-                                            name="type_of_order">
-                                        <option value="1" select="selected">正常订货</option>
-                                        <option value="2">样品寄仓库</option>
-                                    </select>
-                                    <select class="form-control" style="width: 200px; display: inline;margin-left: 5px"
-                                            name="p_district">
-                                        <option value="1" select="selected">江浙沪皖</option>
-                                        <option value="2">山东</option>
-                                        <option value="3">广东福建</option>
-                                    </select>
                                     <button id="submit_form" type="submit" value="保存" class="btn btn-warning"
                                             style="margin-left: 50px">保存
                                     </button>
                                 </div>
                             </td>
-
                         </tr>
-
-
                         <span id="error_tip" hidden="hidden">数据项为空！</span>
                         </tbody>
                     </table>
@@ -232,7 +204,7 @@
                 <td width="100px">买入价格</td>
                 <td width="100px">操作</td>
             </tr>
-            {% for draft in orderdraft %}
+            {% for draft in OrderDraft %}
                 <tr id="draft_{{ forloop.counter }}">
                     <td>{{ draft.product_name }}</td>
                     <td>{{ draft.outer_id }}</td>

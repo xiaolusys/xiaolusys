@@ -69,6 +69,8 @@ def init_draft(request):
             for pro_sku in all_sku:
                 sku_quantity_index = product_id + "_tb_quantity_" + str(
                     pro_sku.id)
+                if sku_quantity_index not in post:
+                    continue
                 sku_quantity = post[sku_quantity_index]
                 mai_ru_jia_ge_index = product_id + "_tb_cost_" + str(pro_sku.id)
                 mai_ru_jia_ge = post[mai_ru_jia_ge_index]
@@ -113,8 +115,8 @@ def new_order(request):
     express = OrderList.EXPRESS_CONPANYS
     if request.method == 'POST':
         post = request.POST
-        type_of_order = post['type_of_order']
-        p_district = post['p_district']
+        type_of_order = post.get('type_of_order', '1')
+        p_district = post.get('p_district')
         costofems = post['costofems']
         if costofems == "":
             costofems = 0
@@ -123,7 +125,6 @@ def new_order(request):
         current_time = datetime.datetime.now()
         receiver = post['consigneeName']
         supplierId = post['supplierId']
-        storehouseId = post['storehouseId']
         express_company = post['express_company']
         express_no = post['express_no']
         businessDate = datetime.datetime.now()
@@ -200,10 +201,10 @@ def new_order(request):
             if not ssp:
                 ssp = SaleSupplier.get_default_unrecord_supplier()
             orderlist.supplier = ssp
-
+            orderlist.ware_by = orderlist.supplier.ware_by
         orderlist.buyer_id = request.user.id
         orderlist.save()
-
+        orderlist.set_stage_verify()
         drafts.delete()
         log_action(request.user.id, orderlist, CHANGE, u'新建订货单')
         return HttpResponseRedirect("/sale/dinghuo/changedetail/" + str(
@@ -218,8 +219,7 @@ def new_order(request):
         saleproducts_dict = {}
         for product in Product.objects.filter(id__in=products_dict.keys()):
             saleproducts_dict[product.sale_product] = saleproducts_dict.get(
-                product.sale_product, 0) + products_dict[
-                                                          product.id]
+                product.sale_product, 0) + products_dict[product.id]
         suppliers_dict = {}
         for saleproduct in SaleProduct.objects.filter(
                 id__in=saleproducts_dict.keys()):
