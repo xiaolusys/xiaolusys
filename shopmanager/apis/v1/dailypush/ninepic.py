@@ -143,6 +143,8 @@ def get_nine_pic_descriptions_by_modelids(modelids):
         x = r'(,|^)\s*' + str(modelid) + r'\s*(,|$)'
         descriptions.extend(
             NinePicAdver.objects.filter(detail_modelids__regex=x).values('id',
+                                                                         'save_times',
+                                                                         'share_times',
                                                                          'detail_modelids',
                                                                          'description'))
     return descriptions
