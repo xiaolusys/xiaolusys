@@ -21,6 +21,27 @@ class RePurchaseViewSet(viewsets.GenericViewSet):
         sku_ids = request.GET.get('sku_ids', '')
         product_ids = request.GET.get('product_ids', '')
 
+        user = request.user
+        orderDrAll = OrderDraft.objects.all().filter(buyer_name=user)
+        productres = []
+        for p in queryset:
+            product_dict = model_to_dict(p)
+            product_dict['prod_skus'] = []
+            guiges = ProductSku.objects.filter(product_id=p.id).exclude(
+                status=u'delete')
+            for guige in guiges:
+                sku_dict = model_to_dict(guige)
+                sku_dict['name'] = guige.name
+                sku_dict[
+                    'wait_post_num'] = functions2view.get_lack_num_by_product(
+                    p, guige)
+                product_dict['prod_skus'].append(sku_dict)
+            productres.append(product_dict)
+        return render_to_response("dinghuo/addpurchasedetail.html",
+                                  {"productRestult": productres,
+                                   "drafts": orderDrAll},
+                                  context_instance=RequestContext(request))
+
         return Response(result, template_name='dinghuo/purchase/purchase.html')
 
     def create(self, request, pk=None):
