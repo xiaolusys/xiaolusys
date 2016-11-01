@@ -900,6 +900,7 @@ class Product(models.Model):
                      'cost': color_sku['cost'],
                      'std_sale_price': color_sku['std_sale_price'],
                      'agent_price': color_sku['agent_price'],
+                     'supplier_skucode': color_sku.get('supplier_skucode', ''),
                      'properties_name': color_sku['properties_name'],
                      'properties_alias': color_sku['properties_alias'],
                      'barcode': barcode})
@@ -1045,6 +1046,8 @@ class ProductSku(models.Model):
     )
 
     outer_id = models.CharField(max_length=32, blank=False, verbose_name=u'编码')
+
+    supplier_skucode = models.CharField(max_length=32, blank=True, db_index=True, verbose_name=u'供应商SKU编码')
     barcode = models.CharField(max_length=64, blank=True, db_index=True, verbose_name='条码')
     product = models.ForeignKey(Product, null=True, related_name='prod_skus', verbose_name='商品')
 
