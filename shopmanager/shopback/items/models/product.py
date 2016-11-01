@@ -1377,6 +1377,12 @@ class ProductSku(models.Model):
     def collect_amount(self):
         return self.cost * self.quantity
 
+    @property
+    def color_size(self):
+        color = self.product.name.split('/')[-1:][0]
+        size = self.properties_name
+        return '%s,%s' % (color, size)
+
     @staticmethod
     def get_by_outer_id(outer_id, outer_sku_id):
         product = Product.objects.get(outer_id=outer_id)

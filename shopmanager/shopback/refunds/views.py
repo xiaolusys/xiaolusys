@@ -31,6 +31,8 @@ from rest_framework import filters
 from . import serializers
 from rest_framework import status
 from django.db import transaction
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
 
 from renderers import *
 from unrelate_product_handler import update_Unrelate_Prods_Product, update_Product_Collect_Num
@@ -414,3 +416,28 @@ def relate_refund_product(request):
     ret_params = {'code': 0, 'response_content': {'success': True}}
 
     return HttpResponse(json.dumps(ret_params), content_type="application/json")
+
+
+@login_required
+def refund_change(request):
+    if request.method == "GET":
+        return render(request, 'refunds/change_refund.html')
+    else:
+        content = request.POST
+        origin_sku_id = content.get('origin_sku_id')
+        changed_sku_id = content.get('changed_sku_id')
+        changed_outer_id = content.get('changed_outer_id')
+        changed_outer_sku_id = content.get('changed_outer_sku_id')
+        changed_title = content.get('changed_title')
+        change_property = content.get('changed_property')
+        if not all([origin_sku_id,changed_sku_id,changed_outer_id,changed_outer_sku_id,changed_title,change_property]):
+            return HttpResponse(json.dumps({"status": False, "info": "some param not exist"}),content_type="application/json")
+        result = RefundProduct.refund_change(origin_sku_id, changed_sku_id, changed_outer_id, changed_outer_sku_id, changed_title,\
+                                    change_property)
+        if result == "success":
+            return HttpResponse(json.dumps({"status":True,"info":"change success"}),content_type="application/json")
+        elif result == "sku_id is not exist":
+            return HttpResponse(json.dumps({"status":False,"info":"origin_sku_id not exist"}),content_type="application/json")
+        elif result == "db update wrong":
+            return HttpResponse(json.dumps({"status": False, "info": "db update wrong"}),
+                                content_type="application/json")

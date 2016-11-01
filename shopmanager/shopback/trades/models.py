@@ -1393,6 +1393,11 @@ class PackageOrder(models.Model):
     def receiver_address_detail(self):
         return str(self.receiver_state) + str(self.receiver_city) + str(self.receiver_district) + str(self.receiver_address)
 
+    @property
+    def receiver_address_detail_wb(self):
+        return str(self.receiver_state) + ' ' + str(self.receiver_city) + ' ' \
+               + str(self.receiver_district) + ' ' + str(self.receiver_address)
+
     def copy_order_info(self, sale_trade):
         """从package_order或者sale_trade复制信息"""
         attrs = ['tid', 'receiver_name', 'receiver_state', 'receiver_city', 'receiver_district',

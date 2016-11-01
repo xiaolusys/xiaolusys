@@ -183,7 +183,7 @@ function initActions(){
     }
     xlsfileupload_elment.addEventListener('change',handleXlsFile,false);
 }
-        function handleXlsFile(e) {
+function handleXlsFile(e) {
     var files = e.target.files;
     var i,f;
     for (i = 0, f = files[i]; i != files.length; ++i) {
@@ -196,7 +196,6 @@ function initActions(){
             //读取第一个sheet的数据
             var sheet_list = workbook.SheetNames;
             var data = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_list[0]])
-            //console.log(data)
            /*
             sheet_name_list.forEach(function(y) { /* iterate through sheets
                                     var worksheet = workbook.Sheets[y];
@@ -379,6 +378,7 @@ function initActions(){
             <ul class="dropdown-menu" role="menu">
                 <li><a href="/sale/dinghuo/dinghuo_orderlist/{{ orderlist.id }}/export_package">普通</a></li>
                 <li><a href="/sale/dinghuo/dinghuo_orderlist/{{ orderlist.id }}/export_package?fo=third_package1">拆分地址</a></li>
+                <li><a href="/sale/dinghuo/dinghuo_orderlist/{{ orderlist.id }}/export_package?fo=third_package_wangli">万里牛系统发货</a></li>
                 <li class="divider"></li>
             </ul>
         </div>
@@ -550,7 +550,7 @@ function initActions(){
     <div>
         <table id="orderdetailtable" border="1" class="table table-striped table-bordered table-hover">
             <thead>
-            <th class="sku_select" style="display:none"></th>
+            <th><input type="checkbox" id="orderdetailtable_selectall"></th>
             <th>SKU ID</th>
             <th>商品编码</th>
             <th style="min-width:80px">选品备注</th>
@@ -570,7 +570,7 @@ function initActions(){
 
             {% for order in orderdetails %}
             <tr id="orderdetail_{{ forloop.counter }}">
-                <td class="sku_select_input" style="display:none"><input type="checkbox" value=""></td>
+                <td><input class="sku_select" type="checkbox" value="" data-sku-id="{{order.chichu_id}}" data-buy-quantity="{{order.buy_quantity}}" data-arrival-quantity="{{order.arrival_quantity}}"></td>
                 <td><a href="/admin/items/productskustats/?sku_id={{ order.chichu_id}}" target="_blank">{{order.chichu_id }}</a></td>
                 <td><a href="/admin/items/product/?q={{ order.outer_id }}" target="_blank">{{ order.outer_id }}</a></td>
                 <td>{{order.memo}}</td>
@@ -631,9 +631,9 @@ function initActions(){
             </tbody>
             <tfoot>
             <tr>
-                <td colspan="7"></td>
+                <td colspan="8"></td>
                 <td width="100px"><input id="total_quantity_num" type="text" value="0" readonly/></td>
-                <td></td>
+                <td colspan="2"></td>
                 <td width="100px"><input id="total_amount_num" type="text" value="0" readonly/></td>
                 <td width="100px"><input id="total_arrival_num" type="text" value="0" readonly/></td>
                 <td width="100px"><input id="total_inferior_num" type="text" value="0" readonly/></td>
@@ -932,7 +932,6 @@ function initActions(){
                 type:'get',
                 dataType: 'json',
                 success :function(result){
-                    console.log(result);
                      $("#back_money").html(result.data[0]);
                      $("#back_mon").val(result.data[0]);
                      $("#tran").val(result.data[1]);
@@ -1009,14 +1008,14 @@ function initActions(){
             var rows = $("#orderdetailtable > tbody > tr");
             for (var i = 0; i < rows.length; i++) {
                 row = rows[i];
-                if (row.cells.length < 9) {
+                if (row.cells.length < 10) {
                     continue;
                 }
-                quantity_num = row.cells[7].innerText;
-                amount_num = row.cells[9].innerText;
-                arrival_num = row.cells[10].innerText;
-                inferior_num = row.cells[11].innerText;
-                wait_post_num = row.cells[12].innerText;
+                quantity_num = row.cells[8].innerText;
+                amount_num = row.cells[10].innerText;
+                arrival_num = row.cells[11].innerText;
+                inferior_num = row.cells[12].innerText;
+                wait_post_num = row.cells[13].innerText;
                 if (parseInt(quantity_num)) {
                     total_quantity_num += parseInt(quantity_num);
                 }
@@ -1042,7 +1041,6 @@ function initActions(){
         function press_order() {
             var desc = $("#order_press_desc").val();
             var data = {"desc":desc};
-            console.dir(data);
             var url = '/sale/dinghuo/dinghuo_orderlist/'+ ORDERLIST_ID +'/press_order';
             $.ajax({url: url,
                 type: "post",
@@ -1061,7 +1059,6 @@ $(function () {
          //trigger:'click',
          container: 'body',
          content: function(){
-             console.dir($(this));
              var sku_id = $(this).data("sku-id")
              var data = {"sku_id": sku_id};
              if (sku_id in sku_inbound_details){
@@ -1074,7 +1071,6 @@ $(function () {
                      dataType: 'html',
                      data: data,
                      success: function(result){
-                        console.dir(result);
                         sku_inbound_details[sku_id] = result;
                         $(".popover-content").html(result);
                      },
@@ -1093,7 +1089,6 @@ $(function () {
          //trigger:'click',
          container: 'body',
          content: function(){
-             console.dir($(this));
              var sku_id = $(this).data("sku-id")
              var data = {"sku_id": sku_id};
              if (sku_id in sku_inferior_details){
@@ -1106,7 +1101,6 @@ $(function () {
                      dataType: 'html',
                      data: data,
                      success: function(result){
-                        console.dir(result);
                         sku_inferior_details[sku_id] = result;
                         $(".popover-content").html(result);
                      },
@@ -1162,9 +1156,6 @@ $(function () {
             receive_account = $("#zi_account").val();
             transcation_no = $("#transcation_no").val();
         }
-        console.log(receive_account);
-        console.log(receive_name);
-        console.log(transcation_no);
         var data = {"orderlist_id":orderlist_id,
                 "pay_way":pay_way,
                 "pay_tool":pay_tool,
@@ -1173,7 +1164,6 @@ $(function () {
                 "receive_name":receive_name,
                 "transcation_no": transcation_no
                 };
-                console.log(data);
         $.ajax({
                 url: url,
                 data: data,
@@ -1209,9 +1199,6 @@ $(function () {
             receive_account = $("#zi_account").val();
             transcation_no = $("#transcation_no").val();
         }
-         console.log(receive_account);
-         console.log(receive_name);
-          console.log(transcation_no);        
         var data = {"orderlist_id":orderlist_id,
                 "pay_way":pay_way,
                 "pay_tool":pay_tool,
@@ -1220,7 +1207,6 @@ $(function () {
                 "receive_name":receive_name,
                 "transcation_no": transcation_no
                 };
-                console.log(data);
         $.ajax({
                 url: url,
                 data: data,
@@ -1261,10 +1247,28 @@ $(function () {
 
            });
         });
+    $('#orderdetailtable_selectall').click(function(event){
+        /*将所有行的选中状态设成全选框的选中状态*/
+        $('#orderdetailtable').find('input').prop('checked',$(this).prop('checked'));
+    });
     $('#btn_replenishment').click(function(){
-        alert("test");
-        $(".sku_select").show();
-        $(".sku_select_input").show();
+        var skus = {};
+        $("input[type=checkbox]:checked").each(function (v) {
+            console.dir($(this));
+            buy_quantity = $(this).data('buy-quantity');
+            arrival_quantity = $(this).data('arrival-quantity');
+            sku_id = $(this).data('sku-id');
+            if(buy_quantity - arrival_quantity >0){
+                skus[sku_id] = buy_quantity - arrival_quantity
+            }
+        });
+        console.dir(skus);
+        if (skus == {}){
+            alert("至少选中一个需要补货的SKU");
+            return
+        }
+        var js_str = JSON.stringify(skus);
+        window.location.href = '/sale/dinghuo/repurchase/' + ORDERLIST_ID + '/begin?skus=' + js_str;
     });
 });
 
