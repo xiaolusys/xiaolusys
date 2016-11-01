@@ -292,9 +292,12 @@ class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
         # get openid from cookie
         openid, unionid = self.get_cookie_openid_and_unoinid(request)
 
+        record = None
         userinfo = {}
-        userinfo_records = WeixinUserInfo.objects.filter(unionid=unionid)
-        record = userinfo_records.first()
+        if unionid:
+            userinfo_records = WeixinUserInfo.objects.filter(unionid=unionid)
+            record = userinfo_records.first()
+
         if record:
             userinfo.update({"unionid": record.unionid, "nickname": record.nick, "headimgurl": record.thumbnail})
         else:
