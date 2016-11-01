@@ -148,7 +148,8 @@ class OrderList(models.Model):
     pay_status = models.CharField(max_length=32,
                                   db_index=True,
                                   verbose_name=u'收款状态')
-    p_district = models.CharField(max_length=32,
+    p_district = models.CharField(null=True,
+                                  max_length=32,
                                   default=NEAR,
                                   verbose_name=u'地区',
                                   choices=ORDER_DISTRICT)  # 从发货地对应仓库
