@@ -837,10 +837,11 @@ class XlmmAdvertisSerialize(serializers.ModelSerializer):
         fields = ("title", "cntnt")
 
 
-def get_mama_link(mama_id, jump_str):
+def get_mama_link(mama_id, ninepic):
+    # type: () -> text_type
+    """获取代理专属链接
     """
-    获取代理专属链接
-    """
+    jump_str = ninepic.detail_modelids
     if not mama_id:
         return settings.M_SITE_URL
     if not jump_str:
@@ -848,16 +849,22 @@ def get_mama_link(mama_id, jump_str):
 
     preffix = 'm/{{mm_linkid}}/'
     detail_l = ''
-    if (',' in jump_str and '/' not in jump_str) or str(jump_str).isdigit():  # 详情页
-        model_ids = jump_str.split(',')
-        model_id = random.choice(model_ids)
-        c = Context({'mm_linkid': mama_id, 'model_id': model_id})
-        detail_suffix = Template(''.join([preffix, '?next=mall/product/details/{{model_id}}']))  # 详情跳转页面
-        detail_l = detail_suffix.render(c)
-    if '/' in jump_str:
-        next_suffix = Template(''.join([preffix, '?next=', jump_str]) if jump_str else '')
+    redirect_url = ninepic.redirect_url.strip()
+    if ninepic and redirect_url:
+        next_suffix = Template(''.join([preffix, '?next=', redirect_url]))
         c = Context({'mm_linkid': mama_id})
         detail_l = next_suffix.render(c)
+    else:
+        if (',' in jump_str and '/' not in jump_str) or str(jump_str).isdigit():  # 详情页
+            model_ids = jump_str.split(',')
+            model_id = random.choice(model_ids)
+            c = Context({'mm_linkid': mama_id, 'model_id': model_id})
+            detail_suffix = Template(''.join([preffix, '?next=mall/product/details/{{model_id}}']))  # 详情跳转页面
+            detail_l = detail_suffix.render(c)
+        if '/' in jump_str:
+            next_suffix = Template(''.join([preffix, '?next=', jump_str]) if jump_str else '')
+            c = Context({'mm_linkid': mama_id})
+            detail_l = next_suffix.render(c)
     return os.path.join(settings.M_SITE_URL, detail_l)  # 专属链接
 
 
@@ -896,7 +903,7 @@ class NinePicAdverSerialize(serializers.ModelSerializer):
         功能：重写描述字段
         """
         mama_id = self.context.get('request').data.get('mama_id')
-        mama_link = get_mama_link(mama_id, obj.detail_modelids)
+        mama_link = get_mama_link(mama_id, obj)
         return util_emoji.match_emoji(obj.description) + mama_link
 
 

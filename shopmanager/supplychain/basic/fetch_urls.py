@@ -40,8 +40,10 @@ def getBeaSoupByCrawUrl(fetch_url):
     encoding = en_match and en_match.groupdict().get('encoding')
     if not encoding:
         encoding = html.find('charset=utf-8') > 0 and 'utf-8' or 'gbk'
-
-    return BeautifulSoup(html.decode(encoding)), response
+    try:
+        return BeautifulSoup(html.decode(encoding)), response
+    except:
+        return BeautifulSoup(html.decode('utf-8')), response
 
 
 def getItemPrice(soup):
@@ -65,7 +67,7 @@ def get_link_img_src(link):
 def getItemPic(fetch_url, soup):
     pic_path_pattern = re.compile(r'(.+\.jpg)_.+')
     container = soup.findAll(attrs={'class': re.compile(
-        '^(deteilpic|zoomPad|SPSX_bian3|goods-detail-pic|container|florid-goods-page-container|m-item-grid|cloud-zoom)')
+        '^(deteilpic|zoomPad|SPSX_bian3|goods-detail-pic|container|florid-goods-page-container|m-item-grid|cloud-zoom|c_txt rel)')
                                     })
 
     for c in container:
