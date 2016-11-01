@@ -310,7 +310,7 @@ class ModelProduct(BaseTagModel):
     def attributes(self):
         new_properties = self.extras.get('new_properties')
         if new_properties :
-            #new_properties.update({'model_code': self.model_code})
+            #new_properties.update({'model_code': self.model_code})  
             return new_properties
 
         product = self.item_product
