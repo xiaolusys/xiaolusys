@@ -1,5 +1,6 @@
 # coding=utf-8
 import datetime
+import django_filters
 from django.shortcuts import get_object_or_404
 from django.db import transaction
 from rest_framework import exceptions
@@ -46,6 +47,8 @@ class XlmmAdvertisViewSet(viewsets.ModelViewSet):
 
 
 class NinePicAdverFilter(filters.FilterSet):
+    sale_category = django_filters.NumberFilter(name="sale_category__cid")
+
     class Meta:
         model = NinePicAdver
         fields = ['id', 'sale_category']

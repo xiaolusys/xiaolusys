@@ -880,6 +880,7 @@ class NinePicAdverSerialize(serializers.ModelSerializer):
         fields = ('id', "title", 'title_content', "start_time", 'sale_category',
                   "turns_num", "pic_arry",
                   'save_times', 'share_times',
+                  'sale_category',
                   'could_share', 'description')
 
     def get_title_content(self, obj):
