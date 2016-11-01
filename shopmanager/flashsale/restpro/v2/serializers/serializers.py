@@ -82,6 +82,7 @@ class MamaFortuneSerializer(serializers.ModelSerializer):
     # carry_value = serializers.SerializerMethodField('carry_num_display_new', read_only=True)
     extra_info = serializers.SerializerMethodField(read_only=True)
     extra_figures = serializers.SerializerMethodField()
+    current_dp_turns_num = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = MamaFortune
@@ -89,7 +90,7 @@ class MamaFortuneSerializer(serializers.ModelSerializer):
                   'fans_num', 'invite_num', 'order_num', 'carry_value', 'active_value_num',
                   'carry_pending_display', 'carry_confirmed_display', 'carry_cashout_display',
                   'mama_event_link', 'history_last_day', 'today_visitor_num', 'modified', 'created',
-                  "extra_info", 'extra_figures')
+                  "extra_info", 'current_dp_turns_num', 'extra_figures')
 
     def carry_num_display_new(self, obj):
         """ 累计收益数 """
@@ -177,6 +178,15 @@ class MamaFortuneSerializer(serializers.ModelSerializer):
                         'personal_total_rank': week_mama_carry.total_rank,
                         'team_total_rank': week_mama_team_carry.total_rank})
         return default
+
+    def get_current_dp_turns_num(self, obj):
+        # type: (MamaFortune) -> int
+        """返回每日推送当前已经推送的轮数
+        """
+        from flashsale.xiaolumm.models import NinePicAdver
+        now = datetime.datetime.now()
+        init_time = datetime.datetime(now.year, now.month, now.day, 0, 0, 0)
+        return NinePicAdver.objects.filter(start_time__gte=init_time, start_time__lte=now).count()
 
 
 class CarryRecordSerializer(serializers.ModelSerializer):
