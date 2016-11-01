@@ -29,7 +29,7 @@ urlpatterns = patterns('shopback.refunds.views',
                        url('^product/del/(?P<id>\d{1,20})/$', 'delete_trade_order', name='refund_product_del'),
 
                        url('^rel/$', 'relate_refund_product', name='relate_refund_product'),
-
+                        url('^refundproduct/change/$', 'refund_change', name='refund_change'),
                        url('^exchange/(?P<seller_id>\d+)/(?P<tid>\w{1,32})/$',
                            'create_refund_exchange_trade', name='refund_exchange_create'),
 

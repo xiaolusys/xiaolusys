@@ -261,6 +261,25 @@ class RefundProduct(models.Model):
             if isinstance(field, (models.CharField, models.TextField)):
                 setattr(self, field.name, getattr(self, field.name).strip())
 
+
+    @staticmethod
+    def refund_change(origin_sku_id, changed_sku_id, changed_outer_id, changed_outer_sku_id, changed_title,
+                      change_property):
+        origin_rf = RefundProduct.objects.filter(sku_id=origin_sku_id)
+        changed_info = dict(sku_id=changed_sku_id, outer_id=changed_outer_id, outer_sku_id=changed_outer_sku_id,\
+                            title=changed_title, property=change_property)
+        if origin_rf.first():
+            try:
+                origin_rf.update(**changed_info)
+            except Exception,e:
+                return "db update wrong"
+                from shopback.items.tasks_stats import task_refundproduct_update_productskustats_return_quantity
+                task_refundproduct_update_productskustats_return_quantity.delay(origin_sku_id)
+                task_refundproduct_update_productskustats_return_quantity.delay(changed_sku_id)
+            return "success"
+        else:
+            return "sku_id is not exist"
+
     @staticmethod
     def get_total(sku_id, can_reuse=True, begin_time=datetime.datetime(2016, 4, 20)):
         res = RefundProduct.objects.filter(
@@ -338,3 +357,4 @@ def update_productskustats_refund_quantity(sender, instance, created, **kwargs):
 
 
 post_save.connect(update_productskustats_refund_quantity, sender=RefundProduct, dispatch_uid='post_save_update_productskustats_refund_quantity')
+
