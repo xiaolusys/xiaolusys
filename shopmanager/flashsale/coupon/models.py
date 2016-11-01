@@ -820,6 +820,8 @@ class CouponTransferRecord(BaseModel):
     status = models.IntegerField(default=1, db_index=True, choices=STATUS_TYPES, verbose_name=u'状态')
     uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')
     date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
+    elite_level = models.CharField(max_length=16, blank=True, null=True, verbose_name=u'等级')
+
 
     class Meta:
         db_table = "flashsale_coupon_transfer_record"
@@ -928,7 +930,8 @@ class CouponTransferRecord(BaseModel):
         if to_mama.can_buy_transfer_coupon():
             res =  {"code":2, "info": u"无需申请，请直接支付购券!"}
             return res
-        
+
+        elite_level = to_mama.elite_level
         to_mama_nick = to_customer.nick
         to_mama_thumbnail = to_customer.thumbnail
 
@@ -957,12 +960,11 @@ class CouponTransferRecord(BaseModel):
         if coupon:
             res = {"code": 3, "info": u"记录已存在！"}
             return res
-    
         coupon = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id,from_mama_thumbnail=from_mama_thumbnail,
                                       from_mama_nick=from_mama_nick,coupon_to_mama_id=coupon_to_mama_id,
                                       to_mama_thumbnail=to_mama_thumbnail,to_mama_nick=to_mama_nick,
                                       init_from_mama_id=init_from_mama_id,order_no=order_no,template_id=template_id,
-                                      product_img=product_img,coupon_num=coupon_num,
+                                      product_img=product_img,coupon_num=coupon_num, elite_level=elite_level,
                                       transfer_type=transfer_type,uni_key=uni_key, date_field=date_field)
         coupon.save()
         res = {"code": 0, "info": u"成功!"}
@@ -980,6 +982,7 @@ class CouponTransferRecord(BaseModel):
             res =  {"code":2, "info": u"无需申请，请直接支付购券!"}
             return res
         
+        elite_level = to_mama.elite_level
         to_mama_nick = to_customer.nick
         to_mama_thumbnail = to_customer.thumbnail
 
@@ -1015,7 +1018,7 @@ class CouponTransferRecord(BaseModel):
                                       from_mama_nick=from_mama_nick,coupon_to_mama_id=coupon_to_mama_id,
                                       to_mama_thumbnail=to_mama_thumbnail,to_mama_nick=to_mama_nick,
                                       init_from_mama_id=init_from_mama_id,order_no=order_no,template_id=template_id,
-                                      product_img=product_img,coupon_num=coupon_num,
+                                      product_img=product_img,coupon_num=coupon_num, elite_level=elite_level,
                                       transfer_type=transfer_type,uni_key=uni_key,date_field=date_field)
         coupon.save()
         res = {"code": 0, "info": u"成功!"}
