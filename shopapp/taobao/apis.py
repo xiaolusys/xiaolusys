@@ -9,10 +9,8 @@ import json
 import urllib
 import urllib2
 from django.conf import settings
-from celery.task import task
-from celery.app.task import BaseTask
 from common.utils import getSignatureTaoBao, format_datetime, format_date, refresh_session
-from auth.apis.exceptions import *
+from .exceptions import *
 
 import logging
 

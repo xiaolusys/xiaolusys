@@ -237,7 +237,7 @@ AUTHENTICATION_BACKENDS = (
     'flashsale.pay.backends.SMSLoginBackend',
     'flashsale.pay.backends.WeixinPubBackend',
     'flashsale.pay.backends.WeixinAppBackend',
-    'auth.accounts.backends.TaoBaoBackend',
+    'shopapp.taobao.backends.TaoBaoBackend',
     'shopapp.jingdong.backends.JingDongBackend',
     'django.contrib.auth.backends.ModelBackend'
 )

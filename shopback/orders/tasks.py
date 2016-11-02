@@ -8,7 +8,7 @@ from django.conf import settings
 from shopback.orders.models import Order, Trade
 from shopback.users.models import User
 from shopback.monitor.models import TradeExtraInfo, SystemConfig, DayMonitorStatus
-from auth.apis.exceptions import (RemoteConnectionException,
+from shopapp.taobao.exceptions import (RemoteConnectionException,
                                   AppCallLimitedException,
                                   UserFenxiaoUnuseException,
                                   APIConnectionTimeOutException,

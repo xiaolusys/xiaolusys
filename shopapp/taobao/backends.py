@@ -7,7 +7,8 @@ from django.db import models
 from django.core.exceptions import ImproperlyConfigured
 from django.contrib.auth.backends import RemoteUserBackend
 from django.conf import settings
-from auth import apis
+from .apis import *
+
 
 """
 token {

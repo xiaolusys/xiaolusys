@@ -223,7 +223,7 @@ class User(models.Model):
         self.save()
 
     def verify_fenxiao_user(self):
-        from auth.apis.exceptions import UserFenxiaoUnuseException, InsufficientIsvPermissionsException
+        from shopapp.taobao.exceptions import UserFenxiaoUnuseException, InsufficientIsvPermissionsException
         try:
             apis.taobao_fenxiao_login_user_get(tb_user_id=self.visitor_id)
         except (UserFenxiaoUnuseException, InsufficientIsvPermissionsException):

@@ -7,7 +7,7 @@ from rest_framework import filters
 from rest_framework.decorators import list_route
 from rest_framework.response import Response
 from django.contrib.auth.models import User
-from auth.apis import serializers
+from . import serializers
 
 
 class UserFilter(filters.FilterSet):
