@@ -981,6 +981,17 @@ class ReferalRelationship(BaseModel):
         verbose_name = u'V2/妈妈推荐关系'
         verbose_name_plural = u'V2/妈妈推荐关系列表'
 
+    @property
+    def to_mama_mobile(self):
+        from flashsale.xiaolumm.models import XiaoluMama
+        from flashsale.pay.models import Customer
+        
+        mama = XiaoluMama.objects.filter(id=referal_to_mama_id).first()
+        customer = Customer.objects.filter(unionid=mama.unionid).first()
+        if customer and customer.mobile:
+            return customer.mobile
+        return None
+        
     def is_confirmed(self):
         return self.referal_type == XiaoluMama.FULL or self.referal_type == XiaoluMama.HALF
 
