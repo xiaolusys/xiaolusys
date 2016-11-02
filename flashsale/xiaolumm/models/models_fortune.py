@@ -986,7 +986,7 @@ class ReferalRelationship(BaseModel):
         from flashsale.xiaolumm.models import XiaoluMama
         from flashsale.pay.models import Customer
         
-        mama = XiaoluMama.objects.filter(id=referal_to_mama_id).first()
+        mama = XiaoluMama.objects.filter(id=self.referal_to_mama_id).first()
         customer = Customer.objects.filter(unionid=mama.unionid).first()
         if customer and customer.mobile:
             return customer.mobile
