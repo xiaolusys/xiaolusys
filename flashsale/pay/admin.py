@@ -217,7 +217,7 @@ admin.site.register(Register, RegisterAdmin)
 
 
 class CustomerAdmin(ApproxAdmin):
-    list_display = ('id', 'user', 'thumbnail_display', 'mobile', 'unionid', 'created', 'modified', 'status')
+    list_display = ('id', 'user', 'mama_id', 'thumbnail_display', 'mobile', 'unionid', 'created', 'modified', 'status')
     list_display_links = ('id', 'thumbnail_display',)
 
     list_filter = ('status',)

@@ -162,6 +162,16 @@ class Customer(BaseModel):
             return customers[0]
         return None
 
+    @property
+    def mama_id(self):
+        if not self.unionid:
+            return None
+        from flashsale.xiaolumm.models import XiaoluMama
+        mama = XiaoluMama.objects.filter(openid=self.unionid).first()
+        if not mama:
+            return None
+        return mama.id
+        
     def get_xiaolumm(self):
         if not self.unionid:
             return None
