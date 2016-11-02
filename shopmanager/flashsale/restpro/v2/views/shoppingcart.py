@@ -81,6 +81,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             GET:
             {
                sku_id：要立即购买的商品规格ID
+               num:购买的商品个数，默认为1
                device :支付类型 (app ,app支付), (wap, wap支付), (web, 网页支付)
             }
     """
@@ -417,16 +418,17 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get', 'post'])
     def now_payinfo(self, request, format=None, *args, **kwargs):
-        """ 根据购物车ID列表获取支付信息 """
+        """ 立即购买获取支付信息 """
         content = request.GET
         sku_id = content.get('sku_id', '')
+        sku_num = int(content.get('num', '1'))
         product_sku = ProductSku.objects.filter(id=sku_id).first()
         if not product_sku :
             raise exceptions.APIException(u'参数错误')
 
         discount_fee = 0
         post_fee = 0
-        total_fee = product_sku.agent_price
+        total_fee = product_sku.agent_price * sku_num
 
         xlmm = None
         customer = self.get_customer(request)
