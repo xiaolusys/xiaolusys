@@ -543,8 +543,8 @@ admin.site.register(ActiveValue, ActiveValueAdmin)
 
 class ReferalRelationshipAdmin(admin.ModelAdmin):
     list_display = (
-    'referal_from_mama_id', 'referal_to_mama_id', 'referal_to_mama_nick', 'referal_type', 'status', 'modified',
-    'created')
+        'referal_from_mama_id', 'referal_to_mama_id', 'referal_to_mama_nick', 'to_mama_mobile',
+        'referal_type', 'status', 'modified', 'created')
     search_fields = ('referal_from_mama_id', 'referal_to_mama_id',)
     list_filter = ('status', 'referal_type',)
 
