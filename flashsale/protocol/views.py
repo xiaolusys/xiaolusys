@@ -27,6 +27,41 @@ class APPFullPushMessgeFilter(filters.FilterSet):
         ]
 
 
+def get_apppushmsg_params_kvs():
+    # type: () -> Dict[str, Any]
+    from flashsale.protocol.constants import TARGET_TYPE_MODELIST, TARGET_TYPE_WEBVIEW, TARGET_TYPE_ACTIVE, \
+        TARGET_TYPE_CATEGORY_PRO
+    from flashsale.promotion.models import ActivityEntry
+    from supplychain.supplier.models import SaleCategory
+
+    now = datetime.datetime.now()
+    activity_ids, act_links = [], []
+    for i in ActivityEntry.objects.filter(end_time__gt=now, is_active=True).values('id', 'act_link'):
+        activity_ids.append({'name': i['id'], 'value': i['id']})
+        act_links.append({'name': i['act_link'], 'value': i['act_link']})
+    cates = SaleCategory.objects.filter(status=SaleCategory.NORMAL, is_parent=True)
+    cids = []
+    for ca in cates:
+        cids.append({'value': ca.cid, 'name': ca.full_name})
+    return {
+        TARGET_TYPE_MODELIST: [
+            {'name': '款式id', 'key': 'model_id', 'value': []}
+        ],
+        TARGET_TYPE_WEBVIEW: [
+            {'name': '显示原生导航', 'key': 'is_native',
+             'value': [{'value': 0, 'name': u'不显示'}, {'value': 1, 'name': u'显示'}]},
+            {'name': 'RUL', 'key': 'url', 'value': []},
+        ],
+        TARGET_TYPE_ACTIVE: [
+            {'name': '活动id', 'key': 'activity_id', 'value': activity_ids},
+            {'name': '活动URL', 'key': 'url', 'value': act_links}
+        ],
+        TARGET_TYPE_CATEGORY_PRO: [
+            {'name': '分类产品', 'key': 'cid', 'value': cids},
+        ]
+    }
+
+
 class APPFullPushMessgeViewSet(viewsets.ModelViewSet):
     queryset = APPFullPushMessge.objects.all().order_by('-push_time')
     serializer_class = serializers.APPPushMessgeSerializer
@@ -38,7 +73,9 @@ class APPFullPushMessgeViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def list_filters(self, request, *args, **kwargs):
+        # type: (HttpRequest, *Any, **Any) -> Response
         return Response({
+            'params_kvs': get_apppushmsg_params_kvs(),
             'status': APPFullPushMessge.STATUSES,
             'target_url': APPFullPushMessge.TARGET_CHOICES,
             'platform': APPFullPushMessge.PLATFORM_CHOICES,
