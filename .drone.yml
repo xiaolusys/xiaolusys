@@ -5,7 +5,7 @@ build:
     - REDIS_AUTH=$$REDIS_AUTH
   commands:
     - mkdir -p /data/log/django
-    - cd shopmanager;python manage.py migrate --noinput
+    - python manage.py migrate --noinput
     - python manage.py test -t . --keepdb
   when:
     branch: [staging, alpha, warden]
@@ -55,7 +55,7 @@ deploy:
       - docker run --name=gunicorn --restart=always
         -e TARGET=production -e INSTANCE=admin -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
         --volumes-from=static -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9000:9000 -e BLUEWARE_CONFIG_FILE=blueware.ini
-        registry.aliyuncs.com/xiaolu-img/xiaolusys:latest gunicorn -k gevent -c taobao_gunicorn_conf.py -w 4 shopmanager.wsgi
+        registry.aliyuncs.com/xiaolu-img/xiaolusys:latest gunicorn -k gevent -c gunicorn_config.py -w 4 shopmanager.wsgi
       - docker rm -f celery-flower
       - docker run --name=celery-flower --restart=always -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
         -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:5555:5555 -e C_FORCE_ROOT=1
@@ -87,7 +87,7 @@ deploy:
         -e INSTANCE=mall -e TARGET=staging -e REDIS_AUTH=$$REDIS_AUTH
         --volumes-from=static -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9001:9000 -e
         BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
-        blueware-admin run-program gunicorn -k gevent -w 1 -c staging_gunicorn_conf.py shopmanager.wsgi
+        blueware-admin run-program gunicorn -k gevent -w 1 -c gunicorn_config.py shopmanager.wsgi
   ssh:
     host: staging.xiaolumm.com
     user: root
@@ -100,7 +100,7 @@ deploy:
         -e INSTANCE=mall -e TARGET=django18 -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
         --volumes-from=static -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9002:9000
         -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:django18
-        blueware-admin run-program gunicorn -k gevent -w 1 -c staging_gunicorn_conf.py shopmanager.wsgi
+        blueware-admin run-program gunicorn -k gevent -w 1 -c gunicorn_config.py shopmanager.wsgi
   ssh:
     host: staging.xiaolumm.com
     user: root
@@ -113,7 +113,7 @@ deploy:
         -e INSTANCE=mall -e TARGET=staging -e REDIS_AUTH=$$REDIS_AUTH
         --volumes-from=static -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9009:9000
         -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:warden
-        blueware-admin run-program gunicorn -k gevent -w 1 -c staging_gunicorn_conf.py shopmanager.wsgi
+        blueware-admin run-program gunicorn -k gevent -w 1 -c gunicorn_config.py shopmanager.wsgi
   ssh:
     host:
       - sale.xiaolumm.com
@@ -129,7 +129,7 @@ deploy:
         -e INSTANCE=mall -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
         --volumes-from=static -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9000:9000
         -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
-        blueware-admin run-program gunicorn -k gevent -c taobao_gunicorn_conf.py shopmanager.wsgi
+        blueware-admin run-program gunicorn -k gevent -c gunicorn_config.py shopmanager.wsgi
   ssh:
     host:
       - sale8.xiaolumm.com
@@ -143,7 +143,7 @@ deploy:
         -e INSTANCE=mall -e TARGET=prometheus -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
         --volumes-from=static -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9004:9000
         -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
-        blueware-admin run-program gunicorn -k gevent -w 1 -c taobao_gunicorn_conf.py shopmanager.wsgi
+        blueware-admin run-program gunicorn -k gevent -w 1 -c gunicorn_config.py shopmanager.wsgi
   ssh:
     host:
       - sale.xiaolumm.com
