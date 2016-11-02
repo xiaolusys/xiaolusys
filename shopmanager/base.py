@@ -149,7 +149,7 @@ INSTALLED_APPS =[
     'djkombu',
     'httpproxy',
     'django_statsd',
-    'statsd',
+    'oneapm_statsd',
     'core.ormcache',
     'core',
     'tagging',
