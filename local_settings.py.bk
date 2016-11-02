@@ -1,0 +1,284 @@
+# coding:utf-8
+__author__ = 'zfz'
+import os
+from .base import *
+
+DEBUG = True
+TEMPLATE_DEBUG = DEBUG
+
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_COOKIE_AGE = 12 * 60 * 60
+
+############################ FUNCTION SWITCH #############################
+INGORE_SIGNAL_EXCEPTION = False # signal异常捕获而且不再抛出
+APP_PUSH_SWITCH = False  # APP推送开关
+SMS_PUSH_SWITCH = False  # 短信推送开关
+WEIXIN_PUSH_SWITCH = False  # 微信推送开关
+MAMA_MISSION_PUSH_SWITCH = False  # 妈妈周激励推送开关
+
+ORMCACHE_ENABLE = False
+CELERY_ALWAYS_EAGER = True
+CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
+
+PROJECT_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+
+##################LOCAL DB SETTINGS ##############################
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',  # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+#         'NAME': 'shopmgr',  # Or path to database file if using sqlite3.
+#         'USER': 'meixqhi',  # Not used with sqlite3.
+#         'PASSWORD': '123123',  # Not used with sqlite3.
+#         'HOST': '192.168.1.101',  # Set to empty string for localhost. Not used with sqlite3. #192.168.0.28
+#         'PORT': '3306',  # Set to empty string for default. Not used with sqlite3.
+#         'OPTIONS':  {'init_command': 'SET storage_engine=Innodb;',
+#                      'charset': 'utf8'},  # storage_engine need mysql>5.4,and table_type need mysql<5.4
+#         'TEST':{
+#             'NAME': 'test_shopmgr_mxq',
+#             'CHARSET': 'utf8',
+#         }
+#     }
+# }
+
+# ######################MIGRATE DB SETTINGS#############################
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': 'xiaoludb',  # Or path to database file if using sqlite3.
+        'USER': 'xiaoludev',  # Not used with sqlite3.
+        'PASSWORD': 'Xiaolu_test123',  # Not used with sqlite3.
+        'HOST': 'dev.xiaolumm.com',
+        # Set to empty string for localhost. Not used with sqlite3. #192.168.0.28
+        'PORT': '30001',  # Set to empty string for default. Not used with sqlite3.
+        'OPTIONS': {'init_command': 'SET storage_engine=Innodb;',
+                    'charset': 'utf8'},  # storage_engine need mysql>5.4,and table_type need mysql<5.4
+        'TEST': {
+            'NAME': 'test_xiaoludb',
+            'CHARSET': 'utf8',
+        }
+    }
+}
+
+# #######################MIGRATE DB SETTINGS#############################
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+#         'NAME': 'xiaoludb',  # Or path to database file if using sqlite3.
+#         'USER': 'xiaoludbo',  # Not used with sqlite3.
+#         'PASSWORD': 'expired_',  # Not used with sqlite3.
+#         'HOST': 'd.xiaolumm.com',
+#         # Set to empty string for localhost. Not used with sqlite3. #192.168.0.28
+#         'PORT': '30001',  # Set to empty string for default. Not used with sqlite3.
+#         'OPTIONS': {'init_command': 'SET storage_engine=Innodb;',
+#                     'charset': 'utf8'},  # storage_engine need mysql>5.4,and table_type need mysql<5.4
+#         'TEST': {
+#             'NAME': 'test_xiaoludb',
+#             'CHARSET': 'utf8',
+#         }
+#     }
+# }
+
+
+
+FANGZHENG_LANTINGHEI_FONT_PATH = '/tmp/方正兰亭黑.ttf'
+if DEBUG:
+    STATICFILES_DIRS = (
+       os.path.join(PROJECT_ROOT, "site_media", "static"),
+    )
+    STATIC_ROOT = os.path.join(PROJECT_ROOT, "site_media", "local")
+else:
+    STATIC_ROOT = os.path.join(PROJECT_ROOT, "site_media", "static")
+
+#################### change this site to yourself test domain #######################
+SITE_URL = 'http://127.0.0.1:9000'
+M_SITE_URL = 'http://127.0.0.1:9000'
+
+# MIDDLEWARE_CLASSES = (
+#     'raven.contrib.django.middleware.SentryResponseErrorIdMiddleware',
+#     'core.middleware.middleware.SecureRequiredMiddleware',
+#     'core.middleware.middleware.DisableDRFCSRFCheck',
+#     'django.middleware.common.CommonMiddleware',
+#     'django.contrib.sessions.middleware.SessionMiddleware',
+#     'django.middleware.csrf.CsrfViewMiddleware',
+#     'django.middleware.locale.LocaleMiddleware',
+#     'django.contrib.auth.middleware.AuthenticationMiddleware',
+#     'django.contrib.messages.middleware.MessageMiddleware',
+# )
+
+CACHES = {
+    'default': {
+        'BACKEND': 'redis_cache.RedisCache',
+        'LOCATION': '192.168.1.102:6379',
+        'OPTIONS':{
+            'DB': 1,
+            # 'PARSER_CLASS': 'redis.connection.HiredisParser',
+        }
+    }
+}
+BROKER_URL = 'redis://192.168.1.102:6379/9'
+
+##################################################################
+INTERNAL_IPS = ('127.0.0.1',)
+DEBUG_TOOLBAR_PANELS = [
+    'debug_toolbar.panels.versions.VersionsPanel',
+    'debug_toolbar.panels.timer.TimerPanel',
+    # 'debug_toolbar.panels.settings.SettingsPanel',
+    # 'debug_toolbar.panels.headers.HeadersPanel',
+    'debug_toolbar.panels.request.RequestPanel',
+    'debug_toolbar.panels.sql.SQLPanel',
+    'debug_toolbar.panels.staticfiles.StaticFilesPanel',
+    # 'debug_toolbar.panels.templates.TemplatesPanel',
+    'debug_toolbar.panels.cache.CachePanel',
+    'debug_toolbar.panels.signals.SignalsPanel',
+    # 'debug_toolbar.panels.logging.LoggingPanel',
+    # 'debug_toolbar.panels.redirects.RedirectsPanel',
+]
+MIDDLEWARE_CLASSES = (
+    # 'debug_toolbar.middleware.DebugToolbarMiddleware',
+    # 'core.middleware.middleware.ProfileMiddleware',
+) + MIDDLEWARE_CLASSES
+
+INSTALLED_APPS.extend([
+    'debug_toolbar',
+])
+
+#################################### EXTRA CONFIG ########################################
+
+
+import raven
+RAVEN_CONFIG = {
+    'dsn': 'http://7f041a7308f842a682d621f7ae3c81a9:c74fbc9e12f14835bb671a82e1f6dc53@sentry.xiaolumm.com/3',
+    # If you are using git, you can also automatically configure the
+    # release based on the git info.
+    'release': raven.fetch_git_sha(PROJECT_ROOT),
+}
+
+########################### ONEAPM Statsd ##############################
+STATSD_CLIENT = 'django_statsd.clients.normal'
+#STATSD_PORT = 8251
+# STATSD_CLIENT = 'statsd.oneapm'
+# STATSD_CELERY_SIGNALS = True
+# MIDDLEWARE_CLASSES = (
+#         'django_statsd.middleware.GraphiteRequestTimingMiddleware',
+#         'django_statsd.middleware.GraphiteMiddleware',
+#         ) + MIDDLEWARE_CLASSES
+
+######################### WEIXIN CONFIG #####################
+WEIXIN_APPID  = 'wx91b20565c83072f6'
+WEIXIN_SECRET = '38e6b5f94c0f4966460913b5c11284a9'
+#for weixin pub xiaolumm,just for pay
+WXPAY_APPID    = "wx3f91056a2928ad2d"
+WXPAY_SECRET   = "e8e1f648a5e02492e1584e5413cef158"
+#for weixin app
+WXAPP_ID       = "wx25fcb32689872499"
+WXAPP_SECRET   = "3c7b4e3eb5ae4cmeixqhisok060a872ee"
+
+################### PING++ SETTINGS ##################
+
+PINGPP_APPID           = "app_qPCaj95Serj5PKOq"
+PINGPP_APPKEY          = "sk_test_8y58u9zbPWTKTGGa1GrTi1mT" #TEST KEY
+PINGPP_CLENTIP         = "127.0.0.1"
+
+################### QINIU SETTINGS ##################
+
+QINIU_ACCESS_KEY = "M7M4hlQTLlz_wa5-rGKaQ2sh8zzTrdY8JNKNtvKN"
+QINIU_SECRET_KEY = "8MkzPO_X7KhYQjINrnxsJ2eq5bsxKU1XmE8oMi4x"
+
+QINIU_PRIVATE_BUCKET = 'invoiceroom' #七牛私有空间
+QINIU_PRIVATE_DOMAIN = '7xrpt3.com2.z0.glb.qiniucdn.com'
+
+QINIU_PUBLIC_BUCKET = 'xiaolumama' #七牛公开空间,保存分享二维码,及其它商品信息
+QINIU_PUBLIC_DOMAIN = '7xrst8.com2.z0.glb.qiniucdn.com'
+
+QINIU_BUCKET_NAME   = 'mediaroom'
+QINIU_BUCKET_DOMAIN = '7xogkj.com1.z0.glb.clouddn.com'
+QINIU_SECURE_URL    = 0
+DEFAULT_FILE_STORAGE = 'qiniustorage.backends.QiniuStorage'
+MEDIA_URL = "http://%s/" % QINIU_BUCKET_DOMAIN
+
+########################## APP SECRET ######################
+IOS_APP_SECRET = "test"
+ANDROID_APP_SECRET = "test"
+
+LOGGER_HANDLERS = [
+    ('service', 'jsonfile'),
+    ('root', 'sentry,console'),
+    ('shopback','sentry,console'),
+    ('shopapp','sentry,console'),
+    ('flashsale','sentry,console'),
+    ('core','sentry,console'),
+    ('auth','sentry,console'),
+    ('supplychain','sentry,console'),
+    ('models','sentry,console'),
+    ('queryset','sentry,console'),
+    ('django.request','sentry,console'),
+    ('sentry.errors','sentry,console'),
+    ('celery.handler','sentry,console'),
+    ('notifyserver.handler','sentry,console'),
+    ('yunda.handler','sentry,console'),
+    ('mail.handler','sentry,console'),
+    ('xhtml2pdf','sentry,console'),
+    ('restapi.errors','sentry,console'),
+    ('weixin.proxy','sentry,console'),
+    ('django.db.backends','console'),
+]
+
+LOGGER_TEMPLATE = {
+    'handlers': ['sentry'],
+    'level': 'DEBUG',
+    'propagate': True,
+}
+
+def comb_logger(log_tuple,temp):
+    if isinstance(log_tuple,(list,tuple)) and len(log_tuple) == 2:
+        temp.update(handlers=log_tuple[1].split(','))
+        return log_tuple[0],temp
+    return log_tuple[0],temp
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(asctime)s  %(message)s'
+        },
+        'json': {
+            '()': 'core.logger.JsonFormatter',
+            'format': '%(levelname)s %(asctime)s  %(message)s'
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': '/tmp/django-debug.log',
+            'formatter': 'simple'
+        },
+        'jsonfile': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': '/tmp/service-json.log',
+            'formatter': 'json'
+        },
+        'sentry': {
+            'level': 'ERROR',
+            'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler'
+        },
+        'console':{
+            'level':'INFO',
+            'class':'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+        'mail_admins': {
+            'level': 'INFO',
+            'class': 'django.utils.log.AdminEmailHandler',
+            'include_html': True,
+        }
+    },
+    'loggers': dict([comb_logger(handler,LOGGER_TEMPLATE.copy()) for handler in LOGGER_HANDLERS]),
+}
