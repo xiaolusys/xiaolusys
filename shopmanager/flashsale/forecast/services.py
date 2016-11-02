@@ -261,7 +261,7 @@ class AggregateForcecastOrderAndInbound(object):
             aggregate_id_set.add(order_id)
         else:
             order_data = get_purchaseorder_data(order_id)
-            supplier_id = order_data['supplier']['id']
+            supplier_id = order_data.get('supplier') and order_data['supplier']['id'] or ''
             if supplier_id in self.supplier_unarrival_dict:
                 self.supplier_unarrival_dict[supplier_id].add(order_id)
             else:
