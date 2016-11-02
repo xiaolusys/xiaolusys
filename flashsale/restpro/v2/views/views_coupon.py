@@ -141,7 +141,8 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
     @list_route(methods=['GET'])
     def profile(self, request, *args, **kwargs):
         mama = get_charged_mama(request.user)
-
+        if not mama:
+            return Response({"code": 1, "info": u"你还没加入精英妈妈！"})
         mama_id = mama.id
         stock_num, in_num, out_num = CouponTransferRecord.get_stock_num(mama_id)
         waiting_in_num = CouponTransferRecord.get_waiting_in_num(mama_id)
