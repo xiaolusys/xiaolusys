@@ -54,10 +54,10 @@ def get_minutes_failed_msgs(minutes=30):
 
     now = datetime.datetime.now()
     thirth_minute_ago = now - datetime.timedelta(minutes=minutes)  # 30分钟之前的时间 failed msg
-    allpushsmss = APPFullPushMessge.objects.filter(push_time__gte=thirth_minute_ago,
-                                                   push_time__lt=now,
-                                                   status=APPFullPushMessge.FAIL).order_by('-push_time')
-    return allpushsmss
+    pushmsg = APPFullPushMessge.objects.filter(push_time__gte=thirth_minute_ago,
+                                               push_time__lt=now,
+                                               status=APPFullPushMessge.WAIT_PUSH).order_by('-push_time')
+    return pushmsg
 
 
 def push_app_push_msg_2_client_by_id(id):
@@ -71,7 +71,7 @@ def push_app_push_msg_2_client_by_id(id):
 
     now = datetime.datetime.now()
     push_msg = get_app_push_msg_by_id(id)
-    if now < push_msg.push_time:  # 定义的推送时间　没有到　则不推送
+    if now < push_msg.push_time or push_msg.status == APPFullPushMessge.SUCCESS:  # 定义的推送时间　没有到　推送状态是已经成功　都不推送
         return
     target_url = get_target_url(push_msg.target_url, push_msg.params)
     msg = util_emoji.match_emoji(push_msg.desc)  # 生成推送内容
@@ -120,16 +120,16 @@ def create_app_push_msg(desc, platform, push_time, **kwargs):
     from flashsale.protocol.models import APPFullPushMessge
 
     target_url = kwargs.get('target_url') or 1
-    params_url = kwargs.get('params_url') or {}
+    params = kwargs.get('params') or {}
     _validate_record('target_url', target_url)
-    _validate_record('params_url', params_url)
+    _validate_record('platform', platform)
     _validate_record('push_time', push_time)
 
     msg = APPFullPushMessge(desc=desc,
                             target_url=target_url,
                             platform=platform,
                             push_time=push_time,
-                            params={'url': params_url})
+                            params=params)
     msg.save()
     return msg
 

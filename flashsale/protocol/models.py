@@ -18,11 +18,13 @@ class APPFullPushMessge(BaseModel):
         "info":"Received push messages for 1 regid"
     }
     """
+    WAIT_PUSH = -1
     FAIL = 0
     SUCCESS = 1
     STATUSES = (
-        (FAIL, u'失败'),
-        (SUCCESS, u'生效')
+        (WAIT_PUSH, u'等待推送'),
+        (FAIL, u'推送失败'),
+        (SUCCESS, u'推送成功')
     )
 
     PL_ALL = 'all'  # 所有用户
@@ -58,13 +60,16 @@ class APPFullPushMessge(BaseModel):
         (constants.TARGET_TYPE_HOME_TAB_2, '昨日特卖'),
         (constants.TARGET_TYPE_HOME_TAB_3, '潮童专区'),
         (constants.TARGET_TYPE_HOME_TAB_4, '时尚女装'),
-        (constants.TARGET_TYPE_MODELIST, '商品款式页'),
-        (constants.TARGET_TYPE_PRODUCT, '商品详情页'),
-        (constants.TARGET_TYPE_ORDER_DETAIL, '订单详情页'),
-        (constants.TARGET_TYPE_AVAILABLE_COUPONS, '优惠券列表'),
-        (constants.TARGET_TYPE_VIP_HOME, '小鹿妈妈首页'),
-        (constants.TARGET_TYPE_VIP_0DAY, '小鹿妈妈-每日推送'),
-        (constants.TARGET_TYPE_WEBVIEW, 'APP活动页 / 网页'),
+
+        (constants.TARGET_TYPE_MODELIST, '商品详情'),
+        (constants.TARGET_TYPE_AVAILABLE_COUPONS, '优惠券'),
+        (constants.TARGET_TYPE_VIP_HOME, '小鹿妈妈/首页'),
+        (constants.TARGET_TYPE_VIP_0DAY, '小鹿妈妈/每日推送'),
+        (constants.TARGET_TYPE_WEBVIEW, 'webView网页'),
+        (constants.TARGET_TYPE_AT, '小鹿论坛'),
+
+        (constants.TARGET_TYPE_ACTIVE, '活动界面'),
+        (constants.TARGET_TYPE_CATEGORY_PRO, '分类商品'),
     )
 
     class Meta:
@@ -82,5 +87,6 @@ class APPFullPushMessge(BaseModel):
                                 verbose_name=u'平台')  # type: text_type
     regid = models.CharField(max_length=512, blank=True, verbose_name=u'小米regid')  # type: text_type
     result = JSONCharMyField(max_length=2048, default={}, blank=True, verbose_name=u'推送结果')  # type: text_type
-    status = models.SmallIntegerField(db_index=True, choices=STATUSES, default=FAIL, verbose_name=u'状态')  # type: int
+    status = models.SmallIntegerField(db_index=True, choices=STATUSES, default=WAIT_PUSH,
+                                      verbose_name=u'状态')  # type: int
     push_time = models.DateTimeField(db_index=True, blank=True, verbose_name=u'设置推送时间')  # type: datetime.datetime
