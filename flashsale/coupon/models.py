@@ -868,6 +868,17 @@ class CouponTransferRecord(BaseModel):
         return stock_num, in_num, out_num
 
     @classmethod
+    def get_coupon_stock_num(cls, mama_id, template_id):
+        res = cls.objects.filter(coupon_from_mama_id=mama_id,transfer_status=cls.DELIVERED, template_id=template_id).aggregate(n=Sum('coupon_num'))
+        out_num = res['n'] or 0
+
+        res = cls.objects.filter(coupon_to_mama_id=mama_id,transfer_status=cls.DELIVERED, template_id=template_id).aggregate(n=Sum('coupon_num'))
+        in_num = res['n'] or 0
+
+        stock_num = in_num - out_num
+        return stock_num
+                         
+    @classmethod
     def get_waiting_in_num(cls, mama_id):
         res = cls.objects.filter(coupon_to_mama_id=mama_id,transfer_status__lte=cls.PROCESSED).aggregate(n=Sum('coupon_num'))
         num = res['n'] or 0
