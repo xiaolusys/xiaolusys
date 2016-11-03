@@ -527,7 +527,7 @@ class WeixinPush(object):
                                 event_type=event_type, params=template_data, to_url=to_url)
         event.save()
 
-    def push_mama_clickcarry(self, clickcarry, fake=False):
+    def push_mama_clickcarry(self, clickcarry, fake=False, advertising=False):
         """
         推送点击收益
 
@@ -583,9 +583,24 @@ class WeixinPush(object):
         if fake:
             uni_key = 'fake-' + uni_key
 
+        header = template.header.format(carry_count).decode('string_escape')
+        footer = template.footer.format('%.2f' % (clickcarry.total_value * 0.01)).decode('string_escape')
+        to_url = 'http://m.xiaolumeimei.com/rest/v2/mama/redirect_stats_link?link_id=4'
+        footer_color = '#F87217'
+
+        # 模板消息底部替换为小广告
+        if fake or advertising:
+            from flashsale.pay.models.admanager import ADManager
+            ads = ADManager.objects.filter(status=True)
+            if ads.count() > 0:
+                ad = random.choice(ads)
+                footer = u'\n%s' % ad.title
+                footer_color = '#ff0000'
+                to_url = ad.url
+
         template_data = {
             'first': {
-                'value': template.header.format(carry_count).decode('string_escape'),
+                'value': header,
                 'color': '#F87217',
             },
             'keyword1': {
@@ -605,11 +620,10 @@ class WeixinPush(object):
                 'color': '#000000',
             },
             'remark': {
-                'value': template.footer.format('%.2f' % (clickcarry.total_value * 0.01)).decode('string_escape'),
-                'color': '#F87217',
+                'value': footer,
+                'color': footer_color,
             },
         }
-        to_url = 'http://m.xiaolumeimei.com/rest/v2/mama/redirect_stats_link?link_id=4'
 
         event = WeixinPushEvent(customer_id=customer.id, mama_id=mama_id, uni_key=uni_key, tid=template.id,
                                 event_type=event_type, params=template_data, to_url=to_url)
