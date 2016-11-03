@@ -71,9 +71,9 @@ def task_weixin_push_awardcarry(awardcarry):
 
 
 @task
-def task_weixin_push_clickcarry(clickcarry):
+def task_weixin_push_clickcarry(clickcarry, fake=False):
     wp = WeixinPush()
-    wp.push_mama_clickcarry(clickcarry)
+    wp.push_mama_clickcarry(clickcarry, fake=fake)
 
 
 @task(max_retries=3, default_retry_delay=6)

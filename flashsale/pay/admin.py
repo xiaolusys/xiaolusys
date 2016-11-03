@@ -38,7 +38,8 @@ from .models import (
     Envelop,
     Integral,
     IntegralLog,
-    TeamBuy
+    TeamBuy,
+    ADManager
 )
 
 import cStringIO as StringIO
@@ -600,7 +601,7 @@ def get_customer_id(obj):
     else:
         return ''
 get_customer_id.short_description = '用户ID'
-    
+
 
 def get_mama_created(obj):
     unionid = WeixinUnionID.objects.filter(openid=obj.recipient).first()
@@ -960,3 +961,9 @@ class TeamBuyAdmin(admin.ModelAdmin):
 
 
 admin.site.register(TeamBuy, TeamBuyAdmin)
+
+
+class ADManagerAdmin(admin.ModelAdmin):
+    list_display = ('id', 'title', 'image', 'url', 'status')
+
+admin.site.register(ADManager, ADManagerAdmin)
