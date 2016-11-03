@@ -828,9 +828,9 @@ class ClickCarry(BaseModel):
         return None
 
 
-def weixin_push_clickcarry(sender, instance, **kwargs):
+def weixin_push_clickcarry(sender, instance, fake=False, **kwargs):
     from flashsale.xiaolumm.tasks_mama_push import task_weixin_push_clickcarry
-    task_weixin_push_clickcarry.delay(instance)
+    task_weixin_push_clickcarry.delay(instance, fake=fake)
 
 clickcarry_signal.connect(weixin_push_clickcarry, sender=ClickCarry, dispatch_uid='add_clickcarry_weixin_push')
 
@@ -985,13 +985,13 @@ class ReferalRelationship(BaseModel):
     def to_mama_mobile(self):
         from flashsale.xiaolumm.models import XiaoluMama
         from flashsale.pay.models import Customer
-        
+
         mama = XiaoluMama.objects.filter(id=self.referal_to_mama_id).first()
         customer = Customer.objects.filter(unionid=mama.unionid).first()
         if customer and customer.mobile:
             return customer.mobile
         return None
-        
+
     def is_confirmed(self):
         return self.referal_type == XiaoluMama.FULL or self.referal_type == XiaoluMama.HALF
 
@@ -1243,6 +1243,7 @@ def visitor_update_clickcarry_and_activevalue(sender, instance, created, **kwarg
 
     mama_id = instance.mama_id
     date_field = instance.date_field
+    is_fake = instance.uni_key.startswith('fake')  # 是否伪造访客
 
     try:
         from flashsale.xiaolumm.models import XiaoluMama
@@ -1253,7 +1254,7 @@ def visitor_update_clickcarry_and_activevalue(sender, instance, created, **kwarg
         return
 
     from flashsale.xiaolumm.tasks_mama_clickcarry import task_visitor_increment_clickcarry
-    task_visitor_increment_clickcarry.delay(mama_id, date_field)
+    task_visitor_increment_clickcarry.delay(mama_id, date_field, fake=is_fake)
 
     from flashsale.xiaolumm.tasks_mama_activevalue import task_visitor_increment_activevalue
     task_visitor_increment_activevalue.delay(mama_id, date_field)

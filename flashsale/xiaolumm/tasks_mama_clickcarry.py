@@ -121,7 +121,7 @@ def task_confirm_previous_order_clickcarry(mama_id, today_date_field, num_days):
             confirm_clickcarry(click_carry, mama_id, date_field)
 
 
-def create_clickcarry_upon_click(mama_id, date_field):
+def create_clickcarry_upon_click(mama_id, date_field, fake=False):
     """
     ClickCarry records are created only upon click happens.
     When we are going to create a clickcarry record, we have
@@ -144,7 +144,7 @@ def create_clickcarry_upon_click(mama_id, date_field):
                        carry_description=carry_description,
                        date_field=date_field, uni_key=uni_key, status=status)
     carry.save()
-    clickcarry_signal.send(sender=carry.__class__, instance=carry)
+    clickcarry_signal.send(sender=carry.__class__, instance=carry, fake=fake)
 
 
 def update_clickcarry_upon_order(click_carry, mama_id, date_field):
@@ -178,7 +178,7 @@ def get_active_click_plan(mama_id=None):
 
     from flashsale.xiaolumm.models.models_fortune import ClickPlan
     from flashsale.xiaolumm.models import XiaoluMama
-    
+
     if mama_id:
         now = datetime.datetime.now()
         mama = XiaoluMama.objects.filter(id=mama_id, status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED, renew_time__lt=now).first()
@@ -209,15 +209,14 @@ def plan_for_price_limit_name(order_num, carry_plan_id):
 
 
 @task()
-def task_visitor_increment_clickcarry(mama_id, date_field):
-    #print "%s, mama_id: %s" % (get_cur_info(), mama_id)
+def task_visitor_increment_clickcarry(mama_id, date_field, fake=False):
 
     uni_key = util_unikey.gen_clickcarry_unikey(mama_id, date_field)
     click_carrys = ClickCarry.objects.filter(uni_key=uni_key)
 
     if click_carrys.count() <= 0:
-        # task_confirm_previous_zero_order_clickcarry.s(mama_id, date_field, 2)()
-        create_clickcarry_upon_click(mama_id, date_field)
+        # 创建点击收益
+        create_clickcarry_upon_click(mama_id, date_field, fake=fake)
     else:
         click_carry = click_carrys[0]
         price = click_carry.init_click_price
@@ -235,7 +234,7 @@ def task_visitor_increment_clickcarry(mama_id, date_field):
             click_carry.click_num = click_num
             click_carry.total_value = total_value
             click_carry.save(update_fields=['click_num', 'total_value', 'modified'])
-            clickcarry_signal.send(sender=click_carry.__class__, instance=click_carry)
+            clickcarry_signal.send(sender=click_carry.__class__, instance=click_carry, fake=fake)
         else:
             click_carrys.update(click_num=click_num)
 
