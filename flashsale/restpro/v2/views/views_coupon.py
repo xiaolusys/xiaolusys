@@ -209,13 +209,13 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         record = CouponTransferRecord.objects.filter(id=pk).first()
         init_from_mama = XiaoluMama.objects.filter(id=record.init_from_mama_id).first()
         init_from_customer = Customer.objects.filter(unionid=init_from_mama.unionid,status=Customer.NORMAL).first()
-        stock_num, in_num, out_num = CouponTransferRecord.get_stock_num(mama_id)
+        stock_num = CouponTransferRecord.get_coupon_stock_num(mama_id, record.template_id)
         if stock_num < record.coupon_num:
             info = u"精品券库存不足，请立即购买!"
             return Response({"code":2, "info":info})
 
         if record and record.can_process(mama_id) and mama.can_buy_transfer_coupon():
-            coupons = UserCoupon.objects.filter(customer_id=customer.id,coupon_type=UserCoupon.TYPE_TRANSFER,status=UserCoupon.UNUSED)
+            coupons = UserCoupon.objects.filter(customer_id=customer.id,coupon_type=UserCoupon.TYPE_TRANSFER,status=UserCoupon.UNUSED, template_id=record.template_id)
             if coupons.count() < record.coupon_num:
                 info = u"券库存不足，请立即购买!"
                 return Response({"code":3, "info":info})
