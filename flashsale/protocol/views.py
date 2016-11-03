@@ -27,6 +27,21 @@ class APPFullPushMessgeFilter(filters.FilterSet):
         ]
 
 
+def get_apppushmsg_params_ks():
+    # type: () -> Dict[List[str]]
+    """返回固定key 仅仅为前端使用
+    """
+    from flashsale.protocol.constants import TARGET_TYPE_MODELIST, TARGET_TYPE_WEBVIEW, TARGET_TYPE_ACTIVE, \
+        TARGET_TYPE_CATEGORY_PRO
+
+    return {
+        TARGET_TYPE_MODELIST: ['params_model_id'],
+        TARGET_TYPE_WEBVIEW: ['params_is_native', 'params_url'],
+        TARGET_TYPE_ACTIVE: ['params_activity_id', 'params_url'],
+        TARGET_TYPE_CATEGORY_PRO: ['params_cid']
+    }
+
+
 def get_apppushmsg_params_kvs():
     # type: () -> Dict[str, Any]
     from flashsale.protocol.constants import TARGET_TYPE_MODELIST, TARGET_TYPE_WEBVIEW, TARGET_TYPE_ACTIVE, \
@@ -81,8 +96,31 @@ class APPFullPushMessgeViewSet(viewsets.ModelViewSet):
             'platform': APPFullPushMessge.PLATFORM_CHOICES,
         })
 
+    def get_params_by_request(self, request, *args, **kwargs):
+        # type: (HttpRequest, *Any, **Any) -> HttpRequest
+        """仅仅更新params参数
+        """
+        target_url = request.data.get('target_url')
+        params = {}
+        if target_url in get_apppushmsg_params_ks().keys():
+            params_keys = get_apppushmsg_params_ks()[target_url]
+            for params_key in params_keys:
+                key = '_'.join(params_key.split('_')[1:])
+                params.update({key: request.data.get(params_key)})
+        request.data.update({'params': params})
+
+        # 参数清理
+        total_params_keys = []
+        for k, v in get_apppushmsg_params_ks().iteritems():
+            total_params_keys.extend(v)
+        for k in total_params_keys:
+            if request.data.has_key(k):
+                request.data.pop(k)
+        return request
+
     def create(self, request, *args, **kwargs):
         # type: (HttpRequest, *Any, **Any) -> Response
+        request = self.get_params_by_request(request)
         try:
             desc = request.data.pop('desc')
             platform = request.data.pop('platform')
@@ -105,6 +143,7 @@ class APPFullPushMessgeViewSet(viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         # type: (HttpRequest, *Any, **Any) -> Response
+        request = self.get_params_by_request(request)
         try:
             push_time = datetime.datetime.strptime(request.data.pop('push_time'),
                                                    '%Y-%m-%d %H:%M:%S')

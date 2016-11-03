@@ -120,16 +120,16 @@ def create_app_push_msg(desc, platform, push_time, **kwargs):
     from flashsale.protocol.models import APPFullPushMessge
 
     target_url = kwargs.get('target_url') or 1
-    params_url = kwargs.get('params_url') or {}
+    params = kwargs.get('params') or {}
     _validate_record('target_url', target_url)
-    _validate_record('params_url', params_url)
+    _validate_record('platform', platform)
     _validate_record('push_time', push_time)
 
     msg = APPFullPushMessge(desc=desc,
                             target_url=target_url,
                             platform=platform,
                             push_time=push_time,
-                            params={'url': params_url})
+                            params=params)
     msg.save()
     return msg
 
