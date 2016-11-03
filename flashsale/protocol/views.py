@@ -113,9 +113,14 @@ class APPFullPushMessgeViewSet(viewsets.ModelViewSet):
         total_params_keys = []
         for k, v in get_apppushmsg_params_ks().iteritems():
             total_params_keys.extend(v)
+        none_flag = True
         for k in total_params_keys:
             if request.data.has_key(k):
-                request.data.pop(k)
+                f = request.data.pop(k)
+                if f is not None:
+                    none_flag = False
+        if none_flag:
+            request.data.pop('params')  # 应为params全部是None 则不需要更新
         return request
 
     def create(self, request, *args, **kwargs):
