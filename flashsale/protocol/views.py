@@ -37,7 +37,7 @@ def get_apppushmsg_params_ks():
     return {
         TARGET_TYPE_MODELIST: ['params_model_id'],
         TARGET_TYPE_WEBVIEW: ['params_is_native', 'params_url'],
-        TARGET_TYPE_ACTIVE: ['params_activity_id', 'params_url'],
+        TARGET_TYPE_ACTIVE: ['params_activity_id'],
         TARGET_TYPE_CATEGORY_PRO: ['params_cid']
     }
 
@@ -50,10 +50,9 @@ def get_apppushmsg_params_kvs():
     from supplychain.supplier.models import SaleCategory
 
     now = datetime.datetime.now()
-    activity_ids, act_links = [], []
-    for i in ActivityEntry.objects.filter(end_time__gt=now, is_active=True).values('id', 'act_link'):
+    activity_ids = []
+    for i in ActivityEntry.objects.filter(end_time__gt=now, is_active=True).values('id'):
         activity_ids.append({'name': i['id'], 'value': i['id']})
-        act_links.append({'name': i['act_link'], 'value': i['act_link']})
     cates = SaleCategory.objects.filter(status=SaleCategory.NORMAL, is_parent=True)
     cids = []
     for ca in cates:
@@ -69,7 +68,6 @@ def get_apppushmsg_params_kvs():
         ],
         TARGET_TYPE_ACTIVE: [
             {'name': '活动id', 'key': 'activity_id', 'value': activity_ids},
-            {'name': '活动URL', 'key': 'url', 'value': act_links}
         ],
         TARGET_TYPE_CATEGORY_PRO: [
             {'name': '分类产品', 'key': 'cid', 'value': cids},
@@ -106,6 +104,10 @@ class APPFullPushMessgeViewSet(viewsets.ModelViewSet):
             params_keys = get_apppushmsg_params_ks()[target_url]
             for params_key in params_keys:
                 key = '_'.join(params_key.split('_')[1:])
+                if key == 'activity_id':
+                    from flashsale.promotion.models import ActivityEntry
+                    act_link = ActivityEntry.objects.get(id=request.data.get(params_key)).act_link
+                    params.update({'url': act_link})
                 params.update({key: request.data.get(params_key)})
         request.data.update({'params': params})
 
