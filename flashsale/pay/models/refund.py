@@ -326,7 +326,7 @@ class SaleRefund(PayBaseModel):
             if payment > 0:  # 有退款金额才生成退款余额记录
                 BudgetLog.create_salerefund_log(self, payment)
         self.refund_confirm()
-        self.send_refund_success_weixin_message()   # 退款成功推送
+        self.send_refund_success_weixin_message()  # 退款成功推送
 
     def refund_charge_approve(self):
         # type: () -> None
@@ -343,6 +343,22 @@ class SaleRefund(PayBaseModel):
             self.refund_fast_approve()
         elif self.refund_fee > 0 and self.charge:
             self.refund_charge_approve()
+
+    def roll_back_usercoupon(self):
+        # type: () -> bool
+        """退款成功返还用户使用过的优惠券（如果使用过优惠券的话）
+        """
+        if self.status != SaleRefund.REFUND_SUCCESS:  # 不是退款成功不处理
+            return False
+        from flashsale.coupon.tasks import task_roll_back_usercoupon_by_refund
+
+        sale_trade = self.sale_trade
+        refund_fees = SaleRefund.objects.filter(trade_id=self.trade_id,
+                                                status=SaleRefund.REFUND_SUCCESS).values('refund_fee')
+        total_refund_fee = sum([i['refund_fee'] for i in refund_fees])  # 该交易相关的退款单总退款成功费用
+        if sale_trade.payment == total_refund_fee:  # 退款成功的费用和交易费用相等则退还优惠券给用户
+            task_roll_back_usercoupon_by_refund.delay(sale_trade.tid, self.refund_num)
+        return True
 
     def refund_confirm(self):
         # type: () -> None
@@ -368,6 +384,7 @@ class SaleRefund(PayBaseModel):
             strade.status = SaleTrade.TRADE_CLOSED
             strade.save(update_fields=['status', 'modified'])
         signal_saletrade_refund_confirm.send(sender=SaleRefund, obj=self)
+        self.roll_back_usercoupon()
 
     def pic_path(self):
         # type: () -> text_type
@@ -528,29 +545,6 @@ class SaleRefund(PayBaseModel):
         self.refund_coupon()  # 补优惠券
         self.refund_fast_approve()  # 退订单金额(退款成功)　
         return True
-
-
-def roll_back_usercoupon_status(sender, instance, created, *args, **kwargs):
-    """
-     当一笔交易的所有sale_order 都退款成功了　则　退回被使用的优惠券
-    """
-    if instance.status != SaleRefund.REFUND_SUCCESS:  # 不是退款成功不处理
-        return
-    from flashsale.coupon.tasks import task_roll_back_usercoupon_by_refund
-
-    sale_trade = instance.sale_trade
-    sale_orders = sale_trade.sale_orders.all()
-    refunds = SaleRefund.objects.filter(trade_id=instance.trade_id)
-    if refunds.count() < sale_orders.count():  # 保证map是所有的sale_order的退款单
-        return
-    refunds_status = refunds.values('status')
-    r = map(lambda x: x['status'] == SaleRefund.REFUND_SUCCESS, refunds_status)
-    if False in r:  # 有没有退款成功的订单（不退优惠券）
-        return
-    task_roll_back_usercoupon_by_refund.delay(sale_trade.tid)
-
-
-post_save.connect(roll_back_usercoupon_status, sender=SaleRefund, dispatch_uid='post_save_roll_back_usercoupon_status')
 
 
 def handle_sale_refund_signal(sender, instance, created, raw, *args, **kwargs):
