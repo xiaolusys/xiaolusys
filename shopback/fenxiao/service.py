@@ -11,7 +11,7 @@ from shopback.fenxiao.models import FenxiaoProduct, PurchaseOrder, SubPurchaseOr
 from shopback.trades.handlers import trade_handler
 from shopback import paramconfig as pcfg
 from common.utils import update_model_fields
-from auth import apis
+from shopapp.taobao import apis
 
 
 class PurchaseOrderService(TaobaoSendTradeMixin, TaobaoTradeService, LocalService):

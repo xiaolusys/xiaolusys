@@ -66,7 +66,7 @@ class CrawItemCommentTask(Task):
     def run(self, num_iid):
 
         try:
-            from auth import apis
+            from shopapp.taobao import apis
             from shopback.items.models import Item
 
             self.item = Item.objects.get(num_iid=num_iid)

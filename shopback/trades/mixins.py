@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*
 from shopback import paramconfig as pcfg
-from auth import apis
+from shopapp.taobao import apis
 import logging
 
 logger = logging.getLogger('django.request')

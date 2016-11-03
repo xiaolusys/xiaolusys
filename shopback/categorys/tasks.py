@@ -5,7 +5,7 @@ from celery.task import task
 from celery.task.sets import subtask
 from shopback.categorys.models import Category, CategorySaleStat
 from shopback.monitor.models import SystemConfig
-from auth import apis
+from shopapp.taobao import apis
 from shopback.items.models import Product, ProductSku
 from django.db.models import Sum
 

@@ -3,12 +3,12 @@ import datetime
 import json
 from django.http import HttpResponse
 from django.conf import settings
-from auth import staff_requried, apis
+from django.contrib.admin.views.decorators import staff_member_required
 from common.utils import parse_datetime, parse_date, format_time, map_int2str
 from shopback.amounts.tasks import updateAllUserOrdersAmountTask
 
 
-@staff_requried(login_url=settings.LOGIN_URL)
+@staff_member_required
 def update_finish_trade_amount(request, dt_f, dt_t):
     dt_f = parse_date(dt_f)
     dt_t = parse_date(dt_t)

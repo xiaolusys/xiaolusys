@@ -4,6 +4,7 @@ import json
 import random
 from django.http import HttpResponse
 from django.template import RequestContext
+from django.conf import settings
 from django.shortcuts import render_to_response
 from shopapp.examination.models import ExamProblemSelect, ExamUser, ExamSelectProblemPaper, ExmaEssayQuestion, \
     ExamEssayQuestionPaper

@@ -15,7 +15,7 @@ from shopback.categorys.models import Category
 from shopback.logistics.models import Logistics
 from shopback import paramconfig as pcfg
 from shopback.signals import merge_trade_signal
-from auth import apis
+from shopapp.taobao import apis
 from common.utils import parse_datetime
 import logging
 

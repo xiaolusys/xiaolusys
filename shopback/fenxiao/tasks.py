@@ -16,7 +16,7 @@ from common.utils import (format_time,
                           format_year_month,
                           parse_datetime,
                           single_instance_task)
-from auth import apis
+from shopapp.taobao import apis
 import logging
 
 __author__ = 'meixqhi'

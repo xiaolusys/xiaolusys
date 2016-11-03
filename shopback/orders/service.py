@@ -9,7 +9,7 @@ from shopback.base.service import LocalService
 from shopback import paramconfig as pcfg
 from shopback.trades.handlers import trade_handler
 from common.utils import parse_datetime, update_model_fields
-from auth import apis
+from shopapp.taobao import apis
 
 
 class OrderService(TaobaoSendTradeMixin, TaobaoTradeService, LocalService):

@@ -8,7 +8,7 @@ from shopback.users.models import User
 from shopback.items.models import Item
 from shopapp.autolist.models import Logs, ItemListTask, SUCCESS, EXECERROR, UNEXECUTE
 from common.utils import getSignatureTaoBao, format_time, single_instance_task
-from auth import apis
+from shopapp.taobao import apis
 import logging
 
 logger = logging.getLogger('django.request')

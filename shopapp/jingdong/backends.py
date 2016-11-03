@@ -9,7 +9,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.contrib.auth.backends import RemoteUserBackend
 from django.conf import settings
 from shopback.users.models import User as Seller
-from auth import apis
+
 
 import logging
 

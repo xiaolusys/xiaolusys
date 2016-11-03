@@ -34,7 +34,7 @@ from shopback.orders.models import Trade
 from shopback.trades.models import MergeTrade, PackageOrder, PackageSkuItem
 from shopback.items.models import Product, ProductSku
 
-from auth import apis
+from shopapp.taobao import apis
 import logging
 
 logger = logging.getLogger('django.request')

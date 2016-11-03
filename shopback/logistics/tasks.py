@@ -13,7 +13,7 @@ from shopback.monitor.models import TradeExtraInfo
 from shopback.trades.models import PackageOrder
 from shopback.users.models import User
 from common.utils import format_time, format_datetime, format_year_month, parse_datetime, update_model_fields
-from auth import apis
+from shopapp.taobao import apis
 import logging
 
 __author__ = 'meixqhi'

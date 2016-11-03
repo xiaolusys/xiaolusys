@@ -7,7 +7,6 @@ from shopback.refunds.models import Refund
 from shopback.logistics.models import Logistics
 from shopback.fenxiao.models import PurchaseOrder
 from shopback.users.models import User
-from auth import apis
 
 item_names = [
     '会员名称'.decode('utf8'),  # buyer_nick

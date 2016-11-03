@@ -7,10 +7,10 @@ from celery.task.sets import subtask
 from django.conf import settings
 from django.db.models import Max, Sum
 from django.db import IntegrityError
-from common.utils import format_time, format_datetime, format_year_month, parse_datetime
+from common.utils import format_time, format_datetime
 from shopback.refunds.models import Refund
 from shopback.users.models import User
-from auth import apis
+from shopapp.taobao import apis
 import logging
 
 __author__ = 'meixqhi'

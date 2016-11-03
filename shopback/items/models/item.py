@@ -5,8 +5,7 @@ import datetime
 import json
 
 from django.db import models
-
-from auth import apis
+from shopapp.taobao import apis
 from shopback.users.models import User
 from shopback import paramconfig as pcfg
 

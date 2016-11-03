@@ -10,7 +10,7 @@ from django.db.models import Sum
 from shopback import paramconfig as pcfg
 from shopback.users.models import User
 from django.db.models.signals import post_save
-from auth import apis
+from shopapp.taobao import apis
 import logging
 from models_refund_rate import PayRefundRate, PayRefNumRcord
 from signals_refund_rate import triger_refund_record
