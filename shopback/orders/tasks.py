@@ -8,7 +8,7 @@ from django.conf import settings
 from shopback.orders.models import Order, Trade
 from shopback.users.models import User
 from shopback.monitor.models import TradeExtraInfo, SystemConfig, DayMonitorStatus
-from auth.apis.exceptions import (RemoteConnectionException,
+from shopapp.taobao.exceptions import (RemoteConnectionException,
                                   AppCallLimitedException,
                                   UserFenxiaoUnuseException,
                                   APIConnectionTimeOutException,
@@ -19,8 +19,7 @@ from common.utils import (format_time,
                           format_year_month,
                           parse_datetime,
                           single_instance_task)
-from auth import apis
-
+from shopapp.taobao import apis
 import logging
 
 logger = logging.getLogger('django.request')

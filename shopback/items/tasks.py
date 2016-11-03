@@ -21,7 +21,7 @@ from shopback.users import Seller
 from shopback.fenxiao.tasks import saveUserFenxiaoProductTask
 from shopback import paramconfig as pcfg
 from flashsale.pay.models import ModelProduct
-from auth import apis
+from shopapp.taobao import apis
 from common.utils import format_datetime, parse_datetime, get_yesterday_interval_time
 from core.options import get_systemoa_user, log_action
 import sys

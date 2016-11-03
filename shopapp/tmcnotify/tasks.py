@@ -10,7 +10,7 @@ from shopapp.tmcnotify.models import TmcUser, TmcMessage
 from shopback.users import Seller
 from shopback.trades.service import TradeService, OrderService
 from shopback import paramconfig as pcfg
-from auth import apis
+from shopapp.taobao import apis
 from common.utils import parse_datetime
 import logging
 

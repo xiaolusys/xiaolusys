@@ -1,9 +1,5 @@
 # coding:utf-8
 from django.conf.urls import patterns, include, url
-from flashsale.dinghuo import views
-from django.contrib.auth.decorators import login_required
-from django.contrib.admin.views.decorators import staff_member_required
-
 from rest_framework import routers, viewsets
 
 from .views import StagingInboundViewSet, ForecastManageViewSet, InBoundViewSet, ForecastStatsViewSet

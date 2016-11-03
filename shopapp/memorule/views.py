@@ -17,8 +17,7 @@ from shopapp.memorule.models import (TradeRule,
                                      RuleMemo,
                                      ComposeRule,
                                      ComposeItem)
-from common.utils import parse_datetime
-from auth import apis
+
 from rest_framework import authentication
 from rest_framework import generics
 from rest_framework.response import Response

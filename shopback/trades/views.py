@@ -13,7 +13,7 @@ from django.shortcuts import render_to_response, render
 from django.template import RequestContext
 from django.views.generic import FormView
 
-from auth import apis
+from shopapp.taobao import apis
 from common.utils import (parse_date, CSVUnicodeWriter, parse_datetime,
                           format_date, format_datetime)
 from shopback import paramconfig as pcfg

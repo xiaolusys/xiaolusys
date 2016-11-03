@@ -7,7 +7,6 @@ from core.models import BaseModel
 from django.contrib.auth.models import User as DjangoUser
 from shopback.signals import user_logged_in
 from shopback import paramconfig as pcfg
-from auth import apis
 import logging
 
 logger = logging.getLogger('django.request')
@@ -208,6 +207,7 @@ class User(models.Model):
 
     def populate_user_info(self, top_session, top_parameters):
         """docstring for populate_user_info"""
+        from shopapp.taobao import apis
         response = apis.taobao_user_seller_get(tb_user_id=top_parameters['taobao_user_id'])
 
         userdict = response['user_seller_get_response']['user']
@@ -223,7 +223,8 @@ class User(models.Model):
         self.save()
 
     def verify_fenxiao_user(self):
-        from auth.apis.exceptions import UserFenxiaoUnuseException, InsufficientIsvPermissionsException
+        from shopapp.taobao import apis
+        from shopapp.taobao.exceptions import UserFenxiaoUnuseException, InsufficientIsvPermissionsException
         try:
             apis.taobao_fenxiao_login_user_get(tb_user_id=self.visitor_id)
         except (UserFenxiaoUnuseException, InsufficientIsvPermissionsException):
@@ -235,6 +236,7 @@ class User(models.Model):
 
     def authorize_increment_notify(self):
         # 对用户的主动通知授权
+        from shopapp.taobao import apis
         try:
             response = apis.taobao_increment_customer_permit(type='get,syn,notify',
                                                              topics='trade;refund;item',

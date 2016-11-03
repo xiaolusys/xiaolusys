@@ -20,7 +20,7 @@ from shopback.items.models import Item, Product
 from shopback.users.models import User
 from shopapp.autolist.models import Logs, ItemListTask, TimeSlots, UNEXECUTE, UNSCHEDULED, DELETE, LISTING_TYPE, \
     DELISTING_TYPE
-from auth import apis
+from shopapp.taobao import apis
 from . import serializers
 from rest_framework import permissions
 from rest_framework.response import Response

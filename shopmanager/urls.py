@@ -1,6 +1,6 @@
 from django.conf.urls import patterns, include, url
 from django.views.decorators.csrf import csrf_exempt
-from auth.accounts.views import home
+from django.http import HttpResponseRedirect
 from django.views.generic import TemplateView
 from django.contrib import admin
 from django.conf import settings
@@ -11,10 +11,13 @@ from httpproxy.views import HttpProxy
 
 admin.autodiscover()
 
+def home(request):
+    return HttpResponseRedirect('/admin/')
+
 urlpatterns = patterns(
     '',
    (r'^admin/doc/', include('django.contrib.admindocs.urls')),
-   (r'^accounts/', include('auth.accounts.urls')),
+   (r'^accounts/', include('shopapp.taobao.urls')),
    (r'^category/', include('shopback.categorys.urls')),
    (r'^fenxiao/', include('shopback.fenxiao.urls')),
    (r'^items/', include('shopback.items.urls')),

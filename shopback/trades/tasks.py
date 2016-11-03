@@ -19,7 +19,6 @@ from shopback.trades.models import (MergeTrade,
 from core.options import log_action, User as DjangoUser, ADDITION, CHANGE
 from common.utils import update_model_fields
 from shopback.users.models import User, Customer
-from auth import apis
 import logging
 
 logger = logging.getLogger('celery.handler')

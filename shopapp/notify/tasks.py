@@ -17,7 +17,6 @@ from shopback.refunds.models import Refund
 from shopback.users.models import User
 from shopback.signals import rule_signal
 from shopapp.signals import modify_fee_signal
-from auth import apis
 from common.utils import update_model_fields
 import logging
 

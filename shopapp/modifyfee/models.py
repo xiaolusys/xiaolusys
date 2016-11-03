@@ -2,7 +2,6 @@
 import datetime
 from django.db import models
 from shopapp.signals import modify_fee_signal
-from auth import apis
 
 
 class FeeRule(models.Model):

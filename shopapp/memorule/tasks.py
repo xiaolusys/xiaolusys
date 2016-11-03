@@ -12,7 +12,7 @@ from shopback.logistics.models import LogisticsCompany
 from shopback.monitor.models import SystemConfig
 from shopback.signals import rule_signal
 from common.utils import parse_datetime, single_instance_task
-from auth.apis import taobao_trade_memo_update
+from shopapp.taobao.apis import taobao_trade_memo_update
 import logging
 
 logger = logging.getLogger('django.request')

@@ -5,11 +5,8 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login, SESSION_KEY
-from django.contrib.auth.decorators import login_required
 from shopback.signals import user_logged_in
-from shopback.orders.models import Trade
-from common.utils import parse_urlparams, parse_datetime
-from auth import apis
+
 
 import logging
 

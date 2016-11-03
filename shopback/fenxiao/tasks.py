@@ -6,7 +6,7 @@ from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
 from shopback.fenxiao.models import PurchaseOrder, FenxiaoProduct, SubPurchaseOrder
-from auth.apis.exceptions import UserFenxiaoUnuseException, TaobaoRequestException
+from shopapp.taobao.exceptions import UserFenxiaoUnuseException, TaobaoRequestException
 from shopback.monitor.models import TradeExtraInfo, SystemConfig, DayMonitorStatus
 from shopback.trades.models import MergeTrade
 from shopback import paramconfig as pcfg
@@ -16,7 +16,7 @@ from common.utils import (format_time,
                           format_year_month,
                           parse_datetime,
                           single_instance_task)
-from auth import apis
+from shopapp.taobao import apis
 import logging
 
 __author__ = 'meixqhi'

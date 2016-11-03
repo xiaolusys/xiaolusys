@@ -4,7 +4,6 @@ import datetime
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
 from django.conf import settings
 from django.core.urlresolvers import reverse
-from auth import staff_requried
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
@@ -42,7 +41,7 @@ logger = logging.getLogger('django.request')
 __author__ = 'meixqhi'
 
 
-@staff_requried(login_url=settings.LOGIN_URL)
+@staff_member_required
 def update_interval_refunds(request, dt_f, dt_t):
     dt_f = parse_date(dt_f)
     dt_t = parse_date(dt_t)

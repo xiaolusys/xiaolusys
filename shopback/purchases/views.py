@@ -32,7 +32,7 @@ from core.options import log_action, ADDITION, CHANGE
 from shopback.purchases import permissions as perm
 from shopback.monitor.models import SystemConfig
 from common.utils import CSVUnicodeWriter
-from auth import staff_requried
+from django.contrib.admin.views.decorators import staff_member_required
 import logging
 from django.http import HttpResponse, Http404
 from rest_framework import authentication
@@ -285,7 +285,7 @@ class PurchaseShipStorageView(APIView):
 
 
 @csrf_exempt
-@staff_requried
+@staff_member_required
 def delete_purchase_item(request):
     """ 删除采购项 """
     content = request.REQUEST
@@ -314,7 +314,7 @@ def delete_purchase_item(request):
     return HttpResponse(json.dumps({'code': 0, 'response_content': 'success'}), content_type='application/json')
 
 
-@staff_requried
+@staff_member_required
 def download_purchase_file(request, id):
     """ 下载采购合同信息 """
     try:
@@ -337,7 +337,7 @@ def download_purchase_file(request, id):
 
 
 @csrf_exempt
-@staff_requried
+@staff_member_required
 def upload_purchase_file(request, id):
     """上次采购合同"""
 
@@ -614,7 +614,7 @@ class ConfirmStorageView(APIView):
 
 
 @csrf_exempt
-@staff_requried
+@staff_member_required
 def refresh_purchasestorage_ship(request, id):
     try:
         purchase_storage = PurchaseStorage.objects.get(id=id, status=pcfg.PURCHASE_DRAFT)
@@ -631,7 +631,7 @@ def refresh_purchasestorage_ship(request, id):
 
 
 @csrf_exempt
-@staff_requried
+@staff_member_required
 def delete_purchasestorage_item(request):
     """ 删除采购项 """
     content = request.REQUEST
@@ -657,7 +657,7 @@ def delete_purchasestorage_item(request):
     return HttpResponse(json.dumps({'code': 0, 'response_content': 'success'}), content_type='application/json')
 
 
-@staff_requried
+@staff_member_required
 def download_purchasestorage_file(request, id):
     """ 下载入库单信息 """
     try:
@@ -680,7 +680,7 @@ def download_purchasestorage_file(request, id):
 
 
 @csrf_exempt
-@staff_requried
+@staff_member_required
 def upload_purchase_storage_file(request, id):
     """上次采购合同"""
 
@@ -984,7 +984,7 @@ class PaymentDistributeView(APIView):
 
 
 @csrf_exempt
-@staff_requried
+@staff_member_required
 @transaction.atomic
 def confirm_payment_amount(request):
     content = request.REQUEST

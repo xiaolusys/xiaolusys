@@ -2,11 +2,11 @@ import json
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
-from auth import staff_requried
+from django.contrib.admin.views.decorators import staff_member_required
 from common.utils import parse_datetime, parse_date, format_time, map_int2str
 from shopback.logistics.tasks import updateAllUserOrdersLogisticsTask
 from shopback.logistics.models import Logistics, LogisticsCompany
-from auth import apis
+from shopapp.taobao import apis
 
 __author__ = 'meixqhi'
 
@@ -22,7 +22,7 @@ def update_logistics_company(request):
     return HttpResponse(json.dumps({'code': 0, 'response': 'ok'}), content_type='application/json')
 
 
-@staff_requried(login_url=settings.LOGIN_URL)
+@staff_member_required
 def update_interval_logistics(request, dt_f, dt_t):
     dt_f = parse_date(dt_f)
     dt_t = parse_date(dt_t)

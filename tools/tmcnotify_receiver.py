@@ -12,7 +12,7 @@ from django.conf import settings
 
 from shopapp.tmcnotify.models import TmcMessage, TmcUser, DEFAULT_GROUP_NAME
 from shopapp.tmcnotify.tasks import ProcessMessageTask
-from auth import apis
+from shopapp.taobao import apis
 import logging
 
 logger = logging.getLogger('notifyserver.handler')

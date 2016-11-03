@@ -13,7 +13,7 @@ from django.core.cache import cache
 from shopback.users.models import User
 from shopback.monitor.models import TradeExtraInfo
 from common.utils import parse_datetime
-from auth import apis
+from shopapp.taobao import apis
 from shopback.warehouse import constants
 import logging
 from shopback import paramconfig as pcfg

@@ -10,7 +10,7 @@ from shopback.items.models import Item
 from shopback import paramconfig as pcfg
 from shopback.signals import merge_trade_signal
 from common.utils import parse_datetime
-from auth import apis
+from shopapp.taobao import apis
 import logging
 
 logger = logging.getLogger('django.request')

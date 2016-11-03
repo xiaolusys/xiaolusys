@@ -15,7 +15,7 @@ from django.db import transaction
 from django.forms.models import model_to_dict
 from django.core.cache import cache
 
-from auth import apis
+from shopapp.taobao import apis
 from common.modelutils import update_model_fields
 from core.models import AdminModel
 from flashsale.restpro.local_cache import image_watermark_cache

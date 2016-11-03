@@ -53,7 +53,7 @@ class Comment(models.Model):
 
     def reply_order_comment(self, content, replayer):
         import datetime
-        from auth import apis
+        from shopapp.taobao import apis
         from shopback.items.models import Item
 
         rel_item = Item.objects.get(num_iid=self.num_iid)

@@ -2,7 +2,7 @@
 from django.db import models
 
 from shopback import paramconfig as pcfg
-from auth import apis
+from shopapp.taobao import apis
 
 from core.models import BaseModel
 
