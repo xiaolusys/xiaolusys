@@ -2,7 +2,7 @@
 import os
 import sys
 sys.path.append('.')
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shopmanager.local_settings")
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'shopmanager.local_settings')
 # from shopapp.weixin.weixin_apis import WeiXinAPI
 from shopapp.weixin.weixin_push import WeixinPush
 from flashsale.pay.models.trade import SaleTrade, SaleOrder
@@ -14,8 +14,8 @@ from flashsale.xiaolumm.models.models_fortune import OrderCarry, AwardCarry
 def test_main():
     ordercarry = OrderCarry.objects.get(id=10)
     push = WeixinPush()
-    remarks = u"来自好友%s，快打开App看看她买了啥～" % ordercarry.contributor_nick
-    to_url = "http://m.xiaolumeimei.com/sale/promotion/appdownload/"
+    remarks = u'来自好友%s，快打开App看看她买了啥～' % ordercarry.contributor_nick
+    to_url = 'http://m.xiaolumeimei.com/sale/promotion/appdownload/'
     # push.push_mama_ordercarry(ordercarry, remarks, to_url)
     mama_id = 1
     user_version = '1.1'
@@ -65,10 +65,35 @@ def test_push_salerefund():
     push.push_refund_notify(salerefund, 9)
 
 
+def test_send_msg():
+    from shopapp.weixin.weixin_apis import WeiXinAPI
+    # openid = 'our5huD8xO6QY-lJc1DTrqRut3us'
+    openid = 'our5huNlWVnegDDtQ5BHy7qaaBYM'  #　子飞
+
+    params = {
+        'touser': openid,
+        'msgtype': 'news',
+        'news': {
+            'articles': [
+             {
+                 'title': '小鹿美美｜欢迎加入小鹿妈妈！',
+                 'description': '小鹿美美｜欢迎加入小鹿妈妈！',
+                 'url': 'http://m.xiaolumeimei.com/mama_shop/html/greetings_mama.html',
+                 'picurl': 'http://7xogkj.com1.z0.glb.clouddn.com/xiaolumm/manager/yaya.jpg'
+             },
+             ]
+        }
+    }
+
+    wxapi = WeiXinAPI()
+    wxapi.send_custom_message(params)
+
+
 if __name__ == '__main__':
     import django
     django.setup()
 
     # test_push_new_mama_task()
-    test_push_clickcarry()
+    # test_push_clickcarry()
     # test_push_pintuan()
+    test_send_msg()
