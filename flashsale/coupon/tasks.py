@@ -222,12 +222,13 @@ def task_release_coupon_for_register(instance):
 
 
 @task()
-def task_roll_back_usercoupon_by_refund(trade_tid):
+def task_roll_back_usercoupon_by_refund(trade_tid, num):
     from flashsale.coupon.models import UserCoupon
 
-    cou = UserCoupon.objects.filter(trade_tid=trade_tid).first()
-    if cou:
-        cou.release_usercoupon()
+    for i in range(num):
+        cou = UserCoupon.objects.filter(trade_tid=trade_tid, status=UserCoupon.USED).first()
+        if cou:
+            cou.release_usercoupon()
     return
 
 
