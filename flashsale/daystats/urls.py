@@ -67,6 +67,7 @@ urlpatterns += patterns(
     url(r'^yunying/sql/$', 'sql.index', name='yy-sql-index'),
     url(r'^yunying/sql/(?P<id>.*)/destroy$', 'sql.destroy', name='yy-sql-destroy'),
     url(r'^yunying/sql/create$', 'sql.create', name='yy-sql-create'),
+    url(r'^yunying/sql/query$', 'sql.query', name='yy-sql-query'),
 
     url(r'^yunying/databse/index$', 'database.index', name='yy-database-index'),
     url(r'^yunying/databse/table/(?P<name>.*)$', 'database.table', name='yy-database-table'),

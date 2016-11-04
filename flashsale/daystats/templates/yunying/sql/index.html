@@ -8,14 +8,18 @@
     <tr>
       <th></th>
       <th>NAME</th>
-      <th>SQL</th>
+      <th>DISPLAY</th>
       <th></th>
     </tr>
       {% for item in items %}
       <tr>
         <td>{{ forloop.counter }}</td>
-        <td>{{ item.name }}</td>
-        <td><a href="{% url 'yy-mama-tab' %}?sql={{ item.sql }}&date_field={{ item.date_field }}&query_name={{ item.name }}&key_desc={{ item.key_desc }}" target="_blank">{{ item.sql }}</a></td>
+        {% if item.display == 'table' %}
+        <td><a href="{% url 'yy-sql-query' %}?sql={{ item.sql }}&query_name={{ item.name }}" target="_blank">{{ item.name }}</a></td>
+        {% else %}
+        <td><a href="{% url 'yy-mama-tab' %}?sql={{ item.sql }}&date_field={{ item.date_field }}&query_name={{ item.name }}&key_desc={{ item.key_desc }}" target="_blank">{{ item.name }}</a></td>
+        {% endif %}
+        <td>{{ item.display }}</td>
         <td>
           <a href="{% url 'yy-sql-destroy' item.id %}">删除</a>
         </td>
