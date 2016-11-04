@@ -492,9 +492,9 @@ class InBound(models.Model):
         products = self.products
         for sku in self.product_skus:
             for product in products:
+                if not hasattr(product, 'detail_skus'):
+                    product.detail_skus = []
                 if sku.product_id == product.id:
-                    if not hasattr(product, 'detail_skus'):
-                        product.detail_skus = []
                     product.detail_skus.append(sku)
                     break
                     continue
