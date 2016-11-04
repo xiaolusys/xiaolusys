@@ -1,0 +1,812 @@
+def task_weixin_push_invite_trial(referal_mama_id, potential_mama_id):
+    from flashsale.xiaolumm.models import PotentialMama, ReferalRelationship, AwardCarry
+    res = PotentialMama.objects.filter(referal_mama=referal_mama_id).values('is_full_member').annotate(n=Count('is_full_member'))
+    trial_num,convert_num = 0,0
+    for entry in res:
+        if entry['is_full_member'] == True:
+            convert_num = entry['n']
+        if entry['is_full_member'] == False:
+            trial_num = entry['n']
+    invite_num = trial_num + convert_num
+    if invite_num < 2:
+        target_num = 2
+        award_num = 5
+    elif invite_num < 5:
+        target_num = 5
+        award_num = 10
+    elif invite_num < 10:
+        target_num = 10
+        award_num = 15
+    else:
+        target_num = (invite_num / 5 + 1)* 5
+        award_num = 10
+    diff_num = target_num - invite_num
+    ac = AwardCarry.objects.filter(mama_id=referal_mama_id,carry_type__gte=6,carry_type__lte=7).aggregate(n=Sum('carry_num'))
+    award_sum = ac['n'] or 0
+    award_sum = award_sum * 0.01
+    from flashsale.xiaolumm import utils
+    rr_cnt = ReferalRelationship.objects.filter(referal_from_mama_id=referal_mama_id).count()
+    carry_num = utils.get_award_carry_num(rr_cnt, XiaoluMama.FULL)
+    carry_num = carry_num * 0.01
+    from shopapp.weixin.weixin_push import WeixinPush
+    wp = WeixinPush()
+    wp.push_mama_invite_trial(referal_mama_id,potential_mama_id, diff_num,award_num,invite_num,award_sum,trial_num,carry_num)
+
+
+for pm in pms:                                                                           
+    rr = ReferalRelationship.objects.filter(referal_to_mama_id=pm.referal_mama).first()
+    r1 = ReferalRelationship.objects.filter(referal_to_mama_id=pm.potential_mama).first()
+    if rr:
+        if r1.referal_from_grandma_id != rr.referal_from_mama_id:
+            print pm.referal_mama, pm.potential_mama, r1.referal_from_grandma_id, rr.referal_from_mama_id
+    else:
+        if r1.referal_from_grandma_id != 0:
+            print pm.referal_mama, pm.potential_mama
+
+for pm in pms:
+    rr = ReferalRelationship.objects.filter(referal_to_mama_id=pm.potential_mama).first()
+    if rr.referal_from_mama_id != pm.referal_mama:
+        print pm.referal_mama, pm.potential_mama
+
+
+
+for pm in pms:                                                                           
+    rr = ReferalRelationship.objects.filter(referal_to_mama_id=pm.referal_mama).first()
+    r1 = ReferalRelationship.objects.filter(referal_to_mama_id=pm.potential_mama).first()
+    if rr:
+        if r1.referal_from_grandma_id != rr.referal_from_mama_id:
+           r1.referal_from_mama_id = pm.referal_mama
+           r1.referal_from_grandma_id = rr.referal_from_mama_id
+           r1.save()
+
+
+for pm in pms:
+    rr = ReferalRelationship.objects.filter(referal_to_mama_id=pm.potential_mama).first()
+    if not rr:
+       pm.save()
+
+
+
+for pm in pms:
+    r1 = ReferalRelationship.objects.filter(referal_to_mama_id=pm.potential_mama).first()
+    rr = ReferalRelationship.objects.filter(referal_to_mama_id=pm.referal_mama).first()
+    if rr:
+        if r1.referal_from_grandma_id != rr.referal_from_mama_id:
+            r1.referal_from_grandma_id = rr.referal_from_mama_id
+            r1.save()
+    else:
+        if r1.referal_from_grandma_id != 0:
+            print pm.referal_mama, pm.potential_mama
+            
+for pm in pms:
+    rr = ReferalRelationship.objects.filter(referal_to_mama_id=pm.potential_mama).first()
+    if not rr:
+       cnt += 1
+
+
+
+mfs = MamaFortune.objects.filter(mama_level__gt=0)  
+for mf in mfs:
+    mama_id = mf.mama_id
+    cnt = ReferalRelationship.objects.filter(referal_from_mama_id=mama_id, referal_type__gt=XiaoluMama.HALF).count()
+    if cnt < 15:
+        print cnt
+
+
+for mf in mfs:                                                                                                      
+    mama_id = mf.mama_id                                                                                            
+    rr = ReferalRelationship.objects.filter(referal_from_mama_id=mama_id).first()
+    rr.save()
+
+
+def gen_old_unikey(rr):
+    return "award-%s-%s" % (rr.referal_from_mama_id, rr.referal_to_mama_id)
+
+def gen_uni_key(rr):
+    return 'awardcarry-%s-%s' % (rr.referal_to_mama_id, 1)
+
+
+
+for rr in rrs:
+    key1 = gen_old_unikey(rr)
+    key2 = gen_uni_key(rr)
+    a1 = AwardCarry.objects.filter(uni_key=key1).first()
+    a2 = AwardCarry.objects.filter(uni_key=key2).first()
+    if a1 and a2:
+       print "wrong"
+    if a1:
+        CarryRecord.objects.filter(uni_key=key1).update(uni_key=key2)        
+        AwardCarry.objects.filter(uni_key=key1).update(uni_key=key2)
+
+for rr in r:
+    key1 = gen_old_unikey(rr)
+    key2 = gen_uni_key(rr)
+    a1 = AwardCarry.objects.filter(uni_key=key1).first()
+    b1 = CarryRecord.objects.filter(uni_key=key1).first()
+    if a1:
+        a1.delete()
+    if b1:
+        b1.delete()
+
+
+
+for rr in rrs:
+    key = gen_uni_key(rr)
+    a1 = AwardCarry.objects.filter(uni_key=key).first()
+    c1 = CarryRecord.objects.filter(uni_key=key).first()
+    if a1:
+        if not c1 and a1.mama_id > 0:
+           a1.save()
+           cnt += 1
+           print a1.mama_id, a1.contributor_mama_id
+
+
+for rr in rrs:
+    key = gen_uni_key(rr)
+    a1 = AwardCarry.objects.filter(uni_key=key).first()
+    c1 = CarryRecord.objects.filter(uni_key=key).first()
+    if a1:
+        if rr.referal_type < 183 and a1.status != 1:
+            print a1.mama_id, a1.contributor_mama_id, 'ac status'
+        if c1 and a1.status != c1.status:
+            print a1.mama_id, a1.contributor_mama_id, 'cr status'
+
+
+
+def calc_carry(rr):
+    from_mama_id = rr.referal_from_mama_id
+    rr_cnt = ReferalRelationship.objects.filter(referal_from_mama_id=from_mama_id, referal_type__gte=XiaoluMama.HALF, created__lt=rr.created).count()
+    rr_cnt += 1
+    carry_num = utils.get_award_carry_num(rr_cnt, rr.referal_type)
+    return carry_num
+
+rrs = ReferalRelationship.objects.all()
+for rr in rrs:
+    uni_key = AwardCarry.gen_uni_key(rr.referal_to_mama_id, 1)
+    ac = AwardCarry.objects.filter(uni_key=uni_key).first()
+    if ac:
+       carry_num = calc_carry(rr)
+       if ac.carry_num != carry_num:
+          print rr.referal_from_mama_id, rr.referal_to_mama_id, ac.carry_num, carry_num
+          rr.save()
+
+
+for id in gids:
+    c1 = GroupRelationship.objects.filter(leader_mama_id=id).count()
+    c2 = ReferalRelationship.objects.filter(referal_from_grandma_id=id,referal_type__gte=183).count()
+    if c1 != c2:
+        print id, c1, c2
+
+
+def update_mama_fans(instance):
+    from flashsale.xiaolumm.models import XiaoluMama
+    from flashsale.xiaolumm.models import XlmmFans
+    mama = XiaoluMama.objects.filter(id=instance.referal_to_mama_id).first()
+    if not mama:
+        return
+    customer = mama.get_mama_customer()
+    if not customer:
+        return
+    fans_cusid = customer.id
+    fans_nick = customer.nick
+    fans_thumbnail = customer.thumbnail
+    fan = XlmmFans.objects.filter(fans_cusid=fans_cusid).first()
+    if fan:
+        return
+    from_mama_id = instance.referal_from_mama_id
+    from_mama = XiaoluMama.objects.filter(id=from_mama_id).first()
+    if not from_mama:
+        return
+    from_customer = from_mama.get_mama_customer()
+    if not from_customer:
+        return
+    xlmm_cusid = from_customer.id
+    fan = XlmmFans(xlmm=from_mama_id, xlmm_cusid=xlmm_cusid, refreal_cusid=xlmm_cusid, fans_cusid=fans_cusid,
+                   fans_nick=fans_nick, fans_thumbnail=fans_thumbnail)
+    fan.save()
+
+
+
+    if instance.is_direct_or_fans_carry():
+        # find out parent mama_id, and this relationship must be established before the order creation date.
+        referal_relationships = ReferalRelationship.objects.filter(referal_to_mama_id=instance.mama_id,
+                                                                   created__lt=instance.created)
+        from flashsale.xiaolumm import tasks_mama
+        if referal_relationships.count() > 0:
+            referal_relationship = referal_relationships[0]
+            tasks_mama.task_update_second_level_ordercarry.delay(referal_relationship, instance)
+        else:
+            # 看潜在关系列表
+            from flashsale.xiaolumm.models import PotentialMama
+            try:
+                potential = PotentialMama.objects.filter(potential_mama=instance.mama_id).latest('created')
+            except PotentialMama.DoesNotExist:
+                return
+            tasks_mama.task_update_second_level_ordercarry_by_trial.delay(potential, instance)
+
+
+for oc in ocs:                                                                  
+    o = OrderCarry.objects.filter(order_id=oc.order_id,carry_type__lt=3).first()
+    if o.status != oc.status and o.mama_id > 0:                                 
+        o.save()                                                                
+        cnt += 1
+
+
+for oc in ocs:
+    uni_key1 = util_unikey.gen_ordercarry_unikey(1, oc.order_id)
+    o = OrderCarry.objects.filter(uni_key=uni_key1).first()
+    if not o:
+        uni_key2 = util_unikey.gen_ordercarry_unikey(2, oc.order_id)
+        o = OrderCarry.objects.filter(uni_key=uni_key2).first()
+    if o.status != oc.status:
+        o.save()
+
+oids = []
+def get_status(ocs):
+    staging, confirmed, canceled = [],[],[]
+    for oc in ocs:
+        oid = oc.order_id
+        os = SaleOrder.objects.filter(oid=oid).first()
+        if not os:
+            print oid
+        elif os.is_pending():
+            staging.append(oid)
+        elif os.is_confirmed():
+            confirmed.append(oid)
+        elif os.is_canceled():
+            canceled.append(oid)
+    return staging,confirmed,canceled
+
+
+both, other = 0,0
+for c in cancled:                                            
+    uni_key1 = '-'.join(['order', '1', order_id])
+    oc1 = OrderCarry.objects.filter(uni_key=uni_key1).first()
+    uni_key2 = '-'.join(['order', '2', order_id])
+    oc2 = OrderCarry.objects.filter(uni_key=uni_key2).first()
+    if oc1 and oc2:                                          
+        cnt += 1
+    else:
+        SaleOrder.objects.filter(oid=c).first().save()
+
+
+cnt = 0
+for oc in ocs:
+    uni_key = '-'.join(['order', '1', oc.order_id])
+    o = OrderCarry.objects.filter(uni_key=uni_key).first()
+
+
+
+cnt = 0
+for rr in rrs:
+    mama_id = rr.referal_to_mama_id
+    mama = XiaoluMama.objects.filter(id=mama_id).first()
+    if not mama:
+        print 'mama_id:', mama_id
+        continue
+    customer = mama.get_mama_customer()
+    if not customer:
+        print mama_id
+        continue
+    fans_cusid = customer.id
+    fan = XlmmFans.objects.filter(fans_cusid=fans_cusid).first()
+    if not fan:
+        cnt += 1
+
+
+cnt = 0
+for b in both:                                              
+    uni_key1 = '-'.join(['order', '1', b])                  
+    uni_key2 = '-'.join(['order', '2', b])
+    o1 = OrderCarry.objects.filter(uni_key=uni_key1).first()
+    o2 = OrderCarry.objects.filter(uni_key=uni_key2).first()
+    if o1 and o2:
+        if o1.status == o2.status:
+            o1.delete()
+            cnt += 1
+    else:
+        print b
+
+cnt = 0
+temp = []
+for b in ocs:                                              
+    uni_key1 = '-'.join(['order', '1', b.order_id])                  
+    uni_key2 = '-'.join(['order', '2', b.order_id])
+    o1 = CarryRecord.objects.filter(uni_key=uni_key1).first()
+    o2 = CarryRecord.objects.filter(uni_key=uni_key2).first()
+    if o1 and o2:
+        o1.status = 3
+        o1.save()
+        o1.delete()
+        cnt += 1
+
+for b in other:
+    uni_key1 = '-'.join(['order', '1', b])
+    o = OrderCarry.objects.filter(uni_key=uni_key1).first()
+    if o:
+        other.append(b)
+        cnt += 1 
+
+
+both = []
+for b in ocs:                                              
+    uni_key1 = '-'.join(['order', '1', b.order_id])                  
+    o1 = OrderCarry.objects.filter(uni_key=uni_key1).first()
+    if o1:
+        both.append(b.order_id)
+
+
+
+crs = CarryRecord.objects.filter(date_field__gte=day,uni_key__startswith='order-1-',carry_type=2)
+
+both = []
+for cr in crs:
+    tokens = cr.uni_key.split('-1-')
+    uni_key = '%s-2-%s" % (tokens[0],tokens[1]) 
+    c = CarryRecord.objects.filter(date_field__gte=day,uni_key=uni_key,carry_type=2).first()
+    if c:
+        both.append(cr)
+
+cnt = 0
+for b in both:
+    uni_key1 = b.uni_key
+    tokens = cr.uni_key.split('-1-')
+    uni_key2 = '%s-2-%s' % (tokens[0],tokens[1]) 
+    c1 = CarryRecord.objects.filter(date_field__gte=day,uni_key=uni_key1,carry_type=2).first()
+    c2 = CarryRecord.objects.filter(date_field__gte=day,uni_key=uni_key2,carry_type=2).first()
+    if c1 and c2:
+        if c1.status == c2.status:
+            c2.status = 3
+            c2.save()
+            c2.delete()
+            cnt += 1
+    else:
+        print b.uni_key
+
+
+ocs = OrderCarry.objects.filter(uni_key__startswith='order-9').exclude(carry_type=3)
+
+
+def process(ocs):
+    cnt = 0
+    for b in ocs:
+        uni_key1 = '-'.join(['order', '1', b.order_id])
+        uni_key2 = '-'.join(['order', '2', b.order_id])
+        c1 = OrderCarry.objects.filter(uni_key=uni_key1).count()
+        c2 = OrderCarry.objects.filter(uni_key=uni_key2).count()
+        if c1 == 0 and c2 == 0:
+            key = b.uni_key
+            r = OrderCarry.objects.filter(uni_key=key).update(uni_key=uni_key1)
+            r = CarryRecord.objects.filter(uni_key=key).update(uni_key=uni_key1)
+            cnt += 1
+            if cnt % 1000 == 0:
+                print cnt
+    return cnt
+
+def clean(ocs):     
+    cnt = 0   
+    for b in ocs:
+        uni_key1 = '-'.join(['order', '1', b.order_id])
+        c1 = OrderCarry.objects.filter(uni_key=uni_key1).count()
+        if c1 > 0:
+            key = b.uni_key
+            o = OrderCarry.objects.filter(uni_key=key).first()
+            if o.status != 3:
+                o.status = 3
+                o.save()
+            o.delete()
+            cnt += 1
+    return cnt
+
+
+def process1(ocs):
+    cnt = 0
+    for b in ocs:
+        uni_key1 = '-'.join(['order', '3', b.order_id])
+        c1 = OrderCarry.objects.filter(uni_key=uni_key1).count()
+        if c1 == 0:
+            key = b.uni_key
+            r = OrderCarry.objects.filter(uni_key=key).update(uni_key=uni_key1)
+            r = CarryRecord.objects.filter(uni_key=key).update(uni_key=uni_key1)
+            cnt += 1
+            if cnt % 1000 == 0:
+                print cnt
+    return cnt
+
+def clean1(ocs):     
+    cnt = 0   
+    for b in ocs:
+        uni_key1 = '-'.join(['order', '3', b.order_id])
+        c1 = OrderCarry.objects.filter(uni_key=uni_key1).count()
+        if c1 > 0:
+            key = b.uni_key
+            o = OrderCarry.objects.filter(uni_key=key).first()
+            if o.status != 3:
+                o.status = 3
+                o.save()
+            o.delete()
+            cnt += 1
+    return cnt
+
+
+t = datetime.date(2016,3,24)
+cnt = 0
+for b in crs:
+    uni_key = b.uni_key
+    tokens = uni_key.split('-')
+    uni_key1 = 'order-3-%s ' % tokens[2]
+    cr = CarryRecord.objects.filter(uni_key=uni_key1).first()
+    if cr and cr.mama_id != b.mama_id:
+        if b.status != 2:
+            b.delete()
+
+        print b.uni_key, b.status
+
+
+        if cr and cr.mama_id != b.mama_id:
+            cnt += 1
+
+
+def get_num(uni_key):                                                                                 
+    pds = PurchaseDetail.objects.filter(purchase_order_unikey=uni_key)                                
+    psis_total = 0 
+    for pd in pds:
+        psi_res = PackageSkuItem.objects.filter(sku_id=pd.sku_id, assign_status=PackageSkuItem.NOT_ASSIGNED,purchase_order_unikey='').aggregate(total=Sum('num'))
+        psi_total = psi_res['total'] or 0
+        psis_total += psi_total
+    return psis_total
+
+
+uni_key='29597-5'
+pas = PurchaseArrangement.objects.filter(purchase_order_status=PurchaseOrder.OPEN,status=PurchaseRecord.EFFECT,purchase_order_unikey=uni_key)
+pa_oids = [pa.oid for pa in pas]                                                                                                             
+get_count(uni_key, pa_oids) 
+
+def get_count(uni_key, oids):                                                                                 
+    pds = PurchaseDetail.objects.filter(purchase_order_unikey=uni_key)                                
+    total = 0
+    for pd in pds:
+        psis = PackageSkuItem.objects.filter(sku_id=pd.sku_id, assign_status=PackageSkuItem.NOT_ASSIGNED,purchase_order_unikey='')
+        for psi in psis:
+            if not psi.oid in oids:
+                print psi.oid
+
+
+for oid in ids:                                                                                  
+    pas = PurchaseArrangement.objects.filter(oid=oid,num__gt=0,status=PurchaseRecord.EFFECT)      
+    psi = PackageSkuItem.objects.filter(oid=oid).first()
+    if psi.assign_status == 1:
+        for pa in pas:
+            if psi.purchase_order_unikey != pa.purchase_order_unikey:
+                pa.status = PurchaseRecord.CANCEL
+                pa.save()
+                cnt += 1
+
+
+from flashsale.xiaolumm.models import *
+from flashsale.pay.models import *
+
+
+def check_app_visit(mama_id):
+    cnt = 0
+    rrs = ReferalRelationship.objects.filter(referal_from_mama_id=mama_id)
+    for rr in rrs:
+        referal_to_mama_id = rr.referal_to_mama_id
+        visit = MamaDailyAppVisit.objects.filter(mama_id=referal_to_mama_id).first()
+        if visit:
+           cnt += 1
+    return cnt
+            
+def check_second_level_referal(mama_id):
+    cnt = 0
+    rrs = ReferalRelationship.objects.filter(referal_from_mama_id=mama_id)
+    for rr in rrs:
+        r = ReferalRelationship.objects.filter(referal_from_mama_id=rr.referal_to_mama_id).first()
+        if r:
+           cnt += 1
+    return cnt
+
+
+def disable_account(mama_id):
+    mama = XiaoluMama.objects.filter(id=mama_id).first()
+    XiaoluMama.objects.filter(id=mama_id).update(status=XiaoluMama.CANCEL)
+    Customer.objects.filter(unionid=mama.openid).update(status=2)        
+
+def enable_account(mama_id):
+    mama = XiaoluMama.objects.filter(id=mama_id).first()
+    XiaoluMama.objects.filter(id=mama_id).update(status=XiaoluMama.EFFECT)
+    Customer.objects.filter(unionid=mama.openid).update(status=Customer.NORMAL)        
+
+
+
+def pending_budgetlog(mama_id):
+    mama = XiaoluMama.objects.filter(id=mama_id).first()
+    customer = Customer.objects.filter(unionid=mama.openid).first()
+    u = BudgetLog.objects.filter(customer_id=customer.id,budget_log_type=BudgetLog.BG_REFERAL_FANS).update(status=BudgetLog.PENDING)
+    b = BudgetLog.objects.filter(customer_id=customer.id,budget_log_type=BudgetLog.BG_REFERAL_FANS).first()
+    if b:
+        b.save()
+    else:
+        print "++++", mama_id
+
+def pending_invite_award(mama_id):
+    acs = AwardCarry.objects.filter(mama_id=mama_id, carry_type=7)
+    acs.update(status=1)
+    for ac in acs:
+        CarryRecord.objects.filter(uni_key=ac.uni_key).update(status=1)
+    ac = acs.first()
+    if ac:
+      cr = CarryRecord.objects.filter(uni_key=ac.uni_key).first()
+      cr.save()
+
+
+    
+data = {}
+for mf in mfs:
+    referal = check_second_level_referal(mf.mama_id)
+    visit = check_app_visit(mf.mama_id)
+    if not mf.mama_id in data:
+        key = mf.mama_id
+        num = mf.invite_trial_num
+        data[key] = [num, referal, visit, float('%.2f' % (referal/num)), float('%.2f' % (visit/num))]
+
+
+
+num_threshold = 10
+
+MamaFortune.objects.filter(invite_trial_num__gte=num_threshold).count()
+
+t = datetime.datetime(2016,9,14,0,0,0)
+
+data = []
+mfs = MamaFortune.objects.filter(invite_trial_num__gte=num_threshold)
+for mf in mfs:
+    mama_id = mf.mama_id
+    referal = check_second_level_referal(mama_id)
+    visit = check_app_visit(mama_id)
+    data.append([mama_id, mf.invite_trial_num, referal, visit])
+
+for i in range(0,len(data)):
+    entry = data[i]
+    num = entry[1]
+    referal = entry[2]
+    visit = entry[3]
+    data[i].append(float('%.2f' % (referal*1.0/num)))
+    data[i].append(float('%.2f' % (visit*1.0/num)))
+
+record = sorted(data, key=lambda a:a[4]+a[5])
+
+cnt = 0
+for r in record:
+    mama_id = r[0]
+    if mama_id > 10000 and r[4]+r[5] < 0.1:
+       cnt += 1
+       print mama_id
+       pending_budgetlog(mama_id)
+
+
+
+
+for pm in pms:
+    mama_id = pm.potential_mama
+    mama = XiaoluMama.objects.filter(id=mama_id).first()
+    customer = Customer.objects.filter(unionid=mama.openid).first()
+    sos = SaleOrder.objects.filter(buyer_id=customer.id)
+    for so in sos:
+        if so.is_deposit():
+            print mama_id, customer.id
+            if mama_id in mamas:
+                mamas.remove(mama_id)
+
+
+cnt = 0
+for id in ids:
+    ac = AwardCarry.objects.filter(carry_type=7,status=1,date_field__gt='2016-09-12',mama_id=id).first()
+    cr = CarryRecord.objects.filter(uni_key=ac.uni_key).first()
+    cr.save()
+    cnt += 1
+    print cnt
+
+
+cnt = 0
+for pm in pms:
+    uni_key = AwardCarry.gen_uni_key(pm.potential_mama,7)
+    ac = AwardCarry.objects.filter(uni_key=uni_key).first()
+    if ac:
+        ac.status = 2
+        ac.save()
+    else:
+        cnt += 1
+        print pm.potential_mama
+
+
+
+for id in cids:
+    cnt = BudgetLog.objects.filter(budget_log_type=BudgetLog.BG_REFERAL_FANS,customer_id=id).count()
+    bl = BudgetLog.objects.filter(budget_log_type=BudgetLog.BG_REFERAL_FANS,customer_id=id).first()
+    th = 20                     
+    if bl.created < t:
+        th = 40
+    if cnt > th:
+        pending_ids.append(id)
+
+
+for id in pending_ids:
+    cnt=BudgetLog.objects.filter(budget_log_type=BudgetLog.BG_REFERAL_FANS,customer_id=id).count()
+    bl = BudgetLog.objects.filter(budget_log_type=BudgetLog.BG_REFERAL_FANS,customer_id=id).first()
+    th = 20
+    if bl.created < t:
+        th = 40
+    bl =  BudgetLog.objects.filter(budget_log_type=BudgetLog.BG_REFERAL_FANS,customer_id=id)[th]
+    BudgetLog.objects.filter(budget_log_type=BudgetLog.BG_REFERAL_FANS,customer_id=id,id__gt=bl.id).update(status=1)
+
+for id in pending_ids:
+    bl = BudgetLog.objects.filter(budget_log_type=BudgetLog.BG_REFERAL_FANS,customer_id=id).first()
+    bl.save()
+
+
+r = []
+cnt=0
+for id in mama_ids:
+    mama = XiaoluMama.objects.filter(id=id).first()
+    unionid = mama.openid  
+    c = Customer.objects.filter(unionid=unionid).first()
+    ub = UserBudget.objects.filter(user__id=c.id).first()
+    if ub:
+        if ub.amount > 0:
+            r.append(id)
+    else:
+        cnt += 1
+
+for id in r:
+    mama = XiaoluMama.objects.filter(id=id).first()
+    unionid = mama.openid  
+    c = Customer.objects.filter(unionid=unionid).first()
+    ub = UserBudget.objects.filter(user__id=c.id).first()
+    print id, c.id, ub.amount
+
+for id in ids:                                              
+    c = Customer.objects.filter(id=id).first()              
+    mm = XiaoluMama.objects.filter(openid=c.unionid).first()
+    mf = MamaFortune.objects.filter(mama_id=mm.id).first() 
+
+
+def gen_uni_key(bl):
+    budget_date = bl.budget_date
+    customer_id = bl.customer_id
+    budget_type = bl.budget_type
+    budget_log_type = bl.budget_log_type
+    created = bl.created
+    count = BudgetLog.objects.filter(customer_id=customer_id, budget_type=budget_type, budget_log_type=budget_log_type, budget_date=budget_date).exclude(uni_key=None).order_by('created').count()
+    return '%s-%s-%d-%d|%s' % (budget_log_type, budget_type, customer_id, count+1, budget_date)
+
+cnt = 0
+for bl in bls:
+    uni_key = gen_uni_key(bl)
+    z = BudgetLog.objects.filter(id=bl.id).update(uni_key=uni_key)
+    cnt += 1
+    if cnt % 1000 == 0:
+        print cnt
+
+
+
+def get_saletrade_sku_num_and_carry(order_id):
+    from flashsale.pay.models import SaleOrder
+    sale_order = SaleOrder.objects.filter(oid=order_id).first()
+    sos = sale_order.sale_trade.sale_orders.all()
+    cnt,carry = 0,0
+    for so in sos:
+        cnt += so.num
+        oc = OrderCarry.objects.filter(order_id=so.oid).first()
+        carry += oc.carry_num
+    
+    return cnt, carry
+
+
+263363
+def find_root_mama_unionid(openid):
+    fan = WeixinFans.objects.filter(openid=openid).first()
+    mama_id = fan.get_qrscene()
+    while mama_id and mama_id > 0:
+        mama = XiaoluMama.objects.filter(id=mama_id).first()    
+        unionid = mama.openid
+        fan = WeixinFans.objects.filter(unionid=unionid).first()
+        mama_id = fan.get_qrscene()
+
+def find_root_mama_id(openid):
+    fan = WeixinFans.objects.filter(openid=openid).first()
+    mama_id = int(fan.get_qrscene())
+    to_mama_id = None
+    while mama_id and mama_id > 0:
+        to_mama_id = mama_id
+        print to_mama_id
+        mama = XiaoluMama.objects.filter(id=to_mama_id).first()
+        unionid = mama.openid
+        fan = WeixinFans.objects.filter(unionid=unionid).first()
+        mama_id = fan.get_qrscene()
+    return to_mama_id
+        
+
+res = {}
+
+def iterative_search_network(unionid, res, level=1):
+    q = [unionid]
+    while q:
+        print len(q)
+        unionid = q[0]
+        mama = XiaoluMama.objects.filter(openid=unionid).first()
+        if mama:
+            s = '%s' % mama.id
+            extras = {'qrscene':s}
+            customer = Customer.objects.filter(unionid=unionid).first()
+            mobile = customer.mobile
+            fans_count = WeixinFans.objects.filter(extras=extras).count()
+            data = [mama.id, mobile, fans_count]
+            if not level in res:
+                res[level] = [data]
+            else:
+                res[level].append(data)
+            fans = WeixinFans.objects.filter(extras=extras)
+            for fan in fans:
+                q.append(fan.unionid)
+        q.remove(unionid)
+        level += 1
+           
+
+def search_network(unionid, res, level=1):
+    mama = XiaoluMama.objects.filter(openid=unionid).first()
+    s = '%s' % mama.id
+    extras = {'qrscene':s}
+    customer = Customer.objects.filter(unionid=unionid).first()
+    mobile = customer.mobile
+    fans_count = WeixinFans.objects.filter(extras=extras).count()
+    data = [mama.id, mobile, fans_count]
+    if not level in res:
+        res[level] = [data]
+    else:
+        res[level].append(data)
+    fans = WeixinFans.objects.filter(extras=extras)
+    for fan in fans:
+        search_network(fan.unionid, res, level+1)
+    
+
+def print_network_data(openid):
+    mama_id = find_root_mama_id(openid)
+    unionid = XiaoluMama.objects.filter(id=mama_id).first().unionid
+    res = {}
+    iterative_search_network(unionid, res, 1)
+    for k,v in res.iteritems():
+        for x in v:
+            print k, x
+
+
+
+
+
+from flashsale.coupon.models import *
+from flashsale.pay.models import Customer
+from flashsale.xiaolumm.models import *
+import datetime
+
+from_mama_thumbnail = Customer.objects.filter(id=1).first().thumbnail
+from_mama_nick = Customer.objects.filter(id=1).first().nick
+to_mama_thumbnail = Customer.objects.filter(id=12).first().thumbnail
+to_mama_nick = Customer.objects.filter(id=12).first().nick
+from_customer = Customer.objects.filter(id=1).first()
+to_customer = Customer.objects.filter(id=12).first()
+
+from_mama = XiaoluMama.objects.filter(openid=from_customer.unionid).first()
+to_mama = XiaoluMama.objects.filter(openid=to_customer.unionid).first()
+template_id=CouponTransferRecord.TEMPLATE_ID
+date_field=datetime.date.today()
+uni_key=CouponTransferRecord.gen_unikey(from_mama.id,to_mama.id,template_id,date_field)
+coupon = CouponTransferRecord(coupon_from_mama_id=from_mama.id,from_mama_thumbnail=from_mama_thumbnail,from_mama_nick=from_mama_nick,coupon_to_mama_id=to_mama.id,to_mama_thumbnail=to_mama_thumbnail,to_mama_nick=to_mama_nick,coupon_num=3,transfer_type=CouponTransferRecord.OUT_TRANSFER,uni_key=uni_key,date_field=date_field)
+coupon.save()
+
+
+from flashsale.xiaolumm.models import XiaoluMama
+def start_elite(mama_id):
+    m = XiaoluMama.objects.filter(id=mama_id).first()
+    m.referal_from = 'INDIRECT'
+    m.save()
+
