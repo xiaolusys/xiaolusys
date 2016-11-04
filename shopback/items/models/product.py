@@ -1106,8 +1106,8 @@ class ProductSku(models.Model):
     @property
     def stat(self):
         if not hasattr(self, '_stat_'):
-            from .stats import ProductSkuStats
-            self._stat_ = ProductSkuStats.get_by_sku(self.id)
+            from .stats import SkuStock
+            self._stat_ = SkuStock.get_by_sku(self.id)
         return self._stat_
 
     @property
@@ -1413,9 +1413,9 @@ class ProductSku(models.Model):
 def invalid_apiproductsku_cache(sender, instance, *args, **kwargs):
     if hasattr(sender, 'API_CACHE_KEY_TPL'):
         logger.debug('invalid_apiproductsku_cache: %s' % instance.id)
-        from .stats import ProductSkuStats
+        from .stats import SkuStock
         cache.delete(ProductSku.API_CACHE_KEY_TPL.format(instance.id))
-        cache.delete(ProductSkuStats.API_CACHE_KEY_TPL.format(instance.id))
+        cache.delete(SkuStock.API_CACHE_KEY_TPL.format(instance.id))
 
 post_save.connect(invalid_apiproductsku_cache, sender=ProductSku, dispatch_uid='post_save_invalid_apiproductsku_cache')
 
@@ -1466,7 +1466,7 @@ post_save.connect(calculate_product_stock_num, sender=ProductSku, dispatch_uid='
 
 def create_product_skustats(sender, instance, created, **kwargs):
     """
-    Whenever ProductSku gets created, we create ProductSkuStats
+    Whenever ProductSku gets created, we create SkuStock
     """
     if created:
         from shopback.items.tasks_stats import task_productsku_update_productskustats

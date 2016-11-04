@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 __author__ = 'yan.huang'
 from rest_framework import serializers
-from shopback.items.models import ProductSku, ProductSkuStats, Product
+from shopback.items.models import ProductSku, SkuStock, Product
 
 
 class ProductSkuSerializers(serializers.HyperlinkedModelSerializer):

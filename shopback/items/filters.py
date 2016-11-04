@@ -5,7 +5,7 @@ from django.db.models import F
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from core.filters import SimpleListFilter, FieldListFilter
-from shopback.items.models import ProductSkuStats
+from shopback.items.models import SkuStock
 from shopback.items.models import Product
 
 
@@ -236,7 +236,7 @@ class ProductSkuStatsUnusedStockFilter(SimpleListFilter):
                                                        - F('history_quantity') - F('adjust_quantity') - F(
                     'inbound_quantity'))
             if status_id == '3':
-                return queryset.filter(id__in=ProductSkuStats.redundancies())
+                return queryset.filter(id__in=SkuStock.redundancies())
 
 
 class ProductVirtualFilter(SimpleListFilter):
@@ -341,13 +341,13 @@ class ProductSkuStatsSupplierIdFilter(SimpleListFilter):
 
     def queryset(self, request, queryset):
         supplier_id = self.value()
-        from shopback.items.models import ProductSkuStats
+        from shopback.items.models import SkuStock
         from supplychain.supplier.models import SaleSupplier
         supplier = SaleSupplier.objects.filter(pk=supplier_id).first() if supplier_id else None
         if not supplier:
             return queryset
         else:
-            return queryset.filter(product_id__in=ProductSkuStats.filter_by_supplier(supplier.id))
+            return queryset.filter(product_id__in=SkuStock.filter_by_supplier(supplier.id))
 
 
 class ProductSkuStatsSupplierNameFilter(SimpleListFilter):
@@ -363,10 +363,10 @@ class ProductSkuStatsSupplierNameFilter(SimpleListFilter):
 
     def queryset(self, request, queryset):
         supplier_name = self.value()
-        from shopback.items.models import ProductSkuStats
+        from shopback.items.models import SkuStock
         from supplychain.supplier.models import SaleSupplier
         supplier = SaleSupplier.objects.filter(supplier_name=supplier_name).first() if supplier_name else None
         if not supplier:
             return queryset
         else:
-            return queryset.filter(product_id__in=ProductSkuStats.filter_by_supplier(supplier.id))
+            return queryset.filter(product_id__in=SkuStock.filter_by_supplier(supplier.id))

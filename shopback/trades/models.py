@@ -1881,8 +1881,8 @@ class PackageSkuItem(BaseModel):
     class Meta:
         db_table = 'flashsale_package_sku_item'
         app_label = 'trades'
-        verbose_name = u'包裹sku项'
-        verbose_name_plural = u'包裹sku项列表'
+        verbose_name = u'包裹商品'
+        verbose_name_plural = u'包裹商品列表'
 
     def set_failed_time(self):
         now_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -2014,14 +2014,14 @@ class PackageSkuItem(BaseModel):
         """
             执行完此方法后应该执行OrderList的set_by_package_sku_item方法。以确保订货数准确。
         """
-        from shopback.items.models import ProductSkuStats
+        from shopback.items.models import SkuStock
         if self.assign_status in [PackageSkuItem.VIRTUAL_ASSIGNED, PackageSkuItem.ASSIGNED]:
             PackageSkuItem.objects.filter(id=self.id).update(assign_status=PackageSkuItem.FINISHED,
                                                              out_sid=out_sid,
                                                              logistics_company_name=logistics_company.name,
                                                              logistics_company_code=logistics_company.code,
                                                              finish_time=datetime.datetime.now())
-            ProductSkuStats.objects.filter(sku_id=self.sku_id).update(post_num=F('post_num') + self.num)
+            SkuStock.objects.filter(sku_id=self.sku_id).update(post_num=F('post_num') + self.num)
 
     def gen_package(self):
         sale_trade = self.sale_trade

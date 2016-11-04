@@ -22,7 +22,7 @@ from flashsale.pay.models import default_modelproduct_extras_tpl
 from flashsale.pay.signals import signal_record_supplier_models
 from shopback.categorys.models import ProductCategory
 from shopback.items import constants
-from shopback.items.models import (Product, ProductSku, ProductSkuStats)
+from shopback.items.models import (Product, ProductSku, SkuStock)
 from supplychain.supplier.models import SaleSupplier, SaleProduct, SaleCategory, SaleProductManageDetail
 from shopback.items import serializers
 
@@ -277,7 +277,7 @@ class ProductManageViewSet(viewsets.ModelViewSet):
                                          barcode=barcode)
                     one_sku.save()
                     try:
-                        ProductSkuStats.get_by_sku(one_sku.id)
+                        SkuStock.get_by_sku(one_sku.id)
                     except Exception, exc:
                         logger.error('product skustats:　new_sku_id=%s, %s' % (one_sku.id, exc.message), exc_info=True)
 

@@ -546,7 +546,7 @@ def task_update_agg_sale_stats(sale_stats, time_from, time_to, upper_timely_type
 @task()
 def task_update_product_sku_stats(product_sku_stats):
     """
-    :param product_sku_stats: ProductSkuStats instance
+    :param product_sku_stats: SkuStock instance
     when the instance attr change save to stats .
     """
     if not (product_sku_stats.product and product_sku_stats.sku):
@@ -558,7 +558,7 @@ def task_update_product_sku_stats(product_sku_stats):
     date_field = product_sku_stats.product.sale_time
     if not date_field:
         return
-    quantity = product_sku_stats.realtime_quantity  # ProductSkuStats realtime_quantity
+    quantity = product_sku_stats.realtime_quantity  # SkuStock realtime_quantity
     inferior_num = product_sku_stats.inferior_num
     amount = product_sku_stats.sku.cost * quantity
     name = product.name + sku.properties_name

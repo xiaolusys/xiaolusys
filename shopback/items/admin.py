@@ -33,7 +33,7 @@ from shopback.items.filters import ChargerFilter, DateScheduleFilter, GroupNameF
 from common.utils import gen_cvs_tuple, CSVUnicodeWriter, update_model_fields
 from flashsale.pay.models import Productdetail
 from flashsale.pay.forms import ProductdetailForm
-from shopback.items.models import ProductSkuStats, ProductSkuSaleStats
+from shopback.items.models import SkuStock, ProductSkuSaleStats
 from shopback.items.models import InferiorSkuStats
 from shopback.items.filters import ProductSkuStatsSupplierIdFilter, ProductSkuStatsSupplierNameFilter, \
     ProductSkuStatsUnusedStockFilter, ProductWareByFilter
@@ -1225,7 +1225,7 @@ class ProductSkuContrastAdmin(admin.ModelAdmin):
 admin.site.register(ProductSkuContrast, ProductSkuContrastAdmin)
 
 
-class ProductSkuStatsAdmin(admin.ModelAdmin):
+class SkuStockAdmin(admin.ModelAdmin):
     list_display = (
         'sku_link', 'skucode', 'supplier','product_id_link', 'product_title', 'properties_name_alias',
         'now_quantity', 'old_quantity', 'sold_num_link', 'post_num_link', '_wait_post_num', 'unused_stock_link',
@@ -1254,7 +1254,7 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
     def lookup_allowed(self, lookup, value):
         if lookup in ['product__name', 'product__outer_id', 'supplier_id', 'supplier_name']:
             return True
-        return super(ProductSkuStatsAdmin, self).lookup_allowed(lookup, value)
+        return super(SkuStockAdmin, self).lookup_allowed(lookup, value)
 
     def get_search_results(self, request, queryset, search_term):
         import operator
@@ -1299,7 +1299,7 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
             else:
                 supplier = None
             if supplier:
-                queryset = queryset.filter(product_id__in=ProductSkuStats.filter_by_supplier(supplier.id))
+                queryset = queryset.filter(product_id__in=SkuStock.filter_by_supplier(supplier.id))
         return queryset, use_distinct
 
     def unused_stock_link(self, obj):
@@ -1609,12 +1609,12 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
     actions = ['gen_return_goods', 'gen_return_goods_by_five', 'mark_unreturn']
 
     def get_actions(self, request):
-        actions = super(ProductSkuStatsAdmin, self).get_actions(request)
+        actions = super(SkuStockAdmin, self).get_actions(request)
         actions.pop('delete_selected')
         return actions
 
 
-admin.site.register(ProductSkuStats, ProductSkuStatsAdmin)
+admin.site.register(SkuStock, SkuStockAdmin)
 
 
 class InferiorSkuStatsAdmin(admin.ModelAdmin):
@@ -1713,7 +1713,7 @@ class InferiorSkuStatsAdmin(admin.ModelAdmin):
     def lookup_allowed(self, lookup, value):
         if lookup in ['product__name', 'product__outer_id']:
             return True
-        return super(ProductSkuStatsAdmin, self).lookup_allowed(lookup, value)
+        return super(SkuStockAdmin, self).lookup_allowed(lookup, value)
 
     def get_changelist(self, request, **kwargs):
         """

@@ -10,13 +10,13 @@ def get_product_stat_by_ids(ids):
     pass
 
 def get_sku_stat_by_id(id):
-    from shopback.items.models import ProductSkuStats
-    obj = get_model_by_id({'sku_id': id}, ProductSkuStats)
+    from shopback.items.models import SkuStock
+    obj = get_model_by_id({'sku_id': id}, SkuStock)
     return obj
 
 def get_sku_stat_by_ids(ids):
-    from shopback.items.models import ProductSkuStats
-    return get_multi_model_by_ids({'sku_id': ids}, ProductSkuStats)
+    from shopback.items.models import SkuStock
+    return get_multi_model_by_ids({'sku_id': ids}, SkuStock)
 
 
 class Skustat(object):
