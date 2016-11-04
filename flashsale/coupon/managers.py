@@ -66,7 +66,6 @@ def check_saletrade(trade_id):
     return trade, 0, u"订单id正确"
 
 
-
 def make_uniq_id(tpl, customer_id, trade_id=None, share_id=None, refund_trade_id=None, cashout_id=None):
     """
     生成 uniq_id: template.id + template.coupon_type + customer_id + X
