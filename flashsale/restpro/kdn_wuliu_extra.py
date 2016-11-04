@@ -213,10 +213,11 @@ def comfirm_get(out_sid,status):
     if packageskuitem and int(status) == 3:
         logger.warn({'action': "kdn", 'info': "exp_num:" + out_sid})
         packageskuitem = [i['oid'] for i in packageskuitem]
-        so = SaleOrder.objects.filter(oid__in = packageskuitem,status=SaleOrder.WAIT_BUYER_CONFIRM_GOODS).first()
+        so = SaleOrder.objects.filter(oid__in = packageskuitem,status=SaleOrder.WAIT_BUYER_CONFIRM_GOODS)
         if so:
-            logger.warn({'action': "kdn", 'info': "change_get_goods:" + out_sid})
-            so.confirm_sign_order()
+            for i in so:
+                logger.warn({'action': "kdn", 'info': "change_get_goods:" + out_sid})
+                i.confirm_sign_order()
 
 def write_traces(kwargs):
     logger.warn({'action': "kdn", 'info': "start change status"})
@@ -370,7 +371,7 @@ if __name__ == '__main__':
     # test_info = {"expName" : '韵达快递',"expNo":"3101131769194"}
     # kdn_subscription_sub(**test_info)
     # format_content()
-    comfirm_get('3101131769194','3')
+    comfirm_get('882655691181230843','3')
 
 
 
