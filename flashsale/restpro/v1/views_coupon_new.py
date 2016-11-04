@@ -49,7 +49,10 @@ def release_tmp_share_coupon(customer):
             continue
         try:
             if tpl.coupon_type == CouponTemplate.TYPE_ORDER_SHARE:
-                template_id = constants.LIMIT_ORDER_SHARE_COUPON_TEMPLATE if st else tpl.id
+                # 存在订单分享优惠券
+                has_order_share_coupon = UserCoupon.objects.filter(customer_id=customer.id,
+                                                                   coupon_type=UserCoupon.TYPE_ORDER_SHARE).exists()
+                template_id = constants.LIMIT_ORDER_SHARE_COUPON_TEMPLATE if st or has_order_share_coupon else tpl.id
                 x = UserCoupon.objects.create_order_share_coupon(customer.id, template_id, share.uniq_id, ufrom=u'tmp',
                                                                  coupon_value=tmp_coupon.value)
             elif tpl.coupon_type == CouponTemplate.TYPE_ACTIVE_SHARE:
