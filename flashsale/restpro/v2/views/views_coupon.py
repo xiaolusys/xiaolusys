@@ -110,7 +110,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         product_id = content.get("product_id")
         if not (coupon_num and coupon_num.isdigit() and product_id and product_id.isdigit()):
             res = Response({"code": 1, "info": u"coupon_num或product_id错误！"})
-            res["Access-Control-Allow-Origin"] = "*"
+            #res["Access-Control-Allow-Origin"] = "*"
             return res
 
         from shopback.items.models import Product
@@ -122,7 +122,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         template_id = model_product.extras.get("template_id")
         if not template_id:
             res = Response({"code": 2, "info": u"template_id错误！"})
-            res["Access-Control-Allow-Origin"] = "*"
+            #res["Access-Control-Allow-Origin"] = "*"
             return res
             
         res = CouponTransferRecord.init_transfer_record(request.user, coupon_num, template_id)

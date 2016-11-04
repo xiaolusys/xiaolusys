@@ -50,7 +50,7 @@ from shopback.items import serializers
 from rest_framework import status
 from shopback.base.new_renders import new_BaseJSONRenderer
 from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponseForbidden
-from shopback.items.models import ProductSkuStats
+from shopback.items.models import SkuStock
 from shopback.items import serializers
 from shopback.items.renderers import *
 from supplychain.supplier.models import SaleSupplier
@@ -1392,7 +1392,7 @@ def as_tuple(obj):
 
 class StockRedundanciesView(View):
     def get(self, request):
-        s = ','.join([str(p) for p in ProductSkuStats.redundancies()])
+        s = ','.join([str(p) for p in SkuStock.redundancies()])
         return HttpResponseRedirect('/admin/items/productskustats?id__in=%s' % s)
 
 
@@ -1406,7 +1406,7 @@ class ProductSkuStatsTmpView(View):
             supplier = get_object_or_404(SaleSupplier, supplier_name=SaleSupplier)
         else:
             return HttpResponseRedirect('/admin/items/productskustats')
-        s = ','.join([str(p) for p in ProductSkuStats.filter_by_supplier(supplier.id)])
+        s = ','.join([str(p) for p in SkuStock.filter_by_supplier(supplier.id)])
         return HttpResponseRedirect('/admin/items/productskustats?product_id__in=%s' % s)
 
 class ProductSkuStatsViewSet(View):

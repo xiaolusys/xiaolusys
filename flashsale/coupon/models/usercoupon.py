@@ -115,8 +115,8 @@ class UserCoupon(BaseModel):
 
     def is_transfer_coupon(self):
         from flashsale.coupon.models import CouponTransferRecord
-
-        return self.template_id == CouponTransferRecord.TEMPLATE_ID
+        ct = CouponTemplate.objects.filter(id=self.template_id).first()
+        return ct and ct.coupon_type == CouponTemplate.TYPE_TRANSFER
 
     def self_template(self):
         # type: () -> CouponTemplate

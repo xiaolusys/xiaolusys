@@ -438,8 +438,8 @@ class SaleTrade(BaseModel):
         if not old_sale_order.can_change_sku():
             raise Exception(u'已发货或退款的商品不能执行换货')
         sku = ProductSku.objects.get(id=sku_id)
-        # from shopback.items.models import ProductSkuStats
-        # sku_stock = ProductSkuStats.objects.get(sku_id=sku_id)
+        # from shopback.items.models import SkuStock
+        # sku_stock = SkuStock.objects.get(sku_id=sku_id)
         # if sku_stock.realtime_quantity < num:
         #     raise Exception(u'换货数必须小于实时库存')
         old_sale_order.status = SaleOrder.TRADE_CLOSED_BY_SYS

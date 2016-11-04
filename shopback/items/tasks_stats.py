@@ -5,7 +5,7 @@ from django.db import IntegrityError, transaction
 from django.db.models import Sum
 from celery.task import task
 
-from shopback.items.models import ProductSkuStats, ProductSku
+from shopback.items.models import SkuStock, ProductSku
 logger = logging.getLogger(__name__)
 
 
@@ -21,19 +21,19 @@ def get_cur_info():
 
 @task()
 def task_productsku_create_productskustats(sku_id, product_id):
-    from shopback.items.models import ProductSkuStats
-    stats = ProductSkuStats.objects.filter(sku_id=sku_id)
+    from shopback.items.models import SkuStock
+    stats = SkuStock.objects.filter(sku_id=sku_id)
     if stats.count() <= 0:
-        stat = ProductSkuStats(sku_id=sku_id,product_id=product_id)
+        stat = SkuStock(sku_id=sku_id,product_id=product_id)
         stat.save()
 
 
 @task()
 @transaction.atomic
 def task_productsku_update_productskustats(sku_id, product_id):
-    stats = ProductSkuStats.objects.filter(sku_id=sku_id)
+    stats = SkuStock.objects.filter(sku_id=sku_id)
     if not stats.exists():
-        stat = ProductSkuStats(sku_id=sku_id, product_id=product_id)
+        stat = SkuStock(sku_id=sku_id, product_id=product_id)
         stat.save()
 
 
@@ -42,11 +42,11 @@ def task_product_upshelf_update_productskusalestats(sku_id):
     """
     Recalculate and update init_waitassign_num,sale_start_time.
     """
-    from shopback.items.models import ProductSku, ProductSkuStats, \
+    from shopback.items.models import ProductSku, SkuStock, \
         ProductSkuSaleStats, gen_productsksalestats_unikey
     sku = ProductSku.objects.get(id=sku_id)
     product_id = sku.product_id
-    sku_stats = ProductSkuStats.get_by_sku(sku_id)
+    sku_stats = SkuStock.get_by_sku(sku_id)
     wait_assign_num = sku_stats.wait_assign_num
 
     stats_uni_key = gen_productsksalestats_unikey(sku_id)
@@ -75,7 +75,7 @@ def task_product_downshelf_update_productskusalestats(sku_id, sale_end_time):
     """
     Recalculate and update sale_end_time,status.
     """
-    from shopback.items.models import ProductSku, ProductSkuStats, \
+    from shopback.items.models import ProductSku, SkuStock, \
         ProductSkuSaleStats, gen_productsksalestats_unikey
 
     product = ProductSku.objects.get(id=sku_id).product
@@ -116,7 +116,7 @@ def task_packageskuitem_update_productskustats(sku_id):
     """
     from shopback.trades.models import PackageSkuItem
     logger.info("%s -sku_id:%s" % (get_cur_info(), sku_id))
-    sum_res = PackageSkuItem.objects.filter(sku_id=sku_id, pay_time__gt=ProductSkuStats.PRODUCT_SKU_STATS_COMMIT_TIME). \
+    sum_res = PackageSkuItem.objects.filter(sku_id=sku_id, pay_time__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME). \
         exclude(assign_status=PackageSkuItem.CANCELED).values("assign_status").annotate(total=Sum('num'))
     wait_assign_num, assign_num, post_num, third_assign_num= 0, 0, 0, 0
 
@@ -137,7 +137,7 @@ def task_packageskuitem_update_productskustats(sku_id):
         'sku_id': sku_id,
         'params': json.dumps(params),
     })
-    stat = ProductSkuStats.get_by_sku(sku_id)
+    stat = SkuStock.get_by_sku(sku_id)
     update_fields = []
     for k, v in params.iteritems():
         if hasattr(stat, k):
@@ -153,10 +153,10 @@ def task_packageskuitem_update_productskustats(sku_id):
 def task_refundproduct_update_productskustats_return_quantity(sku_id):
     from shopback.refunds.models import RefundProduct
     logger.info("%s -sku_id:%s" % (get_cur_info(), sku_id))
-    sum_res = RefundProduct.objects.filter(sku_id=sku_id, created__gt=ProductSkuStats.PRODUCT_SKU_STATS_COMMIT_TIME, can_reuse=True)\
+    sum_res = RefundProduct.objects.filter(sku_id=sku_id, created__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME, can_reuse=True)\
         .aggregate(total=Sum('num'))
     total = sum_res["total"] or 0
-    stat = ProductSkuStats.get_by_sku(sku_id)
+    stat = SkuStock.get_by_sku(sku_id)
     if stat.return_quantity != total:
         stat.return_quantity = total
         stat.save(update_fields=['return_quantity'])
@@ -173,10 +173,10 @@ def task_orderdetail_update_productskustats_inbound_quantity(sku_id):
     from flashsale.dinghuo.models import OrderDetail
     logger.info("%s -sku_id:%s" % (get_cur_info(), sku_id))
     sum_res = OrderDetail.objects.filter(chichu_id=sku_id,
-                                         arrival_time__gt=ProductSkuStats.PRODUCT_SKU_STATS_COMMIT_TIME) \
+                                         arrival_time__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME) \
         .aggregate(total=Sum('arrival_quantity'))
     total = sum_res["total"] or 0
-    stat = ProductSkuStats.get_by_sku(sku_id)
+    stat = SkuStock.get_by_sku(sku_id)
     if stat.inbound_quantity != total:
         stat.inbound_quantity = total
         stat.save(update_fields=['inbound_quantity', 'modified'])
@@ -187,13 +187,13 @@ def task_update_product_sku_stat_rg_quantity(sku_id):
     from flashsale.dinghuo.models.purchase_return import RGDetail, ReturnGoods
     logger.info("%s -sku_id:%s" % (get_cur_info(), sku_id))
     sum_res = RGDetail.objects.filter(skuid=sku_id,
-                                      created__gte=ProductSkuStats.PRODUCT_SKU_STATS_COMMIT_TIME,
+                                      created__gte=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME,
                                       return_goods__status__in=[ReturnGoods.DELIVER_RG,
                                                                 ReturnGoods.REFUND_RG,
                                                                 ReturnGoods.SUCCEED_RG],
                                       type=RGDetail.TYPE_REFUND).aggregate(total=Sum('num'))
     total = sum_res["total"] or 0
-    stat = ProductSkuStats.get_by_sku(sku_id)
+    stat = SkuStock.get_by_sku(sku_id)
     if stat.rg_quantity != total:
         stat.rg_quantity = total
         stat.save(update_fields=['rg_quantity'])
@@ -211,7 +211,7 @@ def task_shoppingcart_update_productskustats_shoppingcart_num(sku_id):
         shoppingcart_num_res = ShoppingCart.objects.filter(item_id=product_id,sku_id=sku_id,status=ShoppingCart.NORMAL).aggregate(
             Sum('num'))
         total = shoppingcart_num_res['num__sum'] or 0
-        stat = ProductSkuStats.get_by_sku(sku_id)
+        stat = SkuStock.get_by_sku(sku_id)
         if stat.shoppingcart_num != total:
             stat.shoppingcart_num = total
             stat.save(update_fields=["shoppingcart_num"])
@@ -232,7 +232,7 @@ def task_saleorder_update_productskustats_waitingpay_num(sku_id):
                                                        status=SaleOrder.WAIT_BUYER_PAY).aggregate(
         Sum('num'))
     total = waitingpay_num_res['num__sum'] or 0
-    stat = ProductSkuStats.get_by_sku(sku_id)
+    stat = SkuStock.get_by_sku(sku_id)
     if stat.waitingpay_num != total:
         stat.waitingpay_num = total
         stat.save(update_fields=["waitingpay_num"])

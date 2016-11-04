@@ -28,7 +28,7 @@ from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer, Browsab
 from common.utils import get_admin_name
 from core.options import log_action, ADDITION, CHANGE
 from core.utils import flatten
-from shopback.items.models import Product, ProductSku, ProductLocation, ProductSkuStats
+from shopback.items.models import Product, ProductSku, ProductLocation, SkuStock
 from supplychain.supplier.models import SaleProduct
 
 from .models import (
@@ -576,7 +576,7 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
             'id', 'product_id', 'product__outer_id', 'product__name',
             'properties_name', 'properties_alias', 'product__pic_path'
         )
-        # sku_stats_values = ProductSkuStats.objects.filter(sku__in=sku_id_set).extra(
+        # sku_stats_values = SkuStock.objects.filter(sku__in=sku_id_set).extra(
         #     select={'excess_num': "history_quantity + inbound_quantity + return_quantity "
         #                           + "+ sold_num - post_num - rg_quantity - post_num"}
         # ).values_list('id','excess_num')

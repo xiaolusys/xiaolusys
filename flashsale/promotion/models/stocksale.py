@@ -10,7 +10,7 @@ from flashsale.pay.models.product import Productdetail
 from supplychain.supplier.models import SaleProduct
 from flashsale.promotion.models import ActivityEntry, ActivityProduct
 from flashsale.xiaolumm.models.models_rebeta import AgencyOrderRebetaScheme
-from shopback.items.models import ProductSkuStats, ProductSku
+from shopback.items.models import SkuStock, ProductSku
 from supplychain.supplier.models.schedule import SaleProductManage, SaleProductManageDetail
 
 
@@ -212,7 +212,7 @@ class StockSale(AdminModel):
             raise Exception(u'此前的批次尚未处理完，请先关闭此前的批次')
         batch = BatchStockSale.gen(user)
         res = {}
-        for stat in ProductSkuStats.get_auto_sale_stock().select_related('product'):
+        for stat in SkuStock.get_auto_sale_stock().select_related('product'):
             if stat.product_id not in res:
                 res[stat.product_id] = StockSale(
                     sale_product_id=stat.product.sale_product if stat.product.sale_product else None,
@@ -231,8 +231,8 @@ class StockSale(AdminModel):
         StockSale.objects.bulk_create(res.values())
         product_ids = res.keys()
         batch.status = 1
-        batch.sku_total = ProductSkuStats.get_auto_sale_stock().filter(product_id__in=product_ids).count()
-        batch.stock_total = ProductSkuStats.get_auto_sale_stock().filter(product_id__in=product_ids).aggregate(
+        batch.sku_total = SkuStock.get_auto_sale_stock().filter(product_id__in=product_ids).count()
+        batch.stock_total = SkuStock.get_auto_sale_stock().filter(product_id__in=product_ids).aggregate(
             s=Sum(F('history_quantity') + F('inbound_quantity') + F('adjust_quantity') + F('return_quantity')
                   - F('post_num')) - F('rg_quantity')).get('s', 0)
         batch.product_total = len(product_ids)
@@ -256,9 +256,9 @@ class StockSale(AdminModel):
                                                  batch_id=batch_id).count()
         product_ids = [s['product_id'] for s in StockSale.objects.filter(sale_product_id__in=sale_product_ids,
                                                                          batch_id=batch_id).values('product_id')]
-        sku_total = ProductSkuStats.get_auto_sale_stock().filter(product_id__in=product_ids).count()
+        sku_total = SkuStock.get_auto_sale_stock().filter(product_id__in=product_ids).count()
         # self.history_quantity + self.inbound_quantity + self.adjust_quantity + self.return_quantity - self.post_num - self.rg_quantity
-        stock_total = ProductSkuStats.get_auto_sale_stock().filter(product_id__in=product_ids).aggregate(
+        stock_total = SkuStock.get_auto_sale_stock().filter(product_id__in=product_ids).aggregate(
             s=Sum(F('history_quantity') + F('inbound_quantity') + F('adjust_quantity') + F('return_quantity')
                   - F('post_num')) - F('rg_quantity')).get('s', 0)
         ass = ActivityStockSale(batch_id=batch_id,
@@ -281,7 +281,7 @@ class StockSale(AdminModel):
 
     @staticmethod
     def get_sale_product_to_sale_cnt():
-        product_ids = [p['product_id'] for p in ProductSkuStats.get_auto_sale_stock().values('product_id').distinct()]
+        product_ids = [p['product_id'] for p in SkuStock.get_auto_sale_stock().values('product_id').distinct()]
         return len(Product.objects.filter(id__in=product_ids).values('sale_product').distinct())
 
     def check_update_activity(self):

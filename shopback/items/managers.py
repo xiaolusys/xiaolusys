@@ -280,13 +280,13 @@ class ProductManager(BaseManager):
         :param product:
         :return:
         """
-        from shopback.items.models import ProductSkuStats
+        from shopback.items.models import SkuStock
         prod_skus = product.pskus
         sku_ids = [k.id for k in prod_skus]
-        sold_num_total = ProductSkuStats.objects.filter(sku_id__in=sku_ids).aggregate(Sum('sold_num'))
+        sold_num_total = SkuStock.objects.filter(sku_id__in=sku_ids).aggregate(Sum('sold_num'))
         if sold_num_total > 0:
             for sku in prod_skus:
-                stat = ProductSkuStats.objects.get(sku_id=sku.id)
+                stat = SkuStock.objects.get(sku_id=sku.id)
                 sku.wait_post_num = stat.wait_post_num
                 sku.save(update_fields=['wait_post_num'])
         else:

@@ -13,7 +13,7 @@ from django.db import transaction
 from core.utils.modelutils import update_model_fields
 from core.fields import JSONCharMyField
 from core.models import BaseModel
-from shopback.items.models import ProductSku, Product, ProductSkuStats
+from shopback.items.models import ProductSku, Product, SkuStock
 from shopback.refunds.models import Refund
 from supplychain.supplier.models import SaleSupplier, SaleProduct
 from .purchase_order import OrderList, OrderDetail

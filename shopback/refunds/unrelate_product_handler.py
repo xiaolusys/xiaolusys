@@ -112,7 +112,7 @@ def update_Unrelate_Prods_Product(pro, req):
 from shopback.items.models import Product, ProductSku
 from django.db.models import F
 from common.modelutils import update_model_fields
-from shopback.items.models import ProductSkuStats
+from shopback.items.models import SkuStock
 
 def update_Product_Collect_Num(pro, req):
     """
