@@ -83,7 +83,7 @@ from .filters import RefundMonthFilter, BoyGirlWomen
 class RefundProductAdmin(admin.ModelAdmin):
     list_display = ('id', 'outer_id', 'title', 'outer_sku_id', 'show_Product_Price', 'buyer_nick', 'buyer_mobile',
                     'buyer_phone', 'trade_id_display'
-                    , 'out_sid', 'company', 'can_reuse', 'is_finish', 'created', 'modified', 'memo', 'select_Reason')
+                    , 'out_sid', 'company', 'num','can_reuse', 'is_finish', 'created', 'modified', 'memo', 'select_Reason')
     list_display_links = ('id', 'outer_id')
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
