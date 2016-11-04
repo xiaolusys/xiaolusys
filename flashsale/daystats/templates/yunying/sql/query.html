@@ -1,0 +1,87 @@
+{% extends 'layout.html' %}
+
+{% block main %}
+
+<div class="row">
+  <form action="{{ req.path }}" method="GET" name="query_form">
+    <div class="col-xs-6">
+      <input type="text" class="form-control" name="sql" value="{{ sql }}" placeholder="输入SQL语句">
+    </div>
+    <div class="col-xs-1">
+      <button type="submit" class="btn btn-default">QUERY</button>
+    </div>
+
+    <div class="col-xs-2">
+      <input type="text" class="form-control" name="query_name" value="{{ query_name }}" placeholder="给这条查询起个名称">
+    </div>
+    <div class="col-xs-2">
+      <a id="save_query" class="btn btn-default">保存查询</a>
+    </div>
+  </form>
+</div>
+
+<div class="row">
+  <p style="display:none;">{{ sql }}</p>
+</div>
+
+<div class="row">
+  <table class="table table-bordered ">
+    <tr>
+      <th></th>
+      {% for item in result.0.keys %}
+      <th>{{ item }}</th>
+      {% endfor %}
+    </tr>
+    {% for item in result %}
+    <tr>
+      <td>{{ forloop.counter }}</td>
+      {% for k, v in item.items %}
+      <td>{{ v }}</td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = jQuery.trim(cookies[i]);
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+$(function(){
+
+  $('#save_query').click(function(){
+    var sql = $('input[name="sql"]').val();
+    var name = $('input[name="query_name"]').val();
+    var csrftoken = getCookie('csrftoken');
+    var display = 'table';
+
+    var url = "{% url 'yy-sql-create' %}";
+    var data = {
+      sql: sql,
+      name: name,
+      csrftoken: csrftoken,
+      display: display
+    }
+    $.post(url, data, function(data){
+      window.location = "{% url 'yy-sql-index' %}"
+    })
+  })
+})
+</script>
+{% endblock %}
