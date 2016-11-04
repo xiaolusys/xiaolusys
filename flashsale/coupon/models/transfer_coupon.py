@@ -125,6 +125,8 @@ class CouponTransferRecord(BaseModel):
 
     @classmethod
     def get_coupon_stock_num(cls, mama_id, template_id):
+        """
+        """
         res = cls.objects.filter(coupon_from_mama_id=mama_id, transfer_status=cls.DELIVERED, template_id=template_id).aggregate(
             n=Sum('coupon_num'))
         out_num = res['n'] or 0
