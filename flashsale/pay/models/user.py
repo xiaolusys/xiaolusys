@@ -536,6 +536,7 @@ class BudgetLog(PayBaseModel):
 
     BG_ENVELOPE = 'envelop'
     BG_REFUND = 'refund'
+    BG_REFUND_POSTAGE = 'postage'
     BG_CONSUM = 'consum'
     BG_CASHOUT = 'cashout'
     BG_MAMA_CASH = 'mmcash'
@@ -545,6 +546,7 @@ class BudgetLog(PayBaseModel):
     BUDGET_LOG_CHOICES = (
         (BG_ENVELOPE, u'红包'),
         (BG_REFUND, u'退款'),
+        (BG_REFUND_POSTAGE, u'退款补邮费'),
         (BG_CONSUM, u'消费'),
         (BG_CASHOUT, u'提现'),
         (BG_MAMA_CASH, u'代理提现至余额'),
@@ -611,6 +613,24 @@ class BudgetLog(PayBaseModel):
                          flow_amount=flow_amount,
                          budget_type=BudgetLog.BUDGET_IN,
                          budget_log_type=BudgetLog.BG_REFUND,
+                         budget_date=datetime.date.today(),
+                         referal_id=refund.id,
+                         status=BudgetLog.CONFIRMED,
+                         uni_key=uni_key)
+        budget_log.save()
+        return budget_log
+
+    @classmethod
+    def create_salerefund_postage_log(cls, refund, flow_amount):
+        """
+        功能：　创建退款单对应的　补邮费记录
+        :arg  refund:SaleRefund instance,  flow_amount:退款金额(分)
+        """
+        uni_key = cls.gen_uni_key(refund.buyer_id, BudgetLog.BUDGET_IN, BudgetLog.BG_REFUND_POSTAGE)
+        budget_log = cls(customer_id=refund.buyer_id,
+                         flow_amount=flow_amount,
+                         budget_type=BudgetLog.BUDGET_IN,
+                         budget_log_type=BudgetLog.BG_REFUND_POSTAGE,
                          budget_date=datetime.date.today(),
                          referal_id=refund.id,
                          status=BudgetLog.CONFIRMED,
