@@ -66,7 +66,7 @@ class CouponTransferRecord(BaseModel):
     template_id = models.IntegerField(default=TEMPLATE_ID, db_index=True, verbose_name=u'优惠券模版')
     product_img = models.CharField(max_length=256, blank=True, verbose_name=u'产品图片')
 
-    coupon_value = models.IntegerField(default=COUPON_VALUE, verbose_name=u'面额')
+    coupon_value = models.IntegerField(default=0, verbose_name=u'面额')
     coupon_num = models.IntegerField(default=0, verbose_name=u'数量')
     transfer_type = models.IntegerField(default=0, db_index=True, choices=TRANSFER_TYPES, verbose_name=u'流通类型')
     transfer_status = models.IntegerField(default=1, db_index=True, choices=TRANSFER_STATUS, verbose_name=u'流通状态')
@@ -166,11 +166,14 @@ class CouponTransferRecord(BaseModel):
             res = {"code": 3, "info": u"记录已存在！"}
             return res
 
-        product_img = CouponTemplate.get_product_img(template_id)
+        ct = CouponTemplate.objects.filter(id=template_id).first()
+        coupon_value = int(ct.value)
+        product_img = ct.extras.get("product_img") or ''
+
         transfer_status = cls.DELIVERED
         coupon = cls(coupon_from_mama_id=coupon_from_mama_id, from_mama_thumbnail=from_mama_thumbnail,
                      from_mama_nick=from_mama_nick, coupon_to_mama_id=coupon_to_mama_id,
-                     to_mama_thumbnail=to_mama_thumbnail, to_mama_nick=to_mama_nick,
+                     to_mama_thumbnail=to_mama_thumbnail, to_mama_nick=to_mama_nick,coupon_value=coupon_value,
                      init_from_mama_id=init_from_mama_id, order_no=order_no, template_id=template_id,
                      product_img=product_img, coupon_num=coupon_num, transfer_type=transfer_type,
                      uni_key=uni_key, date_field=date_field, transfer_status=transfer_status)
@@ -210,7 +213,9 @@ class CouponTransferRecord(BaseModel):
         uni_key = CouponTransferRecord.gen_unikey(coupon_from_mama_id, coupon_to_mama_id, template_id, date_field)
         order_no = CouponTransferRecord.gen_order_no(init_from_mama_id, template_id, date_field)
 
-        product_img = CouponTemplate.get_product_img(template_id)
+        ct = CouponTemplate.objects.filter(id=template_id).first()
+        coupon_value = int(ct.value)
+        product_img = ct.extras.get("product_img") or ''
 
         if not uni_key:
             res = {"code": 2, "info": u"记录已生成或申请已达当日上限！"}
@@ -222,7 +227,7 @@ class CouponTransferRecord(BaseModel):
             return res
         coupon = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id, from_mama_thumbnail=from_mama_thumbnail,
                                       from_mama_nick=from_mama_nick, coupon_to_mama_id=coupon_to_mama_id,
-                                      to_mama_thumbnail=to_mama_thumbnail, to_mama_nick=to_mama_nick,
+                                      to_mama_thumbnail=to_mama_thumbnail, to_mama_nick=to_mama_nick,coupon_value=coupon_value,
                                       init_from_mama_id=init_from_mama_id, order_no=order_no, template_id=template_id,
                                       product_img=product_img, coupon_num=coupon_num, elite_level=elite_level,
                                       transfer_type=transfer_type, uni_key=uni_key, date_field=date_field)
@@ -264,7 +269,8 @@ class CouponTransferRecord(BaseModel):
         uni_key = CouponTransferRecord.gen_unikey_with_order_no(coupon_from_mama_id, coupon_to_mama_id, order_no)
         template_id = reference_record.template_id
 
-        product_img = CouponTemplate.get_product_img(template_id)
+        product_img = reference_record.product_img
+        coupon_value = reference_record.coupon_value
 
         if not uni_key:
             res = {"code": 2, "info": u"记录已生成或申请已达当日上限！"}
@@ -277,7 +283,7 @@ class CouponTransferRecord(BaseModel):
 
         coupon = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id, from_mama_thumbnail=from_mama_thumbnail,
                                       from_mama_nick=from_mama_nick, coupon_to_mama_id=coupon_to_mama_id,
-                                      to_mama_thumbnail=to_mama_thumbnail, to_mama_nick=to_mama_nick,
+                                      to_mama_thumbnail=to_mama_thumbnail, to_mama_nick=to_mama_nick,coupon_value=coupon_value,
                                       init_from_mama_id=init_from_mama_id, order_no=order_no, template_id=template_id,
                                       product_img=product_img, coupon_num=coupon_num, elite_level=elite_level,
                                       transfer_type=transfer_type, uni_key=uni_key, date_field=date_field)
