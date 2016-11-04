@@ -1,5 +1,4 @@
 # coding=utf-8
-__author__ = 'jie.lin'
 from django.conf.urls import url
 from django.views.decorators.csrf import csrf_exempt
 from flashsale.coupon.views import RefundCouponView, ReleaseOmissive
