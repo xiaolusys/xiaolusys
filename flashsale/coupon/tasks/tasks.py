@@ -423,12 +423,13 @@ def task_create_transfer_coupon(sale_order):
     transfer_status = CouponTransferRecord.DELIVERED
     uni_key = "%s-%s" % (to_mama.id, order_id)
     order_no = sale_order.oid
-    product_img = CouponTemplate.get_product_img(template_id)
+    coupon_value = int(template.value)
+    product_img = template.extras.get("product_img") or ''
 
     try:
         coupon = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id,from_mama_thumbnail=from_mama_thumbnail,
                                       from_mama_nick=from_mama_nick,coupon_to_mama_id=coupon_to_mama_id,
-                                      to_mama_thumbnail=to_mama_thumbnail,to_mama_nick=to_mama_nick,
+                                      to_mama_thumbnail=to_mama_thumbnail,to_mama_nick=to_mama_nick,coupon_value=coupon_value,
                                       init_from_mama_id=init_from_mama_id,order_no=order_no,template_id=template_id,
                                       product_img=product_img,coupon_num=coupon_num,transfer_type=transfer_type,
                                       uni_key=uni_key,date_field=date_field,transfer_status=transfer_status)
