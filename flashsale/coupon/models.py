@@ -19,7 +19,6 @@ from flashsale.coupon.managers import UserCouponManager
 from managers import OrderShareCouponManager
 
 
-
 def get_referal_from_mama_id(to_mama_id):
     rr = ReferalRelationship.objects.filter(referal_to_mama_id=to_mama_id).first()
     if rr:
@@ -42,6 +41,7 @@ def default_template_extras():
         'templates': {'post_img': ''}  # 优惠券模板
     }
 
+
 def get_choice_name(choices, val):
     """
     iterate over choices and find the name for this val
@@ -51,6 +51,7 @@ def get_choice_name(choices, val):
         if entry[0] == val:
             name = entry[1]
     return name
+
 
 class CouponTemplate(BaseModel):
     """ 优惠券模板 """
@@ -193,7 +194,7 @@ class CouponTemplate(BaseModel):
         if t:
             return t.extras.get("product_img") or ''
         return ''
-        
+
     def template_valid_check(self):
         # type: () -> CouponTemplate
         """
@@ -578,6 +579,7 @@ class UserCoupon(BaseModel):
 
     def is_transfer_coupon(self):
         from flashsale.coupon.models import CouponTransferRecord
+
         return self.template_id == CouponTransferRecord.TEMPLATE_ID
 
     def self_template(self):
@@ -774,16 +776,16 @@ post_save.connect(update_mobile_download_record, sender=TmpShareCoupon,
 class CouponTransferRecord(BaseModel):
     TEMPLATE_ID = 153
     COUPON_VALUE = 128
-    MAX_DAILY_TRANSFER = 60 # 每天两人间最大流通次数:60次
+    MAX_DAILY_TRANSFER = 60  # 每天两人间最大流通次数:60次
 
-    OUT_CASHOUT = 1 #退券换钱/out
-    OUT_TRANSFER = 2 #转给下属/out
-    OUT_CONSUMED = 3 #直接买货/out
-    IN_BUY_COUPON = 4 #花钱买券/in
-    IN_RETURN_COUPON = 5 #下属退券/in
-    IN_RETURN_GOODS = 6 #退货退券/in
-    TRANSFER_TYPES = ((OUT_CASHOUT, u'退券换钱'),(OUT_TRANSFER, u'转给下属'),(OUT_CONSUMED, u'直接买货'),
-                      (IN_BUY_COUPON, u'花钱买券'),(IN_RETURN_COUPON, u'下属退券'),(IN_RETURN_GOODS, u'退货退券'))
+    OUT_CASHOUT = 1  # 退券换钱/out
+    OUT_TRANSFER = 2  # 转给下属/out
+    OUT_CONSUMED = 3  # 直接买货/out
+    IN_BUY_COUPON = 4  # 花钱买券/in
+    IN_RETURN_COUPON = 5  # 下属退券/in
+    IN_RETURN_GOODS = 6  # 退货退券/in
+    TRANSFER_TYPES = ((OUT_CASHOUT, u'退券换钱'), (OUT_TRANSFER, u'转给下属'), (OUT_CONSUMED, u'直接买货'),
+                      (IN_BUY_COUPON, u'花钱买券'), (IN_RETURN_COUPON, u'下属退券'), (IN_RETURN_GOODS, u'退货退券'))
 
     PENDING = 1
     PROCESSED = 2
@@ -812,7 +814,7 @@ class CouponTransferRecord(BaseModel):
 
     template_id = models.IntegerField(default=TEMPLATE_ID, db_index=True, verbose_name=u'优惠券模版')
     product_img = models.CharField(max_length=256, blank=True, verbose_name=u'产品图片')
-    
+
     coupon_value = models.IntegerField(default=COUPON_VALUE, verbose_name=u'面额')
     coupon_num = models.IntegerField(default=0, verbose_name=u'数量')
     transfer_type = models.IntegerField(default=0, db_index=True, choices=TRANSFER_TYPES, verbose_name=u'流通类型')
@@ -821,7 +823,6 @@ class CouponTransferRecord(BaseModel):
     uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')
     date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
     elite_level = models.CharField(max_length=16, blank=True, null=True, verbose_name=u'等级')
-
 
     class Meta:
         db_table = "flashsale_coupon_transfer_record"
@@ -832,14 +833,15 @@ class CouponTransferRecord(BaseModel):
     @staticmethod
     def gen_unikey_with_order_no(from_mama_id, to_mama_id, order_no):
         return "%s-%s-%s" % (from_mama_id, to_mama_id, order_no)
-        
-        
+
+
     @classmethod
     def gen_unikey(cls, from_mama_id, to_mama_id, template_id, date_field, prev_coupon_id=0):
         # from_mama_id + to_mama_id + template_id + date_field + idx
         if prev_coupon_id == 0:
-            idx = cls.objects.filter(coupon_from_mama_id=from_mama_id,coupon_to_mama_id=to_mama_id,
-                                     template_id=template_id,date_field=date_field,transfer_status__gte=cls.PROCESSED).count()
+            idx = cls.objects.filter(coupon_from_mama_id=from_mama_id, coupon_to_mama_id=to_mama_id,
+                                     template_id=template_id, date_field=date_field,
+                                     transfer_status__gte=cls.PROCESSED).count()
             idx = idx + 1
 
             if idx > cls.MAX_DAILY_TRANSFER:
@@ -850,7 +852,8 @@ class CouponTransferRecord(BaseModel):
 
     @classmethod
     def gen_order_no(cls, init_from_mama_id, template_id, date_field):
-        idx = cls.objects.filter(init_from_mama_id=init_from_mama_id,template_id=template_id,date_field=date_field).count()
+        idx = cls.objects.filter(init_from_mama_id=init_from_mama_id, template_id=template_id,
+                                 date_field=date_field).count()
         idx = idx + 1
         if idx > cls.MAX_DAILY_TRANSFER:
             return None
@@ -858,10 +861,12 @@ class CouponTransferRecord(BaseModel):
 
     @classmethod
     def get_stock_num(cls, mama_id):
-        res = cls.objects.filter(coupon_from_mama_id=mama_id,transfer_status=cls.DELIVERED).aggregate(n=Sum('coupon_num'))
+        res = cls.objects.filter(coupon_from_mama_id=mama_id, transfer_status=cls.DELIVERED).aggregate(
+            n=Sum('coupon_num'))
         out_num = res['n'] or 0
 
-        res = cls.objects.filter(coupon_to_mama_id=mama_id,transfer_status=cls.DELIVERED).aggregate(n=Sum('coupon_num'))
+        res = cls.objects.filter(coupon_to_mama_id=mama_id, transfer_status=cls.DELIVERED).aggregate(
+            n=Sum('coupon_num'))
         in_num = res['n'] or 0
 
         stock_num = in_num - out_num
@@ -880,13 +885,15 @@ class CouponTransferRecord(BaseModel):
                          
     @classmethod
     def get_waiting_in_num(cls, mama_id):
-        res = cls.objects.filter(coupon_to_mama_id=mama_id,transfer_status__lte=cls.PROCESSED).aggregate(n=Sum('coupon_num'))
+        res = cls.objects.filter(coupon_to_mama_id=mama_id, transfer_status__lte=cls.PROCESSED).aggregate(
+            n=Sum('coupon_num'))
         num = res['n'] or 0
         return num
 
     @classmethod
     def get_waiting_out_num(cls, mama_id):
-        res = cls.objects.filter(coupon_from_mama_id=mama_id,transfer_status=cls.PENDING).aggregate(n=Sum('coupon_num'))
+        res = cls.objects.filter(coupon_from_mama_id=mama_id, transfer_status=cls.PENDING).aggregate(
+            n=Sum('coupon_num'))
         num = res['n'] or 0
         return num
 
@@ -920,12 +927,12 @@ class CouponTransferRecord(BaseModel):
 
         product_img = CouponTemplate.get_product_img(template_id)
         transfer_status = cls.DELIVERED
-        coupon = cls(coupon_from_mama_id=coupon_from_mama_id,from_mama_thumbnail=from_mama_thumbnail,
-                     from_mama_nick=from_mama_nick,coupon_to_mama_id=coupon_to_mama_id,
-                     to_mama_thumbnail=to_mama_thumbnail,to_mama_nick=to_mama_nick,
-                     init_from_mama_id=init_from_mama_id,order_no=order_no,template_id=template_id,
-                     product_img=product_img,coupon_num=coupon_num,transfer_type=transfer_type,
-                     uni_key=uni_key,date_field=date_field,transfer_status=transfer_status)
+        coupon = cls(coupon_from_mama_id=coupon_from_mama_id, from_mama_thumbnail=from_mama_thumbnail,
+                     from_mama_nick=from_mama_nick, coupon_to_mama_id=coupon_to_mama_id,
+                     to_mama_thumbnail=to_mama_thumbnail, to_mama_nick=to_mama_nick,
+                     init_from_mama_id=init_from_mama_id, order_no=order_no, template_id=template_id,
+                     product_img=product_img, coupon_num=coupon_num, transfer_type=transfer_type,
+                     uni_key=uni_key, date_field=date_field, transfer_status=transfer_status)
         coupon.save()
         res = {"code": 0, "info": u"成功!"}
         return res
@@ -934,12 +941,12 @@ class CouponTransferRecord(BaseModel):
     def init_transfer_record(cls, request_user, coupon_num, template_id):
         from flashsale.xiaolumm.models import XiaoluMama
         from flashsale.pay.models import Customer
-        
+
         to_customer = Customer.objects.normal_customer.filter(user=request_user).first()
         to_mama = to_customer.get_charged_mama()
 
         if to_mama.can_buy_transfer_coupon():
-            res =  {"code":2, "info": u"无需申请，请直接支付购券!"}
+            res = {"code": 2, "info": u"无需申请，请直接支付购券!"}
             return res
 
         elite_level = to_mama.elite_level
@@ -954,15 +961,15 @@ class CouponTransferRecord(BaseModel):
         from_customer = Customer.objects.filter(unionid=from_mama.unionid).first()
         from_mama_thumbnail = from_customer.thumbnail
         from_mama_nick = from_customer.nick
-    
+
         transfer_type = CouponTransferRecord.OUT_TRANSFER
         date_field = datetime.date.today()
 
         uni_key = CouponTransferRecord.gen_unikey(coupon_from_mama_id, coupon_to_mama_id, template_id, date_field)
-        order_no = CouponTransferRecord.gen_order_no(init_from_mama_id,template_id,date_field)
+        order_no = CouponTransferRecord.gen_order_no(init_from_mama_id, template_id, date_field)
 
         product_img = CouponTemplate.get_product_img(template_id)
-    
+
         if not uni_key:
             res = {"code": 2, "info": u"记录已生成或申请已达当日上限！"}
             return res
@@ -971,12 +978,12 @@ class CouponTransferRecord(BaseModel):
         if coupon:
             res = {"code": 3, "info": u"记录已存在！"}
             return res
-        coupon = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id,from_mama_thumbnail=from_mama_thumbnail,
-                                      from_mama_nick=from_mama_nick,coupon_to_mama_id=coupon_to_mama_id,
-                                      to_mama_thumbnail=to_mama_thumbnail,to_mama_nick=to_mama_nick,
-                                      init_from_mama_id=init_from_mama_id,order_no=order_no,template_id=template_id,
-                                      product_img=product_img,coupon_num=coupon_num, elite_level=elite_level,
-                                      transfer_type=transfer_type,uni_key=uni_key, date_field=date_field)
+        coupon = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id, from_mama_thumbnail=from_mama_thumbnail,
+                                      from_mama_nick=from_mama_nick, coupon_to_mama_id=coupon_to_mama_id,
+                                      to_mama_thumbnail=to_mama_thumbnail, to_mama_nick=to_mama_nick,
+                                      init_from_mama_id=init_from_mama_id, order_no=order_no, template_id=template_id,
+                                      product_img=product_img, coupon_num=coupon_num, elite_level=elite_level,
+                                      transfer_type=transfer_type, uni_key=uni_key, date_field=date_field)
         coupon.save()
         res = {"code": 0, "info": u"成功!"}
         return res
@@ -985,14 +992,14 @@ class CouponTransferRecord(BaseModel):
     def gen_transfer_record(cls, request_user, reference_record):
         from flashsale.xiaolumm.models import XiaoluMama
         from flashsale.pay.models import Customer
-        
+
         to_customer = Customer.objects.normal_customer.filter(user=request_user).first()
         to_mama = to_customer.get_charged_mama()
 
         if to_mama.can_buy_transfer_coupon():
-            res =  {"code":2, "info": u"无需申请，请直接支付购券!"}
+            res = {"code": 2, "info": u"无需申请，请直接支付购券!"}
             return res
-        
+
         elite_level = to_mama.elite_level
         to_mama_nick = to_customer.nick
         to_mama_thumbnail = to_customer.thumbnail
@@ -1005,7 +1012,7 @@ class CouponTransferRecord(BaseModel):
         from_customer = Customer.objects.filter(unionid=from_mama.unionid).first()
         from_mama_thumbnail = from_customer.thumbnail
         from_mama_nick = from_customer.nick
-    
+
         transfer_type = CouponTransferRecord.OUT_TRANSFER
         date_field = datetime.date.today()
 
@@ -1015,7 +1022,7 @@ class CouponTransferRecord(BaseModel):
         template_id = reference_record.template_id
 
         product_img = CouponTemplate.get_product_img(template_id)
-    
+
         if not uni_key:
             res = {"code": 2, "info": u"记录已生成或申请已达当日上限！"}
             return res
@@ -1024,17 +1031,16 @@ class CouponTransferRecord(BaseModel):
         if coupon:
             res = {"code": 3, "info": u"记录已存在！"}
             return res
-    
-        coupon = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id,from_mama_thumbnail=from_mama_thumbnail,
-                                      from_mama_nick=from_mama_nick,coupon_to_mama_id=coupon_to_mama_id,
-                                      to_mama_thumbnail=to_mama_thumbnail,to_mama_nick=to_mama_nick,
-                                      init_from_mama_id=init_from_mama_id,order_no=order_no,template_id=template_id,
-                                      product_img=product_img,coupon_num=coupon_num, elite_level=elite_level,
-                                      transfer_type=transfer_type,uni_key=uni_key,date_field=date_field)
+
+        coupon = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id, from_mama_thumbnail=from_mama_thumbnail,
+                                      from_mama_nick=from_mama_nick, coupon_to_mama_id=coupon_to_mama_id,
+                                      to_mama_thumbnail=to_mama_thumbnail, to_mama_nick=to_mama_nick,
+                                      init_from_mama_id=init_from_mama_id, order_no=order_no, template_id=template_id,
+                                      product_img=product_img, coupon_num=coupon_num, elite_level=elite_level,
+                                      transfer_type=transfer_type, uni_key=uni_key, date_field=date_field)
         coupon.save()
         res = {"code": 0, "info": u"成功!"}
         return res
-
 
     @property
     def month_day(self):
@@ -1051,19 +1057,19 @@ class CouponTransferRecord(BaseModel):
     @property
     def is_cancelable(self):
         return (self.transfer_status == self.PENDING) and \
-            ((self.init_from_mama_id == self.coupon_to_mama_id and self.transfer_type == self.OUT_TRANSFER) or \
-             self.transfer_type == self.IN_RETURN_GOODS)
+               ((self.init_from_mama_id == self.coupon_to_mama_id and self.transfer_type == self.OUT_TRANSFER) or \
+                self.transfer_type == self.IN_RETURN_GOODS)
 
     @property
     def is_processable(self):
         return (self.transfer_type == self.OUT_TRANSFER or self.transfer_type == self.IN_RETURN_GOODS) and \
-            (self.transfer_status == self.PENDING)
+               (self.transfer_status == self.PENDING)
 
     def can_cancel(self, mama_id):
         return (self.transfer_type == self.OUT_TRANSFER and self.transfer_status == self.PENDING and \
                 self.init_from_mama_id == mama_id and self.init_from_mama_id == self.coupon_to_mama_id) or \
-                (self.transfer_type == self.IN_RETURN_GOODS and self.transfer_status == self.PENDING and\
-                 self.coupon_from_mama_id == mama_id)
+               (self.transfer_type == self.IN_RETURN_GOODS and self.transfer_status == self.PENDING and \
+                self.coupon_from_mama_id == mama_id)
 
     def can_process(self, mama_id):
         return (self.transfer_type == self.OUT_TRANSFER and self.transfer_status == self.PENDING and \
