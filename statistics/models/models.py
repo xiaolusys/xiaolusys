@@ -324,10 +324,10 @@ class DailyStat(BaseModel):
 
     @staticmethod
     def get_total_stock():
-        from shopback.items.models import ProductSkuStats
+        from shopback.items.models import SkuStock
         from shopback.items.models import Product
 
-        return ProductSkuStats.objects.exclude(product__outer_id__startswith='RMB',
+        return SkuStock.objects.exclude(product__outer_id__startswith='RMB',
                                                product__status=Product.NORMAL).aggregate(
             n=Sum("history_quantity") + Sum('adjust_quantity') + Sum('inbound_quantity') + Sum('return_quantity') - Sum(
                 'rg_quantity') - Sum('post_num')).get('n') or 0
@@ -347,9 +347,9 @@ WHERE p.status = 'normal' and not p.outer_id like 'RMB%';"""
 
     @staticmethod
     def get_noyouni_stock():
-        from shopback.items.models import ProductSkuStats
+        from shopback.items.models import SkuStock
         from shopback.items.models import Product
-        return ProductSkuStats.objects.filter(product__status=Product.NORMAL).exclude(
+        return SkuStock.objects.filter(product__status=Product.NORMAL).exclude(
             product__outer_id__startswith='RMB').exclude(product__category_id=1).aggregate(
             n=Sum("history_quantity") + Sum('adjust_quantity') + Sum('inbound_quantity') + Sum('return_quantity') - Sum(
                 'rg_quantity') - Sum('post_num')).get('n') or 0
@@ -370,9 +370,9 @@ WHERE p.status = 'normal' and not p.outer_id like 'RMB%' and not p.category_id=1
 
     @staticmethod
     def get_youni_stock():
-        from shopback.items.models import ProductSkuStats
+        from shopback.items.models import SkuStock
         from shopback.items.models import Product
-        return ProductSkuStats.objects.filter(product__status=Product.NORMAL, product__category_id=1).exclude(
+        return SkuStock.objects.filter(product__status=Product.NORMAL, product__category_id=1).exclude(
             product__outer_id__startswith='RMB').aggregate(
             n=Sum("history_quantity") + Sum('adjust_quantity') + Sum('inbound_quantity') + Sum('return_quantity') - Sum(
                 'rg_quantity') - Sum('post_num')).get('n') or 0

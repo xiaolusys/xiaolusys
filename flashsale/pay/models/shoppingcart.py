@@ -151,9 +151,9 @@ def shoppingcart_update_productskustats_shoppingcart_num(sender, instance, creat
         # from flashsale.restpro.tasks import task_add_shoppingcart_num
         # task_add_shoppingcart_num.delay(instance)
         from flashsale.restpro.tasks import close_timeout_carts_and_orders_reset_cart_num
-        from shopback.items.models.stats import ProductSkuStats
-        stat = ProductSkuStats.get_by_sku(instance.sku_id)
-        ProductSkuStats.objects.filter(sku_id=stat.sku_id).update(shoppingcart_num=F('shoppingcart_num')+instance.num)
+        from shopback.items.models.stats import SkuStock
+        stat = SkuStock.get_by_sku(instance.sku_id)
+        SkuStock.objects.filter(sku_id=stat.sku_id).update(shoppingcart_num=F('shoppingcart_num')+instance.num)
         return close_timeout_carts_and_orders_reset_cart_num([instance.sku_id])
     else:
         from shopback.items.tasks_stats import task_shoppingcart_update_productskustats_shoppingcart_num

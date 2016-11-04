@@ -9,7 +9,7 @@ from django.db.models import F
 from core.options import log_action, ADDITION, CHANGE
 from flashsale.pay.models import ShoppingCart, SaleTrade, CustomerShops, CuShopPros
 from shopback.logistics.models import LogisticsCompany
-from shopback.items.models import Product, ProductSkuStats
+from shopback.items.models import Product, SkuStock
 from flashsale.pay.models import SaleRefund
 from shopback.trades.models import TradeWuliu, PackageSkuItem,ReturnWuLiu
 from flashsale.restpro.utils import save_pro_info
@@ -124,7 +124,7 @@ def close_timeout_carts_and_orders_reset_cart_num(skus=[]):
         3/进行购物车检查
         4移出购物车
     """
-    from shopback.items.models import ProductSkuStats
+    from shopback.items.models import SkuStock
     from shopback.items.tasks_stats import task_shoppingcart_update_productskustats_shoppingcart_num
     djuser, state = DjangoUser.objects.get_or_create(username='systemoa', is_active=True)
     now = datetime.datetime.now()
@@ -132,7 +132,7 @@ def close_timeout_carts_and_orders_reset_cart_num(skus=[]):
     if not skus:
         all_product_in_cart = ShoppingCart.objects.filter(status=ShoppingCart.NORMAL, remain_time__lte=now)
         skus = [c['sku_id'] for c in all_product_in_cart.values('sku_id').distinct()]
-        extend_skus = [p['sku_id'] for p in ProductSkuStats.objects.filter(shoppingcart_num__gt=0).exclude(sku_id__in=skus).values('sku_id')]
+        extend_skus = [p['sku_id'] for p in SkuStock.objects.filter(shoppingcart_num__gt=0).exclude(sku_id__in=skus).values('sku_id')]
     else:
         all_product_in_cart = ShoppingCart.objects.filter(sku_id__in=skus, status=ShoppingCart.NORMAL, remain_time__lte=now)
     all_product_in_cart.update(status=ShoppingCart.CANCEL)
@@ -152,8 +152,8 @@ def close_timeout_carts_and_orders_reset_cart_num(skus=[]):
 
 @task()
 def task_add_shoppingcart_num(instance):
-    stat = ProductSkuStats.get_by_sku(instance.sku_id)
-    ProductSkuStats.objects.filter(sku_id=stat.sku_id).update(shoppingcart_num=F('shoppingcart_num')+instance.num)
+    stat = SkuStock.get_by_sku(instance.sku_id)
+    SkuStock.objects.filter(sku_id=stat.sku_id).update(shoppingcart_num=F('shoppingcart_num')+instance.num)
     return close_timeout_carts_and_orders_reset_cart_num([instance.sku_id])
 
 

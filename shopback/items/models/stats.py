@@ -51,7 +51,7 @@ class ProductDaySale(models.Model):
                                      str(self.sku_id))
 
 
-class ProductSkuStats(models.Model):
+class SkuStock(models.Model):
 
     class Meta:
         db_table = 'shop_items_productskustats'
@@ -92,13 +92,13 @@ class ProductSkuStats(models.Model):
     @staticmethod
     @transaction.atomic
     def get_by_sku(sku_id):
-        stat = ProductSkuStats.objects.filter(sku_id=sku_id).first()
+        stat = SkuStock.objects.filter(sku_id=sku_id).first()
         if stat:
             return stat
         else:
             from shopback.items.models import ProductSku
             sku = ProductSku.objects.get(id=sku_id)
-            stat = ProductSkuStats(sku_id=sku.id, product_id=sku.product_id)
+            stat = SkuStock(sku_id=sku.id, product_id=sku.product_id)
             stat.save()
             return stat
 
@@ -106,7 +106,7 @@ class ProductSkuStats(models.Model):
     def realtime_quantity(self):
         return self.history_quantity + self.inbound_quantity + self.adjust_quantity + self.return_quantity - self.post_num - self.rg_quantity
     #sum([p.realtime_quantity for p in
-    # ProductSkuStats.objects.filter(rg_quantity__lt=F('history_quantity')+F('inbound_quantity')+ F('adjust_quantity')+F('return_quantity')-F('post_num'))
+    # SkuStock.objects.filter(rg_quantity__lt=F('history_quantity')+F('inbound_quantity')+ F('adjust_quantity')+F('return_quantity')-F('post_num'))
     # .exclude(product__outer_id__startswith='RMB')])
     @property
     def aggregate_quantity(self):
@@ -204,7 +204,7 @@ class ProductSkuStats(models.Model):
             'chichu_id').distinct()]
 
         has_nouse_stock_sku_product = [(stat['id'], stat['product_id']) for stat in
-                                       ProductSkuStats.objects.exclude(sku_id__in=rg_sku).filter(sku_id__in=order_skus,
+                                       SkuStock.objects.exclude(sku_id__in=rg_sku).filter(sku_id__in=order_skus,
                                                                       sold_num__lt=F('history_quantity') + F(
                                                                           'adjust_quantity') + F(
                                                                           'inbound_quantity') + F('return_quantity') \
@@ -228,17 +228,17 @@ class ProductSkuStats(models.Model):
 
     @staticmethod
     def update_adjust_num(sku_id, adjust_quantity):
-        stat = ProductSkuStats.objects.get(sku_id=sku_id)
+        stat = SkuStock.objects.get(sku_id=sku_id)
         stat.adjust_quantity = adjust_quantity
         stat.save()
-        # ProductSkuStats.objects.filter(sku_id=sku_id).update(adjust_quantity=adjust_quantity)
+        # SkuStock.objects.filter(sku_id=sku_id).update(adjust_quantity=adjust_quantity)
 
     @staticmethod
     def get_auto_sale_stock():
         from shopback.categorys.models import ProductCategory
         from .product import Product
         pid = ProductCategory.objects.get(name=u'优尼世界').cid
-        return ProductSkuStats.objects.filter(product__status=Product.NORMAL).filter(
+        return SkuStock.objects.filter(product__status=Product.NORMAL).filter(
             return_quantity__gt=F('sold_num') + F('rg_quantity')
                                 - F('history_quantity') - F('adjust_quantity') - F(
                 'inbound_quantity')).exclude(product__category_id=pid).exclude(product__outer_id__startswith='RMB')
@@ -256,9 +256,9 @@ class ProductSkuStats(models.Model):
 def invalid_apiskustat_cache(sender, instance, *args, **kwargs):
     if hasattr(sender, 'API_CACHE_KEY_TPL'):
         logger.debug('invalid_apiskustat_cache: %s'%instance.sku_id)
-        cache.delete(ProductSkuStats.API_CACHE_KEY_TPL.format(instance.sku_id))
+        cache.delete(SkuStock.API_CACHE_KEY_TPL.format(instance.sku_id))
 
-post_save.connect(invalid_apiskustat_cache, sender=ProductSkuStats, dispatch_uid='post_save_invalid_apiskustat_cache')
+post_save.connect(invalid_apiskustat_cache, sender=SkuStock, dispatch_uid='post_save_invalid_apiskustat_cache')
 
 
 def assign_stock_to_package_sku_item(sender, instance, created, **kwargs):
@@ -277,7 +277,7 @@ def assign_stock_to_package_sku_item(sender, instance, created, **kwargs):
         task_assign_stock_to_package_sku_item.delay(instance)
 
 
-post_save.connect(assign_stock_to_package_sku_item, sender=ProductSkuStats,
+post_save.connect(assign_stock_to_package_sku_item, sender=SkuStock,
                   dispatch_uid='post_save_assign_stock_to_package_sku_item')
 
 
@@ -291,7 +291,7 @@ def product_sku_stats_agg(sender, instance, created, **kwargs):
         logger.error(exc.message)
 
 
-post_save.connect(product_sku_stats_agg, sender=ProductSkuStats, dispatch_uid='post_save_product_sku_stats')
+post_save.connect(product_sku_stats_agg, sender=SkuStock, dispatch_uid='post_save_product_sku_stats')
 
 
 class InferiorSkuStats(models.Model):
@@ -333,11 +333,11 @@ class InferiorSkuStats(models.Model):
         sku = ProductSku.objects.get(id=sku_id)
         stat = InferiorSkuStats(sku_id=sku.id, product_id=sku.product_id)
         stat.save()
-        stat.rg_quantity = RGDetail.get_inferior_total(sku_id, ProductSkuStats.PRODUCT_SKU_STATS_COMMIT_TIME)
+        stat.rg_quantity = RGDetail.get_inferior_total(sku_id, SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME)
         stat.return_quantity = RefundProduct.get_total(sku_id, can_reuse=False,
-                                                       begin_time=ProductSkuStats.PRODUCT_SKU_STATS_COMMIT_TIME)
+                                                       begin_time=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME)
         stat.inbound_quantity = InBoundDetail.get_inferior_total(
-            sku_id, begin_time=ProductSkuStats.PRODUCT_SKU_STATS_COMMIT_TIME)
+            sku_id, begin_time=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME)
         if stat.realtime_quantity < 0 and real_quantity_zreo:
             stat.history_quantity = -stat.realtime_quantity
         stat.save()
@@ -398,7 +398,7 @@ class ProductSkuSaleStats(models.Model):
     @staticmethod
     def create(sku):
         product_id = sku.product_id
-        sku_stats = ProductSkuStats.get_by_sku(sku.id)
+        sku_stats = SkuStock.get_by_sku(sku.id)
         wait_assign_num = sku_stats.wait_assign_num
         stats_uni_key = gen_productsksalestats_unikey(sku.id)
         stat = ProductSkuSaleStats(uni_key=stats_uni_key,

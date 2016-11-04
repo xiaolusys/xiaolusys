@@ -1,6 +1,6 @@
 # coding=utf-8
 
-from shopback.items.models import ProductSkuStats, ProductSku
+from shopback.items.models import SkuStock, ProductSku
 
 
 def init_product_sku_stats():
@@ -9,7 +9,7 @@ def init_product_sku_stats():
 
 
 def repair_history_quantity():
-    for stat in ProductSkuStats.objects.all():
+    for stat in SkuStock.objects.all():
         p = ProductSku.objects.get(id=stat.sku_id)
         stat.history_quantity = p.quantity - p.wait_post_num
         stat.save()

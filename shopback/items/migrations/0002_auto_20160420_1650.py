@@ -33,7 +33,7 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='ProductSkuStats',
+            name='SkuStock',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('sku_id', models.IntegerField(unique=True, null=True, verbose_name='\u5546\u54c1SKU\u8bb0\u5f55ID')),

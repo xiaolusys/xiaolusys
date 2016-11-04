@@ -6,7 +6,7 @@ from django.db.models import Sum, Count, F, Q
 from django.db.models.signals import post_save
 from django.contrib.auth.models import User
 from core.models import BaseModel
-from shopback.items.models import ProductSku, Product, ProductSkuStats
+from shopback.items.models import ProductSku, Product, SkuStock
 from supplychain.supplier.models import SaleSupplier, SaleProduct
 from .purchase_order import OrderList
 import logging
@@ -276,7 +276,7 @@ class ReturnGoods(models.Model):
         #     sale_product_ids = [i["id"] for i in supplier.supplier_products.values("id")]
         #     product_ids = [p["id"] for p in Product.objects.filter(sale_product__in=sale_product_ids).values("id")]
         #     unreturn_sku_ids = [i["sku_id"] for i in supplier.unreturnsku_set.values("sku_id")]
-        #     return ProductSkuStats.objects.filter(product__id__in=product_ids,
+        #     return SkuStock.objects.filter(product__id__in=product_ids,
         #                                           product__offshelf_time__lt=datetime.datetime.now() - datetime.timedelta(
         #                                               days),
         #                                           sold_num__lt=F('history_quantity') + F('adjust_quantity') + F(
@@ -474,7 +474,7 @@ class ReturnGoods(models.Model):
 
 
 def update_product_sku_stat_rg_quantity(sender, instance, created, **kwargs):
-    if instance.created >= ProductSkuStats.PRODUCT_SKU_STATS_COMMIT_TIME and instance.status in [
+    if instance.created >= SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME and instance.status in [
         ReturnGoods.REFUND_RG, ReturnGoods.DELIVER_RG,
         ReturnGoods.SUCCEED_RG, ReturnGoods.FAILED_RG
     ]:
@@ -547,7 +547,7 @@ class RGDetail(models.Model):
         return u'入仓单<%d>' % self.src
 
     @staticmethod
-    def get_inferior_total(sku_id, begin_time=ProductSkuStats.PRODUCT_SKU_STATS_COMMIT_TIME):
+    def get_inferior_total(sku_id, begin_time=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME):
         res = RGDetail.objects.filter(skuid=sku_id, created__gt=begin_time,
                                       return_goods__status__in=[ReturnGoods.DELIVER_RG, ReturnGoods.REFUND_RG,
                                                                 ReturnGoods.SUCCEED_RG]).aggregate(

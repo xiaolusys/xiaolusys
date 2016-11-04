@@ -339,8 +339,8 @@ post_save.connect(update_warehouse_receipt_status, sender=RefundProduct,
 
 
 def update_productskustats_refund_quantity(sender, instance, created, **kwargs):
-    from shopback.items.models import ProductSku, ProductSkuStats
-    if instance.created < ProductSkuStats.PRODUCT_SKU_STATS_COMMIT_TIME:
+    from shopback.items.models import ProductSku, SkuStock
+    if instance.created < SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME:
         return
     from shopback.items.tasks_stats import task_refundproduct_update_productskustats_return_quantity
     from shopback.items.tasks import task_update_inferiorsku_return_quantity

@@ -633,7 +633,7 @@ def task_close_refund(days=None):
 @transaction.atomic
 def task_saleorder_update_package_sku_item(sale_order):
     from shopback.trades.models import PackageSkuItem
-    from shopback.items.models import ProductSku, ProductSkuStats
+    from shopback.items.models import ProductSku, SkuStock
     items = PackageSkuItem.objects.filter(sale_order_id=sale_order.id)
     if items.count() <= 0:
         if not sale_order.is_pending():
@@ -653,7 +653,7 @@ def task_saleorder_update_package_sku_item(sale_order):
         sku_item.receiver_mobile = sale_order.sale_trade.receiver_mobile
         sku_item.sale_trade_id = sale_order.sale_trade.tid
         sku_item.sku_properties_name = sale_order.sku_name
-        stat = ProductSkuStats.get_by_sku(sku_item.sku_id)
+        stat = SkuStock.get_by_sku(sku_item.sku_id)
         assign_status = 1 if stat.realtime_quantity - stat.assign_num >= sku_item.num else 0
         sku_item.assign_status = assign_status
         sku_item.save()

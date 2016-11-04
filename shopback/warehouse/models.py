@@ -61,12 +61,12 @@ class StockAdjust(AdminModel):
 
 def update_productskustats_adjust_num(sender, instance, created, **kwargs):
     if instance.status == 0:
-        from shopback.items.models import ProductSkuStats, InferiorSkuStats
+        from shopback.items.models import SkuStock, InferiorSkuStats
         from shopback.items.models import ProductSku
         if not instance.inferior:
             adjust_quantity = StockAdjust.objects.filter(sku_id=instance.sku_id, inferior=False)\
                               .aggregate(n=Sum('num')).get('n') or 0
-            ProductSkuStats.update_adjust_num(instance.sku_id, adjust_quantity)
+            SkuStock.update_adjust_num(instance.sku_id, adjust_quantity)
         else:
             adjust_quantity = StockAdjust.objects.filter(sku_id=instance.sku_id, inferior=True)\
                               .aggregate(n=Sum('num')).get('n') or 0

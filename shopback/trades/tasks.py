@@ -909,7 +909,7 @@ def task_packageskuitem_update_productskusalestats_num(sku_id, pay_time):
     """
     Recalculate and update skustats_num.
     """
-    from shopback.items.models import ProductSkuStats, ProductSkuSaleStats
+    from shopback.items.models import SkuStock, ProductSkuSaleStats
     sale_stat = ProductSkuSaleStats.get_by_sku(sku_id)
     if not sale_stat:
         return
@@ -1136,9 +1136,9 @@ def task_packageorder_send_check_packageorder():
 
 def create_shoppingcart_cnt_check_log(time_from, uni_key):
     from flashsale.pay.models import ShoppingCart
-    from shopback.items.models import ProductSkuStats
+    from shopback.items.models import SkuStock
     actual_num = ShoppingCart.objects.filter(status=ShoppingCart.NORMAL, type=0).aggregate(n=Sum('num')).get('n') or 0
-    target_num = ProductSkuStats.objects.aggregate(n=Sum('shoppingcart_num')).get('n') or 0
+    target_num = SkuStock.objects.aggregate(n=Sum('shoppingcart_num')).get('n') or 0
     time_to = time_from + datetime.timedelta(hours=1)
     log = SaleOrderSyncLog(time_from=time_from, time_to=time_to, uni_key=uni_key,
                            type=SaleOrderSyncLog.SALE_ORDER_SHOPPING_CART, target_num=target_num,
@@ -1149,9 +1149,9 @@ def create_shoppingcart_cnt_check_log(time_from, uni_key):
 
 
 def create_waitingpay_cnt_check_log(time_from, uni_key):
-    from shopback.items.models import ProductSkuStats
+    from shopback.items.models import SkuStock
     actual_num = SaleOrder.objects.filter(status=SaleOrder.WAIT_BUYER_PAY).aggregate(n=Sum("num")).get('n') or 0
-    target_num = ProductSkuStats.objects.aggregate(n=Sum('waitingpay_num')).get('n') or 0
+    target_num = SkuStock.objects.aggregate(n=Sum('waitingpay_num')).get('n') or 0
     time_to = time_from + datetime.timedelta(hours=1)
     log = SaleOrderSyncLog(time_from=time_from, time_to=time_to, uni_key=uni_key,
                            type=SaleOrderSyncLog.SALE_ORDER_WAITING_PAY, target_num=target_num,
@@ -1162,9 +1162,9 @@ def create_waitingpay_cnt_check_log(time_from, uni_key):
 
 
 def create_assign_check_log(time_from, uni_key):
-    from shopback.items.models import ProductSkuStats
+    from shopback.items.models import SkuStock
     actual_num = PackageSkuItem.objects.filter(assign_status=1).aggregate(n=Sum('num')).get('n') or 0
-    target_num = ProductSkuStats.objects.aggregate(n=Sum('assign_num')).get('n') or 0
+    target_num = SkuStock.objects.aggregate(n=Sum('assign_num')).get('n') or 0
     time_to = time_from + datetime.timedelta(hours=1)
     log = SaleOrderSyncLog(time_from=time_from, time_to=time_to, uni_key=uni_key,
                            type=SaleOrderSyncLog.PACKAGE_ASSIGN_NUM, target_num=target_num,
@@ -1175,8 +1175,8 @@ def create_assign_check_log(time_from, uni_key):
 
 
 def create_stock_not_assign_check_log(time_from, uni_key):
-    from shopback.items.models import ProductSkuStats
-    stock_not_assign_num = ProductSkuStats.objects.filter(
+    from shopback.items.models import SkuStock
+    stock_not_assign_num = SkuStock.objects.filter(
         assign_num__gt=F('history_quantity') + F('inbound_quantity') + F(
             'adjust_quantity') + F('return_quantity') - F('post_num') - F(
             'rg_quantity')).count()
@@ -1186,14 +1186,14 @@ def create_stock_not_assign_check_log(time_from, uni_key):
                             PackageOrder.WAIT_SCAN_WEIGHT_STATUS]):
         if p.package_sku_items.filter(assign_status__in=[PackageSkuItem.ASSIGNED,PackageSkuItem.VIRTUAL_ASSIGNED]).count() == 0:
             empty_package_count += 1
-    # actual_num = ProductSkuStats.objects.filter(assign_num__gt=0,
+    # actual_num = SkuStock.objects.filter(assign_num__gt=0,
     #                                             post_num__lt=F('history_quantity') + F('inbound_quantity') + F(
     #                                                 'adjust_quantity') + F('return_quantity') - F(
     #                                                 'rg_quantity')).aggregate(n=Sum('history_quantity') + Sum('inbound_quantity') + Sum(
     #                                                 'adjust_quantity') + Sum('return_quantity') - Sum(
     #                                                 'rg_quantity')).get('n', 0)
     # sku_ids = [item['sku_id'] for item in PackageSkuItem.objects.filter(assign_status=1).values('sku_id').distinct()]
-    # ProductSkuStats.objects.filter(id__in=sku_ids).aggregate(n=Sum('history_quantity') + Sum('inbound_quantity') + Sum(
+    # SkuStock.objects.filter(id__in=sku_ids).aggregate(n=Sum('history_quantity') + Sum('inbound_quantity') + Sum(
     #                                                 'adjust_quantity') + Sum('return_quantity') - Sum(
     #                                                 'rg_quantity')).get('n', 0)
     # time_to = time_from + datetime.timedelta(hours=1)
