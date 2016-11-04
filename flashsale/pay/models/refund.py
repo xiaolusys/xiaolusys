@@ -316,7 +316,7 @@ class SaleRefund(PayBaseModel):
             total_refund = blog.flow_amount + payment  # 总的退款金额　等于已经退的金额　加上　现在要退的金额
             if total_refund > round(sorder.payment * 100, 0):
                 # 如果钱包总的退款记录数值大于子订单的实际支付额　抛出异常
-                raise Exception(u'超过订单实际支付金额!')
+                raise Exception(u'超过订单实际支付金额 !')
             else:  # 如果退款总额不大于该笔子订单的实际支付金额　则予以退款操作
                 blog.flow_amount = total_refund
                 blog.save(update_fields=['flow_amount'])
@@ -510,7 +510,7 @@ class SaleRefund(PayBaseModel):
         from flashsale.pay.models import BudgetLog
 
         if 0 < self.postage_num <= 2000:
-            BudgetLog.create_salerefund_log(self, self.postage_num)
+            BudgetLog.create_salerefund_postage_log(self, self.postage_num)
 
     def refund_coupon(self):
         # type : () -> None
