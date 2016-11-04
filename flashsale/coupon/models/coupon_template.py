@@ -262,6 +262,7 @@ class CouponTemplate(BaseModel):
     def can_send(self):
         # type: () -> bool
         from flashsale.coupon.models import UserCoupon
+
         coupons = UserCoupon.objects.filter(template_id=self.id)
         tpl_release_count = coupons.count()  # 当前模板的优惠券条数
         return tpl_release_count < self.prepare_release_num and self.status == CouponTemplate.SENDING
@@ -299,14 +300,41 @@ class CouponTemplate(BaseModel):
         """
         return "%s_%s_%s_%s" % (self.id, self.coupon_type, order_id, index)
 
-    def calculate_value_and_time(self):
-        # type: (CouponTemplate) -> Tuple[float, datetime.datetime, datetime.datetime]
-        """计算发放优惠券价值和开始使用时间和结束时间
+    def calculate_value(self):
+        # type: () -> float
+        """计算优惠券价值(支持比例配置:配置格式如下)
+          "randoms": {
+            "zone_config": {
+              "zone": [[3, 5],[5, 8]]
+              "zone_rate": [10, 1],
+            },
+            "max_val": 8,
+            "min_val": 5
+          },
         """
         value = self.value  # 默认取模板默认值
         if self.is_random_val and self.min_val and self.max_val:  # 如果设置了随机值则选取随机值
             value = float('%.1f' % random.uniform(self.max_val, self.min_val))  # 生成随机的value
+            randoms = self.extras.get('randoms')
+            if randoms:
+                zone_config = randoms.get('zone_config')
+                if zone_config:
+                    zone_rate = zone_config.get('zone_rate')
+                    zone = zone_config.get('zone')
+                    choice_l = []
+                    for index, v in enumerate(zone_rate):
+                        for i in range(v):
+                            choice_l.append(index)
+                    target = random.choice(choice_l)
+                    target_zone = zone[target]
+                    value = float('%.1f' % random.uniform(target_zone[0], target_zone[1]))
+        return value
 
+    def calculate_value_and_time(self):
+        # type: (CouponTemplate) -> Tuple[float, datetime.datetime, datetime.datetime]
+        """计算发放优惠券价值和开始使用时间和结束时间
+        """
+        value = self.calculate_value()
         expires_time = self.use_deadline
         start_use_time = datetime.datetime.now()
         if self.is_flextime:  # 如果是弹性时间
