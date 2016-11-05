@@ -801,6 +801,9 @@ function handleXlsFile(e) {
                         <label>自付账号</label><input placeholder="请输入自付账号" id="zi_account" class="form-control" {%if orderlist.bill%}value="{{orderlist.bill.receive_account}}"{%endif%}>
                         <label>交易流水号</label><input placeholder="请输入交易流水号" id="transcation_no" class="form-control" {%if orderlist.bill%}value="{{orderlist.bill.transcation_no}}"{%endif%}>
                     </div>
+                    <div>
+                        <label>备注</label><input placeholder="输入备注" id="bill_note" class="form-control" value="{{orderlist.bill.note}}"/>
+                    </div>
                     <div class="row">
                         <div class="col-lg-4">
                             <label>当前状态:</label>
@@ -1142,6 +1145,7 @@ $(function () {
         var pay_way = $('#pay_ways').val();
         var pay_tool = $("#pay_chioces").val();
         var money = $("#ol_mon").val();
+        var bill_note = $("#bill_note").val();
         var receive_account = null;
         var receive_name = null;
         var transcation_no = null;
@@ -1162,7 +1166,8 @@ $(function () {
                 "money":money,
                 "receive_account":receive_account,
                 "receive_name":receive_name,
-                "transcation_no": transcation_no
+                "transcation_no": transcation_no,
+                "bill_note": bill_note
                 };
         $.ajax({
                 url: url,
@@ -1185,6 +1190,7 @@ $(function () {
         var pay_way = $('#pay_ways').val();
         var pay_tool = $("#pay_chioces").val();
         var money = $("#ol_mon").val();
+        var bill_note = $("#bill_note").val();
         var receive_account = null;
         var receive_name = null;
         var transcation_no = null;
@@ -1205,7 +1211,8 @@ $(function () {
                 "money":money,
                 "receive_account":receive_account,
                 "receive_name":receive_name,
-                "transcation_no": transcation_no
+                "transcation_no": transcation_no,
+                "bill_note": bill_note
                 };
         $.ajax({
                 url: url,
