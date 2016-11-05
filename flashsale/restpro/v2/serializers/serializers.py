@@ -882,24 +882,24 @@ class SaleTradeDetailSerializer(serializers.HyperlinkedModelSerializer):
             return []
         package_list = PackageOrderSerializer(obj.package_orders, many=True).data
 
-        # for sale_order in obj.sale_orders.all():
-        #     if not sale_order.is_packaged():
-        #         package_sku_item = sale_order.package_sku
-        #         package_list.insert(0, {
-        #             'id': '',
-        #             'logistics_company': None,
-        #             'process_time': package_sku_item and package_sku_item.process_time,
-        #             'pay_time': package_sku_item and package_sku_item.pay_time or obj.pay_time,
-        #             'book_time': package_sku_item and package_sku_item.book_time,
-        #             'assign_time': package_sku_item and package_sku_item.assign_time,
-        #             'finish_time': package_sku_item and package_sku_item.finish_time,
-        #             'cancel_time': package_sku_item and package_sku_item.cancel_time,
-        #             'assign_status_display': package_sku_item and package_sku_item.get_assign_status_display() or '',
-        #             'ware_by_display': package_sku_item and package_sku_item.get_ware_by_display() or '',
-        #             'out_sid': '',
-        #             'note': ''
-        #         })
-        #         break
+        for sale_order in obj.sale_orders.all():
+            if not sale_order.is_packaged():
+                package_sku_item = sale_order.package_sku
+                package_list.insert(0, {
+                    'id': '',
+                    'logistics_company': None,
+                    'process_time': package_sku_item and package_sku_item.process_time,
+                    'pay_time': package_sku_item and package_sku_item.pay_time or obj.pay_time,
+                    'book_time': package_sku_item and package_sku_item.book_time,
+                    'assign_time': package_sku_item and package_sku_item.assign_time,
+                    'finish_time': package_sku_item and package_sku_item.finish_time,
+                    'cancel_time': package_sku_item and package_sku_item.cancel_time,
+                    'assign_status_display': package_sku_item and package_sku_item.get_assign_status_display() or '',
+                    'ware_by_display': package_sku_item and package_sku_item.get_ware_by_display() or '',
+                    'out_sid': '',
+                    'note': ''
+                })
+                continue
         package_list.sort(key=lambda x: x['id'])
         return package_list
 
