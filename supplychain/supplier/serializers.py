@@ -386,6 +386,40 @@ class SimpleSaleProductManageSerializer(serializers.ModelSerializer):
                   'responsible_person_name', 'responsible_people_id', 'lock_status', 'created', 'modified',
                   'upshelf_time', 'offshelf_time')
 
+    def validate(self, data):
+        # type: (Dict[str, Any]) -> Dict[str, Any]
+        """数据校验
+        """
+        upshelf_time = data.get('upshelf_time')
+        offshelf_time = data.get('offshelf_time')
+        if not isinstance(upshelf_time, datetime.datetime) or not isinstance(offshelf_time, datetime.datetime):
+            raise serializers.ValidationError("请填写上下架时间!")
+        if upshelf_time >= offshelf_time:
+            raise serializers.ValidationError("时间前后设置错误!")
+        return data
+
+    def validate_upshelf_time(self, value):
+        # type: (Any) -> datetime.datetime
+        """上架时间校验
+        """
+        now = datetime.datetime.now()
+        if not isinstance(value, datetime.datetime):
+            raise serializers.ValidationError("上架时间必须 填写!")
+        if not value > now:
+            raise serializers.ValidationError("上架时间必须是未来时间!")
+        return value
+
+    def validate_offshelf_time(self, value):
+        # type: (Any) -> datetime.datetime
+        """下架时间校验
+        """
+        now = datetime.datetime.now()
+        if not isinstance(value, datetime.datetime):
+            raise serializers.ValidationError("下架时间必须 填写!")
+        if not value > now:
+            raise serializers.ValidationError("下架时间是必须是未来时间!")
+        return value
+
 
 class SaleProductManageSerializer(serializers.ModelSerializer):
     sale_suppliers = SaleSupplierSimpleSerializer(many=True)
