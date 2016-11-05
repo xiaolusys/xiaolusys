@@ -70,7 +70,7 @@ class Bill(BaseModel):
 
     @staticmethod
     def create(relations, type, status, pay_method, plan_amount, amount,supplier, user_id, receive_account='', receive_name='',
-               pay_taobao_link='',transcation_no=''):
+               pay_taobao_link='',transcation_no='', note=''):
         bill = Bill(type=type,
                     status=status,
                     plan_amount=plan_amount,
@@ -81,7 +81,8 @@ class Bill(BaseModel):
                     receive_account=receive_account,
                     receive_name=receive_name,
                     pay_taobao_link=pay_taobao_link,
-                    transcation_no=transcation_no)
+                    transcation_no=transcation_no,
+                    note=note)
         bill.save()
         bill.relate_to(relations)
         return bill
