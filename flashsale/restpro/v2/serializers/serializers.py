@@ -684,15 +684,14 @@ class PortalSerializer(serializers.ModelSerializer):
         fields = ('id', 'posters', 'categorys', 'activitys', 'promotion_brands', 'active_time')
 
     def get_activitys(self, obj):
-        now_time = datetime.datetime.now()
-        activitys = ActivityEntry.get_landing_effect_activitys(now_time)
+        from flashsale.promotion.apis.activity import get_landing_effect_activitys
+        activitys = get_landing_effect_activitys()
         brands_data = SimpleActivityEntrySerializer(activitys, many=True).data
         return brands_data
 
     def get_promotion_brands(self, obj):
-        now_time = datetime.datetime.now()
-        activitys = ActivityEntry.get_effect_activitys(now_time) \
-            .filter(act_type=ActivityEntry.ACT_BRAND)
+        from flashsale.promotion.apis.activity import get_effect_activitys
+        activitys = get_effect_activitys().filter(act_type=ActivityEntry.ACT_BRAND)
         brands_data = SimpleActivityEntrySerializer(activitys, many=True).data
         return brands_data
 
