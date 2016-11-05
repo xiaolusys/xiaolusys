@@ -1095,6 +1095,7 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         receive_account = request.REQUEST.get("receive_account", None)
         receive_name = request.REQUEST.get("receive_name", None)
         pay_taobao_link = request.REQUEST.get("pay_taobao_link", None)
+        note = request.REQUEST.get("bill_note", '')
         amount = .0
         from flashsale.finance.models import Bill, BillRelation
         if int(pay_way) == OrderList.PC_POD_TYPE:
@@ -1115,7 +1116,7 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         try:
             bill = Bill.create([orderlist], Bill.PAY, status, pay_method, plan_amount, amount, orderlist.supplier,
                                user_id=request.user.id, receive_account=receive_account, receive_name=receive_name,
-                               pay_taobao_link=pay_taobao_link, transcation_no=transcation_no)
+                               pay_taobao_link=pay_taobao_link, transcation_no=transcation_no, note=note)
         except:
             return Response({"res": False, "data": [], "desc": u"无法写入财务记录"})
 
@@ -1135,6 +1136,7 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         receive_account = request.REQUEST.get("receive_account", None)
         receive_name = request.REQUEST.get("receive_name", None)
         pay_taobao_link = request.REQUEST.get("pay_taobao_link", None)
+        note = request.REQUEST.get("bill_note", '')
         from flashsale.finance.models import Bill, BillRelation
         bill = get_object_or_404(Bill, id=pk)
         orderlist = bill.get_orderlist()
@@ -1156,6 +1158,7 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         try:
             bill.pay_method = pay_method
             bill.status = status
+            bill.note = note
             bill.plan_amount = plan_amount
             bill.supplier = orderlist.supplier
             bill.receive_account = receive_account
