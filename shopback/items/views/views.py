@@ -1393,7 +1393,7 @@ def as_tuple(obj):
 class StockRedundanciesView(View):
     def get(self, request):
         s = ','.join([str(p) for p in SkuStock.redundancies()])
-        return HttpResponseRedirect('/admin/items/productskustats?id__in=%s' % s)
+        return HttpResponseRedirect('/admin/items/skustock?id__in=%s' % s)
 
 
 class ProductSkuStatsTmpView(View):
@@ -1405,9 +1405,9 @@ class ProductSkuStatsTmpView(View):
         elif supplier_name:
             supplier = get_object_or_404(SaleSupplier, supplier_name=SaleSupplier)
         else:
-            return HttpResponseRedirect('/admin/items/productskustats')
+            return HttpResponseRedirect('/admin/items/skustock')
         s = ','.join([str(p) for p in SkuStock.filter_by_supplier(supplier.id)])
-        return HttpResponseRedirect('/admin/items/productskustats?product_id__in=%s' % s)
+        return HttpResponseRedirect('/admin/items/skustock?product_id__in=%s' % s)
 
 class ProductSkuStatsViewSet(View):
     pass

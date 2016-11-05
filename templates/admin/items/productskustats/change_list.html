@@ -35,11 +35,11 @@
                         var supplier_id = $("#supplier_id").val();
                         var supplier_name = $("#supplier_name").val();
                         if (supplier_id){
-                            window.location = "/admin/items/productskustats/?supplier_id=" + supplier_id;
+                            window.location = "/admin/items/skustock/?supplier_id=" + supplier_id;
                             return
                         }
                         if (supplier_name){
-                            window.location = "/admin/items/productskustats/?supplier_name=" + supplier_name;
+                            window.location = "/admin/items/skustock/?supplier_name=" + supplier_name;
                             return
                         }
                     });
