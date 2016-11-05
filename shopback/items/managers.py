@@ -305,7 +305,6 @@ class ProductManager(BaseManager):
                 product.wait_post_num = wait_post_num
                 product.save()
 
-
     def isQuantityLockable(self, sku, num):
         from flashsale.pay.models import ModelProduct
         try:

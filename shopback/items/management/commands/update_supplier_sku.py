@@ -13,8 +13,8 @@ from shopback.refunds.models import RefundProduct
 from shopback.trades.models import MergeOrder, PackageSkuItem
 from supplychain.supplier.models import SaleProduct
 
-
 ADMIN_ID = 1
+
 
 class Command(BaseCommand):
     PATTERN = re.compile(r'^[\w\-_]*$')
@@ -44,15 +44,16 @@ class Command(BaseCommand):
             RefundProduct.objects.filter(id=refund_product.id).update(outer_sku_id=new_outer_id)
             log_action(ADMIN_ID, refund_product, CHANGE, '更新outer_sku_id, %s->%s' % (old_outer_id, new_outer_id))
 
-
     def handle(self, *args, **kwargs):
         cursor = connection.cursor()
         i = 0
-        cursor.execute('select count(1) from shop_items_productsku where LENGTH(outer_id) != CHAR_LENGTH(outer_id) or outer_id regexp "#"')
+        cursor.execute(
+            'select count(1) from shop_items_productsku where LENGTH(outer_id) != CHAR_LENGTH(outer_id) or outer_id regexp "#"')
         row = cursor.fetchone()
         n = row[0]
 
-        for sku in ProductSku.objects.raw('select * from shop_items_productsku where LENGTH(outer_id) != CHAR_LENGTH(outer_id) or outer_id regexp "#"'):
+        for sku in ProductSku.objects.raw(
+                'select * from shop_items_productsku where LENGTH(outer_id) != CHAR_LENGTH(outer_id) or outer_id regexp "#"'):
             i += 1
             print '%s/%s' % (i, n)
             self.process_abnormal(sku)

@@ -605,6 +605,7 @@ def update_package_sku_item(sender, instance, created, **kwargs):
         task_merge_trade_update_package_sku_item.delay(instance)
         task_merge_trade_update_sale_order.delay(instance)
 
+
 post_save.connect(update_package_sku_item, sender=MergeTrade, dispatch_uid='post_save_update_package_sku_item')
 
 # 平台名称与存储编码映射
@@ -1253,7 +1254,6 @@ class ReturnWuLiu(models.Model):
     remark = models.CharField(max_length=64, blank=True, verbose_name=u'备注')
     icon = models.CharField(max_length=256, blank=True, verbose_name=u'物流公司图标')
 
-
     class Meta:
         db_table = 'shop_returns_wuliudetail'
         app_label = 'trades'
@@ -1333,7 +1333,6 @@ class PackageOrder(models.Model):
     sys_memo = models.TextField(max_length=1000, blank=True, verbose_name=u'系统备注')
     seller_flag = models.IntegerField(null=True, default=0, verbose_name=u'淘宝旗帜')
 
-
     GIFT_TYPE = (
         (pcfg.REAL_ORDER_GIT_TYPE, u'实付'),
         (pcfg.CS_PERMI_GIT_TYPE, u'赠送'),
@@ -1391,7 +1390,8 @@ class PackageOrder(models.Model):
 
     @property
     def receiver_address_detail(self):
-        return str(self.receiver_state) + str(self.receiver_city) + str(self.receiver_district) + str(self.receiver_address)
+        return str(self.receiver_state) + str(self.receiver_city) + str(self.receiver_district) + str(
+            self.receiver_address)
 
     @property
     def receiver_address_detail_wb(self):
@@ -1450,7 +1450,8 @@ class PackageOrder(models.Model):
         self.save()
         # 为了承接过去的package_sku_item的数据, assign_status__in还要考虑 PackageSkuItem.ASSIGNED的情况
         package_sku_items = PackageSkuItem.objects.filter(package_order_id=self.id,
-                                          assign_status__in=[PackageSkuItem.ASSIGNED, PackageSkuItem.VIRTUAL_ASSIGNED])
+                                                          assign_status__in=[PackageSkuItem.ASSIGNED,
+                                                                             PackageSkuItem.VIRTUAL_ASSIGNED])
         for sku_item in package_sku_items:
             sku_item.finish_third_send(self.out_sid, self.logistics_company)
             sale_order = sku_item.sale_order
@@ -1491,7 +1492,8 @@ class PackageOrder(models.Model):
     def sale_orders(self):
         if not hasattr(self, '_sale_orders_'):
             from flashsale.pay.models import SaleOrder
-            sale_order_ids = list(PackageSkuItem.objects.filter(package_order_id=self.id).values_list('sale_order_id', flat=True))
+            sale_order_ids = list(
+                PackageSkuItem.objects.filter(package_order_id=self.id).values_list('sale_order_id', flat=True))
             self._sale_orders_ = SaleOrder.objects.filter(id__in=sale_order_ids)
         return self._sale_orders_
 
@@ -1782,8 +1784,8 @@ class PackageStat(models.Model):
 
     @staticmethod
     def get_package_num(package_stat_id):
-        return PackageOrder.objects.filter(id__contains=package_stat_id + '-')\
-                                           .exclude(sys_status__in=[PackageOrder.PKG_NEW_CREATED]).count()
+        return PackageOrder.objects.filter(id__contains=package_stat_id + '-') \
+            .exclude(sys_status__in=[PackageOrder.PKG_NEW_CREATED]).count()
 
     @staticmethod
     def get_sended_package_num(package_stat_id):
@@ -1892,7 +1894,7 @@ class PackageSkuItem(BaseModel):
 
     def set_failed_time(self):
         now_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        PackageSkuItem.objects.filter(out_sid = self.out_sid).update(failed_retrieve_time = now_time)
+        PackageSkuItem.objects.filter(out_sid=self.out_sid).update(failed_retrieve_time=now_time)
 
     def cancel_failed_time(self):
         if self.failed_retrieve_time:
@@ -1900,7 +1902,7 @@ class PackageSkuItem(BaseModel):
 
     @staticmethod
     def get_failed_express():
-        ps = PackageSkuItem.objects.exclude(failed_retrieve_time = None)
+        ps = PackageSkuItem.objects.exclude(failed_retrieve_time=None)
         return ps
 
     @staticmethod
@@ -1932,7 +1934,7 @@ class PackageSkuItem(BaseModel):
     def sale_order(self):
         if not hasattr(self, '_sale_order_'):
             from flashsale.pay.models import SaleOrder
-            self._sale_order_ = SaleOrder.objects.   get(id=self.sale_order_id)
+            self._sale_order_ = SaleOrder.objects.get(id=self.sale_order_id)
         return self._sale_order_
 
     @property
@@ -2060,12 +2062,11 @@ class PackageSkuItem(BaseModel):
             PackageOrder.create(package_order_id, sale_trade, PackageOrder.WAIT_PREPARE_SEND_STATUS, self)
         else:
             PackageSkuItem.objects.filter(id=self.id).update(package_order_id=package_order_id,
-                                                                 package_order_pid=package_order.pid)
+                                                             package_order_pid=package_order.pid)
             package_order.set_redo_sign(save_data=False)
             package_order.reset_package_address()
             package_order.reset_sku_item_num()
             package_order.save()
-
 
     def get_purchase_uni_key(self):
         """为了和历史上的purchase_record unikey保持一致"""
@@ -2169,6 +2170,7 @@ def update_package_order(sender, instance, created, **kwargs):
     from shopback.trades.tasks import task_update_package_order
     # task_update_package_order.delay(instance)
     task_update_package_order.apply_async(args=[instance.id], countdown=3)
+
 
 post_save.connect(update_package_order, sender=PackageSkuItem,
                   dispatch_uid='post_save_update_package_order')

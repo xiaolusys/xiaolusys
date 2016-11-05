@@ -28,6 +28,7 @@ from shopback.items.models import (Product, ProductSku, ProductSchedule,
                                    SkuStock)
 from supplychain.supplier.models import SaleSupplier, SaleProduct, SaleProductManageDetail
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
+
 logger = logging.getLogger(__name__)
 
 
@@ -96,7 +97,7 @@ class AddItemView(generics.ListCreateAPIView):
         for key in ('note', 'wash_instroduce', 'material', 'all_colors', 'fashion'):
             value = content.get(key)
             if value:
-                if key == 'all_colors': key='color'
+                if key == 'all_colors': key = 'color'
                 extras['properties'][key] = value
         # TODO@meron 考虑到亲子装问题，支持同一saleproduct录入多个modelproduct
         model_pro = ModelProduct(
@@ -105,8 +106,8 @@ class AddItemView(generics.ListCreateAPIView):
             salecategory=saleproduct.sale_category,
             saleproduct=saleproduct,
             is_flatten=False,
-            lowest_agent_price=round(min([float(v) for k,v in content.items() if k.endswith('_agentprice')]), 2),
-            lowest_std_sale_price=round(min([float(v) for k,v in content.items() if k.endswith('_pricestd')]),2),
+            lowest_agent_price=round(min([float(v) for k, v in content.items() if k.endswith('_agentprice')]), 2),
+            lowest_std_sale_price=round(min([float(v) for k, v in content.items() if k.endswith('_pricestd')]), 2),
             extras=extras,
         )
         model_pro.save()
@@ -166,9 +167,9 @@ class AddItemView(generics.ListCreateAPIView):
                     one_sku.save()
                     log_action(user.id, one_sku, ADDITION, u'新建一个sku_new')
                     count += 1
-            except Exception,exc:
-                logger.error(exc.message or u'商品资料创建错误',exc_info=True)
-                raise exceptions.APIException(u'出错了:%s'% exc.message)
+            except Exception, exc:
+                logger.error(exc.message or u'商品资料创建错误', exc_info=True)
+                raise exceptions.APIException(u'出错了:%s' % exc.message)
         # 发送　添加供应商总选款的字段　的信号
         try:
             signal_record_supplier_models.send(sender=ModelProduct, obj=model_pro)
@@ -291,7 +292,7 @@ class GetSkuDetail(generics.ListCreateAPIView):
         for sku in all_sku:
             for chi_ma in all_chi_ma:
                 chi_ma_content = content.get(str(product_model.id) + "_" + sku + "_" + chi_ma)
-                if chi_ma_content and len( chi_ma_content) > 0 and chi_ma_content != "0":
+                if chi_ma_content and len(chi_ma_content) > 0 and chi_ma_content != "0":
                     if sku in chi_ma_result:
                         chi_ma_result[sku][chi_ma] = chi_ma_content
                     else:
@@ -475,7 +476,7 @@ class BatchSetTime(generics.ListCreateAPIView):
 
                 if k == 'agent_price':
                     for sku in pro.pskus.all():
-                        sku.agent_price=v
+                        sku.agent_price = v
                         sku.save()
 
                 if k == 'rebeta_scheme_id' and v != '':
@@ -670,7 +671,7 @@ class ProductScheduleView(generics.ListCreateAPIView):
         if product_ids:
             product_ids = map(int, product_ids)
             reload_url = '%s?%s' % (
-            reverse('product_schedule'), urllib.urlencode({'product_ids': json.dumps(product_ids)}))
+                reverse('product_schedule'), urllib.urlencode({'product_ids': json.dumps(product_ids)}))
             Product.objects.filter(id__in=product_ids).update(
                 **form.get_product_update_kwargs())
             rows = Product.objects.filter(id__in=product_ids).order_by('-id')
@@ -736,7 +737,7 @@ class ProductScheduleView(generics.ListCreateAPIView):
         else:
             schedule_ids = map(int, schedule_ids)
             reload_url = '%s?%s' % (
-            reverse('product_schedule'), urllib.urlencode({'schedule_ids': json.dumps(schedule_ids)}))
+                reverse('product_schedule'), urllib.urlencode({'schedule_ids': json.dumps(schedule_ids)}))
             schedule_update_kwargs = form.get_schedule_update_kwargs()
 
             if schedule_update_kwargs:

@@ -9,6 +9,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 from shopback.items.models import ProductSchedule
 
+
 class Command(BaseCommand):
     # 28182, 123
     def handle(self, *args, **kwargs):

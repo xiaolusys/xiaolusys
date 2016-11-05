@@ -25,15 +25,13 @@ from shopback.logistics.models import LogisticsCompany
 
 from shopback.items.models import Product, ProductSku, ProductDaySale
 from core.options import log_action, ADDITION, CHANGE
-
 from flashsale.pay.models import SaleOrder,SaleTrade      #dh
 from shopback.trades.models import PackageOrder, PackageSkuItem         #dh
-
 from shopapp.memorule import ruleMatchSplit
 from shopback.refunds.models import REFUND_STATUS, Refund
 from shopback.signals import rule_signal, change_addr_signal
 from shopback.trades.models_dirty import DirtyMergeOrder
-from shopback.trades.models import (MergeTrade, MergeOrder, PackageOrder,PackageSkuItem,
+from shopback.trades.models import (MergeTrade, MergeOrder, PackageOrder, PackageSkuItem,
                                     ReplayPostTrade, GIFT_TYPE,
                                     SYS_TRADE_STATUS, TAOBAO_TRADE_STATUS,
                                     SHIPPING_TYPE_CHOICE, TAOBAO_ORDER_STATUS)
@@ -49,6 +47,7 @@ from rest_framework.views import APIView
 from renderers import *
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 from . import forms, serializers
+
 logger = logging.getLogger('django.request')
 
 
@@ -1268,6 +1267,7 @@ def change_package_ware_by(request):
                   'response_content': {'ware_by': p.get_ware_by_display(), 'ware_by_id': p.ware_by}}
     return HttpResponse(json.dumps(ret_params), content_type="application/json")
 
+
 ############################### 退换货订单 #################################
 class ExchangeOrderView(APIView):
     """ docstring for class ExchangeOrderView """
@@ -1630,7 +1630,7 @@ class TradeSearchView(APIView):
                 trade_dict['total_num'] = trade.num  # 单数
                 trade_dict['pay_time'] = trade.pay_time  # 付款日期
                 trade_dict['consign_time'] = '未知'  # 预售日期
-                trade_dict['receiver_name'] = package_order.receiver_name   # 收货人
+                trade_dict['receiver_name'] = package_order.receiver_name  # 收货人
                 trade_dict['receiver_state'] = package_order.receiver_state  # 收货人省
                 trade_dict['receiver_city'] = package_order.receiver_city  # 收货人市
                 trade_dict['receiver_district'] = package_order.receiver_district  # 区
@@ -1707,6 +1707,7 @@ class TradeSearchView(APIView):
 
         return Response(order_list)
 
+
 # class OrderListView(APIView):
 #     """ docstring for class OrderListView """
 #     permission_classes = (permissions.IsAuthenticated,)
@@ -1772,16 +1773,16 @@ class OrderListView(APIView):
         except:
             prod = None
         order_dict = {}
-        order_dict['id'] = order.id     #PackageSkuItem的id
-        order_dict['tid'] = order.sale_trade_id      #PackageSkuItem的原单id
+        order_dict['id'] = order.id  # PackageSkuItem的id
+        order_dict['tid'] = order.sale_trade_id  # PackageSkuItem的原单id
         order_dict['oid'] = order.oid
-        order_dict['outer_id'] = order.outer_id     #PackageSkuItem的商品编码
-        order_dict['outer_sku_id'] = order.outer_sku_id     #PackageSkuItem的规格ＩＤ
-        order_dict['total_fee'] = order.total_fee       #PackageSkuItem的总费用
-        order_dict['payment'] = order.payment       #PackageSkuItem的实付款
-        order_dict['title'] = prod and prod.name or order.title     #PackageSkuItem的商品名字
-        order_dict['num'] = order.num       #PackageSkuItem的件数
-        order_dict['sku_properties_name'] = SaleOrder.objects.get(id = order.sale_order_id).sku_name        #SaleＯrder的sku名字
+        order_dict['outer_id'] = order.outer_id  # PackageSkuItem的商品编码
+        order_dict['outer_sku_id'] = order.outer_sku_id  # PackageSkuItem的规格ＩＤ
+        order_dict['total_fee'] = order.total_fee  # PackageSkuItem的总费用
+        order_dict['payment'] = order.payment  # PackageSkuItem的实付款
+        order_dict['title'] = prod and prod.name or order.title  # PackageSkuItem的商品名字
+        order_dict['num'] = order.num  # PackageSkuItem的件数
+        order_dict['sku_properties_name'] = SaleOrder.objects.get(id=order.sale_order_id).sku_name  # SaleＯrder的sku名字
         # order_dict['refund_status'] = dict(REFUND_STATUS).get(
         #     order.refund_status, u'其他')
         # order_dict['seller_nick'] = order.seller_nick
@@ -2788,22 +2789,27 @@ def search_trade(request):
     return render(request, 'trades/order_detail.html', {'info': rec1,
                                                         'time': today})
 
+
 def search_package_sku_item(request):
-    package_pid = request.REQUEST.get("package_pid",None)
+    package_pid = request.REQUEST.get("package_pid", None)
     print package_pid
     try:
-        package_sku_item = PackageSkuItem.objects.get(package_order_pid = package_pid)
+        package_sku_item = PackageSkuItem.objects.get(package_order_pid=package_pid)
         print package_sku_item.sale_order_id
-        package_sku_item_oid = SaleOrder.objects.get(id = package_sku_item.sale_order_id).oid
+        package_sku_item_oid = SaleOrder.objects.get(id=package_sku_item.sale_order_id).oid
         print package_sku_item_oid
         package_sku_item = {package_sku_item}
-        shishi = {"a" : 1, "b" : 2}
-        return HttpResponse(json.dumps({"res" : True,"data": [shishi],"desc":""}))
-    except Exception,msg:
+        shishi = {"a": 1, "b": 2}
+        return HttpResponse(json.dumps({"res": True, "data": [shishi], "desc": ""}))
+    except Exception, msg:
         print "包裹号不存在或包裹号不唯一"
         print msg
-        return HttpResponse(json.dumps({"res" : False,"data": ["包裹号不存在或包裹号不唯一"],"desc":""}))
+        return HttpResponse(json.dumps({"res": False, "data": ["包裹号不存在或包裹号不唯一"], "desc": ""}))
+
+
 1
+
+
 def manybeizhu(request):
     return render(request, 'trades/manybeizhu.html')
 

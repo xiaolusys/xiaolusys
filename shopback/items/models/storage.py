@@ -10,6 +10,7 @@ from django.core.cache import cache
 from shopback.archives.models import DepositeDistrict
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -34,12 +35,12 @@ class ProductLocation(models.Model):
         res = []
         for sku in product.prod_skus.all():
             p, state = ProductLocation.objects.get_or_create(product_id=product.id,
-                            sku_id=sku.id,
-                            outer_id=product.outer_id,
-                            outer_sku_id=product.outer_id,
-                            name=product.title(),
-                            properties_name=sku.properties_name,
-                            district=district)
+                                                             sku_id=sku.id,
+                                                             outer_id=product.outer_id,
+                                                             outer_sku_id=product.outer_id,
+                                                             name=product.title(),
+                                                             properties_name=sku.properties_name,
+                                                             district=district)
             res.append(p)
         return res
 
@@ -49,7 +50,6 @@ class ProductLocation(models.Model):
         app_label = 'items'
         verbose_name = u'商品库位'
         verbose_name_plural = u'商品库位列表'
-
 
 
 class ProductScanStorage(models.Model):
@@ -146,21 +146,25 @@ class ProductSkuContrast(models.Model):
 def invalid_productsku_contrast_cache(sender, instance, created, **kwargs):
     from flashsale.pay.models import ModelProduct
     if hasattr(ModelProduct, 'API_CACHE_KEY_TPL'):
-        logger.info('invalid_productsku_contrast_cache invalid: %s'% instance.product.model_id)
+        logger.info('invalid_productsku_contrast_cache invalid: %s' % instance.product.model_id)
         cache.delete(ModelProduct.API_CACHE_KEY_TPL.format(instance.product.model_id))
+
 
 post_save.connect(invalid_productsku_contrast_cache,
                   sender=ProductSkuContrast,
                   dispatch_uid='post_save_invalid_productsku_contrast_cache')
 
+
 def default_contrast_cid():
     max_constrast = ContrastContent.objects.order_by('-id').first()
     if max_constrast:
-        return str( max_constrast.id + 1)
+        return str(max_constrast.id + 1)
     return '1'
 
+
 def gen_contrast_cache_key(key_name):
-    return hashlib.sha1('%s.%s'%(__name__, key_name)).hexdigest()
+    return hashlib.sha1('%s.%s' % (__name__, key_name)).hexdigest()
+
 
 class ContrastContent(models.Model):
     NORMAL = 'normal'
@@ -189,13 +193,13 @@ class ContrastContent(models.Model):
 
     @classmethod
     def contrast_maps(cls):
-        cache_key  = gen_contrast_cache_key(cls.__name__)
+        cache_key = gen_contrast_cache_key(cls.__name__)
         cache_contrast = cache.get(cache_key)
         if not cache_contrast:
             contrasts = cls.objects.filter(status=cls.NORMAL).values_list('cid', 'name')
             cache_contrast = dict(contrasts)
             cache.set(cache_key, cache_contrast, 7 * 24 * 3600)
-            logger.warn('contrast dictionary cache not hit: key=%s'% cache_key)
+            logger.warn('contrast dictionary cache not hit: key=%s' % cache_key)
         return cache_contrast
 
 
@@ -203,14 +207,14 @@ def invalid_contrast_maps_cache(sender, instance, created, **kwargs):
     cache_key = gen_contrast_cache_key(instance.__class__.__name__)
     cache.delete(cache_key)
 
+
 post_save.connect(invalid_contrast_maps_cache,
                   sender=ContrastContent,
                   dispatch_uid='post_save_invalid_contrast_maps_cache')
 
 
 class ImageWaterMark(models.Model):
-
-    NORMAL   = 1
+    NORMAL = 1
     CANCELED = 0
     STATUSES = (
         (NORMAL, u'使用'),
