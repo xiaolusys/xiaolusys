@@ -571,7 +571,7 @@ function handleXlsFile(e) {
             {% for order in orderdetails %}
             <tr id="orderdetail_{{ forloop.counter }}">
                 <td><input class="sku_select" type="checkbox" value="" data-sku-id="{{order.chichu_id}}" data-buy-quantity="{{order.buy_quantity}}" data-arrival-quantity="{{order.arrival_quantity}}"></td>
-                <td><a href="/admin/items/productskustats/?sku_id={{ order.chichu_id}}" target="_blank">{{order.chichu_id }}</a></td>
+                <td><a href="/admin/items/skustock/?sku_id={{ order.chichu_id}}" target="_blank">{{order.chichu_id }}</a></td>
                 <td><a href="/admin/items/product/?q={{ order.outer_id }}" target="_blank">{{ order.outer_id }}</a></td>
                 <td>{{order.memo}}</td>
                 <td>
