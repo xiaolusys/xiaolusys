@@ -26,7 +26,7 @@ from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import Product, ProductSku, ProductDaySale
 from core.options import log_action, ADDITION, CHANGE
 
-from flashsale.pay.models import SaleOrder      #dh
+from flashsale.pay.models import SaleOrder,SaleTrade      #dh
 from shopback.trades.models import PackageOrder, PackageSkuItem         #dh
 
 from shopapp.memorule import ruleMatchSplit
@@ -37,6 +37,7 @@ from shopback.trades.models import (MergeTrade, MergeOrder, PackageOrder,Package
                                     ReplayPostTrade, GIFT_TYPE,
                                     SYS_TRADE_STATUS, TAOBAO_TRADE_STATUS,
                                     SHIPPING_TYPE_CHOICE, TAOBAO_ORDER_STATUS)
+from shopback.refunds.models import RefundProduct
 from shopback.trades.forms import ExchangeTradeForm
 from shopback.users.models import User
 
@@ -1789,6 +1790,13 @@ class OrderListView(APIView):
         order_dict['receiver_name'] = PackageOrder.objects.get(pid = order.package_order_pid).receiver_name     #PackageOrder的收货人
         order_dict['pay_time'] = order.pay_time     #PackageSkuItem的付款时间
         order_dict['status'] = order.get_assign_status_display()        #PackageSkuItem的状态
+        sale_trade = SaleOrder.objects.filter(id = order.sale_order_id).first().sale_trade
+        rp = RefundProduct.objects.filter(sku_id=order.sku_id, trade_id=sale_trade.tid).first()
+        if rp:
+            order_dict['refund_product'] = rp.num
+        else:
+            order_dict['refund_product'] = 0
+        print order_dict['refund_product']
         order_list.append(order_dict)
 
         return Response({"object": {'order_list': order_list}})

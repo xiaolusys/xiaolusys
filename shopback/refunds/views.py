@@ -265,14 +265,18 @@ class RefundView(APIView):
                                                      title=content['title'],
                                                      outer_id=content['outer_id']).first()
         if refundproduct:
-            return Response(serializers.RefundProductSerializer(refundproduct).data)
-        for k, v in content.iteritems():
-            if k == 'oid':
-                if RefundProduct.objects.filter(oid=v).count() != 0:
-                    return Response(serializers.RefundProductSerializer(rf).data)
-            if k == 'can_reuse':
-                v = v == "true" and True or False
-            hasattr(rf, k) and setattr(rf, k, v)
+            rf = refundproduct
+            rf.num = rf.num + 1
+        # if refundproduct:
+        #     return Response(serializers.RefundProductSerializer(refundproduct).data)
+        else:
+            for k, v in content.iteritems():
+                if k == 'oid':
+                    if RefundProduct.objects.filter(oid=v).count() != 0:
+                        return Response(serializers.RefundProductSerializer(rf).data)
+                if k == 'can_reuse':
+                    v = v == "true" and True or False
+                hasattr(rf, k) and setattr(rf, k, v)
         logger = logging.getLogger(__name__)
         rf.save()
         logger.warn({"action": "buy_rf", "info": rf.id})
