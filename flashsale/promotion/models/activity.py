@@ -1,15 +1,11 @@
-# -*- coding:utf-8 -*-
-import json
+# coding=utf-8
 import datetime
 from django.db import models
-
 from core.fields import JSONCharMyField
 from core.models import BaseModel
-
 from shopback.items.models import Product
 
 import logging
-
 logger = logging.getLogger(__name__)
 
 
@@ -66,32 +62,6 @@ class ActivityEntry(BaseModel):
     def is_on(self):
         return self.is_active and self.start_time <= datetime.datetime.now() < self.end_time
 
-    @classmethod
-    def get_default_activity(cls):
-        acts = cls.objects.filter(is_active=True,
-                                  end_time__gte=datetime.datetime.now()) \
-            .exclude(act_type__in=(ActivityEntry.ACT_MAMA, ActivityEntry.ACT_BRAND)) \
-            .order_by('-order_val', '-modified')
-        if acts.exists():
-            return acts[0]
-        return None
-
-    @classmethod
-    def get_effect_activitys(cls, active_time):
-        """ 根据时间获取活动列表 """
-        acts = cls.objects.filter(is_active=True,
-                                  start_time__lte=active_time,
-                                  end_time__gte=active_time) \
-            .order_by('-order_val', '-modified')
-        return acts
-
-    @classmethod
-    def get_landing_effect_activitys(cls, active_time):
-        """ 根据时间获取活动列表app首页展示 """
-        acts = cls.get_effect_activitys(active_time) \
-            .exclude(act_type__in=(ActivityEntry.ACT_MAMA, ActivityEntry.ACT_BRAND))
-        return acts
-
     def get_shareparams(self, **params):
         return {
             'id': self.id,
@@ -113,10 +83,6 @@ class ActivityEntry(BaseModel):
 
     def friend_member_num(self):
         return 16
-
-    @classmethod
-    def mama_activities(cls):
-        return cls.get_effect_activitys(datetime.datetime.now()).filter(act_type=ActivityEntry.ACT_MAMA)
 
 
 class ActivityProduct(BaseModel):
