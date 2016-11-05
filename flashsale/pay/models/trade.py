@@ -412,7 +412,11 @@ class SaleTrade(BaseModel):
         new_sale_order = old_sale_order
         new_sale_order.id = None
         cnt = self.sale_orders.count()
-        new_sale_order.oid = '%s-%s' % (old_sale_order.oid, str(cnt))
+        old_sale_order_oid = old_sale_order.oid
+        if '-' in old_sale_order.oid:
+            cnt = int(old_sale_order.oid.split('-')[1])+1
+            old_sale_order_oid = old_sale_order.oid.split('-')[0]
+        new_sale_order.oid = '%s-%s' % (old_sale_order_oid, str(cnt))
         new_sale_order.status = SaleOrder.WAIT_SELLER_SEND_GOODS
         new_sale_order.sku_id = new_sku_id
         product = sku.product
@@ -427,6 +431,9 @@ class SaleTrade(BaseModel):
         new_sale_order.refund_fee = 0
         new_sale_order.refund_status = SaleRefund.NO_REFUND
         new_sale_order.save()
+        if new_sale_order.is_teambuy():
+            from flashsale.pay.tasks import task_saleorder_update_package_sku_item
+            task_saleorder_update_package_sku_item(new_sale_order)
 
     def change_sku_item(self, old_sale_order, sku_id, num=1):
         """
