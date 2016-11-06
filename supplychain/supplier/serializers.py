@@ -402,11 +402,8 @@ class SimpleSaleProductManageSerializer(serializers.ModelSerializer):
         # type: (Any) -> datetime.datetime
         """上架时间校验
         """
-        now = datetime.datetime.now()
         if not isinstance(value, datetime.datetime):
             raise serializers.ValidationError("上架时间必须 填写!")
-        if not value > now:
-            raise serializers.ValidationError("上架时间必须是未来时间!")
         return value
 
     def validate_offshelf_time(self, value):
