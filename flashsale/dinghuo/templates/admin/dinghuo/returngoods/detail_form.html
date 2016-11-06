@@ -183,7 +183,7 @@
                         <td>{{detail.product_sku.BARCODE}}</td>
                         <td>{{detail.product_sku.properties_name}}</td>
                         <td>{{detail.product_sku.get_districts_code}}</td>
-                        <td><a href="/admin/items/productskustats/?sku_id={{detail.skuid}}" target="_blank">{{detail.product_sku.stat.unused_stock}}</a></td>
+                        <td><a href="/admin/items/skustock/?sku_id={{detail.skuid}}" target="_blank">{{detail.product_sku.stat.unused_stock}}</a></td>
                         <td id="td_num_{{detail.skuid}}"><label id="label_num_{{detail.skuid}}" class="show_sku_{{detail.skuid}}">{{detail.num}}</label>
                             <input id="text_num_{{detail.skuid}}" class="edit_sku_{{detail.skuid}}" type="text" value="{{detail.num}}" style="display: none;width:42px"></td>
                         <td id="td_inferior_num_{{detail.skuid}}"><label id="label_inferior_num_{{detail.skuid}}" class="show_inferior_sku_{{detail.skuid}}">{{detail.inferior_num}}</label>

@@ -1458,7 +1458,7 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
 
     def sku_id_link_to(self, obj):
         return self.SKU_PREVIEW_TPL % {
-            'sku_url': '/admin/items/productskustats?sku_id=%s' % obj.sku_id,
+            'sku_url': '/admin/items/skustock?sku_id=%s' % obj.sku_id,
             'skucode': obj.sku_id
         }
 

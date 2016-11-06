@@ -741,7 +741,7 @@ class UnReturnSkuAdmin(BaseModelAdmin):
 
     def sku_properties_name(self, obj):
         if obj.sku:
-            return '<a href="/admin/items/productskustats/?sku_id=%(sku_id)d">%(properties_name)s</a>' % {
+            return '<a href="/admin/items/skustock/?sku_id=%(sku_id)d">%(properties_name)s</a>' % {
                 'sku_id': obj.sku.id,
                 'properties_name': obj.sku.properties_name or obj.sku.properties_alias or ''
             }

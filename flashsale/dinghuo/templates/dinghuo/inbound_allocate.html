@@ -165,7 +165,7 @@
                 </td>
                 <td>{{detail.sku.properties_name}}</td>
                 <td>
-                    <a href="/admin/items/productskustats/?sku_id={{detail.sku.id}}" target="_blank" title="Sku明细">{{detail.sku.barcode}}</a>
+                    <a href="/admin/items/skustock/?sku_id={{detail.sku.id}}" target="_blank" title="Sku明细">{{detail.sku.barcode}}</a>
                 </td>
                 <td>
                     {{detail.arrival_quantity|add:detail.inferior_quantity}}
@@ -266,7 +266,7 @@
             </td>
             {{/if}}
             <td>
-                <a href="/admin/items/productskustats/?sku_id={{sku.id}}" target="_blank">{{sku.id}}</a>
+                <a href="/admin/items/skustock/?sku_id={{sku.id}}" target="_blank">{{sku.id}}</a>
             </td>
             <td>
             <span class="properties-name">
