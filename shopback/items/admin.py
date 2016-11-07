@@ -1233,7 +1233,7 @@ class SkuStockAdmin(admin.ModelAdmin):
         'inbound_quantity_link', 'return_quantity_link', 'rg_quantity_link',
         'district_link', 'created')
     list_display_links = ['sku_link']
-    search_fields = ['sku__id', 'product__id', 'product__name', 'product__outer_id']
+    search_fields = ['sku__id', 'product__id', 'product__name', 'product__outer_id', 'supplier_id', 'supplier_name']
     #('supplier_id', ProductSkuStatsSupplierIdFilter),                 ('supplier_name', ProductSkuStatsSupplierNameFilter)]
     readonly_fields = [u'id', 'sku', 'product', 'assign_num', 'adjust_quantity', 'history_quantity',
                        'inbound_quantity', 'return_quantity', 'rg_quantity', 'post_num', 'sold_num', 'shoppingcart_num',
@@ -1277,6 +1277,7 @@ class SkuStockAdmin(admin.ModelAdmin):
             if field in search_fields:
                 custom_condition[field] = request.GET.get(field)
                 # search_fields.remove(field)
+        search_fields = [f for f in search_fields if f not in custom_search_fields]
         if search_fields and search_term:
             orm_lookups = [construct_search(str(search_field))
                            for search_field in search_fields]
