@@ -848,9 +848,9 @@ class WeixinPush(object):
             template_data.update({'remark': {'value': template.footer.decode('string_escape'), 'color':'#F87217'}})
         to_url = event_instance.to_url
         if not to_url:
-            from flashsale.promotion.apis.activity import get_effect_activitys
+            from flashsale.promotion.apis.activity import get_effect_activities
             active_time = datetime.datetime.now() - datetime.timedelta(hours=6)
-            activitys = get_effect_activitys(active_time)
+            activitys = get_effect_activities(active_time)
             entry = random.choice(activitys)
             login_url = 'http://m.xiaolumeimei.com/rest/v1/users/weixin_login/?next='
             redirect_url = '/rest/v2/mama/redirect_activity_entry?activity_id=%s' % entry.id

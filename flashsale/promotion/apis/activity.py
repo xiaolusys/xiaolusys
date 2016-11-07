@@ -3,7 +3,8 @@ __ALL__ = [
     'get_default_activity',
     'get_activity_by_id',
     'get_effect_activitys',
-    'get_mama_effect_activities'
+    'get_mama_effect_activities',
+    'get_landing_effect_activitys',
 ]
 import datetime
 from ..models import ActivityEntry
@@ -18,33 +19,115 @@ def get_default_activity():
     # type: () -> Optional[ActivityEntry]
     """获取默认有效的活动（排除了代理活动　和　品牌专场）
     """
-    return ActivityEntry.objects.filter(is_active=True,
-                                        end_time__gte=datetime.datetime.now()) \
-        .exclude(act_type__in=(ActivityEntry.ACT_MAMA, ActivityEntry.ACT_BRAND)) \
-        .order_by('-order_val', '-modified').first()
+    return ActivityEntry.objects.default_activities().first()
 
 
-def get_effect_activitys(time=None):
+def get_effect_activities(time=None):
     # type: (datetime.datetime) -> List[ActivityEntry]
     """ 根据时间获取活动列表
     """
-    if time is None:
-        time = datetime.datetime.now()
-    return ActivityEntry.objects.filter(is_active=True,
-                                        start_time__lte=time,
-                                        end_time__gte=time).order_by('-order_val', '-modified')
+    return ActivityEntry.objects.effect_activities(time)
 
 
 def get_mama_effect_activities():
     # type: () -> List[ActivityEntry]
     """获取有效的妈妈活动列表
     """
-    return get_effect_activitys().filter(act_type=ActivityEntry.ACT_MAMA)
+    return ActivityEntry.objects.mama_effect_activities()
 
 
-def get_landing_effect_activitys():
+def get_landing_effect_activities():
     # type: () -> List[ActivityEntry]
     """ 根据时间获取活动列表app首页展示 """
-    return get_effect_activitys().exclude(act_type__in=(ActivityEntry.ACT_MAMA,
-                                                        ActivityEntry.ACT_BRAND))
+    return ActivityEntry.objects.sale_home_page_activities()
 
+
+def _validate_start_end_time(start_time, end_time):
+    # type: (datetime.datetime, datetime.datetime) -> None
+    """时间校验
+    """
+    now = datetime.datetime.now()
+    if not start_time < end_time:
+        raise Exception(u'活动开始和结束时间设置错误!')
+    if not now < end_time:
+        raise Exception(u'活动结束时间应该大于当前时间!')
+    return
+
+
+class Activity(object):  # 特卖商城活动(pay.models.ActivityEntry)
+    def __init__(self, title, act_type, start_time, end_time,
+                 act_img='', act_logo='', act_link='', mask_link='', act_applink='', share_icon='', share_link='',
+                 order_val=0, extras='', is_active=False, login_required=False, act_desc=''):
+        self.title = title  # 活动/品牌名称
+        self.act_type = act_type  # 活动类型
+        self.start_time = start_time  # 结束时间
+        self.end_time = end_time  # 开始时间
+        self.act_img = act_img  # 活动入口图片
+        self.act_logo = act_logo  # 品牌LOGO
+        self.act_link = act_link  # 活动链接
+        self.mask_link = mask_link  # 活动弹窗提示图
+        self.act_applink = act_applink  # 活动APP协议链接
+        self.share_icon = share_icon  # 活动分享图片
+        self.share_link = share_link  # 活动分享链接
+        self.order_val = order_val  # 排序值
+        self.extras = extras  # 活动数据
+        self.is_active = is_active  # 上线
+        self.login_required = login_required  # 需要登陆
+        self.act_desc = act_desc  # 活动描述
+
+    def save(self):
+        # type: () -> ActivityEntry
+        """保存到活动记录到数据库
+        """
+        from flashsale.promotion.models import ActivityEntry
+
+        activity = ActivityEntry(
+            title=self.title,
+            act_type=self.act_type,
+            start_time=self.start_time,
+            end_time=self.end_time,
+            act_img=self.act_img,
+            act_logo=self.act_logo,
+            act_link=self.act_link,
+            mask_link=self.mask_link,
+            act_applink=self.act_applink,
+            share_icon=self.share_icon,
+            share_link=self.share_link,
+            order_val=self.order_val,
+            extras=self.extras,
+            is_active=self.is_active,
+            login_required=self.login_required,
+            act_desc=self.act_desc,
+        )
+        activity.save()
+        return activity
+
+
+def create_activity(title, act_type, start_time, end_time, **kwargs):
+    # type: (text_type, text_type, datetime.datetime, datetime.datetime, **Any) -> ActivityEntry
+    """创建活动
+    """
+    activity = Activity(title=title,
+                        act_type=act_type,
+                        start_time=start_time,
+                        end_time=end_time)
+    for k, v in kwargs.iteritems():
+        if hasattr(activity, k) and getattr(activity, k) != v:
+            setattr(activity, k, v)
+    _validate_start_end_time(start_time, end_time)
+    activity.save()
+    return activity
+
+
+def update_activity(id, **kwargs):
+    # type: (int, **Any) -> ActivityEntry
+    """更新活动
+    """
+    activity = get_activity_by_id(id=id)
+    start_time, end_time = kwargs.get('start_time'), kwargs.get('end_time')
+    for k, v in kwargs.iteritems():
+        if hasattr(activity, k) and getattr(activity, k) != v:
+            setattr(activity, k, v)
+    _validate_start_end_time(start_time, end_time)
+    activity.save()
+    return activity
