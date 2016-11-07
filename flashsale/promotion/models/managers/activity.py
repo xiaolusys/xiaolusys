@@ -39,11 +39,11 @@ class ActivityManager(BaseManager):
         # type: () -> List[ActivityEntry]
         """妈妈有效活动
         """
-        self.effect_activities().filter(act_type=self.model.ACT_MAMA)
+        return self.effect_activities().filter(act_type=self.model.ACT_MAMA)
 
     def sale_home_page_activities(self):
         # type: () -> List[ActivityEntry]
         """特卖首页活动
         """
-        self.effect_activities().exclude(act_type__in=(self.model.ACT_MAMA,
-                                                       self.model.ACT_BRAND))
+        return self.effect_activities().exclude(act_type__in=(self.model.ACT_MAMA,
+                                                              self.model.ACT_BRAND))
