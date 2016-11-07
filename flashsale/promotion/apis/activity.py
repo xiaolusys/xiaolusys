@@ -104,13 +104,27 @@ class Activity(object):  # 特卖商城活动(pay.models.ActivityEntry)
 
 
 def create_activity(title, act_type, start_time, end_time, **kwargs):
-    # type: (text_type, text_type, datetime.datetime, datetime.datetime) -> ActivityEntry
+    # type: (text_type, text_type, datetime.datetime, datetime.datetime, **Any) -> ActivityEntry
     """创建活动
     """
     activity = Activity(title=title,
                         act_type=act_type,
                         start_time=start_time,
                         end_time=end_time)
+    for k, v in kwargs.iteritems():
+        if hasattr(activity, k) and getattr(activity, k) != v:
+            setattr(activity, k, v)
+    _validate_start_end_time(start_time, end_time)
+    activity.save()
+    return activity
+
+
+def update_activity(id, **kwargs):
+    # type: (int, **Any) -> ActivityEntry
+    """更新活动
+    """
+    activity = get_activity_by_id(id=id)
+    start_time, end_time = kwargs.get('start_time'), kwargs.get('end_time')
     for k, v in kwargs.iteritems():
         if hasattr(activity, k) and getattr(activity, k) != v:
             setattr(activity, k, v)
