@@ -1,4 +1,5 @@
 # coding: utf8
+import re
 import hashlib
 import urllib2
 import random
@@ -212,10 +213,11 @@ def generate_colorful_qrcode(params):
     size = (avatar_size, avatar_size)
 
     avatar_url = params.get('avatar', {}).get('url')
-    avatar_x = params.get('avatar', {}).get('x') or 240
-    avatar_y = params.get('avatar', {}).get('y') or 30
+    avatar_x   = params.get('avatar', {}).get('x') or 240
+    avatar_y   = params.get('avatar', {}).get('y') or 30
     if avatar_url:
-        resp = requests.get(avatar_url, verify=False)
+        avatar_url = re.sub('/[0-9]+$', '/64', avatar_url)
+        resp   = requests.get(avatar_url, verify=False)
         avatar = Image.open(StringIO.StringIO(resp.content)).resize(size)
     else:
         avatar = None
