@@ -68,7 +68,8 @@ v2_router_urls += format_suffix_patterns([
     url(r'^cashout_to_app', views.xiaolumm.CashOutToAppView.as_view()),
     url(r'^cashout_policy', views.xiaolumm.CashOutPolicyView.as_view()),
     url(r'^redirect_activity_entry', views.xiaolumm.RedirectActivityEntryView.as_view()),
-    url(r'^redirect_stats_link', views.xiaolumm.RedirectStatsLinkView.as_view()),    
+    url(r'^redirect_stats_link', views.xiaolumm.RedirectStatsLinkView.as_view()),
+    url(r'^urlredirect', views.URLRedirectViewSet.as_view({'get': 'redirect'})),
 ])
 
 from flashsale.restpro.v2 import views
