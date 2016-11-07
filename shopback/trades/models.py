@@ -1505,7 +1505,10 @@ class PackageOrder(models.Model):
     @property
     def first_package_sku_item(self):
         if not hasattr(self, '_first_package_sku_item_'):
-            self._first_package_sku_item_ = PackageSkuItem.objects.filter(package_order_id=self.id).first()
+            if self.package_sku_items.exclude(assign_status=PackageSkuItem.CANCELED).exists():
+                self._first_package_sku_item_ = self.package_sku_items.exclude(assign_status=PackageSkuItem.CANCELED).first()
+            else:
+                self._first_package_sku_item_ = self.package_sku_items.first()
         return self._first_package_sku_item_
 
     @property

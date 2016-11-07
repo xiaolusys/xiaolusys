@@ -684,14 +684,14 @@ class PortalSerializer(serializers.ModelSerializer):
         fields = ('id', 'posters', 'categorys', 'activitys', 'promotion_brands', 'active_time')
 
     def get_activitys(self, obj):
-        from flashsale.promotion.apis.activity import get_landing_effect_activitys
-        activitys = get_landing_effect_activitys()
+        from flashsale.promotion.apis.activity import get_landing_effect_activities
+        activitys = get_landing_effect_activities()
         brands_data = SimpleActivityEntrySerializer(activitys, many=True).data
         return brands_data
 
     def get_promotion_brands(self, obj):
-        from flashsale.promotion.apis.activity import get_effect_activitys
-        activitys = get_effect_activitys().filter(act_type=ActivityEntry.ACT_BRAND)
+        from flashsale.promotion.apis.activity import get_effect_activities
+        activitys = get_effect_activities().filter(act_type=ActivityEntry.ACT_BRAND)
         brands_data = SimpleActivityEntrySerializer(activitys, many=True).data
         return brands_data
 
@@ -840,8 +840,7 @@ class PackageOrderSerializer(serializers.ModelSerializer):
     finish_time = serializers.CharField(source='first_package_sku_item.finish_time', read_only=True)
     cancel_time = serializers.CharField(source='first_package_sku_item.cancel_time', read_only=True)
     ware_by_display = serializers.CharField(source='get_ware_by_display', read_only=True)
-    assign_status_display = serializers.CharField(source='first_package_sku_item.get_assign_status_display',
-                                                  read_only=True)
+    assign_status_display = serializers.CharField(source='get_sys_status_display', read_only=True)
     out_sid = serializers.CharField(read_only=True)
     logistics_company = LogisticsCompanySerializer(read_only=True)
     note = serializers.CharField(read_only=True)

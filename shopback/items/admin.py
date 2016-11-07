@@ -1233,7 +1233,7 @@ class SkuStockAdmin(admin.ModelAdmin):
         'inbound_quantity_link', 'return_quantity_link', 'rg_quantity_link',
         'district_link', 'created')
     list_display_links = ['sku_link']
-    search_fields = ['sku__id', 'product__id', 'product__name', 'product__outer_id']
+    search_fields = ['sku__id', 'product__id', 'product__name', 'product__outer_id', 'supplier_id', 'supplier_name']
     #('supplier_id', ProductSkuStatsSupplierIdFilter),                 ('supplier_name', ProductSkuStatsSupplierNameFilter)]
     readonly_fields = [u'id', 'sku', 'product', 'assign_num', 'adjust_quantity', 'history_quantity',
                        'inbound_quantity', 'return_quantity', 'rg_quantity', 'post_num', 'sold_num', 'shoppingcart_num',
@@ -1257,6 +1257,7 @@ class SkuStockAdmin(admin.ModelAdmin):
         return super(SkuStockAdmin, self).lookup_allowed(lookup, value)
 
     def get_search_results(self, request, queryset, search_term):
+        supplier_q = queryset
         import operator
         from django.contrib.admin.utils import lookup_needs_distinct
         custom_search_fields = ['supplier_id', 'supplier_name']
@@ -1277,6 +1278,7 @@ class SkuStockAdmin(admin.ModelAdmin):
             if field in search_fields:
                 custom_condition[field] = request.GET.get(field)
                 # search_fields.remove(field)
+        search_fields = [f for f in search_fields if f not in custom_search_fields]
         if search_fields and search_term:
             orm_lookups = [construct_search(str(search_field))
                            for search_field in search_fields]
@@ -1291,7 +1293,7 @@ class SkuStockAdmin(admin.ModelAdmin):
                         break
         if custom_condition:
             supplier_id = request.GET.get('supplier_id')
-            supplier_name = request.GET.get('supplier_name')
+            supplier_name = request.GET.get('q')
             if supplier_id:
                 supplier = SaleSupplier.objects.filter(pk=supplier_id).first()
             elif supplier_name:
@@ -1299,7 +1301,7 @@ class SkuStockAdmin(admin.ModelAdmin):
             else:
                 supplier = None
             if supplier:
-                queryset = queryset.filter(product_id__in=SkuStock.filter_by_supplier(supplier.id))
+                queryset = supplier_q.filter(product_id__in=SkuStock.filter_by_supplier(supplier.id))
         return queryset, use_distinct
 
     def unused_stock_link(self, obj):
