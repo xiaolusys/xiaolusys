@@ -134,7 +134,7 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
     @list_route(methods=["get"])
     def qiniu_token(self, request, **kwargs):
         q = Auth(settings.QINIU_ACCESS_KEY, settings.QINIU_SECRET_KEY)
-        token = q.upload_token("xiaolumm", expires=3600)
+        token = q.upload_token(settings.QINIU_PUBLIC_BUCKET, expires=3600)
         return Response({'uptoken': token})
 
 

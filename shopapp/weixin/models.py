@@ -130,11 +130,11 @@ class WeiXinAccount(models.Model):
 
     def changeOrderUpdated(self, updated):
         self.order_updated = updated
-        self.save()
+        self.save(update_fields=['order_updated'])
 
     def changeRefundUpdated(self, updated):
         self.refund_updated = updated
-        self.save()
+        self.save(update_fields=['refund_updated'])
 
     def isResponseToDRF(self):
         return self.app_id in (settings.WXPAY_APPID,)

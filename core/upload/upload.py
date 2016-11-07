@@ -30,7 +30,7 @@ def upload_public_to_remote(filepath, iostream):
     secret_key = settings.QINIU_SECRET_KEY
 
     #要上传的空间
-    bucket_name = settings.QINIU_PUBLIC_BUCKET
+    bucket_name = settings.QINIU_BUCKET_NAME
 
     #构建鉴权对象
     q = Auth(access_key, secret_key)
