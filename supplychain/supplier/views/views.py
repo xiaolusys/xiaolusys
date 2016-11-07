@@ -769,9 +769,7 @@ class ScheduleDetailAPIView(APIView):
                         pass
 
                 sale_product['has_product'] = 1
-                sale_product[
-                    'pic_path'] = '%s?imageView2/0/w/120' % product.pic_path.strip(
-                    )
+                sale_product['pic_path'] = '%s?imageView2/0/w/120' % product.pic_path.strip()
                 product_detail, _ = Productdetail.objects.get_or_create(
                     product=product)
                 sale_product['order_weight'] = product_detail.order_weight
@@ -817,8 +815,12 @@ class ScheduleDetailAPIView(APIView):
           .annotate(buy_quantity=Sum('buy_quantity'), arrival_quantity=Sum('arrival_quantity'),
                         inferior_quantity=Sum('inferior_quantity'))
         for s in dinghuo_stats:
-            skus_dict2['%s-%s' % (s['product_id'], s['chichu_id'])]['buy_num'] = s['buy_quantity'] - \
-              min(s['buy_quantity'], s['arrival_quantity']) - s['inferior_quantity']
+            s_key = '%s-%s' % (s['product_id'], s['chichu_id'])
+            if s_key in skus_dict2:
+                skus_dict2[s_key]['buy_num'] = s['buy_quantity'] - \
+                  min(s['buy_quantity'], s['arrival_quantity']) - s['inferior_quantity']
+            else:
+                skus_dict2[s_key]['buy_num'] = 0
 
 
         items = []
