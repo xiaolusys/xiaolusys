@@ -69,7 +69,7 @@ v2_router_urls += format_suffix_patterns([
     url(r'^cashout_policy', views.xiaolumm.CashOutPolicyView.as_view()),
     url(r'^redirect_activity_entry', views.xiaolumm.RedirectActivityEntryView.as_view()),
     url(r'^redirect_stats_link', views.xiaolumm.RedirectStatsLinkView.as_view()),
-    url(r'^wdt/logistics', views.WangDianTongViewSet.as_view({'get': 'logistics'})),
+    url(r'^wdt/logistics', views.WangDianTongViewSet.as_view({'post': 'logistics'})),
 ])
 
 from flashsale.restpro.v2 import views
