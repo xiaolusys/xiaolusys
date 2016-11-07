@@ -150,14 +150,3 @@ class ActivityProduct(BaseModel):
         if self.product:
             return self.product.std_sale_price
         return 0
-
-    def update_start_and_end_time(self, start_time, end_time):
-        """ 更新开始结束时间 """
-        update_fields = []
-        if self.start_time != start_time:
-            self.start_time = start_time
-            update_fields.append('start_time')
-        if self.end_time != end_time:
-            self.end_time = end_time
-            update_fields.append('end_time')
-        self.save(update_fields=update_fields)

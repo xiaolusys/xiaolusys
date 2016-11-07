@@ -25,12 +25,13 @@ from shopback.items.models import Product
 from shopapp.weixin.options import get_openid_by_unionid
 
 from flashsale.promotion.models import XLSampleApply, XLSampleOrder, RedEnvelope, AwardWinner
-from flashsale.promotion.serializers import RedEnvelopeSerializer, AwardWinnerSerializer
+from ..serializers.envelope import RedEnvelopeSerializer
+from ..serializers.awardwinner import AwardWinnerSerializer
 from flashsale.promotion.utils import get_application
 
 import logging
 
-logger = logging.getLogger('django.request')
+logger = logging.getLogger(__name__)
 
 
 def get_customer(request):
