@@ -39,7 +39,7 @@ class FinanceChannelPayApiView(APIView):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
-    channel_pay_sql = "SELECT t.channel, COUNT(o.id) , SUM(o.payment) FROM" \
+    channel_pay_sql = "SELECT t.channel, COUNT(o.id) , SUM(o.payment), SUM(o.total_fee) FROM" \
                       " flashsale_trade AS t LEFT JOIN flashsale_order AS o ON t.id = o.sale_trade_id WHERE" \
                       " t.pay_time BETWEEN '{0}' AND '{1}' AND t.status" \
                       " IN (2 , 3, 4, 5, 6) and o.oid regexp '[a-zA-Z0-9]' GROUP BY t.channel;"
@@ -53,7 +53,11 @@ class FinanceChannelPayApiView(APIView):
         results = []
         for i in raw:
             channel_display = choice_display(SaleTrade.CHANNEL_CHOICES, i[0])
-            results.append({'channel': i[0], 'count': i[1], 'sum_payment': i[2], 'channel_display': channel_display})
+            results.append({'channel': i[0],
+                            'count': i[1],
+                            'sum_payment': i[2],
+                            'total_fee': i[3],
+                            'channel_display': channel_display})
         cursor.close()
         return Response({'code': 0, 'info': 'success', 'sql': sql,
                          'results': results})
