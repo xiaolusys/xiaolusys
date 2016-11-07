@@ -863,8 +863,9 @@ class SaleOrder(PayBaseModel):
 
     def is_packaged(self):
         """ 是否打包 """
+        from shopback.trades.models import PackageSkuItem
         package_sku_item = self.package_sku
-        if package_sku_item and package_sku_item.package_order_id:
+        if package_sku_item and package_sku_item.assign_status !=PackageSkuItem.NOT_ASSIGNED and package_sku_item.package_order_id:
             return True
         return False
 
