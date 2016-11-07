@@ -8,7 +8,7 @@ from rest_framework import viewsets
 from flashsale.pay.models.user import Customer
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('service')
 
 
 class URLRedirectViewSet(viewsets.ViewSet):
