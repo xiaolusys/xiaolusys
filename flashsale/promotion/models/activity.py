@@ -4,6 +4,7 @@ from django.db import models
 from core.fields import JSONCharMyField
 from core.models import BaseModel
 from shopback.items.models import Product
+from .managers.activity import ActivityManager
 
 import logging
 logger = logging.getLogger(__name__)
@@ -29,7 +30,6 @@ class ActivityEntry(BaseModel):
     )
 
     title = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'活动/品牌名称')
-
     act_desc = models.TextField(max_length=512, blank=True, verbose_name=u'活动描述')
     act_img = models.CharField(max_length=256, blank=True, verbose_name=u'活动入口图片')
     act_logo = models.CharField(max_length=256, blank=True, verbose_name=u'品牌LOGO')
@@ -38,17 +38,14 @@ class ActivityEntry(BaseModel):
     act_applink = models.CharField(max_length=256, blank=True, verbose_name=u'活动APP协议链接')
     share_icon = models.CharField(max_length=128, blank=True, verbose_name=u'活动分享图片')
     share_link = models.CharField(max_length=256, blank=True, verbose_name=u'活动分享链接')
-    act_type = models.CharField(max_length=8, choices=ACT_CHOICES,
-                                db_index=True, verbose_name=u'活动类型')
-
+    act_type = models.CharField(max_length=8, choices=ACT_CHOICES, db_index=True, verbose_name=u'活动类型')
     login_required = models.BooleanField(default=False, verbose_name=u'需要登陆')
     start_time = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name=u'开始时间')
     end_time = models.DateTimeField(blank=True, null=True, verbose_name=u'结束时间')
-
     order_val = models.IntegerField(default=0, verbose_name=u'排序值')
-
     extras = JSONCharMyField(max_length=5120, default={}, blank=True, verbose_name=u'活动数据')
     is_active = models.BooleanField(default=True, verbose_name=u'上线')
+    objects = ActivityManager()
 
     class Meta:
         db_table = 'flashsale_activity_entry'
