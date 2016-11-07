@@ -46,10 +46,10 @@ class WangDianTong(object):
         """
         content = {
             'OutInFlag': 3,
-            'IF_OrderCode': 'waibubianhao9998',  # 外部单据编号
+            'IF_OrderCode': 'waibubianhao992398',  # 外部单据编号
             'WarehouseNO': '001',  # 优禾主仓库
-            'Remark': '小鹿美美测试不用发货',  # 备注
-            'GoodsTotal': 10.00,  # 货款合计(销售出库时非空)
+            'Remark': '小鹿美美测试不用发货2',  # 备注
+            'GoodsTotal': 1.90,  # 货款合计(销售出库时非空)
             'OrderPay': 1.90,  # 订单付款金额（含运费）
             'LogisticsPay': 0.0,  # 运费
             'ShopName': '优禾生活小鹿美美店',  # 订单所属店铺名称（出库时非空）
@@ -126,6 +126,7 @@ class WangDianTong(object):
         ]
         }
         """
+        print req.POST
         method = req.POST.get('Method', '')
         seller_id = req.POST.get('SellerID', '')
         sign = req.POST.get('Sign', '')
@@ -149,6 +150,7 @@ class WangDianTong(object):
                 'ResultCode': '0',
                 'ResultMsg': 'success'
             })
+        print resp
         return resp
 
 
