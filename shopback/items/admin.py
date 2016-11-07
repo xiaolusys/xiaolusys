@@ -1257,6 +1257,7 @@ class SkuStockAdmin(admin.ModelAdmin):
         return super(SkuStockAdmin, self).lookup_allowed(lookup, value)
 
     def get_search_results(self, request, queryset, search_term):
+        supplier_q = queryset
         import operator
         from django.contrib.admin.utils import lookup_needs_distinct
         custom_search_fields = ['supplier_id', 'supplier_name']
@@ -1292,7 +1293,7 @@ class SkuStockAdmin(admin.ModelAdmin):
                         break
         if custom_condition:
             supplier_id = request.GET.get('supplier_id')
-            supplier_name = request.GET.get('supplier_name')
+            supplier_name = request.GET.get('q')
             if supplier_id:
                 supplier = SaleSupplier.objects.filter(pk=supplier_id).first()
             elif supplier_name:
@@ -1300,7 +1301,7 @@ class SkuStockAdmin(admin.ModelAdmin):
             else:
                 supplier = None
             if supplier:
-                queryset = queryset.filter(product_id__in=SkuStock.filter_by_supplier(supplier.id))
+                queryset = supplier_q.filter(product_id__in=SkuStock.filter_by_supplier(supplier.id))
         return queryset, use_distinct
 
     def unused_stock_link(self, obj):
