@@ -22,7 +22,7 @@ def get_default_activity():
     return ActivityEntry.objects.default_activities().first()
 
 
-def get_effect_activitys(time=None):
+def get_effect_activities(time=None):
     # type: (datetime.datetime) -> List[ActivityEntry]
     """ 根据时间获取活动列表
     """
@@ -36,7 +36,7 @@ def get_mama_effect_activities():
     return ActivityEntry.objects.mama_effect_activities()
 
 
-def get_landing_effect_activitys():
+def get_landing_effect_activities():
     # type: () -> List[ActivityEntry]
     """ 根据时间获取活动列表app首页展示 """
     return ActivityEntry.objects.sale_home_page_activities()

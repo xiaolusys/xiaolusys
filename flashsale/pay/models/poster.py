@@ -104,7 +104,7 @@ class GoodShelf(PayBaseModel):
         return get_default_activity()
 
     def get_current_activitys(self):
-        from flashsale.promotion.apis.activity import get_landing_effect_activitys
-        return get_landing_effect_activitys()
+        from flashsale.promotion.apis.activity import get_landing_effect_activities
+        return get_landing_effect_activities()
 
 
