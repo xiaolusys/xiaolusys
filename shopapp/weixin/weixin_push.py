@@ -663,7 +663,7 @@ class WeixinPush(object):
 
         header = template.header.format().decode('string_escape')
         footer = template.footer.format().decode('string_escape')
-        to_url = 'http://m.xiaolumeimei.com/rest/v2/urlredirect?url=http://m.xiaolumeimei.com/rest/v1/users/weixin_login/?next=/tran_coupon/html/trancoupon.html&name=baidu'
+        to_url = 'http://m.xiaolumeimei.com/rest/v1/users/weixin_login/?next=/tran_coupon/html/trancoupon.html'
         footer_color = '#F87217'
 
         template_data = {
