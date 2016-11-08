@@ -63,7 +63,7 @@ def generate_private_url(filepath):
 
 def generate_public_url(filepath):
 
-    bucket_domain = settings.QINIU_PUBLIC_DOMAIN
+    bucket_domain = settings.QINIU_BUCKET_DOMAIN
     #有两种方式构造base_url的形式
     base_url = 'http://%s/%s' % (bucket_domain, filepath)
 
