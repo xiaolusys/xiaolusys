@@ -308,6 +308,14 @@ class CouponTransferRecord(BaseModel):
         return res
 
     @property
+    def product_model_id(self):
+        ct = CouponTemplate.objects.filter(id=self.template_id).first()
+        if ct:
+            product_model_id = ct.extras.get("product_model_id")
+            return product_model_id
+        return None
+        
+    @property
     def month_day(self):
         return self.created.strftime('%m-%d')
 
