@@ -105,15 +105,12 @@ class ActivityProduct(BaseModel):
 
     id = models.AutoField(primary_key=True)
     activity = models.ForeignKey(ActivityEntry, related_name='activity_products', verbose_name=u'所属专题')
-
     product_id = models.BigIntegerField(db_index=True, default=0, verbose_name=u'商品ID')
     model_id = models.BigIntegerField(db_index=True, default=0, verbose_name=u'商品款式ID')
     product_name = models.CharField(max_length=64, blank=True, verbose_name=u'商品名称')
     product_img = models.CharField(max_length=256, blank=True, verbose_name=u'商品图片')
-
     start_time = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name=u'开始时间')
     end_time = models.DateTimeField(blank=True, null=True, verbose_name=u'结束时间')
-
     location_id = models.IntegerField(default=0, verbose_name=u'位置')
     pic_type = models.IntegerField(choices=PIC_TYPE_CHOICES, default=GOODS_VERTICAL_PIC_TYPE,
                                    db_index=True, verbose_name=u'图片类型')

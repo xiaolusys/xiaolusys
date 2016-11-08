@@ -7,9 +7,10 @@ from django.db.models.signals import pre_save, post_save, post_delete
 
 from core.options import get_systemoa_user, log_action, CHANGE
 from core.utils import update_model_fields
-from .. import constants
 from .product import SaleProduct
+from .. import constants
 from .. import objects
+from .managers.schedule import ScheduleManager
 
 
 class SaleProductManage(models.Model):
@@ -37,6 +38,7 @@ class SaleProductManage(models.Model):
     is_sale_show = models.BooleanField(default=False, verbose_name=u'特卖显示')
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
     modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
+    objects = ScheduleManager()
 
     class Meta:
         db_table = 'supplychain_supply_schedule_manage'

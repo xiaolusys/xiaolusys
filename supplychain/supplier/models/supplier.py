@@ -2,7 +2,7 @@
 from django.core.cache import cache
 from django.db import models
 from django.db.models.signals import post_save
-from supplychain.supplier.managers import SaleSupplierManager
+from .managers.supplier import SaleSupplierManager
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 
 

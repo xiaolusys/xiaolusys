@@ -15,6 +15,7 @@ def get_application(event_id, unionid=None, mobile=None):
 
 
 def choice_2_name_value(choice):
+    # type: (Dict[Any, str]) -> list[Dict[str, Any, str, str]]
     d = []
     for i in choice:
         d.append({'name': i[1], 'value': i[0]})

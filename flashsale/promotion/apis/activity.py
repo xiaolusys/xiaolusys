@@ -7,7 +7,8 @@ __ALL__ = [
     'get_landing_effect_activitys',
 ]
 import datetime
-from ..models import ActivityEntry
+from ..models import ActivityEntry, ActivityProduct
+from ..deps import get_schedule_products_by_schedule_id
 
 
 def get_activity_by_id(id):
@@ -146,3 +147,50 @@ def update_activity(id, **kwargs):
     _validate_start_end_time(start_time, end_time)
     activity.save()
     return activity
+
+
+class ActivityPro(object):  # 活动更随的产品（包含图片）
+    def __init__(self, activity_id, product_name, product_img, location_id, pic_type=6, model_id=0, jump_url=''):
+        self.activity_id = activity_id
+        self.product_name = product_name
+        self.product_img = product_img
+        self.pic_type = pic_type
+        self.location_id = location_id
+        self.model_id = model_id
+        self.jump_url = jump_url
+
+    def create(self):
+        ap = ActivityProduct(
+            activity=self.activity_id,
+            model_id=self.model_id,
+            product_name=self.product_name,
+            product_img=self.product_img,
+            location_id=self.location_id,
+            pic_type=self.pic_type,
+            jump_url=self.jump_url,
+        )
+        ap.save()
+        return ap
+
+
+def create_activity_pros_by_schedule_id(activity_id, schedule_id):
+    # type: (int, int) -> List[ActivityProduct]
+    """更具活动id和排期id创建活动产品
+    """
+    activity = get_activity_by_id(activity_id)
+    schedule_pros = get_schedule_products_by_schedule_id(int(schedule_id))
+    aps = []
+    for pro in schedule_pros:
+        location_id = 2
+        modelproduct = pro.modelproduct
+        ap = ActivityPro(
+            activity_id=activity.id,
+            product_name=modelproduct.name,
+            product_img=modelproduct.head_img_url,
+            model_id=modelproduct.id,
+            location_id=location_id,
+        )
+        location_id += 1
+        ap = ap.create()
+        aps.append(ap)
+    return aps

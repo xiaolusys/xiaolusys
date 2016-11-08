@@ -1,19 +1,18 @@
-# -*- coding:utf8 -*-
-from django.db import models
-
+# coding=utf-8
 from core.managers import BaseManager
 
+
 class SaleSupplierManager(BaseManager):
-    
     def charge(self, supplier, user, *args, **kwargs):
 
-        from .models import SupplierCharge
+        from .. import SupplierCharge
+
         try:
             SupplierCharge.objects.get(
                 supplier_id=supplier.id,
                 status=SupplierCharge.EFFECT)
         except SupplierCharge.DoesNotExist:
-            scharge,state = SupplierCharge.objects.get_or_create(
+            scharge, state = SupplierCharge.objects.get_or_create(
                 supplier_id=supplier.id,
                 employee=user)
             scharge.status = SupplierCharge.EFFECT
@@ -27,7 +26,8 @@ class SaleSupplierManager(BaseManager):
 
     def uncharge(self, supplier, *args, **kwargs):
 
-        from .models import SupplierCharge
+        from .. import SupplierCharge
+
         try:
             scharge = SupplierCharge.objects.get(
                 supplier_id=supplier.id,
