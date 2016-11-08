@@ -6,7 +6,7 @@ from django.db import models
 from core.models import BaseModel
 from .freesample import XLSampleApply, XLSampleOrder
 
-from ..managers import VipCodeManager
+from .managers.vipcode import VipCodeManager
 
 SAFE_CODE_SECONDS = 180
 TOKEN_EXPIRED_IN = 15 * 60

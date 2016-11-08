@@ -85,8 +85,8 @@ class Activity(object):  # 特卖商城活动(pay.models.ActivityEntry)
         if id is not None:
             activity = get_activity_by_id(id)
             for k, v in activity.__dict__.iteritems():
-                if hasattr(activity, k) and getattr(activity, k) != v:
-                    setattr(activity, k, v)
+                if hasattr(activity, k) and getattr(self, k) != v:
+                    setattr(activity, k, getattr(self, k))
             activity.save()
         else:
             activity = ActivityEntry(
@@ -149,8 +149,20 @@ def update_activity(id, **kwargs):
     return activity
 
 
+def get_activity_pro_by_id(id):
+    # type: (int) -> ActivityProduct
+    return ActivityProduct.objects.get(id=id)
+
+
+def get_activity_pros_by_activity_id(activity_id):
+    # type: (int) -> List[ActivityProduct]
+    """根据活动id获取相关的产品
+    """
+    return ActivityProduct.objects.pros_by_activity_id(activity_id)
+
+
 class ActivityPro(object):  # 活动更随的产品（包含图片）
-    def __init__(self, activity_id, product_name, product_img, location_id, pic_type=6, model_id=0, jump_url=''):
+    def __init__(self, activity_id, product_img, location_id=1, product_name='', pic_type=6, model_id=0, jump_url=''):
         self.activity_id = activity_id
         self.product_name = product_name
         self.product_img = product_img
@@ -159,18 +171,52 @@ class ActivityPro(object):  # 活动更随的产品（包含图片）
         self.model_id = model_id
         self.jump_url = jump_url
 
-    def create(self):
-        ap = ActivityProduct(
-            activity=self.activity_id,
-            model_id=self.model_id,
-            product_name=self.product_name,
-            product_img=self.product_img,
-            location_id=self.location_id,
-            pic_type=self.pic_type,
-            jump_url=self.jump_url,
-        )
-        ap.save()
+    def save(self, id=None):
+        if id is None:
+            ap = ActivityProduct(
+                activity=self.activity_id,
+                model_id=self.model_id,
+                product_name=self.product_name,
+                product_img=self.product_img,
+                location_id=self.location_id,
+                pic_type=self.pic_type,
+                jump_url=self.jump_url,
+            )
+            ap.save()
+        else:
+            ap = get_activity_pro_by_id(id)
+            for k, v in ap.__dict__.iteritems():
+                if hasattr(ap, k) and getattr(self, k) != v:
+                    setattr(ap, k, getattr(self, k))
+            ap.save()
         return ap
+
+
+def create_activity_pro(activity_id, product_img, **kwargs):
+    # type: (int, text_type, **Any)
+    """创建活动商品
+    """
+    ap = ActivityPro(
+        activity_id=activity_id,
+        product_img=product_img,
+    )
+    for k, v in kwargs.iteritems():
+        if hasattr(ap, k) and getattr(ap, k) != v:
+            setattr(ap, k, v)
+    ap = ap.save()
+    return ap
+
+
+def update_activity_pro(id, **kwargs):
+    # type: () -> ActivityProduct
+    """更新活动产品
+    """
+    ap = get_activity_pro_by_id(id)
+    for k, v in kwargs.iteritems():
+        if hasattr(ap, k) and getattr(ap, k) != v:
+            setattr(ap, k, v)
+    ap = ap.save()
+    return ap
 
 
 def create_activity_pros_by_schedule_id(activity_id, schedule_id):
@@ -180,17 +226,18 @@ def create_activity_pros_by_schedule_id(activity_id, schedule_id):
     activity = get_activity_by_id(activity_id)
     schedule_pros = get_schedule_products_by_schedule_id(int(schedule_id))
     aps = []
+    model_ids = [i['model_id'] for i in activity.activity_products.values('model_id')]
     for pro in schedule_pros:
         location_id = 2
         modelproduct = pro.modelproduct
-        ap = ActivityPro(
-            activity_id=activity.id,
-            product_name=modelproduct.name,
-            product_img=modelproduct.head_img_url,
-            model_id=modelproduct.id,
-            location_id=location_id,
-        )
+        if modelproduct and modelproduct.id not in model_ids:  # 存在款式并且没有设置在本活动中则添加到本活动中
+            kwargs = {
+                'product_name': modelproduct.name,
+                'model_id': modelproduct.id,
+                'location_id': location_id,
+            }
+            ap = create_activity_pro(activity_id, modelproduct.head_img_url, **kwargs)
+            aps.append(ap)
         location_id += 1
-        ap = ap.create()
-        aps.append(ap)
     return aps
+
