@@ -65,6 +65,15 @@ def test_push_salerefund():
     push.push_refund_notify(salerefund, 9)
 
 
+def test_push_mama_coupon_audit():
+    from flashsale.coupon.models.transfer_coupon import CouponTransferRecord
+
+    coupon_record = CouponTransferRecord.objects.first()
+    print coupon_record.id
+    push = WeixinPush()
+    push.push_mama_coupon_audit(coupon_record)
+
+
 def test_send_msg():
     from shopapp.weixin.weixin_apis import WeiXinAPI
     # openid = 'our5huD8xO6QY-lJc1DTrqRut3us'
@@ -96,4 +105,5 @@ if __name__ == '__main__':
     # test_push_new_mama_task()
     # test_push_clickcarry()
     # test_push_pintuan()
-    test_send_msg()
+    # test_send_msg()
+    test_push_mama_coupon_audit()
