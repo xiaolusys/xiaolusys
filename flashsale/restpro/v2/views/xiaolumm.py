@@ -986,7 +986,7 @@ class RedirectStatsLinkView(APIView):
 
     def get(self, request, *args, **kwargs):
         content = request.GET
-        link_id = content.get("link_id", "")
+        link_id = content.get("link_id", "") #re.compile('').match(
         url = content.get('url') or ''
 
         if link_id:
