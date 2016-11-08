@@ -11,4 +11,15 @@ class ActivitySerializer(serializers.ModelSerializer):
 class ActivityProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = ActivityProduct
-        fields = ('id', 'model_id', 'product_name', 'product_img', 'location_id', 'pic_type', 'jump_url')
+        fields = (
+            'id',
+            'activity_id',
+            'product_id',
+            'model_id',
+            'product_name',
+            'product_img',
+            'location_id',
+            'pic_type',
+            'get_pic_type_display'
+            'jump_url',
+        )

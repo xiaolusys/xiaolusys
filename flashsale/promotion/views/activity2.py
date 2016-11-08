@@ -15,8 +15,9 @@ from rest_framework.response import Response
 from rest_framework import exceptions
 
 from ..models.activity import ActivityEntry
-from ..serializers.activity import ActivitySerializer
-from ..apis.activity import get_activity_by_id, create_activity, update_activity
+from ..serializers.activity import ActivitySerializer, ActivityProductSerializer
+from ..apis.activity import get_activity_by_id, create_activity, update_activity, get_activity_pros_by_activity_id, \
+    get_activity_pro_by_id, create_activity_pro, create_activity_pros_by_schedule_id, update_activity_pro
 from ..utils import choice_2_name_value
 from ..deps import get_future_schedules
 
@@ -75,9 +76,35 @@ class ActivityViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @detail_route(methods=['post'])
-    def create_pro_info_by_topic_schedule(self, request, *args, **kwargs):
+    def create_pro_by_topic_schedule(self, request, *args, **kwargs):
         # type: (HttpRequest, *Any, **Any) -> Response
         activity_id = kwargs.get('pk')
         schedule_id = request.get('schedule_id')
+        activity_pros = create_activity_pros_by_schedule_id(activity_id, int(schedule_id))
+        serializer = ActivityProductSerializer(activity_pros, many=True)
+        return Response(serializer.data)
 
-        return Response()
+    @detail_route(methods=['get'])
+    def active_pros(self, request, *args, **kwargs):
+        # type: (HttpRequest, *Any, **Any) -> Response
+        activity_id = kwargs.get('pk')
+        activity_pros = get_activity_pros_by_activity_id(activity_id)
+        serializer = ActivityProductSerializer(activity_pros, many=True)
+        return Response(serializer.data)
+
+    @detail_route(methods=['post'])
+    def create_pro(self, request, *args, **kwargs):
+        # type: (HttpRequest, *Any, **Any) -> Response
+        activity_id = kwargs.get('pk')
+        product_img = request.data.pop('product_img')
+        ap = create_activity_pro(activity_id, product_img, **request.data)
+        serializer = ActivityProductSerializer(ap)
+        return Response(serializer.data)
+
+    @list_route(methods=['post'])
+    def update_pro(self, request, *args, **kwargs):
+        # type: (HttpRequest, *Any, **Any) -> Response
+        activity_pro_id = request.data.pop('id')
+        ap = update_activity_pro(activity_pro_id, **request.data)
+        serializer = ActivityProductSerializer(ap)
+        return Response(serializer.data)

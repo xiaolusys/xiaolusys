@@ -5,6 +5,13 @@ __ALL__ = [
     'get_effect_activitys',
     'get_mama_effect_activities',
     'get_landing_effect_activitys',
+    'create_activity',
+    'update_activity',
+    'get_activity_pro_by_id',
+    'get_activity_pros_by_activity_id',
+    'create_activity_pro',
+    'create_activity_pros_by_schedule_id',
+    'update_activity_pro'
 ]
 import datetime
 from ..models import ActivityEntry, ActivityProduct
