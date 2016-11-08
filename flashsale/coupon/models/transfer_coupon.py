@@ -309,6 +309,7 @@ class CouponTransferRecord(BaseModel):
 
     @property
     def product_model_id(self):
+        from flashsale.coupon.models import CouponTemplate
         ct = CouponTemplate.objects.filter(id=self.template_id).first()
         if ct:
             product_model_id = ct.extras.get("product_model_id")
