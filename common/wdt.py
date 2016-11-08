@@ -85,6 +85,25 @@ class WangDianTong(object):
         }
         return self._request('QueryTradeByNO', content)
 
+    def query_logistics(self, order_code):
+        """
+        查询订单是否发货，物流信息
+        """
+        json = self.query_order(order_code)
+        trade_status = json['TradeStatus']  # 订单状态 over_trade已完成(表示已发货)
+        snd_time = json['SndTime']  # 发货时间
+        logistics_code = json['LogisticsCode']  # 物流公司编号
+        logistics_name = json['LogisticsName']  # 物流公司名称
+        post_id = json['PostID']  # 物流编号
+
+        return {
+            'trade_status': trade_status,
+            'snd_time': snd_time,
+            'logistics_code': logistics_code,
+            'logistics_name': logistics_name,
+            'post_id': post_id
+        }
+
     def get_products(self, start_time=None, end_time=None, goods_no=None,
                      sku_code=None, page_no=1, page_size=40):
         """
@@ -157,7 +176,7 @@ class WangDianTong(object):
 def main():
     wdt = WangDianTong()
     resp = wdt.create_order()
-    # resp = wdt.query_order('JY201611040022')
+    resp = wdt.query_logistics('JY201611050016')
     # print simplejson.dumps(resp, indent=2)
     for k, v in resp.items():
         print k, v
