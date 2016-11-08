@@ -8,8 +8,9 @@ from rest_framework.decorators import list_route
 from rest_framework.response import Response
 
 from flashsale.promotion.models import ActivityProduct, ActivityEntry
-from flashsale.promotion.serializers import ActivityProductSerializer
+from ..serializers.activity import ActivityProductSerializer
 from apis.v1.products import ModelProductCtl
+
 
 class ActivityGoodsViewSet(viewsets.ModelViewSet):
     queryset = ActivityProduct.objects.all()

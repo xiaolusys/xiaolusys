@@ -629,6 +629,74 @@ class WeixinPush(object):
                                 event_type=event_type, params=template_data, to_url=to_url)
         event.save()
 
+    def push_mama_coupon_audit(self, coupon_record):
+        """
+        审核申请提醒
+
+        {{first.DATA}}
+        审核内容：{{keyword1.DATA}}
+        客户名称：{{keyword2.DATA}}
+        商品名称：{{keyword3.DATA}}
+        申请金额：{{keyword4.DATA}}
+        {{remark.DATA}}
+        """
+        from flashsale.coupon.models import CouponTemplate
+
+        mama_id = coupon_record.coupon_from_mama_id
+        customer = utils.get_mama_customer(mama_id)
+
+        event_type = WeixinPushEvent.COUPON_TRANSFER_AUDIT
+        template_id = 'GQqbrGtAmmKdUnknaaIEmW7DakgvQK6apfROTxzYkUs'
+        template = WeixinTplMsg.objects.filter(wx_template_id=template_id, status=True).first()
+
+        if not template:
+            return
+
+        today = datetime.datetime.now().date()
+        uni_key = '{mama_id}-{date}-coupon_audit-{coupon_record_id}'.format(**{
+            'mama_id': mama_id,
+            'date': today.strftime('%Y%m%d'),
+            'coupon_record_id': coupon_record.id
+        })
+
+        coupon_template = CouponTemplate.objects.filter(id=coupon_record.template_id).first()
+
+        header = template.header.format().decode('string_escape')
+        footer = template.footer.format().decode('string_escape')
+        to_url = 'http://m.xiaolumeimei.com/rest/v2/urlredirect?url=http://m.xiaolumeimei.com/rest/v1/users/weixin_login/?next=/tran_coupon/html/trancoupon.html&name=baidu'
+        footer_color = '#F87217'
+
+        template_data = {
+            'first': {
+                'value': header,
+                'color': '#F87217',
+            },
+            'keyword1': {
+                'value': u'精品券申请',
+                'color': '#000000',
+            },
+            'keyword2': {
+                'value': u'%s' % coupon_record.to_mama_nick,
+                'color': '#000000',
+            },
+            'keyword3': {
+                'value': u'%s' % coupon_template.title,
+                'color': '#000000',
+            },
+            'keyword4': {
+                'value': u'%.2f元 x %s个' % (coupon_record.coupon_value, coupon_record.coupon_num),
+                'color': '#000000',
+            },
+            'remark': {
+                'value': footer,
+                'color': footer_color,
+            },
+        }
+
+        event = WeixinPushEvent(customer_id=customer.id, mama_id=mama_id, uni_key=uni_key, tid=template.id,
+                                event_type=event_type, params=template_data, to_url=to_url)
+        event.save()
+
     def push_mama_update_app(self, mama_id, user_version, latest_version, to_url, device=''):
         """
         {{first.DATA}}

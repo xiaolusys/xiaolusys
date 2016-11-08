@@ -7,7 +7,8 @@ __ALL__ = [
     'get_landing_effect_activitys',
 ]
 import datetime
-from ..models import ActivityEntry
+from ..models import ActivityEntry, ActivityProduct
+from ..deps import get_schedule_products_by_schedule_id
 
 
 def get_activity_by_id(id):
@@ -75,31 +76,38 @@ class Activity(object):  # 特卖商城活动(pay.models.ActivityEntry)
         self.login_required = login_required  # 需要登陆
         self.act_desc = act_desc  # 活动描述
 
-    def save(self):
-        # type: () -> ActivityEntry
+    def save(self, id=None):
+        # type: (Optional[int]) -> ActivityEntry
         """保存到活动记录到数据库
         """
         from flashsale.promotion.models import ActivityEntry
 
-        activity = ActivityEntry(
-            title=self.title,
-            act_type=self.act_type,
-            start_time=self.start_time,
-            end_time=self.end_time,
-            act_img=self.act_img,
-            act_logo=self.act_logo,
-            act_link=self.act_link,
-            mask_link=self.mask_link,
-            act_applink=self.act_applink,
-            share_icon=self.share_icon,
-            share_link=self.share_link,
-            order_val=self.order_val,
-            extras=self.extras,
-            is_active=self.is_active,
-            login_required=self.login_required,
-            act_desc=self.act_desc,
-        )
-        activity.save()
+        if id is not None:
+            activity = get_activity_by_id(id)
+            for k, v in activity.__dict__.iteritems():
+                if hasattr(activity, k) and getattr(activity, k) != v:
+                    setattr(activity, k, v)
+            activity.save()
+        else:
+            activity = ActivityEntry(
+                title=self.title,
+                act_type=self.act_type,
+                start_time=self.start_time,
+                end_time=self.end_time,
+                act_img=self.act_img,
+                act_logo=self.act_logo,
+                act_link=self.act_link,
+                mask_link=self.mask_link,
+                act_applink=self.act_applink,
+                share_icon=self.share_icon,
+                share_link=self.share_link,
+                order_val=self.order_val,
+                extras=self.extras,
+                is_active=self.is_active,
+                login_required=self.login_required,
+                act_desc=self.act_desc,
+            )
+            activity.save()
         return activity
 
 
@@ -107,6 +115,9 @@ def create_activity(title, act_type, start_time, end_time, **kwargs):
     # type: (text_type, text_type, datetime.datetime, datetime.datetime, **Any) -> ActivityEntry
     """创建活动
     """
+    if act_type == ActivityEntry.ACT_TOPIC and kwargs.has_key('act_link'):
+        # http://m.xiaolumeimei.com/mall/activity/topTen/model/2?id=264 # 专题类型活动链接固定格式
+        kwargs.pop('act_link')  # 去除传来的act_link 如果有的话
     activity = Activity(title=title,
                         act_type=act_type,
                         start_time=start_time,
@@ -115,7 +126,9 @@ def create_activity(title, act_type, start_time, end_time, **kwargs):
         if hasattr(activity, k) and getattr(activity, k) != v:
             setattr(activity, k, v)
     _validate_start_end_time(start_time, end_time)
-    activity.save()
+    activity = activity.save()
+    activity.act_link = 'http://m.xiaolumeimei.com/mall/activity/topTen/model/2?id={0}'.format(activity.id)
+    activity.save(id=activity.id)
     return activity
 
 
@@ -125,9 +138,59 @@ def update_activity(id, **kwargs):
     """
     activity = get_activity_by_id(id=id)
     start_time, end_time = kwargs.get('start_time'), kwargs.get('end_time')
+    act_type = kwargs.get('act_type')
+    if act_type == ActivityEntry.ACT_TOPIC and kwargs.has_key('act_link'):
+        kwargs.pop('act_link')  # 在创建的时候已经填写过act_link了不需要重新填写
     for k, v in kwargs.iteritems():
         if hasattr(activity, k) and getattr(activity, k) != v:
             setattr(activity, k, v)
     _validate_start_end_time(start_time, end_time)
     activity.save()
     return activity
+
+
+class ActivityPro(object):  # 活动更随的产品（包含图片）
+    def __init__(self, activity_id, product_name, product_img, location_id, pic_type=6, model_id=0, jump_url=''):
+        self.activity_id = activity_id
+        self.product_name = product_name
+        self.product_img = product_img
+        self.pic_type = pic_type
+        self.location_id = location_id
+        self.model_id = model_id
+        self.jump_url = jump_url
+
+    def create(self):
+        ap = ActivityProduct(
+            activity=self.activity_id,
+            model_id=self.model_id,
+            product_name=self.product_name,
+            product_img=self.product_img,
+            location_id=self.location_id,
+            pic_type=self.pic_type,
+            jump_url=self.jump_url,
+        )
+        ap.save()
+        return ap
+
+
+def create_activity_pros_by_schedule_id(activity_id, schedule_id):
+    # type: (int, int) -> List[ActivityProduct]
+    """更具活动id和排期id创建活动产品
+    """
+    activity = get_activity_by_id(activity_id)
+    schedule_pros = get_schedule_products_by_schedule_id(int(schedule_id))
+    aps = []
+    for pro in schedule_pros:
+        location_id = 2
+        modelproduct = pro.modelproduct
+        ap = ActivityPro(
+            activity_id=activity.id,
+            product_name=modelproduct.name,
+            product_img=modelproduct.head_img_url,
+            model_id=modelproduct.id,
+            location_id=location_id,
+        )
+        location_id += 1
+        ap = ap.create()
+        aps.append(ap)
+    return aps

@@ -276,3 +276,14 @@ def task_weixin_push_invite_fans_limit(today_invites, max_daily_fans_invites):
     通知每日邀请上限，超过不发奖金。
     """
     pass
+
+
+@task(max_retries=3, default_retry_delay=6)
+def task_weixin_push_mama_coupon_audit(coupon_record):
+    """
+    精品券审核申请推送
+    """
+    from shopapp.weixin.weixin_push import WeixinPush
+
+    push = WeixinPush()
+    push.push_mama_coupon_audit(coupon_record)

@@ -2,6 +2,7 @@
 import datetime
 from django.db import models
 from django.db.models import Sum
+from django.db.models.signals import post_save
 from flashsale.xiaolumm.models import ReferalRelationship
 from core.models import BaseModel
 
@@ -137,7 +138,7 @@ class CouponTransferRecord(BaseModel):
 
         stock_num = in_num - out_num
         return stock_num
-    
+
     @classmethod
     def get_waiting_in_num(cls, mama_id):
         res = cls.objects.filter(coupon_to_mama_id=mama_id, transfer_status__lte=cls.PROCESSED).aggregate(
@@ -338,3 +339,14 @@ class CouponTransferRecord(BaseModel):
     def can_process(self, mama_id):
         return (self.transfer_type == self.OUT_TRANSFER and self.transfer_status == self.PENDING and \
                 self.coupon_from_mama_id == mama_id)
+
+
+def push_mama_coupon_audit(sender, instance, created, **kwargs):
+    from flashsale.xiaolumm.tasks_mama_push import task_weixin_push_mama_coupon_audit
+
+    if not created or (instance.transfer_status is not instance.PENDING):
+        return
+    task_weixin_push_mama_coupon_audit.delay(instance)
+
+post_save.connect(push_mama_coupon_audit,
+                  sender=CouponTransferRecord, dispatch_uid='post_save_push_mama_coupon_audit')

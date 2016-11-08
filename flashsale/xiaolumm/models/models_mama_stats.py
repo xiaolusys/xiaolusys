@@ -160,6 +160,7 @@ class WeixinPushEvent(BaseModel):
     CLICK_CARRY = 7
     FAKE_CLICK_CARRY = 71
     PINTUAN_SUCCESS = 8
+    COUPON_TRANSFER_AUDIT = 101
 
     SALE_REFUND_AGREE = 9
     SALE_REFUND_ARRIVE = 10
@@ -182,6 +183,7 @@ class WeixinPushEvent(BaseModel):
         (SALE_REFUND_AGREE, u'同意退货'),
         (SALE_REFUND_ARRIVE, u'用户退货到达仓库'),
         (SALE_REFUND_GOODS_SUCCESS, u'用户退货成功'),
+        (COUPON_TRANSFER_AUDIT, u'精品券流通记录'),
     )
 
     TEMPLATE_ORDER_CARRY_ID = 2

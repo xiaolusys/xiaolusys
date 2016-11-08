@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import detail_route, list_route
 from rest_framework import exceptions
 from core.xlmm_response import SUCCESS_RESPONSE
-from flashsale.promotion.serializers import StockSaleSerializers
+from ..serializers.stocksale import StockSaleSerializers
 from flashsale.promotion.models.stocksale import *
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
