@@ -23,7 +23,7 @@ from ..deps import get_future_schedules
 
 
 class ActivityViewSet(viewsets.ModelViewSet):
-    queryset = ActivityEntry.objects.all()
+    queryset = ActivityEntry.objects.all().order_by('-start_time')
     serializer_class = ActivitySerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser, permissions.DjangoModelPermissions)
@@ -87,7 +87,7 @@ class ActivityViewSet(viewsets.ModelViewSet):
     @detail_route(methods=['get'])
     def active_pros(self, request, *args, **kwargs):
         # type: (HttpRequest, *Any, **Any) -> Response
-        activity_id = kwargs.get('pk')
+        activity_id = int(kwargs.get('pk'))
         activity_pros = get_activity_pros_by_activity_id(activity_id)
         serializer = ActivityProductSerializer(activity_pros, many=True)
         return Response(serializer.data)

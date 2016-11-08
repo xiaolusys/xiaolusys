@@ -13,13 +13,13 @@ class ActivityProductSerializer(serializers.ModelSerializer):
         model = ActivityProduct
         fields = (
             'id',
-            'activity_id',
+            'activity',
             'product_id',
             'model_id',
             'product_name',
             'product_img',
             'location_id',
             'pic_type',
-            'get_pic_type_display'
+            'get_pic_type_display',
             'jump_url',
         )
