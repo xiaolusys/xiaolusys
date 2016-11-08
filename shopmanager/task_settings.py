@@ -832,6 +832,10 @@ CELERY_ROUTES = {
         'queue': 'notify',
         'routing_key': 'notify.task_weixin_push_clickcarry',
     },  # 妈妈点击收益微信推送
+    'flashsale.xiaolumm.tasks_mama_push.task_weixin_push_mama_coupon_audit': {
+        'queue': 'notify',
+        'routing_key': 'notify.task_weixin_push_mama_coupon_audit',
+    },  # 妈妈精品券申请审核微信推送
     'flashsale.xiaolumm.tasks_mama_push.task_weixin_push_ordercarry': {
         'queue': 'notify',
         'routing_key': 'notify.task_weixin_push_ordercarry',
