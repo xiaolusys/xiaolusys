@@ -33,61 +33,23 @@ def get_referal_from_mama_id(to_mama_id):
         return rr.referal_from_mama_id
     return None
 
-#def create_transfer_record(request_user, coupon_num, template_id, reference_record=None):
-#    to_customer = Customer.objects.normal_customer.filter(user=request_user).first()
-#    to_mama = to_customer.get_charged_mama()
-#
-#    if to_mama.can_buy_transfer_coupon():
-#        res =  {"code":2, "info": u"无需申请，请直接支付购券!"}
-#        return res
-#        
-#    to_mama_nick = to_customer.nick
-#    to_mama_thumbnail = to_customer.thumbnail
-#
-#    coupon_to_mama_id = to_mama.id
-#    if reference_record:
-#        init_from_mama_id = reference_record.init_from_mama_id
-#    else:
-#        init_from_mama_id = to_mama.id
-#
-#    coupon_from_mama_id = get_referal_from_mama_id(coupon_to_mama_id)
-#    from_mama = XiaoluMama.objects.filter(id=coupon_from_mama_id).first()
-#    from_customer = Customer.objects.filter(unionid=from_mama.unionid).first()
-#    from_mama_thumbnail = from_customer.thumbnail
-#    from_mama_nick = from_customer.nick
-#    
-#    transfer_type = CouponTransferRecord.OUT_TRANSFER
-#    date_field = datetime.date.today()
-#
-#    if reference_record:
-#        uni_key = CouponTransferRecord.gen_unikey(coupon_from_mama_id, coupon_to_mama_id, template_id, date_field, reference_record.id)
-#        order_no = reference_record.order_no
-#        template_id = CouponTransferRecord.template_id
-#    else:
-#        uni_key = CouponTransferRecord.gen_unikey(coupon_from_mama_id, coupon_to_mama_id, template_id, date_field)
-#        order_no = CouponTransferRecord.gen_order_no(init_from_mama_id,template_id,date_field)
-#
-#    product_img = CouponTemplate.get_product_img(template_id)
-#    
-#    if not uni_key:
-#        res = {"code": 2, "info": u"记录已生成或申请已达当日上限！"}
-#        return res
-#
-#    coupon = CouponTransferRecord.objects.filter(uni_key=uni_key).first()
-#    if coupon:
-#        res = {"code": 3, "info": u"记录已存在！"}
-#        return res
-#    
-#    coupon = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id,from_mama_thumbnail=from_mama_thumbnail,
-#                                  from_mama_nick=from_mama_nick,coupon_to_mama_id=coupon_to_mama_id,
-#                                  to_mama_thumbnail=to_mama_thumbnail,to_mama_nick=to_mama_nick,
-#                                  init_from_mama_id=init_from_mama_id,order_no=order_no,template_id=template_id,
-#                                  product_img=product_img,coupon_num=coupon_num,
-#                                  transfer_type=transfer_type,uni_key=uni_key, date_field=date_field)
-#    coupon.save()
-#    res = {"code": 0, "info": u"成功!"}
-#    return res
 
+def process_transfer_coupon(customer_id, init_from_customer_id, record):
+    coupons = UserCoupon.objects.filter(customer_id=customer_id,coupon_type=UserCoupon.TYPE_TRANSFER,status=UserCoupon.UNUSED, template_id=record.template_id)
+    if coupons.count() < record.coupon_num:
+        info = u"您的券库存不足，请立即购买!"
+        return {"code":3, "info":info}
+        
+    now = datetime.datetime.now()
+    CouponTransferRecord.objects.filter(order_no=record.order_no).update(transfer_status=CouponTransferRecord.DELIVERED,modified=now)
+    coupons = coupons[0:record.coupon_num]
+    for coupon in coupons:
+        coupon.customer_id = init_from_customer.id
+        coupon.extras.update({"transfer_coupon_pk":record.id})
+        coupon.save()
+    return {"code": 0, "info": u"发放成功"}
+
+    
 class CouponTransferRecordViewSet(viewsets.ModelViewSet):
     paginate_by = 10
     page_query_param = 'page'
@@ -170,12 +132,18 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         res = {"code": 1, "info": u"无记录审核或不能审核"}
         
         if record and record.can_process(mama_id):
-            record.transfer_status=CouponTransferRecord.PROCESSED
-            record.save(update_fields=['transfer_status'])
-            res = CouponTransferRecord.gen_transfer_record(request.user, record)
+            stock_num = CouponTransferRecord.get_coupon_stock_num(mama_id, record.template_id)
+            if stock_num >= record.coupon_num:
+                customer = Customer.objects.filter(unionid=mama.unionid).first()
+                init_from_mama = XiaoluMama.objects.filter(id=record.init_from_mama_id).first()
+                init_from_customer = Customer.objects.filter(unionid=init_from_mama.unionid,status=Customer.NORMAL).first()
+                res = process_transfer_coupon(customer.id, init_from_customer.id, record)
+            else:
+                record.transfer_status=CouponTransferRecord.PROCESSED
+                record.save(update_fields=['transfer_status'])
+                res = CouponTransferRecord.gen_transfer_record(request.user, record)
         
         res = Response(res)
-        #res["Access-Control-Allow-Origin"] = "*"
         return res
 
     @detail_route(methods=['POST'])
@@ -195,6 +163,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         res = Response({"code": 0, "info": info})
         #res["Access-Control-Allow-Origin"] = "*"
         return res
+
     
     @detail_route(methods=['POST'])
     def transfer_coupon(self, request, pk=None, *args, **kwargs):
@@ -211,13 +180,13 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         init_from_customer = Customer.objects.filter(unionid=init_from_mama.unionid,status=Customer.NORMAL).first()
         stock_num = CouponTransferRecord.get_coupon_stock_num(mama_id, record.template_id)
         if stock_num < record.coupon_num:
-            info = u"精品券库存不足，请立即购买!"
+            info = u"您的精品券库存不足，请立即购买!"
             return Response({"code":2, "info":info})
 
         if record and record.can_process(mama_id) and mama.can_buy_transfer_coupon():
             coupons = UserCoupon.objects.filter(customer_id=customer.id,coupon_type=UserCoupon.TYPE_TRANSFER,status=UserCoupon.UNUSED, template_id=record.template_id)
             if coupons.count() < record.coupon_num:
-                info = u"券库存不足，请立即购买!"
+                info = u"您的券库存不足，请立即购买!"
                 return Response({"code":3, "info":info})
             now = datetime.datetime.now()
             CouponTransferRecord.objects.filter(order_no=record.order_no).update(transfer_status=CouponTransferRecord.DELIVERED,modified=now)
