@@ -1,19 +1,22 @@
-# -*- coding:utf-8 -*-
-
+# coding=utf-8
 from django.conf.urls import patterns, url, include
 from django.views.decorators.cache import cache_page
 from rest_framework import routers
 
 from flashsale.pay import constants
 from flashsale.pay.decorators import weixin_xlmm_auth
-from flashsale.promotion.views import activity as views_activity
-from flashsale.promotion.views.activity_goods import ActivityGoodsViewSet
-from flashsale.promotion.views.stock_sale import StockSaleViewSet
+
 from . import views
+from .views import activity as views_activity
+from .views.activity_goods import ActivityGoodsViewSet
+from .views.stock_sale import StockSaleViewSet
+from .views.activity2 import ActivityViewSet
+
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'goods', ActivityGoodsViewSet)
 router.register(r'stocksale', StockSaleViewSet)
+router.register(r'activity', ActivityViewSet)
 
 router_urls = router.urls
 router_urls += ([])
@@ -24,9 +27,7 @@ urlpatterns = patterns('',
                        url(r'^cus_cdt/$', views.CusApplyOrdersView.as_view(), name="cus_promote_condition"),
                        url(r'^exchange_reds/$', views.ExchangeRedToCoupon.as_view(), name="cus_exchange_pmt_reds"),
                        url(r'^result/(?P<batch>\d+)/(?P<page>\d+)/(?P<month>\d+)/$',
-                           cache_page(24 * 60 * 60)(views.PromotionResult.as_view()),
-                           # views.PromotionResult.as_view(),
-                           name="pmt_result"),
+                           cache_page(24 * 60 * 60)(views.PromotionResult.as_view()), name="pmt_result"),
                        url(r'^pmt_short_res/$', views.PromotionShortResult.as_view(), name="pmt_short_res_view"),
                        url(r'^xlsampleorder/$', weixin_xlmm_auth(redirecto=constants.MALL_LOGIN_URL)(
                            views.XlSampleOrderView.as_view()

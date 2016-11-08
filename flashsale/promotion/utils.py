@@ -1,5 +1,4 @@
-# -*- encoding:utf-8 -*-
-
+# coding=utf-8
 from flashsale.promotion.models import XLSampleApply
 
 
@@ -13,3 +12,11 @@ def get_application(event_id, unionid=None, mobile=None):
         if xls.exists():
             return xls[0]
     return None
+
+
+def choice_2_name_value(choice):
+    # type: (Dict[Any, str]) -> list[Dict[str, Any, str, str]]
+    d = []
+    for i in choice:
+        d.append({'name': i[1], 'value': i[0]})
+    return d
