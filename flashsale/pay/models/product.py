@@ -646,9 +646,13 @@ class ModelProduct(BaseTagModel):
 
     def set_lowest_price(self):
         """ 设置款式最低价格 """
-        prices = self.products.values('agent_price', 'std_sale_price')
-        agent_prices = [i['agent_price'] for i in prices]
-        std_sale_price = [i['std_sale_price'] for i in prices]
+        agent_prices = []
+        std_sale_price = []
+        for pro in self.products:
+            skus = pro.normal_skus
+            for sku in skus:
+                agent_prices.append(sku.agent_price)
+                std_sale_price.append(sku.std_sale_price)
         lowest_agent_price = agent_prices and min(agent_prices) or 0  # 递增
         lowest_std_sale_price = std_sale_price and min(std_sale_price) or 0  # 递增
         self.update_fields_with_kwargs(**{
