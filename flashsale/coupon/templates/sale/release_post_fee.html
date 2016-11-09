@@ -2,7 +2,7 @@
 <html>
 <head lang="en">
     <meta charset="UTF-8">
-    <title>邮费优惠券发放</title>
+    <title>优惠券发放</title>
     <link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css">
     <script type="text/javascript" src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
     <script type="text/javascript" src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
@@ -42,7 +42,8 @@
 
     <div style="margin-top: 30px">
         {% for template in templates %}
-            <button type="button" class="btn btn-info" style="margin-top: 30px;" onclick="release_coupon_action({{ template.id }})">
+            <button type="button" class="btn btn-info" style="margin-top: 30px;"
+                    onclick="release_coupon_action({{ template.id }})">
                 {{ template.title }}
             </button>
         {% endfor %}
@@ -51,25 +52,6 @@
 
 
 <br/>
-
-<!--
-<div class="col-xs-6" style="background: white;margin-top: 150px;margin-bottom: 10%">
-    <h1>漏发优惠券.发放</h1>
-
-    {% for template in templates %}
-        <span class="label label-info">{{ template.title }}
-            <input class="template-ids" style=" width: 25px; height: 25px;" type="checkbox" value="{{ template.id }}">
-        </span><br/>
-    {% endfor %}
-
-    <div class="input-group" style="margin-top: 40px">
-        <input type="text" id="customer-info" class="form-control" placeholder="输入用户手机号 or 用户id"
-               aria-describedby="basic-addon2">
-        <span class="input-group-addon" id="release-omissive-coupon">点击发放</span>
-    </div>
-</div>
--->
-
 </body>
 
 <script>
@@ -111,11 +93,6 @@
                         trade.total_fee);
                 $("#trade_info").empty().append(trade_info);
             }
-        });
-
-
-        $("#release-omissive-coupon").click(function () {
-            releaseOmissiveCoupon()
         });
     });
 
@@ -164,53 +141,5 @@
         }
     }
 
-
-    function releaseOmissiveCoupon() {
-        var tem = [];
-        $('.template-ids').each(function (i, v) {
-            if ($('.template-ids')[i].checked == true) {
-                console.log('template is ', $(v).val());
-                tem.push($(v).val());
-            }
-        });
-        var templates = '';
-        console.log('tem:', tem);
-        $.each(tem, function (index, id) {
-            if (index < tem.length - 1) {
-                templates += id + '-';
-            }
-            else if (index == tem.length - 1) {
-                templates += id;
-            }
-        });
-
-        console.log('templates:', templates);
-
-        var customer = $("#customer-info").val();
-        var omissiveUrl = '/mm/release_coupon/';
-        var data = {'customer_info': customer, 'template_ids': templates};
-        var btn = $("#release-omissive-coupon");
-        if (btn.hasClass('loading')) {
-            return
-        }
-        btn.addClass('loading');
-        $.ajax({
-            url: omissiveUrl,
-            type: "post",
-            data: data,
-            success: couponCallBack,
-            error: function (err) {
-                var resp = JSON.parse(err.responseText);
-                if (resp.detail) {
-                    layer.msg(resp.detail);
-                }
-            }
-        });
-        function couponCallBack(res) {
-            btn.removeClass('loading');
-            console.log("debug res:", res);
-            layer.msg(res.message)
-        }
-    }
 </script>
 </html>
