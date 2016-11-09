@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>优惠券发放</title>
+    <link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <script type="text/javascript" src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+    <script type="text/javascript" src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/static/script/slaerefund_poppage.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}layer-v1.9.2/layer/layer.js"></script>
+</head>
+<body class="container" style="background: #F5F5F5">
+<div class="col-xs-12" style="background: white;margin-top: 150px;margin-bottom: 10%">
+    <h1>发放精品优惠券</h1>
+
+    <form role="form">
+        <div class="form-group">
+            <label for="exampleInputPassword1">用户id</label>
+            <input type="number" class="form-control" id="buyer_id" name="buyer_id" placeholder="buyer_id">
+        </div>
+        <div class="form-group">
+            <label for="exampleInputPassword2">购买款式id</label>
+            <input type="text" class="form-control" id="model_ids" name="model_ids" placeholder="model_ids"
+                   value="{{ default_modelids }}">
+        </div>
+        <button type="submit" class="btn btn-default">查询</button>
+    </form>
+
+    <h1>订单信息</h1>
+    <ul class="list-group">
+        {% for order in sale_orders %}
+            <li class="list-group-item">
+                交易：
+                <a target="_blank"
+                   href="/admin/pay/saletrade/?id={{ order.sale_trade_id }}">{{ order.sale_trade_id }}</a>
+                ||
+                {{ order.sale_trade.get_status_display }}
+                －－－－　订单：
+                <a target="_blank" href="/admin/pay/saleorder/?id={{ order.sale_trade_id }}">{{ order.id }}</a>
+                ||
+                {{ order.get_status_display }}
+                [&nbsp;&nbsp; 数量: {{ order.num }} &nbsp;&nbsp;] &nbsp;&nbsp;&nbsp;&nbsp; [名称: {{ order.title }}]
+            </li>
+        {% endfor %}
+    </ul>
+
+    <h1>精品券信息</h1>
+    <ul class="list-group">
+        {% for coupon in usercoupons %}
+            <li class="list-group-item">
+                模板：{{ coupon.self_template.id }} || {{ coupon.self_template.title }} －－－－　id
+                : {{ coupon.id }}　状态: {{ coupon.get_status_display }} || 用户: {{ coupon.customer_id }}
+            </li>
+        {% endfor %}
+    </ul>
+
+    {% for template in templates %}
+        <button type="button" class="btn btn-info releaseCoupon" style="margin-top: 30px; margin-bottom: 30px"
+                onclick="release_coupon_action({{ template.id }})">{{ template.title }}　
+        </button>
+    {% endfor %}
+</div>
+</body>
+<script>
+    function getLinkParam(url, name) {
+        var reg = new RegExp('[\\?&]' + name + '=([^&#]*)');
+        var r = url.substr(1).match(reg);
+        if (r != null) return unescape(r[1]);
+        return null;
+    }
+
+    function getUrlParam(name) {
+        var local_link = window.location.href;
+        return getLinkParam(local_link, name);
+    }
+    $(document).ready(function () {
+        var buyer_id = getUrlParam('buyer_id');
+        var model_ids = getUrlParam('model_ids');
+        $('#buyer_id').val(buyer_id);
+        $('#model_ids').val(model_ids);
+    });
+    function release_coupon_action(template_id) {
+        var btn = $(".releaseCoupon");
+        if (btn.hasClass('loading')) {
+            return
+        }
+        btn.addClass('loading');
+        var coupon_url = "/coupon/release_coupon/";
+        var buyer_id = $("#buyer_id").val();
+        var data = {"buyer_id": buyer_id, "template_id": template_id};
+        console.log('data:', data);
+        $.ajax({
+            url: coupon_url,
+            type: "post",
+            data: data,
+            success: couponCallBack,
+            error: function (err) {
+                var resp = JSON.parse(err.responseText);
+                if (resp.detail) {
+                    layer.msg(resp.detail);
+                }
+            }
+        });
+        function couponCallBack(res) {
+            btn.removeClass('loading');
+            console.log("debug res:", res);
+            layer.msg(res.message)
+        }
+    }
+</script>
+</html>
+
+
