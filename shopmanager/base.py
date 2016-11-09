@@ -312,6 +312,10 @@ WX_MESSAGE_URL = 'https://api.weixin.qq.com/cgi-bin/message/custom/send'
 WX_MEDIA_UPLOAD_URL = 'https://api.weixin.qq.com/cgi-bin/media/upload'
 WX_MEDIA_GET_URL = 'https://api.weixin.qq.com/cgi-bin/media/get'
 
+################### KUAIDI KDN SETTINGS ##################
+KDN_EBUSINESSID = 1264368
+KDN_APIKEY = "b2983220-a56b-4e28-8ca0-f88225ee2e0b"
+
 ############################# EXTENSION CONFIG ##############################
 TAOBAO_PAGE_SIZE = 50  # the page_size of  per request
 # sale order regular days

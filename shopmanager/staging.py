@@ -24,9 +24,9 @@ STATIC_ROOT = "/data/site_media/static"
 M_STATIC_URL = '/'
 
 # WEB DNS
-SITE_URL = 'http://staging.xiaolumeimei.com/'
+SITE_URL = 'http://staging.xiaolumm.com/'
 #######################  WAP AND WEIXIN CONFIG ########################
-M_SITE_URL = 'http://staging.xiaolumeimei.com'
+M_SITE_URL = 'http://staging.xiaolumm.com'
 
 CELERY_ALWAYS_EAGER = True
 CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
