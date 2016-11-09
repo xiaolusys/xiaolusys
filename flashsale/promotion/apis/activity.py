@@ -83,38 +83,31 @@ class Activity(object):  # 特卖商城活动(pay.models.ActivityEntry)
         self.login_required = login_required  # 需要登陆
         self.act_desc = act_desc  # 活动描述
 
-    def save(self, id=None):
-        # type: (Optional[int]) -> ActivityEntry
+    def create(self):
+        # type: () -> ActivityEntry
         """保存到活动记录到数据库
         """
         from flashsale.promotion.models import ActivityEntry
 
-        if id is not None:
-            activity = get_activity_by_id(id)
-            for k, v in activity.__dict__.iteritems():
-                if hasattr(activity, k) and getattr(self, k) != v:
-                    setattr(activity, k, getattr(self, k))
-            activity.save()
-        else:
-            activity = ActivityEntry(
-                title=self.title,
-                act_type=self.act_type,
-                start_time=self.start_time,
-                end_time=self.end_time,
-                act_img=self.act_img,
-                act_logo=self.act_logo,
-                act_link=self.act_link,
-                mask_link=self.mask_link,
-                act_applink=self.act_applink,
-                share_icon=self.share_icon,
-                share_link=self.share_link,
-                order_val=self.order_val,
-                extras=self.extras,
-                is_active=self.is_active,
-                login_required=self.login_required,
-                act_desc=self.act_desc,
-            )
-            activity.save()
+        activity = ActivityEntry(
+            title=self.title,
+            act_type=self.act_type,
+            start_time=self.start_time,
+            end_time=self.end_time,
+            act_img=self.act_img,
+            act_logo=self.act_logo,
+            act_link=self.act_link,
+            mask_link=self.mask_link,
+            act_applink=self.act_applink,
+            share_icon=self.share_icon,
+            share_link=self.share_link,
+            order_val=self.order_val,
+            extras=self.extras,
+            is_active=self.is_active,
+            login_required=self.login_required,
+            act_desc=self.act_desc,
+        )
+        activity.save()
         return activity
 
 
@@ -133,11 +126,11 @@ def create_activity(title, act_type, start_time, end_time, **kwargs):
         if hasattr(activity, k) and getattr(activity, k) != v:
             setattr(activity, k, v)
     _validate_start_end_time(start_time, end_time)
-    activity = activity.save()
+    activity = activity.create()
     if act_type == ActivityEntry.ACT_TOPIC:
         activity.act_link = 'http://m.xiaolumeimei.com/mall/activity/topTen/model/2?id={0}'.format(activity.id)
     activity.share_link = 'http://m.xiaolumeimei.com/m/{mama_id}?next=' + activity.act_link
-    activity.save(id=activity.id)
+    activity.save()
     return activity
 
 
@@ -145,7 +138,6 @@ def update_activity(id, **kwargs):
     # type: (int, **Any) -> ActivityEntry
     """更新活动
     """
-    print "id ", id, kwargs
     activity = get_activity_by_id(id=id)
     start_time, end_time = kwargs.get('start_time'), kwargs.get('end_time')
     act_type = kwargs.get('act_type')
