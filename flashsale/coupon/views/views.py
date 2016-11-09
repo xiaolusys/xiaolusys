@@ -117,10 +117,11 @@ class ReleaseOmissive(APIView):
             return Response({'code': 2, "message": '客户不存在或重复'})
         from flashsale.pay.models import ModelProduct
         from shopback.items.models import Product
+        from ..apis.v1.transfer import create_present_coupon_transfer_record
 
         modelids = ModelProduct.objects.filter(product_type=1, status=ModelProduct.NORMAL).values('id')
         modelids = [m['id'] for m in modelids]
-        item_ids = [i['id'] for i in Product.objects.filter(model_id__in=modelids).values('id')]    # 找出虚拟产品
+        item_ids = [i['id'] for i in Product.objects.filter(model_id__in=modelids).values('id')]  # 找出虚拟产品
         # 交易成功订单
         sale_orders = SaleOrder.objects.filter(item_id__in=item_ids, buyer_id=cus.id, status=SaleOrder.TRADE_FINISHED)
         order_ids = []  # 用户的订单(一个数量为一个id)
@@ -129,15 +130,18 @@ class ReleaseOmissive(APIView):
                 order_ids.append({'order_id': order.id, 'num': order.num})
         template = CouponTemplate.objects.get(id=template_id)
         yy = len(order_ids)
-        message = u'发送成功'
+        message = u''
         for i, v in enumerate(order_ids):
+            message = u'发送成功'
             x = i + 1  # 第几个订单 print '%s这是用户的第%s个订单' % (v['order_id'], x)
             y = x % 5
             if y == 0:
                 yy += 1
                 uni_key = template.gen_usercoupon_unikey(v['order_id'], yy)  # print '满5送1: unikey:%s' % uni_key
                 try:
-                    UserCoupon.send_coupon(cus, template, uniq_id=uni_key)
+                    cou = UserCoupon.send_coupon(cus, template, uniq_id=uni_key)
+                    create_present_coupon_transfer_record(cus, template, cou.id, v['order_id'])
                 except Exception as e:
                     message = e.message
+                    continue
         return Response({'code': 0, "message": message})
