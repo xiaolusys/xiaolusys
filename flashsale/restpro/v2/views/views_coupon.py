@@ -44,7 +44,7 @@ def process_transfer_coupon(customer_id, init_from_customer_id, record):
     CouponTransferRecord.objects.filter(order_no=record.order_no).update(transfer_status=CouponTransferRecord.DELIVERED,modified=now)
     coupons = coupons[0:record.coupon_num]
     for coupon in coupons:
-        coupon.customer_id = init_from_customer.id
+        coupon.customer_id = init_from_customer_id
         coupon.extras.update({"transfer_coupon_pk":record.id})
         coupon.save()
     return {"code": 0, "info": u"发放成功"}
