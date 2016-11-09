@@ -19,7 +19,7 @@ from ..serializers.activity import ActivitySerializer, ActivityProductSerializer
 from ..apis.activity import get_activity_by_id, create_activity, update_activity, get_activity_pros_by_activity_id, \
     get_activity_pro_by_id, create_activity_pro, create_activity_pros_by_schedule_id, update_activity_pro
 from ..utils import choice_2_name_value
-from ..deps import get_future_schedules
+from ..deps import get_future_topic_schedules
 
 
 class ActivityViewSet(viewsets.ModelViewSet):
@@ -37,10 +37,14 @@ class ActivityViewSet(viewsets.ModelViewSet):
     def list_filters(self, request, *args, **kwargs):
         # type: (HttpRequest, *Any, **Any) -> Response
         act_type = choice_2_name_value(ActivityEntry.ACT_CHOICES)
-        f_schedules = get_future_schedules().values('id', 'sale_time')
+        f_schedules = get_future_topic_schedules().values('id', 'upshelf_time', 'offshelf_time')
         return Response({
             'act_type': act_type,
-            'schedules': f_schedules
+            'schedules': f_schedules,
+            'is_active': [{'name': '上线', 'value': True},
+                          {'name': '不上线', 'value': False}],
+            'login_required': [{'name': '需要登陆', 'value': True},
+                               {'name': '无需登陆', 'value': False}],
         })
 
     def create(self, request, *args, **kwargs):
@@ -49,6 +53,9 @@ class ActivityViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         title = request.data.pop('title')
         act_type = request.data.pop('act_type')
+        if request.data.has_key('schedule_id'):
+            schedule_id = request.data.pop('schedule_id')
+            request.data.update({'extras': {'schedule_id': schedule_id}})
         start_time = datetime.datetime.strptime(request.data.pop('start_time'), '%Y-%m-%d %H:%M:%S')
         end_time = datetime.datetime.strptime(request.data.pop('end_time'), '%Y-%m-%d %H:%M:%S')
         activity = create_activity(
@@ -67,10 +74,15 @@ class ActivityViewSet(viewsets.ModelViewSet):
         partial = kwargs.pop('partial', False)
         instance_id = kwargs.get('pk')
         activity = get_activity_by_id(instance_id)
-        serializer = self.get_serializer(activity, data=request.data, partial=partial)
+        extras = activity.extras
+        if request.data.has_key('schedule_id'):
+            schedule_id = request.data.pop('schedule_id')
+            if schedule_id:
+                extras.update({'schedule_id': schedule_id})
         start_time = datetime.datetime.strptime(request.data.pop('start_time'), '%Y-%m-%d %H:%M:%S')
         end_time = datetime.datetime.strptime(request.data.pop('end_time'), '%Y-%m-%d %H:%M:%S')
-        request.data.update({'start_time': start_time, 'end_time': end_time})
+        request.data.update({'start_time': start_time, 'end_time': end_time, 'extras': extras})
+        serializer = self.get_serializer(activity, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         update_activity(instance_id, **request.data)
         return Response(serializer.data)

@@ -134,7 +134,9 @@ def create_activity(title, act_type, start_time, end_time, **kwargs):
             setattr(activity, k, v)
     _validate_start_end_time(start_time, end_time)
     activity = activity.save()
-    activity.act_link = 'http://m.xiaolumeimei.com/mall/activity/topTen/model/2?id={0}'.format(activity.id)
+    if act_type == ActivityEntry.ACT_TOPIC:
+        activity.act_link = 'http://m.xiaolumeimei.com/mall/activity/topTen/model/2?id={0}'.format(activity.id)
+    activity.share_link = 'http://m.xiaolumeimei.com/m/{mama_id}?next=' + activity.act_link
     activity.save(id=activity.id)
     return activity
 
@@ -143,6 +145,7 @@ def update_activity(id, **kwargs):
     # type: (int, **Any) -> ActivityEntry
     """更新活动
     """
+    print "id ", id, kwargs
     activity = get_activity_by_id(id=id)
     start_time, end_time = kwargs.get('start_time'), kwargs.get('end_time')
     act_type = kwargs.get('act_type')

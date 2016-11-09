@@ -68,6 +68,13 @@ class ActivityEntry(BaseModel):
             'active_dec': self.act_desc.format(**params),
         }
 
+    @property
+    def schedule_id(self):
+        # type: () -> Optional[int]
+        """专题类型在extras获取关联的排期id
+        """
+        return self.extras.get('schedule_id')
+
     def get_html(self, key):
         htmls = self.extras.get("html", {})
         if key in htmls:
