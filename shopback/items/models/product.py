@@ -771,7 +771,7 @@ class Product(models.Model):
         #  ]}
         """
         kwargs['name'] = '%s/%s'%(model_pro.name, kwargs['name'])
-        product = Product.objects.filter(models.Q(name=kwargs['name'])|models.Q(name=kwargs['name']),
+        product = Product.objects.filter(models.Q(name=kwargs['name'])|models.Q(outer_id=kwargs['outer_id']),
                                          model_id=model_pro.id).first()
         if not product:  # 没有则创建 product
             product = Product()
@@ -796,6 +796,7 @@ class Product(models.Model):
             product_sku.save()
             product.set_remain_num()  # 有效sku预留数之和
             product.set_price()  # 有效sku 设置 成品 售价 吊牌价 的平均价格
+        model_pro.save(update_fields=['modified'])
         return
 
     @classmethod
