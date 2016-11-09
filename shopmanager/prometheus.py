@@ -25,7 +25,7 @@ M_STATIC_URL = '/'
 # WEB DNS
 SITE_URL = 'http://admin.xiaolumm.com/'
 #######################  WAP AND WEIXIN CONFIG ########################
-M_SITE_URL = 'http://m.xiaolumeimei.com'
+M_SITE_URL = 'https://m.xiaolumeimei.com'
 
 MYSQL_HOST = 'rdsvrl2p9pu6536n7d99.mysql.rds.aliyuncs.com'
 MYSQL_AUTH = os.environ.get('MYSQL_AUTH')

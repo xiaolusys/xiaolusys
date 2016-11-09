@@ -5,7 +5,7 @@
 # sys.path.append("/home/fpcnm/myProjects/xiaoluMM4/xiaolusys/shopmanager/")
 # os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shopmanager.local_settings")
 
-
+from django.conf import settings
 from flashsale.pay.models import Customer, SaleTrade
 from shopback.trades.models import TradeWuliu
 from django.shortcuts import get_object_or_404
@@ -81,15 +81,15 @@ def packet_data(queryset):
 #####################################################################################
 expCode = 'SF'
 expNo = '3100707578976'
-EBusinessID = 1264368
-API_key = "b2983220-a56b-4e28-8ca0-f88225ee2e0b"
+EBusinessID = settings.KDN_EBUSINESSID #1264368
+API_key = settings.KDN_APIKEY #"b2983220-a56b-4e28-8ca0-f88225ee2e0b"
 exp_info = [expCode,expNo,API_key]
 business_info = {"EBusinessID":str(EBusinessID),"API_key":API_key,"DataType":"2","requestType":"1002"}
 business_info_sub = {"EBusinessID":str(EBusinessID),"API_key":API_key,"DataType":"2","requestType":"1008"}
 class KdnBaseAPI(object):
 
-    EBusinessID = 1264368
-    API_key = "b2983220-a56b-4e28-8ca0-f88225ee2e0b"
+    EBusinessID = settings.KDN_EBUSINESSID
+    API_key = settings.KDN_APIKEY
 
     def __init__(self):
         pass
