@@ -1,5 +1,6 @@
 # coding=utf-8
 from django.contrib import admin
+from django.db.models import Sum
 
 from core.filters import DateFieldListFilter
 from flashsale.coupon.models import CouponTemplate, OrderShareCoupon, UserCoupon, TmpShareCoupon, CouponTransferRecord
@@ -94,7 +95,7 @@ admin.site.register(TmpShareCoupon, TmpShareCouponAdmin)
 
 class CouponTransferRecordAdmin(admin.ModelAdmin):
     list_display = ('coupon_from_mama_id', 'from_mama_nick', 'coupon_to_mama_id', 'to_mama_nick', 'template_id', 'template_name',
-                    'coupon_value', 'coupon_num', 'transfer_type', 'transfer_status', 'status', 'uni_key', 'date_field',
+                    'coupon_value', 'coupon_num', 'total_num', 'transfer_type', 'transfer_status', 'status', 'uni_key', 'date_field',
                     'init_from_mama_id','order_no', 'modified', 'created')
     list_filter = ('transfer_type', 'transfer_status', 'status', ('created', DateFieldListFilter))
     search_fields = ['=coupon_from_mama_id', '=coupon_to_mama_id']
@@ -104,5 +105,9 @@ class CouponTransferRecordAdmin(admin.ModelAdmin):
         if ct:
             return ct.title
         return ''
+
+    def total_num(self, obj):
+        res = CouponTransferRecord.objects.filter(date_field=obj.date_field,transfer_status=obj.transfer_status).aggregate(n=Sum('coupon_num'))
+        return res['n'] or 0
 
 admin.site.register(CouponTransferRecord, CouponTransferRecordAdmin)
