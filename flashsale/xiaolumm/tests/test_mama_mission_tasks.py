@@ -39,6 +39,7 @@ class MamaWeeklyAwardTestCase(TestCase):
         self.mama_id = 44
         self.referal_from_mama_id = 1
         self.year_week = datetime.datetime.now().strftime('%Y-%W')
+        XiaoluMama.objects.update(charge_time=datetime.datetime.now())
 
 
     def testUpdateAllMamaMissionState(self):
@@ -107,8 +108,7 @@ class MamaWeeklyAwardTestCase(TestCase):
         # TODO@meron　团队妈妈测试
         # self.assertGreaterEqual(mama_record.mission.award_amount, mama_award.carry_num) # >=
 
-    # def testFinishMamaMissionSaleAward(self):
-    def finishMamaMissionSaleAward(self):
+    def testFinishMamaMissionSaleAward(self):
         """ 测试妈妈销售激励　团队妈妈销售激励 """
 
         now_datetime = datetime.datetime.now()
@@ -140,14 +140,14 @@ class MamaWeeklyAwardTestCase(TestCase):
         self.assertIsNone(mama_record)
 
         # 测试团队销售奖励到账
-        # mama_record = MamaMissionRecord.objects.filter(
-        #     mama_id=self.referal_from_mama_id,
-        #     year_week=year_week,
-        #     mission__cat_type=MamaMission.CAT_SALE_GROUP).first()
-        # mama_award = AwardCarry.objects.filter(uni_key=mama_record.gen_uni_key()).first()
-        # self.assertEqual(mama_record.status, MamaMissionRecord.FINISHED)
-        # self.assertIsNotNone(mama_award)
-        # self.assertGreaterEqual(mama_record.award_amount, mama_award.carry_num)  # >=
+        mama_record = MamaMissionRecord.objects.filter(
+            mama_id=self.referal_from_mama_id,
+            year_week=year_week,
+            mission__cat_type=MamaMission.CAT_SALE_GROUP).first()
+        mama_award = AwardCarry.objects.filter(uni_key=mama_record.gen_uni_key()).first()
+        self.assertEqual(mama_record.status, MamaMissionRecord.FINISHED)
+        self.assertIsNotNone(mama_award)
+        self.assertGreaterEqual(mama_record.award_amount, mama_award.carry_num)  # >=
 
         # 测试妈妈周销售目标是不是，按连续两周有交易条件限制
         mission = MamaMission.objects.filter(cat_type=MamaMission.CAT_SALE_MAMA).first()
@@ -158,7 +158,6 @@ class MamaWeeklyAwardTestCase(TestCase):
             year_week=year_week,
             mission__cat_type=MamaMission.CAT_SALE_MAMA).first()
         mama_award = AwardCarry.objects.filter(uni_key=mama_record.gen_uni_key()).first()
-        print 'mama_award:', mama_record, saletrade.payment, mama_record.target_amount, mama_record.finish_value
         self.assertEqual(mama_record.status, MamaMissionRecord.FINISHED)
         self.assertIsNotNone(mama_award)
         self.assertEqual(mama_record.award_amount, mama_award.carry_num) # ==
@@ -177,13 +176,13 @@ class MamaWeeklyAwardTestCase(TestCase):
         self.assertEqual(mama_record.status, MamaMissionRecord.STAGING)
         self.assertEqual(mama_award.status, AwardCarry.CANCEL)
 
-        # mama_record = MamaMissionRecord.objects.filter(
-        #     mama_id=self.referal_from_mama_id,
-        #     year_week=year_week,
-        #     mission__cat_type=MamaMission.CAT_SALE_GROUP).first()
-        # mama_award = AwardCarry.objects.filter(uni_key=mama_record.gen_uni_key()).first()
-        # self.assertEqual(mama_record.status, MamaMissionRecord.STAGING)
-        # self.assertEqual(mama_award.status, AwardCarry.CANCEL)
+        mama_record = MamaMissionRecord.objects.filter(
+            mama_id=self.referal_from_mama_id,
+            year_week=year_week,
+            mission__cat_type=MamaMission.CAT_SALE_GROUP).first()
+        mama_award = AwardCarry.objects.filter(uni_key=mama_record.gen_uni_key()).first()
+        self.assertEqual(mama_record.status, MamaMissionRecord.STAGING)
+        self.assertEqual(mama_award.status, AwardCarry.CANCEL)
 
 
 
