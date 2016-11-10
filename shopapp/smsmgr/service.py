@@ -1,4 +1,5 @@
 # -*- coding:utf8 -*-
+import json
 from  StringIO import StringIO
 import urllib, urllib2
 from lxml import etree
@@ -6,6 +7,7 @@ from shopapp.smsmgr.models import SMSRecord, SMSPlatform
 from shopapp.smsmgr.sensitive_word import sensitive_words
 from shopback.base.exception import NotImplement
 from shopback import paramconfig as pcfg
+from aliapis import AlibabaAliqinFcSmsNumSendRequest
 import logging
 
 logger = logging.getLogger('django.request')
@@ -16,10 +18,13 @@ class SMSManager():
 
     _platform = None  # 短信服务商名称
 
+    def get_smsplateform(self):
+        return SMSPlatform.objects.get(code=self._platform)
+
     def create_record(self, mobiles, task_name, task_type, content):
         """ 创建短信发送记录 """
         smsrecord = SMSRecord.objects.create(
-            platform=SMSPlatform.objects.get(code=self._platform),
+            platform=self.get_smsplateform(),
             task_id='',
             task_name=task_name,
             task_type=task_type,
@@ -343,9 +348,62 @@ class SYKJSMSManager(SMSManager):
         return content
 
 
+class ALIDAYUSMSManager(SMSManager):
+    """
+    alidayu短信发送接口实现
+    """
+    _platform = 'alidayu'
+    _sms_url = 'https://eco.taobao.com/router/rest'
+
+    def batch_send(self, *args, **kwargs):
+        """
+        批量发送短信接口实现
+        - account
+        - pswd
+        - mobile
+        - msg
+        - needstatus:true
+        - extno:3106
+        """
+
+        mobile = kwargs.get('mobile', '')
+        sms_template_code = kwargs.get('sms_template_code', '')
+
+        success = False
+        task_id = None
+        content = json.dumps(kwargs)
+
+        plateform = self.get_smsplateform()
+        req = AlibabaAliqinFcSmsNumSendRequest(
+            plateform.account,
+            plateform.password,
+            url=self._sms_url
+        )
+
+        # req.extend = "123456"
+        req.sms_type = "normal"
+        req.sms_free_sign_name = "小鹿美美"
+        req.sms_param = json.dumps(kwargs)
+        req.rec_num = mobile
+        req.sms_template_code = sms_template_code
+        try:
+            resp = req.getResponse()
+            success = True
+        except Exception, e:
+            logger.error('%s'%e, exc_info=True)
+
+        try:
+            task_id = resp['alibaba_aliqin_fc_sms_num_send_response']['result']['id']
+        except:
+            pass
+
+        return success, task_id, len(mobile.split(',')), content
+
+
 SMS_CODE_MANAGER_TUPLE = (
     ('cshx', CSHXSMSManager),
     ('dxt', DXTSMSManager),
     ('ipyy', IPYYSMSManager),
     ('18sms', SYKJSMSManager),
+    ('alidayu', ALIDAYUSMSManager),
 )
