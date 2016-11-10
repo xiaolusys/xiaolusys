@@ -28,8 +28,8 @@ class PackageOrder(models.Model):
     id = models.CharField(max_length=100, verbose_name=u'包裹码', unique=True)
     tid = models.CharField(max_length=32, verbose_name=u'参考交易单号')
     ware_by = models.IntegerField(default=WARE_SH, db_index=True, choices=WARE_CHOICES, verbose_name=u'所属仓库')
-    # type = models.CharField(max_length=32, choices=TRADE_TYPE, db_index=True, default=pcfg.SALE_TYPE,
-    #                         blank=True, verbose_name=u'订单类型')
+    type = models.CharField(max_length=32, choices=TRADE_TYPE, db_index=True, default=pcfg.SALE_TYPE,
+                            blank=True, verbose_name=u'订单类型')
     status = models.CharField(max_length=32, db_index=True,
                               choices=TAOBAO_TRADE_STATUS, blank=True,
                               default=pcfg.TRADE_NO_CREATE_PAY, verbose_name=u'系统状态')
@@ -115,6 +115,9 @@ class PackageOrder(models.Model):
     merge_trade_id = models.BigIntegerField(null=True, blank=True, verbose_name=u'对应的MergeTrade')
     shipping_type = 'express'
 
+    # 作废
+    type = models.CharField(max_length=32, choices=TRADE_TYPE, db_index=True, default=pcfg.SALE_TYPE,
+                            blank=True, verbose_name=u'订单类型')
     class Meta:
         db_table = 'flashsale_package'
         app_label = 'trades'
@@ -581,7 +584,7 @@ class PackageSkuItem(BaseModel):
     pic_path = models.CharField(max_length=512, blank=True, verbose_name=u'商品图片')
 
     pay_time = models.DateTimeField(db_index=True, verbose_name=u'付款时间')
-    prepare_book_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'准备订货时间')
+    book_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'准备订货时间')
     booked_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'订下货时间')
     ready_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'分配时间')
     assign_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'分配SKU时间')
@@ -605,6 +608,25 @@ class PackageSkuItem(BaseModel):
     payment = models.FloatField(default=0.0, verbose_name=u'实付款')
     discount_fee = models.FloatField(default=0.0, verbose_name=u'折扣')
     adjust_fee = models.FloatField(default=0.0, verbose_name=u'调整费用')
+
+    # 作废
+    REAL_ORDER_GIT_TYPE = 0  # 实付
+    CS_PERMI_GIT_TYPE = 1  # 赠送
+    OVER_PAYMENT_GIT_TYPE = 2  # 满就送
+    COMBOSE_SPLIT_GIT_TYPE = 3  # 拆分
+    RETURN_GOODS_GIT_TYPE = 4  # 退货
+    CHANGE_GOODS_GIT_TYPE = 5  # 换货
+    ITEM_GIFT_TYPE = 6  # 买就送
+    GIFT_TYPE = (
+        (pcfg.REAL_ORDER_GIT_TYPE, u'实付'),
+        (pcfg.CS_PERMI_GIT_TYPE, u'赠送'),
+        (pcfg.OVER_PAYMENT_GIT_TYPE, u'满就送'),
+        (pcfg.COMBOSE_SPLIT_GIT_TYPE, u'拆分'),
+        (pcfg.RETURN_GOODS_GIT_TYPE, u'退货'),
+        (pcfg.CHANGE_GOODS_GIT_TYPE, u'换货'),
+        (pcfg.ITEM_GIFT_TYPE, u'买就送'),
+    )
+    gift_type = models.IntegerField(choices=GIFT_TYPE, default=REAL_ORDER_GIT_TYPE, verbose_name=u'类型')
 
     class Meta:
         db_table = 'flashsale_package_sku_item'
@@ -766,13 +788,12 @@ class PackageSkuItem(BaseModel):
     def set_status_paid(self):
         self.status = PSI_STATUS.PAID
         self.assign_status = 0
-        self.pay_time = datetime.datetime.now()
         self.save()
         SkuStock.set_psi_init_paid(self.sku_id, self.num)
 
     def set_status_prepare_book(self):
         self.status = PSI_STATUS.PREPARE_BOOK
-        self.prepare_book_time = datetime.datetime.now()
+        self.book_time = datetime.datetime.now()
         self.save()
         SkuStock.set_psi_prepare_book(self.sku_id, self.num)
 
