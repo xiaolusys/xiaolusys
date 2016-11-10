@@ -975,13 +975,13 @@ class RedirectStatsLinkView(APIView):
 
     links = [
         ['', ''],
-        ['http://mp.weixin.qq.com/s?__biz=MzA5MzQxMzU2Mg==&mid=2650808162&idx=2&sn=b1d6bbeaa3c02546bb8e6bb021f74e64&chksm=8baaf6b7bcdd7fa1e90c2763a7467abc27f8e94ce6a3f93d58803586c8f2fef1ab747d881b25&scene=0#wechat_redirect', MamaTabVisitStats.TAB_WX_ARTICLE_LINK],
-        ['http://mp.weixin.qq.com/s?__biz=MzA5MzQxMzU2Mg==&mid=2650808162&idx=2&sn=b1d6bbeaa3c02546bb8e6bb021f74e64&chksm=8baaf6b7bcdd7fa1e90c2763a7467abc27f8e94ce6a3f93d58803586c8f2fef1ab747d881b25&scene=0#wechat_redirect', MamaTabVisitStats.TAB_WX_TUTORIAL],
+        ['https://mp.weixin.qq.com/s?__biz=MzA5MzQxMzU2Mg==&mid=2650808162&idx=2&sn=b1d6bbeaa3c02546bb8e6bb021f74e64&chksm=8baaf6b7bcdd7fa1e90c2763a7467abc27f8e94ce6a3f93d58803586c8f2fef1ab747d881b25&scene=0#wechat_redirect', MamaTabVisitStats.TAB_WX_ARTICLE_LINK],
+        ['https://mp.weixin.qq.com/s?__biz=MzA5MzQxMzU2Mg==&mid=2650808162&idx=2&sn=b1d6bbeaa3c02546bb8e6bb021f74e64&chksm=8baaf6b7bcdd7fa1e90c2763a7467abc27f8e94ce6a3f93d58803586c8f2fef1ab747d881b25&scene=0#wechat_redirect', MamaTabVisitStats.TAB_WX_TUTORIAL],
         ['/mall/user/profile', MamaTabVisitStats.TAB_WX_BIND_MOBILE],
-        ['http://m.xiaolumeimei.com/rest/v1/users/weixin_login/?next=/mama_shop/html/personal.html', MamaTabVisitStats.TAB_WX_PUSH_CLICK_CARRY],
-        ['http://m.xiaolumeimei.com/rest/v1/users/weixin_login/?next=/mama_shop/html/clickcarry.html', MamaTabVisitStats.TAB_WX_CLICK_CARRY_HTML],
-        ['http://m.xiaolumeimei.com/rest/v1/users/weixin_login/?next=/mama_shop/html/elite_mama.html', MamaTabVisitStats.TAB_APP_ELITE_MAMA],
-        ['http://m.xiaolumeimei.com/rest/v1/users/weixin_login/?next=/mama_shop/html/greetings_mama.html', MamaTabVisitStats.TAB_WX_GREETINGS_MAMA],
+        ['https://m.xiaolumeimei.com/rest/v1/users/weixin_login/?next=/mama_shop/html/personal.html', MamaTabVisitStats.TAB_WX_PUSH_CLICK_CARRY],
+        ['https://m.xiaolumeimei.com/rest/v1/users/weixin_login/?next=/mama_shop/html/clickcarry.html', MamaTabVisitStats.TAB_WX_CLICK_CARRY_HTML],
+        ['https://m.xiaolumeimei.com/rest/v1/users/weixin_login/?next=/mama_shop/html/elite_mama.html', MamaTabVisitStats.TAB_APP_ELITE_MAMA],
+        ['https://m.xiaolumeimei.com/rest/v1/users/weixin_login/?next=/mama_shop/html/greetings_mama.html', MamaTabVisitStats.TAB_WX_GREETINGS_MAMA],
     ]
 
     def get(self, request, *args, **kwargs):
