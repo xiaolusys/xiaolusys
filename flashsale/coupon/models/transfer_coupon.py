@@ -309,6 +309,8 @@ class CouponTransferRecord(BaseModel):
 
     @classmethod
     def gen_return_record(cls, customer, coupon_num, template_id, trade_tid):
+        from flashsale.coupon.models import CouponTemplate
+        
         coupon_from_mama_id = 0
         from_mama_thumbnail = 'http://7xogkj.com2.z0.glb.qiniucdn.com/222-ohmydeer.png?imageMogr2/thumbnail/60/format/png'
         from_mama_nick = 'SYSTEM'
