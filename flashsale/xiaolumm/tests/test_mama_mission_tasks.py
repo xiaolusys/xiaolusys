@@ -107,7 +107,8 @@ class MamaWeeklyAwardTestCase(TestCase):
         # TODO@meron　团队妈妈测试
         # self.assertGreaterEqual(mama_record.mission.award_amount, mama_award.carry_num) # >=
 
-    def testFinishMamaMissionSaleAward(self):
+    # def testFinishMamaMissionSaleAward(self):
+    def finishMamaMissionSaleAward(self):
         """ 测试妈妈销售激励　团队妈妈销售激励 """
 
         now_datetime = datetime.datetime.now()
@@ -157,6 +158,7 @@ class MamaWeeklyAwardTestCase(TestCase):
             year_week=year_week,
             mission__cat_type=MamaMission.CAT_SALE_MAMA).first()
         mama_award = AwardCarry.objects.filter(uni_key=mama_record.gen_uni_key()).first()
+        print 'mama_award:', mama_record, saletrade.payment, mama_record.target_amount, mama_record.finish_value
         self.assertEqual(mama_record.status, MamaMissionRecord.FINISHED)
         self.assertIsNotNone(mama_award)
         self.assertEqual(mama_record.award_amount, mama_award.carry_num) # ==
