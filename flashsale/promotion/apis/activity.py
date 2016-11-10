@@ -11,7 +11,8 @@ __ALL__ = [
     'get_activity_pros_by_activity_id',
     'create_activity_pro',
     'create_activity_pros_by_schedule_id',
-    'update_activity_pro'
+    'update_activity_pro',
+    'delete_activity_pro'
 ]
 import datetime
 from ..models import ActivityEntry, ActivityProduct
@@ -128,8 +129,8 @@ def create_activity(title, act_type, start_time, end_time, **kwargs):
     _validate_start_end_time(start_time, end_time)
     activity = activity.create()
     if act_type == ActivityEntry.ACT_TOPIC:
-        activity.act_link = 'http://m.xiaolumeimei.com/mall/activity/topTen/model/2?id={0}'.format(activity.id)
-    activity.share_link = 'http://m.xiaolumeimei.com/m/{mama_id}?next=' + activity.act_link
+        activity.act_link = 'https://m.xiaolumeimei.com/mall/activity/topTen/model/2?id={0}'.format(activity.id)
+    activity.share_link = 'https://m.xiaolumeimei.com/m/{mama_id}?next=' + activity.act_link
     activity.save()
     return activity
 
@@ -160,7 +161,7 @@ def get_activity_pros_by_activity_id(activity_id):
     # type: (int) -> List[ActivityProduct]
     """根据活动id获取相关的产品
     """
-    return ActivityProduct.objects.pros_by_activity_id(activity_id)
+    return ActivityProduct.objects.pros_by_activity_id(activity_id).order_by('location_id')
 
 
 class ActivityPro(object):  # 活动更随的产品（包含图片）
@@ -173,24 +174,17 @@ class ActivityPro(object):  # 活动更随的产品（包含图片）
         self.model_id = model_id
         self.jump_url = jump_url
 
-    def save(self, id=None):
-        if id is None:
-            ap = ActivityProduct(
-                activity=self.activity_id,
-                model_id=self.model_id,
-                product_name=self.product_name,
-                product_img=self.product_img,
-                location_id=self.location_id,
-                pic_type=self.pic_type,
-                jump_url=self.jump_url,
-            )
-            ap.save()
-        else:
-            ap = get_activity_pro_by_id(id)
-            for k, v in ap.__dict__.iteritems():
-                if hasattr(ap, k) and getattr(self, k) != v:
-                    setattr(ap, k, getattr(self, k))
-            ap.save()
+    def create(self):
+        ap = ActivityProduct(
+            activity_id=self.activity_id,
+            model_id=self.model_id,
+            product_name=self.product_name,
+            product_img=self.product_img,
+            location_id=self.location_id,
+            pic_type=self.pic_type,
+            jump_url=self.jump_url,
+        )
+        ap.save()
         return ap
 
 
@@ -198,14 +192,29 @@ def create_activity_pro(activity_id, product_img, **kwargs):
     # type: (int, text_type, **Any)
     """创建活动商品
     """
+    foot_share_img = 'http://img.xiaolumeimei.com/top101476965460253.jpg'
+    pros = get_activity_pros_by_activity_id(activity_id)
+    pic_type = kwargs.get('pic_type')
+    if pic_type and pic_type == ActivityProduct.BANNER_PIC_TYPE:  # 头图
+        banner = pros.filter(pic_type == ActivityProduct.BANNER_PIC_TYPE).first()
+        if banner:
+            location_id = banner.location_id - 1
+        else:
+            location_id = 1
+    else:
+        location_id = pros.count() + 1
+    if pic_type and pic_type == ActivityProduct.FOOTER_PIC_TYPE:  # 头图
+        product_img = foot_share_img
+    location_id = kwargs.pop('location_id') if kwargs.has_key('location_id') else location_id
     ap = ActivityPro(
         activity_id=activity_id,
         product_img=product_img,
     )
+    kwargs['location_id'] = location_id
     for k, v in kwargs.iteritems():
         if hasattr(ap, k) and getattr(ap, k) != v:
             setattr(ap, k, v)
-    ap = ap.save()
+    ap = ap.create()
     return ap
 
 
@@ -221,6 +230,15 @@ def update_activity_pro(id, **kwargs):
     return ap
 
 
+def delete_activity_pro(id):
+    # type: () -> ActivityProduct
+    """删除活动产品
+    """
+    ap = get_activity_pro_by_id(id)
+    ap.delete()
+    return True
+
+
 def create_activity_pros_by_schedule_id(activity_id, schedule_id):
     # type: (int, int) -> List[ActivityProduct]
     """更具活动id和排期id创建活动产品
@@ -229,8 +247,8 @@ def create_activity_pros_by_schedule_id(activity_id, schedule_id):
     schedule_pros = get_schedule_products_by_schedule_id(int(schedule_id))
     aps = []
     model_ids = [i['model_id'] for i in activity.activity_products.values('model_id')]
+    location_id = 2
     for pro in schedule_pros:
-        location_id = 2
         modelproduct = pro.modelproduct
         if modelproduct and modelproduct.id not in model_ids:  # 存在款式并且没有设置在本活动中则添加到本活动中
             kwargs = {

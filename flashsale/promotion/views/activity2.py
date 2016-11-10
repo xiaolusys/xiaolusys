@@ -14,10 +14,11 @@ from rest_framework.decorators import list_route, detail_route
 from rest_framework.response import Response
 from rest_framework import exceptions
 
-from ..models.activity import ActivityEntry
+from ..models.activity import ActivityEntry, ActivityProduct
 from ..serializers.activity import ActivitySerializer, ActivityProductSerializer
 from ..apis.activity import get_activity_by_id, create_activity, update_activity, get_activity_pros_by_activity_id, \
-    get_activity_pro_by_id, create_activity_pro, create_activity_pros_by_schedule_id, update_activity_pro
+    get_activity_pro_by_id, create_activity_pro, create_activity_pros_by_schedule_id, update_activity_pro, \
+    delete_activity_pro
 from ..utils import choice_2_name_value
 from ..deps import get_future_topic_schedules
 
@@ -53,6 +54,7 @@ class ActivityViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         title = request.data.pop('title')
         act_type = request.data.pop('act_type')
+        schedule_id = None
         if request.data.has_key('schedule_id'):
             schedule_id = request.data.pop('schedule_id')
             request.data.update({'extras': {'schedule_id': schedule_id}})
@@ -67,6 +69,8 @@ class ActivityViewSet(viewsets.ModelViewSet):
         )
         serializer = self.get_serializer(activity)
         headers = self.get_success_headers(serializer.data)
+        if schedule_id and activity:
+            create_activity_pros_by_schedule_id(activity.id, int(schedule_id))
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def update(self, request, *args, **kwargs):
@@ -75,6 +79,7 @@ class ActivityViewSet(viewsets.ModelViewSet):
         instance_id = kwargs.get('pk')
         activity = get_activity_by_id(instance_id)
         extras = activity.extras
+        schedule_id = None
         if request.data.has_key('schedule_id'):
             schedule_id = request.data.pop('schedule_id')
             if schedule_id:
@@ -85,15 +90,21 @@ class ActivityViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(activity, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         update_activity(instance_id, **request.data)
+        if schedule_id and activity:
+            create_activity_pros_by_schedule_id(activity.id, int(schedule_id))
         return Response(serializer.data)
 
-    @detail_route(methods=['post'])
-    def create_pro_by_topic_schedule(self, request, *args, **kwargs):
+    @list_route(methods=['get'])
+    def pro_list_filters(self, request, *args, **kwargs):
+        pic_type = choice_2_name_value(ActivityProduct.PIC_TYPE_CHOICES)
+        return Response({'pic_type': pic_type})
+
+    @list_route(methods=['get'])
+    def active_pro(self, request, *args, **kwargs):
         # type: (HttpRequest, *Any, **Any) -> Response
-        activity_id = kwargs.get('pk')
-        schedule_id = request.get('schedule_id')
-        activity_pros = create_activity_pros_by_schedule_id(activity_id, int(schedule_id))
-        serializer = ActivityProductSerializer(activity_pros, many=True)
+        pro_id = request.GET.get('id')
+        pro = get_activity_pro_by_id(int(pro_id))
+        serializer = ActivityProductSerializer(pro)
         return Response(serializer.data)
 
     @detail_route(methods=['get'])
@@ -113,10 +124,17 @@ class ActivityViewSet(viewsets.ModelViewSet):
         serializer = ActivityProductSerializer(ap)
         return Response(serializer.data)
 
-    @list_route(methods=['post'])
+    @detail_route(methods=['post'])
     def update_pro(self, request, *args, **kwargs):
         # type: (HttpRequest, *Any, **Any) -> Response
-        activity_pro_id = request.data.pop('id')
+        activity_pro_id = kwargs.get('pk')
         ap = update_activity_pro(activity_pro_id, **request.data)
         serializer = ActivityProductSerializer(ap)
         return Response(serializer.data)
+
+    @list_route(methods=['delete'])
+    def destroy_pro(self, request, *args, **kwargs):
+        # type: (HttpRequest, *Any, **Any) -> Response
+        activity_pro_id = request.data.pop('id')
+        delete_activity_pro(activity_pro_id)
+        return Response(status=status.HTTP_204_NO_CONTENT)
