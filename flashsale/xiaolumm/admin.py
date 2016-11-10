@@ -439,7 +439,7 @@ from core.admin import OrderModelAdmin
 
 
 class MamaFortuneAdmin(OrderModelAdmin):
-    list_display = ('mama_id', 'customer_id', 'mama_level', 'mama_agency_level', 'cash_num_display', 'cash_total_display',
+    list_display = ('mama_id', 'customer_id', 'mama_level', 'mama_agency_level', 'mama_mobile', 'cash_num_display', 'cash_total_display',
                     'carry_pending_display', 'carry_confirmed_display', 'order_num',
                     'fans_num', 'invite_num', 'invite_trial_num', 'invite_all_num', 'active_normal_num',
                     'active_trial_num', 'active_all_num', 'hasale_normal_num', 'hasale_trial_num', 'modified',
@@ -462,6 +462,10 @@ class MamaFortuneAdmin(OrderModelAdmin):
     mama_agency_level.short_description = u'Level'
     mama_agency_level.allow_tags = True
 
+    def mama_mobile(self, obj):
+        from flashsale.pay.models.user import Customer
+        if obj.xlmm.customer_id:
+            return Customer.objects.filter(id=obj.xlmm.customer_id).first().mobile
 
 admin.site.register(MamaFortune, MamaFortuneAdmin)
 
