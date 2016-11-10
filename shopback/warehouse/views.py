@@ -166,7 +166,7 @@ class PackageScanCheckView(APIView):
             return Response(u'地址错误不予放行')
         oids = [p.oid for p in package_order.package_sku_items.filter(assign_status=1)]
         for s in SaleOrder.objects.filter(oid__in=oids):
-            if not s.need_send():
+            if not s.is_pending():
                 logger.error(u'有订单已被取消仍要求发货:' + str(s.id))
                 return Response(u'有订单已被取消：' + str(s.id))
         package_order.sys_status = PackageOrder.WAIT_SCAN_WEIGHT_STATUS

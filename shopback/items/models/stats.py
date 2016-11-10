@@ -7,16 +7,19 @@ from django.db.models.signals import pre_save, post_save
 from django.db.models import F
 from django.db import transaction
 from django.core.cache import cache
-
-from shopback.warehouse import WARE_SH, WARE_CHOICES
+from shopback.trades.constants import PSI_STATUS
+from shopback.warehouse import WARE_SH, WARE_CHOICES, WARE_NONE
 
 import logging
 
 logger = logging.getLogger(__name__)
+STAT_SIGN = False
+WARNING = True
 
 
 # This is the commit time, and also the time we start.
 # after switch, we can't update product sku quantity any more!!!
+
 
 class ProductDaySale(models.Model):
     id = models.AutoField(primary_key=True)
@@ -66,21 +69,47 @@ class SkuStock(models.Model):
     # product_id = models.IntegerField(null=True, db_index=True, verbose_name=u'商品ID')
     sku = models.OneToOneField('ProductSku', null=True, verbose_name=u'SKU')
     product = models.ForeignKey('Product', null=True, verbose_name=u'商品')
-    # ware_by = models.IntegerField(default=WARE_SH, db_index=True, choices=WARE_CHOICES, verbose_name=u'所属仓库')
-    assign_num = models.IntegerField(default=0, verbose_name=u'分配数')  # 未出库包裹单中已分配的sku数量
-    inferior_num = models.IntegerField(default=0, verbose_name=u"次品数", help_text=u"已作废的数据")  # 保存对应sku的次品数量
 
+    # [('paid', u'待成订货单'),
+    # ('prepare_book', u'待订货'),
+    # ('booked', u'待备货'),
+    # ('assigned', u'待发货'),
+    # ('waitscan', u'待扫描'),
+    # ('waitpost', u'待称重'),
+    # ('sent', u'待收货'),
+    # ('finish', u'完成'),]
+
+    # ware_by = models.IntegerField(default=WARE_NONE, db_index=True, choices=WARE_CHOICES, verbose_name=u'所属仓库')
+    # 目前一种SKU只能在一个仓库里 按product的ware_by查看
+    # 发货库存数
+    psi_paid_num = models.IntegerField(default=0, verbose_name=u'待处理数')
+    psi_prepare_book_num = models.IntegerField(default=0, verbose_name=u'待订货数')
+    psi_ready_num = models.IntegerField(default=0, verbose_name=u'待分配数')
+    psi_assigned_num = models.IntegerField(default=0, verbose_name=u'待合单数')
+    psi_merged_num = models.IntegerField(default=0, verbose_name=u'待打单数')
+    psi_waitscan_num = models.IntegerField(default=0, verbose_name=u'待扫描数')
+    psi_waitpost_num = models.IntegerField(default=0, verbose_name=u'待称重数')
+    psi_sent_num = models.IntegerField(default=0, verbose_name=u'待签收数')
+    psi_finish_num = models.IntegerField(default=0, verbose_name=u'完成数')
+
+    # 仓库库存数
     adjust_quantity = models.IntegerField(default=0, verbose_name=u'调整数')  #
     history_quantity = models.IntegerField(default=0, verbose_name=u'历史库存数')  #
     inbound_quantity = models.IntegerField(default=0, verbose_name=u'入仓库存数')  #
     return_quantity = models.IntegerField(default=0, verbose_name=u'客户退货数')  #
     rg_quantity = models.IntegerField(default=0, verbose_name=u'退还供应商货数')  #
-    post_num = models.IntegerField(default=0, verbose_name=u'已发货数')  #
-    sold_num = models.IntegerField(default=0, verbose_name=u'购买数')  #
 
+    # 统计数
+    assign_num = models.IntegerField(default=0, verbose_name=u'已分配数')  # 未出库包裹单中已分配的sku数量【已经】
+    post_num = models.IntegerField(default=0, verbose_name=u'已发货数')  #
+
+    # 收卖库存
     shoppingcart_num = models.IntegerField(default=0, verbose_name=u'加入购物车数')  #
     waitingpay_num = models.IntegerField(default=0, verbose_name=u'等待付款数')  #
+    sold_num = models.IntegerField(default=0, verbose_name=u'购买数')  #
+    paid_num = models.IntegerField(default=0, verbose_name=u'付款数')  # 付款不一定等同于购买成功,如团购
 
+    inferior_num = models.IntegerField(default=0, verbose_name=u"次品数", help_text=u"已作废的数据")  # 保存对应sku的次品数量
     created = models.DateTimeField(null=True, blank=True, db_index=True, auto_now_add=True, verbose_name=u'创建时间')
     modified = models.DateTimeField(null=True, blank=True, auto_now=True, verbose_name=u'修改时间')
     status = models.IntegerField(default=0, db_index=True, choices=STATUS, verbose_name=u'状态')
@@ -153,6 +182,260 @@ class SkuStock(models.Model):
     @property
     def realtime_lock_num(self):
         return self.shoppingcart_num + self.waitingpay_num + self.sold_num - self.post_num
+
+    def restat(self, need_stat=[]):
+        """
+            用统计方式重新计算库存
+        """
+        from shopback.trades.models import PackageSkuItem
+        from flashsale.dinghuo.models import OrderDetail
+        from shopback.refunds.models import RefundProduct
+        if not need_stat:
+            sum_res = PackageSkuItem.objects.filter(sku_id=self.sku_id,
+                                                    pay_time__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME). \
+                exclude(assign_status=PackageSkuItem.CANCELED).values("assign_status").annotate(total=Sum('num'))
+            wait_assign_num, assign_num, post_num, third_assign_num = 0, 0, 0, 0
+            for entry in sum_res:
+                if entry["assign_status"] == PackageSkuItem.NOT_ASSIGNED:
+                    wait_assign_num = entry["total"]
+                elif entry["assign_status"] == PackageSkuItem.ASSIGNED:
+                    assign_num = entry["total"]
+                elif entry["assign_status"] == PackageSkuItem.FINISHED:
+                    post_num = entry["total"]
+                elif entry['assign_status'] == PackageSkuItem.VIRTUAL_ASSIGNED:
+                    third_assign_num = entry["total"]
+            sold_num = wait_assign_num + assign_num + post_num + third_assign_num
+            params = {"sold_num": sold_num, "assign_num": assign_num, "post_num": post_num}
+            sum_res_status = PackageSkuItem.objects.filter(sku_id=self.sku_id,
+                                                           pay_time__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME). \
+                exclude(status=PackageSkuItem.CANCELED).values("status").annotate(total=Sum('num'))
+            for entry in sum_res_status:
+                params['psi_%s_num' % entry.keys()[0]] = entry.values()[0]
+        else:
+            params = {}
+            for attr in need_stat:
+                if attr in ['psi_paid_num', 'psi_prepare_book_num', 'psi_booked_num', 'psi_ready_num',
+                            'psi_waitscan_num', 'psi_waitpost_num', 'psi_sent_num', 'psi_finish_num', 'psi_cancel_num']:
+                    params[attr] = PackageSkuItem.objects.filter(sku_id=self.sku_id,
+                                                                 pay_time__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME). \
+                                       exclude(status=PackageSkuItem.CANCELED).aggregate(total=Sum('num')).get(
+                        'total') or 0
+                if attr == 'assign_num':
+                    params[attr] = PackageSkuItem.objects.filter(sku_id=self.sku_id,
+                                                                 pay_time__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME,
+                                                                 assign_status=1).values(
+                        'sku_id').aggregate(total=Sum('num')).get('total') or 0
+                if attr == 'inbound_num':
+                    params[attr] = OrderDetail.objects.filter(chichu_id=str(self.sku_id),
+                                                              arrival_time__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME) \
+                                       .aggregate(total=Sum('arrival_quantity')).get('total') or 0
+                if attr == 'sold_num':
+                    params[attr] = PackageSkuItem.objects.filter(sku_id=self.sku_id,
+                                                                 pay_time__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME,
+                                                                 assign_status__in=[2, 0, 1, 4]).aggregate(
+                        total=Sum('num')).get(
+                        'total') or 0
+                if attr == 'post_num':
+                    params[attr] = PackageSkuItem.objects.filter(sku_id=self.sku_id,
+                                                                 pay_time__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME,
+                                                                 assign_status=2).aggregate(total=Sum('num')).get(
+                        'total') or 0
+                if attr == 'refund_num':
+                    params[attr] = RefundProduct.objects.filter(sku_id=self.sku_id,
+                                                                created__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME,
+                                                                can_reuse=True).exclude(
+                        sku_id=None).aggregate(total=Sum('num')).get('total') or 0
+                if attr == 'return_num':
+                    params[attr] = RefundProduct.objects.filter(sku_id=self.sku_id,
+                                                                created__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME,
+                                                                can_reuse=True).exclude(
+                        sku_id=None).aggregate(total=Sum('num')).get('total') or 0
+            update_fields = []
+            for k, v in params.iteritems():
+                if hasattr(self, k):
+                    if getattr(self, k) != v:
+                        setattr(self, k, v)
+                        update_fields.append(k)
+            if update_fields:
+                update_fields.append('modified')
+            return update_fields
+
+    @staticmethod
+    def stat_warning(sku_id, update_fields=[], warning=True, stat=False):
+        if not warning and not stat:
+            return
+        sku_stock = SkuStock.get_by_sku(sku_id)
+        update_fields = sku_stock.restat(update_fields)
+        if update_fields:
+            if warning:
+                db_stock = SkuStock.get_by_sku(sku_id)
+                db_data = {attr: getattr(db_stock, attr) for attr in update_fields}
+                stat_data = {attr: getattr(sku_stock, attr) for attr in update_fields}
+                s = ';'.join(['%s:stat:%s,db:%s' % (attr, stat_data[attr], db_data[attr],) for attr in update_fields])
+                logging.error(u'统计库存与当前库存不相符合:sku_id:%s;info:%s' % (sku_id, s))
+            if stat:
+                sku_stock.save(update_fields=update_fields)
+        return
+
+    @staticmethod
+    def set_psi_init_paid(sku_id, num, stat=STAT_SIGN, warning=WARNING):
+        change_fields = ['sold_num', 'paid_num', 'psi_paid_num']
+        if stat:
+            SkuStock.stat_warning(sku_id, change_fields, warning, stat)
+        else:
+            SkuStock.objects.filter(sku_id=sku_id).update(sold_num=F('sold_num') + num,
+                                                      psi_paid_num=F('psi_paid_num') + num,
+                                                      paid_num=F('paid_num') + num,
+                                                      )
+            if warning:
+                SkuStock.stat_warning(sku_id, change_fields, warning, stat)
+
+    @staticmethod
+    def set_psi_prepare_book(sku_id, num, stat=STAT_SIGN, warning=WARNING):
+        change_fields = ['psi_paid_num', 'psi_prepare_book_num']
+        if stat:
+            SkuStock.stat_warning(sku_id, change_fields, warning, stat)
+        else:
+            SkuStock.objects.filter(sku_id=sku_id).update(psi_paid_num=F('psi_paid_num') - num,
+                                                      psi_prepare_book_num=F('psi_prepare_book_num') + num,
+                                                      )
+            if warning:
+                SkuStock.stat_warning(sku_id, change_fields, warning, stat)
+
+    @staticmethod
+    def set_psi_booked(sku_id, num, stat=STAT_SIGN, warning=WARNING):
+        change_fields = ['psi_booked_num', 'psi_prepare_book_num']
+        if stat:
+            SkuStock.stat_warning(sku_id, change_fields, warning, stat)
+        else:
+            SkuStock.objects.filter(sku_id=sku_id).update(psi_booked_num=F('psi_booked_num') + num,
+                                                      psi_prepare_book_num=F('psi_prepare_book_num') - num
+                                                      )
+            if warning:
+                SkuStock.stat_warning(sku_id, change_fields, warning, stat)
+
+    @staticmethod
+    def set_psi_booked_to_ready(sku_id, num, stat=STAT_SIGN, warning=WARNING):
+        change_fields = ['psi_booked_num', 'psi_ready_num']
+        if stat:
+            SkuStock.stat_warning(sku_id, change_fields, warning, stat)
+        else:
+            SkuStock.objects.filter(sku_id=sku_id).update(psi_ready_num=F('psi_ready_num') + num,
+                                                      psi_booked_num=F('psi_booked_num') - num
+                                                      )
+            if warning:
+                SkuStock.stat_warning(sku_id, change_fields, warning, stat)
+
+    @staticmethod
+    def set_psi_init_ready(sku_id, num, stat=STAT_SIGN, warning=WARNING):
+        change_fields = ['sold_num', 'paid_num', 'psi_ready_num', 'assign_num']
+        if stat:
+            SkuStock.stat_warning(sku_id, change_fields, warning, stat)
+        else:
+            SkuStock.objects.filter(sku_id=sku_id).update(sold_num=F('sold_num') + num,
+                                                      psi_ready_num=F('psi_ready_num') + num,
+                                                      paid_num=F('paid_num') + num)
+            if warning:
+                SkuStock.stat_warning(sku_id, change_fields, warning, stat)
+
+    @staticmethod
+    def set_psi_assigned(sku_id, num, stat=STAT_SIGN, warning=WARNING):
+        '''
+        '''
+        pass
+
+    @staticmethod
+    def set_psi_not_assigned(sku_id, num, stat=STAT_SIGN, warning=WARNING):
+        change_fields = ['assign_num', 'psi_paid_num', 'psi_assigned_num']
+        if stat:
+            SkuStock.stat_warning(sku_id, change_fields, warning, stat)
+        else:
+            SkuStock.objects.filter(sku_id=sku_id).update(assign_num=F('assign_num') - num,
+                                                      psi_paid_num=F('psi_paid_num') + num,
+                                                      psi_assigned_num=F('psi_assigned_num') - num)
+            if warning:
+                SkuStock.stat_warning(sku_id, change_fields, warning, stat)
+
+
+
+    @staticmethod
+    def set_psi_merged(sku_id, num, stat=STAT_SIGN, warning=WARNING):
+        change_fields = ['psi_merged_num', 'psi_ready_num']
+        if stat:
+            SkuStock.stat_warning(sku_id, change_fields, warning, stat)
+        else:
+            SkuStock.objects.filter(sku_id=sku_id).update(psi_ready_num=F('psi_ready_num') - num,
+                                                      psi_booked_num=F('psi_merged_num') + num
+                                                      )
+            if warning:
+                SkuStock.stat_warning(sku_id, change_fields, warning, stat)
+
+    @staticmethod
+    def set_psi_waitscan(sku_id, num, stat=STAT_SIGN, warning=WARNING):
+        change_fields = ['psi_merged_num', 'psi_waitscan_num']
+        if stat:
+            SkuStock.stat_warning(sku_id, change_fields, warning, stat)
+        else:
+            SkuStock.objects.filter(sku_id=sku_id).update(psi_waitscan_num=F('psi_waitscan_num') + num,
+                                                      psi_merged_num=F('psi_merged_num') - num
+                                                      )
+            if warning:
+                SkuStock.stat_warning(sku_id, change_fields, warning, stat)
+
+    @staticmethod
+    def set_psi_waitpost(sku_id, num, stat=STAT_SIGN, warning=WARNING):
+        change_fields = ['psi_waitpost_num', 'psi_waitscan_num']
+        if stat:
+            SkuStock.stat_warning(sku_id, change_fields, warning, stat)
+        else:
+            SkuStock.objects.filter(sku_id=sku_id).update(psi_waitscan_num=F('psi_waitscan_num') - num,
+                                                      psi_waitpost_num=F('psi_waitpost_num') + num
+                                                      )
+            if warning:
+                SkuStock.stat_warning(sku_id, change_fields, warning, stat)
+
+    @staticmethod
+    def set_psi_sent(sku_id, num, stat=STAT_SIGN, warning=WARNING):
+        change_fields = ['psi_waitpost_num', 'psi_sent_num', 'post_num']
+        if stat:
+            SkuStock.stat_warning(sku_id, change_fields, warning, stat)
+        else:
+            SkuStock.objects.filter(sku_id=sku_id).update(psi_waitscan_num=F('psi_waitscan_num') - num,
+                                                      psi_sent_num=F('psi_sent_num') + num,
+                                                      post_num=F('post_num') + num
+                                                      )
+            if warning:
+                SkuStock.stat_warning(sku_id, change_fields, warning, stat)
+
+    @staticmethod
+    def set_psi_finish(sku_id, num, stat=STAT_SIGN, warning=WARNING):
+        change_fields = ['psi_finish_num', 'psi_sent_num']
+        if stat:
+            SkuStock.stat_warning(sku_id, change_fields, warning, stat)
+        else:
+            SkuStock.objects.filter(sku_id=sku_id).update(psi_finish_num=F('psi_finish_num') + num,
+                                                      psi_sent_num=F('psi_sent_num') - num,
+                                                      )
+            if warning:
+                SkuStock.stat_warning(sku_id, change_fields, warning, stat)
+
+    @staticmethod
+    def set_psi_cancel(sku_id, num, status, stat=STAT_SIGN, warning=WARNING):
+        attr = 'psi_%s_num' % status
+        sku_stock = SkuStock.get_by_sku(sku_id)
+        change_fields = []
+        if hasattr(stat, attr):
+            change_fields.append(attr)
+            if status in [PSI_STATUS.ASSIGNED, PSI_STATUS.MERGED, PSI_STATUS.WAITPOST, PSI_STATUS.WAITSCAN]:
+                change_fields.append('assign_num')
+            SkuStock.stat_warning(sku_id, change_fields, warning, stat)
+        else:
+            updation = {
+                attr: F(attr) - num,
+            }
+            if 'assign_num' in change_fields:
+                updation[attr] = F(attr) - num
+            SkuStock.objects.filter(sku_id=sku_id).update(**updation)
 
     def realtime_lock_num_display(self):
         try:
@@ -233,9 +516,15 @@ class SkuStock(models.Model):
     @staticmethod
     def update_adjust_num(sku_id, adjust_quantity):
         stat = SkuStock.objects.get(sku_id=sku_id)
+        ori_adjust_quantity = stat.adjust_quantity
         stat.adjust_quantity = adjust_quantity
         stat.save()
+
         # SkuStock.objects.filter(sku_id=sku_id).update(adjust_quantity=adjust_quantity)
+
+    @staticmethod
+    def add_adjust_num(sku_id, num):
+        SkuStock.objects.filter(sku_id=sku_id).update(adjust_quantity=F('adjust_quantity') + num)
 
     @staticmethod
     def get_auto_sale_stock():
@@ -257,12 +546,108 @@ class SkuStock(models.Model):
         })
         return APIModel(**data)
 
+    def assign(self, psi_id=None, orderlist=None, again=True):
+        """
+            分配有从库存分配和从订货单分配两种方式。
+            订货入仓一般走订货单分配法，以确保正确分配。
+            加个again，防止库存错误造成递归死循环
+        """
+        from shopback.trades.models import PackageSkuItem
+        now_num = self.realtime_quantity - self.assign_num
+        if now_num <= 0:
+            return
+        if psi_id:
+            psi = PackageSkuItem.objects.filter(sku_id=self.sku_id,
+                                                     purchase_order_unikey=orderlist.purchase_order_unikey,
+                                                assign_status=PackageSkuItem.NOT_ASSIGNED).first()
+            if psi:
+                if now_num >= psi.num:
+                    now_num -= psi.num
+                    psi.set_status_assigned(save=True)
+        elif orderlist:
+            psis = []
+            for psi in PackageSkuItem.objects.filter(sku_id=self.sku_id,
+                                                     purchase_order_unikey=orderlist.purchase_order_unikey,
+                                                     assign_status=PackageSkuItem.NOT_ASSIGNED):
+                if now_num >= psi.num:
+                    now_num -= psi.num
+                    psi.set_status_assigned(save=False)
+                    psis.append(psi)
+                else:
+                    continue
+            self.assign_num += self.realtime_quantity - now_num
+            for psi in psis:
+                psi.save()
+            self.save()
+            if again:
+                self.assign(again=False)
+        else:
+            #if self.realtime_quantity > PackageSkuItem.objects.filter(sku_id=self.sku_id, assign_status=PackageSkuItem.NOT_ASSIGNED).aggregate(Sum('num')):
+            psis = []
+            for psi in PackageSkuItem.objects.filter(sku_id=self.sku_id, assign_status=PackageSkuItem.NOT_ASSIGNED).order_by('pay_time'):
+                if now_num >= psi.num:
+                    now_num -= psi.num
+                    psi.set_status_assigned(save=False)
+                    psis.append(psi)
+                else:
+                    break
+            self.assign_num += self.realtime_quantity - now_num
+            self.save()
+            for psi in psis:
+                psi.save()
+
+    def can_assign(self, sku_item):
+        from shopback.trades.models import PackageSkuItem
+        if PackageSkuItem.objects.filter(status=PSI_STATUS.READY).exists():
+            self.assign(sku_item.sku_id)
+        now_num = self.realtime_quantity - self.assign_num
+        return now_num > sku_item.num
+
+    def relase_assign(self, psi_id=None, orderlist=None):
+        """
+            分配的反向操作
+        """
+        from shopback.trades.models import PackageSkuItem
+        if self.assign_num <= 0:
+            return
+        now_num = self.realtime_quantity - self.assign_num
+        check_if_err = False
+        if now_num > 0:
+            return
+        if psi_id:
+            psi = PackageSkuItem.objects.filter(sku_id=self.sku_id,
+                                                     purchase_order_unikey=orderlist.purchase_order_unikey,
+                                                status=PSI_STATUS.ASSIGNED).first()
+            if psi:
+                psi.reset_assign_status()
+            else:
+                check_if_err = True
+                SkuStock.set_psi_not_assigned(self.sku_id, 0, stat=True, warning=True)
+        elif orderlist:
+            psi = PackageSkuItem.objects.filter(sku_id=self.sku_id,
+                                                     purchase_order_unikey=orderlist.purchase_order_unikey,
+                                                status=PSI_STATUS.ASSIGNED).first()
+            if psi:
+                psi.set_status_not_assigned()
+            else:
+                check_if_err = True
+                SkuStock.set_psi_not_assigned(self.sku_id, 0, stat=True, warning=True)
+        else:
+            psi = PackageSkuItem.objects.filter(sku_id=self.sku_id, assign_status=PackageSkuItem.ASSIGNED).order_by('-pay_time').first()
+            if psi:
+                psi.set_status_not_assigned()
+            else:
+                check_if_err = True
+                SkuStock.set_psi_not_assigned(self.sku_id, 0, stat=True, warning=True)
+        if self.realtime_quantity - self.assign_num < 0 and self.assign_num > 0 and check_if_err:
+            self.relase_assign()
+
+
 
 def invalid_apiskustat_cache(sender, instance, *args, **kwargs):
     if hasattr(sender, 'API_CACHE_KEY_TPL'):
         logger.debug('invalid_apiskustat_cache: %s' % instance.sku_id)
         cache.delete(SkuStock.API_CACHE_KEY_TPL.format(instance.sku_id))
-
 
 post_save.connect(invalid_apiskustat_cache, sender=SkuStock, dispatch_uid='post_save_invalid_apiskustat_cache')
 
@@ -282,8 +667,9 @@ def assign_stock_to_package_sku_item(sender, instance, created, **kwargs):
         })
         task_assign_stock_to_package_sku_item.delay(instance)
 
-
-post_save.connect(assign_stock_to_package_sku_item, sender=SkuStock,
+from shopmanager.celery_settings import CLOSE_CELERY
+if not CLOSE_CELERY:
+    post_save.connect(assign_stock_to_package_sku_item, sender=SkuStock,
                   dispatch_uid='post_save_assign_stock_to_package_sku_item')
 
 

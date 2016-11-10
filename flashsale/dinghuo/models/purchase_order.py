@@ -869,6 +869,8 @@ class OrderDetail(models.Model):
                                         null=True,
                                         db_index=True,
                                         verbose_name=u'到货时间')
+    STATUS_CHOICES = ((1, u'已入库'), (0, u'未处理'), (2, u'已作废'))
+    status = models.IntegerField(default=0, verbose_name=u'是否已经计入库存')
 
     purchase_detail_unikey = models.CharField(max_length=32, null=True, unique=True,
                                               verbose_name='PurchaseDetailUniKey')
@@ -920,7 +922,7 @@ def update_productskustats_inbound_quantity(sender, instance, created,
                                             **kwargs):
     # Note: chichu_id is actually the id of related ProductSku record.
     from shopback.items.tasks_stats import task_orderdetail_update_productskustats_inbound_quantity
-    task_orderdetail_update_productskustats_inbound_quantity(instance.chichu_id)
+    task_orderdetail_update_productskustats_inbound_quantity(instance)
 
 
 post_save.connect(
