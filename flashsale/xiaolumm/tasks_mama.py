@@ -372,17 +372,12 @@ def task_update_group_awardcarry(relationship):
     award_carry.save()
 
 
-def validate_self_mama(mama, created_time):
-    if not mama:
-        return False
-    if not (mama.status == XiaoluMama.EFFECT and mama.charge_status == XiaoluMama.CHARGED):
-        return False
-    if mama.charge_time and mama.charge_time > created_time:
-        return False
-    if mama.renew_time and mama.renew_time < created_time:
-        return False
-    return True
-
+def validate_self_mama(mama, order_created_time):
+    if (mama and mama.status == XiaoluMama.EFFECT and mama.charge_status == XiaoluMama.CHARGED and \
+        mama.charget_time and mama.charget_time > order_created_time and \
+        mama.renew_time and mama.renew_time < order_created_time):
+        return True
+    return False
 
 @task()
 def task_order_trigger(sale_order):

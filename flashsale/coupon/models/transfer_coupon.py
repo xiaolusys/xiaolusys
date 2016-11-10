@@ -307,6 +307,37 @@ class CouponTransferRecord(BaseModel):
         res = {"code": 0, "info": u"成功!"}
         return res
 
+    @classmethod
+    def gen_return_record(cls, customer, coupon_num, template_id, trade_tid):
+        coupon_from_mama_id = 0
+        from_mama_thumbnail = 'http://7xogkj.com2.z0.glb.qiniucdn.com/222-ohmydeer.png?imageMogr2/thumbnail/60/format/png'
+        from_mama_nick = 'SYSTEM'
+        
+        coupon_to_mama_id = customer.mama_id
+        to_mama_thumbnail = customer.thumbnail
+        to_mama_nick = customer.nick
+        init_from_mama_id = coupon_to_mama_id
+        order_no = trade_tid
+
+
+        transfer_type = CouponTransferRecord.IN_RETURN_GOODS
+        date_field = datetime.date.today()
+        transfer_status = CouponTransferRecord.DELIVERED
+        uni_key = "%s-%s-%s" % (coupon_to_mama_id, transfer_type, trade_tid) # every trade, only return once.
+
+        template = CouponTemplate.objects.get(id=template_id)
+        coupon_value = int(template.value)
+        product_img = template.extras.get("product_img") or ''
+    
+        coupon = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id, from_mama_thumbnail=from_mama_thumbnail,
+                                      from_mama_nick=from_mama_nick, coupon_to_mama_id=coupon_to_mama_id,
+                                      to_mama_thumbnail=to_mama_thumbnail, to_mama_nick=to_mama_nick,coupon_value=coupon_value,
+                                      init_from_mama_id=init_from_mama_id, order_no=order_no, template_id=template_id,
+                                      product_img=product_img, coupon_num=coupon_num, transfer_type=transfer_type,
+                                      uni_key=uni_key, date_field=date_field, transfer_status=transfer_status)
+        coupon.save()
+        
+    
     @property
     def product_model_id(self):
         from flashsale.coupon.models import CouponTemplate

@@ -224,11 +224,25 @@ def task_release_coupon_for_register(instance):
 @task()
 def task_roll_back_usercoupon_by_refund(trade_tid, num):
     from flashsale.coupon.models import UserCoupon
-
+    from flashsale.pay.models import Customer
+    from flashsale.coupon.models import CouponTransferRecord
+    
+    transfer_coupon_num = 0
+    template_id = 0
+    customer_id = 0
     for i in range(num):
         cou = UserCoupon.objects.filter(trade_tid=trade_tid, status=UserCoupon.USED).first()
         if cou:
             cou.release_usercoupon()
+        if cou.is_transfer_coupon():
+            transfer_coupon_num += 1
+            template_id = cou.template_id
+            customer_id = cou.customer_id
+
+    if transfer_coupon_num > 0:
+        customer = Customer.objects.filter(id=customer_id).first()
+        CouponTransferRecord.gen_return_record(customer, transfer_coupon_num, template_id, trade_tid)
+    
     return
 
 
