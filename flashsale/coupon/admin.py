@@ -109,7 +109,7 @@ class CouponTransferRecordAdmin(admin.ModelAdmin):
     def total_num(self, obj):
         res = CouponTransferRecord.objects.filter(
             date_field=obj.date_field,transfer_type=obj.transfer_type,
-            transfer_status=transfer_status).aggregate(n=Sum('coupon_num'))
+            transfer_status=obj.transfer_status).aggregate(n=Sum('coupon_num'))
         return res['n'] or 0
 
 admin.site.register(CouponTransferRecord, CouponTransferRecordAdmin)
