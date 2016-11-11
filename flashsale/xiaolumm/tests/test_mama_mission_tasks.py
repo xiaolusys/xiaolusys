@@ -117,10 +117,7 @@ class MamaWeeklyAwardTestCase(TestCase):
         saletrade.created = now_datetime
         saletrade.save(update_fields=['pay_time', 'created'])
         sale_orders = SaleOrder.objects.filter(sale_trade=saletrade)
-        for order in sale_orders:
-            order.pay_time = now_datetime
-            order.created = now_datetime
-            order.save(update_fields=['pay_time', 'created'])
+        sale_orders.update(pay_time=now_datetime, created=now_datetime)
 
         # test mama sale mission
         xiaolumama = XiaoluMama.objects.filter(id=self.mama_id).first()
