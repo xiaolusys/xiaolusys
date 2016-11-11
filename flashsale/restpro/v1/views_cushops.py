@@ -75,12 +75,12 @@ class CustomerShopsViewSet(viewsets.ModelViewSet):
             next_link = 'm/{0}?next='.format(mm_linkid) + link
             link = urlparse.urljoin(settings.M_SITE_URL, next_link)
 
-            preview_link = urlparse.urljoin(settings.M_SITE_URL, preview_link)
+            preview_link = urlparse.urljoin('http://m.xiaolumeimei.com', preview_link)
             first_pro_pic = customer.thumbnail
             shop_info['shop_link'] = link
             shop_info['thumbnail'] = first_pro_pic  # customer.thumbnail  # 提供用户头像
             shop_info['desc'] = '{0}の精品店铺'.format(customer.nick) + random.choice(decs)
-            shop_info['preview_shop_link'] = preview_link  # 预览链接
+            shop_info['preview_shop_link'] = preview_link  # 预览链接http
             shop_info['name'] = '{0}の精品店铺'.format(customer.nick)
             shop_info['first_pro_pic'] = first_pro_pic
 
