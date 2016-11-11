@@ -16,8 +16,5 @@ from .kdn_wuliu import *
 from .checkin import CheckinViewSet
 from .qrcode import QRcodeViewSet
 from .views_coupon import CouponTransferRecordViewSet
-<<<<<<< HEAD
 from .urlredirect import URLRedirectViewSet
-=======
 from .wdt import WangDianTongViewSet
->>>>>>> wdt

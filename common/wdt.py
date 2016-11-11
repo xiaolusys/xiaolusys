@@ -179,6 +179,7 @@ def main():
     wdt = WangDianTong()
     # resp = wdt.create_order()
     resp = wdt.query_logistics('JY201611050016')
+    # resp = wdt.query_order('JY201611040022')
     # print simplejson.dumps(resp, indent=2)
     for k, v in resp.items():
         print k, v
