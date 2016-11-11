@@ -24,7 +24,7 @@ from ..deps import get_future_topic_schedules
 
 
 class ActivityViewSet(viewsets.ModelViewSet):
-    queryset = ActivityEntry.objects.all().order_by('-start_time')
+    queryset = ActivityEntry.objects.all().order_by('-order_val', '-start_time')
     serializer_class = ActivitySerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser, permissions.DjangoModelPermissions)
@@ -78,9 +78,12 @@ class ActivityViewSet(viewsets.ModelViewSet):
         partial = kwargs.pop('partial', False)
         instance_id = kwargs.get('pk')
         activity = get_activity_by_id(instance_id)
-        start_time = datetime.datetime.strptime(request.data.pop('start_time'), '%Y-%m-%d %H:%M:%S')
-        end_time = datetime.datetime.strptime(request.data.pop('end_time'), '%Y-%m-%d %H:%M:%S')
-        request.data.update({'start_time': start_time, 'end_time': end_time})
+        if request.data.has_key('start_time'):
+            start_time = datetime.datetime.strptime(request.data.pop('start_time'), '%Y-%m-%d %H:%M:%S')
+            request.data.update({'start_time': start_time})
+        if request.data.has_key('end_time'):
+            end_time = datetime.datetime.strptime(request.data.pop('end_time'), '%Y-%m-%d %H:%M:%S')
+            request.data.update({'end_time': end_time})
         serializer = self.get_serializer(activity, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         update_activity(instance_id, **request.data)
