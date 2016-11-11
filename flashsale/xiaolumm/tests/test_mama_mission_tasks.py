@@ -145,6 +145,7 @@ class MamaWeeklyAwardTestCase(TestCase):
             year_week=year_week,
             mission__cat_type=MamaMission.CAT_SALE_GROUP).first()
         mama_award = AwardCarry.objects.filter(uni_key=mama_record.gen_uni_key()).first()
+        logger.warn('mama_mission: %s ,%s ,%s'%(mama_record, mama_record.target_value, mama_record.finish_value))
         self.assertEqual(mama_record.status, MamaMissionRecord.FINISHED)
         self.assertIsNotNone(mama_award)
         self.assertGreaterEqual(mama_record.award_amount, mama_award.carry_num)  # >=
