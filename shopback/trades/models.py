@@ -1439,6 +1439,9 @@ class PackageOrder(models.Model):
         task_packageorder_send_check_packageorder.delay()
 
     def finish_third_package(self, out_sid, logistics_company):
+        if self.out_sid == out_sid and self.logistics_company_id == logistics_company.id:
+            return u'已经发过货了'
+
         self.out_sid = out_sid
         self.logistics_company_id = logistics_company.id
         self.sys_status = PackageOrder.WAIT_CUSTOMER_RECEIVE
@@ -1904,6 +1907,26 @@ class PackageSkuItem(BaseModel):
     def get_failed_oneday():
         expire_time = datetime.datetime.now() - datetime.timedelta(days=1)
         return [i for i in PackageSkuItem.get_failed_express() if i.failed_retrieve_time < expire_time]
+
+    def get_supplier_product_info(self):
+        """
+        获取供应商的商品信息
+        """
+        from supplychain.supplier.models.product import SaleProduct
+
+        product_sku = self.product_sku
+        product = product_sku.product
+        sale_product = SaleProduct.objects.filter(id=product.sale_product).first()
+        sale_supplier = sale_product.sale_supplier
+
+        return {
+            'supplier': sale_supplier,
+            'supplier_sku_code': product_sku.supplier_skucode,
+            'supplier_sku_sale_price': sale_product.sale_price,
+            'sale_product': sale_product,
+            'product': product,
+            'product_sku': product_sku
+        }
 
     @property
     def sale_order(self):

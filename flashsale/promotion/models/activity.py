@@ -4,8 +4,7 @@ from django.db import models
 from core.fields import JSONCharMyField
 from core.models import BaseModel
 from shopback.items.models import Product
-from .managers.activity import ActivityManager
-
+from .managers.activity import ActivityManager, ActivityProManager
 import logging
 logger = logging.getLogger(__name__)
 
@@ -69,6 +68,13 @@ class ActivityEntry(BaseModel):
             'active_dec': self.act_desc.format(**params),
         }
 
+    @property
+    def schedule_id(self):
+        # type: () -> Optional[int]
+        """专题类型在extras获取关联的排期id
+        """
+        return self.extras.get('schedule_id')
+
     def get_html(self, key):
         htmls = self.extras.get("html", {})
         if key in htmls:
@@ -115,6 +121,7 @@ class ActivityProduct(BaseModel):
     pic_type = models.IntegerField(choices=PIC_TYPE_CHOICES, default=GOODS_VERTICAL_PIC_TYPE,
                                    db_index=True, verbose_name=u'图片类型')
     jump_url = models.CharField(max_length=256, blank=True, verbose_name=u'跳转链接')
+    objects = ActivityProManager()
 
     class Meta:
         db_table = 'flashsale_activity_product'

@@ -5,6 +5,14 @@ __ALL__ = [
     'get_effect_activitys',
     'get_mama_effect_activities',
     'get_landing_effect_activitys',
+    'create_activity',
+    'update_activity',
+    'get_activity_pro_by_id',
+    'get_activity_pros_by_activity_id',
+    'create_activity_pro',
+    'create_activity_pros_by_schedule_id',
+    'update_activity_pro',
+    'delete_activity_pro'
 ]
 import datetime
 from ..models import ActivityEntry, ActivityProduct
@@ -76,38 +84,31 @@ class Activity(object):  # 特卖商城活动(pay.models.ActivityEntry)
         self.login_required = login_required  # 需要登陆
         self.act_desc = act_desc  # 活动描述
 
-    def save(self, id=None):
-        # type: (Optional[int]) -> ActivityEntry
+    def create(self):
+        # type: () -> ActivityEntry
         """保存到活动记录到数据库
         """
         from flashsale.promotion.models import ActivityEntry
 
-        if id is not None:
-            activity = get_activity_by_id(id)
-            for k, v in activity.__dict__.iteritems():
-                if hasattr(activity, k) and getattr(activity, k) != v:
-                    setattr(activity, k, v)
-            activity.save()
-        else:
-            activity = ActivityEntry(
-                title=self.title,
-                act_type=self.act_type,
-                start_time=self.start_time,
-                end_time=self.end_time,
-                act_img=self.act_img,
-                act_logo=self.act_logo,
-                act_link=self.act_link,
-                mask_link=self.mask_link,
-                act_applink=self.act_applink,
-                share_icon=self.share_icon,
-                share_link=self.share_link,
-                order_val=self.order_val,
-                extras=self.extras,
-                is_active=self.is_active,
-                login_required=self.login_required,
-                act_desc=self.act_desc,
-            )
-            activity.save()
+        activity = ActivityEntry(
+            title=self.title,
+            act_type=self.act_type,
+            start_time=self.start_time,
+            end_time=self.end_time,
+            act_img=self.act_img,
+            act_logo=self.act_logo,
+            act_link=self.act_link,
+            mask_link=self.mask_link,
+            act_applink=self.act_applink,
+            share_icon=self.share_icon,
+            share_link=self.share_link,
+            order_val=self.order_val,
+            extras=self.extras,
+            is_active=self.is_active,
+            login_required=self.login_required,
+            act_desc=self.act_desc,
+        )
+        activity.save()
         return activity
 
 
@@ -126,9 +127,11 @@ def create_activity(title, act_type, start_time, end_time, **kwargs):
         if hasattr(activity, k) and getattr(activity, k) != v:
             setattr(activity, k, v)
     _validate_start_end_time(start_time, end_time)
-    activity = activity.save()
-    activity.act_link = 'http://m.xiaolumeimei.com/mall/activity/topTen/model/2?id={0}'.format(activity.id)
-    activity.save(id=activity.id)
+    activity = activity.create()
+    if act_type == ActivityEntry.ACT_TOPIC:
+        activity.act_link = 'https://m.xiaolumeimei.com/mall/activity/topTen/model/2?id={0}'.format(activity.id)
+    activity.share_link = 'https://m.xiaolumeimei.com/m/{mama_id}?next=' + activity.act_link
+    activity.save()
     return activity
 
 
@@ -149,8 +152,20 @@ def update_activity(id, **kwargs):
     return activity
 
 
+def get_activity_pro_by_id(id):
+    # type: (int) -> ActivityProduct
+    return ActivityProduct.objects.get(id=id)
+
+
+def get_activity_pros_by_activity_id(activity_id):
+    # type: (int) -> List[ActivityProduct]
+    """根据活动id获取相关的产品
+    """
+    return ActivityProduct.objects.pros_by_activity_id(activity_id).order_by('location_id')
+
+
 class ActivityPro(object):  # 活动更随的产品（包含图片）
-    def __init__(self, activity_id, product_name, product_img, location_id, pic_type=6, model_id=0, jump_url=''):
+    def __init__(self, activity_id, product_img, location_id=1, product_name='', pic_type=6, model_id=0, jump_url=''):
         self.activity_id = activity_id
         self.product_name = product_name
         self.product_img = product_img
@@ -161,7 +176,7 @@ class ActivityPro(object):  # 活动更随的产品（包含图片）
 
     def create(self):
         ap = ActivityProduct(
-            activity=self.activity_id,
+            activity_id=self.activity_id,
             model_id=self.model_id,
             product_name=self.product_name,
             product_img=self.product_img,
@@ -173,24 +188,91 @@ class ActivityPro(object):  # 活动更随的产品（包含图片）
         return ap
 
 
+def _set_footer_pic_location(activity_id, location_id):
+    # type: (int, int) -> None
+    """挪动底部图片
+    """
+    pros = get_activity_pros_by_activity_id(activity_id).filter(pic_type=ActivityProduct.FOOTER_PIC_TYPE)
+    location_id += 1
+    for p in pros:
+        p.location_id = location_id
+        location_id += 1
+        p.save()
+
+
+def create_activity_pro(activity_id, product_img, **kwargs):
+    # type: (int, text_type, **Any)
+    """创建活动商品
+    """
+    foot_share_img = 'http://img.xiaolumeimei.com/top101476965460253.jpg'
+    pros = get_activity_pros_by_activity_id(activity_id)
+    pic_type = kwargs.get('pic_type')
+    if pic_type and pic_type == ActivityProduct.BANNER_PIC_TYPE:  # 头图
+        banner = pros.filter(pic_type == ActivityProduct.BANNER_PIC_TYPE).first()
+        if banner:
+            location_id = banner.location_id - 1  # banner图片向前递减
+        else:
+            location_id = 1
+    else:
+        latest_pro = pros.latest('location_id')
+        location_id = latest_pro.location_id + 1 if latest_pro else 2
+        # 如果是非底部图片　当前活动有底部图片则要挪动底部图片到底部
+        _set_footer_pic_location(activity_id, location_id)
+    if pic_type and pic_type == ActivityProduct.FOOTER_PIC_TYPE:  # 头图
+        product_img = foot_share_img
+    location_id = kwargs.pop('location_id') if kwargs.has_key('location_id') else location_id
+    ap = ActivityPro(
+        activity_id=activity_id,
+        product_img=product_img,
+    )
+    kwargs['location_id'] = location_id
+    for k, v in kwargs.iteritems():
+        if hasattr(ap, k) and getattr(ap, k) != v:
+            setattr(ap, k, v)
+    ap = ap.create()
+    return ap
+
+
+def update_activity_pro(id, **kwargs):
+    # type: () -> ActivityProduct
+    """更新活动产品
+    """
+    ap = get_activity_pro_by_id(id)
+    for k, v in kwargs.iteritems():
+        if hasattr(ap, k) and getattr(ap, k) != v:
+            setattr(ap, k, v)
+    ap = ap.save()
+    return ap
+
+
+def delete_activity_pro(id):
+    # type: () -> ActivityProduct
+    """删除活动产品
+    """
+    ap = get_activity_pro_by_id(id)
+    ap.delete()
+    return True
+
+
 def create_activity_pros_by_schedule_id(activity_id, schedule_id):
     # type: (int, int) -> List[ActivityProduct]
     """更具活动id和排期id创建活动产品
     """
     activity = get_activity_by_id(activity_id)
-    schedule_pros = get_schedule_products_by_schedule_id(int(schedule_id))
+    schedule_pros = get_schedule_products_by_schedule_id(int(schedule_id)).order_by('order_weight')
     aps = []
+    model_ids = [i['model_id'] for i in activity.activity_products.values('model_id')]
+    location_id = 2
     for pro in schedule_pros:
-        location_id = 2
         modelproduct = pro.modelproduct
-        ap = ActivityPro(
-            activity_id=activity.id,
-            product_name=modelproduct.name,
-            product_img=modelproduct.head_img_url,
-            model_id=modelproduct.id,
-            location_id=location_id,
-        )
+        if modelproduct and modelproduct.id not in model_ids:  # 存在款式并且没有设置在本活动中则添加到本活动中
+            kwargs = {
+                'product_name': modelproduct.name,
+                'model_id': modelproduct.id,
+                'location_id': location_id,
+            }
+            ap = create_activity_pro(activity_id, modelproduct.head_img_url, **kwargs)
+            aps.append(ap)
         location_id += 1
-        ap = ap.create()
-        aps.append(ap)
     return aps
+

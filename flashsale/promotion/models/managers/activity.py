@@ -47,3 +47,17 @@ class ActivityManager(BaseManager):
         """
         return self.effect_activities().exclude(act_type__in=(self.model.ACT_MAMA,
                                                               self.model.ACT_BRAND))
+
+
+class ActivityProManager(BaseManager):
+    def get_query_set(self):
+        _super = super(BaseManager, self)
+        if hasattr(_super, 'get_query_set'):
+            return _super.get_query_set()
+        return _super.get_queryset()
+
+    get_queryset = get_query_set
+
+    def pros_by_activity_id(self, activity_id):
+        # type: (int) -> List[ActivityProduct]
+        return self.get_queryset().filter(activity_id=activity_id)
