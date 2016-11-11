@@ -1,6 +1,9 @@
 import os
 import urllib2
 
+def is_staging_environment():
+    return os.environ.get('TARGET') == 'staging'
+
 def setup_djagno_environ():
     if os.environ.get('TARGET') in ('production', 'django18'):
         os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shopmanager.production")

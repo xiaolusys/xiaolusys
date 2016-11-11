@@ -39,8 +39,6 @@ class MamaWeeklyAwardTestCase(TestCase):
         self.mama_id = 44
         self.referal_from_mama_id = 1
         self.year_week = datetime.datetime.now().strftime('%Y-%W')
-        XiaoluMama.objects.update(charge_time=datetime.datetime.now() -datetime.timedelta(days=7))
-
 
     def testUpdateAllMamaMissionState(self):
         task_update_all_mama_mission_state()
@@ -110,7 +108,8 @@ class MamaWeeklyAwardTestCase(TestCase):
 
     def testFinishMamaMissionSaleAward(self):
         """ 测试妈妈销售激励　团队妈妈销售激励 """
-
+        XiaoluMama.objects.update(charge_time=datetime.datetime.now() - datetime.timedelta(days=7),
+                                  renew_time=datetime.datetime.now() + datetime.timedelta(days=100))
         now_datetime = datetime.datetime.now()
         saletrade = SaleTrade.objects.filter(id=332233).first()
         saletrade.pay_time = now_datetime
