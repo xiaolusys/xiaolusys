@@ -188,6 +188,18 @@ class ActivityPro(object):  # 活动更随的产品（包含图片）
         return ap
 
 
+def _set_footer_pic_location(activity_id, location_id):
+    # type: (int, int) -> None
+    """挪动底部图片
+    """
+    pros = get_activity_pros_by_activity_id(activity_id).filter(pic_type=ActivityProduct.FOOTER_PIC_TYPE)
+    location_id += 1
+    for p in pros:
+        p.location_id = location_id
+        location_id += 1
+        p.save()
+
+
 def create_activity_pro(activity_id, product_img, **kwargs):
     # type: (int, text_type, **Any)
     """创建活动商品
@@ -198,11 +210,14 @@ def create_activity_pro(activity_id, product_img, **kwargs):
     if pic_type and pic_type == ActivityProduct.BANNER_PIC_TYPE:  # 头图
         banner = pros.filter(pic_type == ActivityProduct.BANNER_PIC_TYPE).first()
         if banner:
-            location_id = banner.location_id - 1
+            location_id = banner.location_id - 1  # banner图片向前递减
         else:
             location_id = 1
     else:
-        location_id = pros.count() + 1
+        latest_pro = pros.latest('location_id')
+        location_id = latest_pro.location_id + 1 if latest_pro else 2
+        # 如果是非底部图片　当前活动有底部图片则要挪动底部图片到底部
+        _set_footer_pic_location(activity_id, location_id)
     if pic_type and pic_type == ActivityProduct.FOOTER_PIC_TYPE:  # 头图
         product_img = foot_share_img
     location_id = kwargs.pop('location_id') if kwargs.has_key('location_id') else location_id
@@ -244,7 +259,7 @@ def create_activity_pros_by_schedule_id(activity_id, schedule_id):
     """更具活动id和排期id创建活动产品
     """
     activity = get_activity_by_id(activity_id)
-    schedule_pros = get_schedule_products_by_schedule_id(int(schedule_id))
+    schedule_pros = get_schedule_products_by_schedule_id(int(schedule_id)).order_by('order_weight')
     aps = []
     model_ids = [i['model_id'] for i in activity.activity_products.values('model_id')]
     location_id = 2

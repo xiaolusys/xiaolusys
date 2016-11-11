@@ -78,20 +78,12 @@ class ActivityViewSet(viewsets.ModelViewSet):
         partial = kwargs.pop('partial', False)
         instance_id = kwargs.get('pk')
         activity = get_activity_by_id(instance_id)
-        extras = activity.extras
-        schedule_id = None
-        if request.data.has_key('schedule_id'):
-            schedule_id = request.data.pop('schedule_id')
-            if schedule_id:
-                extras.update({'schedule_id': schedule_id})
         start_time = datetime.datetime.strptime(request.data.pop('start_time'), '%Y-%m-%d %H:%M:%S')
         end_time = datetime.datetime.strptime(request.data.pop('end_time'), '%Y-%m-%d %H:%M:%S')
-        request.data.update({'start_time': start_time, 'end_time': end_time, 'extras': extras})
+        request.data.update({'start_time': start_time, 'end_time': end_time})
         serializer = self.get_serializer(activity, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         update_activity(instance_id, **request.data)
-        if schedule_id and activity:
-            create_activity_pros_by_schedule_id(activity.id, int(schedule_id))
         return Response(serializer.data)
 
     @list_route(methods=['get'])
