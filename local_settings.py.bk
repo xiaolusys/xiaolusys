@@ -213,6 +213,7 @@ LOGGER_HANDLERS = [
     ('supplychain','sentry,console'),
     ('models','sentry,console'),
     ('queryset','sentry,console'),
+    ('statistics', 'sentry,file'),
     ('django.request','sentry,console'),
     ('sentry.errors','sentry,console'),
     ('celery.handler','sentry,console'),
