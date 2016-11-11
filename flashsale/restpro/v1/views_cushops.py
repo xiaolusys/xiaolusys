@@ -80,7 +80,7 @@ class CustomerShopsViewSet(viewsets.ModelViewSet):
             shop_info['shop_link'] = link
             shop_info['thumbnail'] = first_pro_pic  # customer.thumbnail  # 提供用户头像
             shop_info['desc'] = '{0}の精品店铺'.format(customer.nick) + random.choice(decs)
-            shop_info['preview_shop_link'] = preview_link  # 预览链接
+            shop_info['preview_shop_link'] = preview_link  # 预览链接http
             shop_info['name'] = '{0}の精品店铺'.format(customer.nick)
             shop_info['first_pro_pic'] = first_pro_pic
 
