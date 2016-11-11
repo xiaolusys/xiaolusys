@@ -18,3 +18,9 @@ class ScheduleManager(BaseManager):
         """
         today = datetime.date.today()
         return self.get_queryset().filter(sale_time__gte=today)
+
+    def future_topic_schedules(self):
+        # type: () -> List[SaleProductManage]
+        """未来排期
+        """
+        return self.future_schedules().filter(schedule_type=self.model.SP_TOPIC)

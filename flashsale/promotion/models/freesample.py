@@ -3,7 +3,7 @@ from django.db import models
 from core.models import BaseModel
 from django.contrib.auth.models import User
 
-from flashsale.promotion.managers import ReadPacketManager
+from .managers.redpack import ReadPacketManager
 from django.db.models.signals import post_save
 
 
