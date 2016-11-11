@@ -69,6 +69,7 @@ v2_router_urls += format_suffix_patterns([
     url(r'^cashout_policy', views.xiaolumm.CashOutPolicyView.as_view()),
     url(r'^redirect_activity_entry', views.xiaolumm.RedirectActivityEntryView.as_view()),
     url(r'^redirect_stats_link', views.xiaolumm.RedirectStatsLinkView.as_view()),
+    url(r'^enable_elite_mama', views.xiaolumm.EnableEliteMamaView.as_view()),
     url(r'^urlredirect', views.URLRedirectViewSet.as_view({'get': 'redirect'})),
     url(r'^wdt/logistics', views.WangDianTongViewSet.as_view({'post': 'logistics'})),
 ])
