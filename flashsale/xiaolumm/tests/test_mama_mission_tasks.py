@@ -39,8 +39,6 @@ class MamaWeeklyAwardTestCase(TestCase):
         self.mama_id = 44
         self.referal_from_mama_id = 1
         self.year_week = datetime.datetime.now().strftime('%Y-%W')
-        XiaoluMama.objects.update(charge_time=datetime.datetime.now() -datetime.timedelta(days=7))
-
 
     def testUpdateAllMamaMissionState(self):
         task_update_all_mama_mission_state()
@@ -110,14 +108,18 @@ class MamaWeeklyAwardTestCase(TestCase):
 
     def testFinishMamaMissionSaleAward(self):
         """ 测试妈妈销售激励　团队妈妈销售激励 """
-
+        XiaoluMama.objects.update(charge_time=datetime.datetime.now() - datetime.timedelta(days=7),
+                                  renew_time=datetime.datetime.now() + datetime.timedelta(days=100))
         now_datetime = datetime.datetime.now()
         saletrade = SaleTrade.objects.filter(id=332233).first()
         saletrade.pay_time = now_datetime
         saletrade.created = now_datetime
         saletrade.save(update_fields=['pay_time', 'created'])
         sale_orders = SaleOrder.objects.filter(sale_trade=saletrade)
-        sale_orders.update(pay_time=now_datetime, created=now_datetime)
+        for order in sale_orders: # order save　触发订单佣金更新
+            order.pay_time=now_datetime
+            order.created=now_datetime
+            order.save()
 
         # test mama sale mission
         xiaolumama = XiaoluMama.objects.filter(id=self.mama_id).first()
@@ -128,7 +130,7 @@ class MamaWeeklyAwardTestCase(TestCase):
         # test referal from mama group sale mission
         referal_from_mama = XiaoluMama.objects.filter(id=self.referal_from_mama_id).first()
         fresh_mama_weekly_mission_bycat(referal_from_mama, MamaMission.CAT_SALE_GROUP, year_week)
-
+        logger.warn('signal_saletrade_pay_confirm: %s, %s, %s'%(xiaolumama, referal_from_mama, saletrade))
         signal_saletrade_pay_confirm.send(sender=SaleTrade, obj=saletrade)
         # 测试妈妈周销售目标是不是，按连续两周有交易条件限制
         mama_record = MamaMissionRecord.objects.filter(

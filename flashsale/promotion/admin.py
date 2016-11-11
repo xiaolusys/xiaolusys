@@ -48,7 +48,7 @@ class ActivityEntryAdmin(admin.ModelAdmin):
     }
 
     def remarks(self, obj):
-        if obj.extras.has_key('remarks'):
+        if isinstance(obj.extras, dict) and obj.extras.has_key('remarks'):
             return obj.extras['remarks']
         else:
             return ""

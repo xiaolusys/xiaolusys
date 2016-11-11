@@ -216,9 +216,12 @@ def generate_colorful_qrcode(params):
     avatar_x   = params.get('avatar', {}).get('x') or 240
     avatar_y   = params.get('avatar', {}).get('y') or 30
     if avatar_url:
-        avatar_url = re.sub('/[0-9]+$', '/96', avatar_url)
-        resp   = requests.get(avatar_url, verify=False)
-        avatar = Image.open(StringIO.StringIO(resp.content)).resize(size)
+        try:
+            avatar_url = re.sub('/[0-9]+$', '/96', avatar_url)
+            resp   = requests.get(avatar_url, verify=False)
+            avatar = Image.open(StringIO.StringIO(resp.content)).resize(size)
+        except Exception, exc:
+            avatar = None
     else:
         avatar = None
 
