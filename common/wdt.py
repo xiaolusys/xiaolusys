@@ -40,44 +40,43 @@ class WangDianTong(object):
         resp = requests.post(self.url, data=data)
         return simplejson.loads(resp.content)
 
-    def create_order(self):
+    def create_order(self, wdt_order):
         """
         创建订单
         """
-        content = {
-            'OutInFlag': 3,
-            'IF_OrderCode': 'waibubianhao992398',  # 外部单据编号
-            'WarehouseNO': '001',  # 优禾主仓库
-            'Remark': '小鹿美美测试不用发货2',  # 备注
-            'GoodsTotal': 1.90,  # 货款合计(销售出库时非空)
-            'OrderPay': 1.90,  # 订单付款金额（含运费）
-            'LogisticsPay': 0.0,  # 运费
-            'ShopName': '优禾生活小鹿美美店',  # 订单所属店铺名称（出库时非空）
-            'BuyerName': 'name',  # 收货人姓名
-            'BuyerPostCode': '453000',  # 收货人邮编
-            'BuyerTel': '15712341234',
-            'BuyerProvince': '北京',
-            'BuyerCity': '北京',
-            'BuyerDistrict': '海淀区',
-            'BuyerAdr': '知春路',
-            'PayTime': '2016-10-29 00:00:01',
-            'TradeTime': '2016-10-29 00:00:00',
-            'ItemList': {
-                'Item': [
-                    {
-                        'Sku_Code': '52064',
-                        'Sku_Name': 'sku名称',
-                        'Sku_Price': 1.9,
-                        'Qty': 1,
-                        'Total': 1.9,
-                        # 'Discount': ''
-                        'Item_Remark': 'sku备注',
-                    }
-                ]
-            }
+        # content = {
+        #     'OutInFlag': 3,
+        #     'IF_OrderCode': wdt_order['id'],  # 外部单据编号
+        #     'WarehouseNO': '001',  # 优禾主仓库
+        #     'Remark': wdt_order['remark'],  # 备注
+        #     'GoodsTotal': wdt_order['total_fee'],  # 货款合计(销售出库时非空)
+        #     'OrderPay': wdt_order['total_fee'],  # 订单付款金额（含运费）
+        #     'LogisticsPay': wdt_order['logistics_pay'],  # 运费
+        #     'ShopName': '优禾生活小鹿美美店',  # 订单所属店铺名称（出库时非空）
+        #     'BuyerName': wdt_order['buyer']['name'],  # 收货人姓名
+        #     'BuyerPostCode': wdt_order['buyer']['post_code'],  # 收货人邮编
+        #     'BuyerTel': wdt_order['buyer']['tel'],
+        #     'BuyerProvince': wdt_order['buyer']['province'],
+        #     'BuyerCity': wdt_order['buyer']['city'],
+        #     'BuyerDistrict': wdt_order['buyer']['district'],
+        #     'BuyerAdr': wdt_order['buyer']['adr'],
+        #     'PayTime': wdt_order['pay_time'],
+        #     'TradeTime': wdt_order['created'],
+        #     'ItemList': {
+        #         'Item': [
+        #             {
+        #                 'Sku_Code': wdt_order['sku_item']['code'],
+        #                 'Sku_Name': wdt_order['sku_item']['name'],
+        #                 'Sku_Price': wdt_order['sku_item']['price'],
+        #                 'Qty': wdt_order['sku_item']['qty'],
+        #                 'Total': wdt_order['sku_item']['total'],
+        #                 'Item_Remark': wdt_order['sku_item']['remark'],
+        #             }
+        #         ]
+        #     }
 
-        }
-        return self._request('NewOrder', content)
+        # }
+        return self._request('NewOrder', wdt_order)
 
     def query_order(self, order_code):
         content = {
@@ -96,7 +95,10 @@ class WangDianTong(object):
         logistics_name = json['LogisticsName']  # 物流公司名称
         post_id = json['PostID']  # 物流编号
 
+        is_send = True if trade_status == 'over_trade' else False
+
         return {
+            'is_send': is_send,
             'trade_status': trade_status,
             'snd_time': snd_time,
             'logistics_code': logistics_code,
@@ -175,7 +177,7 @@ class WangDianTong(object):
 
 def main():
     wdt = WangDianTong()
-    resp = wdt.create_order()
+    # resp = wdt.create_order()
     resp = wdt.query_logistics('JY201611050016')
     # print simplejson.dumps(resp, indent=2)
     for k, v in resp.items():

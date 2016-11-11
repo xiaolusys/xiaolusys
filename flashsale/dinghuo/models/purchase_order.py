@@ -355,6 +355,56 @@ class OrderList(models.Model):
         from flashsale.dinghuo.models_purchase import PurchaseOrder
         return PurchaseOrder.objects.get(uni_key=self.purchase_order_unikey)
 
+    @property
+    def package_sku_items(self):
+        """
+
+        """
+        from shopback.trades.models import PackageSkuItem
+        from flashsale.dinghuo.models_purchase import PurchaseDetail
+        pds = PurchaseDetail.objects.filter(purchase_order_unikey=self.purchase_order_unikey)
+
+        sku_ids = [pd.sku_id for pd in pds]
+        psis = PackageSkuItem.objects.filter(
+            sku_id__in=sku_ids,
+            assign_status__in=[PackageSkuItem.NOT_ASSIGNED, PackageSkuItem.ASSIGNED],
+            purchase_order_unikey=''
+        )
+        # return PackageSkuItem.objects.filter(purchase_order_unikey=self.purchase_order_unikey)
+        return psis
+
+    def verify_order(self):
+        """
+        审核订货单
+        """
+        from shopback.warehouse import WARE_THIRD
+        from flashsale.finance.models import Bill
+
+        psis = self.package_sku_items
+
+        psis_total = psis.aggregate(total=Sum('num')).get('total') or 0
+        ods_res = OrderDetail.objects.filter(purchase_order_unikey=self.purchase_order_unikey) \
+                             .aggregate(total=Sum('buy_quantity'))
+
+        ods_total = ods_res['total'] or 0
+
+        if psis_total == 0:
+            return u'至少要有一个待订货skuitem'
+
+        if psis_total != ods_total:
+            return u'数量不对，审核失败'
+
+        if self.supplier.ware_by == WARE_THIRD and self.stage < OrderList.STAGE_CHECKED:
+            psi_oids = [p.oid for p in psis]
+            self.begin_third_package(psi_oids)
+            Bill.create([self], Bill.PAY, Bill.STATUS_DELAY, Bill.TRANSFER_PAY, 0, 0, self.supplier,
+                        user_id=919899, receive_account='', receive_name='',
+                        pay_taobao_link='', transcation_no='')
+            return u'订货单已成功进入结算!'
+        # elif self.stage < OrderList.STAGE_CHECKED:
+        #     self.set_stage_verify()
+        #     print u'已成功审核!'
+
     def begin_third_package(self, psi_oids=[]):
         self.third_package = True
         self.bill_method = OrderList.PC_COD_TYPE

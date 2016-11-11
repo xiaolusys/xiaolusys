@@ -1439,6 +1439,9 @@ class PackageOrder(models.Model):
         task_packageorder_send_check_packageorder.delay()
 
     def finish_third_package(self, out_sid, logistics_company):
+        if self.out_sid == out_sid and self.logistics_company_id == logistics_company.id:
+            return u'已经发过货了'
+
         self.out_sid = out_sid
         self.logistics_company_id = logistics_company.id
         self.sys_status = PackageOrder.WAIT_CUSTOMER_RECEIVE
@@ -1905,6 +1908,26 @@ class PackageSkuItem(BaseModel):
         expire_time = datetime.datetime.now() - datetime.timedelta(days=1)
         return [i for i in PackageSkuItem.get_failed_express() if i.failed_retrieve_time < expire_time]
 
+    def get_supplier_product_info(self):
+        """
+        获取供应商的商品信息
+        """
+        from supplychain.supplier.models.product import SaleProduct
+
+        product_sku = self.product_sku
+        product = product_sku.product
+        sale_product = SaleProduct.objects.filter(id=product.sale_product).first()
+        sale_supplier = sale_product.sale_supplier
+
+        return {
+            'supplier': sale_supplier,
+            'supplier_sku_code': product_sku.supplier_skucode,
+            'supplier_sku_sale_price': sale_product.sale_price,
+            'sale_product': sale_product,
+            'product': product,
+            'product_sku': product_sku
+        }
+
     @property
     def sale_order(self):
         if not hasattr(self, '_sale_order_'):
@@ -2196,3 +2219,56 @@ def get_sale_trade_address_dict(sale_trade):
     for attr in attrs:
         res[attr] = getattr(sale_trade, attr)
     return res
+
+
+class ErpOrder(BaseModel):
+
+    SUCCESS = 'success'
+    FAIL = 'fail'
+
+    STATUS_CHOICES = (
+        (SUCCESS, u'成功'),
+        (FAIL, u'失败'),
+    )
+
+    CANCEL_TRADE = 'cancel_trade'
+    PRE_TRADE = 'pre_trade'
+    CHECK_TRADE = 'check_trade'
+    FINANCE_TRADE = 'finance_trade'
+    WAIT_SEND_TRADE = 'wait_send_trade'
+    OVER_TRADE = 'over_trade'
+
+    ORDER_STATUS = (
+        (CANCEL_TRADE, u'已取消'),
+        (PRE_TRADE, u'预订单'),
+        (CHECK_TRADE, u'待审核'),
+        (FINANCE_TRADE, u'待财审'),
+        (WAIT_SEND_TRADE, u'待发货'),
+        (OVER_TRADE, u'已完成'),
+    )
+
+    sale_order_oid = models.CharField(unique=True, max_length=32, verbose_name=u'订单oid')
+    erp_order_id = models.CharField(max_length=32, verbose_name=u'ERP系统订单ID')
+    package_sku_item_id = models.CharField(max_length=32, verbose_name=u'包裹sku_item_id')
+    supplier_id = models.CharField(max_length=32, verbose_name=u'供应商ID')
+    supplier_name = models.CharField(max_length=32, verbose_name=u'供应商名称')
+    erp_type = models.CharField(max_length=16, default='wdt', verbose_name=u'ERP系统类型')
+    sync_status = models.CharField(max_length=16, choices=STATUS_CHOICES, verbose_name=u'同步状态')
+    sync_result = models.TextField(max_length=2048, blank=True, default='', verbose_name=u'同步结果')
+    order_status = models.CharField(max_length=16, choices=ORDER_STATUS, default=CHECK_TRADE, verbose_name=u'订单状态')
+    logistics_code = models.CharField(max_length=16, verbose_name=u'物流公司编号')
+    logistics_name = models.CharField(max_length=16, verbose_name=u'物流公司名称')
+    post_id = models.CharField(max_length=16, verbose_name=u'物流编号')
+    delivery_time = models.DateTimeField(verbose_name=u'发货时间')
+
+    class Meta:
+        db_table = 'shop_trades_erp_orders'
+        app_label = 'trades'
+
+    def update_logistics(self, logistics_code, logistics_name, post_id, delivery_time):
+        self.order_status = self.OVER_TRADE
+        self.logistics_code = logistics_code
+        self.logistics_name = logistics_name
+        self.post_id = post_id
+        self.delivery_time = delivery_time
+        self.save()
