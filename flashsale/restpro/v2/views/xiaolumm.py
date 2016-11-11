@@ -1030,3 +1030,42 @@ class CashOutPolicyView(APIView):
         data = {"min_cashout_amount": int(self.MIN_CASHOUT_AMOUNT*0.01), "max_cashout_amount": int(self.MAX_CASHOUT_AMOUNT*0.01), "audit_cashout_amount": int(self.AUDIT_CASHOUT_AMOUNT*0.01), "daily_cashout_tries": self.DAILY_CASHOUT_TRIES, "message": message}
 
         return Response(data)
+
+
+class EnableEliteMamaView(APIView):
+    """
+    POST /rest/v2/mama/init_elite_mama
+    """
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        content = request.GET
+        mama_id = content.get("mama_id")
+        action = content.get("action")
+        
+        if not mama_id:
+            res = {"code": 1, "info": u"必须提供mama_id！"}
+            return Response(res)
+
+        mama = XiaoluMama.objects.filter(id=mama_id).first()
+        mama.referal_from = 'INDIRECT'
+        charge_time = datetime.datetime.now()
+        renew_time = charge_time + datetime.timedelta(days=3)
+        info = u"精英妈妈帐户开启成功，请立即转入5张精品券！"
+        
+        if action == 'enable':
+            renew_time = charge_time + datetime.timedelta(days=365)
+            renew_tiem = datetime.datetime(renew_time.year, renew_time.month, renew_time.day)
+            
+            mama.charge_status = XiaoluMama.CHARGED
+            mama.last_renew_type = XiaoluMama.FULL
+            mama.charge_time = charge_time
+            mama.renew_time = renew_time
+            mama.agencylevel = XiaoluMama.A_LEVEL
+            info = u"精英妈妈帐户已正式开通！"
+            
+        mama.save()
+        res = {"code": 0, "info":info}
+        return Response(res)
+        
