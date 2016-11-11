@@ -397,7 +397,7 @@ def task_order_trigger(sale_order):
     validata_mama = validate_self_mama(self_mama, sale_order.pay_time or sale_order.created)
     if global_setup.is_staging_environment():
         logger.warn('order trigger:order_id=%s, self_mama=%s ,validata_mama=%s ,mm_linkid_mama=%s, created=%s' %
-                (sale_order.id ,self_mama, validata_mama, mm_linkid_mama, sale_order.created))
+            (sale_order.id ,self_mama, validata_mama, mm_linkid_mama, sale_order.created))
     if self_mama and not validata_mama:
         self_mama = None
 
