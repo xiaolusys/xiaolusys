@@ -75,7 +75,7 @@ class CustomerShopsViewSet(viewsets.ModelViewSet):
             next_link = 'm/{0}?next='.format(mm_linkid) + link
             link = urlparse.urljoin(settings.M_SITE_URL, next_link)
 
-            preview_link = urlparse.urljoin(settings.M_SITE_URL, preview_link)
+            preview_link = urlparse.urljoin('http://m.xiaolumeimei.com', preview_link)
             first_pro_pic = customer.thumbnail
             shop_info['shop_link'] = link
             shop_info['thumbnail'] = first_pro_pic  # customer.thumbnail  # 提供用户头像
