@@ -394,9 +394,11 @@ def task_order_trigger(sale_order):
     if self_mama and mm_linkid_mama and self_mama.id == mm_linkid_mama.id:
         mm_linkid_mama = None
 
-    if self_mama and not validate_self_mama(self_mama, sale_order.created):
+    validata_mama = validate_self_mama(self_mama, sale_order.created)
+    logger.warn('order trigger:self_mama=%s ,validata_mama=%s ,mm_linkid_mama=%s' % (self_mama, validata_mama, mm_linkid_mama))
+    if self_mama and not validata_mama:
         self_mama = None
-    
+
     via_app = sale_order.sale_trade.is_paid_via_app()
     if self_mama:
         mm_linkid_mama = self_mama
