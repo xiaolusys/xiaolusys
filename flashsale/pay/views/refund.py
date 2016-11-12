@@ -2,7 +2,6 @@
 import datetime
 from django.forms import model_to_dict
 from django.db.models import Sum
-from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import permissions
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
@@ -12,8 +11,7 @@ from rest_framework import authentication
 from rest_framework import exceptions
 from core.options import log_action, CHANGE
 from shopback.items.models import Product, ProductDaySale
-from flashsale.pay.models import SaleTrade, SaleOrder, SaleRefund
-from flashsale.pay.tasks import task_send_msg_for_refund
+from flashsale.pay.models import SaleRefund
 from flashsale.pay import serializers
 
 import logging
@@ -63,15 +61,6 @@ class RefundReason(APIView):
         info_base = {'today': today, "user_name": user_name, "reason": reason, "sale_num": sale_num,
                      "desc": des, 'pro_info': pro_info}
         return Response(info_base)
-
-
-class RefundAnaList(APIView):
-    renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
-    template_name = "salerefund/pro_ref_list.html"
-
-    def get(self, request):
-        username = request.user.username
-        return Response({"username": username})
 
 
 class SaleRefundViewSet(viewsets.ModelViewSet):

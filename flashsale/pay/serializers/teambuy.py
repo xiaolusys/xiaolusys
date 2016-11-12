@@ -1,10 +1,6 @@
-# -*- encoding:utf-8 -*-
-from django.forms import model_to_dict
+# coding=utf-8
 from rest_framework import serializers
-
-from shopback.items.models import Product, ProductSku
-from ..models import SaleTrade, District, UserAddress, ModelProduct, BrandProduct
-from ..models.teambuy import TeamBuy, TeamBuyDetail
+from ..models.teambuy import TeamBuy
 
 
 class TeamBuySerializer(serializers.ModelSerializer):
