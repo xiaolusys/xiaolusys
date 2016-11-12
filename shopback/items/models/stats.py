@@ -678,31 +678,6 @@ class SkuStock(models.Model):
         if self.realtime_quantity - self.assign_num < 0 and self.assign_num > 0 and check_if_err:
             self.relase_assign()
 
-    def assign(self, sku_id, psi_id=None, orderlist=None):
-        """
-            分配有从库存分配和从订货单分配两种方式。
-            订货入仓一般走订货单分配法，以确保正确分配。
-        """
-        from shopback.trades.models import PackageSkuItem
-        if not orderlist:
-            if self.realtime_quantity > PackageSkuItem.objects.filter(status=PSI_STATUS.READY).aggregate(Sum('num')):
-                now_num = self.realtime_quantity - self.assign_num
-                psis = []
-                for psi in PackageSkuItem.objects.filter(status=PSI_STATUS.READY).order_by('-pay_time'):
-                    if now_num >= psi.num:
-                        now_num -= psi.num
-                        psi.set_status_assign(save=False)
-                        psis.append(psi)
-                    else:
-                        break
-                self.assign_num += self.realtime_quantity - now_num
-                self.save()
-        else:
-            od = orderlist.details.filter(chichu_id=str(self.sku_id)).first()
-            if not od:
-                raise Exception(u'订货单%s中并没有%s这个sku', (orderlist.id, od.id))
-        return
-
 def invalid_apiskustat_cache(sender, instance, *args, **kwargs):
     if hasattr(sender, 'API_CACHE_KEY_TPL'):
         logger.debug('invalid_apiskustat_cache: %s' % instance.sku_id)
