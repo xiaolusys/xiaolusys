@@ -4,10 +4,6 @@
 @since: 2014-02-18 
 """
 from datetime import datetime, timedelta
-import time
-import json
-from celery.task import task
-from celery.task.sets import subtask
 from celery import Task
 from shopapp.comments.models import Comment, CommentItem
 from common.utils import single_instance_task

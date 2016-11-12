@@ -84,10 +84,9 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
         if request.data.get('ordering') is None:
             queryset = queryset.order_by('-start_time')
         queryset = self.filter_queryset(queryset)
-        request.data._mutable = True
-        request.data.update({"mama_id": xlmm.id})
-        request.data._mutable = False
-        serializer = self.get_serializer(queryset, many=True, context={'request': request})
+        request_data = request.data.copy()
+        request_data.update({"mama_id": xlmm.id})
+        serializer = self.get_serializer(queryset, many=True, context={'request_data': request_data})
         # 统计代码
         statsd.incr('xiaolumm.ninepic_count')
         task_mama_daily_tab_visit_stats.delay(xlmm.id, MamaTabVisitStats.TAB_DAILY_NINEPIC)
@@ -104,11 +103,10 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
         share_times = request.data.get('share_times') or 0
         save_times = min(int(save_times), 1)
         share_times = min(int(share_times), 1)
-        request.data._mutable = True
-        request.data.update({'save_times': instance.save_times + save_times})
-        request.data.update({'share_times': instance.share_times + share_times})
-        request.data._mutable = False
-        serializer = serializers.ModifyTimesNinePicAdverSerialize(instance, data=request.data, partial=partial)
+        request_data = request.data.copy()
+        request_data.update({'save_times': instance.save_times + save_times})
+        request_data.update({'share_times': instance.share_times + share_times})
+        serializer = serializers.ModifyTimesNinePicAdverSerialize(instance, data=request_data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response(serializer.data)

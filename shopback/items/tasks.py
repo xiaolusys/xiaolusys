@@ -4,7 +4,6 @@ import time
 import json
 from celery import Task
 from celery.task import task
-from celery.task.sets import subtask
 from django.conf import settings
 from django.db.models import Sum, Max
 from django.db import transaction
@@ -110,7 +109,7 @@ def updateAllUserItemsTask():
 
     users = Seller.effect_users.all()
     for user in users:
-        subtask(updateUserItemsTask).delay(user.visitor_id)
+        updateUserItemsTask.delay(user.visitor_id)
 
 
 @task()
@@ -343,7 +342,7 @@ def updateAllUserProductSkuTask():
     """ 更新所有用户SKU信息任务 """
     users = Seller.effect_users.filter(is_primary=True)
     for user in users:
-        subtask(updateUserProductSkuTask).delay(user.visitor_id)
+        updateUserProductSkuTask.delay(user.visitor_id)
 
 
 @task()
@@ -351,7 +350,7 @@ def updateUserItemsEntityTask(user_id):
     """ 更新用户商品及SKU信息任务 """
     updateUserItemsTask(user_id)
 
-    subtask(updateUserProductSkuTask).delay(user_id)
+    updateUserProductSkuTask.delay(user_id)
 
 
 @task()
@@ -359,7 +358,7 @@ def updateAllUserItemsEntityTask():
     """ 更新所有用户商品及SKU信息任务 """
     users = Seller.effect_users.all()
     for user in users:
-        subtask(updateUserItemsEntityTask).delay(user.visitor_id)
+        updateUserItemsEntityTask.delay(user.visitor_id)
 
 
 @task()
@@ -388,7 +387,7 @@ def gradCalcProductSaleTask():
     if settings.DEBUG:
         CalcProductSaleTask()(yest_date=yest_date, update_warn_num=True)
     else:
-        subtask(CalcProductSaleTask()).delay(yest_date=yest_date, update_warn_num=True)
+        CalcProductSaleTask().delay(yest_date=yest_date, update_warn_num=True)
 
 
 ###########################################################  商品库存管理  ########################################################

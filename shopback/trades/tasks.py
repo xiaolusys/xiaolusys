@@ -4,7 +4,6 @@ import datetime
 import calendar
 import json
 from celery.task import task
-from celery.task.sets import subtask
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Q, Sum, Count, F
@@ -426,8 +425,7 @@ def importTradeFromFileTask(fileName):
             try:
                 seller_nick, tid = line.split(',')
                 if tid:
-                    subtask(saveTradeByTidTask).delay(tid,
-                                                      seller_nick.decode('gbk'))
+                    saveTradeByTidTask.delay(tid, seller_nick.decode('gbk'))
             except:
                 pass
 

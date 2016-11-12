@@ -3,7 +3,6 @@ import datetime
 import time
 import json
 from celery.task import task
-from celery.task.sets import subtask
 from shopback import paramconfig as pcfg
 from shopback.items.tasks import updateUserItemsTask, updateUserProductSkuTask
 from shopback.fenxiao.tasks import saveUserFenxiaoProductTask

@@ -8,7 +8,6 @@ import urllib, urllib2
 from BeautifulSoup import BeautifulSoup
 from celery import Task
 from celery.task import task
-from celery.task.sets import subtask
 from .models import SaleProduct, SaleSupplier, SaleCategory
 import logging
 from django.db.models import Sum

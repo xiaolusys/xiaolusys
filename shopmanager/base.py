@@ -140,7 +140,8 @@ INSTALLED_APPS =[
     'oauth2_provider.apps.DOTConfig',
     'raven.contrib.django.raven_compat',
     'rest_framework',
-    'djcelery',
+    'django_celery_results',
+    'django_celery_beat',
 
     'core',
     'django_statsd',
@@ -234,7 +235,6 @@ LOGIN_REDIRECT_URL = '/home/'
 LOGIN_URL = '/admin/login/'
 LOGOUT_URL = '/accounts/logout/'
 
-
 ####################### TRADE HANDLERS CONFIG ########################
 TRADE_HANDLERS_PATH = (
     'shopback.trades.handlers.InitHandler',
@@ -267,6 +267,12 @@ TAOBAO_NOTIFY_URL = 'http://stream.api.taobao.com/stream'
 
 SCOPE = 'item,promotion,usergrade'
 REFRESH_URL = 'https://oauth.taobao.com/token'
+
+API_REQUEST_INTERVAL_TIME = 10  # (seconds)
+API_TIME_OUT_SLEEP = 60  # (seconds)
+API_OVER_LIMIT_SLEEP = 180  # (seconds)
+
+GEN_AMOUNT_FILE_MIN_DAYS = 20
 
 #################### JINGDONG SETTINGS ###################
 JD_API_HOSTNAME = 'gw.api.360buy.com'

@@ -3,7 +3,6 @@ import time
 import datetime
 import calendar
 from celery.task import task
-from celery.task.sets import subtask
 from django.conf import settings
 from shopback.fenxiao.models import PurchaseOrder, FenxiaoProduct, SubPurchaseOrder
 from shopapp.taobao.exceptions import UserFenxiaoUnuseException, TaobaoRequestException

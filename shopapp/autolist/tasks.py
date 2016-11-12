@@ -2,9 +2,6 @@
 import datetime
 import time
 from celery.task import task
-from celery.task.sets import subtask
-from django.conf import settings
-from shopback.users.models import User
 from shopback.items.models import Item
 from shopapp.autolist.models import Logs, ItemListTask, SUCCESS, EXECERROR, UNEXECUTE
 from common.utils import getSignatureTaoBao, format_time, single_instance_task

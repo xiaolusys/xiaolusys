@@ -3,7 +3,6 @@ import datetime
 from django.conf import settings
 from django.db.models import Max
 from celery.task import task
-from celery.task.sets import subtask
 
 from .models import ForecastInbound, ForecastInboundDetail, ForecastStats, RealInbound
 from . import services

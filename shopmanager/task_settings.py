@@ -1,6 +1,9 @@
 # -*- coding:utf-8 -*-
 import os
-import djcelery
+from celery.schedules import crontab
+
+REDIS_HOST = '55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379'
+REDIS_AUTH = os.environ.get('REDIS_AUTH')
 
 ########################################################################################################################
 #说明:新增queue或定时任务需要注意的地方
@@ -15,41 +18,10 @@ import djcelery
 #2.在xx_APP_SCHEDULE里面增加定时任务配置
 ########################################################################################################################
 
-djcelery.setup_loader()
-
-CELERY_IMPORTS = (
-    'shopback.trades.tasks_release',
-    'flashsale.xiaolumm.tasks',
-    'flashsale.xiaolumm.tasks_mama',
-    'flashsale.xiaolumm.tasks_mama_activevalue',
-    'flashsale.xiaolumm.tasks_mama_fortune',
-    'flashsale.xiaolumm.tasks_mama_relationship_visitor',
-    'flashsale.xiaolumm.tasks_mama_carryrecord',
-    'flashsale.xiaolumm.tasks_mama_carry_total',
-    'flashsale.xiaolumm.tasks_mama_clickcarry',
-    'flashsale.xiaolumm.tasks_mama_dailystats',
-    'flashsale.xiaolumm.tasks_mama_push',
-    'flashsale.xiaolumm.tasks_lesson',
-    'flashsale.promotion.tasks_activity',
-    'flashsale.pay.tasks',
-    'shopback.items.tasks_stats',
-    'shopback.items.tasks',
-    'shopapp.weixin.tasks.tasks_order_push',
-    'statistics.tasks',
-    'flashsale.restpro.tasks',
-    'flashsale.forecast.apis',
-    'flashsale.dinghuo.tasks',
-    'supplychain.supplier.tasks',
-)
-
 ############################# BASE SETUP ################################
-# CELERY_RESULT_BACKEND = 'database'
-# BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
 
-CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
-# BROKER_URL = 'amqp://user1:passwd1@127.0.0.1:5672/vhost1'
-# BROKER_URL = 'amqp://fpcnm:139cnm@localhost:5672/myvhost'
-CELERY_RESULT_BACKEND = "djcelery.backends.cache:CacheBackend"  # "amqp"
+CELERY_BROKER_URL = 'redis://:{0}@{1}:6379/29'.format(REDIS_AUTH, REDIS_HOST)
+CELERY_RESULT_BACKEND = 'django-cache'  # "amqp"
 
 BROKER_POOL_LIMIT = 0
 BROKER_CONNECTION_TIMEOUT = 10
@@ -66,7 +38,7 @@ BROKER_TRANSPORT_OPTIONS = {
 }
 
 # Sensible settings for celery
-CELERY_ALWAYS_EAGER = False
+CELERY_TASK_ALWAYS_EAGER = False
 CELERY_ACKS_LATE = True
 CELERY_TASK_PUBLISH_RETRY = True
 CELERY_DISABLE_RATE_LIMITS = False
@@ -126,6 +98,32 @@ CELERY_QUEUES = (
 CELERY_DEFAULT_EXCHANGE = 'default'
 CELERY_DEFAULT_EXCHANGE_TYPE = 'topic'
 CELERY_DEFAULT_ROUTING_KEY = 'default'
+
+CELERY_IMPORTS = (
+    'shopback.trades.tasks_release',
+    'flashsale.xiaolumm.tasks',
+    'flashsale.xiaolumm.tasks_mama',
+    'flashsale.xiaolumm.tasks_mama_activevalue',
+    'flashsale.xiaolumm.tasks_mama_fortune',
+    'flashsale.xiaolumm.tasks_mama_relationship_visitor',
+    'flashsale.xiaolumm.tasks_mama_carryrecord',
+    'flashsale.xiaolumm.tasks_mama_carry_total',
+    'flashsale.xiaolumm.tasks_mama_clickcarry',
+    'flashsale.xiaolumm.tasks_mama_dailystats',
+    'flashsale.xiaolumm.tasks_mama_push',
+    'flashsale.xiaolumm.tasks_lesson',
+    'flashsale.promotion.tasks_activity',
+    'flashsale.pay.tasks',
+    'shopback.items.tasks_stats',
+    'shopback.items.tasks',
+    'shopapp.weixin.tasks.tasks_order_push',
+    'statistics.tasks',
+    'flashsale.restpro.tasks',
+    'flashsale.forecast.apis',
+    'flashsale.dinghuo.tasks',
+    'supplychain.supplier.tasks',
+)
+
 
 APIS_ROUTES = {
     'flashsale.forecast.apis.api_create_or_update_forecastinbound_by_orderlist': {
@@ -983,16 +981,8 @@ CELERY_ROUTES.update(APIS_ROUTES)
 CELERY_ROUTES.update(DINGHUO_ROUTES)
 CELERY_ROUTES.update(QRCODE_ROUTES)
 
-API_REQUEST_INTERVAL_TIME = 10  # (seconds)
-API_TIME_OUT_SLEEP = 60  # (seconds)
-API_OVER_LIMIT_SLEEP = 180  # (seconds)
-
-####### gen trade amount file config #######
-GEN_AMOUNT_FILE_MIN_DAYS = 20
 
 ####### schedule task  ########
-from celery.schedules import crontab
-
 SYNC_MODEL_SCHEDULE = {
     u'定时淘宝分销订单增量下载任务': {  # 增量更新分销部分订单
         'task': 'shopback.fenxiao.tasks.updateAllUserIncrementPurchasesTask',
@@ -1573,10 +1563,10 @@ SHOP_APP_SCHEDULE = {
 #         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
 #     }
 # }
+
+
 CELERYBEAT_SCHEDULE = {}
 
 CELERYBEAT_SCHEDULE.update(SYNC_MODEL_SCHEDULE)
 
 CELERYBEAT_SCHEDULE.update(SHOP_APP_SCHEDULE)
-
-# CELERYBEAT_SCHEDULE.update(nihao)

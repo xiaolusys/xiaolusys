@@ -2,7 +2,6 @@
 import datetime
 from django.conf import settings
 from celery.task import task
-from celery.task.sets import subtask
 from shopback.categorys.models import Category, CategorySaleStat
 from shopback.monitor.models import SystemConfig
 from shopapp.taobao import apis
@@ -30,7 +29,7 @@ def RecurUpdateCategoreyTask(user_id, cid):
                 category.save()
 
                 if cat['is_parent']:
-                    subtask(RecurUpdateCategoreyTask).delay(user_id, cat['cid'])
+                    RecurUpdateCategoreyTask.delay(user_id, cat['cid'])
 
     except Exception, exc:
 

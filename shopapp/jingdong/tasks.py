@@ -3,8 +3,6 @@ import time
 import datetime
 import json
 from celery.task import task
-from celery.task.sets import subtask
-from django.conf import settings
 from .models import JDShop, JDOrder, JDProduct, JDLogistic
 from .service import JDShopService
 from .apis import api
