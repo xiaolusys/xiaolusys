@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
 from django.views.generic.base import TemplateView
 from django.views.decorators.cache import cache_page
 from rest_framework.urlpatterns import format_suffix_patterns
@@ -17,6 +17,6 @@ router_urls += format_suffix_patterns([
     url(r'^purchasestats/$', views.PurchaseStatsApiView.as_view(), name='purchase-stats'),
 ])
 
-urlpatterns = patterns('',
+urlpatterns = [
     url(r'^v1/', include(router_urls, namespace='dinghuo_v1')),
-)
+]

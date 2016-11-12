@@ -11,13 +11,11 @@ from django.db import transaction
 from django.db.models.query import QuerySet
 from django.contrib.admin.models import CHANGE
 
-from shopback import paramconfig as pcfg
 from shopback.items.models import Item, Product, ProductSku, SkuProperty, \
     ItemNumTaskLog, ProductDaySale, SkuStock, InferiorSkuStats
 from shopback.fenxiao.models import FenxiaoProduct
-from shopback.orders.models import Order, Trade
 from shopback.trades.models import MergeOrder, MergeTrade, Refund
-from shopback.users import Seller
+from shopback.users.models import User as Seller
 from shopback.fenxiao.tasks import saveUserFenxiaoProductTask
 from shopback import paramconfig as pcfg
 from flashsale.pay.models import ModelProduct

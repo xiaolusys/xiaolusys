@@ -69,7 +69,7 @@ class StagingInboundViewSet(viewsets.ModelViewSet):
         return self.queryset.filter(creator=get_admin_name(request.user))
 
     def list(self, request, *args, **kwargs):
-        data = request.REQUEST
+        data = request.GET
         forecast_inbound_id = data.get('forecast_inbound_id')
         forecast_inbound = None
 
@@ -251,8 +251,9 @@ class InBoundViewSet(viewsets.ModelViewSet):
 
 
     def create(self, request):
-        records = json.loads(request.REQUEST['records'])
-        forecast_inbound_id = int(request.REQUEST['forecast_inbound_id'])
+        content = request.POST
+        records = json.loads(content['records'])
+        forecast_inbound_id = int(content['forecast_inbound_id'])
 
         forecast_inbound = ForecastInbound.objects.get(id=forecast_inbound_id)
         supplier_id = forecast_inbound.supplier_id
@@ -314,7 +315,7 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
-        forecast_ids_str  = request.REQUEST.get('forecast_ids','')
+        forecast_ids_str  = request.GET.get('forecast_ids','')
         forecast_ids = [s for s in forecast_ids_str.split(',') if s.isdigit()]
         if len(forecast_ids) > 0:
             queryset = queryset.filter(id__in=forecast_ids)

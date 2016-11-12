@@ -128,14 +128,6 @@ class WeiXinAccountAdmin(admin.ModelAdmin):
                     menu[k] = v.encode('utf8')
 
     def response_change(self, request, obj, *args, **kwargs):
-        # 订单处理页面
-        opts = obj._meta
-        # Handle proxy models automatically created by .only() or .defer()
-        verbose_name = opts.verbose_name
-        if obj._deferred:
-            opts_ = opts.proxy_for_model._meta
-            verbose_name = opts_.verbose_name
-        pk_value = obj._get_pk_val()
         if obj.jmenu:
             try:
                 jmenu = obj.jmenu.copy()

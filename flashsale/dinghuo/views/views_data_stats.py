@@ -108,7 +108,7 @@ class StatsProductView(View):
 class StatsSupplierView(View):
     @staticmethod
     def get(request):
-        content = request.REQUEST
+        content = request.GET
         today = datetime.date.today()
         start_time_str = content.get("df", None)
         end_time_str = content.get("dt", None)
@@ -148,7 +148,7 @@ class StatsDinghuoView(APIView):
     template_name = "dinghuo/stats_ding_huo.html"
 
     def get(self, request, format=None):
-        content = request.REQUEST
+        content = request.GET
         today = datetime.date.today()
         start_time_str = content.get("df", None)
         end_time_str = content.get("dt", None)

@@ -9,7 +9,7 @@ import json
 
 class SupplierFieldsChange(View):
     def post(self, request):
-        content = request.REQUEST
+        content = request.POST
         supplier_id = content.get("supplier_id", None)
         zone_id = content.get("zone_id", None)
         supplier_type = content.get("supplier_type", None)

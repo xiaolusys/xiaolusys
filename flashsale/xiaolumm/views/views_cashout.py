@@ -39,7 +39,7 @@ class CashoutBatView(APIView):
         return data
 
     def get(self, request):
-        content = request.REQUEST
+        content = request.GET
         today = datetime.date.today()
         target_day = content.get("target_day", today.strftime("%Y-%m-%d"))  # 目标日期
         target_day = datetime.datetime.strptime(target_day, '%Y-%m-%d')
@@ -56,7 +56,7 @@ class CashoutBatView(APIView):
     def post(self, request):
         if not request.user.has_perm('xiaolumm.xiaolumm_cashout_bat_handler'):
             return Response({"code": 2})  # 没有权限
-        content = request.REQUEST
+        content = request.POST
         cashout_ids = content.get('cashout_ids', None)
         if cashout_ids is None:
             return Response({"code": 1})  # 没有参数

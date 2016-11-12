@@ -484,7 +484,7 @@ def refunding_state(request, state_id):
     return render(request, 'pay/order_flash.html', {'info': rec, 'time': real_today, 'yesterday': today})
 
 def get_mrgid(request):
-    content = request.REQUEST
+    content = request.GET
     sale_order_id = content.get("sale_order_id", None)
     sale_order = get_object_or_404(SaleOrder, id=sale_order_id)
     try:
@@ -495,7 +495,7 @@ def get_mrgid(request):
         return HttpResponse(json.dumps({"res":False,"data":[],"desc":str(msg)}))
 
 def sent_sku_item_again(request):
-    content = request.REQUEST
+    content = request.GET
     sale_order_id = content.get("sale_order_id", None)
     sale_order = get_object_or_404(SaleOrder, id=sale_order_id)
     sale_trade = sale_order.sale_trade
@@ -508,7 +508,7 @@ def sent_sku_item_again(request):
 
 
 def change_sku_item(request):
-    content = request.REQUEST
+    content = request.POST
     sale_order_id = int(content.get("sale_order_id", None))
     sku = content.get("SKU")
     if not sku:
@@ -530,7 +530,7 @@ def change_sku_item(request):
 
 
 def update_memo(request):
-    content = request.REQUEST
+    content = request.POST
     id = content.get("id", None)
     memo = content.get("memo", '')
     try:
@@ -545,7 +545,7 @@ def update_memo(request):
 
 
 def refund_fee(request):
-    content = request.REQUEST
+    content = request.GET
     sale_order = int(content.get("sale_order_id", None))
     sale_order = get_object_or_404(SaleOrder, id=sale_order)  # 退款sale_order对象
     from flashsale.pay.models import TeamBuyDetail

@@ -1,26 +1,16 @@
 __author__ = "kaineng.fang"
 
 import json
-import django
-from django import forms
+from django.utils import six
 from django.core.exceptions import ImproperlyConfigured
-from django.core.paginator import Page
 from django.http.multipartparser import parse_header
 from django.template import Context, RequestContext, loader, Template
-from django.test.client import encode_multipart
-from django.utils import six
-from rest_framework import exceptions, serializers, status, VERSION
-from rest_framework.compat import SHORT_SEPARATORS, LONG_SEPARATORS, INDENT_SEPARATORS
-from rest_framework.exceptions import ParseError
-from rest_framework.settings import api_settings
-from rest_framework.request import is_form_media_type, override_method
-from rest_framework.utils import encoders
-from rest_framework.utils.breadcrumbs import get_breadcrumbs
-from rest_framework.utils.field_mapping import ClassLookupDict
-from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer, BrowsableAPIRenderer
-from chartit import Chart, PivotChart
-
 from django.core.serializers.json import DjangoJSONEncoder
+
+from rest_framework.compat import SHORT_SEPARATORS, LONG_SEPARATORS, INDENT_SEPARATORS
+from rest_framework.settings import api_settings
+from rest_framework.utils import encoders
+from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 
 
 class new_BaseJSONRenderer(JSONRenderer):
@@ -144,10 +134,11 @@ class new_ChartJSONRenderer(JSONRenderer):
             data = {"code": 1, "response_error": data}
 
         class ChartEncoder(json.JSONEncoder):
-            def default(self, data):
-                if isinstance(data, (Chart, PivotChart)):
-                    return data.hcoptions  # Serializer().serialize
-                return DjangoJSONEncoder.default(self, data)
+            pass
+            # def default(self, data):
+            #     if isinstance(data, (Chart, PivotChart)):
+            #         return data.hcoptions  # Serializer().serialize
+            #     return DjangoJSONEncoder.default(self, data)
 
         renderer_context = renderer_context or {}
         indent = self.get_indent(accepted_media_type, renderer_context)

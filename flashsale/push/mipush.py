@@ -6,7 +6,7 @@ import hashlib
 import requests
 
 from django.conf import settings
-from django.core.cache import get_cache
+from django.core.cache import cache
 
 from .decorators import mask, retry
 
@@ -91,7 +91,6 @@ class MiPush(object):
     @mask(1 << 10)
     def get_account_nid(self, customer_id):
         cache_key = self.ACCOUNT_CACHE_KEY_TPL % customer_id
-        cache = get_cache('default')
         account_nid = cache.get(cache_key)
         if account_nid is None or account_nid >= self.MAX_ACCOUNT_NID:
             cache.set(cache_key, 1, self.CACHE_INTERVAL)
@@ -103,7 +102,6 @@ class MiPush(object):
         if len(regid) > 200:
             regid = hashlib.sha1(regid).hexdigest()
         cache_key = self.REGISTRATION_CACHE_KEY_TPL % regid
-        cache = get_cache('default')
         registration_nid = cache.get(cache_key)
 
         if registration_nid is None or registration_nid >= self.MAX_REGISTRATION_NID:
@@ -113,7 +111,6 @@ class MiPush(object):
 
     @mask(1 << 12)
     def get_topic_nid(self):
-        cache = get_cache('default')
         topic_nid = cache.get(self.TOPIC_CACHE_KEY)
         if topic_nid is None or topic_nid >= self.MAX_TOPIC_NID:
             cache.set(self.TOPIC_CACHE_KEY, 1, self.CACHE_INTERVAL)
@@ -122,7 +119,6 @@ class MiPush(object):
 
     @mask(1 << 13)
     def get_all_nid(self):
-        cache = get_cache('default')
         all_nid = cache.get(self.ALL_CACHE_KEY)
         if all_nid is None or all_nid >= self.MAX_ALL_NID:
             cache.set(self.ALL_CACHE_KEY, 1, self.CACHE_INTERVAL)

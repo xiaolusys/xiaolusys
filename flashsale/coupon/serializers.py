@@ -2,10 +2,14 @@
 from rest_framework import serializers
 from flashsale.coupon.models import CouponTemplate, UserCoupon, OrderShareCoupon, TmpShareCoupon
 
-
 class CouponTemplateSerialize(serializers.ModelSerializer):
     class Meta:
         model = CouponTemplate
+        fields = (
+            'id', 'title', 'description', 'value', 'is_random_val', 'prepare_release_num', 'is_flextime',
+            'release_start_time', 'release_end_time', 'use_deadline', 'has_released_count', 'has_used_count',
+            'coupon_type', 'target_user', 'scope_type', 'status', 'extras'
+        )
 
 
 class UserCouponSerialize(serializers.ModelSerializer):

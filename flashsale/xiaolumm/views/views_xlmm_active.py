@@ -18,7 +18,7 @@ class XlmmActive(APIView):
 
     def date_zone(self, request):
         """ 获取日期区间　"""
-        content = request.REQUEST
+        content = request.GET
         date_from = content.get('date_from', None)
         date_to = content.get('date_to', None)
         if date_from is None or date_to is None:

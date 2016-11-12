@@ -11,7 +11,7 @@ from shopapp.report.tasks import updateMonthTradeXlsFileTask
 
 @staff_member_required
 def gen_report_form_file(request):
-    content = request.REQUEST
+    content = request.GET or request.POST
     year = content.get('year', None)
     month = content.get('month', None)
     update_month_trade_task = updateMonthTradeXlsFileTask.delay(year=year, month=month)

@@ -58,7 +58,7 @@ def is_from_weixin(request):
     return False
 
 def get_channel_list(request, customer):
-    content = request.REQUEST
+    content = request.GET
     is_in_weixin = is_from_weixin(request)
     is_in_wap = content.get('device', 'wap') == 'wap'
     channel_list = []
@@ -339,7 +339,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         return charge
 
     def get_mama_referal_params(self, request):
-        form = request.REQUEST
+        form = request.GET
         mama_linkid = form.get('mm_linkid', None)
         ufrom = form.get('ufrom', '0')
         if not mama_linkid:
@@ -678,10 +678,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
         self.logger_request(request)
         user_agent = request.META.get('HTTP_USER_AGENT')
-        CONTENT = request.REQUEST
-        tuuid = CONTENT.get('uuid')
+        content = request.POST
+        tuuid = content.get('uuid')
         customer = Customer.objects.filter(user=request.user).first()
-        cart_ids = [i for i in CONTENT.get('cart_ids', '').split(',') if i.isdigit()]
+        cart_ids = [i for i in content.get('cart_ids', '').split(',') if i.isdigit()]
         cart_qs = ShoppingCart.objects.filter(
             id__in=cart_ids,
             buyer_id=customer.id
@@ -694,18 +694,18 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'message': u'购物车已结算',
                 'stype': 'restpro.trade',
                 'tid': tuuid,
-                'data': '%s' % CONTENT
+                'data': '%s' % content
             })
             return Response({'code': 1, 'info': u'购物车已结算'})
 
-        total_fee = round(float(CONTENT.get('total_fee', '0')) * 100)
-        payment = round(float(CONTENT.get('payment', '0')) * 100)
-        post_fee = round(float(CONTENT.get('post_fee', '0')) * 100)
-        discount_fee = round(float(CONTENT.get('discount_fee', '0')) * 100)
-        pay_extras = CONTENT.get('pay_extras')
+        total_fee = round(float(content.get('total_fee', '0')) * 100)
+        payment = round(float(content.get('payment', '0')) * 100)
+        post_fee = round(float(content.get('post_fee', '0')) * 100)
+        discount_fee = round(float(content.get('discount_fee', '0')) * 100)
+        pay_extras = content.get('pay_extras')
         cart_total_fee = 0
         cart_discount = 0
-        order_type = CONTENT.get('order_type')
+        order_type = content.get('order_type')
 
         if not order_type:
             order_type = SaleTrade.SALE_ORDER
@@ -722,7 +722,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                     'stype': 'restpro.trade',
                     'user_agent': user_agent,
                     'tid': tuuid,
-                    'data': '%s' % CONTENT
+                    'data': '%s' % content
                 })
                 return Response({'code': 2, 'info': u'商品刚被抢光了'})
             cart_total_fee += round(cart.price * cart.num * 100)
@@ -744,7 +744,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'stype': 'restpro.trade',
                 'user_agent': user_agent,
                 'tid': tuuid,
-                'data': '%s' % CONTENT
+                'data': '%s' % content
             })
             return Response({'code': 3, 'info': exc.message})
 
@@ -756,7 +756,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'user_agent': user_agent,
                 'stype': 'restpro.trade',
                 'tid': tuuid,
-                'data': '%s' % CONTENT
+                'data': '%s' % content
             })
             return Response({'code': 4, 'info': u'优惠金额异常'})
 
@@ -769,7 +769,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'user_agent': user_agent,
                 'stype': 'restpro.trade',
                 'tid': tuuid,
-                'data': '%s' % CONTENT
+                'data': '%s' % content
             })
             return Response({'code': 11, 'info': u'付款金额异常'})
 
@@ -783,7 +783,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
         # 检查收货地址
         if order_type != SaleTrade.ELECTRONIC_GOODS_ORDER:
-            addr_id = CONTENT.get('addr_id') or None
+            addr_id = content.get('addr_id') or None
             address = UserAddress.objects.filter(id=addr_id, cus_uid=customer.id).first()
             if not address:
                 logger.warn({
@@ -792,14 +792,14 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                     'user_agent': user_agent,
                     'stype': 'restpro.trade',
                     'tid': tuuid,
-                    'data': '%s' % CONTENT
+                    'data': '%s' % content
                 })
                 return Response({'code': 7, 'info': u'请选择收货地址'})
         else:
             address = None
 
         # 检查付款方式
-        channel = CONTENT.get('channel')
+        channel = content.get('channel')
         if channel not in dict(SaleTrade.CHANNEL_CHOICES):
             logger.warn({
                 'code': 5,
@@ -808,14 +808,14 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'user_agent': user_agent,
                 'stype': 'restpro.trade',
                 'tid': tuuid,
-                'data': '%s' % CONTENT
+                'data': '%s' % content
             })
             return Response({'code': 5, 'info': u'付款方式有误'})
 
         # 创建订单
         try:
             with transaction.atomic():
-                sale_trade, state = self.create_Saletrade(request, CONTENT, address, customer, order_type)
+                sale_trade, state = self.create_Saletrade(request, content, address, customer, order_type)
                 if state:
                     self.create_Saleorder_By_Shopcart(sale_trade, cart_qs)
         except Exception, exc:
@@ -826,7 +826,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'user_agent': user_agent,
                 'stype': 'restpro.trade',
                 'tid': tuuid,
-                'data': '%s' % CONTENT
+                'data': '%s' % content
             })
             return Response({'code': 8, 'info': u'订单创建异常'})
 
@@ -854,7 +854,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'user_agent': user_agent,
                 'stype': 'restpro.trade',
                 'tid': tuuid,
-                'data': '%s' % CONTENT
+                'data': '%s' % content
             }, exc_info=True)
             return Response({'code': 9, 'info': u'订单重复提交'})
         except Exception, exc:
@@ -865,7 +865,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'user_agent': user_agent,
                 'stype': 'restpro.trade',
                 'tid': tuuid,
-                'data': '%s' % CONTENT
+                'data': '%s' % content
             }, exc_info=True)
             return Response({'code': 6, 'info': str(exc) or u'未知支付异常'})
 
@@ -887,7 +887,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     @list_route(methods=['post'])
     def buynow_create(self, request, *args, **kwargs):
         """ 立即购买订单支付接口 """
-        CONTENT  = request.REQUEST
+        CONTENT  = request.POST
         user_agent = request.META.get('HTTP_USER_AGENT')
         tuuid = CONTENT.get('uuid')
         item_id  = CONTENT.get('item_id')

@@ -38,7 +38,7 @@ class TaoBaoBackend(RemoteUserBackend):
         if not request.path.endswith(settings.REDIRECT_URI):
             return None
 
-        content = request.REQUEST
+        content = request.GET or request.POST
         code = content.get('code')
         state = content.get('state')
 

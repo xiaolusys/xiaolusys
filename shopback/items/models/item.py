@@ -6,7 +6,6 @@ import json
 
 from django.db import models
 from shopapp.taobao import apis
-from shopback.users.models import User
 from shopback import paramconfig as pcfg
 
 import logging
@@ -22,7 +21,7 @@ class Item(models.Model):
     )
 
     num_iid = models.CharField(primary_key=True, max_length=64, verbose_name='商品ID')
-    user = models.ForeignKey(User, null=True, related_name='items', verbose_name='店铺')
+    user = models.ForeignKey('users.User', null=True, related_name='items', verbose_name='店铺')
     category = models.ForeignKey('categorys.Category', null=True, related_name='items', verbose_name='淘宝分类')
     product = models.ForeignKey('items.Product', null=True, related_name='items', verbose_name='关联库存商品')
 

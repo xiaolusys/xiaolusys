@@ -1,5 +1,5 @@
 # coding: utf-8
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
 from rest_framework import routers
 from rest_framework.urlpatterns import format_suffix_patterns
 
@@ -82,7 +82,7 @@ lesson_router.register(r'lesson', views.LessonViewSet)
 lesson_router.register(r'instructor', views.InstructorViewSet)
 lesson_router.register(r'lessonattendrecord', views.LessonAttendRecordViewSet)
 
-urlpatterns = patterns('',
-                       url(r'^', include(v2_router_urls, namespace='rest_v2')),
-                       url(r'^mama/', include(v2_router_urls)),
-                       )
+urlpatterns = [
+    url(r'^', include(v2_router_urls, namespace='rest_v2')),
+    url(r'^mama/', include(v2_router_urls)),
+]

@@ -255,13 +255,6 @@ class DistrictVersionAdmin(ApproxAdmin):
 
     def response_change(self, request, obj, *args, **kwargs):
         # 订单处理页面
-        opts = obj._meta
-        # Handle proxy models automatically created by .only() or .defer()
-        verbose_name = opts.verbose_name
-        if obj._deferred:
-            opts_ = opts.proxy_for_model._meta
-            verbose_name = opts_.verbose_name
-        pk_value = obj._get_pk_val()
         obj.status = False
         if not obj.download_url:
             try:
@@ -450,14 +443,6 @@ class SaleRefundAdmin(BaseModelAdmin):
         return SaleRefundChangeList
 
     def response_change(self, request, obj, *args, **kwargs):
-        # 订单处理页面
-        opts = obj._meta
-        # Handle proxy models automatically created by .only() or .defer()
-        verbose_name = opts.verbose_name
-        if obj._deferred:
-            opts_ = opts.proxy_for_model._meta
-            verbose_name = opts_.verbose_name
-
         pk_value = obj._get_pk_val()
         if request.POST.has_key("_refund_confirm"):
             try:
@@ -475,7 +460,7 @@ class SaleRefundAdmin(BaseModelAdmin):
                 logger.error(exc.message, exc_info=True)
                 self.message_user(request, u'系统出错:%s' % exc.message)
 
-            return HttpResponseRedirect("../%s/" % pk_value)
+            return HttpResponseRedirect("./")
 
         elif request.POST.has_key("_refund_refuse"):
             try:
@@ -491,7 +476,7 @@ class SaleRefundAdmin(BaseModelAdmin):
             except Exception, exc:
                 logger.error(exc.message, exc_info=True)
                 self.message_user(request, u'系统出错:%s' % exc.message)
-            return HttpResponseRedirect("../%s/" % pk_value)
+            return HttpResponseRedirect("./")
 
         elif request.POST.has_key("_refund_invoke"):
             try:
@@ -517,7 +502,7 @@ class SaleRefundAdmin(BaseModelAdmin):
                 logger.error(exc.message, exc_info=True)
                 self.message_user(request, '系统出错:%s' % exc.message)
 
-            return HttpResponseRedirect("../%s/" % pk_value)
+            return HttpResponseRedirect("./")
 
         elif request.POST.has_key("_refund_complete"):
             try:
@@ -532,7 +517,7 @@ class SaleRefundAdmin(BaseModelAdmin):
             except Exception, exc:
                 logger.error(exc.message, exc_info=True)
                 self.message_user(request, '系统出错:%s' % exc.message)
-            return HttpResponseRedirect("../%s/" % pk_value)
+            return HttpResponseRedirect("./")
 
         return super(SaleRefundAdmin, self).response_change(request, obj, *args, **kwargs)
 
@@ -579,7 +564,8 @@ class SaleRefundAdmin(BaseModelAdmin):
 admin.site.register(SaleRefund, SaleRefundAdmin)
 
 from django.db.models import Sum
-from django.shortcuts import redirect, render_to_response, RequestContext
+from django.shortcuts import redirect, render_to_response
+from django.template import RequestContext
 from .forms import EnvelopForm, CustomShareForm
 from shopapp.weixin.models_base import WeixinUnionID
 

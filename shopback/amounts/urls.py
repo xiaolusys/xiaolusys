@@ -1,5 +1,5 @@
-from django.conf.urls import patterns, include, url
-
+from django.conf.urls import include, url
+from shopback.amounts.views import update_finish_trade_amount
 # from core.options.resources import ChartsResource
 # from core.options.authentication import UserLoggedInAuthentication
 # from core.options.permissions import IsAuthenticated
@@ -7,8 +7,7 @@ from django.conf.urls import patterns, include, url
 # from shopback.orders.renderers import OrderNumPiovtChartHtmlRenderer
 
 
-urlpatterns = patterns('shopback.orders.views',
-
-                       url('update/(?P<dt_f>[^/]+)/(?P<dt_t>[^/]+)/$', 'update_finish_trade_amount',
-                           name='finish_trade_amount'),
-                       )
+urlpatterns = [
+    url('update/(?P<dt_f>[^/]+)/(?P<dt_t>[^/]+)/$', update_finish_trade_amount,
+       name='finish_trade_amount'),
+]

@@ -1,12 +1,8 @@
-{% extends "admin/base.html" %}
-{% load i18n %}
-
-{% block title %}{{ title }} | {% trans "小鹿云软件" %}{% endblock %}
+{% extends "admin/base_site.html" %}
 
 {% block extrastyle %}
 <style>
 #header{ background-color: #333940; border-bottom: solid 3px #999; }
-
 #branding h1{ color: #fff; }
 .module h2, .module caption, .inline-group h2 { background:#ccc url({{STATIC_URL}}img/nav-bg.gif) bottom left repeat-x; color: #333940; }
 a.section:link, a.section:visited { color: #666666; }
@@ -15,11 +11,6 @@ a.section:link, a.section:visited { color: #666666; }
 <script src="{{ STATIC_URL }}bootstrap-3.3.4-dist/js/bootstrap.min.js" rel="stylesheet" type="text/javascript"></script>
 {% endblock %}
 
-{% block branding %}
-<h1 id="site-name" > {% trans "小鹿美美后台" %}</h1>
-{% endblock %}
-
-{% block nav-global %}{% endblock %}
 
 {% block footer %}
 <div id="footer"></div>

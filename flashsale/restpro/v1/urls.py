@@ -1,8 +1,6 @@
 # coding: utf-8
 
-from django.conf.urls import patterns, include, url
-from django.views.generic.base import TemplateView
-from django.views.decorators.cache import cache_page
+from django.conf.urls import include, url
 
 from rest_framework.urlpatterns import format_suffix_patterns
 from rest_framework import routers
@@ -130,6 +128,10 @@ router_urls += format_suffix_patterns([
     url(r'^users/(?P<pk>[0-9]+)/bang_budget',
         views_user.UserBugetBangView.as_view(),
         name="user-budget-bang"),
+
+    url(r'^address/(?P<pk>[0-9]+)/update',
+        views.UserAddressViewSet.as_view({'post': 'update'}),
+        name="address-update"),
 ])
 
 from flashsale.restpro.v2 import views as views_v2
@@ -139,8 +141,8 @@ lesson_router.register(r'lesson', views_v2.LessonViewSet)
 lesson_router.register(r'instructor', views_v2.InstructorViewSet)
 lesson_router.register(r'lessonattendrecord', views_v2.LessonAttendRecordViewSet)
 
-urlpatterns = patterns('',
+urlpatterns = [
     url(r'^', include(router_urls, namespace='rest_v1')),
     url(r'^lesson/', include(lesson_router.urls, namespace='lesson_v1')),
     url(r'^pmt/', include(router_urls_promotion, namespace='promotion_v1')),
-)
+]

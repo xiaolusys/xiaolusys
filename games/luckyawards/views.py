@@ -24,7 +24,6 @@ class LuckyAwardView(APIView):
         return Response({'joiners': joiners})
 
     def post(self, request):
-        content = request.REQUEST
+        content = request.POST
         origin_url = content.get('origin_url')
-
         return redirect(origin_url)

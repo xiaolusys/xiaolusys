@@ -149,7 +149,7 @@ def mergeMaker(trade, sub_trade):
 @cache_lock(cache_time=12 * 60 * 60)
 @transaction.atomic
 def mergeRemover(trade):
-    from shopapp.memorule import ruleMatchPayment
+    from shopapp.memorule.services import ruleMatchPayment
 
     if not isinstance(trade, MergeTrade):
         trade = MergeTrade.objects.get(id=trade)

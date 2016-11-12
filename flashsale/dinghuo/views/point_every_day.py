@@ -38,7 +38,7 @@ class RecordPointView(View):
             group_id = my_user[0].group_id
         else:
             group_id = 1
-        content = request.REQUEST
+        content = request.GET
         today = datetime.date.today()
         shelve_fromstr = content.get("df", None)
         target_date = today

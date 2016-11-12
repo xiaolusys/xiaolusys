@@ -40,7 +40,7 @@ def Top100_Click(request):
     # 计算每个月的点击TOP100
     # 根据妈妈的ID   计算下个月 的点击  订单
     # 根据妈妈的ID   计算下下个月 的点击  订单
-    content = request.REQUEST
+    content = request.GET
     daystr = content.get("month", None)
     if daystr:
         year, month, day = daystr.split('-')
@@ -114,7 +114,7 @@ def Top100_Order(request):
     # 计算每个月的订单TOP100
     # 根据妈妈的ID   计算下个月 的点击  订单
     # 根据妈妈的ID   计算下下个月 的点击  订单
-    content = request.REQUEST
+    content = request.GET
     daystr = content.get("month", None)
     if daystr:
         year, month, day = daystr.split('-')

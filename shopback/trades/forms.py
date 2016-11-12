@@ -9,7 +9,9 @@ from .models import MergeTrade, LogisticsCompany
 
 
 class YundaCustomerForm(forms.ModelForm):
-    logistics_company = forms.ModelChoiceField(label='物流名称', queryset=LogisticsCompany.normal_companys())
+    logistics_company = forms.ModelChoiceField(label='物流名称',
+                                               queryset=LogisticsCompany.normal_companys())
+                                               # choices=())
 
     class Meta:
         model = MergeTrade

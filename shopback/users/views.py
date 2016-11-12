@@ -9,7 +9,7 @@ from shopback.base.authentication import login_required_ajax
 @csrf_exempt
 @login_required_ajax
 def get_usernames_by_segstr(request):
-    content = request.REQUEST
+    content = request.GET
     q = content.get('term')
     if not q:
         ret = {'code': 1, 'error_response': u'查询内容不能为空'}

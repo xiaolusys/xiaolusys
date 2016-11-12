@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import datetime
 from shopback.trades.mixins import TaobaoTradeService, TaobaoSendTradeMixin
-from shopback.users import Seller
+from shopback.users.models import User as Seller
 from shopback.orders.models import Trade, Order
 from shopback.trades.models import MergeTrade, MergeOrder
 from shopback.items.models import Product

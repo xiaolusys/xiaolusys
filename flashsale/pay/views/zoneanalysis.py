@@ -1,12 +1,14 @@
 # coding=utf-8
+import json
+import datetime
+
 from django.db import connection, transaction
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
-import json
 from django.http import HttpResponse
 from django.core.serializers.json import DjangoJSONEncoder
-import datetime
+
 
 """
  统计购买用户各地区分布比例（按省，直辖市统计）按月份统计

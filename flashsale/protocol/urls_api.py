@@ -1,5 +1,5 @@
 # coding=utf-8
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
 from rest_framework import routers
 from flashsale.protocol import views
 
@@ -8,6 +8,6 @@ router.register(r'apppushmsg', views.APPFullPushMessgeViewSet)
 
 router_urls = router.urls
 router_urls += ([])
-urlpatterns = patterns('',
-                       url(r'^v1/', include(router_urls, namespace='protocol-v1')),
-                       )
+urlpatterns = [
+    url(r'^v1/', include(router_urls, namespace='protocol-v1')),
+]

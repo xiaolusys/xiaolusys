@@ -29,7 +29,7 @@ class RefundRateView(APIView):
         return Response({"time_from": time_from, "time_to": time_to})
 
     def post(self, request, format=None):
-        content = request.REQUEST
+        content = request.POST
         date_from = content.get("date_from", None)
         date_to = content.get("date_to", None)
         year, montth, day = map(int, date_from.split('-'))
@@ -57,7 +57,7 @@ class RefundRecord(APIView):
         return Response({"time_from": time_from, "time_to": time_to})
 
     def post(self, request, format=None):
-        content = request.REQUEST
+        content = request.POST
         date_from = content.get("date_from", None)
         date_to = content.get("date_to", None)
         year, month, day = map(int, date_from.split('-'))

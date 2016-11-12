@@ -38,7 +38,7 @@ class DailyDingHuoView(View):
         return functions.parse_date(end_dt)
 
     def get(self, request):
-        content = request.REQUEST
+        content = request.GET
         today = datetime.date.today()
         shelve_fromstr = content.get("df", None)
         shelve_to_str = content.get("dt", None)
@@ -169,7 +169,7 @@ class DailyDingHuoView2(View):
         return functions.parse_date(end_dt)
 
     def get(self, request):
-        content = request.REQUEST
+        content = request.GET
         today = datetime.date.today()
         # 上架日期
         shelve_fromstr = content.get("df", None)
@@ -223,7 +223,7 @@ class DailyDingHuoOptimizeView(View):
         return functions.parse_date(end_dt)
 
     def get(self, request):
-        content = request.REQUEST
+        content = request.GET
         today = datetime.date.today()
         shelve_fromstr = content.get("df", None)
         shelve_to_str = content.get("dt", None)

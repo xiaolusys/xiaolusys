@@ -1,28 +1,19 @@
 # encoding=utf8
 # Django settings for shopmanager project.
 import sys
-import os
-
-
 reload(sys)
 sys.setdefaultencoding('utf-8')
-
-# try:
-#     import gevent_blocktracer
-# except ImportError:
-#     pass
 
 import os.path
 import posixpath
 
-from global_setup import install_pymysqldb, cancel_pingpp_charge_ssl_verify
-install_pymysqldb()
-cancel_pingpp_charge_ssl_verify()
+import global_setup
+global_setup.install_pymysqldb()
+global_setup.cancel_pingpp_charge_ssl_verify()
+global_setup.patch_django1_10_core_get_cache()
 
-PROJECT_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
 DEBUG = False
-TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
     ('meixqhi', 'xiuqing.mei@xiaolumeimei.com'),
@@ -58,6 +49,7 @@ SITE_ID = 1
 USE_I18N = True
 
 # USE_L10N = True
+PROJECT_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
 MEDIA_ROOT = os.path.join(PROJECT_ROOT, "site_media", "media")
 
@@ -85,18 +77,12 @@ STATICFILES_FINDERS = (
 
 SECRET_KEY = 'zze(^rvhdz(hxx16a788w6jyqhtq%*v_pl^2#t1dskpb!473f8'
 
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-    #     'django.template.loaders.eggs.Loader',
-)
-
 MIDDLEWARE_CLASSES = (
     'core.middleware.middleware.XForwardedForMiddleware',
     'core.middleware.middleware.AttachContentTypeMiddleware',
     'raven.contrib.django.middleware.SentryResponseErrorIdMiddleware',
     'core.middleware.middleware.DisableDRFCSRFCheck',
-    # 'core.middleware.middleware.XSessionMiddleware',
+    'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -105,56 +91,61 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django.middleware.security.SecurityMiddleware',
+
 )
 
 ROOT_URLCONF = 'shopmanager.urls'
 WSGI_APPLICATION = 'shopmanager.wsgi.application'
 
 TEMPLATES_ROOT = os.path.join(PROJECT_ROOT, "site_media", "templates")
-TEMPLATE_DIRS = (
-    os.path.join(PROJECT_ROOT, "templates"),
-)
 
-TEMPLATE_CONTEXT_PROCESSORS = (
-    'django.contrib.auth.context_processors.auth',
-    'django.core.context_processors.debug',
-    'django.core.context_processors.i18n',
-    'django.core.context_processors.media',
-    'django.core.context_processors.static',
-    'django.core.context_processors.tz',
-    #    'django.core.context_processors.request',
-    'django.contrib.messages.context_processors.messages',
-    # 'core.middleware.context_processors.session',
-)
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+            os.path.join(PROJECT_ROOT, "templates"),
+        ],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                # Insert your TEMPLATE_CONTEXT_PROCESSORS here or use this
+                # list if you haven't customized them:
+                'django.contrib.auth.context_processors.auth',
+                'django.template.context_processors.debug',
+                'django.template.context_processors.i18n',
+                'django.template.context_processors.media',
+                'django.template.context_processors.static',
+                'django.template.context_processors.tz',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
 
 INSTALLED_APPS =[
-    'django.contrib.admin',
-    'django.contrib.admindocs',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
+
+    'django.contrib.admin.apps.AdminConfig',
+    # 'django.contrib.admindocs',
+    'django.contrib.auth.apps.AuthConfig',
+    'django.contrib.contenttypes.apps.ContentTypesConfig',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.sites',
     'django.contrib.staticfiles',
 
-    # 'provider',
-    # 'provider.oauth2',
-    'oauth2_provider',
-    'chartit',
+    'djkombu',
     'gunicorn',
+    'httpproxy',
+    'tagging.apps.TaggingConfig',
+    'oauth2_provider.apps.DOTConfig',
     'raven.contrib.django.raven_compat',
     'rest_framework',
     'djcelery',
-    'djkombu',
-    'httpproxy',
+
+    'core',
     'django_statsd',
     'oneapm_statsd',
-    'core.ormcache',
-    'core',
-    'tagging',
 
-    'common',
     'shopback.amounts',
     'shopback.categorys',
     'shopback.fenxiao',
@@ -168,10 +159,8 @@ INSTALLED_APPS =[
     'shopback.archives',
     'shopback.purchases',
     'shopback.warehouse',
-    # 'shopback.aftersale',
 
     'shopapp.autolist',
-    'shopapp.collector',
     'shopapp.memorule',
     'shopapp.report',
     'shopapp.asynctask',
@@ -204,7 +193,6 @@ INSTALLED_APPS =[
     'games.weixingroup',
     'games.renewremind',
 
-    # 'flashsale.supplier',
     'flashsale.complain',
     'flashsale.pay',
     'flashsale.finance',
@@ -294,6 +282,7 @@ FONT_PATH = '/usr/share/fonts/truetype/ttf-dejavu/DejaVuSerif-Bold.ttf'
 ASYNC_FILE_PATH = os.path.join(PROJECT_ROOT, "site_media", "asyncfile")
 
 ################### HTTPS/SSL SETTINGS ##################
+SECURE_SSL_HOST = 'https://m.xiaolumeimei.com'
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 HTTPS_SUPPORT = False
 SECURE_REQUIRED_PATHS = (
@@ -328,7 +317,7 @@ from .task_settings import *  # celery config
 REST_FRAMEWORK = {
     #     'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.AllowAny',),
     'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.NamespaceVersioning',
-    'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',),
+    'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
         # 'rest_framework.renderers.TemplateHTMLRenderer',

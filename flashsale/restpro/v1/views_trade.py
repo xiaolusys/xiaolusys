@@ -247,8 +247,9 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     @list_route(methods=['post'])
     def sku_num_enough(self, request, *args, **kwargs):
         """ 规格数量是否充足 """
-        sku_id = request.REQUEST.get('sku_id', '')
-        sku_num = request.REQUEST.get('sku_num', '')
+        content = request.POST
+        sku_id = content.get('sku_id', '')
+        sku_num = content.get('sku_num', '')
         if not sku_id.isdigit() or not sku_num.isdigit():
             raise exceptions.APIException(u'规格ID或数量有误')
         sku_num = int(sku_num)
@@ -371,7 +372,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def now_payinfo(self, request, format=None, *args, **kwargs):
         """ 立即购买获取支付信息 """
-        content = request.REQUEST
+        content = request.GET
         sku_id = content.get('sku_id', '')
         if not sku_id.isdigit():
             raise exceptions.APIException(u'传入规格ID不合法')
@@ -735,7 +736,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         return charge
 
     def get_mama_referal_params(self, request):
-        form = request.REQUEST
+        form = request.GET
         mama_linkid = form.get('mm_linkid', None)
         ufrom = form.get('ufrom', '0')
         if not mama_linkid:
@@ -901,7 +902,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         """ 购物车订单支付接口 """
         self.logger_request(request)
 
-        CONTENT = request.REQUEST
+        CONTENT = request.POST
         tuuid = CONTENT.get('uuid')
         if not UUID_RE.match(tuuid):
             logger.error('invalid uuid: %s' % CONTENT)
@@ -919,7 +920,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         # 这里不对购物车状态进行过滤，防止订单创建过程中购物车状态发生变化
         if cart_qs.count() != len(cart_ids):
             logger.warn('debug cart v1:content_type=%s,params=%s,cart_qs=%s' % (
-            request.META.get('CONTENT_TYPE', ''), request.REQUEST, cart_qs.count()))
+            request.META.get('CONTENT_TYPE', ''), request.POST, cart_qs.count()))
             raise exceptions.ParseError(u'购物车已结算待支付')
         xlmm = self.get_xlmm(request)
         total_fee = round(float(CONTENT.get('total_fee', '0')) * 100)
@@ -998,7 +999,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get', 'post'])
     def buynow_create(self, request, *args, **kwargs):
         """ 立即购买订单支付接口 """
-        CONTENT = request.REQUEST
+        CONTENT = request.POST
         tuuid = CONTENT.get('uuid')
         if not UUID_RE.match(tuuid):
             logger.error('invalid uuid: %s' % CONTENT)

@@ -5,13 +5,13 @@ import json
 import logging
 import re
 import time
+from collections import OrderedDict
 
 from django.core.urlresolvers import reverse
 from django.db.models import Q, Sum
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
 from django.shortcuts import render_to_response, render
 from django.template import RequestContext
-from django.views.generic import FormView
 
 from shopapp.taobao import apis
 from common.utils import (parse_date, CSVUnicodeWriter, parse_datetime,
@@ -25,9 +25,11 @@ from shopback.logistics.models import LogisticsCompany
 
 from shopback.items.models import Product, ProductSku, ProductDaySale
 from core.options import log_action, ADDITION, CHANGE
+
 from flashsale.pay.models import SaleOrder,SaleTrade      #dh
 from shopback.trades.models import PackageOrder, PackageSkuItem         #dh
-from shopapp.memorule import ruleMatchSplit
+
+from shopapp.memorule.services import ruleMatchSplit
 from shopback.refunds.models import REFUND_STATUS, Refund
 from shopback.signals import rule_signal, change_addr_signal
 from shopback.trades.models_dirty import DirtyMergeOrder
@@ -35,13 +37,12 @@ from shopback.trades.models import (MergeTrade, MergeOrder, PackageOrder, Packag
                                     ReplayPostTrade, GIFT_TYPE,
                                     SYS_TRADE_STATUS, TAOBAO_TRADE_STATUS,
                                     SHIPPING_TYPE_CHOICE, TAOBAO_ORDER_STATUS)
+
 from shopback.refunds.models import RefundProduct
 from shopback.trades.forms import ExchangeTradeForm
 from shopback.users.models import User
 
 from rest_framework import authentication, filters, generics, permissions, status, viewsets
-from rest_framework.compat import OrderedDict
-from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer, BrowsableAPIRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from renderers import *
@@ -399,7 +400,7 @@ class StatisticMergeOrderView(APIView):
 
     def get(self, request, *args, **kwargs):
 
-        content = request.REQUEST
+        content = request.GET
         start_dt = content.get('df', '').strip()
         end_dt = content.get('dt', '').strip()
         shop_id = content.get('shop_id')
@@ -499,7 +500,7 @@ class StatisticMergeOrderAsyncView(APIView):
         return parse_date(end_dt)
 
     def get(self, request, *args, **kwargs):
-        content = request.REQUEST
+        content = request.GET
         start_dt = content.get('df', '').strip()
         end_dt = content.get('dt', '').strip()
         shop_id = content.get('shop_id')
@@ -587,7 +588,7 @@ class CheckOrderView(APIView):
             trade = MergeTrade.objects.get(id=id)
         except MergeTrade.DoesNotExist:
             return Response(u'该订单不存在')
-        content = request.REQUEST
+        content = request.POST
         priority = content.get('priority')
         logistic_code = content.get('logistic_code')
         shipping_type = content.get('shipping_type')
@@ -756,7 +757,7 @@ class OrderPlusView(APIView):
         return Response(prod_list)
 
     def post(self, request, *args, **kwargs):
-        CONTENT = request.REQUEST
+        CONTENT = request.POST
         # print "post搜索条件",CONTENT.get('trade_id')
         user_id = request.user.id
         #  trade_id = request.POST.get('trade_id')
@@ -817,7 +818,7 @@ class OrderPlusView(APIView):
 def change_trade_addr(request):
     user_id = request.user.id
     # print "用户",user_id
-    CONTENT = request.REQUEST
+    CONTENT = request.POST
     # print "参数是",CONTENT.get('receiver_name')
     trade_id = CONTENT.get('trade_id')
     try:
@@ -872,7 +873,7 @@ def change_trade_addr(request):
 
 def change_trade_order(request, id):
     user_id = request.user.id
-    CONTENT = request.REQUEST
+    CONTENT = request.POST
     outer_sku_id = CONTENT.get('outer_sku_id')
     order_num = int(CONTENT.get('order_num', 0))
 
@@ -1085,7 +1086,7 @@ def review_order(request, id):
 
 
 def change_order_stock_status(request, id):
-    content = request.REQUEST
+    content = request.POST
     out_stock = content.get('out_stock', '0')
     user_id = request.user.id
 
@@ -1122,7 +1123,7 @@ def change_order_stock_status(request, id):
 
 def change_logistic_and_outsid(request):
     user_id = request.user.id
-    CONTENT = request.REQUEST
+    CONTENT = request.POST
     trade_id = CONTENT.get('trade_id')
     out_sid = CONTENT.get('out_sid')
     logistic_code = CONTENT.get('logistic_code', '').upper()
@@ -1208,7 +1209,7 @@ def change_logistic_and_outsid(request):
 
 
 def change_package_logistic_and_outsid(request):
-    CONTENT = request.REQUEST
+    CONTENT = request.POST
     trade_id = CONTENT.get('trade_id')
     out_sid = CONTENT.get('out_sid')
     logistic_code = CONTENT.get('logistic_code', '').upper()
@@ -1257,7 +1258,7 @@ def change_package_logistic_and_outsid(request):
 
 
 def change_package_ware_by(request):
-    CONTENT = request.REQUEST
+    CONTENT = request.POST
     package_order_pid = CONTENT.get('package_order_pid')
     ware_by = int(CONTENT.get('ware_by'))
     p = PackageOrder.objects.get(pid=package_order_pid)
@@ -1286,7 +1287,7 @@ class ExchangeOrderView(APIView):
 
     def post(self, request, *args, **kwargs):
 
-        content = request.REQUEST
+        content = request.POST
         trade_id = content.get('tid')
         seller_id = content.get('sellerId')
 
@@ -1342,7 +1343,7 @@ class ExchangeOrderInstanceView(APIView):
 
     def post(self, request, id, *args, **kwargs):
 
-        content = request.REQUEST
+        content = request.POST
         try:
             merge_trade = MergeTrade.objects.get(id=id)
             print merge_trade
@@ -1383,7 +1384,7 @@ class DirectOrderView(APIView):
 
     def get(self, request, *args, **kwargs):
 
-        content = request.REQUEST
+        content = request.GET
         type = content.get('type', '')
         origin_no = MergeTrade._meta.get_field_by_name('tid')[0].get_default()
         sellers = User.objects.all()
@@ -1396,7 +1397,7 @@ class DirectOrderView(APIView):
 
     def post(self, request, *args, **kwargs):
 
-        content = request.REQUEST
+        content = request.POST
         trade_id = content.get('tid')
         seller_id = content.get('sellerId')
         trade_type = content.get('trade_type')
@@ -1455,7 +1456,7 @@ class DirectOrderInstanceView(APIView):
 
     def post(self, request, id, *args, **kwargs):
 
-        content = request.REQUEST
+        content = request.POST
         type = content.get('trade_type')
 
         if type not in (pcfg.DIRECT_TYPE, pcfg.REISSUE_TYPE):
@@ -1491,7 +1492,7 @@ class DirectOrderInstanceView(APIView):
 
 def update_sys_memo(request):
     user_id = request.user.id
-    content = request.REQUEST
+    content = request.POST
     trade_id = content.get('trade_id', '')
     sys_memo = content.get('sys_memo', '')
     try:
@@ -1515,7 +1516,7 @@ def update_sys_memo(request):
 
 
 def regular_trade(request, id):
-    regular_days = request.REQUEST.get('days', '1')
+    regular_days = request.POST.get('days', '1')
     if not regular_days.isdigit() or int(regular_days) <= 0:
         return HttpResponse(
             json.dumps({'code': 1,
@@ -1603,7 +1604,7 @@ class TradeSearchView(APIView):
 
     def get(self, request, *args, **kwargs):
         trade_list = []
-        q = request.REQUEST.get('q')
+        q = request.GET.get('q')
         if not q:
             return Response(u'请输入查询字符串')
 
@@ -1650,7 +1651,7 @@ class TradeSearchView(APIView):
 
     def post(self, request, *args, **kwargs):
 
-        content = request.REQUEST
+        content = request.POST
         cp_tid = content.get('cp_tid')
         pt_tid = content.get('pt_tid')
         type = content.get('type', '')
@@ -1817,7 +1818,7 @@ class RelatedOrderStateView(APIView):
 
     def get(self, request, *args, **kwargs):
 
-        content = request.REQUEST
+        content = request.GET
         df = content.get('df')
         dt = content.get('dt')
         outer_id = content.get('outer_id', '')
@@ -1917,7 +1918,7 @@ class TradeLogisticView(APIView):
 
     def get(self, request, *args, **kwargs):
 
-        content = request.REQUEST
+        content = request.GET
         q = content.get('q')
         df = content.get('df')
         dt = content.get('dt')
@@ -2197,7 +2198,7 @@ class PackageScanCheckView(APIView):
 
     def get(self, request, *args, **kwargs):
 
-        content = request.REQUEST
+        content = request.GET
         package_no = content.get('package_no', '').strip()
         if not package_no:
             return Response(u'运单号不能为空')
@@ -2221,7 +2222,7 @@ class PackageScanCheckView(APIView):
 
     def post(self, request, *args, **kwargs):
 
-        content = request.REQUEST
+        content = request.POST
         package_no = content.get('package_no', '').strip()
 
         if not package_no:
@@ -2278,7 +2279,7 @@ class PackageScanWeightView(APIView):
 
     def get(self, request, *args, **kwargs):
 
-        content = request.REQUEST
+        content = request.GET
         package_no = content.get('package_no', '').strip()
         if not package_no:
             return Response(u'运单号不能为空')
@@ -2312,7 +2313,7 @@ class PackageScanWeightView(APIView):
 
     def post(self, request, *args, **kwargs):
         from flashsale.pay.models import SaleOrder
-        content = request.REQUEST
+        content = request.POST
         package_no = content.get('package_no', '').strip()
         package_weight = content.get('package_weight', '').strip()
 
@@ -2564,7 +2565,7 @@ class SaleMergeOrderListView(APIView):
 
     def get(self, request, *args, **kwargs):
 
-        content = request.REQUEST
+        content = request.GET
         start_dt = content.get('df', '').strip()
         end_dt = content.get('dt', '').strip()
         shop_id = content.get('shop_id')
@@ -2791,8 +2792,7 @@ def search_trade(request):
 
 
 def search_package_sku_item(request):
-    package_pid = request.REQUEST.get("package_pid", None)
-    print package_pid
+    package_pid = request.GET.get("package_pid",None)
     try:
         package_sku_item = PackageSkuItem.objects.get(package_order_pid=package_pid)
         print package_sku_item.sale_order_id
@@ -2816,7 +2816,7 @@ def manybeizhu(request):
 
 def beizhu(request):
     user_id = request.user.id
-    content = request.REQUEST
+    content = request.POST
     a = content.get("a", None)
     c = content.get("b", None)
     tid_list = a.split('\n')
@@ -2858,8 +2858,8 @@ from django.views.decorators.csrf import csrf_exempt
 @csrf_exempt
 def select_Stock(request):
     if 'tid' in request.POST and 'stock' in request.POST:
-        tid = request.REQUEST.get('tid')
-        stock = request.REQUEST.get('stock')
+        tid = request.POST.get('tid')
+        stock = request.POST.get('stock')
         try:
             megobj = MergeTrade.objects.get(id=tid)
         except Exception:

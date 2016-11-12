@@ -17,7 +17,7 @@ class PostGoodShelf(View):
     template = "poster/upload_poster.html"
 
     def get(self, request):
-        content = request.REQUEST
+        content = request.GET
         date = content.get('date', None)
         categray = content.get('categray', None)
         if categray == "child":
@@ -28,7 +28,7 @@ class PostGoodShelf(View):
                                   context_instance=RequestContext(request))
 
     def post(self, request):
-        content = request.REQUEST
+        content = request.POST
         date = content.get("date", None)
         categray = content.get("categray", None)
         pic_link = content.get("pic_link", None)

@@ -61,7 +61,7 @@ def index(req):
     key = req.GET.get('key', 'created')
 
     sql = """
-        SELECT * FROM xiaoludb.flashsale_xlmm_mamadailyappvisit
+        SELECT * FROM flashsale_xlmm_mamadailyappvisit
         where created > %s
             and created < %s
     """
@@ -121,7 +121,7 @@ def show(req):
         cash_num = 0
 
     sql = """
-        SELECT * FROM xiaoludb.flashsale_xlmm_mamadailyappvisit
+        SELECT * FROM flashsale_xlmm_mamadailyappvisit
         where mama_id = %s
         order by created desc
         limit 10
@@ -135,7 +135,7 @@ def show(req):
 
     # sql = """
     # select count(money) as rank from
-    #     (SELECT SUM(carry_num) as money FROM xiaoludb.flashsale_xlmm_carry_record
+    #     (SELECT SUM(carry_num) as money FROM flashsale_xlmm_carry_record
     #     where status in (1,2)
     #     group by mama_id
     #     order by money desc
@@ -149,7 +149,7 @@ def show(req):
 
     # sql = """
     # select count(money) as rank from
-    #     (SELECT SUM(carry_num) as money FROM xiaoludb.flashsale_xlmm_order_carry
+    #     (SELECT SUM(carry_num) as money FROM flashsale_xlmm_order_carry
     #     where status in (1,2)
     #     group by mama_id
     #     order by money desc
@@ -162,7 +162,7 @@ def show(req):
 
     # sql = """
     # select count(money) as rank from
-    #     (SELECT SUM(total_value) as money FROM xiaoludb.flashsale_xlmm_click_carry
+    #     (SELECT SUM(total_value) as money FROM flashsale_xlmm_click_carry
     #     where status in (1,2)
     #     group by mama_id
     #     order by money desc
@@ -177,7 +177,7 @@ def show(req):
 
     # sql = """
     # select count(*) as rank from (
-    #     SELECT count(*) as count  FROM xiaoludb.flashsale_xlmm_referal_relationship
+    #     SELECT count(*) as count  FROM flashsale_xlmm_referal_relationship
     #     group by referal_from_mama_id
     #     ) as rank
     # where count > %s
@@ -200,15 +200,15 @@ def show(req):
 @login_required
 def carry(req):
     # sql = """
-    # SELECT mama_id, sum(carry_num) as money FROM xiaoludb.flashsale_xlmm_carry_record
+    # SELECT mama_id, sum(carry_num) as money FROM flashsale_xlmm_carry_record
     # where status=2
     # group by mama_id
     # """
     p_start_date, p_end_date, start_date, end_date = get_date_from_req(req)
     sql = """
-    SELECT mama_id, sum(carry_num) as money FROM xiaoludb.flashsale_xlmm_carry_record
+    SELECT mama_id, sum(carry_num) as money FROM flashsale_xlmm_carry_record
     where status in (1, 2) and mama_id in (
-        SELECT xiaolumm_xiaolumama.id FROM xiaoludb.xiaolumm_xiaolumama
+        SELECT xiaolumm_xiaolumama.id FROM xiaolumm_xiaolumama
         where xiaolumm_xiaolumama.agencylevel=3
             and created > %s
             and created < %s
@@ -218,7 +218,7 @@ def carry(req):
     queryset = execute_sql(get_cursor(), sql, [format_datetime(start_date), format_datetime(end_date)])
 
     sql = """
-    SELECT count(*) as count FROM xiaoludb.xiaolumm_xiaolumama
+    SELECT count(*) as count FROM xiaolumm_xiaolumama
         where xiaolumm_xiaolumama.agencylevel=3
             and created > %s
             and created < %s
@@ -253,7 +253,7 @@ def retain(req):
     mamas = XiaoluMama.objects.filter(created__gte=start_date, created__lt=end_date, agencylevel=3)
 
     sql = """
-        SELECT * FROM xiaoludb.flashsale_xlmm_mamadailyappvisit
+        SELECT * FROM flashsale_xlmm_mamadailyappvisit
         where created > %s
             and created < %s
     """
@@ -341,7 +341,7 @@ def new_mama(req):
     cursor = get_cursor()
 
     sql = """
-        SELECT id, created, last_renew_type, openid FROM xiaoludb.xiaolumm_xiaolumama
+        SELECT id, created, last_renew_type, openid FROM xiaolumm_xiaolumama
         where created >= %s and created < %s
             and charge_status='charged'
             and last_renew_type in (3, 15, 183, 365)
@@ -574,7 +574,7 @@ def new_task(req):
 def click(req):
     p_start_date, p_end_date, start_date, end_date = get_date_from_req(req)
     sql = """
-        SELECT DATE(created) as date, count(*) as count FROM xiaoludb.flashsale_xlmm_unique_visitor
+        SELECT DATE(created) as date, count(*) as count FROM flashsale_xlmm_unique_visitor
         where created > %s and created < %s
         group by DATE(created)
         order by created
@@ -584,7 +584,7 @@ def click(req):
     x_axis = [format_date(x['date']) for x in queryset]
 
     sql = """
-    SELECT DATE(pay_time) as date, count(*) as count FROM xiaoludb.flashsale_trade
+    SELECT DATE(pay_time) as date, count(*) as count FROM flashsale_trade
     where extras_info regexp '.*"mm_linkid": "?[1-9]+"?'
     and pay_time > %s and pay_time < %s
     and pay_time is not null

@@ -88,7 +88,7 @@ class LoginViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.Gene
 
     @list_route(methods=['get'])
     def weixin_auth_and_redirect(self, request):
-        next_url = request.REQUEST.get('next')
+        next_url = request.GET.get('next')
         code = request.GET.get('code')
 
         if not in_weixin(request):
@@ -159,7 +159,7 @@ class LoginViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.Gene
     @list_route(methods=['post'])
     def sms_login(self, request, *args, **kwargs):
         """ 短信验证码登陆 """
-        req_params = request.REQUEST
+        req_params = request.POST
         mobile = req_params.get('mobile', '')
 
         if mobile == "" or not re.match(PHONE_NUM_RE, mobile):

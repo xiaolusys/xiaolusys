@@ -18,7 +18,7 @@ logger = logging.getLogger('django.request')
 
 
 def flashsale_login(request):
-    next_url = request.REQUEST.get(REDIRECT_FIELD_NAME, reverse('sale_home'))
+    next_url = request.GET.get(REDIRECT_FIELD_NAME, reverse('sale_home'))
     if request.method == 'GET':
 
         defaults = {
@@ -48,7 +48,7 @@ def productlist_redirect(request):
 
 @weixin_xlmm_auth(redirecto=urljoin(settings.M_SITE_URL, '/pages/denglu.html'))
 def weixin_login(request):
-    next_url = request.REQUEST.get('next', '/')
+    next_url = request.GET.get('next', '/')
     response = HttpResponseRedirect(next_url)
 
     customer = Customer.objects.get(user=request.user.id)
@@ -60,7 +60,7 @@ def weixin_login(request):
 
 @weixin_test_auth(redirecto=urljoin(settings.M_SITE_URL, '/pages/denglu.html'))
 def weixin_test(request):
-    next_url = request.REQUEST.get('next')
+    next_url = request.GET.get('next')
     if next_url:
         return HttpResponseRedirect(next_url)
     return HttpResponseRedirect('/')
@@ -70,7 +70,7 @@ from flashsale.pay.tasks import task_Merge_Sale_Customer
 
 
 def weixin_auth_and_redirect(request):
-    next_url = request.REQUEST.get('next')
+    next_url = request.GET.get('next')
     code = request.GET.get('code')
     user_agent = request.META.get('HTTP_USER_AGENT')
     if not user_agent or user_agent.find('MicroMessenger') < 0:

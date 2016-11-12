@@ -308,7 +308,7 @@ class OrderCarryViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         exclude_statuses = [0, 3]  # not show unpaid/canceled orders
 
-        carry_type = request.REQUEST.get("carry_type", "all")
+        carry_type = request.GET.get("carry_type", "all")
         if carry_type == "direct":
             exclude_statuses = None  # show all orders excpet indirect ones
 
@@ -557,7 +557,7 @@ class UniqueVisitorViewSet(viewsets.ModelViewSet):
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_queryset(self, request):
-        content = request.REQUEST
+        content = request.GET
         days_from = int(content.get("from", 0))
         days_recent = int(content.get("recent", 0))
 
@@ -626,7 +626,7 @@ class XlmmFansViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['POST'])
     def change_mama(self, request):
-        new_mama_id = request.REQUEST.get('new_mama_id')
+        new_mama_id = request.POST.get('new_mama_id')
         fans = XlmmFans.get_by_customer_id(request.user.customer.id)
         new_mama = get_object_or_404(XiaoluMama, pk=new_mama_id)
         if not fans:
@@ -764,7 +764,7 @@ class DailyStatsViewSet(viewsets.ModelViewSet):
             '-date_field', '-created')
 
     def list(self, request, *args, **kwargs):
-        content = request.REQUEST
+        content = request.GET
         days_from = int(content.get("from", 0))
         days_length = int(content.get("days", 1))
 
@@ -820,7 +820,7 @@ class ModelProductViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         statsd.incr('xiaolumm.mama_productselection_count')
 
-        content = request.REQUEST
+        content = request.GET
         category = content.get("category", "0")
 
         datalist = self.get_owner_queryset(category)

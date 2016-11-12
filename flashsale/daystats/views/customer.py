@@ -45,8 +45,8 @@ def list(req):
             flashsale_customer.nick,
             flashsale_customer.mobile,
             xiaolumm_xiaolumama.id as mama_id
-        FROM xiaoludb.flashsale_customer
-        left join xiaoludb.xiaolumm_xiaolumama on xiaolumm_xiaolumama.openid=flashsale_customer.unionid
+        FROM flashsale_customer
+        left join xiaolumm_xiaolumama on xiaolumm_xiaolumama.openid=flashsale_customer.unionid
         where flashsale_customer.mobile != ''
     """
     if q_xlmm == 'not':
@@ -91,7 +91,7 @@ def list(req):
         if not mama_id:
             continue
         sq = """
-        SELECT sum(carry_num) as money FROM xiaoludb.flashsale_xlmm_order_carry
+        SELECT sum(carry_num) as money FROM flashsale_xlmm_order_carry
         where mama_id = %s
             and status in (1, 2)
         """
@@ -100,7 +100,7 @@ def list(req):
         item['order_carry'] = order_carry / 100 if order_carry else 0
 
         sql1 = """
-            SELECT * FROM xiaoludb.flashsale_xlmm_mamadailyappvisit
+            SELECT * FROM flashsale_xlmm_mamadailyappvisit
             where mama_id = %s
             order by created desc
             limit 30
@@ -142,26 +142,26 @@ def index(req):
     where = ' created > "{0}" and created < "{1}" '.format(p_start_date, p_end_date)
 
     sql = """SELECT DATE(created) as day, count(DATE(created))
-             FROM xiaoludb.flashsale_customer where {0} group by DATE(created);""".format(where)
+             FROM flashsale_customer where {0} group by DATE(created);""".format(where)
     customers = execute_sql(cursor, sql)
 
     sql = """SELECT DATE(created), count(DATE(created))
-             FROM xiaoludb.xiaolumm_xiaolumama WHERE {0} GROUP by DATE(created) """.format(where)
+             FROM xiaolumm_xiaolumama WHERE {0} GROUP by DATE(created) """.format(where)
     xiaolumm = execute_sql(cursor, sql)
 
     sql = """SELECT DATE(created), count(DATE(created))
-             FROM xiaoludb.flashsale_trade where {0} group by DATE(created)""".format(where)
+             FROM flashsale_trade where {0} group by DATE(created)""".format(where)
     trades_all = execute_sql(cursor, sql)
 
     sql = """SELECT DATE(created), count(DATE(created))
-             FROM xiaoludb.flashsale_trade where pay_time is not null and {0} group by DATE(created)""".format(where)
+             FROM flashsale_trade where pay_time is not null and {0} group by DATE(created)""".format(where)
     trades_pay = execute_sql(cursor, sql)
 
     sql = """
         SELECT DATE(flashsale_trade.pay_time), count(DATE(flashsale_trade.pay_time))
-        FROM xiaoludb.flashsale_trade
-        join xiaoludb.flashsale_customer on flashsale_customer.id=flashsale_trade.buyer_id
-        join xiaoludb.xiaolumm_xiaolumama on flashsale_customer.unionid=xiaolumm_xiaolumama.openid
+        FROM flashsale_trade
+        join flashsale_customer on flashsale_customer.id=flashsale_trade.buyer_id
+        join xiaolumm_xiaolumama on flashsale_customer.unionid=xiaolumm_xiaolumama.openid
         where flashsale_trade.created > "{0}"
             and flashsale_trade.created < "{1}"
             and flashsale_trade.pay_time is not null
@@ -171,7 +171,7 @@ def index(req):
 
     sql = """
         SELECT DATE(subscribe_time), count(DATE(subscribe_time))
-        FROM xiaoludb.shop_weixin_fans group by DATE(subscribe_time)
+        FROM shop_weixin_fans group by DATE(subscribe_time)
     """
     weixin_fans = execute_sql(cursor, sql)
 

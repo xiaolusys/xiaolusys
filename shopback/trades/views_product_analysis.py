@@ -29,7 +29,7 @@ def get_Month_By_Date(date_time):
 
 @csrf_exempt
 def xlmm_Product_Analysis(request):
-    content = request.REQUEST
+    content = request.GET
     daystr = content.get("month", None)
     if daystr:
         year, month, day = daystr.split('-')
@@ -75,7 +75,7 @@ def xlmm_Product_Analysis(request):
 
 @csrf_exempt
 def product_Analysis(request):
-    content = request.REQUEST
+    content = request.GET
     daystr = content.get("month", None)
     if daystr:
         year, month, day = daystr.split('-')
@@ -139,7 +139,7 @@ def get_week_from_date(date_time):
 
 
 def product_Top100_By_Week(request):
-    content = request.REQUEST
+    content = request.GET
     daystr = content.get("week", None)
     if daystr:
         year, month, day = daystr.split('-')

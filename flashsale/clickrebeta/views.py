@@ -18,7 +18,7 @@ class StatisticTongJi(View):
             return 'none'
 
     def get(self, request):
-        content = request.REQUEST
+        content = request.GET
         daystr = content.get("day", None)
         pk = content.get('pk', '1')
 

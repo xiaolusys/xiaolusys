@@ -71,7 +71,7 @@ def get_weixin_snsuserinfo(openid, access_token):
 def get_auth_userinfo(code, appid='', secret='', request=None):
     """ 根据code获取用户openid,unoinid,nickname,headimgurl  """
     debug_m   = settings.DEBUG
-    content   = request and request.REQUEST or {}
+    content   = request and request.GET or request.POST or {}
     state     = content.get('state',None)
     userinfo  = {}
     if not debug_m and request:

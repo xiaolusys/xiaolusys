@@ -141,7 +141,7 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get', 'post'])
     def get_share_content(self, request):
         """ 返回要分享的内容 share_type: picture and link"""
-        content = request.REQUEST
+        content = request.GET
         ufrom = content.get('ufrom', None)
         customer = get_object_or_404(Customer, user=request.user)
         customer_id = customer.id
@@ -172,7 +172,7 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
                          "active_dec": active_dec})
 
     def create(self, request, *args, **kwargs):
-        content = request.REQUEST
+        content = request.POST
         customer = get_object_or_404(Customer, user=request.user)
         outer_id = content.get('outer_id', None)
         sku_code = content.get('sku_code', None)

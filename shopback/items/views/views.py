@@ -6,19 +6,12 @@ import json
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse, HttpResponseNotFound
 from django.db.models import Q, Sum, F
-from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required
 from django.template.loader import render_to_string
 from django.shortcuts import get_object_or_404
-# from djangorestframework.serializer import Serializer
-# from djangorestframework.utils import as_tuple
-# from djangorestframework import status
-# from djangorestframework.response import Response,ErrorResponse
-# from djangorestframework.mixins import CreateModelMixin
 
 from shopback import paramconfig as pcfg
-# from core.options.views import ModelView,ListOrCreateModelView,ListModelView
 from shopback.items.models import (Item,
                                    SkuProperty,
                                    Product,
@@ -35,22 +28,18 @@ from common.utils import update_model_fields, parse_date, format_date
 from core.options import log_action, ADDITION, CHANGE
 from django.views.generic import View
 # 2015-7-27
-from rest_framework import authentication
-from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import authentication
 from rest_framework import permissions
 from rest_framework import exceptions
-from rest_framework.compat import OrderedDict
-from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer, BrowsableAPIRenderer
 from rest_framework.views import APIView
 from rest_framework import filters
 from rest_framework import authentication
-from shopback.items import serializers
-from rest_framework import status
 from shopback.base.new_renders import new_BaseJSONRenderer
-from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponseForbidden
+
 from shopback.items.models import SkuStock
+from django.http import HttpResponse, HttpResponseRedirect, Http404
+
 from shopback.items import serializers
 from shopback.items.renderers import *
 from supplychain.supplier.models import SaleSupplier
@@ -64,7 +53,7 @@ logger = logging.getLogger('django.request')
 
 @staff_member_required
 def update_user_items(request):
-    content = request.REQUEST
+    content = request.POST
     user_id = content.get('user_id') or request.user.get_profile().visitor_id
 
     update_nums = updateUserItemsTask(user_id)
@@ -77,7 +66,7 @@ def update_user_items(request):
 @csrf_exempt
 @login_required_ajax
 def update_product_stock(request):
-    content = request.REQUEST
+    content = request.POST
     outer_id = content.get('outer_id')
     product_id = content.get('product_id')
     sku_id = content.get('sku_id')
@@ -162,7 +151,7 @@ def update_product_stock(request):
 #######################################################################################33
 @staff_member_required
 def update_user_item(request):
-    content = request.REQUEST
+    content = request.POST
     user_id = content.get('user_id')
     num_iid = content.get('num_iid')
 
@@ -253,9 +242,8 @@ class ProductItemView(APIView):  # ListModelView
     # template_name = "fullcalendar/default.html"
     def get(self, request, *args, **kwargs):
         # 获取某outer_id对应的商品，以及同步商品库存
-        print Item.objects.all()[0].outer_id
         outer_id = kwargs.get('outer_id', '')
-        sync_stock = request.REQUEST.get('sync_stock', 'no')
+        sync_stock = request.GET.get('sync_stock', 'no')
         # model = self.resource.model
         model = Item
         update_time = datetime.datetime.now()
@@ -287,7 +275,7 @@ class ProductItemView(APIView):  # ListModelView
     def post(self, request, *args, **kwargs):
         # 删除product或productsku
         outer_id = kwargs.get('outer_id')
-        outer_sku_id = request.REQUEST.get('outer_sku_id', None)
+        outer_sku_id = request.POST.get('outer_sku_id', None)
 
         if outer_sku_id:
             row = ProductSku.objects.filter(product=outer_id,
@@ -311,7 +299,7 @@ class ProductModifyView(APIView):
     def get(self, request, *args, **kwargs):
         # 取消库存警告
         outer_id = kwargs.get('outer_id')
-        outer_sku_id = request.REQUEST.get('outer_sku_id', None)
+        outer_sku_id = request.GET.get('outer_sku_id', None)
         if outer_sku_id:
             row = ProductSku.objects.filter(product=outer_id,
                                             outer_id=outer_sku_id).update(is_assign=True)
@@ -418,7 +406,7 @@ class ProductView(APIView):
     def post(self, request, id, *args, **kwargs):
         try:
             product = Product.objects.get(id=id)
-            content = request.REQUEST
+            content = request.POST
             update_fields = []
             fields = ['outer_id', 'barcode', 'name', 'category', 'remain_num', 'weight', 'cost', 'ware_by',
                       'std_purchase_price', 'std_sale_price', 'agent_price', 'staff_price', 'is_split',
@@ -481,7 +469,7 @@ class ProductSkuView(APIView):
         # 修改库存商品信息
         try:
             product_sku = ProductSku.objects.get(product=pid, id=sku_id)
-            content = request.REQUEST
+            content = request.POST
             update_check = content.get('update_check')
             update_fields = []
             fields = ['outer_id', 'properties_alias', 'wait_post_num', 'remain_num', 'warn_num'
@@ -592,8 +580,7 @@ class ProductBarCodeView(APIView):
 
     def get(self, request, *args, **kwargs):
         # 获取库存商品列表
-        print     Product.objects.all()[0].outer_id
-        content = request.REQUEST
+        content = request.GET
         outer_id = content.get('outer_id', '')
 
         products = Product.objects.getProductByBarcode(outer_id)
@@ -604,7 +591,7 @@ class ProductBarCodeView(APIView):
 
     def post(self, request, *args, **kwargs):
 
-        content = request.REQUEST
+        content = request.POST
         outer_id = content.get('outer_id') or None
         outer_sku_id = content.get('outer_sku_id')
         barcode = content.get('barcode') or ''
@@ -647,7 +634,7 @@ class ProductDistrictView(APIView):
 
     def get(self, request, id, *args, **kwargs):
 
-        content = request.REQUEST
+        content = request.GET
         try:
             product = Product.objects.get(id=id)
         except:
@@ -659,7 +646,7 @@ class ProductDistrictView(APIView):
 
     def post(self, request, id, *args, **kwargs):
         #         print "post"
-        content = request.REQUEST
+        content = request.POST
         outer_id = content.get('outer_id') or None
         outer_sku_id = content.get('outer_sku_id') or None
         district = content.get('district')
@@ -693,7 +680,7 @@ class ProductDistrictView(APIView):
 @csrf_exempt
 @login_required_ajax
 def delete_product_district(request):
-    content = request.REQUEST
+    content = request.POST
     outer_id = content.get('outer_id') or None
     outer_sku_id = content.get('outer_sku_id') or None
     district = content.get('district')
@@ -733,7 +720,7 @@ def delete_product_district(request):
 @csrf_exempt
 @login_required_ajax
 def deposite_district_query(request):
-    content = request.REQUEST
+    content = request.GET
     q = content.get('term')
     if not q:
         ret = {'code': 1, 'error_response': u'查询内容不能为空'}
@@ -757,7 +744,7 @@ class ProductOrSkuStatusMdView(APIView):
 
     def post(self, request, *args, **kwargs):
 
-        content = request.REQUEST
+        content = request.POST
         outer_id = content.get('outer_id')
         outer_sku_id = content.get('outer_sku_id')
         product_id = content.get('product_id')
@@ -816,7 +803,7 @@ class ProductNumAssignView(APIView):
 
     def get(self, request, *args, **kwargs):
         # 获取某outer_id对应的商品，以及同步商品库存
-        content = request.REQUEST
+        content = request.GET
         outer_id = content.get('outer_id')
         outer_sku_id = content.get('outer_sku_id')
 
@@ -899,7 +886,7 @@ class ProductNumAssignView(APIView):
     def post(self, request, *args, **kwargs):
         # 删除product或productsku
 
-        content = request.REQUEST
+        content = request.POST
         outer_id = content.get('assign_outer_id')
         outer_sku_id = content.get('assign_outer_sku_id')
         try:
@@ -1228,7 +1215,7 @@ class StatProductSaleView(APIView):
 
     def get(self, request, *args, **kwargs):
         try:
-            content = request.REQUEST
+            content = request.GET
             start_dt = content.get('df', '').strip()
             end_dt = content.get('dt', '').strip()
             shop_id = content.get('shop_id')
@@ -1278,7 +1265,7 @@ class StatProductSaleAsyncView(APIView):
         return parse_date(start_dt)
 
     def get(self, request, *args, **kwargs):
-        content = request.REQUEST
+        content = request.GET
         start_dt = content.get('df', '').strip()
         end_dt = content.get('dt', '').strip()
         buyer_name = content.get('buyer_name', '').strip()
@@ -1323,8 +1310,7 @@ class ProductScanView(APIView):
 
     def post(self, request, *args, **kwargs):
 
-        content = request.REQUEST
-
+        content = request.POST
         barcode = content.get('barcode')
         product_sku_list = Product.objects.getProductSkuByBarcode(barcode)
         if len(product_sku_list) == 0:

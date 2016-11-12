@@ -37,7 +37,7 @@ class RefundCouponView(APIView):
             raise APIException(u'交易状态异常，不予发放')
 
     def get(self, request):
-        content = request.REQUEST
+        content = request.GET
         trade_tid = content.get("trade_tid", None)
         trade = model_to_dict(self.get_trade(trade_tid)) if trade_tid is not None else None
 
@@ -53,7 +53,7 @@ class RefundCouponView(APIView):
         return Response({'trade': trade, "templates": tem_data})
 
     def post(self, request):
-        content = request.REQUEST
+        content = request.POST
         trade_id = content.get("trade_tid", None)
         template_id = content.get("template_id", None)
         memo = content.get("memo", None)
@@ -66,7 +66,7 @@ class RefundCouponView(APIView):
                                                                       template_id,
                                                                       trade.id,
                                                                       ufrom='web')
-        print cou, code, msg
+
         return Response({'res': "ok"})
 
 
@@ -80,6 +80,7 @@ class ReleaseOmissive(APIView):
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer,)
     template_name = "sale/release_usercoupon.html"
     permission_classes = (permissions.IsAuthenticated,)
+
 
     def get(self, request):
         content = request.REQUEST
@@ -121,7 +122,7 @@ class ReleaseOmissive(APIView):
                          'default_modelids': default_modelids})
 
     def post(self, request):
-        content = request.REQUEST
+        content = request.POST
         customer = content.get('buyer_id', None)
         template_id = content.get('template_id', None)
         try:

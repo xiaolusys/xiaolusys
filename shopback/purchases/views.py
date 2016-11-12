@@ -6,23 +6,13 @@ import datetime
 import json
 import csv
 import cStringIO as StringIO
-from django.core.serializers.json import DjangoJSONEncoder
-from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponseForbidden
-from django.core.servers.basehttp import FileWrapper
-from django.template.loader import render_to_string
-from django.core.urlresolvers import reverse
+from django.http import HttpResponseRedirect, Http404, HttpResponseForbidden
+
 from django.conf import settings
 from django.contrib import messages
 from django.db.models import Q, Sum, F
 from django.views.decorators.csrf import csrf_exempt
 from django.db import IntegrityError, transaction
-# from djangorestframework.serializer import Serializer
-# from djangorestframework.utils import as_tuple
-# from djangorestframework import status
-# from djangorestframework.renderers import BaseRenderer
-# from djangorestframework.response import Response
-# from djangorestframework.mixins import CreateModelMixin
-# from djangorestframework.views import ModelView,ListOrCreateModelView,InstanceModelView
 from shopback.archives.models import Deposite, Supplier, PurchaseType
 from shopback.items.models import Product, ProductSku
 from shopback.purchases.models import Purchase, PurchaseItem, PurchaseStorage, PurchaseStorageItem, \
@@ -33,23 +23,17 @@ from shopback.purchases import permissions as perm
 from shopback.monitor.models import SystemConfig
 from common.utils import CSVUnicodeWriter
 from django.contrib.admin.views.decorators import staff_member_required
-import logging
+
 from django.http import HttpResponse, Http404
-from rest_framework import authentication
-from rest_framework import generics
 from rest_framework.response import Response
-from rest_framework import authentication
 from rest_framework import permissions
-from rest_framework.compat import OrderedDict
-from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer, BrowsableAPIRenderer
 from rest_framework.views import APIView
-from rest_framework import filters
 from rest_framework import authentication
 from . import serializers
-from rest_framework import status
 from shopback.base.new_renders import new_BaseJSONRenderer
 from renderers import *
 
+import logging
 logger = logging.getLogger('django.request')
 
 
@@ -99,7 +83,7 @@ class PurchaseView(APIView):
 
     def post(self, request, *args, **kwargs):
         # print "post"
-        content = request.REQUEST
+        content = request.POST
         purchase_id = content.get('purchase_id')
         # purchase_id=10004
         print purchase_id, "99999999999"
@@ -202,7 +186,7 @@ class PurchaseItemView(APIView):
 
     def post(self, request, *args, **kwargs):
         # print "33ytytytyty"
-        content = request.REQUEST
+        content = request.POST
 
         purchase_id = content.get('purchase_id')
         # print purchase_id,"ces"
@@ -288,7 +272,7 @@ class PurchaseShipStorageView(APIView):
 @staff_member_required
 def delete_purchase_item(request):
     """ 删除采购项 """
-    content = request.REQUEST
+    content = request.POST
     purchase_id = content.get('purchase_id')
     purchase_item_id = content.get('purchase_item_id')
 
@@ -383,7 +367,7 @@ class PurchaseStorageView(APIView):
 
     def post(self, request, *args, **kwargs):
 
-        content = request.REQUEST
+        content = request.POST
         purchase_id = content.get('purchase_storage_id')
         post_date = content.get('post_date', None)
         purchase = None
@@ -449,8 +433,7 @@ class PurchaseStorageItemView(APIView):
 
     def post(self, request, *args, **kwargs):
 
-        content = request.REQUEST
-
+        content = request.POST
         purchase_id = content.get('purchase_storage_id')
         outer_id = content.get('outer_id')
         outer_sku_id = content.get('outer_sku_id')
@@ -634,7 +617,7 @@ def refresh_purchasestorage_ship(request, id):
 @staff_member_required
 def delete_purchasestorage_item(request):
     """ 删除采购项 """
-    content = request.REQUEST
+    content = request.POST
     purchase_id = content.get('purchase_storage_id')
     purchase_item_id = content.get('purchase_storage_item_id')
 
@@ -731,7 +714,7 @@ class PurchasePaymentView(APIView):
 
     def post(self, request, *args, **kwargs):
 
-        content = request.REQUEST
+        content = request.POST
         paytype = content.get('paytype')
         purchase_id = content.get('purchase')
         storageids = content.getlist('storage')
@@ -857,7 +840,6 @@ class PaymentDistributeView(APIView):
         return Response({"object": {'purchase_payment': purchase_payment.json, 'perms': perms}})
 
     def post(self, request, id, *args, **kwargs):
-        print id, "888888888888888888888888"
         try:
             purchase_payment = PurchasePayment.objects.get(id=id, status__in=(pcfg.PP_WAIT_APPLY, pcfg.PP_WAIT_PAYMENT))
             # purchase_payment = PurchasePayment.objects.get(id=7)
@@ -865,7 +847,7 @@ class PaymentDistributeView(APIView):
             raise Http404
 
         try:
-            content = request.REQUEST.copy()
+            content = request.POST.copy()
 
             pmt_dict = self.parse_params(content)
 
@@ -987,7 +969,7 @@ class PaymentDistributeView(APIView):
 @staff_member_required
 @transaction.atomic
 def confirm_payment_amount(request):
-    content = request.REQUEST
+    content = request.POST
     id = content.get('id', '-1')
     pay_bank = content.get('pay_bank')
     pay_no = content.get('pay_no')

@@ -2,8 +2,8 @@
 from django.utils import timezone
 from django.db import models
 from .ormcache import managers
-from .managers import BaseManager, BaseTagManager
-from django.contrib.auth.models import User as DJUser
+from .managers import BaseManager #, BaseTagManager
+# from django.contrib.auth.models import User as DJUser
 
 
 class BaseModel(models.Model):
@@ -34,6 +34,7 @@ class AdminModel(BaseModel):
 
     @property
     def creator_user(self):
+        from django.contrib.auth.models import User as DJUser
         return DJUser.objects.get(username=self.creator)
 
     class Meta:
@@ -56,7 +57,7 @@ class BaseTagModel(BaseModel):
 
     tags = TagField(null=True, verbose_name=u'标签')
 
-    objects = BaseTagManager()
+    # objects = BaseTagManager()
     class Meta:
         abstract = True
 

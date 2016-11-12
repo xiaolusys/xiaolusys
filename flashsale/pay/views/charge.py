@@ -64,7 +64,7 @@ class PINGPPCallbackView(View):
 ########## alipay callback ###########
 class PayResultView(View):
     def get(self, request, *args, **kwargs):
-        content = request.REQUEST
+        content = request.GET
         logger.info('pay result:%s' % content)
 
         return HttpResponseRedirect(reverse('user_orderlist'))

@@ -5,7 +5,6 @@ import datetime
 from django.db import models, transaction
 from django.db.models import Q, Sum, F
 from django.db.models.signals import post_save
-from bitfield import BitField
 
 from shopback.users.models import User
 from core.options import log_action, CHANGE
@@ -224,11 +223,7 @@ class MergeTrade(models.Model):
 
     is_brand_sale = models.BooleanField(default=False, verbose_name=u'品牌特卖')
     is_force_wlb = models.BooleanField(default=False, verbose_name=u'物流宝')
-    trade_from = BitField(flags=(pcfg.TF_WAP,
-                                 pcfg.TF_HITAO,
-                                 pcfg.TF_TOP,
-                                 pcfg.TF_TAOBAO,
-                                 pcfg.TF_JHS), verbose_name=u'交易来源')
+    trade_from = models.IntegerField(choices=(), verbose_name=u'交易来源')
 
     is_lgtype = models.BooleanField(default=False, verbose_name=u'速递')
     lg_aging = models.DateTimeField(null=True, blank=True, verbose_name=u'速递送达时间')
@@ -614,11 +609,11 @@ post_save.connect(update_package_sku_item, sender=MergeTrade, dispatch_uid='post
 
 # 平台名称与存储编码映射
 TF_CODE_MAP = {
-    pcfg.TF_WAP: MergeTrade.trade_from.WAP,
-    pcfg.TF_HITAO: MergeTrade.trade_from.HITAO,
-    pcfg.TF_TOP: MergeTrade.trade_from.TOP,
-    pcfg.TF_TAOBAO: MergeTrade.trade_from.TAOBAO,
-    pcfg.TF_JHS: MergeTrade.trade_from.JHS,
+    pcfg.TF_WAP: pcfg.TF_WAP,
+    pcfg.TF_HITAO: pcfg.TF_HITAO,
+    pcfg.TF_TOP: pcfg.TF_TOP,
+    pcfg.TF_TAOBAO: pcfg.TF_TAOBAO,
+    pcfg.TF_JHS: pcfg.TF_JHS,
 }
 
 

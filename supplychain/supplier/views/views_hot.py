@@ -7,7 +7,7 @@ from supplychain.supplier.models import SaleProduct, HotProduct
 
 class HotProductView(View):
     def post(self, request):
-        content = request.REQUEST
+        content = request.POST
         sale_id = content.get("sale_id", None)
 
         sale_pro = SaleProduct.objects.get(id=sale_id)

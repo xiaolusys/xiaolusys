@@ -1,9 +1,6 @@
 # coding: utf-8
 
-from django.conf.urls import patterns, include, url
-from django.views.generic.base import TemplateView
-from django.views.decorators.cache import cache_page
-from rest_framework.urlpatterns import format_suffix_patterns
+from django.conf.urls import include, url
 
 from rest_framework import routers
 from . import views
@@ -21,7 +18,9 @@ router_v2.register(r'product', views.ProductManageV2ViewSet)
 router_v2_urls = router_v2.urls
 router_v2_urls += ([])
 
-urlpatterns = patterns('',
-                       url(r'^v1/', include(router_urls, namespace='items_v1')),
-                       url(r'^v2/', include(router_v2_urls, namespace='items_v2')),
-                       )
+
+urlpatterns = [
+    url(r'^v1/', include(router_urls, namespace='items_v1')),
+    url(r'^v2/', include(router_v2_urls, namespace='items_v2')),
+]
+

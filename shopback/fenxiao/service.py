@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 import datetime
-from shopback.users import Seller
+from shopback.users.models import User as Seller
 from shopback.base.service import LocalService
 from shopback.trades.mixins import TaobaoTradeService, TaobaoSendTradeMixin
 from shopback.trades.models import MergeTrade, MergeOrder

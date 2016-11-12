@@ -18,7 +18,7 @@ class CategoryStatViewSet(APIView):
 
     def get(self, request):
         """ 总结过滤时间段的分类统计数据 """
-        content = request.REQUEST
+        content = request.GET
         today = datetime.datetime.today()
         df = content.get("df", None)
         dt = content.get("dt", None)

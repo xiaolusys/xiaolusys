@@ -68,13 +68,13 @@ def valid_openid(openid):
 
 @csrf_exempt
 def wxpay(request):
-    logger.error('WEIXIN WEIXIN_PAY_URL:%s' % str(request.REQUEST))
+    logger.error('WEIXIN WEIXIN_PAY_URL:%s' % str(request.POST))
     return HttpResponse('success')
 
 
 @csrf_exempt
 def napay(request):
-    logger.error('WEIXIN NATIVE_CALLBACK_URL:%s' % str(request.REQUEST))
+    logger.error('WEIXIN NATIVE_CALLBACK_URL:%s' % str(request.POST))
     return HttpResponse('success')
 
 
@@ -97,7 +97,7 @@ def rights(request):
     """
     params = parseXML2Param(request.body)
 
-    logger.error('WEIXIN FEEDBACK_URL:%s' % str(request.REQUEST))
+    logger.error('WEIXIN FEEDBACK_URL:%s' % str(request.POST))
     return HttpResponse('success')
 
 
@@ -164,7 +164,7 @@ class WeixinAcceptView(View):
         return WeixinUserService(settings.WEIXIN_APPID)
 
     def get(self, request):
-        content = request.REQUEST
+        content = request.GET
         wx_service = self.get_wx_service()
         if wx_service.checkSignature(content.get('signature', ''),
                                      content.get('timestamp', 0),
@@ -175,7 +175,7 @@ class WeixinAcceptView(View):
         return HttpResponse(u'微信接口验证失败')
 
     def post(self, request):
-        content = request.REQUEST
+        content = request.POST
 
         wx_service = self.get_wx_service()
         if not wx_service.checkSignature(content.get('signature', ''),
@@ -212,7 +212,7 @@ class WeixinUserModelView(View):
     """ 微信接收消息接口 """
 
     def post(self, request, pk):
-        content = request.REQUEST
+        content = request.POST
         user_group_id = content.get('user_group_id')
 
         wx_user = WeiXinUser.objects.get(id=pk)
@@ -233,7 +233,7 @@ from django.template import RequestContext
 
 class RequestCodeView(View):
     def get(self, request, *args, **kwargs):
-        content = request.REQUEST
+        content = request.GET
         mobile = content.get('mobile', '0')
         openid = content.get('openid', None)
         if len(mobile) != 11:
@@ -278,7 +278,7 @@ class RequestCodeView(View):
 
 class VerifyCodeView(View):
     def get(self, request):
-        content = request.REQUEST
+        content = request.GET
         verifycode = content.get('verifycode', '0')
         openid = content.get('openid', None)
         if len(verifycode) not in (6, 7):
@@ -304,7 +304,7 @@ class VerifyCodeView(View):
 
 class OrderInfoView(View):
     def get(self, request):
-        content = request.REQUEST
+        content = request.GET
         code = content.get('code', None)
         user_openid = get_user_openid(request, code)
 
@@ -434,7 +434,7 @@ from datetime import date
 
 class BabyInfoView(View):
     def get(self, request):
-        content = request.REQUEST
+        content = request.GET
         code = content.get('code')
         from_page = content.get('from')
 
@@ -460,7 +460,7 @@ class BabyInfoView(View):
         return response
 
     def post(self, request):
-        content = request.REQUEST
+        content = request.POST
         year = content.get("year")
         month = content.get("month")
         sex = content.get("sex")
@@ -498,7 +498,7 @@ class WeixinAddReferalView(View):
     "add a referal"
 
     def post(self, request):
-        content = request.REQUEST
+        content = request.POST
 
         referal_to_mobile = content.get("mobile")
         referal_from_openid = content.get("openid")
@@ -533,7 +533,7 @@ class WeixinAddReferalView(View):
 
 class ReferalView(View):
     def get(self, request):
-        content = request.REQUEST
+        content = request.GET
         code = content.get('code')
         user_openid = get_user_openid(request, code)
 
@@ -619,7 +619,7 @@ class ReferalView(View):
 
 class RefundSubmitView(View):
     def post(self, request):
-        content = request.REQUEST
+        content = request.POST
         tradeid = content.get("tradeid")
         refundtype = content.get("refund_type")
         vipcode = content.get("vipcode")
@@ -649,8 +649,7 @@ class RefundSubmitView(View):
 
 class RefundReviewView(View):
     def get(self, request):
-
-        content = request.REQUEST
+        content = request.GET
         refund_status = int(content.get("status", "0"))
 
         refundlist = Refund.objects.filter(refund_status=refund_status).order_by('created')
@@ -663,7 +662,7 @@ class RefundReviewView(View):
         return response
 
     def post(self, request):
-        content = request.REQUEST
+        content = request.POST
 
         refund_status = int(content.get("refund_status"))
         refund_id = int(content.get("refund_id"))
@@ -729,7 +728,7 @@ class RefundReviewView(View):
 
 class RefundRecordView(View):
     def get(self, request):
-        content = request.REQUEST
+        content = request.GET
         refund_id = int(content.get("refund_id"))
         refund_status = int(content.get("refund_status"))
 
@@ -767,7 +766,7 @@ class RefundRecordView(View):
 
 class FreeSampleView(View):
     def get(self, request):
-        content = request.REQUEST
+        content = request.GET
         code = content.get('code')
         fcode = content.get('f', '866988')
 
@@ -831,7 +830,7 @@ from django.shortcuts import redirect
 
 class VipCodeVerifyView(View):
     def get(self, request):
-        content = request.REQUEST
+        content = request.GET
         vipcode = content.get("vipcode")
 
         response = {"code": "bad"}
@@ -847,7 +846,7 @@ class SampleApplyView(View):
         return redirect("/weixin/freesamples/")
 
     def post(self, request):
-        content = request.REQUEST
+        content = request.POST
         sample_pk = content.get("sample_pk")
         fcode = content.get("fcode")
         color = content.get("color")
@@ -897,7 +896,7 @@ class SampleConfirmView(View):
         return redirect("/weixin/freesamples/")
 
     def post(self, request):
-        content = request.REQUEST
+        content = request.POST
         sample_pk = int(content.get("sample_pk", "0"))
         sku_code = content.get("sku_code", "0")
         p1 = content.get("p1", "0")
@@ -1031,7 +1030,7 @@ from shopapp.weixin_sales.models import WeixinUserAward, WeixinLinkClicks
 
 class ResultView(View):
     def get(self, request):
-        content = request.REQUEST
+        content = request.GET
         code = content.get('code')
         user_openid = get_user_openid(request, code)
 
@@ -1229,7 +1228,7 @@ class CouponView(View):
         wx_user_pk = int(kwargs.get("user_pk"))
         coupon_pk = int(kwargs.get("coupon_pk"))
 
-        content = request.REQUEST
+        content = request.GET
         vipcode = content.get("vipcode", "0")
 
         coupon = Coupon.objects.get(pk=coupon_pk)
@@ -1245,7 +1244,7 @@ class CouponView(View):
 
 class VipCouponView(View):
     def get(self, request):
-        content = request.REQUEST
+        content = request.GET
         code = content.get('code')
         user_openid = get_user_openid(request, code)
 
@@ -1275,7 +1274,7 @@ class CouponFaqView(View):
 
 class RequestCouponView(View):
     def get(self, request):
-        content = request.REQUEST
+        content = request.GET
         vipcode = content.get("vipcode")
         openid = content.get("openid")
         coupon_pk = int(content.get("coupon_pk", "0"))
@@ -1300,7 +1299,7 @@ class RequestCouponView(View):
 
 class SurveyView(View):
     def get(self, request):
-        content = request.REQUEST
+        content = request.GET
         code = content.get('code', None)
         user_openid = get_user_openid(request, code)
 
@@ -1332,7 +1331,7 @@ class SurveyView(View):
         return response
 
     def post(self, request):
-        content = request.REQUEST
+        content = request.POST
         selection = int(content.get("selection", "0"))
         user_openid = request.COOKIES.get('openid')
 
@@ -1370,7 +1369,7 @@ class SampleChooseView(View):
         return response
 
     def post(self, request):
-        content = request.REQUEST
+        content = request.POST
         selection = int(content.get("selection", "0"))
         user_openid = request.COOKIES.get('openid')
 
@@ -1423,7 +1422,7 @@ class ClickScoreView(View):
         expiry = click_score.expiry
         redirect_link = click_score.redirect_link
 
-        content = request.REQUEST
+        content = request.GET
         code = content.get('code', None)
         user_openid = get_user_openid(request, code)
 
@@ -1444,7 +1443,7 @@ class ClickScoreView(View):
 class ScoreMenuView(View):
     def get(self, request):
 
-        content = request.REQUEST
+        content = request.GET
         code = content.get('code')
         user_openid = get_user_openid(request, code)
         if not valid_openid(user_openid):
@@ -1545,7 +1544,7 @@ class WeixinProductView(APIView):
 
     def get(self, request, *args, **kwargs):
 
-        content = request.REQUEST
+        content = request.GET
         product_ids = content.get('product_ids', '')
         product_ids = product_ids and product_ids.split(',') or []
         next = content.get('next')
@@ -1566,7 +1565,7 @@ class WeixinProductView(APIView):
 
     def post(self, request, *args, **kwargs):
 
-        content = request.REQUEST
+        content = request.POST
         product_ids = content.get('product_ids', '').split(',')
         products = Product.objects.filter(id__in=product_ids)
         wx_api = WeiXinAPI()
@@ -1644,7 +1643,7 @@ class WeixinProductVerifyView(APIView):
 
     def post(self, request, *args, **kwargs):
         # print "post"
-        content = request.REQUEST
+        content = request.POST
         product_ids = content.get('product_ids', '')
         product_ids = product_ids and product_ids.split(',') or []
         queryset = Product.objects.filter(id__in=product_ids)
@@ -1675,7 +1674,7 @@ class TestCodeView(View):
 
 # fang 2015-06-18  de
 def weixinorder_detail(request):
-    content = request.REQUEST
+    content = request.GET
     code = content.get('code', None)
     user_openid = get_user_openid(request, code)
 

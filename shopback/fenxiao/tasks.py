@@ -8,9 +8,8 @@ from django.conf import settings
 from shopback.fenxiao.models import PurchaseOrder, FenxiaoProduct, SubPurchaseOrder
 from shopapp.taobao.exceptions import UserFenxiaoUnuseException, TaobaoRequestException
 from shopback.monitor.models import TradeExtraInfo, SystemConfig, DayMonitorStatus
-from shopback.trades.models import MergeTrade
 from shopback import paramconfig as pcfg
-from shopback.users import Seller
+from shopback.users.models import User as Seller
 from common.utils import (format_time,
                           format_datetime,
                           format_year_month,

@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
-import bitfield.models
 import shopback.trades.models_dirty
 
 
@@ -91,7 +90,7 @@ class Migration(migrations.Migration):
                 ('remind_time', models.DateTimeField(null=True, verbose_name='\u63d0\u9192\u65e5\u671f', blank=True)),
                 ('is_brand_sale', models.BooleanField(default=False, verbose_name='\u54c1\u724c\u7279\u5356')),
                 ('is_force_wlb', models.BooleanField(default=False, verbose_name='\u7269\u6d41\u5b9d')),
-                ('trade_from', bitfield.models.BitField((b'WAP', b'HITAO', b'TOP', b'TAOBAO', b'JHS'), default=None, verbose_name='\u4ea4\u6613\u6765\u6e90')),
+                ('trade_from', models.IntegerField(default=0, null=True, verbose_name='\u4ea4\u6613\u6765\u6e90')),
                 ('is_lgtype', models.BooleanField(default=False, verbose_name='\u901f\u9012')),
                 ('lg_aging', models.DateTimeField(null=True, verbose_name='\u901f\u9012\u9001\u8fbe\u65f6\u95f4', blank=True)),
                 ('lg_aging_type', models.CharField(max_length=20, verbose_name='\u901f\u9012\u7c7b\u578b', blank=True)),

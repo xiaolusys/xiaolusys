@@ -8,7 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework import status, exceptions
-from rest_framework.compat import HttpResponseBase, View, set_rollback
+from rest_framework.compat import set_rollback
 from rest_framework.response import Response
 
 import logging

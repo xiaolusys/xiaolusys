@@ -1,19 +1,17 @@
 # -*- encoding:utf8 -*-
 from __future__ import division
+import json
 import datetime
 
+from django.core.serializers.json import DjangoJSONEncoder
 from celery.task import task
 
-from flashsale.pay.models import SaleRefund
-
-import logging
-
 from flashsale.kefu.models import KefuPerformance
+from flashsale.pay.models import SaleRefund
 from supplychain.supplier.models import SaleProduct, SaleSupplier, SupplierCharge
 
+import logging
 logger = logging.getLogger('celery.handler')
-from django.core.serializers.json import DjangoJSONEncoder
-import json
 
 
 @task(max_retries=1, default_retry_delay=5)

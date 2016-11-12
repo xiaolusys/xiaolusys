@@ -8,16 +8,14 @@ import time
 import urllib
 import urlparse
 import xlsxwriter
+from collections import OrderedDict
 
 from django.conf import settings
 from django.core.cache import cache
 from django.db.models import Sum
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import get_object_or_404
-from django.views.generic import View
 
 from rest_framework import authentication, exceptions, generics, permissions
-from rest_framework.compat import OrderedDict
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -454,8 +452,8 @@ class FetchAndCreateProduct(APIView):
     def get(self, request, pk):
         import core.upload
 
-        fetch_url = request.REQUEST.get('fetch_url', '').strip()
-        status = request.REQUEST.get('status', '')
+        fetch_url = request.GET.get('fetch_url', '').strip()
+        status = request.GET.get('status', '')
         if not fetch_url or not fetch_url.startswith(('http://', 'https://')):
             raise Exception(u'请输入合法的URL')
 
@@ -479,7 +477,7 @@ class FetchAndCreateProduct(APIView):
         return Response(data)
 
     def post(self, request, pk, format=None):
-        content = request.REQUEST
+        content = request.POST
         category_name = content.get('category_name', '')
 
         supplier = get_object_or_404(SaleSupplier, pk=pk)

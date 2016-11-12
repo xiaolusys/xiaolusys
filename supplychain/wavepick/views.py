@@ -25,7 +25,7 @@ class WaveView(View):
         
     def post(self,request):
         
-        content = request.REQUEST
+        content = request.POST
         group_id = content.get('group_id')
         group    = PickGroup.objects.get(id=group_id)
         wave_id  = group.generateWaveNoByGroup()
@@ -131,7 +131,7 @@ class WaveDetailView(View):
         
     def post(self,request,wave_id):
         
-        content = request.REQUEST
+        content = request.POST
         out_sid = content.get('out_sid')
         serial_no = content.get('serial_no')
         pgroup = PickGroup.objects.get(wave_no=wave_id)  
@@ -201,7 +201,7 @@ class AllocateView(View):
     
     def post(self, request, wave_id):
         
-        content = request.REQUEST
+        content = request.POST
         barcode = content.get('barcode')
         identity = content.get('identity')
         

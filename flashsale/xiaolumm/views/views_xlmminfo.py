@@ -95,7 +95,7 @@ class XlmmInfo(View):
     template = 'xlmm_info/xlmm_info.html'
 
     def handler_date(self, request):
-        content = request.REQUEST
+        content = request.GET
         left = content.get('date_from', None)
         right = content.get('date_to', None)
         if right is None or left is None:
@@ -109,7 +109,7 @@ class XlmmInfo(View):
         return left_date, right_date
 
     def calcu_data(self, request):
-        content = request.REQUEST
+        content = request.GET
         left_date, right_date = self.handler_date(request)
         xlmm = map(int, [content.get('id', 0)])[0]
         carry_log_all_sum, sum_detail_confirm, sum_detail_pending = carry_Log_By_date(left_date, right_date, xlmm)
@@ -236,7 +236,7 @@ class XlmmExit(object):
 
 def xlmmExitAction(request):
     """ 执行代理退出 """
-    content = request.REQUEST
+    content = request.GET
     xlmm_id = content.get("xlmm_id", None)
     if xlmm_id is None:
         return HttpResponse({"error": "编号为空"})

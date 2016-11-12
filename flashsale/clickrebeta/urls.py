@@ -1,8 +1,8 @@
 __author__ = 'yann'
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 from .views import StatisticTongJi
-
-urlpatterns = patterns('',
-                       url(r'^$', StatisticTongJi.as_view()),
-                       url(r'^addall/$', "flashsale.clickrebeta.views.ShengChengAll")
-                       )
+from flashsale.clickrebeta.views import *
+urlpatterns = [
+    url(r'^$', StatisticTongJi.as_view()),
+    url(r'^addall/$', ShengChengAll),
+]
