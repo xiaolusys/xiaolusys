@@ -20,7 +20,7 @@ from rest_framework import renderers
 from rest_framework import authentication
 from rest_framework import status
 from rest_framework import exceptions
-from flashsale.pay.saledao import get_user_skunum_by_last24hours
+from flashsale.pay.apis.v1.order import get_user_skunum_by_last24hours
 from flashsale.pay.models import (
     SaleTrade,
     SaleOrder,

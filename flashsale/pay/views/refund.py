@@ -69,9 +69,6 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, permissions.DjangoModelPermissions, permissions.IsAdminUser)
 
-    def list(self, request, *args, **kwargs):
-        return Response({'code': 0, 'info': u'暂时为开放'})
-
     def destroy(self, request, *args, **kwargs):
         return Response({'code': 0, 'info': u'暂时为开放'})
 
