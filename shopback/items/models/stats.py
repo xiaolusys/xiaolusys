@@ -595,7 +595,7 @@ class SkuStock(models.Model):
             return
         if psi_id:
             psi = PackageSkuItem.objects.filter(sku_id=self.sku_id,
-                                                     purchase_order_unikey=orderlist.purchase_order_unikey,
+                                                id=psi_id,
                                                 assign_status=PackageSkuItem.NOT_ASSIGNED).first()
             if psi:
                 if now_num >= psi.num:
@@ -636,7 +636,7 @@ class SkuStock(models.Model):
     def can_assign(self, sku_item):
         from shopback.trades.models import PackageSkuItem
         if PackageSkuItem.objects.filter(status=PSI_STATUS.READY).exists():
-            self.assign(sku_item.sku_id)
+            self.assign()
         now_num = self.realtime_quantity - self.assign_num
         return now_num > sku_item.num
 
