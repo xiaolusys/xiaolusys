@@ -1,5 +1,5 @@
 # coding=utf-8
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
 from rest_framework import routers
 from . import views_apis
 
@@ -16,7 +16,7 @@ router_urls += ([
     url(r'^mama_order_carry_stats$', views_apis.MamaOrderCarryStatApiView.as_view(), name='v1-finance-carry-stats'),
 ])
 
-urlpatterns = patterns('',
-                       url(r'^v1/', include(router_urls, namespace='finance_v1')),
-                       )
+urlpatterns = [
+    url(r'^v1/', include(router_urls, namespace='finance_v1')),
+]
 

@@ -143,7 +143,7 @@ class SaleSupplierViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        ordering = request.REQUEST.get('ordering') or '-created'
+        ordering = request.GET.get('ordering') or '-created'
         queryset = queryset.exclude(progress=SaleSupplier.REJECTED)\
             .extra(select={'refund_rate': 'total_refund_num/total_sale_num'}).order_by(ordering)
         page = self.paginate_queryset(queryset)

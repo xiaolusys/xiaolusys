@@ -30,7 +30,7 @@ class addNewReleaseView(APIView):
         return response
 
     def post(self, request):
-        content = request.REQUEST
+        content = request.POST
         download_link = content.get('download_link', None)
         version = content.get('version', None)
         release_time = content.get('release_time', None)

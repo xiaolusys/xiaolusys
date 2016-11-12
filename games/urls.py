@@ -1,8 +1,8 @@
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
 
 
-urlpatterns = patterns('',
-                       (r'^paint/', include('games.paint.urls')),
-                       (r'^weixingroup/', include('games.weixingroup.urls')),
-                       (r'^renew/', include('games.renewremind.urls')),
-                       )
+urlpatterns = [
+    url(r'^paint/', include('games.paint.urls')),
+    url(r'^weixingroup/', include('games.weixingroup.urls')),
+    url(r'^renew/', include('games.renewremind.urls')),
+]

@@ -106,8 +106,8 @@ class BillViewSet(viewsets.GenericViewSet):
 
     @detail_route(methods=['post'])
     def pay_bill(self, request, pk):
-        pay_no = request.REQUEST.get("pay_no", None)
-        pay_amount = float(request.REQUEST.get("pay_amount", None))
+        pay_no = request.POST.get("pay_no", None)
+        pay_amount = float(request.POST.get("pay_amount", None))
         Bill.objects.filter(id=pk).update(transcation_no=pay_no, amount=pay_amount, status=Bill.STATUS_DEALED)
         return Response({'bill_id': pk})
 
@@ -119,6 +119,6 @@ class BillViewSet(viewsets.GenericViewSet):
 
     @detail_route(methods=['POST'])
     def change_note(self, request, pk):
-        note = request.REQUEST.get("note", None)
+        note = request.POST.get("note", None)
         Bill.objects.filter(id=pk).update(note=note)
         return Response({'bill_id': pk})

@@ -1,5 +1,6 @@
 # coding=utf-8
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
+
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 from django.views.decorators.cache import cache_page
@@ -9,17 +10,15 @@ from . import views
 from rest_framework import routers
 from flashsale.pay.views import refund
 
+
 router = routers.DefaultRouter(trailing_slash=False)
-
 router.register(r'salerefund', refund.SaleRefundViewSet)
-
 router_urls = router.urls
 
-urlpatterns = patterns('',
-                       url(r'^v1/', include(router_urls, namespace='flashsale_pay_v1')),
-                       )
 
-urlpatterns += (
+urlpatterns = [
+    url(r'^v1/', include(router_urls, namespace='flashsale_pay_v1')),
+
     url(r'^callback/$', csrf_exempt(views.PINGPPCallbackView.as_view())),
     url(r'^cancel/$', csrf_exempt(views.PINGPPCallbackView.as_view())),
     url(r'^wxwarn/$', csrf_exempt(views.WXPayWarnView.as_view())),
@@ -70,6 +69,7 @@ urlpatterns += (
     url(r'^change_sku_item/$', csrf_exempt(views.change_sku_item), name="change_sku_item"),
     url(r'^sent_sku_item_again/$', csrf_exempt(views.sent_sku_item_again), name="sent_sku_item_again"),
     url(r'^get_mrgid/$', csrf_exempt(views.get_mrgid), name="get_mrgid"),
-    url(r'^refund_fee/$', csrf_exempt(views.refund_fee), name="refund_fee"),
-    url(r'^update_memo/$', csrf_exempt(views.update_memo), name="update_memo"),
-)
+
+    url(r'^refund_fee/$', csrf_exempt(views.refund_fee), name = "refund_fee"),
+    url(r'^update_memo/$', csrf_exempt(views.update_memo), name = "update_memo"),
+]

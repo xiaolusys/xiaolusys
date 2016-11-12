@@ -1,13 +1,14 @@
 # -*- coding:utf8 -*-
 from django.conf import settings
 from .handler import BaseHandler
-from shopback.trades.models import MergeTrade, MergeOrder, MergeBuyerTrade
-from shopapp.memorule import ruleMatchPayment, ruleMatchSplit
+
+from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade
+from shopapp.memorule.services import ruleMatchPayment,ruleMatchSplit
+
 from shopback import paramconfig as pcfg
 from common.modelutils import update_model_fields
 
 import logging
-
 logger = logging.getLogger('celery.handler')
 
 

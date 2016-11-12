@@ -926,7 +926,7 @@ def task_tongji_trade_source():
 
     # 有　mm_linkid，是小鹿妈妈分享的链接
     sql = """
-        SELECT count(*) FROM xiaoludb.flashsale_trade
+        SELECT count(*) FROM flashsale_trade
         where extras_info not REGEXP '"mm_linkid": 0'
         and pay_time > %s
     """
@@ -936,9 +936,9 @@ def task_tongji_trade_source():
     # 没有 mm_linkid，但是买家是小鹿妈妈
     sql = """
         SELECT count(*)
-        FROM xiaoludb.flashsale_trade
-        join xiaoludb.flashsale_customer on flashsale_customer.id=flashsale_trade.buyer_id
-        join xiaoludb.xiaolumm_xiaolumama on flashsale_customer.unionid=xiaolumm_xiaolumama.openid
+        FROM flashsale_trade
+        join flashsale_customer on flashsale_customer.id=flashsale_trade.buyer_id
+        join xiaolumm_xiaolumama on flashsale_customer.unionid=xiaolumm_xiaolumama.openid
         where flashsale_trade.pay_time > %s
         and flashsale_trade.extras_info REGEXP '"mm_linkid": 0'
     """
@@ -947,7 +947,7 @@ def task_tongji_trade_source():
 
     # 今日所有订单
     sql = """
-        SELECT count(*) FROM xiaoludb.flashsale_trade
+        SELECT count(*) FROM flashsale_trade
         where pay_time > %s
     """
     cursor.execute(sql, today)

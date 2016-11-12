@@ -4,7 +4,7 @@ import os
 from .base import *
 
 DEBUG = False
-TEMPLATE_DEBUG = DEBUG
+
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_COOKIE_AGE = 24 * 15 * 60 * 60
 
@@ -47,8 +47,11 @@ DATABASES = {
         'HOST': MYSQL_HOST,
     # Set to empty string for localhost. Not used with sqlite3. #192.168.0.28
         'PORT': '3306',  # Set to empty string for default. Not used with sqlite3.
-        'OPTIONS': {'init_command': 'SET storage_engine=Innodb;',
-                    'charset': 'utf8'},  # storage_engine need mysql>5.4,and table_type need mysql<5.4
+        'OPTIONS': {
+            'init_command': 'SET storage_engine=Innodb;',
+            'charset': 'utf8',
+            # 'sql_mode': 'STRICT_TRANS_TABLES',
+        },  # storage_engine need mysql>5.4,and table_type need mysql<5.4
         'TEST': {
             'NAME': 'test_xiaoludb',
             'CHARSET': 'utf8',
@@ -62,7 +65,7 @@ CACHES = {
         'BACKEND': 'redis_cache.RedisCache',
         'LOCATION': REDIS_HOST,
         'OPTIONS': {
-            'DB': 11,
+            'DB': 12,
             'PASSWORD': REDIS_AUTH,
             "SOCKET_CONNECT_TIMEOUT": 5,  # in seconds
             "SOCKET_TIMEOUT": 5,  # in seconds
@@ -77,7 +80,7 @@ CACHES = {
     }
 }
 DJANGO_REDIS_IGNORE_EXCEPTIONS = True
-BROKER_URL = 'redis://%s%s/18'%(REDIS_AUTH and ':%s@'%REDIS_AUTH, REDIS_HOST)
+BROKER_URL = 'redis://%s%s/13'%(REDIS_AUTH and ':%s@'%REDIS_AUTH, REDIS_HOST)
 
 import raven
 RAVEN_CONFIG = {

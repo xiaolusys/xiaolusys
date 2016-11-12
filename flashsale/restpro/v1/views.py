@@ -104,7 +104,7 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
-        content = request.REQUEST
+        content = request.POST
         order_id = int(content.get("id", 0))
         order = get_object_or_404(SaleOrder, id=order_id)
         # 如果Order已经付款 refund_type = BUYER_NOT_RECEIVED
@@ -204,10 +204,10 @@ class UserAddressViewSet(viewsets.ModelViewSet):
 
     # fang kaineng  2015-7-31
 
-    @detail_route(methods=['post'])
+    # @detail_route(methods=['post'])
     def update(self, request, pk, *args, **kwargs):
         customer = get_object_or_404(Customer, user=request.user)
-        content = request.REQUEST
+        content = request.POST
         receiver_state = content.get('receiver_state', '').strip()
         receiver_city = content.get('receiver_city', '').strip()
         receiver_district = content.get('receiver_district', '').strip()
@@ -307,9 +307,9 @@ class UserAddressViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'])
     def change_company_code(self, request, pk, *args, **kwargs):
-
-        company_code = request.REQUEST.get('logistic_company_code', '')
-        referal_trade_id = request.REQUEST.get('referal_trade_id', '')
+        content = request.POST
+        company_code = content.get('logistic_company_code', '')
+        referal_trade_id = content.get('referal_trade_id', '')
         address = self.get_object()
         try:
             address.set_logistic_company(company_code)
@@ -333,7 +333,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
     def create_address(self, request):
         customer = get_object_or_404(Customer, user=request.user)
         customer_id = customer.id  # 获取用户id
-        content = request.REQUEST
+        content = request.POST
         default = content.get('default') or ''
         receiver_state = content.get('receiver_state', '').strip()
         receiver_city = content.get('receiver_city', '').strip()
@@ -368,10 +368,10 @@ class UserAddressViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def get_logistic_companys(self, request):
 
-        ware_by = request.REQUEST.get('ware_by') or '0'
+        ware_by = request.GET.get('ware_by') or '0'
         ware_by = int(ware_by)
 
-        referal_trade_id = request.REQUEST.get('referal_trade_id')
+        referal_trade_id = request.GET.get('referal_trade_id')
         from shopback.logistics.models import LogisticsCompany
 
         if referal_trade_id:
@@ -456,7 +456,7 @@ class DistrictViewSet(viewsets.ModelViewSet):
     @cache_response(timeout=24 * 60 * 60, key_func='calc_distirct_cache_key')
     @list_route(methods=['get'])
     def city_list(self, request, *args, **kwargs):
-        content = request.REQUEST
+        content = request.GET
         province_id = content.get('id', None)
         if province_id == u'0':
             return Response({"result": False})
@@ -468,7 +468,7 @@ class DistrictViewSet(viewsets.ModelViewSet):
     @cache_response(timeout=24 * 60 * 60, key_func='calc_distirct_cache_key')
     @list_route(methods=['get'])
     def country_list(self, request, *args, **kwargs):
-        content = request.REQUEST
+        content = request.GET
         city_id = content.get('id', None)
         if city_id == u'0':
             return Response({"result": False})
@@ -509,7 +509,7 @@ class AppDownloadLinkViewSet(WeixinAuthMixin, viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def get_app_download_link(self, request):
         """ 返回有效的app下载地址 """
-        cotent = request.REQUEST
+        cotent = request.GET
         mm_linkid = cotent.get('mm_linkid') or None
         if mm_linkid is None:
             cookies = request.COOKIES

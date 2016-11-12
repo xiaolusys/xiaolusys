@@ -54,7 +54,7 @@ def get_user_unionid(code,
                      secret='',
                      request=None):
     debug_m = settings.DEBUG
-    content = request and request.REQUEST or {}
+    content = request and request.GET or request.POST or {}
     if not debug_m and request:
         debug_m = content.get('debug')
     if debug_m:

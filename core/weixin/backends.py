@@ -23,7 +23,7 @@ class WeixinPubBackend(object):
 
     def authenticate(self, request, auth_classes=[], **kwargs):
         logger.debug('WeixinPubBackend:%s,%s'%(auth_classes, kwargs))
-        content = request.REQUEST
+        content = request.POST
         if constants.WEIXIN_AUTHENTICATE_KEY not in auth_classes:
             return None
 

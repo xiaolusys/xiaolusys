@@ -5,8 +5,10 @@ from .handler import BaseHandler
 from shopback.trades.models import MergeTrade
 from shopback.items.models import Product
 from shopback import paramconfig as pcfg
-from shopapp.memorule import ruleMatchPayment
-from common.modelutils import update_model_fields
+
+from shopapp.memorule.services import ruleMatchPayment
+from common.modelutils import  update_model_fields
+
 
 import logging
 

@@ -53,3 +53,10 @@ def cancel_pingpp_charge_ssl_verify():
     except Exception, exc:
         print 'cancel pingpp verify error:%s'% exc
 
+def patch_django1_10_core_get_cache():
+    try:
+        from django.core import cache
+        cache.get_cache = lambda name: None
+    except Exception, exc:
+        print 'patch django core get_cache error:%s'% exc
+

@@ -26,7 +26,7 @@ def comment_not_need_explain(request, id):
 @csrf_exempt
 @login_required_ajax
 def explain_for_comment(request):
-    content = request.REQUEST
+    content = request.POST
     cid = content.get('cid')
     reply = content.get('reply')
 

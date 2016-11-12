@@ -62,7 +62,7 @@ class CalcuProRefRcd(viewsets.ModelViewSet):
         return queryset
 
     def time_zone_query(self, request, queryset):
-        content = request.REQUEST
+        content = request.GET
         today = datetime.date.today()
         fifth_day = today - datetime.timedelta(days=15)
         time_from = content.get("date_from", fifth_day)

@@ -243,11 +243,12 @@ class AutoNewOrder(View):
 
 
 def update_dinghuo_part_information(request):
-    dinghuo_id = int(request.REQUEST.get("dinghuo_id", None))
-    express_company = request.REQUEST.get("express_company_id", None)
-    express_no = request.REQUEST.get("express_no", None)
-    pay_way = int(request.REQUEST.get("pay_way", None))
-    supplier_name = request.REQUEST.get("supplier_name", None)
+    content = request.POST
+    dinghuo_id = int(content.get("dinghuo_id", None))
+    express_company = content.get("express_company_id", None)
+    express_no = content.get("express_no", None)
+    pay_way = int(content.get("pay_way", None))
+    supplier_name = content.get("supplier_name", None)
     try:
         item = OrderList.objects.get(id=dinghuo_id)
         item.express_company = express_company
@@ -266,8 +267,8 @@ def update_dinghuo_part_information(request):
 
 
 def generate_return_goods(request):
-    supplier = request.REQUEST.get("supplier", None)
-    stype = request.REQUEST.get("type", 0)
+    supplier = request.GET.get("supplier", None)
+    stype = request.GET.get("type", 0)
     try:
         ss = SaleSupplier.objects.get(Q(supplier_name=supplier) | Q(id=supplier))
     except Exception, msg:

@@ -12,7 +12,7 @@ from django.contrib.auth.models import User
 def xlmm_Click_Top_By_Day(request):
     today = datetime.date.today()
     prev_day = today - datetime.timedelta(days=1)
-    content = request.REQUEST
+    content = request.GET
     daystr = content.get("day", None)
     target_date = today
     if daystr:
@@ -51,7 +51,7 @@ def xlmm_Click_Top_By_Day(request):
 def xlmm_Order_Top_By_Day(request):
     today = datetime.date.today()
     prev_day = today - datetime.timedelta(days=1)
-    content = request.REQUEST
+    content = request.GET
     daystr = content.get("day", None)
     target_date = today
     if daystr:
@@ -84,10 +84,10 @@ def xlmm_Order_Top_By_Day(request):
 
 
 def xlmm_Conversion_Top_By_Week(request):
+    content = request.GET
     data = []
     today = datetime.date.today()
     prev_day = today - datetime.timedelta(days=1)
-    content = request.REQUEST
     daystr = content.get("week", None)
     week_code = str(today.year) + prev_day.strftime('%U')
     target_week = str(today.year) + today.strftime("%U")  # 目标周编码
@@ -118,7 +118,7 @@ import operator  # 导入排序模块
 
 
 def xlmm_Click_Top_By_Week(request):
-    content = request.REQUEST
+    content = request.GET
     daystr = content.get("week", None)
     if daystr:
         year, month, day = daystr.split('-')
@@ -159,7 +159,7 @@ def get_week_from_date(date_time):
 
 
 def xlmm_Order_Top_By_Week(request):
-    content = request.REQUEST
+    content = request.GET
     daystr = content.get("week", None)
     if daystr:
         year, month, day = daystr.split('-')
@@ -190,7 +190,7 @@ def xlmm_Order_Top_By_Week(request):
 
 
 def xlmm_Click_Top_By_Month(request):
-    content = request.REQUEST
+    content = request.GET
     daystr = content.get("month", None)
     if daystr:
         year, month, day = daystr.split('-')
@@ -232,7 +232,7 @@ def get_month_from_date(date_time):
 
 
 def xlmm_Order_Top_By_Month(request):
-    content = request.REQUEST
+    content = request.GET
     daystr = content.get("month", None)
     if daystr:
         year, month, day = daystr.split('-')
@@ -266,7 +266,7 @@ def xlmm_Order_Top_By_Month(request):
 
 def xlmm_Convers_Top_By_Month(request):
     # 转化率  购买人数/点击人数
-    content = request.REQUEST
+    content = request.GET
     daystr = content.get("month", None)
     data = []
     if daystr:
@@ -302,7 +302,7 @@ def xlmm_Convers_Top_By_Month(request):
 
 
 def xlmm_TOP50_Manager_Month(request):
-    content = request.REQUEST
+    content = request.GET
     daystr = content.get("month", None)
     manager = request.user.id
     if manager is None:

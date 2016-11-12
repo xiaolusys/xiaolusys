@@ -84,12 +84,15 @@ class XiaoluMama(BaseModel):
     )
     SCAN  = 3
     TRIAL = 15
+    ELITE = 90
     HALF  = 183
     FULL  = 365
 
+    
     RENEW_TYPE = (
         (SCAN, u'试用3'),
         (TRIAL, u'试用15'),
+        (ELITE, u'精英mama'),
         (HALF, u'半年'),
         (FULL, u'一年'),
     )

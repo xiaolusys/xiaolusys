@@ -24,7 +24,7 @@ class StatsFahuoView(generics.ListCreateAPIView):
         return Response({"start_date": start_date, "end_date": end_date})
 
     def post(self, request, *args, **kwargs):
-        content = request.REQUEST
+        content = request.POST
         today = datetime.date.today()
         start_time_str = content.get("date_from", None)
         end_time_str = content.get("date_to", None)

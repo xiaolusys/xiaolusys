@@ -3,13 +3,18 @@ __author__ = 'meixqhi'
 import re
 import json
 from django.core.urlresolvers import reverse
-# from djangorestframework.views import ModelView
-# from djangorestframework.response import ErrorResponse
-# from djangorestframework import status
 
-from shopback.orders.models import Order, Trade
-from shopback.trades.models import MergeTrade
-from shopback.items.models import Item
+from rest_framework import authentication
+from rest_framework import generics
+from rest_framework.response import Response
+from rest_framework import authentication
+from rest_framework import permissions
+from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer, BrowsableAPIRenderer
+from rest_framework.views import APIView
+from rest_framework import filters
+from rest_framework import authentication
+from rest_framework import status
+
 from shopback.users.models import User
 from shopback.base.views import FileUploadView_intercept
 from shopapp.memorule.models import (TradeRule,
@@ -17,25 +22,12 @@ from shopapp.memorule.models import (TradeRule,
                                      RuleMemo,
                                      ComposeRule,
                                      ComposeItem)
-
-from rest_framework import authentication
-from rest_framework import generics
-from rest_framework.response import Response
-from rest_framework import authentication
-from rest_framework import permissions
-from rest_framework.compat import OrderedDict
-from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer, BrowsableAPIRenderer
-from rest_framework.views import APIView
-from rest_framework import filters
-from rest_framework import authentication
 from . import serializers
 from shopback.base.new_renders import new_BaseJSONRenderer
-from rest_framework import status
 
 CHAR_NUMBER_REGEX = re.compile('^\w+$')
 
 import logging
-
 logger = logging.getLogger('django.request')
 
 
@@ -78,7 +70,7 @@ class UpdateTradeMemoView(APIView):
     renderer_classes = (new_BaseJSONRenderer, BrowsableAPIRenderer)
 
     def get(self, request, *args, **kwargs):
-        content = request.REQUEST
+        content = request.GET
         params = eval(content.get("params"))
 
         trade_id = params.get('tid')
@@ -102,8 +94,6 @@ class ProductRuleFieldsView(APIView):
     renderer_classes = (new_BaseJSONRenderer, BrowsableAPIRenderer)
 
     def get(self, request, *args, **kwargs):
-        content = request.REQUEST
-
         # out_iids = content.get('out_iids')
         # out_iid_list = out_iids.split(',')
         out_iid_list = [1, 2, 3]

@@ -197,7 +197,7 @@ class LessonViewSet(viewsets.ModelViewSet):
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def list(self, request, *args, **kwargs):
-        lesson_id = request.REQUEST.get("lesson_id")
+        lesson_id = request.GET.get("lesson_id")
         if lesson_id:
             query_set = self.queryset.filter(id=lesson_id)
         else:

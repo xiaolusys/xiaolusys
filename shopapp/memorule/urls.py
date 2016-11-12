@@ -1,5 +1,5 @@
 __author__ = 'meixqhi'
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
 from shopapp.memorule.views import (UpdateTradeMemoView,
                                     ProductRuleFieldsView,
                                     ComposeRuleByCsvFileView)
@@ -11,27 +11,25 @@ from shopapp.memorule.views import (UpdateTradeMemoView,
 
 
 
-urlpatterns = patterns('',
+urlpatterns = [
+    url('update/$', UpdateTradeMemoView.as_view(
+       # resource=TradeRuleResource,
+       # renderers=(BaseJsonRenderer,),
+       # authentication=(UserLoggedInAuthentication,),
+       # permissions=(IsAuthenticated,)
+    ), name='update_trade_memo'),
 
-                       url('update/$', UpdateTradeMemoView.as_view(
-                           # resource=TradeRuleResource,
-                           # renderers=(BaseJsonRenderer,),
-                           # authentication=(UserLoggedInAuthentication,),
-                           # permissions=(IsAuthenticated,)
-                       ), name='update_trade_memo'),
+    url('rule/fields/$', ProductRuleFieldsView.as_view(
+       # resource=TradeRuleResource,
+       # renderers=(BaseJsonRenderer,),
+       # authentication=(UserLoggedInAuthentication,),
+       # permissions=(IsAuthenticated,)
+    ), name='rule_fields'),
 
-                       url('rule/fields/$', ProductRuleFieldsView.as_view(
-                           # resource=TradeRuleResource,
-                           # renderers=(BaseJsonRenderer,),
-                           # authentication=(UserLoggedInAuthentication,),
-                           # permissions=(IsAuthenticated,)
-                       ), name='rule_fields'),
-
-                       (r'^composerule/import/$', ComposeRuleByCsvFileView.as_view(
-                           # resource=TradeRuleResource,
-                           # renderers=(BaseJsonRenderer,),
-                           # authentication=(UserLoggedInAuthentication,),
-                           # permissions=(IsAuthenticated,)
-                       )),
-
-                       )
+    url(r'^composerule/import/$', ComposeRuleByCsvFileView.as_view(
+       # resource=TradeRuleResource,
+       # renderers=(BaseJsonRenderer,),
+       # authentication=(UserLoggedInAuthentication,),
+       # permissions=(IsAuthenticated,)
+    )),
+]

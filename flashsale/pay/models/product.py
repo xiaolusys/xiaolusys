@@ -485,7 +485,7 @@ class ModelProduct(BaseTagModel):
                 skucontrasts = ProductSkuContrast.objects.filter(product__in=product_ids)\
                     .values_list('contrast_detail',flat=True)
                 for constrast_detail in skucontrasts:
-                    contrast_origin = json.loads(constrast_detail)
+                    contrast_origin = constrast_detail
                     uni_key = ''.join(sorted(contrast_origin.keys()))
                     if uni_key not in uni_set:
                         uni_set.add(uni_key)

@@ -20,7 +20,7 @@ from django.shortcuts import redirect
 @csrf_exempt
 @login_required_ajax
 def picture_review(request):
-    content = request.REQUEST
+    content = request.GET
 
     rows = WeixinUserPicture.objects.filter(id=content.get('pid')) \
         .update(status=WeixinUserPicture.COMPLETE)
@@ -30,7 +30,7 @@ def picture_review(request):
 
 class AwardView(View):
     def post(self, request):
-        content = request.REQUEST
+        content = request.POST
         user_openid = request.COOKIES.get('openid')
         select_val = content.get("select_val")
         try:
@@ -62,7 +62,7 @@ class AwardView(View):
 
 class AwardNotifyView(View):
     def get(self, request):
-        content = request.REQUEST
+        content = request.GET
         code = content.get('code')
         user_openid = get_user_openid(request, code)
 
@@ -79,7 +79,7 @@ class AwardNotifyView(View):
 
     def post(self, request):
 
-        content = request.REQUEST
+        content = request.POST
         award_val = content.get('award_val')
         user_openid = request.COOKIES.get('openid')
         notify_num = 0
@@ -107,7 +107,7 @@ class AwardNotifyView(View):
 class AwardRemindView(View):
     def post(self, request):
         try:
-            content = request.REQUEST
+            content = request.POST
             code = content.get('code')
             user_openid = get_user_openid(request, code)
 
@@ -165,7 +165,7 @@ class AwardShareView(View):
 
 class AwardApplyView(View):
     def post(self, request):
-        content = request.REQUEST
+        content = request.POST
 
         code = content.get('code')
         user_openid = get_user_openid(request, code)
@@ -193,7 +193,7 @@ class AwardApplyView(View):
 
 class LinkShareView(View):
     def post(self, request):
-        content = request.REQUEST
+        content = request.POST
 
         user_openid = content.get('user_openid')
         share_type = content.get('share_type')

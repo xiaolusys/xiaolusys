@@ -12,7 +12,7 @@ from flashsale.xiaolumm.models import XiaoluMama
 
 def index(request):
     START_QUESTION_NO = 61  # 考试开始题号
-    content = request.REQUEST
+    content = request.GET
     code = content.get('code', None)
     user_openid, user_unionid = get_user_unionid(code,
                                                  appid=settings.WEIXIN_APPID,

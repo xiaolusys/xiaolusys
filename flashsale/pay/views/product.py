@@ -5,12 +5,12 @@ from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.forms import model_to_dict
+from collections import OrderedDict
 
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import authentication
 from rest_framework import permissions
-from rest_framework.compat import OrderedDict
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer, BrowsableAPIRenderer
 from rest_framework.views import APIView
 from rest_framework import filters
@@ -46,8 +46,7 @@ class ProductList(generics.ListCreateAPIView):
         return queryset.filter(sale_time=today)
 
     def list(self, request, *args, **kwargs):
-
-        content = request.REQUEST
+        content = request.GET
         time_line = content.get('time_line', '0')
         history = content.get('history', '')
         category = content.get('category', '')
@@ -95,7 +94,7 @@ class ProductDetail(generics.RetrieveUpdateDestroyAPIView):
 
 def productsku_quantity_view(request):
     # request.POST
-    content = request.REQUEST
+    content = request.GET
     product_id = content.get('product_id')
     sku_id = content.get('sku_id')
     num = int(content.get('num', ''))

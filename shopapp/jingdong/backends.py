@@ -28,7 +28,7 @@ class JingDongBackend(RemoteUserBackend):
         if not request.path.endswith(settings.JD_REDIRECT_URI):
             return None
 
-        content = request.REQUEST
+        content = request.GET or request.POST
         code = content.get('code')
         state = content.get('state')
 

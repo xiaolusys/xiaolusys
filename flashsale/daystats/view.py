@@ -38,7 +38,7 @@ def get_month_from_date(date_time):
 
 
 def popularize_Cost(request):
-    content = request.REQUEST
+    content = request.GET or request.POST
     daystr = content.get("month", None)
     if daystr:
         year, month, day = daystr.split('-')

@@ -36,7 +36,7 @@ class MamaRegisterView(WeixinAuthMixin, PayInfoMethodMixin, APIView):
         """
         mama_id: 推荐人的专属id
         """
-        content = request.REQUEST
+        content = request.GET
         mama_id = content.get('mama_id')
         mama_id = re.match("\d+",mama_id).group()
         
@@ -104,7 +104,7 @@ class MamaRegisterView(WeixinAuthMixin, PayInfoMethodMixin, APIView):
 
     def post(self, request):
         # 验证码通过才可以进入本函数
-        content = request.REQUEST
+        content = request.POST
         mobile = content.get('mobile')
         user = request.user
         customers = Customer.objects.filter(user=user)
@@ -153,7 +153,7 @@ class PayDepositeView(PayInfoMethodMixin, APIView):
         return urlparse.urljoin(settings.M_SITE_URL, link)
 
     def get(self, request):
-        content = request.REQUEST
+        content = request.GET
         mama_id = content.get('mama_id', '1')
         xlmm = self.get_xiaolumm(request)
         register_url = "/m/register/?mama_id={0}".format(mama_id)
@@ -180,7 +180,7 @@ class PayDepositeView(PayInfoMethodMixin, APIView):
         })
 
     def post(self, request, *args, **kwargs):
-        CONTENT = request.REQUEST.copy()
+        CONTENT = request.POST.copy()
         item_id = CONTENT.get('item_id')
         sku_id = CONTENT.get('sku_id')
         sku_num = int(CONTENT.get('num', '1'))
@@ -244,7 +244,7 @@ class MamaFailView(APIView):
     template_name = "apply/mama_fail.html"
 
     def get(self, request):
-        response = {'mama_id': request.REQUEST.get('mama_id')}
+        response = {'mama_id': request.GET.get('mama_id')}
         return Response(response)
 
 

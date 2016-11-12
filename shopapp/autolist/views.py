@@ -7,6 +7,7 @@ from django.shortcuts import render_to_response
 from django.core.urlresolvers import reverse
 from django.template import RequestContext
 from django.conf import settings
+
 # from djangorestframework.utils import as_tuple
 # from djangorestframework import status
 # from djangorestframework.response import Response
@@ -25,7 +26,6 @@ from . import serializers
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.compat import OrderedDict
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer, BrowsableAPIRenderer
 from rest_framework.mixins import CreateModelMixin
 from rest_framework import authentication
@@ -46,7 +46,7 @@ def invalid_list_task(request, num_iid):
 
 @login_required(login_url=settings.LOGIN_URL)
 def pull_from_taobao(request):
-    content = request.REQUEST
+    content = request.GET
     user_id = content.get('user_id', '')
     try:
         profile = User.objects.get(user=user_id)
@@ -83,7 +83,7 @@ def pull_from_taobao(request):
 
 
 def list_all_items(request):
-    content = request.REQUEST
+    content = request.GET
     user_id = content.get('user_id', '')
     # print user_id,"77666666666666666"
     try:
@@ -122,7 +122,7 @@ def list_all_items(request):
 
 
 def show_timetable_cats(request):
-    content = request.REQUEST
+    content = request.GET
     user_id = content.get('user_id', '')
     print user_id, "8888888888888888888"
     try:
@@ -162,7 +162,7 @@ def show_timetable_cats(request):
 
 
 def show_weektable(request, weekday):
-    content = request.REQUEST
+    content = request.GET
     user_id = content.get('user_id', '')
     try:
         profile = User.objects.get(user=user_id)
@@ -216,7 +216,7 @@ def show_weektable(request, weekday):
 
 
 def show_time_table_summary(request):
-    content = request.REQUEST
+    content = request.GET
     user_id = content.get('user_id', '')
     try:
         profile = User.objects.get(user=user_id)

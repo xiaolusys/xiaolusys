@@ -62,8 +62,7 @@ class SampleScanView(APIView):
 
     def post(self, request, format=None):
 
-        content = request.REQUEST
-        user = request.user
+        content = request.POST
 
         scan_type = content.get('t')
         tiaoma = content.get('tiaoma', '')

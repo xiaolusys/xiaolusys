@@ -125,7 +125,7 @@ def calc_customer_repeat_buy(start_date, end_date, category='month', user_type='
 class StatsRepeatView(View):
     @staticmethod
     def get(request):
-        content = request.REQUEST
+        content = request.GET
         today = datetime.datetime.now()
         start_time_str = content.get("df", None)
         end_time_str = content.get("dt", None)
@@ -178,7 +178,7 @@ from shopback.trades.models import MergeTrade
 class StatsSaleView(View):
     @staticmethod
     def get(request):
-        content = request.REQUEST
+        content = request.GET
         today = datetime.date.today()
         start_time_str = content.get("df", None)
         end_time_str = content.get("dt", None)
@@ -214,7 +214,7 @@ class StatsSaleView(View):
 class StatsSalePeopleView(View):
     @staticmethod
     def get(request):
-        content = request.REQUEST
+        content = request.GET
         start_time_str = content.get("df", None)
         end_time_str = content.get("dt", None)
         send_tasks = task_calc_xlmm.delay(start_time_str, end_time_str)

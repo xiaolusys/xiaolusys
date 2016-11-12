@@ -16,7 +16,7 @@ from flashsale.daystats.tasks import task_calc_hot_sale, task_calc_stock_top, ta
 class EntranceView(View):
     @staticmethod
     def get(request):
-        content = request.REQUEST
+        content = request.GET
         today = datetime.date.today()
         start_time_str = content.get("df", None)
         end_time_str = content.get("dt", None)
@@ -45,7 +45,7 @@ class SaleHotView(View):
 
     @staticmethod
     def get(request):
-        content = request.REQUEST
+        content = request.GET
         start_time_str = content.get("df", datetime.date.today().strftime('%Y-%m-%d'))
         end_time_str = content.get("dt", datetime.date.today().strftime('%Y-%m-%d'))
         category = content.get("category", None)
@@ -61,7 +61,7 @@ class SaleBadView(View):
 
     @staticmethod
     def get(request):
-        content = request.REQUEST
+        content = request.GET
         start_time_str = content.get("df", datetime.date.today().strftime('%Y-%m-%d'))
         end_time_str = content.get("dt", datetime.date.today().strftime('%Y-%m-%d'))
         category = content.get("category", None)
@@ -80,7 +80,7 @@ class TopStockView(View):
 
     @staticmethod
     def get(request):
-        content = request.REQUEST
+        content = request.GET
         start_time_str = content.get("df", None)
         end_time_str = content.get("dt", None)
         limit_num = content.get("limit_num", 200)
@@ -171,7 +171,7 @@ class SaleStatusView(generics.ListCreateAPIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, *args, **kwargs):
-        content = request.REQUEST
+        content = request.GET
         target_date_str = content.get("target_date", None)
         warn_num = content.get("warn_num", 3)
         try:

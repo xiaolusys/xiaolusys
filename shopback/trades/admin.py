@@ -13,8 +13,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.utils.encoding import force_unicode
 from core.utils.modelutils import get_class_fields
-from bitfield import BitField
-from bitfield.forms import BitFieldCheckboxSelectMultiple
+
 from django.conf import settings
 from celery import chord
 from shopback.items.models import Product, ProductSku
@@ -254,7 +253,7 @@ class MergeTradeAdmin(ApproxAdmin):
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size': '16'})},
         models.TextField: {'widget': Textarea(attrs={'rows': 6, 'cols': 35})},
-        BitField: {'widget': BitFieldCheckboxSelectMultiple},
+        # BitField: {'widget': BitFieldCheckboxSelectMultiple},
     }
 
     def formfield_for_dbfield(self, db_field, **kwargs):
@@ -321,10 +320,6 @@ class MergeTradeAdmin(ApproxAdmin):
         opts = obj._meta
         # Handle proxy models automatically created by .only() or .defer()
         verbose_name = opts.verbose_name
-        if obj._deferred:
-            opts_ = opts.proxy_for_model._meta
-            verbose_name = opts_.verbose_name
-
         pk_value = obj._get_pk_val()
         operate_success = False
         if request.POST.has_key("_save_audit"):
@@ -345,7 +340,7 @@ class MergeTradeAdmin(ApproxAdmin):
                     operate_success = True
 
             if operate_success:
-                from shopapp.memorule import ruleMatchPayment
+                from shopapp.memorule.services import ruleMatchPayment
 
                 ruleMatchPayment(obj)
 
@@ -353,11 +348,11 @@ class MergeTradeAdmin(ApproxAdmin):
                 self.message_user(request, msg)
                 log_action(request.user.id, obj, CHANGE, msg)
 
-                return HttpResponseRedirect("../%s/" % pk_value)
+                return HttpResponseRedirect("./")
             else:
                 self.message_user(request, u"审核未通过（请确保订单状态为问题单,无退款,无问题编码"
                                            u",无匹配,无缺货, 未合单,已选择快递）")
-                return HttpResponseRedirect("../%s/" % pk_value)
+                return HttpResponseRedirect("./")
 
         elif request.POST.has_key("_invalid"):
             if obj.sys_status in (pcfg.WAIT_AUDIT_STATUS,
@@ -379,10 +374,10 @@ class MergeTradeAdmin(ApproxAdmin):
 
                 log_action(request.user.id, obj, CHANGE, msg)
 
-                return HttpResponseRedirect("../%s/" % pk_value)
+                return HttpResponseRedirect("./")
             else:
                 self.message_user(request, u"作废未成功（请确保订单状态为问题单）")
-                return HttpResponseRedirect("../%s/" % pk_value)
+                return HttpResponseRedirect("./")
 
         elif request.POST.has_key("_uninvalid"):
             if obj.sys_status == pcfg.INVALID_STATUS:
@@ -406,10 +401,10 @@ class MergeTradeAdmin(ApproxAdmin):
 
                 self.message_user(request, msg)
                 log_action(request.user.id, obj, CHANGE, msg)
-                return HttpResponseRedirect("../%s/" % pk_value)
+                return HttpResponseRedirect("./")
             else:
                 self.message_user(request, u"订单非作废状态,不需反作废")
-                return HttpResponseRedirect("../%s/" % pk_value)
+                return HttpResponseRedirect("./")
 
         elif request.POST.has_key("_regular"):
             if obj.sys_status == pcfg.WAIT_AUDIT_STATUS and obj.remind_time:
@@ -418,10 +413,10 @@ class MergeTradeAdmin(ApproxAdmin):
                 msg = u"订单定时时间:%s" % obj.remind_time
                 self.message_user(request, msg)
                 log_action(request.user.id, obj, CHANGE, msg)
-                return HttpResponseRedirect("../%s/" % pk_value)
+                return HttpResponseRedirect("./")
             else:
                 self.message_user(request, u"订单不是问题单或没有设定提醒时间")
-                return HttpResponseRedirect("../%s/" % pk_value)
+                return HttpResponseRedirect("./")
 
         elif request.POST.has_key("_unregular"):
             if obj.sys_status == pcfg.REGULAR_REMAIN_STATUS:
@@ -430,10 +425,10 @@ class MergeTradeAdmin(ApproxAdmin):
                 msg = u"订单定时已取消"
                 self.message_user(request, msg)
                 log_action(request.user.id, obj, CHANGE, msg)
-                return HttpResponseRedirect("../%s/" % pk_value)
+                return HttpResponseRedirect("./")
             else:
                 self.message_user(request, u"订单不在定时提醒区,不需要取消定时")
-                return HttpResponseRedirect("../%s/" % pk_value)
+                return HttpResponseRedirect("./")
 
         elif request.POST.has_key("_split"):
             if obj.sys_status == pcfg.WAIT_AUDIT_STATUS:
@@ -454,13 +449,13 @@ class MergeTradeAdmin(ApproxAdmin):
             else:
                 msg = u"该订单不在问题单,或待扫描状态,或没有合并子订单"
             self.message_user(request, msg)
-            return HttpResponseRedirect("../%s/" % pk_value)
+            return HttpResponseRedirect("./")
 
         elif request.POST.has_key("_save"):
             msg = u'%(name)s "%(obj)s" 保存成功.' % {'name': force_unicode(verbose_name),
                                                  'obj': force_unicode(obj)}
             self.message_user(request, msg)
-            return HttpResponseRedirect("../%s/" % pk_value)
+            return HttpResponseRedirect("./")
 
         elif request.POST.has_key("_finish"):
             if obj.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,
@@ -479,7 +474,7 @@ class MergeTradeAdmin(ApproxAdmin):
             else:
                 msg = u"订单不在待扫描验货或待扫描称重,不能修改为已完成状态"
             self.message_user(request, msg)
-            return HttpResponseRedirect("../%s/" % pk_value)
+            return HttpResponseRedirect("./")
 
         elif request.POST.has_key("_rescan"):
             if obj.sys_status == pcfg.FINISHED_STATUS:
@@ -508,7 +503,7 @@ class MergeTradeAdmin(ApproxAdmin):
             else:
                 msg = u"订单不在已完成,不能修改为待扫描状态"
             self.message_user(request, msg)
-            return HttpResponseRedirect("../%s/" % pk_value)
+            return HttpResponseRedirect("./")
 
         return super(MergeTradeAdmin, self).response_change(request, obj, *args, **kwargs)
 
@@ -569,7 +564,7 @@ class MergeTradeAdmin(ApproxAdmin):
             fail_reason = u'不符合合并条件（合并订单必须两单以上,订单状态在问题单或待扫描,未关闭状态）'
 
         else:
-            from shopapp.memorule import ruleMatchPayment
+            from shopapp.memorule.services import ruleMatchPayment
 
             merge_trade_ids = []  # 合单成的订单ID
             fail_reason = ''

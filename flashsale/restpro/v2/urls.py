@@ -1,5 +1,5 @@
 # coding: utf-8
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
 from rest_framework import routers
 from rest_framework.urlpatterns import format_suffix_patterns
 
@@ -69,7 +69,7 @@ v2_router_urls += format_suffix_patterns([
     url(r'^cashout_policy', views.xiaolumm.CashOutPolicyView.as_view()),
     url(r'^redirect_activity_entry', views.xiaolumm.RedirectActivityEntryView.as_view()),
     url(r'^redirect_stats_link', views.xiaolumm.RedirectStatsLinkView.as_view()),
-    url(r'^enable_elite_mama', views.xiaolumm.EnableEliteMamaView.as_view()),
+    url(r'^recruit_elite_mama', views.xiaolumm.RecruitEliteMamaView.as_view()),
     url(r'^urlredirect', views.URLRedirectViewSet.as_view({'get': 'redirect'})),
     url(r'^wdt/logistics', views.WangDianTongViewSet.as_view({'post': 'logistics'})),
 ])
@@ -82,7 +82,7 @@ lesson_router.register(r'lesson', views.LessonViewSet)
 lesson_router.register(r'instructor', views.InstructorViewSet)
 lesson_router.register(r'lessonattendrecord', views.LessonAttendRecordViewSet)
 
-urlpatterns = patterns('',
-                       url(r'^', include(v2_router_urls, namespace='rest_v2')),
-                       url(r'^mama/', include(v2_router_urls)),
-                       )
+urlpatterns = [
+    url(r'^', include(v2_router_urls, namespace='rest_v2')),
+    url(r'^mama/', include(v2_router_urls)),
+]

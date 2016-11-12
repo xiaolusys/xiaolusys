@@ -52,7 +52,7 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def get_promotion_product(self, request):
-        date = request.REQUEST.get('date') or datetime.date.today()
+        date = request.GET.get('date') or datetime.date.today()
         # 排期日期在未来三天的　需要推广的商品
         pms = SaleProductManageDetail.objects.filter(schedule_manage__sale_time=date,
                                                      today_use_status=SaleProductManageDetail.NORMAL,

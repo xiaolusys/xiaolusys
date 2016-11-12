@@ -18,7 +18,7 @@ class PromotionGoodsViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def get_goods_pics_by_promotionid(self, request):
-        content = request.REQUEST
+        content = request.GET
         promotion_id = content.get('promotion_id', None)
         brand_entry = BrandEntry.objects.filter(id=promotion_id).first()
 
@@ -42,7 +42,7 @@ class PromotionGoodsViewSet(viewsets.ModelViewSet):
     @list_route(methods=['post'])
     def save_pics(self, request):
 
-        content = request.REQUEST
+        content = request.GET
         arr = content.get("arr", None)
         act_id = content.get("promotion_id", None)
         data = eval(arr)  # json字符串转化
@@ -81,7 +81,7 @@ class PromotionGoodsViewSet(viewsets.ModelViewSet):
         from flashsale.promotion.views import get_customer
         customer = get_customer(request)
 
-        content = request.REQUEST
+        content = request.GET
         act_id = content.get("promotion_id", None)
         if act_id:
             act = BrandEntry.objects.filter(id=act_id).order_by('-start_time').first()

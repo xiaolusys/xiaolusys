@@ -277,8 +277,9 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     @list_route(methods=['post'])
     def sku_num_enough(self, request, *args, **kwargs):
         """ 规格数量是否充足 """
-        sku_id = request.REQUEST.get('sku_id', '')
-        sku_num = request.REQUEST.get('sku_num', '')
+        content = request.POST
+        sku_id = content.get('sku_id', '')
+        sku_num = content.get('sku_num', '')
         if not sku_id.isdigit() or not sku_num.isdigit():
             return Response({"code": 1 ,"info": u'参数错误'})
         sku_num = int(sku_num)
@@ -301,7 +302,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 
     def get_payextras(self, request, resp):
 
-        content = request.REQUEST
+        content = request.GET
         is_in_wap = content.get('device', 'wap') == 'wap'
         extras = []
         # 优惠券

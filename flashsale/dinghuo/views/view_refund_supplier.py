@@ -57,7 +57,7 @@ class StatisRefundSupView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, format=None):
-        content = request.REQUEST
+        content = request.GET
         date_from = (
             content.get('date_from',
                         datetime.datetime.today() - datetime.timedelta(days=7)))
@@ -68,7 +68,7 @@ class StatisRefundSupView(APIView):
                          "date_to": date_to})
 
     def post(self, request, format=None):
-        content = request.REQUEST
+        content = request.POST
         arr = content.get("arr", None)
         data = eval(arr)  # json字符串转化
         supplier_set = set()
@@ -119,7 +119,7 @@ from common.modelutils import update_model_fields
 
 
 def change_duihuo_status(request):
-    content = request.REQUEST
+    content = request.POST
     act_str = content.get("act_str", None)
     id = content.get("id", None)
     if not (act_str and id):
@@ -170,7 +170,7 @@ def change_duihuo_status(request):
 
 
 def change_return_goods_memo(request):
-    content = request.REQUEST
+    content = request.POST
     id = content.get("id", None)
     memo = content.get("memo", '')
     return_goods = get_object_or_404(ReturnGoods, id=id)
@@ -180,7 +180,7 @@ def change_return_goods_memo(request):
 
 
 def modify_return_goods_sku(request):
-    content = request.REQUEST
+    content = request.POST
     id = int(content.get("id", None))
     sku_id = content.get("sku_id", None)
     num = int(content.get("num", 0))
@@ -194,7 +194,7 @@ def modify_return_goods_sku(request):
 
 
 def delete_return_goods_sku(request):
-    content = request.REQUEST
+    content = request.POST
     id = int(content.get("id", None))
     sku_id = content.get("sku_id", None)
     return_goods = get_object_or_404(ReturnGoods, id=id)
@@ -209,7 +209,7 @@ def delete_return_goods_sku(request):
 def set_return_goods_sku_send(request):
     from flashsale.finance.models import Bill
 
-    content = request.REQUEST
+    content = request.POST
     id = int(content.get("id", None))
     logistic_company_name = content.get("logistic_company", None)
     logistic_company = get_object_or_404(LogisticsCompany,
@@ -228,7 +228,7 @@ def set_return_goods_sku_send(request):
 
 
 def set_transactor(request):
-    content = request.REQUEST
+    content = request.POST
     id = int(content.get("id", None))
     transactor = content.get("transactor", None)
     return_goods = get_object_or_404(ReturnGoods, id=id)
@@ -237,7 +237,7 @@ def set_transactor(request):
 
 
 def set_return_goods_failed(request):
-    content = request.REQUEST
+    content = request.POST
     id = int(content.get("id", None))
     return_goods = get_object_or_404(ReturnGoods, id=id)
     if return_goods.status == ReturnGoods.DELIVER_RG:
@@ -249,7 +249,7 @@ def set_return_goods_failed(request):
 
 
 def change_sum_price(request):
-    content = request.REQUEST
+    content = request.POST
     id = content.get("id", None)
     sum_amount = content.get("sum_amount", None)
     if id is None or sum_amount is None:

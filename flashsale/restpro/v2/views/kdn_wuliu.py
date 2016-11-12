@@ -102,7 +102,7 @@ class WuliuViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def get_wuliu_by_tid(self, request):
-        content = request.REQUEST
+        content = request.GET
         tid = content.get("tid", None)
         if tid is None:  # 参数缺失
             return Response({"code": 1})
@@ -138,7 +138,7 @@ class WuliuViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def get_wuliu_by_packetid(self, request):
-        content = request.REQUEST
+        content = request.GET
         packetid = content.get("packetid", None)
         company_code = content.get("company_code", None)
         if packetid is None:  # 参数缺失

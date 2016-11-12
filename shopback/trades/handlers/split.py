@@ -2,12 +2,10 @@
 from django.conf import settings
 from .handler import BaseHandler
 from shopback.trades.models import MergeTrade
-from shopapp.memorule import ruleMatchPayment, ruleMatchSplit, ruleMatchGifts
-from shopback import paramconfig as pcfg
-from common.modelutils import update_model_fields
+
+from shopapp.memorule.services import ruleMatchPayment,ruleMatchSplit,ruleMatchGifts
 
 import logging
-
 logger = logging.getLogger('celery.handler')
 
 

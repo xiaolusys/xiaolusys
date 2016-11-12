@@ -136,7 +136,7 @@ class VerifyCodeViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets
         send code under 5 action cases:
         register, find_pwd, change_pwd, bind, sms_login
         """
-        content = request.REQUEST
+        content = request.POST
         mobile = content["mobile"]
         action = content["action"]
 
@@ -171,7 +171,7 @@ class VerifyCodeViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets
         register, find_pwd, change_pwd, bind, sms_login
         """
 
-        content = request.REQUEST
+        content = request.POST
         mobile = content["mobile"]
         action = content["action"]
         verify_code = content["verify_code"]
@@ -198,7 +198,7 @@ class VerifyCodeViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets
         customer.save()
 
         if action == 'register' or action == 'msm_login':
-            req_params = request.REQUEST
+            req_params = content
 
             # force to use SMSLoginBackend for authentication
             req_params['sms_code'] = verify_code
@@ -215,7 +215,7 @@ class VerifyCodeViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets
         """
         reset password after verifying code
         """
-        content = request.REQUEST
+        content = request.POST
         mobile = content["mobile"]
         pwd1 = content["password1"]
         pwd2 = content["password2"]

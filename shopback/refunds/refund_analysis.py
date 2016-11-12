@@ -25,7 +25,7 @@ class RefundReason(APIView):
     sale_refs = SaleRefund.objects.all()
 
     def time_zone(self, request):
-        content = request.REQUEST
+        content = request.GET
         date_from = content.get('date_from', None)
         date_to = content.get('date_to', None)
         if date_from is None or date_to is None:
@@ -81,7 +81,7 @@ def refund_Invalid_Create(request):
     在审核订单的时候作废了，生成对应原因的退货款单
     """
     REASON = (u"其他", u"错拍", u"缺货", u"没有发货", u"未收到货", u"与描述不符", u"七天无理由退换货")
-    content = request.REQUEST
+    content = request.POST
 
     trade_id = content.get("trade_id", None)
     reason = int(content.get("reason", None))

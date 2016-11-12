@@ -27,9 +27,6 @@ class TimeOrderStatSerializer(serializers.ModelSerializer):
         exlcude = ('url',)
 
 
-from shopback.base.serializer import ChartSerializer
-
-
 class ChartsSerializer(serializers.ModelSerializer):
     """ docstring for TradeResource ModelResource """
 

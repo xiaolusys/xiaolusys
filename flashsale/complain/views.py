@@ -38,7 +38,7 @@ class ComplainViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         """ 创建投诉 """
-        content = request.REQUEST
+        content = request.POST
         com_title = content.get('com_title', '')
         com_content = content.get('com_content', '')
         com_type = int(content.get('com_type', 3))
@@ -62,7 +62,7 @@ class ComplainViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=["get"])
     def history_complains(self, request):
-        content = request.REQUEST
+        content = request.GET
         condition = {}
         fields = get_class_fields(Complain)
         for f in fields:
@@ -78,7 +78,7 @@ class ComplainViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=["post"])
     def reply(self, request, pk=None):
-        content = request.REQUEST
+        content = request.POST
         id = content.get('id', '')
         complain = get_object_or_404(Complain, id=id)
         reply = content.get('reply', '')

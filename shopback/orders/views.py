@@ -1,36 +1,26 @@
 # -*- coding:utf8 -*-
 import datetime
 import json
+
 from django.http import Http404
 from django.http import HttpResponse
 from django.db.models import Sum, Count, Avg
 from django.db import connection, transaction
-# from djangorestframework import status
-# from djangorestframework.views import ModelView
-from chartit import DataPool, Chart
-from chartit import PivotDataPool, PivotChart
+from django.views.decorators.csrf import csrf_exempt
+from django.core.serializers.json import DjangoJSONEncoder
+
 from common.utils import parse_datetime, parse_date, format_date, format_time, map_int2str, format_datetime
 from shopback.items.models import Item, Product, ProductSku
 from shopback.orders.models import Order, Trade
 from shopback import paramconfig as pcfg
-from rest_framework import authentication
-from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import authentication
 from rest_framework import permissions
-from rest_framework.compat import OrderedDict
-from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer, BrowsableAPIRenderer
+from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.views import APIView
 from rest_framework import filters
 from rest_framework import authentication
 from . import serializers
-from rest_framework import status
-from django.core.serializers.json import DjangoJSONEncoder
-
-from shopback.base.new_renders import new_ChartJSONRenderer, new_ChartTemplateRenderer, new_BaseJSONRenderer
-from renderers import TimerOrderStatChartRenderer, ProductOrderTableRenderer, RefundOrderRenderer, RelatedOrderRenderer
-from django.views.decorators.csrf import csrf_exempt
-
 
 def map_datetime2daystr(*t):
     return t[0]
@@ -42,13 +32,13 @@ class TimerOrderStatisticsView(APIView):
     serializer_class = serializers.TimeOrderStatSerializer
     permission_classes = (permissions.IsAuthenticated,)
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication,)
-    renderer_classes = (TimerOrderStatChartRenderer, new_ChartJSONRenderer, BrowsableAPIRenderer)
+    renderer_classes = (BrowsableAPIRenderer,)
 
     # template_name = 'trades/order_report_chart.html'
     @csrf_exempt
     def get(self, request, *args, **kwargs):
 
-        content = request.REQUEST
+        content = request.GET
         df = content.get('df')
         dt = content.get('dt')
         nicks = content.get('nicks', '')
@@ -108,7 +98,7 @@ class TimerOrderStatisticsView(APIView):
                 }
             }
 
-            ordersdata = PivotDataPool(series=[series], sortf_mapf_mts=(None, map_datetime2daystr, True))
+            # ordersdata = PivotDataPool(series=[series], sortf_mapf_mts=(None, map_datetime2daystr, True))
 
             series_options = [{
                 'options': {'type': 'column', 'stacking': True, 'yAxis': 0},
@@ -135,11 +125,11 @@ class TimerOrderStatisticsView(APIView):
             }
 
             orders_data_chts.append(
-                PivotChart(
-                    datasource=ordersdata,
-                    series_options=series_options,
-                    chart_options=chart_options
-                )
+                # PivotChart(
+                #     datasource=ordersdata,
+                #     series_options=series_options,
+                #     chart_options=chart_options
+                # )
             )
 
         chart_data = {'df': format_date(start_dt), 'dt': format_date(end_dt),
@@ -156,8 +146,7 @@ class ProductOrderView(APIView):
     serializer_class = serializers.TimeOrderStatSerializer
     permission_classes = (permissions.IsAuthenticated,)
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication,)
-    renderer_classes = (
-    new_ChartJSONRenderer, BrowsableAPIRenderer, ProductOrderTableRenderer, new_ChartTemplateRenderer)
+    renderer_classes = (BrowsableAPIRenderer, )
 
     def get(self, request, *args, **kwargs):
         dt_f = kwargs.get('dt_f')
@@ -224,7 +213,7 @@ class ProductOrderView(APIView):
 
         }
 
-        ordersdata = PivotDataPool(series=[series], sortf_mapf_mts=(None, map_int2str, True))
+        # ordersdata = PivotDataPool(series=[series], sortf_mapf_mts=(None, map_int2str, True))
 
         series_options = [{
             'options': {'type': 'area', 'stacking': True, 'yAxis': 0},
@@ -240,10 +229,11 @@ class ProductOrderView(APIView):
             'yAxis': [{'title': {'text': u'\u9500\u552e\u6570\u91cf'}}, ]
         }
 
-        orders_data_cht = PivotChart(
-            datasource=ordersdata,
-            series_options=series_options,
-            chart_options=chart_options)
+        orders_data_cht = None
+        # PivotChart(
+        #     datasource=ordersdata,
+        #     series_options=series_options,
+        #     chart_options=chart_options)
 
         product_sku = ProductSku.objects.filter(product=outer_id)
         sku_list = []
@@ -255,13 +245,14 @@ class ProductOrderView(APIView):
 
         chart_data = {"charts": [orders_data_cht], 'skus': sku_list}
 
-        if self.request.REQUEST.get('format') == 'table':
+        if self.request.GET.get('format') == 'table':
 
             class ChartEncoder(json.JSONEncoder):
-                def default(self, obj):
-                    if isinstance(obj, (Chart, PivotChart)):
-                        return obj.hcoptions  # Serializer().serialize
-                    return DjangoJSONEncoder.default(self, obj)
+                pass
+                # def default(self, obj):
+                #     if isinstance(obj, (Chart, PivotChart)):
+                #         return obj.hcoptions  # Serializer().serialize
+                #     return DjangoJSONEncoder.default(self, obj)
 
             chart_data = json.loads(json.dumps(chart_data, cls=ChartEncoder))
 
@@ -273,11 +264,11 @@ class RelatedOrderStateView(APIView):
     serializer_class = serializers.BaseSerializer
     permission_classes = (permissions.IsAuthenticated,)
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication,)
-    renderer_classes = (RelatedOrderRenderer, new_BaseJSONRenderer, BrowsableAPIRenderer,)
+    # renderer_classes = (RelatedOrderRenderer, new_BaseJSONRenderer, BrowsableAPIRenderer,)
 
     def get(self, request, *args, **kwargs):
 
-        content = request.REQUEST
+        content = request.GET
         df = content.get('df')
         dt = content.get('dt')
         outer_id = content.get('outer_id', '')
@@ -365,7 +356,7 @@ class RefundOrderView(APIView):
     serializer_class = serializers.BaseSerializer
     permission_classes = (permissions.IsAuthenticated,)
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication,)
-    renderer_classes = (RefundOrderRenderer, new_BaseJSONRenderer, BrowsableAPIRenderer,)
+    # renderer_classes = (RefundOrderRenderer, new_BaseJSONRenderer, BrowsableAPIRenderer,)
 
     def get(self, request, *args, **kwargs):
 

@@ -25,7 +25,7 @@ class ReceiptGoodsViewSet(viewsets.ModelViewSet):
     search_fields = ('=express_no',)
 
     def create(self, request, *args, **kwargs):
-        content = request.REQUEST
+        content = request.POST
         express_no = content.get("express_no") or None
         express_company = content.get("express_company") or None
         weight = content.get("weight") or None

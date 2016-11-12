@@ -12,7 +12,7 @@ from celery import Task
 from django.core.paginator import Paginator
 from shopback import paramconfig as pcfg
 from shopback.trades.models import MergeTrade
-from shopback.users import Seller
+from shopback.users.models import User as Seller
 from shopapp.yunda.qrcode import cancel_order, search_order, parseTreeID2MailnoMap
 from shopapp.yunda.models import LogisticOrder, YundaCustomer, TodaySmallPackageWeight, \
     YUNDA_CODE, NORMAL, DELETE

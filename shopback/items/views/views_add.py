@@ -47,9 +47,8 @@ class AddItemView(generics.ListCreateAPIView):
     # @transaction.atomic
     def post(self, request, *args, **kwargs):
         """ 新增库存商品　新增款式 """
-        content = request.REQUEST
+        content = request.POST
         user = request.user
-        print 'content:', content
         product_name = content.get("product_name", "")
         category = content.get("category", "")
         shelf_time = content.get("shelf_time", "")

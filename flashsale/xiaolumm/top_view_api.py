@@ -33,7 +33,7 @@ class TopDataView(APIView):
         return taskid
 
     def get(self, request, format=None):
-        content = request.REQUEST
+        content = request.GET
         t_from = (content.get('time_from', None))
         t_to = (content.get('time_to', None))
         func = (content.get('func', None))

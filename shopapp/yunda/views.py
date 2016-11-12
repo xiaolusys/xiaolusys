@@ -2,13 +2,22 @@
 import os, re, json
 import datetime
 from django.http import HttpResponseRedirect
-from django.views.decorators.csrf import csrf_exempt
-from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.db.models import Sum, Count, Max
-# from djangorestframework import status
-# from djangorestframework.response import Response,ErrorResponse
+
+from .options import get_addr_zones
+from rest_framework import authentication
+from rest_framework import generics
+from rest_framework.response import Response
+from rest_framework import authentication
+from rest_framework import permissions
+from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer, BrowsableAPIRenderer
+from rest_framework.views import APIView
+from rest_framework import filters
+from rest_framework import authentication
+from rest_framework import status
+
 from shopback import paramconfig as pcfg
 from shopback.logistics.models import LogisticsCompany
 from shopback.base.views import FileUploadView_intercept
@@ -24,20 +33,8 @@ from .models import (BranchZone,
                      YUNDA,
                      NORMAL,
                      DELETE)
-from .options import get_addr_zones
-from rest_framework import authentication
-from rest_framework import generics
-from rest_framework.response import Response
-from rest_framework import authentication
-from rest_framework import permissions
-from rest_framework.compat import OrderedDict
-from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer, BrowsableAPIRenderer
-from rest_framework.views import APIView
-from rest_framework import filters
-from rest_framework import authentication
-from . import serializers
-from rest_framework import status
 from shopback.base.new_renders import new_BaseJSONRenderer
+from . import serializers
 
 
 class PackageByCsvFileView(FileUploadView_intercept):
@@ -361,7 +358,7 @@ class PackageWeightView(APIView):
 
     def get(self, request, *args, **kwargs):
 
-        content = request.REQUEST
+        content = request.GET
         package_no = content.get('package_no')
 
         if not self.isValidYundaId(package_no):
@@ -398,7 +395,7 @@ class PackageWeightView(APIView):
 
     def post(self, request, *args, **kwargs):
 
-        content = request.REQUEST
+        content = request.POST
         package_no = content.get('package_no')
         package_weight = content.get('package_weight')
 
@@ -437,7 +434,7 @@ class BranchZoneView(APIView):
     renderer_classes = (new_BaseJSONRenderer,)
 
     def get(self, request, *args, **kwargs):
-        content = request.REQUEST
+        content = request.GET
         province = content.get('province', '')
         city = content.get('city', '')
         district = content.get('district', '')

@@ -397,7 +397,7 @@ class WeixinUserService():
 
     def sendValidCode(self, mobile, validCode, title=u'微信手机验证'):
 
-        from shopapp.smsmgr import sendMessage
+        from shopapp.smsmgr.services import sendMessage
 
         wx_resp = WeiXinAutoResponse.objects.get_or_create(message='SJYZM')[0]
         msgTemplate = wx_resp.content

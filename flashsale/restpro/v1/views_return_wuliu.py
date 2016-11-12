@@ -125,7 +125,7 @@ class ReturnWuliuViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def get_wuliu_company_code(self, request):
-        company_name = request.REQUEST.get("company_name",None)
+        company_name = request.GET.get("company_name",None)
         if company_name is None:
 
             return Response([])
@@ -169,7 +169,7 @@ class ReturnWuliuViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def get_wuliu_by_packetid(self, request):
-        content = request.REQUEST
+        content = request.GET
         packetid = content.get("packetid",None)
         packetid = ''.join(str(packetid).split())
         company_name = content.get("company_name",None)

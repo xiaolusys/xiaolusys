@@ -84,6 +84,9 @@ class WeixinFans(BaseModel):
 
     def get_qrscene(self):
         qrscene = self.extras.get('qrscene')
+        if qrscene and (not qrscene.isdigit()):
+            # 如果是订单编号，仍然返回空。
+            return ''
         if qrscene == '0' or qrscene == 0:
             return ''
         return qrscene

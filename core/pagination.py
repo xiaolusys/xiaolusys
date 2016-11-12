@@ -12,13 +12,11 @@ class PageNumberPkPagination(PageNumberPagination):
         Paginate a queryset if required, either returning a
         page object, or `None` if pagination is not configured for this view.
         """
-        self._handle_backwards_compat(view)
-
         page_size = self.get_page_size(request)
         if not page_size:
             return None
 
-        paginator = DjangoPaginator(queryset, page_size)
+        paginator = self.django_paginator_class(queryset, page_size)
         page_number = request.query_params.get(self.page_query_param, 1)
         if page_number in self.last_page_strings:
             page_number = paginator.num_pages
@@ -31,7 +29,7 @@ class PageNumberPkPagination(PageNumberPagination):
             )
             raise NotFound(msg)
 
-        if paginator.count > 1 and self.template is not None:
+        if paginator.num_pages > 1 and self.template is not None:
             # The browsable API should display pagination controls.
             self.display_page_controls = True
 

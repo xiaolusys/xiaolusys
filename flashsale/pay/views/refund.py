@@ -24,7 +24,7 @@ class RefundReason(APIView):
     template_name = "salerefund/refund_reason.html"
 
     def get(self, request):
-        content = request.REQUEST
+        content = request.GET
         user_name = request.user.username
         today = datetime.datetime.today()
         pro_code = content.get("pro_code", None)

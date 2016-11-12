@@ -141,7 +141,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
 
     def order_queryset(self, request, queryset, order_by=None):
         """ 对集合列表进行排序 """
-        order_by = order_by or request.REQUEST.get('order_by')
+        order_by = order_by or request.GET.get('order_by')
         if order_by == self.INDEX_ORDER_BY:
             queryset = queryset.extra(select={'is_saleout': 'remain_num - lock_num <= 0'},
                                       order_by=['-category__sort_order', 'is_saleout',
@@ -299,7 +299,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         """
         我的选品(不添加秒杀和卖光的产品) 这里要计算用户的佣金
         """
-        content = request.REQUEST
+        content = request.GET
         category = int(content.get('category', 0))  # 1童装2女装
         sort_field = content.get('sort_field', 'id')  # 排序字段
         if not request.user.is_authenticated():
@@ -357,7 +357,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         """
         获取代理用户的店铺
         """
-        content = request.REQUEST
+        content = request.GET
         mm_linkid = content.get('mm_linkid', None)
         category = content.get('category', None)
         self.permission_classes = ()
@@ -390,7 +390,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     @cache_response(timeout=30, key_func='calc_items_cache_key')
     def promotion_ads(self, request, *args, **kwargs):
         """ 推荐展示商品信息 """
-        content = request.REQUEST
+        content = request.GET
         category = content.get('category')
         list_num = int(content.get('lnum', '1'))
 
@@ -416,7 +416,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     @list_route(methods=['get'])
     def brandlist(self, request, *args, **kwargs):
         """ 品牌推广展示商品信息 """
-        content = request.REQUEST
+        content = request.GET
         brand_id = content.get('brand')
 
         tnow = datetime.datetime.now()

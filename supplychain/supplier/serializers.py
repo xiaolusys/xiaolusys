@@ -600,3 +600,4 @@ class SaleProductManageDetailSimpleSerializer(serializers.ModelSerializer):
 class PreferencePoolSerializer(serializers.ModelSerializer):
     class Meta:
         model = PreferencePool
+        fields = ('id', 'name', 'unit', 'is_sku', 'categorys', 'preference_value')

@@ -23,7 +23,7 @@ class SaleCategoryViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def get_detail_category(self, request):
         """ 获取类型 (特别注意：在model中定义好的)"""
-        content = request.REQUEST
+        content = request.GET
         main_category = content.get("main_category", None)
         details_category = FaqsDetailCategory.objects.filter(main_category_id=main_category)
         serializer = serializers.SaleFaqDetailCategorySerializer(details_category, many=True)
@@ -31,7 +31,7 @@ class SaleCategoryViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def get_question(self, request):
-        content = request.REQUEST
+        content = request.GET
         main_category = content.get("main_category", None)
         detail_category = content.get("detail_category", None)
         questions = SaleFaq.objects.none()

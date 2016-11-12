@@ -41,7 +41,7 @@ def index(req):
 
     sql = """
         select item_id, title, count(*) as count
-        from xiaoludb.flashsale_order
+        from flashsale_order
         where pay_time >= %s and pay_time < %s
         group by item_id
         order by count desc
@@ -56,10 +56,10 @@ def index(req):
             supplychain_sale_category.cid as cid,
             supplychain_sale_category.name as category_name,
             count(*) as count
-        FROM xiaoludb.flashsale_order
-        join xiaoludb.shop_items_product on shop_items_product.id=flashsale_order.item_id
-        join xiaoludb.flashsale_modelproduct on shop_items_product.model_id=flashsale_modelproduct.id
-        join xiaoludb.supplychain_sale_category on flashsale_modelproduct.salecategory_id=supplychain_sale_category.id
+        FROM flashsale_order
+        join shop_items_product on shop_items_product.id=flashsale_order.item_id
+        join flashsale_modelproduct on shop_items_product.model_id=flashsale_modelproduct.id
+        join supplychain_sale_category on flashsale_modelproduct.salecategory_id=supplychain_sale_category.id
         where flashsale_order.pay_time >= %s
             and flashsale_order.pay_time < %s
     """
@@ -99,10 +99,10 @@ def activity(req):
             sum(orders.total_fee) as sales,
             count(orders.total_fee) as salenum
         from
-            xiaoludb.flashsale_order as orders
-        join xiaoludb.shop_items_product as products on orders.item_id=products.id
-        join xiaoludb.flashsale_activity_product as activity on activity.model_id = products.model_id
-        join xiaoludb.flashsale_activity_entry as ac on ac.id = activity.activity_id
+            flashsale_order as orders
+        join shop_items_product as products on orders.item_id=products.id
+        join flashsale_activity_product as activity on activity.model_id = products.model_id
+        join flashsale_activity_entry as ac on ac.id = activity.activity_id
         where orders.created > %s
         and orders.created < %s
         and products.model_id != 0
@@ -148,10 +148,10 @@ def salecategory(req):
             flashsale_order.pay_time,
             supplychain_sale_category.cid,
             supplychain_sale_category.name
-        FROM xiaoludb.flashsale_order
-        join xiaoludb.shop_items_product on shop_items_product.id=flashsale_order.item_id
-        join xiaoludb.flashsale_modelproduct on shop_items_product.model_id=flashsale_modelproduct.id
-        join xiaoludb.supplychain_sale_category on flashsale_modelproduct.salecategory_id=supplychain_sale_category.id
+        FROM flashsale_order
+        join shop_items_product on shop_items_product.id=flashsale_order.item_id
+        join flashsale_modelproduct on shop_items_product.model_id=flashsale_modelproduct.id
+        join supplychain_sale_category on flashsale_modelproduct.salecategory_id=supplychain_sale_category.id
         where flashsale_order.pay_time >= %s and flashsale_order.pay_time < %s
     """
     products = execute_sql(cursor, sql, [format_datetime(start_date), format_datetime(end_date)])
@@ -186,7 +186,7 @@ def show(req, id):
 
     sql = """
         SELECT pay_time, count(DATE(pay_time)) as count
-        FROM xiaoludb.flashsale_order
+        FROM flashsale_order
         where item_id=%s
             and pay_time > %s
             and pay_time < %s
@@ -199,8 +199,8 @@ def show(req, id):
             shop_items_productsku.properties_name,
             flashsale_order.total_fee,
             count(*) as count
-        FROM xiaoludb.flashsale_order
-        join xiaoludb.shop_items_productsku on shop_items_productsku.id=flashsale_order.sku_id
+        FROM flashsale_order
+        join shop_items_productsku on shop_items_productsku.id=flashsale_order.sku_id
         where flashsale_order.item_id=%s
             and flashsale_order.pay_time > %s
             and flashsale_order.pay_time < %s

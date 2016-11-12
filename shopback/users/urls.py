@@ -1,6 +1,6 @@
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
+from shopback.users.views import *
 
-urlpatterns = patterns('shopback.users.views',
-
-                       url(r'^username/$', 'get_usernames_by_segstr', name='usernames_by_segstr'),
-                       )
+urlpatterns = [
+    url(r'^username/$', get_usernames_by_segstr, name='usernames_by_segstr'),
+]

@@ -9,6 +9,8 @@ TEMPLATE_DEBUG = DEBUG
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_COOKIE_AGE = 12 * 60 * 60
 
+ALLOWED_HOSTS = ['*']
+
 ############################ FUNCTION SWITCH #############################
 INGORE_SIGNAL_EXCEPTION = False # signal异常捕获而且不再抛出
 APP_PUSH_SWITCH = False  # APP推送开关

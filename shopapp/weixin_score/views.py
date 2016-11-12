@@ -19,7 +19,7 @@ logger = logging.getLogger("django.request")
 class FrozenScoreView(View):
     @transaction.atomic
     def post(self, request, *args, **kwargs):
-        content = request.REQUEST
+        content = request.POST
         commited = False
         try:
             openid = request.COOKIES.get('openid')

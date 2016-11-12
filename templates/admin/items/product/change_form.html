@@ -1,136 +1,60 @@
-{% extends "admin/base_site.html" %}
-{% load i18n admin_static admin_modify %}
-{% load url from future %}
-{% load admin_urls %}
-
-{% block extrahead %}{{ block.super }}
-
-{% url 'admin:jsi18n' as jsi18nurl %}
-<script type="text/javascript" src="{{ jsi18nurl|default:"../../../jsi18n/" }}"></script>
-{{ media }}
-{% endblock %}
-
-{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />{% endblock %}
-
-{% block coltype %}{% if ordered_objects %}colMS{% else %}colM{% endif %}{% endblock %}
-
-{% block bodyclass %}{{ opts.app_label }}-{{ opts.object_name.lower }} change-form{% endblock %}
-
-{% if not is_popup %}
-{% block breadcrumbs %}
-<div class="breadcrumbs">
-<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
-&rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ app_label|capfirst|escape }}</a>
-&rsaquo; {% if has_change_permission %}<a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>{% else %}{{ opts.verbose_name_plural|capfirst }}{% endif %}
-&rsaquo; {% if add %}{% trans 'Add' %} {{ opts.verbose_name }}{% else %}{{ original|truncatewords:"18" }}{% endif %}
-</div>
-{% endblock %}
-{% endif %}
-
-{% block content %}<div id="content-main">
-{% block object-tools %}
-{% if change %}{% if not is_popup %}
-  <ul class="object-tools">
-    {% block object-tools-items %}
-    <li><a href="history/" class="historylink">{% trans "History" %}</a></li>
-    {% if has_absolute_url %}<li><a href="../../../r/{{ content_type_id }}/{{ object_id }}/" class="viewsitelink">{% trans "View on site" %}</a></li>{% endif%}
-    {% endblock %}
-  </ul>
-{% endif %}{% endif %}
-{% endblock %}
-<form {% if has_file_field %}enctype="multipart/form-data" {% endif %}action="{{ form_url }}" method="post" id="{{ opts.module_name }}_form">{% csrf_token %}{% block form_top %}{% endblock %}
-<div>
-{% if is_popup %}<input type="hidden" name="_popup" value="1" />{% endif %}
-{% if save_on_top %}{% block submit_buttons_top %}{% submit_row %}{% endblock %}{% endif %}
-{% if errors %}
-    <p class="errornote">
-    {% blocktrans count counter=errors|length %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}
-    </p>
-    {{ adminform.form.non_field_errors }}
-{% endif %}
-
-{% block field_sets %}
-{% for fieldset in adminform %}
-  {% include "admin/includes/fieldset.html" %}
-{% endfor %}
-{% endblock %}
-
-{% block after_field_sets %}{% endblock %}
-
-{% block inline_field_sets %}
-{% for inline_admin_formset in inline_admin_formsets %}
-    {% include inline_admin_formset.opts.template %}
-{% endfor %}
+{% extends "admin/change_form.html" %}
+{% load i18n admin_urls static admin_modify %}
 
 
-{% endblock %}
+{% block after_related_objects %}
+<script type="text/javascript">
+    $(document).ready(function () {
+        load_quick();
+        get_add_row();
+    });
+    function load_quick() {
+        var all_outer_id = $('input[id^=id_prod_skus].[id$=-outer_id]');
+        var all_remain_num = $("input[id^=id_prod_skus].[id$=-remain_num]");
+        var all_cost = $("input[id^=id_prod_skus].[id$=-cost]");
+        var all_sale_price = $("input[id^=id_prod_skus].[id$=-std_sale_price]");
+        var all_agent_price = $("input[id^=id_prod_skus].[id$=-agent_price]");
 
-{% block after_related_objects %}{% endblock %}
-
-{% block submit_buttons_bottom %}{% submit_row %}{% endblock %}
-
-{% if adminform and add %}
-   <script type="text/javascript">document.getElementById("{{ adminform.first_field.id_for_label }}").focus();</script>
-{% endif %}
-
-{# JavaScript for prepopulated fields #}
-{% prepopulated_fields_js %}
-
-</div>
-</form></div>
-
-    <script type="text/javascript">
-        $(document).ready(function () {
-            load_quick();
-            get_add_row();
-        });
-        function load_quick() {
-            var all_outer_id = $('input[id^=id_prod_skus].[id$=-outer_id]');
-            var all_remain_num = $("input[id^=id_prod_skus].[id$=-remain_num]");
-            var all_cost = $("input[id^=id_prod_skus].[id$=-cost]");
-            var all_sale_price = $("input[id^=id_prod_skus].[id$=-std_sale_price]");
-            var all_agent_price = $("input[id^=id_prod_skus].[id$=-agent_price]");
-
-            all_remain_num.eq(0).change(function () {
-                var value = all_remain_num.eq(0).val();
-                for (var i = 0; i < all_remain_num.length; i++) {
-                    if (all_outer_id.eq(i).val().length != 0) {
-                        all_remain_num.eq(i).val(value);
-                    }
+        all_remain_num.eq(0).change(function () {
+            var value = all_remain_num.eq(0).val();
+            for (var i = 0; i < all_remain_num.length; i++) {
+                if (all_outer_id.eq(i).val().length != 0) {
+                    all_remain_num.eq(i).val(value);
                 }
-            });
-            all_cost.eq(0).change(function () {
-                var value = all_cost.eq(0).val();
-                for (var i = 0; i < all_cost.length; i++) {
-                    if (all_outer_id.eq(i).val().length != 0) {
-                        all_cost.eq(i).val(value);
-                    }
-                }
-            });
-            all_sale_price.eq(0).change(function () {
-                var value = all_sale_price.eq(0).val();
-                for (var i = 0; i < all_sale_price.length; i++) {
-                    if (all_outer_id.eq(i).val().length != 0) {
-                        all_sale_price.eq(i).val(value);
-                    }
-                }
-            });
-            all_agent_price.eq(0).change(function () {
-                var value = all_agent_price.eq(0).val();
-                for (var i = 0; i < all_agent_price.length; i++) {
-                    if (all_outer_id.eq(i).val().length != 0) {
-                        all_agent_price.eq(i).val(value);
-                    }
-                }
-            });
-        }
-        function get_add_row() {
-            if ($(".add-row td a").length > 0) {
-                $(".add-row td a").click(load_quick);
-            } else {
-                setTimeout(function () {get_add_row();},1000);
             }
-
+        });
+        all_cost.eq(0).change(function () {
+            var value = all_cost.eq(0).val();
+            for (var i = 0; i < all_cost.length; i++) {
+                if (all_outer_id.eq(i).val().length != 0) {
+                    all_cost.eq(i).val(value);
+                }
+            }
+        });
+        all_sale_price.eq(0).change(function () {
+            var value = all_sale_price.eq(0).val();
+            for (var i = 0; i < all_sale_price.length; i++) {
+                if (all_outer_id.eq(i).val().length != 0) {
+                    all_sale_price.eq(i).val(value);
+                }
+            }
+        });
+        all_agent_price.eq(0).change(function () {
+            var value = all_agent_price.eq(0).val();
+            for (var i = 0; i < all_agent_price.length; i++) {
+                if (all_outer_id.eq(i).val().length != 0) {
+                    all_agent_price.eq(i).val(value);
+                }
+            }
+        });
+    }
+    function get_add_row() {
+        if ($(".add-row td a").length > 0) {
+            $(".add-row td a").click(load_quick);
+        } else {
+            setTimeout(function () {get_add_row();},1000);
         }
-    </script>
+
+    }
+</script>
 {% endblock %}

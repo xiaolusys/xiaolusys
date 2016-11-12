@@ -1,6 +1,6 @@
 # coding=utf-8
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 
-urlpatterns = patterns('',
-                       # url(r'^xlsampleapply/$', views.XLSampleapplyView.as_view(), name="xlsampleapply_view"),
-                       )
+urlpatterns = [
+    # url(r'^xlsampleapply/$', views.XLSampleapplyView.as_view(), name="xlsampleapply_view"),
+]

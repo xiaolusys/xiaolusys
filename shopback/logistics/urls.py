@@ -1,14 +1,13 @@
-from django.conf.urls import patterns, include, url
+__author__ = 'meixqhi'
+from django.conf.urls import include, url
 
 # from core.options.authentication import UserLoggedInAuthentication
 # from core.options.permissions import IsAuthenticated
+from shopback.logistics.views import *
 
-__author__ = 'meixqhi'
 
-urlpatterns = patterns('shopback.logistics.views',
-
-                       url('company/$', 'update_logistics_company', name='update_company'),
-                       url('update/(?P<dt_f>[^/]+)/(?P<dt_t>[^/]+)/$', 'update_interval_logistics',
-                           name='update_logistic'),
-
-                       )
+urlpatterns = [
+    url('company/$', update_logistics_company, name='update_company'),
+    url('update/(?P<dt_f>[^/]+)/(?P<dt_t>[^/]+)/$', update_interval_logistics,
+       name='update_logistic'),
+]

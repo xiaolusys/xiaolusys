@@ -7,7 +7,7 @@ from core.options import log_action, CHANGE, ADDITION
 
 class BuyerGroupSave(View):
     def post(self, request):
-        content = request.REQUEST
+        content = request.POST
         name = content.get('name')
         group = content.get('group')
 

@@ -1,6 +1,6 @@
 import datetime
 import json
-from django.http import HttpResponse
+
 from .models import PrintAsyncTaskModel
 from shopapp.asynctask.tasks import AsyncCategoryTask, AsyncOrderTask, PrintAsyncTask, PrintAsyncTask2
 from common.utils import parse_date
@@ -9,7 +9,6 @@ from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import authentication
 from rest_framework import permissions
-from rest_framework.compat import OrderedDict
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer, BrowsableAPIRenderer
 from rest_framework.views import APIView
 from rest_framework import filters
@@ -27,9 +26,7 @@ class AsyncCategoryView(APIView):
     # print "start3333"
     def get(self, request, cids, *args, **kwargs):
         profile = request.user.get_profile()
-        content = request.REQUEST
         seller_type = profile.type
-
         result = AsyncCategoryTask.delay(cids, profile.visitor_id, seller_type=seller_type)
 
         return Response({"task_id": result})
@@ -46,7 +43,6 @@ class AsyncOrderView(APIView):
 
     def get(self, request, start_dt, end_dt, *args, **kwargs):
         profile = request.user.get_profile()
-        content = request.REQUEST
 
         start_dt = parse_date(start_dt)
         end_dt = parse_date(end_dt)
@@ -67,9 +63,9 @@ class AsyncInvoicePrintView(APIView):
 
     # print "start   AsyncInvoicePrintView"
     def get(self, request, *args, **kwargs):
-        print " get  function"
+
         profile = request.user
-        content = request.REQUEST
+        content = request.GET
 
         params = {'trade_ids': content.get('trade_ids'),
                   'user_code': content.get('user_code')}
@@ -94,9 +90,9 @@ class AsyncInvoice2PrintView(APIView):
 
     # print "start   AsyncInvoicePrintView"
     def get(self, request, *args, **kwargs):
-        print " get  function"
+
         profile = request.user
-        content = request.REQUEST
+        content = request.GET
 
         params = {'trade_ids': content.get('trade_ids'),
                   'user_code': content.get('user_code')}
@@ -120,7 +116,7 @@ class AsyncExpressPrintView(APIView):
 
     def get(self, request, *args, **kwargs):
         profile = request.user
-        content = request.REQUEST
+        content = request.GET
 
         params = {'trade_ids': content.get('trade_ids'),
                   'user_code': content.get('user_code')}

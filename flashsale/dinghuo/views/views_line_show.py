@@ -1,14 +1,17 @@
 # coding=utf-8
+import datetime
+import json
+
+from django.http import HttpResponse
+from django.forms import model_to_dict
+from django.core.serializers.json import DjangoJSONEncoder
+
 from rest_framework.views import APIView
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework import permissions
 from rest_framework.response import Response
+
 from ..models import SaleInventoryStat
-from django.forms import model_to_dict
-import datetime
-import json
-from django.http import HttpResponse
-from django.core.serializers.json import DjangoJSONEncoder
 
 
 class InventoryDataLineShow(APIView):
@@ -19,7 +22,7 @@ class InventoryDataLineShow(APIView):
     queryset = SaleInventoryStat.objects.all()
 
     def get(self, request):
-        content = request.REQUEST
+        content = request.GET
         df = content.get("df", datetime.date.today() - datetime.timedelta(days=30))
         dt = content.get("dt", datetime.date.today())
         if isinstance(dt, str):
@@ -31,7 +34,7 @@ class InventoryDataLineShow(APIView):
         return Response({"dt": dt, "df": df, "data_url": data_url, 'title': title})
 
     def post(self, request):
-        content = request.REQUEST
+        content = request.POST
         df = content.get("df", datetime.date.today() - datetime.timedelta(days=30))
         dt = content.get("dt", datetime.date.today())
         if isinstance(dt, str):

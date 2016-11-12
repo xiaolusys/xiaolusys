@@ -33,7 +33,7 @@ class SaleStatsViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def get_type_list(self, request):
         """ 获取总计 不分页 """
-        content = request.REQUEST
+        content = request.GET
         timely_type = content.get('timely_type') or None
         record_type = content.get('record_type') or None
         date_field = content.get('date_field') or None
@@ -61,7 +61,7 @@ class SaleStatsViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def get_all_num_type_list(self, request):
         """ 获取总计 不分页 使用了计算　其他状态数量的　serializer """
-        content = request.REQUEST
+        content = request.GET
         timely_type = content.get('timely_type') or None
         record_type = content.get('record_type') or None
         date_field = content.get('date_field') or None
@@ -94,7 +94,7 @@ class SaleStatsViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def get_annotate_type_list(self, request):
         """ 获取总计 不分页 使用了计算　其他状态数量的　serializer """
-        content = request.REQUEST
+        content = request.GET
         timely_type = content.get('timely_type') or None
         record_type = content.get('record_type') or None
         status = content.get('status') or None
@@ -125,7 +125,7 @@ class SaleStatsViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def get_target_stats_info(self, request):
         """ 计算某一个时间段的某个current_id 的退款信息（退款数量　退货数量　实际销量　逃单数量　缺货数量）"""
-        content = request.REQUEST
+        content = request.GET
         record_type = content.get('record_type') or None
         current_id = content.get('current_id') or None
         date_field_from = content.get('date_field_from') or None
@@ -178,7 +178,7 @@ class SaleStatsViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def get_pag_type_list(self, request):
-        content = request.REQUEST
+        content = request.GET
         timely_type = content.get('timely_type') or None
         record_type = content.get('record_type') or None
         status = content.get('status') or None

@@ -1,4 +1,4 @@
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponseRedirect
 from django.views.generic import TemplateView
@@ -14,40 +14,39 @@ admin.autodiscover()
 def home(request):
     return HttpResponseRedirect('/admin/')
 
-urlpatterns = patterns(
-    '',
-   (r'^admin/doc/', include('django.contrib.admindocs.urls')),
-   (r'^accounts/', include('shopapp.taobao.urls')),
-   (r'^category/', include('shopback.categorys.urls')),
-   (r'^fenxiao/', include('shopback.fenxiao.urls')),
-   (r'^items/', include('shopback.items.urls')),
-   (r'^logistics/', include('shopback.logistics.urls')),
-   (r'^orders/', include('shopback.orders.urls')),
-   (r'^trades/', include('shopback.trades.urls')),
-   (r'^warehouse/',include('shopback.warehouse.urls')),
-   (r'^refunds/', include('shopback.refunds.urls')),
-   (r'^purchases/', include('shopback.purchases.urls')),
-   (r'^users/', include('shopback.users.urls')),
-   (r'^weixin/', include('shopapp.weixin.urls')),
-   (r'^wx/', include('shopapp.weixin.urls')),
-   (r'^supplychain/', include('supplychain.urls')),
-   (r'^games/', include('games.urls')),
-   (r'^mm/', include('flashsale.pay.urls')),
-   (r'^coupon/', include('flashsale.coupon.urls')),
-   (r'^m/', include('flashsale.xiaolumm.urls')),
-    (r'^luntan/', include('flashsale.luntan.urls')),
-    (r'^thermal/', include('shopapp.STOthermal.urls')),
-   (r'^sale/', include('flashsale.urls')),
-   (r'^statistics/', include('statistics.urls')),
-   url(r'^djcelery/', include('djcelery.urls'), name="task_state"),
+urlpatterns = [
+   url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
+   url(r'^accounts/', include('shopapp.taobao.urls')),
+   url(r'^category/', include('shopback.categorys.urls')),
+   url(r'^fenxiao/', include('shopback.fenxiao.urls')),
+   url(r'^items/', include('shopback.items.urls')),
+   url(r'^logistics/', include('shopback.logistics.urls')),
+   url(r'^orders/', include('shopback.orders.urls')),
+   url(r'^trades/', include('shopback.trades.urls')),
+   url(r'^warehouse/',include('shopback.warehouse.urls')),
+   url(r'^refunds/', include('shopback.refunds.urls')),
+   url(r'^purchases/', include('shopback.purchases.urls')),
+   url(r'^users/', include('shopback.users.urls')),
+   url(r'^weixin/', include('shopapp.weixin.urls')),
+   url(r'^wx/', include('shopapp.weixin.urls')),
+   url(r'^supplychain/', include('supplychain.urls')),
+   url(r'^games/', include('games.urls')),
+   url(r'^mm/', include('flashsale.pay.urls')),
+   url(r'^coupon/', include('flashsale.coupon.urls')),
+   url(r'^m/', include('flashsale.xiaolumm.urls')),
+   url(r'^luntan/', include('flashsale.luntan.urls')),
+   url(r'^thermal/', include('shopapp.STOthermal.urls')),
+   url(r'^sale/', include('flashsale.urls')),
+   url(r'^statistics/', include('statistics.urls')),
+   # url(r'^djcelery/', include('djcelery.urls'), name="task_state"),
 
-   (r'^app/', include('shopapp.urls')),
-   (r'^lucky/', include('games.luckyawards.urls')),
+   url(r'^app/', include('shopapp.urls')),
+   url(r'^lucky/', include('games.luckyawards.urls')),
    url(r'^home/$', home, name='home_page'),
-   (r'^$', home),
-   (r'^top_monitor\.html$', csrf_exempt(TemplateView.as_view(template_name='top_monitor.html'))),
+   url(r'^$', home),
+   url(r'^top_monitor\.html$', csrf_exempt(TemplateView.as_view(template_name='top_monitor.html'))),
 
-   (r'^download/(?P<path>.*)$', staff_member_required(serve),
+   url(r'^download/(?P<path>.*)$', staff_member_required(serve),
     {'document_root': settings.DOWNLOAD_ROOT, 'show_indexes': True}),
 
    url(r'^rest/', include('flashsale.restpro.urls')),
@@ -57,21 +56,21 @@ urlpatterns = patterns(
        HttpProxy.as_view(base_url='http://%s/qrcode' % settings.QINIU_PUBLIC_DOMAIN)),
    # (r'^admin/doc/', include('django.contrib.admindocs.urls')),
    url('', include('django_prometheus.urls')),
-   (r'^admin/', include(admin.site.urls)),
-
-)
+   url(r'^admin/', include(admin.site.urls)),
+]
 
 if settings.DEBUG == True:
-    urlpatterns += patterns('',
-        (r'^static/(?P<path>.*)$', 'django.views.static.serve',
-         {'document_root': settings.STATIC_DOC_ROOT}),
-        (r'^media/(?P<path>.*)$', 'django.views.static.serve',
-         {'document_root': settings.MEDIA_ROOT}),
-        (r'^download/(?P<path>.*)$', 'django.views.static.serve',
-         {'document_root': settings.DOWNLOAD_ROOT, 'show_indexes': True}),
-    )
+    from django.views.static import serve
+    urlpatterns += [
+        url(r'^static/(?P<path>.*)$', serve,
+            {'document_root': settings.STATIC_DOC_ROOT}),
+        url(r'^media/(?P<path>.*)$', serve,
+            {'document_root': settings.MEDIA_ROOT}),
+        url(r'^download/(?P<path>.*)$', serve,
+            {'document_root': settings.DOWNLOAD_ROOT, 'show_indexes': True}),
+    ]
     try:
         import debug_toolbar
-        urlpatterns += patterns('', url(r'^__debug__/', include(debug_toolbar.urls)),)
+        urlpatterns += [url(r'^__debug__/', include(debug_toolbar.urls)),]
     except ImportError:
         pass

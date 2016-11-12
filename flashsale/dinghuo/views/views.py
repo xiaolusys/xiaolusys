@@ -273,7 +273,7 @@ def add_purchase(request, outer_id):
 
 @csrf_exempt
 def data_chart(req):
-    content = req.REQUEST
+    content = req.GET
     today = datetime.date.today()
     start_time_str = content.get("df", None)
     end_time_str = content.get("dt", None)
@@ -602,7 +602,7 @@ def change_inbound_quantity(request):
 
 class DailyDingHuoStatsView(View):
     def get(self, request):
-        content = request.REQUEST
+        content = request.GET
         daystr = content.get("day", None)
         today = datetime.date.today()
         year, month, day = today.year, today.month, today.day
@@ -719,7 +719,7 @@ class DailyWorkView(View):
         return functions.parse_date(end_dt)
 
     def get(self, request):
-        content = request.REQUEST
+        content = request.GET
         today = datetime.date.today()
         shelve_fromstr = content.get("df", None)
         shelve_to_str = content.get("dt", None)
@@ -1085,17 +1085,20 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
 
     @detail_route(methods=['post'])
     def create_bill(self, request, pk):
-        pay_tool = request.REQUEST.get("pay_tool", None)
+        pay_tool = request.POST.get("pay_tool", None)
         orderlist = get_object_or_404(OrderList, id=pk)
         if orderlist.bill:
             return Response({"res": False, "data": [], "desc": u"此订货单已经创建过账单了。"})
-        pay_way = request.REQUEST.get("pay_way", None)
-        plan_amount = request.REQUEST.get("money", None)
-        transcation_no = request.REQUEST.get("transcation_no", None)
-        receive_account = request.REQUEST.get("receive_account", None)
-        receive_name = request.REQUEST.get("receive_name", None)
-        pay_taobao_link = request.REQUEST.get("pay_taobao_link", None)
-        note = request.REQUEST.get("bill_note", '')
+
+        content = request.POST
+        pay_way = content.get("pay_way", None)
+        plan_amount = content.get("money", None)
+        transcation_no = content.get("transcation_no", None)
+        receive_account = content.get("receive_account", None)
+        receive_name = content.get("receive_name", None)
+        pay_taobao_link = content.get("pay_taobao_link", None)
+        note = content.get("bill_note", '')
+
         amount = .0
         from flashsale.finance.models import Bill, BillRelation
         if int(pay_way) == OrderList.PC_POD_TYPE:
@@ -1128,15 +1131,18 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
 
     @detail_route(methods=['post'])
     def edit_bill(self, request, pk):
-        pay_tool = request.REQUEST.get("pay_tool", None)
+        content = request.POST
+        pay_tool = content.get("pay_tool", None)
         # orderlist = get_object_or_404(OrderList, id=pk)
-        pay_way = request.REQUEST.get("pay_way", None)
-        plan_amount = request.REQUEST.get("money", None)
-        transcation_no = request.REQUEST.get("transcation_no", None)
-        receive_account = request.REQUEST.get("receive_account", None)
-        receive_name = request.REQUEST.get("receive_name", None)
-        pay_taobao_link = request.REQUEST.get("pay_taobao_link", None)
-        note = request.REQUEST.get("bill_note", '')
+
+        pay_way = content.get("pay_way", None)
+        plan_amount = content.get("money", None)
+        transcation_no = content.get("transcation_no", None)
+        receive_account = content.get("receive_account", None)
+        receive_name = content.get("receive_name", None)
+        pay_taobao_link = content.get("pay_taobao_link", None)
+        note = content.get("bill_note", '')
+
         from flashsale.finance.models import Bill, BillRelation
         bill = get_object_or_404(Bill, id=pk)
         orderlist = bill.get_orderlist()
@@ -1206,10 +1212,11 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
 
     @detail_route(methods=['post'])
     def set_bill_dealed(self, request, pk):
-        plan_amount = request.REQUEST.get("amount")
-        transaction_no = request.REQUEST.get("transaction_no")
-        attachment = request.REQUEST.get("attachment")
-        note = request.REQUEST.get("note")
+        content = request.POST
+        plan_amount = content.get("amount")
+        transaction_no = content.get("transaction_no")
+        attachment = content.get("attachment")
+        note = content.get("note")
         from flashsale.finance.models import Bill, BillRelation
         orderlist = OrderList.objects.get(id=pk)
         if orderlist.bill_method == OrderList.PC_COD_TYPE:
@@ -2022,7 +2029,7 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
 
     @detail_route(methods=['get'])
     def get_sku_inbound_detail(self, request, pk):
-        sku_id = request.REQUEST.get('sku_id', None)
+        sku_id = request.GET.get('sku_id', None)
         orderlist = get_object_or_404(OrderList, id=pk)
         sku = get_object_or_404(ProductSku, id=sku_id)
         ois = OrderDetailInBoundDetail.objects.filter(orderdetail__orderlist_id=pk, inbounddetail__sku_id=sku.id,
@@ -2041,7 +2048,7 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
 
     @detail_route(methods=['get'])
     def get_sku_inferior_detail(self, request, pk):
-        sku_id = request.REQUEST.get('sku_id', None)
+        sku_id = request.GET.get('sku_id', None)
         orderlist = get_object_or_404(OrderList, id=pk)
         sku = get_object_or_404(ProductSku, id=sku_id)
         ois = OrderDetailInBoundDetail.objects.filter(inbounddetail__sku_id=sku.id, inbounddetail__checked=True,

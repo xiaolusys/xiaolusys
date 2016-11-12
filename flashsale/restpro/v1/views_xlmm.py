@@ -238,7 +238,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         """
         if not request.user or not request.user.is_authenticated():
             raise exceptions.PermissionDenied()
-        last_renew_type = request.REQUEST.get("last_renew_type") or None
+        last_renew_type = request.GET.get("last_renew_type") or None
         if not last_renew_type:
             return Response([])
         currentmm = self.filter_queryset(self.get_owner_queryset(request)).first()
@@ -270,7 +270,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
     def get_register_pro_info(self, request):
         if not request.user or not request.user.is_authenticated():
             raise exceptions.PermissionDenied()
-        content = request.REQUEST
+        content = request.GET
         # mama_id = content.get('mama_id', '1')
         # xlmm = self.get_xiaolumm(request)
         # register_url = "/m/register/?mama_id={0}".format(mama_id)
@@ -305,7 +305,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
     def fill_mama_info(self, request):
         if not request.user or not request.user.is_authenticated():
             raise exceptions.PermissionDenied()
-        content = request.REQUEST
+        content = request.POST
         customer = get_object_or_404(Customer, user=request.user)
         mama_mobile = content.get('mama_mobile') or ''
         if (not customer.unionid) or (not customer.unionid.strip()):
@@ -333,7 +333,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
     def mama_register_pay(self, request):
         if not request.user or not request.user.is_authenticated():
             raise exceptions.PermissionDenied()
-        content = request.REQUEST
+        content = request.POST
         product_id = content.get('product_id')
         sku_id = content.get('sku_id')
         sku_num = int(content.get('num', '1'))
@@ -681,7 +681,7 @@ class StatisticsShoppingViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def days_num(self, request):
         """ 根据给的天数，返回天数内每天的专属订单的数量　"""
-        days = int(request.REQUEST.get('days', 0))
+        days = int(request.GET.get('days', 0))
         data = [(self.get_tzone_queryset(days=i, request=request).filter(status__in=(
             StatisticsShopping.FINISHED,
             StatisticsShopping.WAIT_SEND)).count())
@@ -702,7 +702,7 @@ class StatisticsShoppingViewSet(viewsets.ModelViewSet):
         根据日期参数传该日期的订单数量　
         当天点击数量和点击佣金
         """
-        content = request.REQUEST
+        content = request.GET
         days = content.get("days", 0)
         queryset = self.filter_queryset(self.get_owner_queryset(request))
         days = int(days)
@@ -814,8 +814,9 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
 
     def create(self, request, *args, **kwargs):
         """代理提现"""
-        cash_type = request.REQUEST.get('choice', None)
-        cashout_amount = request.REQUEST.get('cashout_amount', None)
+        content = request.POST
+        cash_type = content.get('choice', None)
+        cashout_amount = content.get('cashout_amount', None)
 
         customer, xlmm = self.get_customer_and_xlmm(request)
         if not (xlmm and customer):
@@ -991,7 +992,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
     @list_route(methods=['post'])
     def cashout_to_budget(self, request):
         """ 代理提现到用户余额 """
-        cashout_amount = request.REQUEST.get('cashout_amount', None)
+        cashout_amount = request.POST.get('cashout_amount', None)
         customer, xlmm = self.get_customer_and_xlmm(request)
         if not (xlmm and customer):
             info = u'你的帐号异常，请联系管理员！'
@@ -1041,7 +1042,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
     @list_route(methods=['post'])
     def cancal_cashout(self, request):
         """ 取消提现 接口 """
-        pk = request.REQUEST.get("id", None)
+        pk = request.POST.get("id", None)
         queryset = self.get_owner_queryset(request).filter(id=pk)
         if queryset.exists():
             cashout = queryset[0]
@@ -1055,7 +1056,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         """
         代理余额兑换优惠券
         """
-        content = request.REQUEST
+        content = request.GET
         exchange_num = content.get("exchange_num") or None  # 兑换张数
         template_id = content.get("template_id") or None  # 兑换的优惠券模板　72: ￥20　73　￥50
 
@@ -1210,7 +1211,7 @@ class ClickViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def click_by_day(self, request):
         """ 计算当前代理用户的今日点击佣金和所有点击佣金 """
-        content = request.REQUEST
+        content = request.GET
         days = content.get("days", 0)
         queryset = self.filter_queryset(self.get_owner_queryset(request))
         days = int(days)

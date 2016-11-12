@@ -2,12 +2,9 @@
 import re
 import json
 from django.conf import settings
-from celery.task import task
-from celery.task.sets import subtask
 from celery import Task
 
 from shopapp.tmcnotify.models import TmcUser, TmcMessage
-from shopback.users import Seller
 from shopback.trades.service import TradeService, OrderService
 from shopback import paramconfig as pcfg
 from shopapp.taobao import apis

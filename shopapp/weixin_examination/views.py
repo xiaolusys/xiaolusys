@@ -38,7 +38,7 @@ class WeixinExamView(View):
 
     def get(self, request, userpk):
 
-        content = request.REQUEST
+        content = request.GET
         code = content.get('code')
 
         user_openid = get_user_openid(request, code)
@@ -73,7 +73,7 @@ class WeixinExamView(View):
         if not user_openid or user_openid.upper() == 'NONE':
             return HttpResponse(u'只有微信用户才有答题权限哦')
 
-        content = request.REQUEST
+        content = request.POST
         paper_id = content.get('paper_id')
         problem_id = content.get('problem_id')
         selected = content.get('selected')

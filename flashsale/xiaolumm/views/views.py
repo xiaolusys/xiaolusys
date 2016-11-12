@@ -140,7 +140,7 @@ class CashoutView(WeixinAuthMixin, View):
         return response
 
     def post(self, request):
-        content = request.REQUEST
+        content = request.POST
         openid, unionid = self.get_openid_and_unionid(request)
         if not valid_openid(unionid):
             raise Http404
@@ -301,7 +301,7 @@ class MamaStatsView(WeixinAuthMixin, View):
 
 class MamaIncomeDetailView(WeixinAuthMixin, View):
     def get(self, request):
-        content = request.REQUEST
+        content = request.GET
         openid, unionid = self.get_openid_and_unionid(request)
         if not valid_openid(openid) or not valid_openid(unionid):
             redirect_url = self.get_snsuserinfo_redirct_url(request)
@@ -427,7 +427,7 @@ class StatsView(View):
             return 'none'
 
     def get(self, request):
-        content = request.REQUEST
+        content = request.GET
         daystr = content.get("day", None)
         today = datetime.date.today()
         year, month, day = today.year, today.month, today.day
@@ -519,7 +519,7 @@ class ClickLogView(WeixinAuthMixin, View):
     def get(self, request, linkid):
         from django_statsd.clients import statsd
         statsd.incr('xiaolumm.weixin_click')
-        content = request.REQUEST
+        content = request.GET
         next_page = content.get('next', None)
         # print 'next_page:', next_page
         # logger.error('next_page %s-path:%s' % (next_page, content))
@@ -617,7 +617,7 @@ class XiaoluMamaModelView(View):
     """ 微信接收消息接口 """
 
     def post(self, request, pk):
-        content = request.REQUEST
+        content = request.POST
         user_group_id = content.get('user_group_id')
 
         xlmm = get_object_or_404(XiaoluMama, pk=pk)
@@ -820,7 +820,7 @@ def manage_Summar(date_time):
 @csrf_exempt
 def stats_summary(request):
     #  根据日期查看每个管理人员 所管理的所有代理的点击情况和转化情况
-    content = request.REQUEST
+    content = request.GET
     daystr = content.get("day", None)
     today = datetime.date.today()
     target_date = today

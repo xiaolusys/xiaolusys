@@ -17,8 +17,7 @@ router.register(r'purchase_return', views.ReturnGoodsViewSet, 'purchase_return')
 router.register(r'inbound', views.InBoundViewSet, 'inbound')
 
 urlpatterns = [
-    url(r'^searchproduct/$',
-        views.search_product,
+    url(r'^searchproduct/$', views.search_product,
         name='searchProduct'),  # 搜索所有的商品 ajax
     url(r'^initdraft/$',
         views.init_draft,

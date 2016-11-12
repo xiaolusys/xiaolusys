@@ -3,21 +3,21 @@ import datetime
 import json
 from django.http import HttpResponse, HttpResponseNotFound
 from django.db.models import Q, Sum
-from core.options import log_action, User as DjangoUser, ADDITION, CHANGE
-from shopapp.calendar.models import StaffEvent
-from common.utils import parse_datetime, format_datetime
-from rest_framework.views import APIView
-from . import serializers
-from rest_framework import generics
+from django.core.serializers.json import DjangoJSONEncoder
+
 from rest_framework.response import Response
 from rest_framework import authentication
 from rest_framework import permissions
-from rest_framework.compat import OrderedDict
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer, BrowsableAPIRenderer
 from rest_framework.views import APIView
 from rest_framework import filters
 from rest_framework import authentication
+
+from . import serializers
+from core.options import log_action, User as DjangoUser, ADDITION, CHANGE
 from shopback.base.new_renders import new_BaseJSONRenderer
+from shopapp.calendar.models import StaffEvent
+from common.utils import parse_datetime, format_datetime
 
 
 def get_users_by_string(executor_strng):
@@ -107,7 +107,7 @@ class StaffEventView(APIView):
     # template_name = "fullcalendar/default.html"
     def get(self, request, *args, **kwargs):
         # print "get99"
-        content = request.REQUEST
+        content = request.GET
         exector = content.get('exector')
         date_type = content.get('date_type', 'task')
         finished = content.get('is_finished', '')
@@ -171,9 +171,8 @@ class StaffEventView(APIView):
         return Response(staff_list)
 
     def post(self, request, *args, **kwargs):
-        print "post"
         creator = request.user
-        content = request.REQUEST
+        content = request.POST
 
         start = content.get('start')
         end = content.get('end')

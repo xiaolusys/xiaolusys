@@ -18,25 +18,19 @@ from shopback.refunds.tasks import updateAllUserRefundOrderTask
 from shopback import paramconfig as pcfg
 from core.options import log_action, User, ADDITION, CHANGE
 from shopback.base.new_renders import new_BaseJSONRenderer
-import logging
+
 from rest_framework import authentication
-from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import permissions
-from rest_framework.compat import OrderedDict
-from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer, BrowsableAPIRenderer
 from rest_framework.views import APIView
-from rest_framework import filters
-from . import serializers
-from rest_framework import status
-from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
 from renderers import *
+from . import serializers
 from unrelate_product_handler import update_Unrelate_Prods_Product, update_Product_Collect_Num
 
-
+import logging
 logger = logging.getLogger('django.request')
 __author__ = 'meixqhi'
 
@@ -114,7 +108,7 @@ class RefundManagerView(APIView):
         # Response({"object":{'refund_trades':refund_list,'unrelate_prods':unrelate_prods}})
 
     def post(self, request, *args, **kwargs):
-        content = request.REQUEST
+        content = request.POST
         tid = content.get('tid')
         # print "tid",tid
         seller_id = content.get('seller_id')
@@ -156,7 +150,7 @@ class RefundProductView(APIView):
 
     def post(self, request, *args, **kwargs):
 
-        content = request.REQUEST
+        content = request.POST
         outer_id = content.get('outer_id')
         outer_sku_id = content.get('outer_sku_id')
         prod_sku = None
@@ -198,7 +192,7 @@ class RefundView(APIView):
 
     def get(self, request, *args, **kwargs):
 
-        content = request.REQUEST
+        content = request.GET
         q = content.get('q')
         # q="40270295378417"
         if not q:
@@ -257,7 +251,7 @@ class RefundView(APIView):
         return Response(prod_list)
 
     def post(self, request, *args, **kwargs):
-        content = request.REQUEST
+        content = request.POST
         rf = RefundProduct()
         refundproduct = RefundProduct.objects.filter(trade_id=content['trade_id'],
                                                      outer_sku_id=content['outer_sku_id'],
@@ -394,7 +388,7 @@ def delete_trade_order(request, id):
 @csrf_exempt
 @staff_member_required
 def relate_refund_product(request):
-    content = request.REQUEST
+    content = request.POST
     refund_tid = content.get('refund_tid')
     rpid = content.get('rpid')
 

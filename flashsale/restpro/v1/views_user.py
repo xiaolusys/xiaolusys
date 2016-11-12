@@ -155,7 +155,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
     @list_route(methods=['post'])
     def check_code_user(self, request):
         """验证码校验（判断验证码是否过时，超次，并新建用户）"""
-        post = request.REQUEST
+        post = request.POST
         mobile = post['username']
         client_valid_code = post.get('valid_code', 0)
         current_time = datetime.datetime.now()
@@ -282,7 +282,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
     @list_route(methods=['post'])
     def check_vcode(self, request, **kwargs):
         """根据手机号和验证码创建用户账户"""
-        content = request.REQUEST
+        content = request.POST
         mobile = content.get('mobile')
         vcode = content.get('vcode')
 
@@ -418,7 +418,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
     @list_route(methods=['post'])
     def send_code(self, request, *args, **kwargs):
         """ 根据手机号获取验证码 """
-        mobile = request.REQUEST['mobile']
+        mobile = request.POST['mobile']
         current_time = datetime.datetime.now()
         if mobile == "" or not re.match(PHONE_NUM_RE, mobile):
             return Response({"code": 2, "info": "手机号码有误"})
@@ -435,7 +435,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
     @list_route(methods=['post'])
     def sms_login(self, request, *args, **kwargs):
         """ 短信验证码登陆 """
-        req_params = request.REQUEST
+        req_params = request.POST
         mobile = req_params.get('mobile', '')
         if mobile == "" or not re.match(PHONE_NUM_RE, mobile):
             return Response({"code": 2, "info": "手机号码有误"})
@@ -912,7 +912,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['post'])
     def open_debug_for_app(self, request):
-        content = request.REQUEST
+        content = request.POST
         debug_secret = content.get("debug_secret") or ''
         if debug_secret != "xlmm@16888&a":
             return Response({"rcode": 1, "msg": "开启失败"})
