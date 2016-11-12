@@ -163,10 +163,11 @@ def task_refundproduct_update_productskustats_return_quantity(sku_id):
     if stat.return_quantity != total:
         stat.return_quantity = total
         stat.save(update_fields=['return_quantity'])
+        stat.assign()
 
 
 @task(max_retries=3, default_retry_delay=6)
-def task_orderdetail_update_productskustats_inbound_quantity(sku_id):
+def task_orderdetail_update_productskustats_inbound_quantity(instance):
     """
     Whenever we have products inbound, we update the inbound quantity.
     0) OrderDetail arrival_time add db_index=True
@@ -174,15 +175,21 @@ def task_orderdetail_update_productskustats_inbound_quantity(sku_id):
     --Zifei 2016-04-18
     """
     from flashsale.dinghuo.models import OrderDetail
+    sku_id = instance.sku_id
     logger.info("%s -sku_id:%s" % (get_cur_info(), sku_id))
     sum_res = OrderDetail.objects.filter(chichu_id=sku_id,
                                          arrival_time__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME) \
         .aggregate(total=Sum('arrival_quantity'))
     total = sum_res["total"] or 0
     stat = SkuStock.get_by_sku(sku_id)
-    if stat.inbound_quantity != total:
+    if stat.inbound_quantity < total:
         stat.inbound_quantity = total
         stat.save(update_fields=['inbound_quantity', 'modified'])
+        stat.assign(instance.order_list)
+    elif stat.inbound_quantity > total:
+        stat.inbound_quantity = total
+        stat.save(update_fields=['inbound_quantity', 'modified'])
+        stat.relase_assign(instance.order_list)
 
 
 @task()
@@ -200,6 +207,7 @@ def task_update_product_sku_stat_rg_quantity(sku_id):
     if stat.rg_quantity != total:
         stat.rg_quantity = total
         stat.save(update_fields=['rg_quantity'])
+        stat.assign()
 
 
 @task(max_retries=3, default_retry_delay=6)

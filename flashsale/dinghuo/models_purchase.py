@@ -1,8 +1,8 @@
 # -*- coding:utf-8 -*-
 import datetime
 from django.db import models, transaction
+from django.db.models import Sum
 from django.db.models.signals import post_save
-
 from core.models import BaseModel
 from flashsale.dinghuo import utils
 
@@ -114,6 +114,11 @@ class PurchaseDetail(BaseModel):
         return float('%.2f' % total)
 
     @property
+    def sku(self):
+        from shopback.items.models import ProductSku
+        return ProductSku.objects.get(id=self.sku_id)
+
+    @property
     def purchase_order(self):
         return PurchaseOrder.objects.get(uni_key=self.purchase_order_unikey)
 
@@ -126,21 +131,44 @@ class PurchaseDetail(BaseModel):
     def is_booked(self):
         return self.status == PurchaseOrder.BOOKED
 
+    @staticmethod
+    def create(pa, uni_key):
+        res = PurchaseArrangement.objects.filter(purchase_order_unikey=pa.purchase_order_unikey,
+                                                 sku_id=pa.sku_id, status=PurchaseArrangement.EFFECT).aggregate(total=Sum('num'))
+        total = res['total'] or 0
+        unit_price = int(pa.sku.cost * 100)
+        pd = PurchaseDetail(uni_key=uni_key, purchase_order_unikey=pa.purchase_order_unikey,
+                                unit_price=unit_price, book_num=total, need_num=total)
+        fields = ['outer_id', 'outer_sku_id', 'sku_id', 'title', 'sku_properties_name']
+        utils.copy_fields(pd, pa, fields)
+        pd.save()
+
+    def restat(self):
+        res = PurchaseArrangement.objects.filter(purchase_order_unikey=self.purchase_order_unikey,
+                                                 sku_id=self.sku_id, status=PurchaseArrangement.EFFECT).aggregate(total=Sum('num'))
+        total = res['total'] or 0
+        unit_price = int(self.sku.cost * 100)
+        if self.book_num != total or self.unit_price != unit_price:
+            self.book_num = total
+            self.need_num = total
+            self.unit_price = unit_price
+            self.save(update_fields=['book_num', 'need_num', 'unit_price', 'modified'])
+        return
 
 def update_purchase_order(sender, instance, created, **kwargs):
     from flashsale.dinghuo.tasks import task_purchase_detail_update_purchase_order
     task_purchase_detail_update_purchase_order.delay(instance)
 
-
-post_save.connect(update_purchase_order, sender=PurchaseDetail, dispatch_uid='post_save_update_purchase_order')
-
+from shopmanager.celery_settings import CLOSE_CELERY
 
 def update_orderdetail(sender, instance, created, **kwargs):
     from flashsale.dinghuo.tasks import task_purchasedetail_update_orderdetail
     task_purchasedetail_update_orderdetail.delay(instance)
 
 
-post_save.connect(update_orderdetail, sender=PurchaseDetail, dispatch_uid='post_save_update_orderdetail')
+if not CLOSE_CELERY:
+    post_save.connect(update_purchase_order, sender=PurchaseDetail, dispatch_uid='post_save_update_purchase_order')
+    post_save.connect(update_orderdetail, sender=PurchaseDetail, dispatch_uid='post_save_update_orderdetail')
 
 
 class PurchaseArrangement(BaseModel):
@@ -169,7 +197,7 @@ class PurchaseArrangement(BaseModel):
     purchase_order_status = models.IntegerField(choices=PurchaseOrder.STATUS, default=PurchaseOrder.OPEN, db_index=True,
                                                 verbose_name=u'PO状态')
     initial_book = models.BooleanField(default=False, db_index=True, verbose_name=u'是否已订货')
-
+    gen_order = models.BooleanField(default=False)
     class Meta:
         db_table = 'flashsale_dinghuo_purchase_arrangement'
         app_label = 'dinghuo'
@@ -211,8 +239,22 @@ class PurchaseArrangement(BaseModel):
     def gen_purchase_arrangement_unikey(po_unikey, pr_unikey):
         return '%s-%s' % (po_unikey, pr_unikey)
 
+    def generate_order(pa):
+        uni_key = utils.gen_purchase_detail_unikey(pa)
+        pd = PurchaseDetail.objects.filter(uni_key=uni_key).first()
+        if not pd:
+            PurchaseDetail.create(pa)
+        else:
+            if pd.is_open():
+                pd.restat()
+        pa.gen_order = True
+        pa.save()
+
+
 
 def update_purchase_detail(sender, instance, created, **kwargs):
+    if instance.gen_order:
+        return
     from flashsale.dinghuo.tasks import task_purchasearrangement_update_purchasedetail
     # task_purchasearrangement_update_purchasedetail.delay(instance) 存在bug，数据不一致
     # 这个任务激发前使用了事务，任务内部直接使用instance和aggregate，由于不是使用记录，不会等待锁关闭，aggregate直接使用索引得出了结果——但此结果是事务提交前的结果。导致了错误。
@@ -220,5 +262,6 @@ def update_purchase_detail(sender, instance, created, **kwargs):
     task_purchasearrangement_update_purchasedetail.apply_async(args=[instance.id], countdown=3)
 
 
-
-post_save.connect(update_purchase_detail, sender=PurchaseArrangement, dispatch_uid='post_save_update_purchase_detail')
+from shopmanager.celery_settings import CLOSE_CELERY
+if not CLOSE_CELERY:
+    post_save.connect(update_purchase_detail, sender=PurchaseArrangement, dispatch_uid='post_save_update_purchase_detail')
