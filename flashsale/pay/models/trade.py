@@ -402,7 +402,6 @@ class SaleTrade(BaseModel):
         self.update_teambuy()
         # self.set_order_paid()
 
-    @transaction.atomic
     def pay_confirm(self):
         # 暂时用此方法替代charge_confirm进行测试
         # 测试时忽略了charge
@@ -415,6 +414,11 @@ class SaleTrade(BaseModel):
             so.pay_time = self.pay_time
             so.save()
             if create_psi:
+                so.set_psi_paid()
+
+    def set_order_paid(self):
+        if not self.trade_type == SaleTrade.TEAMBUY_ORDER:
+            for so in self.sale_orders.all():
                 so.set_psi_paid()
 
     def redeliver_sku_item(self, old_sale_order):

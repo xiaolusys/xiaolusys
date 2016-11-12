@@ -5,6 +5,9 @@ from django.db.models import Sum
 from django.db.models.signals import post_save
 from core.models import BaseModel
 from flashsale.dinghuo import utils
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class PurchaseOrder(BaseModel):
@@ -72,6 +75,62 @@ class PurchaseOrder(BaseModel):
         from shopback.trades.models import PackageSkuItem
         return PackageSkuItem.objects.filter(purchase_order_unikey=self.uni_key)
 
+    @property
+    def supplier(self):
+        return PurchaseOrder.get_supplier(self.uni_key)
+
+    @staticmethod
+    def get_supplier(purchase_order_unikey):
+        from supplychain.supplier.models import SaleSupplier
+        supplier_id = int(purchase_order_unikey.split('-')[0])
+        return SaleSupplier.objects.get(id=supplier_id)
+
+    @staticmethod
+    def restat(purchase_order_unikey):
+        res = PurchaseDetail.objects.filter(purchase_order_unikey=purchase_order_unikey). \
+            aggregate(b_num=Sum('book_num'), n_num=Sum('need_num'), a_num=Sum('arrival_num'))
+        book_num = res['b_num'] or 0
+        need_num = res['n_num'] or 0
+        arrival_num = res['a_num'] or 0
+        supplier = PurchaseOrder.get_supplier(purchase_order_unikey)
+        po = PurchaseOrder.objects.filter(uni_key=purchase_order_unikey).first()
+        if not po:
+            po = PurchaseOrder(uni_key=purchase_order_unikey, supplier_id=supplier.id,
+                               supplier_name=supplier.supplier_name,
+                               book_num=book_num, need_num=need_num, arrival_num=arrival_num)
+            po.save()
+        else:
+            if po.status == PurchaseOrder.OPEN:
+                if po.book_num != book_num or po.need_num != need_num or po.arrival_num != arrival_num:
+                    po.book_num = book_num
+                    po.need_num = need_num
+                    po.arrival_num = arrival_num
+                    po.save(update_fields=['book_num', 'need_num', 'arrival_num', 'modified'])
+        po.sync_order_list()
+
+    def sync_order_list(self):
+        from flashsale.dinghuo.models import OrderList
+        ol = OrderList.objects.filter(purchase_order_unikey=self.uni_key).first()
+        if not ol:
+            supplier = self.supplier
+            if not supplier:
+                return
+            now = datetime.datetime.now()
+            ol = OrderList(purchase_order_unikey=self.uni_key, order_amount=self.total_price,
+                           supplier_id=supplier.id, created_by=OrderList.CREATED_BY_MACHINE,
+                           status=OrderList.SUBMITTING, note=u'-->%s:动态生成订货单' % now.strftime('%m月%d %H:%M'))
+            ol.save()
+        else:
+            if ol.order_amount != self.total_price or ol.purchase_total_num != self.book_num:
+                if ol.is_open():
+                    ol.order_amount = self.total_price
+                    ol.purchase_total_num = self.book_num
+                    ol.save(update_fields=['order_amount', 'updated', 'purchase_total_num'])
+                else:
+                    logger.error("HY error: tying to modify booked order_list| ol.id: %s" % (ol.id,))
+            else:
+                ol.save(update_fields=['updated'])
+
 
 class PurchaseDetail(BaseModel):
     uni_key = models.CharField(max_length=32, unique=True, verbose_name=u'唯一id ')  # sku_id+purchase_order_unikey
@@ -132,7 +191,8 @@ class PurchaseDetail(BaseModel):
         return self.status == PurchaseOrder.BOOKED
 
     @staticmethod
-    def create(pa, uni_key):
+    def create(pa):
+        uni_key = '%s-%s' % (pa.sku_id, pa.purchase_order_unikey)
         res = PurchaseArrangement.objects.filter(purchase_order_unikey=pa.purchase_order_unikey,
                                                  sku_id=pa.sku_id, status=PurchaseArrangement.EFFECT).aggregate(total=Sum('num'))
         total = res['total'] or 0
@@ -142,6 +202,7 @@ class PurchaseDetail(BaseModel):
         fields = ['outer_id', 'outer_sku_id', 'sku_id', 'title', 'sku_properties_name']
         utils.copy_fields(pd, pa, fields)
         pd.save()
+        PurchaseOrder.restat(pa.purchase_order_unikey)
 
     def restat(self):
         res = PurchaseArrangement.objects.filter(purchase_order_unikey=self.purchase_order_unikey,
@@ -153,7 +214,32 @@ class PurchaseDetail(BaseModel):
             self.need_num = total
             self.unit_price = unit_price
             self.save(update_fields=['book_num', 'need_num', 'unit_price', 'modified'])
-        return
+        PurchaseOrder.restat(self.purchase_order_unikey)
+
+    def sync_order_detail(pd):
+        from flashsale.dinghuo.models import OrderDetail, OrderList
+        od = OrderDetail.objects.filter(purchase_detail_unikey=pd.uni_key).first()
+        if not od:
+            product = utils.get_product(pd.sku_id)
+            od = OrderDetail(product_id=product.id, outer_id=pd.outer_id, product_name=pd.title, chichu_id=pd.sku_id,
+                             product_chicun=pd.sku_properties_name,
+                             buy_quantity=pd.book_num,
+                             buy_unitprice=pd.unit_price_display,
+                             total_price=pd.total_price,
+                             purchase_detail_unikey=pd.uni_key,
+                             purchase_order_unikey=pd.purchase_order_unikey)
+            ol = OrderList.objects.filter(purchase_order_unikey=pd.purchase_order_unikey).first()
+            if ol:
+                od.orderlist_id = ol.id
+            od.save()
+        else:
+            if od.orderlist_id and OrderList.objects.get(id=od.orderlist_id).stage > 0:
+                return
+            if od.total_price != pd.total_price or od.buy_quantity != pd.book_num:
+                od.buy_quantity = pd.book_num
+                od.buy_unitprice = pd.unit_price_display
+                od.total_price = pd.total_price
+                od.save(update_fields=['buy_quantity', 'buy_unitprice', 'total_price', 'updated'])
 
 def update_purchase_order(sender, instance, created, **kwargs):
     from flashsale.dinghuo.tasks import task_purchase_detail_update_purchase_order
@@ -239,11 +325,12 @@ class PurchaseArrangement(BaseModel):
     def gen_purchase_arrangement_unikey(po_unikey, pr_unikey):
         return '%s-%s' % (po_unikey, pr_unikey)
 
+
     def generate_order(pa):
         uni_key = utils.gen_purchase_detail_unikey(pa)
         pd = PurchaseDetail.objects.filter(uni_key=uni_key).first()
         if not pd:
-            PurchaseDetail.create(pa)
+            PurchaseDetail.create(pa, uni_key)
         else:
             if pd.is_open():
                 pd.restat()
@@ -251,6 +338,28 @@ class PurchaseArrangement(BaseModel):
         pa.save()
 
 
+    def get_purchase_detail_unikey(pa):
+        sku_id = pa.sku_id
+        sku_id = sku_id.strip()
+        return "%s-%s" % (sku_id, pa.purchase_order_unikey)
+
+    def generate_order(pa, retry=True):
+        if not pa.gen_order:
+            uni_key = utils.gen_purchase_detail_unikey(pa)
+            pd = PurchaseDetail.objects.filter(uni_key=uni_key).first()
+            if not pd:
+                PurchaseDetail.create(pa)
+            else:
+                if pd.is_open():
+                    pd.restat()
+                else:
+                    if retry:
+                        pa.reset_purchase_order()
+                        pa.generate_order(retry=False)
+                    else:
+                        raise Exception(u'PA(%s)对应的订货单()已订货无法再订' % (pa.oid, pa.purchase_order_unikey))
+            pa.gen_order = True
+            pa.save()
 
 def update_purchase_detail(sender, instance, created, **kwargs):
     if instance.gen_order:

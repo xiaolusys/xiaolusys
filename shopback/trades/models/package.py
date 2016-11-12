@@ -875,6 +875,7 @@ class PackageSkuItem(BaseModel):
         self.assign_status = 1
         self.save()
         SkuStock.set_psi_cancel(self.sku_id, ori_status, self.num)
+    # -----------------------------------
 
     @staticmethod
     def unsend_orders_cnt(buyer_id):
@@ -1029,8 +1030,9 @@ def update_purchase_arrangement(sender, instance, created, **kwargs):
     from flashsale.dinghuo.tasks import task_packageskuitem_update_purchase_arrangement
     task_packageskuitem_update_purchase_arrangement.delay(instance)
 
-
-post_save.connect(update_purchase_arrangement, sender=PackageSkuItem,
+from shopmanager.celery_settings import CLOSE_CELERY
+if not CLOSE_CELERY:
+    post_save.connect(update_purchase_arrangement, sender=PackageSkuItem,
                   dispatch_uid='post_save_update_purchase_record')
 
 

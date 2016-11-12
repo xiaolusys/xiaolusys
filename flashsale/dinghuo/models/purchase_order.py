@@ -11,6 +11,7 @@ from core.models import BaseModel
 from shopback.items.models import ProductSku, Product
 from shopback.warehouse.constants import WARE_CHOICES, WARE_NONE
 from supplychain.supplier.models import SaleSupplier
+from shopback.trades.models import SkuStock
 import logging
 
 logger = logging.getLogger(__name__)
@@ -152,7 +153,7 @@ class OrderList(models.Model):
                                   max_length=32,
                                   default=NEAR,
                                   verbose_name=u'地区',
-                                  choices=ORDER_DISTRICT)  # 从发货地对应仓库
+                                  choices=ORDER_DISTRICT)  # 删除
     reach_standard = models.BooleanField(default=False, verbose_name=u"达标")
     created = models.DateField(auto_now_add=True,
                                db_index=True,
@@ -720,6 +721,43 @@ class OrderList(models.Model):
                               u'小鹿美美，时尚健康美丽', '', '', saleproduct.product_link if saleproduct else ''])
         return columns, items
 
+    @staticmethod
+    def create_or_update(purchase_order_unikey):
+        ol = OrderList.objects.filter(purchase_order_unikey=purchase_order_unikey).first()
+        if not ol:
+            supplier_id = purchase_order_unikey.split('-')[0]
+            supplier = SaleSupplier.get_by_id(supplier_id)
+            p_district = OrderList.NEAR
+            if supplier.ware_by == WARE_GZ:
+                p_district = OrderList.GUANGDONG
+            now = datetime.datetime.now()
+            ol = OrderList(purchase_order_unikey=od.purchase_order_unikey, order_amount=od.total_price,
+                           supplier_id=supplier.id, p_district=p_district, created_by=OrderList.CREATED_BY_MACHINE,
+                           status=OrderList.SUBMITTING, note=u'-->%s:动态生成订货单' % now.strftime('%m月%d %H:%M'))
+
+            prev_orderlist = OrderList.objects.filter(supplier_id=supplier.id,
+                                                      created_by=OrderList.CREATED_BY_MACHINE).exclude(
+                status=OrderList.ZUOFEI).order_by('-created').first()
+            if prev_orderlist and prev_orderlist.buyer_id:
+                ol.buyer_id = prev_orderlist.buyer_id
+
+            ol.save()
+        else:
+            od_sum = OrderDetail.objects.filter(purchase_order_unikey=od.purchase_order_unikey).aggregate(
+                total=Sum('total_price'))
+            purchase_total_num = OrderDetail.objects.filter(purchase_order_unikey=od.purchase_order_unikey).aggregate(
+                total=Sum('buy_quantity')).get('total') or 0
+            total = od_sum['total'] or 0
+            if ol.order_amount != total or ol.purchase_total_num != purchase_total_num:
+                if ol.is_open():
+                    ol.order_amount = total
+                    ol.purchase_total_num = purchase_total_num
+                    ol.save(update_fields=['order_amount', 'updated', 'purchase_total_num'])
+                else:
+                    logger.warn("ZIFEI error: tying to modify booked order_list| ol.id: %s, od: %s" % (ol.id, od.id))
+            else:
+                ol.save(update_fields=['updated'])
+
 
 def check_with_purchase_order(sender, instance, created, **kwargs):
     logger.info('post_save check_with_purchase_order: %s' % instance)
@@ -916,6 +954,24 @@ class OrderDetail(models.Model):
             return u'缺货'
         if self.buy_quantity < self.arrival_quantity:
             return u'超额'
+
+    def change_value(self, buy_num):
+        if buy_num == self.buy_quantity:
+            return
+        if self.status in [0, 2]:
+            self.buy_quantity = buy_num
+            self.save()
+        elif self.status == 1:
+            ori_buy_quantity = self.buy_quantity
+            self.buy_quantity = buy_num
+            self.save()
+            change_num = buy_num - ori_buy_quantity
+            self.add_into_stock(self.chichu_id, change_num)
+
+    def add_into_stock(self, num=None):
+        if num is None:
+            num = self.buy_quantity
+        SkuStock.add_inbound_quantity(self.chichu_id, num)
 
 
 def update_productskustats_inbound_quantity(sender, instance, created,

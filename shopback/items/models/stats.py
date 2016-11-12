@@ -9,7 +9,7 @@ from django.db import transaction
 from django.core.cache import cache
 from shopback.trades.constants import PSI_STATUS
 from shopback.warehouse import WARE_SH, WARE_CHOICES, WARE_NONE
-
+from django.db.models import Manager
 import logging
 
 logger = logging.getLogger(__name__)
@@ -113,14 +113,15 @@ class SkuStock(models.Model):
     created = models.DateTimeField(null=True, blank=True, db_index=True, auto_now_add=True, verbose_name=u'创建时间')
     modified = models.DateTimeField(null=True, blank=True, auto_now=True, verbose_name=u'修改时间')
     status = models.IntegerField(default=0, db_index=True, choices=STATUS, verbose_name=u'状态')
-
+    _objects = Manager()
+    objects = Manager()
     def __unicode__(self):
         return '<%s,%s:%s>' % (self.id, self.product_id, self.sku_id)
 
     @staticmethod
     @transaction.atomic
     def get_by_sku(sku_id):
-        stat = SkuStock.objects.filter(sku_id=sku_id).first()
+        stat = SkuStock._objects.filter(sku_id=sku_id).first()
         if stat:
             return stat
         else:
@@ -135,7 +136,7 @@ class SkuStock(models.Model):
         return self.history_quantity + self.inbound_quantity + self.adjust_quantity + self.return_quantity - self.post_num - self.rg_quantity
 
     # sum([p.realtime_quantity for p in
-    # SkuStock.objects.filter(rg_quantity__lt=F('history_quantity')+F('inbound_quantity')+ F('adjust_quantity')+F('return_quantity')-F('post_num'))
+    # SkuStock._objects.filter(rg_quantity__lt=F('history_quantity')+F('inbound_quantity')+ F('adjust_quantity')+F('return_quantity')-F('post_num'))
     # .exclude(product__outer_id__startswith='RMB')])
     @property
     def aggregate_quantity(self):
@@ -190,6 +191,7 @@ class SkuStock(models.Model):
         from shopback.trades.models import PackageSkuItem
         from flashsale.dinghuo.models import OrderDetail
         from shopback.refunds.models import RefundProduct
+        stat = SkuStock.get_by_sku(self.sku_id)
         if not need_stat:
             sum_res = PackageSkuItem.objects.filter(sku_id=self.sku_id,
                                                     pay_time__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME). \
@@ -250,20 +252,17 @@ class SkuStock(models.Model):
                                                                 created__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME,
                                                                 can_reuse=True).exclude(
                         sku_id=None).aggregate(total=Sum('num')).get('total') or 0
-            update_fields = []
-            for k, v in params.iteritems():
-                if hasattr(self, k):
-                    if getattr(self, k) != v:
-                        setattr(self, k, v)
-                        update_fields.append(k)
-            if update_fields:
-                update_fields.append('modified')
-            return update_fields
+        update_fields = []
+        for k, v in params.iteritems():
+            if hasattr(self, k):
+                if getattr(self, k) != v:
+                    setattr(self, k, v)
+                    update_fields.append(k)
+        if update_fields:
+            update_fields.append('modified')
+        return update_fields
 
-    @staticmethod
-    def stat_warning(sku_id, update_fields=[], warning=True, stat=False):
-        if not warning and not stat:
-            return
+    def stat_warning(self, sku_id, update_fields=[], warning=True, stat=False):
         sku_stock = SkuStock.get_by_sku(sku_id)
         update_fields = sku_stock.restat(update_fields)
         if update_fields:
@@ -283,7 +282,7 @@ class SkuStock(models.Model):
         if stat:
             SkuStock.stat_warning(sku_id, change_fields, warning, stat)
         else:
-            SkuStock.objects.filter(sku_id=sku_id).update(sold_num=F('sold_num') + num,
+            SkuStock._objects.filter(sku_id=sku_id).update(sold_num=F('sold_num') + num,
                                                       psi_paid_num=F('psi_paid_num') + num,
                                                       paid_num=F('paid_num') + num,
                                                       )
@@ -296,7 +295,7 @@ class SkuStock(models.Model):
         if stat:
             SkuStock.stat_warning(sku_id, change_fields, warning, stat)
         else:
-            SkuStock.objects.filter(sku_id=sku_id).update(psi_paid_num=F('psi_paid_num') - num,
+            SkuStock._objects.filter(sku_id=sku_id).update(psi_paid_num=F('psi_paid_num') - num,
                                                       psi_prepare_book_num=F('psi_prepare_book_num') + num,
                                                       )
             if warning:
@@ -308,7 +307,7 @@ class SkuStock(models.Model):
         if stat:
             SkuStock.stat_warning(sku_id, change_fields, warning, stat)
         else:
-            SkuStock.objects.filter(sku_id=sku_id).update(psi_booked_num=F('psi_booked_num') + num,
+            SkuStock._objects.filter(sku_id=sku_id).update(psi_booked_num=F('psi_booked_num') + num,
                                                       psi_prepare_book_num=F('psi_prepare_book_num') - num
                                                       )
             if warning:
@@ -320,7 +319,7 @@ class SkuStock(models.Model):
         if stat:
             SkuStock.stat_warning(sku_id, change_fields, warning, stat)
         else:
-            SkuStock.objects.filter(sku_id=sku_id).update(psi_ready_num=F('psi_ready_num') + num,
+            SkuStock._objects.filter(sku_id=sku_id).update(psi_ready_num=F('psi_ready_num') + num,
                                                       psi_booked_num=F('psi_booked_num') - num
                                                       )
             if warning:
@@ -332,7 +331,7 @@ class SkuStock(models.Model):
         if stat:
             SkuStock.stat_warning(sku_id, change_fields, warning, stat)
         else:
-            SkuStock.objects.filter(sku_id=sku_id).update(sold_num=F('sold_num') + num,
+            SkuStock._objects.filter(sku_id=sku_id).update(sold_num=F('sold_num') + num,
                                                       psi_ready_num=F('psi_ready_num') + num,
                                                       paid_num=F('paid_num') + num)
             if warning:
@@ -350,13 +349,11 @@ class SkuStock(models.Model):
         if stat:
             SkuStock.stat_warning(sku_id, change_fields, warning, stat)
         else:
-            SkuStock.objects.filter(sku_id=sku_id).update(assign_num=F('assign_num') - num,
+            SkuStock._objects.filter(sku_id=sku_id).update(assign_num=F('assign_num') - num,
                                                       psi_paid_num=F('psi_paid_num') + num,
                                                       psi_assigned_num=F('psi_assigned_num') - num)
             if warning:
                 SkuStock.stat_warning(sku_id, change_fields, warning, stat)
-
-
 
     @staticmethod
     def set_psi_merged(sku_id, num, stat=STAT_SIGN, warning=WARNING):
@@ -364,7 +361,7 @@ class SkuStock(models.Model):
         if stat:
             SkuStock.stat_warning(sku_id, change_fields, warning, stat)
         else:
-            SkuStock.objects.filter(sku_id=sku_id).update(psi_ready_num=F('psi_ready_num') - num,
+            SkuStock._objects.filter(sku_id=sku_id).update(psi_ready_num=F('psi_ready_num') - num,
                                                       psi_booked_num=F('psi_merged_num') + num
                                                       )
             if warning:
@@ -376,7 +373,7 @@ class SkuStock(models.Model):
         if stat:
             SkuStock.stat_warning(sku_id, change_fields, warning, stat)
         else:
-            SkuStock.objects.filter(sku_id=sku_id).update(psi_waitscan_num=F('psi_waitscan_num') + num,
+            SkuStock._objects.filter(sku_id=sku_id).update(psi_waitscan_num=F('psi_waitscan_num') + num,
                                                       psi_merged_num=F('psi_merged_num') - num
                                                       )
             if warning:
@@ -388,7 +385,7 @@ class SkuStock(models.Model):
         if stat:
             SkuStock.stat_warning(sku_id, change_fields, warning, stat)
         else:
-            SkuStock.objects.filter(sku_id=sku_id).update(psi_waitscan_num=F('psi_waitscan_num') - num,
+            SkuStock._objects.filter(sku_id=sku_id).update(psi_waitscan_num=F('psi_waitscan_num') - num,
                                                       psi_waitpost_num=F('psi_waitpost_num') + num
                                                       )
             if warning:
@@ -400,7 +397,7 @@ class SkuStock(models.Model):
         if stat:
             SkuStock.stat_warning(sku_id, change_fields, warning, stat)
         else:
-            SkuStock.objects.filter(sku_id=sku_id).update(psi_waitscan_num=F('psi_waitscan_num') - num,
+            SkuStock._objects.filter(sku_id=sku_id).update(psi_waitscan_num=F('psi_waitscan_num') - num,
                                                       psi_sent_num=F('psi_sent_num') + num,
                                                       post_num=F('post_num') + num
                                                       )
@@ -413,7 +410,7 @@ class SkuStock(models.Model):
         if stat:
             SkuStock.stat_warning(sku_id, change_fields, warning, stat)
         else:
-            SkuStock.objects.filter(sku_id=sku_id).update(psi_finish_num=F('psi_finish_num') + num,
+            SkuStock._objects.filter(sku_id=sku_id).update(psi_finish_num=F('psi_finish_num') + num,
                                                       psi_sent_num=F('psi_sent_num') - num,
                                                       )
             if warning:
@@ -422,7 +419,6 @@ class SkuStock(models.Model):
     @staticmethod
     def set_psi_cancel(sku_id, num, status, stat=STAT_SIGN, warning=WARNING):
         attr = 'psi_%s_num' % status
-        sku_stock = SkuStock.get_by_sku(sku_id)
         change_fields = []
         if hasattr(stat, attr):
             change_fields.append(attr)
@@ -436,6 +432,46 @@ class SkuStock(models.Model):
             if 'assign_num' in change_fields:
                 updation[attr] = F(attr) - num
             SkuStock.objects.filter(sku_id=sku_id).update(**updation)
+        # if warning or stat:
+        #     SkuStock.stat_warning(sku_id, ['sold_num', 'paid_num'], warning, stat)
+        # else:
+        #     SkuStock.objects.filter(id=sku_id).update(sold_num=F('sold_num') + num,
+        #                                               psi_paid_num=F('psi_paid_num') + num,
+        #                                               paid_num=F('paid_num') + num,
+        #                                               )
+
+    @staticmethod
+    def set_psi_paid_prepare_book(sku_id, num, stat=STAT_SIGN, warning=WARNING):
+        if stat:
+            sku_stock = SkuStock.get_by_sku(sku_id)
+            update_fields = sku_stock.restat(['sold_num', 'paid_num'])
+            if update_fields:
+                sku_stock.save(update_fields=update_fields)
+        else:
+            SkuStock.objects.filter(id=sku_id).update(sold_num=F('sold_num') + num,
+                                                      psi_paid_num=F('psi_paid_num') + num,
+                                                      paid_num=F('paid_num') + num,
+                                                      )
+
+    @staticmethod
+    def add_inbound_quantity(sku_id, num, stat=STAT_SIGN,  warning=WARNING):
+        change_fields = ['inbund_quantity']
+        if stat:
+            SkuStock.stat_warning(sku_id, change_fields, warning, stat)
+        else:
+            SkuStock._objects.filter(sku_id=sku_id).update(inbund_quantity=F('inbund_quantity') + num)
+            if warning:
+                SkuStock.stat_warning(sku_id, change_fields, warning, stat)
+
+    @staticmethod
+    def add_shoppingcart_num(sku_id, num, stat=STAT_SIGN,  warning=WARNING):
+        change_fields = ['shoppingcart_num']
+        if stat:
+            SkuStock.stat_warning(sku_id, change_fields, warning, stat)
+        else:
+            SkuStock._objects.filter(sku_id=sku_id).update(shoppingcart_num=F('shoppingcart_num') + num)
+            if warning:
+                SkuStock.stat_warning(sku_id, change_fields, warning, stat)
 
     def realtime_lock_num_display(self):
         try:
@@ -487,7 +523,7 @@ class SkuStock(models.Model):
             'chichu_id').distinct()]
 
         has_nouse_stock_sku_product = [(stat['id'], stat['product_id']) for stat in
-                                       SkuStock.objects.exclude(sku_id__in=rg_sku).filter(sku_id__in=order_skus,
+                                       SkuStock._objects.exclude(sku_id__in=rg_sku).filter(sku_id__in=order_skus,
                                                                                           sold_num__lt=F(
                                                                                               'history_quantity') + F(
                                                                                               'adjust_quantity') + F(
@@ -515,23 +551,23 @@ class SkuStock(models.Model):
 
     @staticmethod
     def update_adjust_num(sku_id, adjust_quantity):
-        stat = SkuStock.objects.get(sku_id=sku_id)
+        stat = SkuStock._objects.get(sku_id=sku_id)
         ori_adjust_quantity = stat.adjust_quantity
         stat.adjust_quantity = adjust_quantity
         stat.save()
 
-        # SkuStock.objects.filter(sku_id=sku_id).update(adjust_quantity=adjust_quantity)
+        # SkuStock._objects.filter(sku_id=sku_id).update(adjust_quantity=adjust_quantity)
 
     @staticmethod
     def add_adjust_num(sku_id, num):
-        SkuStock.objects.filter(sku_id=sku_id).update(adjust_quantity=F('adjust_quantity') + num)
+        SkuStock._objects.filter(sku_id=sku_id).update(adjust_quantity=F('adjust_quantity') + num)
 
     @staticmethod
     def get_auto_sale_stock():
         from shopback.categorys.models import ProductCategory
         from .product import Product
         pid = ProductCategory.objects.get(name=u'优尼世界').cid
-        return SkuStock.objects.filter(product__status=Product.NORMAL).filter(
+        return SkuStock._objects.filter(product__status=Product.NORMAL).filter(
             return_quantity__gt=F('sold_num') + F('rg_quantity')
                                 - F('history_quantity') - F('adjust_quantity') - F(
                 'inbound_quantity')).exclude(product__category_id=pid).exclude(product__outer_id__startswith='RMB')
@@ -642,7 +678,30 @@ class SkuStock(models.Model):
         if self.realtime_quantity - self.assign_num < 0 and self.assign_num > 0 and check_if_err:
             self.relase_assign()
 
-
+    def assign(self, sku_id, psi_id=None, orderlist=None):
+        """
+            分配有从库存分配和从订货单分配两种方式。
+            订货入仓一般走订货单分配法，以确保正确分配。
+        """
+        from shopback.trades.models import PackageSkuItem
+        if not orderlist:
+            if self.realtime_quantity > PackageSkuItem.objects.filter(status=PSI_STATUS.READY).aggregate(Sum('num')):
+                now_num = self.realtime_quantity - self.assign_num
+                psis = []
+                for psi in PackageSkuItem.objects.filter(status=PSI_STATUS.READY).order_by('-pay_time'):
+                    if now_num >= psi.num:
+                        now_num -= psi.num
+                        psi.set_status_assign(save=False)
+                        psis.append(psi)
+                    else:
+                        break
+                self.assign_num += self.realtime_quantity - now_num
+                self.save()
+        else:
+            od = orderlist.details.filter(chichu_id=str(self.sku_id)).first()
+            if not od:
+                raise Exception(u'订货单%s中并没有%s这个sku', (orderlist.id, od.id))
+        return
 
 def invalid_apiskustat_cache(sender, instance, *args, **kwargs):
     if hasattr(sender, 'API_CACHE_KEY_TPL'):
@@ -651,26 +710,26 @@ def invalid_apiskustat_cache(sender, instance, *args, **kwargs):
 
 post_save.connect(invalid_apiskustat_cache, sender=SkuStock, dispatch_uid='post_save_invalid_apiskustat_cache')
 
-
-def assign_stock_to_package_sku_item(sender, instance, created, **kwargs):
-    from shopback.items.tasks import task_assign_stock_to_package_sku_item
-    if not created:
-        logger = logging.getLogger('service')
-        logger.info({
-            'action': 'skustat.pstat.assign_stock_to_package_sku_item',
-            'instance': instance.sku_id,
-            'realtime_quantity': instance.realtime_quantity,
-            'assign_num': instance.assign_num,
-            'sold_num': instance.sold_num,
-            'post_num': instance.post_num,
-            'not_assign_num': instance.not_assign_num,
-        })
-        task_assign_stock_to_package_sku_item.delay(instance)
-
-from shopmanager.celery_settings import CLOSE_CELERY
-if not CLOSE_CELERY:
-    post_save.connect(assign_stock_to_package_sku_item, sender=SkuStock,
-                  dispatch_uid='post_save_assign_stock_to_package_sku_item')
+#
+# def assign_stock_to_package_sku_item(sender, instance, created, **kwargs):
+#     from shopback.items.tasks import task_assign_stock_to_package_sku_item
+#     if not created:
+#         logger = logging.getLogger('service')
+#         logger.info({
+#             'action': 'skustat.pstat.assign_stock_to_package_sku_item',
+#             'instance': instance.sku_id,
+#             'realtime_quantity': instance.realtime_quantity,
+#             'assign_num': instance.assign_num,
+#             'sold_num': instance.sold_num,
+#             'post_num': instance.post_num,
+#             'not_assign_num': instance.not_assign_num,
+#         })
+#         task_assign_stock_to_package_sku_item.delay(instance)
+#
+# from shopmanager.celery_settings import CLOSE_CELERY
+# if not CLOSE_CELERY:
+#     post_save.connect(assign_stock_to_package_sku_item, sender=SkuStock,
+#                   dispatch_uid='post_save_assign_stock_to_package_sku_item')
 
 
 def product_sku_stats_agg(sender, instance, created, **kwargs):
