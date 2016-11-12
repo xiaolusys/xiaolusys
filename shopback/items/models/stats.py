@@ -262,7 +262,8 @@ class SkuStock(models.Model):
             update_fields.append('modified')
         return update_fields
 
-    def stat_warning(self, sku_id, update_fields=[], warning=True, stat=False):
+    @staticmethod
+    def stat_warning(sku_id, update_fields=[], warning=True, stat=False):
         sku_stock = SkuStock.get_by_sku(sku_id)
         update_fields = sku_stock.restat(update_fields)
         if update_fields:
