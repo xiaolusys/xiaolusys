@@ -6,8 +6,8 @@ import datetime
 from ...models.transfer_coupon import CouponTransferRecord
 
 
-def create_present_coupon_transfer_record(customer, template, coupon_id, order_id):
-    # type: (Customer, CouponTemplate, int, int)
+def create_present_coupon_transfer_record(customer, template, coupon_id):
+    # type: (Customer, CouponTemplate, int)
     """创建赠送优惠券流通记录
     """
     to_mama = customer.get_charged_mama()
@@ -24,8 +24,8 @@ def create_present_coupon_transfer_record(customer, template, coupon_id, order_i
     transfer_type = CouponTransferRecord.IN_BUY_COUPON
     date_field = datetime.date.today()
     transfer_status = CouponTransferRecord.DELIVERED
-    uni_key = "%s-%s-%s" % (to_mama.id, coupon_id, order_id)
-    order_no = 'present-%s' % order_id
+    uni_key = "%s-%s-%s" % ('gift', to_mama.id, coupon_id)
+    order_no = 'gift-%s' % coupon_id
     coupon_value = int(template.value)
     product_img = template.extras.get("product_img") or ''
 

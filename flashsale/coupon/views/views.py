@@ -124,43 +124,54 @@ class ReleaseOmissive(APIView):
         content = request.REQUEST
         customer = content.get('buyer_id', None)
         template_id = content.get('template_id', None)
-        time_from = content.get('time_from', None)
-        time_to = content.get('time_to', None)
         try:
             cus = Customer.objects.get(Q(mobile=customer) | Q(pk=customer), status=Customer.NORMAL)
         except:
             return Response({'code': 2, "message": '客户不存在或重复'})
-        from flashsale.pay.models import ModelProduct
-        from shopback.items.models import Product
         from ..apis.v1.transfer import create_present_coupon_transfer_record
-
-        modelids = ModelProduct.objects.filter(product_type=1, status=ModelProduct.NORMAL).values('id')
-        modelids = [m['id'] for m in modelids]
-        item_ids = [i['id'] for i in Product.objects.filter(model_id__in=modelids).values('id')]  # 找出虚拟产品
-        # 交易成功订单
-        sale_orders = SaleOrder.objects.filter(item_id__in=item_ids, buyer_id=cus.id, status=SaleOrder.TRADE_FINISHED)
-        if time_from:
-            sale_orders = sale_orders.filter(pay_time__gte=time_from)
-        if time_to:
-            sale_orders = sale_orders.filter(pay_time__lte=time_to)
-        order_ids = []  # 用户的订单(一个数量为一个id)
-        for order in sale_orders:
-            for i in range(order.num):
-                order_ids.append({'order_id': order.id, 'num': order.num})
-        template = CouponTemplate.objects.get(id=template_id)
-        yy = len(order_ids)
-        message = u''
-        for i, v in enumerate(order_ids):
-            message = u'发送成功'
-            x = i + 1  # 第几个订单 print '%s这是用户的第%s个订单' % (v['order_id'], x)
-            y = x % 5
-            if y == 0:
-                yy += 1
-                uni_key = template.gen_usercoupon_unikey(v['order_id'], yy)  # print '满5送1: unikey:%s' % uni_key
-                try:
-                    cou = UserCoupon.send_coupon(cus, template, uniq_id=uni_key)
-                    create_present_coupon_transfer_record(cus, template, cou.id, v['order_id'])
-                except Exception as e:
-                    message = e.message
-                    continue
+        message = u'发送成功'
+        try:
+            from ..models.transfer_coupon import CouponTransferRecord
+            to_mama = cus.get_charged_mama()
+            if CouponTransferRecord.objects.filter(uni_key__contains='gift', coupon_to_mama_id=to_mama.id).exists():
+                return Response({'code': 0, "message": u'已经发送'})
+            template = CouponTemplate.objects.get(id=template_id)
+            uni_key = template.gen_usercoupon_unikey('gift_transfer', 1)
+            cou = UserCoupon.send_coupon(cus, template, uniq_id=uni_key)
+            create_present_coupon_transfer_record(cus, template, cou.id)
+        except Exception as e:
+            message = e.message
         return Response({'code': 0, "message": message})
+
+        # from flashsale.pay.models import ModelProduct
+        # from shopback.items.models import Product
+        # modelids = ModelProduct.objects.filter(product_type=1, status=ModelProduct.NORMAL).values('id')
+        # modelids = [m['id'] for m in modelids]
+        # item_ids = [i['id'] for i in Product.objects.filter(model_id__in=modelids).values('id')]  # 找出虚拟产品
+        # # 交易成功订单
+        # sale_orders = SaleOrder.objects.filter(item_id__in=item_ids, buyer_id=cus.id, status=SaleOrder.TRADE_FINISHED)
+        # if time_from:
+        #     sale_orders = sale_orders.filter(pay_time__gte=time_from)
+        # if time_to:
+        #     sale_orders = sale_orders.filter(pay_time__lte=time_to)
+        # order_ids = []  # 用户的订单(一个数量为一个id)
+        # for order in sale_orders:
+        #     for i in range(order.num):
+        #         order_ids.append({'order_id': order.id, 'num': order.num})
+        # template = CouponTemplate.objects.get(id=template_id)
+        # yy = len(order_ids)
+        # message = u''
+        # for i, v in enumerate(order_ids):
+        #     message = u'发送成功'
+        #     x = i + 1  # 第几个订单 print '%s这是用户的第%s个订单' % (v['order_id'], x)
+        #     y = x % 5
+        #     if y == 0:
+        #         yy += 1
+        #         uni_key = template.gen_usercoupon_unikey(v['order_id'], yy)  # print '满5送1: unikey:%s' % uni_key
+        #         try:
+        #             cou = UserCoupon.send_coupon(cus, template, uniq_id=uni_key)
+        #             create_present_coupon_transfer_record(cus, template, cou.id, v['order_id'])
+        #         except Exception as e:
+        #             message = e.message
+        #             continue
+        # return Response({'code': 0, "message": message})
