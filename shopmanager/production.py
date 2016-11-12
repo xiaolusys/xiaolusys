@@ -67,7 +67,7 @@ CACHES = {
         'BACKEND': 'redis_cache.RedisCache',
         'LOCATION': REDIS_HOST,
         'OPTIONS': {
-            'DB': 1,
+            'DB': 21,
             'PASSWORD': REDIS_AUTH,
             "SOCKET_CONNECT_TIMEOUT": 5,  # in seconds
             "SOCKET_TIMEOUT": 5,  # in seconds
@@ -82,7 +82,7 @@ CACHES = {
     }
 }
 DJANGO_REDIS_IGNORE_EXCEPTIONS = True
-BROKER_URL = 'redis://:{0}@{1}:6379/8'.format(REDIS_AUTH, REDIS_HOST)
+BROKER_URL = 'redis://:{0}@{1}:6379/29'.format(REDIS_AUTH, REDIS_HOST)
 
 import raven
 RAVEN_CONFIG = {
