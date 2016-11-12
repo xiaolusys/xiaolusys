@@ -234,7 +234,7 @@ def task_roll_back_usercoupon_by_refund(trade_tid, num):
         cou = UserCoupon.objects.filter(trade_tid=trade_tid, status=UserCoupon.USED).first()
         if cou:
             cou.release_usercoupon()
-        if cou.is_transfer_coupon():
+        if cou and cou.is_transfer_coupon():
             transfer_coupon_num += 1
             template_id = cou.template_id
             customer_id = cou.customer_id
