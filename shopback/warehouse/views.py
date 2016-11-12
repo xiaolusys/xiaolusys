@@ -234,7 +234,7 @@ class PackageScanWeightView(APIView):
         return Response({'package_no': package_id,
                          'trade_id': package_order.pid,
                          'seller_nick': package_order.seller.nick,
-                         'trade_type': package_order.get_type_display(),
+                         'trade_type': 'sale',#package_order.get_type_display(),
                          'buyer_nick': package_order.buyer_nick,
                          'sys_status': package_order.get_sys_status_display(),
                          'company_name': package_order.logistics_company.name,
