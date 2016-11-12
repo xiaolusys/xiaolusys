@@ -1,13 +1,25 @@
 # coding=utf-8
-from django.conf.urls import url
+from django.conf.urls import patterns, include, url
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 from django.views.decorators.cache import cache_page
 from django.contrib.admin.views.decorators import staff_member_required
 from .decorators import sale_buyer_required
 from . import views
+from rest_framework import routers
+from flashsale.pay.views import refund
 
-urlpatterns = (
+router = routers.DefaultRouter(trailing_slash=False)
+
+router.register(r'salerefund', refund.SaleRefundViewSet)
+
+router_urls = router.urls
+
+urlpatterns = patterns('',
+                       url(r'^v1/', include(router_urls, namespace='flashsale_pay_v1')),
+                       )
+
+urlpatterns += (
     url(r'^callback/$', csrf_exempt(views.PINGPPCallbackView.as_view())),
     url(r'^cancel/$', csrf_exempt(views.PINGPPCallbackView.as_view())),
     url(r'^wxwarn/$', csrf_exempt(views.WXPayWarnView.as_view())),
