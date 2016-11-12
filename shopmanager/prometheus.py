@@ -55,7 +55,7 @@ DATABASES = {
         'OPTIONS': {
             'init_command': 'SET storage_engine=Innodb;',
             'charset': 'utf8',
-            'sql_mode': 'STRICT_TRANS_TABLES',
+            # 'sql_mode': 'STRICT_TRANS_TABLES',
         },  # storage_engine need mysql>5.4,and table_type need mysql<5.4
     }
 }
