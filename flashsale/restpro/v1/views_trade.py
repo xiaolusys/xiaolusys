@@ -32,7 +32,7 @@ from flashsale.coupon import serializers as coupon_serializers
 from flashsale.restpro import permissions as perms
 from . import serializers
 from flashsale.restpro.exceptions import rest_exception
-from flashsale.pay.saledao import get_user_skunum_by_last24hours
+from flashsale.pay.apis.v1.order import get_user_skunum_by_last24hours
 from shopback.items.models import Product, ProductSku
 from core.options import log_action, ADDITION, CHANGE
 from shopapp.weixin import options

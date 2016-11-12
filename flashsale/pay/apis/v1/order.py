@@ -1,9 +1,10 @@
-# -*- encoding:utf8 -*-
+# coding=utf-8
 import datetime
-from .models import SaleOrder, ShoppingCart
+from ...models import SaleOrder
 
 
 def get_user_skunum_by_last24hours(user, sku):
+    # type: (Customer, ProductSku) -> int
     """ 获取用户过去48小时拍下商品规格数量 """
     last_48hour = datetime.datetime.now() - datetime.timedelta(days=2)
     order_nums = SaleOrder.objects.filter(
