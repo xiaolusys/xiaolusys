@@ -19,17 +19,17 @@ class LogisticsHandler(BaseHandler):
     def getYundaLGC(self):
         return LogisticsCompany.objects.get_or_create(code='YUNDA_QR')[0]
 
-    def getGZLogisticCompany(self,merge_trade):
-        state          = merge_trade.receiver_state
-        city           = merge_trade.receiver_city
-        district       = merge_trade.receiver_district
-        shipping_type  = merge_trade.shipping_type.upper()
+    def getGZLogisticCompany(self, merge_trade):
+        state = merge_trade.receiver_state
+        city = merge_trade.receiver_city
+        district = merge_trade.receiver_district
+        shipping_type = merge_trade.shipping_type.upper()
 
         if not state or not city or not district:
             raise Exception(u"地址不全(请精确到省市区（县）)")
 
         if shipping_type == pcfg.EXPRESS_SHIPPING_TYPE.upper():
-            #定制订单快递分配
+            # 定制订单快递分配
             if (merge_trade.receiver_address.find(u'镇') >= 0
                 and merge_trade.receiver_address.find(u'村') >= 0):
                 if state.startswith(POST_STATE):
@@ -41,31 +41,31 @@ class LogisticsHandler(BaseHandler):
                                pcfg.EMS_SHIPPING_TYPE.upper()):
             return LogisticsCompany.objects.get_or_create(code=shipping_type)[0]
 
-    def getSHLogisticCompany(self,merge_trade):
+    def getSHLogisticCompany(self, merge_trade):
 
         if merge_trade.is_force_wlb:
             return LogisticsCompany.objects.get_or_create(
-                                    code=pcfg.WLB_LOGISTIC_CODE)
+                code=pcfg.WLB_LOGISTIC_CODE)
 
-        state          = merge_trade.receiver_state
-        city           = merge_trade.receiver_city
-        district       = merge_trade.receiver_district
-        shipping_type  = merge_trade.shipping_type.upper()
+        state = merge_trade.receiver_state
+        city = merge_trade.receiver_city
+        district = merge_trade.receiver_district
+        shipping_type = merge_trade.shipping_type.upper()
 
         if not state or not city or not district:
             raise Exception(u"地址不全(请精确到省市区（县）)")
 
         if shipping_type == pcfg.EXPRESS_SHIPPING_TYPE.upper():
-            #定制订单快递分配
+            # 定制订单快递分配
             if (merge_trade.receiver_address.find(u'镇') >= 0
                 and merge_trade.receiver_address.find(u'村') >= 0):
                 if state.startswith(POST_STATE):
                     return LogisticsCompany.objects.get_or_create(
-                                        code='POSTB')[0]
+                        code='POSTB')[0]
                 return LogisticsCompany.objects.get_or_create(
-                                        code='STO')[0]
+                    code='STO')[0]
 
-            return LogisticsCompany.get_recommend_express(state,city,district)
+            return LogisticsCompany.get_recommend_express(state, city, district)
         elif shipping_type in (pcfg.POST_SHIPPING_TYPE.upper(),
                                pcfg.EMS_SHIPPING_TYPE.upper()):
             return LogisticsCompany.objects.get_or_create(code=shipping_type)[0]

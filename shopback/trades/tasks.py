@@ -917,7 +917,7 @@ def task_packageskuitem_update_productskusalestats_num(sku_id, pay_time):
             or (sale_stat.sale_end_time and pay_time > sale_stat.sale_end_time):
         return
     assign_num_res = PackageSkuItem.objects.filter(sku_id=sku_id, pay_time__gte=sale_stat.sale_start_time,
-                                                   pay_time__lte=sale_stat.sale_end_time).\
+                                                   pay_time__lte=sale_stat.sale_end_time). \
         values('assign_status').annotate(total=Sum('num'))
     total = sum([line['total'] for line in assign_num_res if line['assign_status'] != 3])
 
@@ -1184,7 +1184,8 @@ def create_stock_not_assign_check_log(time_from, uni_key):
     for p in PackageOrder.objects.filter(
             sys_status__in=[PackageOrder.WAIT_PREPARE_SEND_STATUS, PackageOrder.WAIT_CHECK_BARCODE_STATUS,
                             PackageOrder.WAIT_SCAN_WEIGHT_STATUS]):
-        if p.package_sku_items.filter(assign_status__in=[PackageSkuItem.ASSIGNED,PackageSkuItem.VIRTUAL_ASSIGNED]).count() == 0:
+        if p.package_sku_items.filter(
+                assign_status__in=[PackageSkuItem.ASSIGNED, PackageSkuItem.VIRTUAL_ASSIGNED]).count() == 0:
             empty_package_count += 1
     # actual_num = SkuStock.objects.filter(assign_num__gt=0,
     #                                             post_num__lt=F('history_quantity') + F('inbound_quantity') + F(

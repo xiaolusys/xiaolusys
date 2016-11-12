@@ -52,7 +52,6 @@ class ProductDaySale(models.Model):
 
 
 class SkuStock(models.Model):
-
     class Meta:
         db_table = 'shop_items_productskustats'
         app_label = 'items'
@@ -105,7 +104,8 @@ class SkuStock(models.Model):
     @property
     def realtime_quantity(self):
         return self.history_quantity + self.inbound_quantity + self.adjust_quantity + self.return_quantity - self.post_num - self.rg_quantity
-    #sum([p.realtime_quantity for p in
+
+    # sum([p.realtime_quantity for p in
     # SkuStock.objects.filter(rg_quantity__lt=F('history_quantity')+F('inbound_quantity')+ F('adjust_quantity')+F('return_quantity')-F('post_num'))
     # .exclude(product__outer_id__startswith='RMB')])
     @property
@@ -143,12 +143,12 @@ class SkuStock(models.Model):
         else:
             return self.sold_num - self.return_quantity - self.post_num + self.waitingpay_num
             # um + self.waitingpay_num
-        # try:
-        #     return salestat.init_waitassign_num + salestat.num + self.waitingpay_num
-        # except Exception, e0:
-        #     exstr = traceback.format_exc()
-        #     logger.error('can not get sku sale stats:' + str(self.sku_id) + ':' + exstr)
-        #     return self.sold_num - self.return_quantity - self.post_num + self.waitingpay_num
+            # try:
+            #     return salestat.init_waitassign_num + salestat.num + self.waitingpay_num
+            # except Exception, e0:
+            #     exstr = traceback.format_exc()
+            #     logger.error('can not get sku sale stats:' + str(self.sku_id) + ':' + exstr)
+            #     return self.sold_num - self.return_quantity - self.post_num + self.waitingpay_num
 
     @property
     def realtime_lock_num(self):
@@ -196,8 +196,8 @@ class SkuStock(models.Model):
         """
         from flashsale.dinghuo.models import OrderDetail
         from .product import Product
-        from flashsale.dinghuo.models import ReturnGoods,RGDetail
-        rg_sku = RGDetail.objects.filter(return_goods__status__in=[1,3,31,4]).values('skuid')
+        from flashsale.dinghuo.models import ReturnGoods, RGDetail
+        rg_sku = RGDetail.objects.filter(return_goods__status__in=[1, 3, 31, 4]).values('skuid')
         rg_sku = [i['skuid'] for i in rg_sku]
         order_skus = [o['chichu_id'] for o in OrderDetail.objects.filter(
             arrival_time__gt=(datetime.datetime.now() - datetime.timedelta(days=20)), arrival_quantity__gt=0).values(
@@ -205,11 +205,15 @@ class SkuStock(models.Model):
 
         has_nouse_stock_sku_product = [(stat['id'], stat['product_id']) for stat in
                                        SkuStock.objects.exclude(sku_id__in=rg_sku).filter(sku_id__in=order_skus,
-                                                                      sold_num__lt=F('history_quantity') + F(
-                                                                          'adjust_quantity') + F(
-                                                                          'inbound_quantity') + F('return_quantity') \
-                                                                                   - F('rg_quantity')).values('id',
-                                                                                                              'product_id')]
+                                                                                          sold_num__lt=F(
+                                                                                              'history_quantity') + F(
+                                                                                              'adjust_quantity') + F(
+                                                                                              'inbound_quantity') + F(
+                                                                                              'return_quantity') \
+                                                                                                       - F(
+                                                                                              'rg_quantity')).values(
+                                           'id',
+                                           'product_id')]
         has_nouse_stock_products = {product_id for (_id, product_id) in has_nouse_stock_sku_product}
         products = Product.objects.filter(id__in=has_nouse_stock_products)
         product_dict = {p.id: p for p in products}
@@ -253,10 +257,12 @@ class SkuStock(models.Model):
         })
         return APIModel(**data)
 
+
 def invalid_apiskustat_cache(sender, instance, *args, **kwargs):
     if hasattr(sender, 'API_CACHE_KEY_TPL'):
-        logger.debug('invalid_apiskustat_cache: %s'%instance.sku_id)
+        logger.debug('invalid_apiskustat_cache: %s' % instance.sku_id)
         cache.delete(SkuStock.API_CACHE_KEY_TPL.format(instance.sku_id))
+
 
 post_save.connect(invalid_apiskustat_cache, sender=SkuStock, dispatch_uid='post_save_invalid_apiskustat_cache')
 
@@ -393,7 +399,8 @@ class ProductSkuSaleStats(models.Model):
 
     @staticmethod
     def stop_pre_stat(product_id):
-        ProductSkuSaleStats.objects.filter(product_id=product_id, status=0).update(status=ProductSkuSaleStats.ST_DISCARD)
+        ProductSkuSaleStats.objects.filter(product_id=product_id, status=0).update(
+            status=ProductSkuSaleStats.ST_DISCARD)
 
     @staticmethod
     def create(sku):
@@ -423,8 +430,8 @@ class ProductSkuSaleStats(models.Model):
     def get_sold_num(self):
         from shopback.trades.models import PackageSkuItem
         total = PackageSkuItem.objects.filter(sku_id=self.sku_id, pay_time__gte=self.sale_start_time,
-                                                   pay_time__lte=self.sale_end_time, assign_status__in=[0,1,2,4]).\
-            aggregate(total=Sum('num')).get('total') or 0
+                                              pay_time__lte=self.sale_end_time, assign_status__in=[0, 1, 2, 4]). \
+                    aggregate(total=Sum('num')).get('total') or 0
         return total
 
     def restat(self):
@@ -440,19 +447,20 @@ class ProductSkuSaleStats(models.Model):
         if not self.sale_end_time:
             self.sale_end_time = self.product.offshelf_time
         self.status = ProductSkuSaleStats.ST_FINISH
-        self.save(update_fields=["sale_end_time","status"])
+        self.save(update_fields=["sale_end_time", "status"])
 
     def teambuy_out_sale_check(self):
         model_product = self.product.get_product_model()
         if model_product and model_product.is_teambuy:
             from flashsale.pay.models import TeamBuy
-            if self.num + model_product.teambuy_person_num  > self.sku.remain_num:
+            if self.num + model_product.teambuy_person_num > self.sku.remain_num:
                 TeamBuy.end_teambuy(self.sku)
 
 
 def teambuy_out_sale_check(sender, instance, created, **kwargs):
     if not created:
         instance.teambuy_out_sale_check()
+
 
 post_save.connect(teambuy_out_sale_check, sender=ProductSkuSaleStats, dispatch_uid='post_save_invalid_apiskustat_cache')
 

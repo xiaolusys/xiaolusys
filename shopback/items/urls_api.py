@@ -8,7 +8,6 @@ from rest_framework.urlpatterns import format_suffix_patterns
 from rest_framework import routers
 from . import views
 
-
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'product', views.ProductManageViewSet)
 

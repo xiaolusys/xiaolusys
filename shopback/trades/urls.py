@@ -76,8 +76,10 @@ urlpatterns = patterns('shopback.trades.views',
                        (r'^order/outstock/(?P<id>\d{1,20})/$',
                         csrf_exempt(login_required_ajax(change_order_stock_status))),
                        (
-                       r'^replaysend/(?P<id>\d{1,20})/$', csrf_exempt(staff_member_required(replay_trade_send_result))),
-                       (r'^replay_package_send/(?P<id>\d{1,20})/$', csrf_exempt(staff_member_required(replay_package_send_result))),
+                           r'^replaysend/(?P<id>\d{1,20})/$',
+                           csrf_exempt(staff_member_required(replay_trade_send_result))),
+                       (r'^replay_package_send/(?P<id>\d{1,20})/$',
+                        csrf_exempt(staff_member_required(replay_package_send_result))),
 
                        (r'review/(?P<id>\d{1,20})/$', csrf_exempt(login_required_ajax(review_order))),
                        (r'change_logistic/$', csrf_exempt(login_required_ajax(change_package_logistic_and_outsid))),

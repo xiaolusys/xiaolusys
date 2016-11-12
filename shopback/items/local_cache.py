@@ -8,7 +8,8 @@ from shopback.categorys.models import ProductCategory
 
 class RebetaSchemaCache(cacheable.LocalCacheable):
     cache_time = 30 * 60
-    cache_key  = '%s.%s'%(__name__, 'RebetaSchemaCache')
+    cache_key = '%s.%s' % (__name__, 'RebetaSchemaCache')
+
     def __init__(self):
         super(RebetaSchemaCache, self).__init__()
 
@@ -38,6 +39,7 @@ class ProductCategoryCache(cacheable.LocalCacheable):
     EX_NAMES = ['小鹿美美', '优尼世界']
     cache_time = 30 * 60
     cache_key = '%s.%s' % (__name__, 'ProductCategoryCache')
+
     def __init__(self):
         super(ProductCategoryCache, self).__init__()
 

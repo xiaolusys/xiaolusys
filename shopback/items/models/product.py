@@ -31,6 +31,7 @@ from supplychain.supplier.models import SaleProduct
 from .. import constants, managers
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -162,6 +163,7 @@ class Product(models.Model):
     def __unicode__(self):
         return '%s' % self.id
         # return '<%s,%s>'%(self.outer_id,self.name)
+
     def is_common(self):
         # 判定普通商品还是押金等虚拟商品
         return not self.outer_id.startswith('RMB')
@@ -822,7 +824,8 @@ class Product(models.Model):
         inner_outer_id: 生成的内部编码
         model_pro: 产品款式
         """
-        def _get_valid_procount(outerid, pro_count , id_maps):
+
+        def _get_valid_procount(outerid, pro_count, id_maps):
             next_id = outerid + str(pro_count)
             while next_id in id_maps:
                 pro_count += 1
@@ -832,7 +835,7 @@ class Product(models.Model):
         saleproduct = model_pro.saleproduct
         skus_list = saleproduct.sku_extras
         cls.handle_delete_sku(model_pro, skus_list)  # 处理删除的sku
-        colors = set()    # 防止颜色重复
+        colors = set()  # 防止颜色重复
         products_list = []
         for x in skus_list:
             if x['color'] in colors:
@@ -848,17 +851,17 @@ class Product(models.Model):
         if not inner_outer_id:
             raise Exception(u'编码出错!!')
 
-        product_valuelist = Product.objects.filter(model_id=model_pro.id).values('id','outer_id', 'name')
+        product_valuelist = Product.objects.filter(model_id=model_pro.id).values('id', 'outer_id', 'name')
         for p in product_valuelist:
-            if  p['name'].find('/') > -1:
+            if p['name'].find('/') > -1:
                 p['name'] = p['name'].split('/')[1]
 
         productname_maps = dict([(e['name'], e) for e in product_valuelist])
         productid_maps = dict([(e['outer_id'], e) for e in product_valuelist])
 
         product_ids = [p['id'] for p in product_valuelist]
-        productsku_valuelist = ProductSku.objects.filter(product_id__in=product_ids)\
-                                      .values('id', 'outer_id', 'product__name', 'product_id', 'properties_name', 'barcode')
+        productsku_valuelist = ProductSku.objects.filter(product_id__in=product_ids) \
+            .values('id', 'outer_id', 'product__name', 'product_id', 'properties_name', 'barcode')
         for ps in productsku_valuelist:
             if ps['product__name'].find('/') > -1:
                 ps['name'] = ps['product__name'].split('/')[1] + '-' + ps['properties_name']
@@ -872,8 +875,8 @@ class Product(models.Model):
             if (pro_count % 10) == 1 and pro_count > 1:  # product除第一个颜色外, 其余的颜色的outer_id末尾不能为1
                 pro_count += 1
             pro_count = _get_valid_procount(inner_outer_id, pro_count, productid_maps)
-            pro_dict  = productname_maps.get(pro['name'])
-            outer_id  = pro_dict and pro_dict['outer_id'] or inner_outer_id + str(pro_count)
+            pro_dict = productname_maps.get(pro['name'])
+            outer_id = pro_dict and pro_dict['outer_id'] or inner_outer_id + str(pro_count)
             kwargs = {'name': pro['name'],
                       'pic_path': pro['pic_path'],
                       'outer_id': outer_id,
@@ -892,9 +895,9 @@ class Product(models.Model):
             product_skus_list = []
             for color_sku in color_skus:
                 sku_count = _get_valid_procount(outer_id, sku_count, skuid_maps)
-                sku_dict  = skuname_maps.get('%s-%s'%(pro['name'],color_sku['properties_name']))
-                sku_outer_id  = sku_dict and sku_dict['outer_id'] or outer_id + str(sku_count)
-                barcode   = sku_dict and sku_dict['barcode'] or '%s%d' % (outer_id, sku_count)
+                sku_dict = skuname_maps.get('%s-%s' % (pro['name'], color_sku['properties_name']))
+                sku_outer_id = sku_dict and sku_dict['outer_id'] or outer_id + str(sku_count)
+                barcode = sku_dict and sku_dict['barcode'] or '%s%d' % (outer_id, sku_count)
                 product_skus_list.append(
                     {'outer_id': sku_outer_id,
                      'remain_num': color_sku['remain_num'],
@@ -954,6 +957,7 @@ def invalid_apiproduct_cache(sender, instance, *args, **kwargs):
         logger.debug('invalid_apiproduct_cache: %s' % instance.id)
         cache.delete(Product.API_CACHE_KEY_TPL.format(instance.id))
 
+
 post_save.connect(invalid_apiproduct_cache, sender=Product, dispatch_uid='post_save_invalid_apiproduct_cache')
 
 
@@ -977,11 +981,11 @@ def delete_pro_record_supplier(sender, instance, created, **kwargs):
 
 post_save.connect(delete_pro_record_supplier, Product)
 
+from shopback.signals import signal_product_upshelf, signal_product_downshelf
 
-from shopback.signals import signal_product_upshelf,signal_product_downshelf
 
 def change_obj_state_by_pre_save(sender, instance, raw, *args, **kwargs):
-    if not raw and instance and instance.id :
+    if not raw and instance and instance.id:
         product = Product.objects.get(id=instance.id)
         if not instance.is_common():
             # 虚拟商品退散
@@ -990,7 +994,7 @@ def change_obj_state_by_pre_save(sender, instance, raw, *args, **kwargs):
         if product.sale_time != instance.sale_time:
             instance.is_verify = False
 
-        #商品上下架状态变更
+        # 商品上下架状态变更
         if (product.shelf_status != instance.shelf_status):
             if instance.shelf_status == Product.UP_SHELF:
 
@@ -1010,6 +1014,7 @@ def change_obj_state_by_pre_save(sender, instance, raw, *args, **kwargs):
                 product_skus = product.normal_skus
                 for sku in product_skus:
                     task_product_downshelf_update_productskusalestats.delay(sku.id, sale_end_time)
+
 
 pre_save.connect(change_obj_state_by_pre_save, sender=Product, dispatch_uid='post_save_change_obj_state_by_pre_saves')
 
@@ -1062,11 +1067,11 @@ class ProductSku(models.Model):
     # assign_num = models.IntegerField(default=0, verbose_name='分配数')  # 未出库包裹单中已分配的sku数量
     sku_inferior_num = models.IntegerField(default=0, verbose_name=u"次品数")  # 保存对应sku的次品数量
 
-    #history_quantity = models.IntegerField(default=0, verbose_name='历史库存数')  #
-    #inbound_quantity = models.IntegerField(default=0, verbose_name='入仓库存数')  #
-    #post_num = models.IntegerField(default=0, verbose_name='已发货数')  #
-    #sold_num = models.IntegerField(default=0, verbose_name='已被购买数')  #
-    #realtime_lock_num = models.IntegerField(default=0, verbose_name='实时f锁定数')  #
+    # history_quantity = models.IntegerField(default=0, verbose_name='历史库存数')  #
+    # inbound_quantity = models.IntegerField(default=0, verbose_name='入仓库存数')  #
+    # post_num = models.IntegerField(default=0, verbose_name='已发货数')  #
+    # sold_num = models.IntegerField(default=0, verbose_name='已被购买数')  #
+    # realtime_lock_num = models.IntegerField(default=0, verbose_name='实时f锁定数')  #
 
     cost = models.FloatField(default=0, verbose_name='成本价')
     std_purchase_price = models.FloatField(default=0, verbose_name='标准进价')
@@ -1114,7 +1119,7 @@ class ProductSku(models.Model):
     @property
     def obj_active_sku_salestats(self):
         from .stats import ProductSkuSaleStats
-        sku_stats = ProductSkuSaleStats.objects.filter(sku_id=self.id,status=ProductSkuSaleStats.ST_EFFECT).first()
+        sku_stats = ProductSkuSaleStats.objects.filter(sku_id=self.id, status=ProductSkuSaleStats.ST_EFFECT).first()
         return sku_stats
 
     @property
@@ -1180,7 +1185,6 @@ class ProductSku(models.Model):
         if sku_stats:
             self.lock_num = sku_stats.lock_num
         return max(self.remain_num - max(self.lock_num, 0), 0)
-
 
     @property
     def sale_out(self):
@@ -1418,6 +1422,7 @@ def invalid_apiproductsku_cache(sender, instance, *args, **kwargs):
         cache.delete(ProductSku.API_CACHE_KEY_TPL.format(instance.id))
         cache.delete(SkuStock.API_CACHE_KEY_TPL.format(instance.id))
 
+
 post_save.connect(invalid_apiproductsku_cache, sender=ProductSku, dispatch_uid='post_save_invalid_apiproductsku_cache')
 
 
@@ -1472,6 +1477,7 @@ def create_product_skustats(sender, instance, created, **kwargs):
     if created:
         from shopback.items.tasks_stats import task_productsku_update_productskustats
         task_productsku_update_productskustats.delay(instance.id, instance.product.id)
+
 
 post_save.connect(create_product_skustats, sender=ProductSku, dispatch_uid='post_save_create_productskustats')
 

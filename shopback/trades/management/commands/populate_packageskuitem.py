@@ -2,7 +2,6 @@
 __author__ = 'jishu_linjie'
 from django.core.management.base import BaseCommand
 
-
 from django.conf import settings
 
 from shopback.trades.models import PackageSkuItem, PackageOrder
@@ -31,4 +30,3 @@ class Command(BaseCommand):
                 update_fields.append('logistics_company_code')
             if update_fields:
                 item.save(update_fields=update_fields)
-        

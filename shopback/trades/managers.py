@@ -23,11 +23,11 @@ class MergeTradeManager(BaseManager):
                 q = q | Q(receiver_mobile=receiver_mobile)
             else:
                 q = Q(receiver_mobile=receiver_mobile)
-            #         if receiver_phone:
-            #             if q:
-            #                 q = q|Q(receiver_phone=receiver_phone)
-            #             else:
-            #                 q = Q(receiver_phone=receiver_phone)
+                #         if receiver_phone:
+                #             if q:
+                #                 q = q|Q(receiver_phone=receiver_phone)
+                #             else:
+                #                 q = Q(receiver_phone=receiver_phone)
 
         if not q:
             return self.none()
@@ -301,21 +301,21 @@ class MergeTradeManager(BaseManager):
                 prod.update_wait_post_num(order_num, dec_update=True)
 
                 # 更新退换货商品更新商品库存
-            #         for order in trade.return_orders:
-            #
-            #             outer_id     = order.outer_id
-            #             outer_sku_id = order.outer_sku_id
-            #             order_num    = order.num
-            #
-            #             if outer_sku_id:
-            #                 psku = ProductSku.objects.get(product__outer_id=outer_id,
-            #                                               outer_id=outer_sku_id)
-            #                 psku.update_quantity(order_num,dec_update=False)
-            #
-            #             else:
-            #                 prod = Product.objects.get(outer_id=outer_id)
-            #                 prod.update_collect_num(order_num,dec_update=False)
-            #
+                #         for order in trade.return_orders:
+                #
+                #             outer_id     = order.outer_id
+                #             outer_sku_id = order.outer_sku_id
+                #             order_num    = order.num
+                #
+                #             if outer_sku_id:
+                #                 psku = ProductSku.objects.get(product__outer_id=outer_id,
+                #                                               outer_id=outer_sku_id)
+                #                 psku.update_quantity(order_num,dec_update=False)
+                #
+                #             else:
+                #                 prod = Product.objects.get(outer_id=outer_id)
+                #                 prod.update_collect_num(order_num,dec_update=False)
+                #
 
     def getProductOrSkuWaitPostNum(self, outer_id, outer_sku_id):
         """ 获取订单商品待发数"""
