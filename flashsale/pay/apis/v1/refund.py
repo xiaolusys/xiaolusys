@@ -1,14 +1,11 @@
 # coding:utf-8
-from celery import task
-
 from core.options import log_action, ADDITION, CHANGE
 from flashsale.pay.models import SaleOrder, SaleRefund
 from flashsale.pay import tasks
 
 
-@task()
-def api_create_refund_order(user_id, order_id, reason, num, refund_fee, refund_channel,
-                            desc=None, good_status=None, modify=None, proof_pic=None, **kwargs):
+def create_refund_order(user_id, order_id, reason, num, refund_fee, refund_channel,
+                        desc=None, good_status=None, modify=None, proof_pic=None, **kwargs):
     saleorder = SaleOrder.objects.get(id=order_id)
     refund = saleorder.refund
     if not refund:
