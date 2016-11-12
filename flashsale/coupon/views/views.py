@@ -85,6 +85,8 @@ class ReleaseOmissive(APIView):
         content = request.REQUEST
         buyer_id = content.get("buyer_id")
         model_ids = content.get("model_ids")
+        time_from = content.get('time_from')
+        time_to = content.get('time_to')
         sale_orders = []
         if buyer_id and model_ids:
             model_ids = [int(i.strip()) for i in model_ids.split(',') if i]
@@ -92,7 +94,12 @@ class ReleaseOmissive(APIView):
             from shopback.items.models import Product
 
             item_ids = [i['id'] for i in Product.objects.filter(model_id__in=model_ids).values('id')]
-            sale_orders = SaleOrder.objects.filter(item_id__in=item_ids, buyer_id=buyer_id)
+            sale_orders = SaleOrder.objects.filter(item_id__in=item_ids, buyer_id=buyer_id,
+                                                   status=SaleOrder.TRADE_FINISHED)
+        if time_from:
+            sale_orders = sale_orders.filter(pay_time__gte=time_from)
+        if time_to:
+            sale_orders = sale_orders.filter(pay_time__lte=time_to)
         templates = CouponTemplate.objects.filter(status=CouponTemplate.SENDING,
                                                   coupon_type=CouponTemplate.TYPE_TRANSFER).order_by("value")
         usercoupons = []
@@ -103,6 +110,8 @@ class ReleaseOmissive(APIView):
         default_modelids = ModelProduct.objects.filter(product_type=1, status=ModelProduct.NORMAL).values('id')
         default_modelids = ','.join([str(m['id']) for m in default_modelids])
         return Response({'sale_orders': sale_orders,
+                         'time_from': time_from,
+                         'time_to': time_to,
                          "templates": templates,
                          'usercoupons': usercoupons,
                          'default_modelids': default_modelids})
@@ -111,6 +120,8 @@ class ReleaseOmissive(APIView):
         content = request.REQUEST
         customer = content.get('buyer_id', None)
         template_id = content.get('template_id', None)
+        time_from = content.get('time_from', None)
+        time_to = content.get('time_to', None)
         try:
             cus = Customer.objects.get(Q(mobile=customer) | Q(pk=customer), status=Customer.NORMAL)
         except:
@@ -124,6 +135,10 @@ class ReleaseOmissive(APIView):
         item_ids = [i['id'] for i in Product.objects.filter(model_id__in=modelids).values('id')]  # 找出虚拟产品
         # 交易成功订单
         sale_orders = SaleOrder.objects.filter(item_id__in=item_ids, buyer_id=cus.id, status=SaleOrder.TRADE_FINISHED)
+        if time_from:
+            sale_orders = sale_orders.filter(pay_time__gte=time_from)
+        if time_to:
+            sale_orders = sale_orders.filter(pay_time__lte=time_to)
         order_ids = []  # 用户的订单(一个数量为一个id)
         for order in sale_orders:
             for i in range(order.num):
