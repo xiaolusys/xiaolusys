@@ -656,7 +656,7 @@ class SkuStock(models.Model):
                                                      purchase_order_unikey=orderlist.purchase_order_unikey,
                                                 status=PSI_STATUS.ASSIGNED).first()
             if psi:
-                psi.reset_assign_status()
+                psi.set_status_not_assigned()
             else:
                 check_if_err = True
                 SkuStock.set_psi_not_assigned(self.sku_id, 0, stat=True, warning=True)

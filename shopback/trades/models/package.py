@@ -828,8 +828,8 @@ class PackageSkuItem(BaseModel):
         self.assign_status = 0
         self.assign_time = datetime.datetime.now()
         if save:
+            SkuStock.set_psi_not_assigned(self.sku_id, self.num ,stat=True)
             self.save()
-            SkuStock.set_psi_not_assigned(self.sku_id, self.num)
 
     def merge(self):
         self.status = PSI_STATUS.MERGED
