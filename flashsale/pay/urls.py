@@ -1,11 +1,10 @@
-from urlparse import urljoin
-from django.conf.urls import patterns, include, url
-from django.core.urlresolvers import reverse
+# coding=utf-8
+from django.conf.urls import url
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 from django.views.decorators.cache import cache_page
 from django.contrib.admin.views.decorators import staff_member_required
-from .decorators import sale_buyer_required, weixin_xlmm_auth
+from .decorators import sale_buyer_required
 from . import views
 
 urlpatterns = (
@@ -13,38 +12,33 @@ urlpatterns = (
     url(r'^cancel/$', csrf_exempt(views.PINGPPCallbackView.as_view())),
     url(r'^wxwarn/$', csrf_exempt(views.WXPayWarnView.as_view())),
 
-    #############product urls############
-    url(r'^plist/$',
-        #         views.ProductList.as_view(),
-        views.productlist_redirect,
-        name="sale_home"),
+    # product urls
+    url(r'^plist/$', views.productlist_redirect, name="sale_home"),
 
     url(r'^locknum/$', sale_buyer_required(views.productsku_quantity_view), name="skuquantity_lock"),
     url(r'^pdetail/(?P<pk>[0-9]+)/$', views.ProductDetailView.as_view(), name="pdetail_for_phone"),
 
-    ##############order urls################
+    # order urls
     url(r'^orderbuy/pay.htm$', cache_page(24 * 60 * 60)(TemplateView.as_view(template_name="pay/pay.html"))),
     url(r'^payresult/$', sale_buyer_required(views.PayResultView.as_view()), name="user_payresult"),
 
-    #############address urls############
+    # address urls
     url(r'^addr/list/$', sale_buyer_required(views.AddressList.as_view()), name="address_list"),
     url(r'^addr/$', sale_buyer_required(views.UserAddressDetail.as_view()), name="address_ins"),
     url(r'^addr/area/$', cache_page(24 * 60 * 60)(views.DistrictList.as_view()), name="address_area"),
 
-    ################envelop urls##################
+    # envelop urls
     url(r'^envelop/confirm/$', sale_buyer_required(views.EnvelopConfirmSendView.as_view()), name="envelop_confirm"),
 
-    #############profile urls############
+    # profile urls
     url(r'^login/$', views.flashsale_login, name="flashsale_login"),
 
-    url(r'^test/$', TemplateView.as_view(template_name="pay/maddress.html")),
-    ####fangkaineng  5-22
     url(r'^order_flashsale/$', views.order_flashsale, name="order_flashsale"),
     url(r'^time_rank/(?P<time_id>\d+)/$', views.time_rank, name="time_rank"),
     url(r'^sale_state/(?P<state_id>\d+)/$', views.sale_state, name="sale_state"),
     url(r'^refund_state/(?P<state_id>\d+)/$', views.refund_state, name="refund_state"),
     url(r'^refunding_state/(?P<state_id>\d+)/$', views.refunding_state, name="refunding_state"),
-    #
+
     url(r'^preorder_flashsale/$', views.preorder_flashsale, name="preorder_flashsale"),
     url(r'^nextorder_flashsale/$', views.nextorder_flashsale, name="nextorder_flashsale"),
     url(r'^search_flashsale/$', views.search_flashsale, name="search_flashsale"),
@@ -55,9 +49,7 @@ urlpatterns = (
     url(r'^checkmodelexist/$', csrf_exempt(views.CheckModelExistView.as_view()), name="check_model_exist"),
 
     url(r'^zone_analysis/$', csrf_exempt(views.show_Zone_Page), name="show_Zone_Page"),
-    # zone_analysis/province/
     url(r'^zone_analysis/province/$', csrf_exempt(views.by_zone_Province), name="show_Zone_Page"),
-    # by_zone_City
     url(r'^zone_analysis/city/$', csrf_exempt(views.by_zone_City), name="by_zone_City"),
     url(r'^qiniu/$', views.QiniuAPIView.as_view()),
     url(r'^ref_reason/$', csrf_exempt(views.RefundReason.as_view())),
@@ -66,6 +58,6 @@ urlpatterns = (
     url(r'^change_sku_item/$', csrf_exempt(views.change_sku_item), name="change_sku_item"),
     url(r'^sent_sku_item_again/$', csrf_exempt(views.sent_sku_item_again), name="sent_sku_item_again"),
     url(r'^get_mrgid/$', csrf_exempt(views.get_mrgid), name="get_mrgid"),
-    url(r'^refund_fee/$', csrf_exempt(views.refund_fee), name = "refund_fee"),
-    url(r'^update_memo/$', csrf_exempt(views.update_memo), name = "update_memo"),
+    url(r'^refund_fee/$', csrf_exempt(views.refund_fee), name="refund_fee"),
+    url(r'^update_memo/$', csrf_exempt(views.update_memo), name="update_memo"),
 )
