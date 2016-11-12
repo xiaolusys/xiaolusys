@@ -105,6 +105,10 @@ class ReleaseOmissive(APIView):
         usercoupons = []
         if buyer_id:
             usercoupons = UserCoupon.objects.filter(customer_id=buyer_id, coupon_type=CouponTemplate.TYPE_TRANSFER)
+        if time_from:
+            usercoupons = usercoupons.filter(created__gte=time_from)
+        if time_to:
+            usercoupons = usercoupons.filter(created__lte=time_to)
         from flashsale.pay.models import ModelProduct
 
         default_modelids = ModelProduct.objects.filter(product_type=1, status=ModelProduct.NORMAL).values('id')
