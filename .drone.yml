@@ -6,7 +6,7 @@ build:
   commands:
     - mkdir -p /data/log/django
     - python manage.py migrate --noinput
-    - python manage.py test -t . --keepdb
+    - python manage.py test -t . --keepdb --parallel 2
   when:
     branch: [staging, alpha, warden]
 publish:
@@ -130,7 +130,7 @@ deploy:
       - docker rm -f gunicorn
       - docker run --name=gunicorn --restart=always --log-opt max-file=1 --log-opt max-size=1m
         -e INSTANCE=mall -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
-        --volumes-from=static -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9000:9000
+        -v /var/data:/data -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9000:9000
         -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
         blueware-admin run-program gunicorn -k gevent -c gunicorn_config.py shopmanager.wsgi
   ssh:
@@ -144,7 +144,7 @@ deploy:
       - docker rm -f gunicorn-prometheus
       - docker run --name=gunicorn-prometheus --restart=always --log-opt max-file=1 --log-opt max-size=1m
         -e INSTANCE=mall -e TARGET=prometheus -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
-        --volumes-from=static -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9004:9000
+        -v /var/data:/data -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9004:9000
         -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
         blueware-admin run-program gunicorn -k gevent -w 1 -c gunicorn_config.py shopmanager.wsgi
   ssh:
@@ -159,7 +159,7 @@ deploy:
       - docker rm -f celery
       - docker run --name=celery --restart=always --log-opt max-file=1 --log-opt max-size=1m
         -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
-        --volumes-from=static -d -e BLUEWARE_CONFIG_FILE=blueware.ini -e C_FORCE_ROOT=1
+        -v /var/data:/data -d -e BLUEWARE_CONFIG_FILE=blueware.ini -e C_FORCE_ROOT=1
         registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program
         celery worker -c 4 -A shopmanager --loglevel=ERROR --time-limit=5400
         -Q notify,default,frency,coupon,activevalue,mama,mamafortune,relationship,carryrecord,skustats,statistics,logistics,carrytotal,integral,dinghuo
@@ -175,28 +175,28 @@ deploy:
       - docker rm -f celery1
       - docker run --name=celery1 --restart=always -d --log-opt max-file=1 --log-opt max-size=1m
         -e INSTANCE=celery-gevent -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
-        --volumes-from=static -e C_FORCE_ROOT=1 -e BLUEWARE_CONFIG_FILE=blueware.ini -e C_FORCE_ROOT=1
+        -v /var/data:/data -e C_FORCE_ROOT=1 -e BLUEWARE_CONFIG_FILE=blueware.ini -e C_FORCE_ROOT=1
         registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program
         celery worker -P gevent -A shopmanager --loglevel=ERROR -c 300 --time-limit=300
         -Q notify,frency,mama,coupon,activevalue,mamafortune,relationship,carryrecord,logistics,weixin
       - docker rm -f celery2
       - docker run --name=celery2 --restart=always -d --log-opt max-file=1 --log-opt max-size=1m
         -e INSTANCE=celery-gevent -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
-        --volumes-from=static -e C_FORCE_ROOT=1 -e BLUEWARE_CONFIG_FILE=blueware.ini -e C_FORCE_ROOT=1
+        -v /var/data:/data -e C_FORCE_ROOT=1 -e BLUEWARE_CONFIG_FILE=blueware.ini -e C_FORCE_ROOT=1
         registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program
         celery worker -P gevent -A shopmanager --loglevel=ERROR -c 300 --time-limit=300
         -Q notify,frency,mama,coupon,activevalue,mamafortune,relationship,carryrecord,logistics,qrcode,weixin
       - docker rm -f celery3
       - docker run --name=celery3 --restart=always -d --log-opt max-file=1 --log-opt max-size=1m
         -e INSTANCE=celery-gevent -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
-        --volumes-from=static -e C_FORCE_ROOT=1 -e BLUEWARE_CONFIG_FILE=blueware.ini -e C_FORCE_ROOT=1
+        -v /var/data:/data -e C_FORCE_ROOT=1 -e BLUEWARE_CONFIG_FILE=blueware.ini -e C_FORCE_ROOT=1
         registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program
         celery worker -P gevent -A shopmanager --loglevel=ERROR -c 300 --time-limit=300
         -Q notify,frency,mama,coupon,activevalue,mamafortune,relationship,carryrecord,logistics,qrcode
       - docker rm -f celery4
       - docker run --name=celery4 --restart=always -d --log-opt max-file=1 --log-opt max-size=1m
         -e INSTANCE=celery-gevent -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
-        --volumes-from=static -e C_FORCE_ROOT=1 -e BLUEWARE_CONFIG_FILE=blueware.ini -e C_FORCE_ROOT=1
+        -v /var/data:/data -e C_FORCE_ROOT=1 -e BLUEWARE_CONFIG_FILE=blueware.ini -e C_FORCE_ROOT=1
         registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program
         celery worker -P gevent -A shopmanager --loglevel=ERROR -c 300 --time-limit=300
         -Q notify,frency,mama,coupon,activevalue,mamafortune,relationship,carryrecord,logistics,qrcode
@@ -211,7 +211,7 @@ deploy:
       - docker rm -f celery
       - docker run --name=celery --restart=always -d --log-opt max-file=1 --log-opt max-size=1m
         -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
-        --volumes-from=static -e C_FORCE_ROOT=1 -e BLUEWARE_CONFIG_FILE=blueware.ini -e C_FORCE_ROOT=1
+        -v /var/data:/data -e C_FORCE_ROOT=1 -e BLUEWARE_CONFIG_FILE=blueware.ini -e C_FORCE_ROOT=1
         registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program
         celery worker -A shopmanager --loglevel=ERROR -c 48 --time-limit=5400
         -Q notify,default,peroid,frency,coupon,activevalue,mama,mamafortune,relationship,carryrecord,skustats,statistics,logistics,carrytotal,integral,dinghuo
