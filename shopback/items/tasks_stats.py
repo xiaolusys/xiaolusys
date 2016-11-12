@@ -6,6 +6,7 @@ from django.db.models import Sum
 from celery.task import task
 
 from shopback.items.models import SkuStock, ProductSku
+
 logger = logging.getLogger(__name__)
 
 
@@ -24,7 +25,7 @@ def task_productsku_create_productskustats(sku_id, product_id):
     from shopback.items.models import SkuStock
     stats = SkuStock.objects.filter(sku_id=sku_id)
     if stats.count() <= 0:
-        stat = SkuStock(sku_id=sku_id,product_id=product_id)
+        stat = SkuStock(sku_id=sku_id, product_id=product_id)
         stat.save()
 
 
@@ -50,24 +51,25 @@ def task_product_upshelf_update_productskusalestats(sku_id):
     wait_assign_num = sku_stats.wait_assign_num
 
     stats_uni_key = gen_productsksalestats_unikey(sku_id)
-    stats = ProductSkuSaleStats.objects.filter(uni_key= stats_uni_key, sku_id=sku_id)
+    stats = ProductSkuSaleStats.objects.filter(uni_key=stats_uni_key, sku_id=sku_id)
 
     if stats.count() == 0:
         try:
             stat = ProductSkuSaleStats(uni_key=stats_uni_key,
-                                   sku_id=sku_id,
-                                   product_id=product_id,
-                                   init_waitassign_num=wait_assign_num,
-                                   sale_start_time=sku.product.upshelf_time,
-                                   sale_end_time=sku.product.offshelf_time)
+                                       sku_id=sku_id,
+                                       product_id=product_id,
+                                       init_waitassign_num=wait_assign_num,
+                                       sale_start_time=sku.product.upshelf_time,
+                                       sale_end_time=sku.product.offshelf_time)
             stat.save()
         except IntegrityError as exc:
-            logger.warn("IntegrityError - productskusalestat/init_waitassign_num | sku_id: %s, init_waitassign_num: %s" % (
-                sku_id, wait_assign_num))
+            logger.warn(
+                "IntegrityError - productskusalestat/init_waitassign_num | sku_id: %s, init_waitassign_num: %s" % (
+                    sku_id, wait_assign_num))
             raise task_product_upshelf_update_productskusalestats.retry(exc=exc)
     else:
         logger.warn("RepeatUpshelf- productskusalestat/init_waitassign_num | sku_id: %s, init_waitassign_num: %s" % (
-        sku_id, wait_assign_num))
+            sku_id, wait_assign_num))
 
 
 @task(max_retries=3, default_retry_delay=6)
@@ -79,8 +81,8 @@ def task_product_downshelf_update_productskusalestats(sku_id, sale_end_time):
         ProductSkuSaleStats, gen_productsksalestats_unikey
 
     product = ProductSku.objects.get(id=sku_id).product
-    stats_uni_key   = gen_productsksalestats_unikey(sku_id)
-    stats = ProductSkuSaleStats.objects.filter(uni_key= stats_uni_key, sku_id=sku_id)
+    stats_uni_key = gen_productsksalestats_unikey(sku_id)
+    stats = ProductSkuSaleStats.objects.filter(uni_key=stats_uni_key, sku_id=sku_id)
 
     if stats.count() > 0:
         try:
@@ -88,7 +90,7 @@ def task_product_downshelf_update_productskusalestats(sku_id, sale_end_time):
             if not stat.sale_end_time:
                 stat.sale_end_time = stat.product.offshelf_time
             stat.status = ProductSkuSaleStats.ST_FINISH
-            stat.save(update_fields=["sale_end_time","status"])
+            stat.save(update_fields=["sale_end_time", "status"])
         except IntegrityError as exc:
             logger.warn("IntegrityError - productskusalestat/init_waitassign_num | sku_id: %s, sale_end_time: %s" % (
                 sku_id, sale_end_time))
@@ -118,7 +120,7 @@ def task_packageskuitem_update_productskustats(sku_id):
     logger.info("%s -sku_id:%s" % (get_cur_info(), sku_id))
     sum_res = PackageSkuItem.objects.filter(sku_id=sku_id, pay_time__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME). \
         exclude(assign_status=PackageSkuItem.CANCELED).values("assign_status").annotate(total=Sum('num'))
-    wait_assign_num, assign_num, post_num, third_assign_num= 0, 0, 0, 0
+    wait_assign_num, assign_num, post_num, third_assign_num = 0, 0, 0, 0
 
     for entry in sum_res:
         if entry["assign_status"] == PackageSkuItem.NOT_ASSIGNED:
@@ -153,17 +155,19 @@ def task_packageskuitem_update_productskustats(sku_id):
 def task_refundproduct_update_productskustats_return_quantity(sku_id):
     from shopback.refunds.models import RefundProduct
     logger.info("%s -sku_id:%s" % (get_cur_info(), sku_id))
-    sum_res = RefundProduct.objects.filter(sku_id=sku_id, created__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME, can_reuse=True)\
+    sum_res = RefundProduct.objects.filter(sku_id=sku_id, created__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME,
+                                           can_reuse=True) \
         .aggregate(total=Sum('num'))
     total = sum_res["total"] or 0
     stat = SkuStock.get_by_sku(sku_id)
     if stat.return_quantity != total:
         stat.return_quantity = total
         stat.save(update_fields=['return_quantity'])
+        stat.assign()
 
 
 @task(max_retries=3, default_retry_delay=6)
-def task_orderdetail_update_productskustats_inbound_quantity(sku_id):
+def task_orderdetail_update_productskustats_inbound_quantity(instance):
     """
     Whenever we have products inbound, we update the inbound quantity.
     0) OrderDetail arrival_time add db_index=True
@@ -171,15 +175,21 @@ def task_orderdetail_update_productskustats_inbound_quantity(sku_id):
     --Zifei 2016-04-18
     """
     from flashsale.dinghuo.models import OrderDetail
+    sku_id = instance.sku_id
     logger.info("%s -sku_id:%s" % (get_cur_info(), sku_id))
     sum_res = OrderDetail.objects.filter(chichu_id=sku_id,
                                          arrival_time__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME) \
         .aggregate(total=Sum('arrival_quantity'))
     total = sum_res["total"] or 0
     stat = SkuStock.get_by_sku(sku_id)
-    if stat.inbound_quantity != total:
+    if stat.inbound_quantity < total:
         stat.inbound_quantity = total
         stat.save(update_fields=['inbound_quantity', 'modified'])
+        stat.assign(instance.order_list)
+    elif stat.inbound_quantity > total:
+        stat.inbound_quantity = total
+        stat.save(update_fields=['inbound_quantity', 'modified'])
+        stat.relase_assign(instance.order_list)
 
 
 @task()
@@ -197,6 +207,7 @@ def task_update_product_sku_stat_rg_quantity(sku_id):
     if stat.rg_quantity != total:
         stat.rg_quantity = total
         stat.save(update_fields=['rg_quantity'])
+        stat.assign()
 
 
 @task(max_retries=3, default_retry_delay=6)
@@ -208,7 +219,8 @@ def task_shoppingcart_update_productskustats_shoppingcart_num(sku_id):
     from flashsale.pay.models import ShoppingCart
     try:
         product_id = ProductSku.objects.get(id=sku_id).product.id
-        shoppingcart_num_res = ShoppingCart.objects.filter(item_id=product_id,sku_id=sku_id,status=ShoppingCart.NORMAL).aggregate(
+        shoppingcart_num_res = ShoppingCart.objects.filter(item_id=product_id, sku_id=sku_id,
+                                                           status=ShoppingCart.NORMAL).aggregate(
             Sum('num'))
         total = shoppingcart_num_res['num__sum'] or 0
         stat = SkuStock.get_by_sku(sku_id)
@@ -216,7 +228,8 @@ def task_shoppingcart_update_productskustats_shoppingcart_num(sku_id):
             stat.shoppingcart_num = total
             stat.save(update_fields=["shoppingcart_num"])
     except IntegrityError as exc:
-        logger.warn("IntegrityError - productskustat/shoppingcart_num | sku_id: %s, shoppingcart_num: %s" % (sku_id, total))
+        logger.warn(
+            "IntegrityError - productskustat/shoppingcart_num | sku_id: %s, shoppingcart_num: %s" % (sku_id, total))
         raise task_shoppingcart_update_productskustats_shoppingcart_num.retry(exc=exc)
 
 
@@ -229,7 +242,7 @@ def task_saleorder_update_productskustats_waitingpay_num(sku_id):
 
     product_id = ProductSku.objects.get(id=sku_id).product.id
     waitingpay_num_res = SaleOrder.objects.filter(item_id=product_id, sku_id=sku_id,
-                                                       status=SaleOrder.WAIT_BUYER_PAY).aggregate(
+                                                  status=SaleOrder.WAIT_BUYER_PAY).aggregate(
         Sum('num'))
     total = waitingpay_num_res['num__sum'] or 0
     stat = SkuStock.get_by_sku(sku_id)

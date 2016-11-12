@@ -53,7 +53,7 @@ logger = logging.getLogger('django.request')
 
 class ProductSkuInline(admin.TabularInline):
     model = ProductSku
-    formset  = ProductSkuFormset
+    formset = ProductSkuFormset
     fields = ('outer_id', 'properties_name', 'properties_alias', 'quantity',
               'warn_num', 'remain_num', 'wait_post_num', 'reduce_num',
               'lock_num', 'cost', 'std_sale_price', 'agent_price', 'sync_stock',
@@ -159,15 +159,15 @@ class ProductAdmin(ApproxAdmin):
 
     # --------设置页面布局----------------
     fieldsets = (('商品基本信息:', {
-                    'classes': ('expand',),
-                    'fields':
-                        (('outer_id', 'category'), ('name', 'pic_path'),
-                         ('collect_num', 'warn_num', 'remain_num', 'wait_post_num', 'reduce_num'),
-                         ('lock_num', 'inferior_num', 'std_purchase_price', 'staff_price'),
-                         ('sale_time', 'upshelf_time', 'offshelf_time'),
-                         ('cost', 'std_sale_price', 'agent_price'),
-                         ('status', 'shelf_status', 'model_id', 'sale_product', 'ware_by'))
-                 }),
+        'classes': ('expand',),
+        'fields':
+            (('outer_id', 'category'), ('name', 'pic_path'),
+             ('collect_num', 'warn_num', 'remain_num', 'wait_post_num', 'reduce_num'),
+             ('lock_num', 'inferior_num', 'std_purchase_price', 'staff_price'),
+             ('sale_time', 'upshelf_time', 'offshelf_time'),
+             ('cost', 'std_sale_price', 'agent_price'),
+             ('status', 'shelf_status', 'model_id', 'sale_product', 'ware_by'))
+    }),
                  ('商品系统设置:', {
                      'classes': ('collapse',),
                      'fields': (('weight', 'sync_stock', 'is_assign', 'is_split', 'is_match', 'post_check', 'is_verify',
@@ -195,7 +195,6 @@ class ProductAdmin(ApproxAdmin):
             "jquery/jquery-ui-1.8.13.min.js",
             "jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js",
             "jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js")
-
 
     def get_readonly_fields(self, request, obj=None):
 
@@ -278,7 +277,7 @@ class ProductAdmin(ApproxAdmin):
     wait_receive_num.short_description = u"在途数"
 
     def modelproduct_link(self, obj):
-        return '<a href="%s" target="_blank">%s</a>'%('/admin/pay/modelproduct/%s/'%obj.model_id, obj.model_id)
+        return '<a href="%s" target="_blank">%s</a>' % ('/admin/pay/modelproduct/%s/' % obj.model_id, obj.model_id)
 
     modelproduct_link.allow_tags = True
     modelproduct_link.short_description = u"款式ID"
@@ -363,7 +362,8 @@ class ProductAdmin(ApproxAdmin):
     def get_storage_chargers(self):
         if not hasattr(self, '_storage_chargers_list_'):
             self._storage_chargers_list_ = list(User.objects.filter(is_staff=True,
-                    groups__name=u'仓管员').values_list('username',flat=True))
+                                                                    groups__name=u'仓管员').values_list('username',
+                                                                                                     flat=True))
         return self._storage_chargers_list_
 
     def charger_select(self, obj):
@@ -385,7 +385,6 @@ class ProductAdmin(ApproxAdmin):
 
     charger_select.allow_tags = True
     charger_select.short_description = u"所属仓管员"
-
 
     def get_actions(self, request):
 
@@ -1227,20 +1226,20 @@ admin.site.register(ProductSkuContrast, ProductSkuContrastAdmin)
 
 class SkuStockAdmin(admin.ModelAdmin):
     list_display = (
-        'sku_link', 'skucode', 'supplier','product_id_link', 'product_title', 'properties_name_alias',
+        'sku_link', 'skucode', 'supplier', 'product_id_link', 'product_title', 'properties_name_alias',
         'now_quantity', 'old_quantity', 'sold_num_link', 'post_num_link', '_wait_post_num', 'unused_stock_link',
         'adjust_quantity', 'assign_num_link', '_wait_assign_num', '_wait_order_num', 'history_quantity',
         'inbound_quantity_link', 'return_quantity_link', 'rg_quantity_link',
         'district_link', 'created')
     list_display_links = ['sku_link']
     search_fields = ['sku__id', 'product__id', 'product__name', 'product__outer_id', 'supplier_id', 'supplier_name']
-    #('supplier_id', ProductSkuStatsSupplierIdFilter),                 ('supplier_name', ProductSkuStatsSupplierNameFilter)]
     readonly_fields = [u'id', 'sku', 'product', 'assign_num', 'adjust_quantity', 'history_quantity',
                        'inbound_quantity', 'return_quantity', 'rg_quantity', 'post_num', 'sold_num', 'shoppingcart_num',
                        'waitingpay_num', 'created', 'modified', 'status']
     list_select_related = True
     list_per_page = 50
-    list_filter = ['status', ProductSkuStatsUnusedStockFilter, ProductWareByFilter, ProductVirtualFilter, ProductStatusFilter, ProductCategoryFilter]
+    list_filter = ['status', ProductSkuStatsUnusedStockFilter, ProductWareByFilter, ProductVirtualFilter,
+                   ProductStatusFilter, ProductCategoryFilter]
 
     SKU_PREVIEW_TPL = (
         '<a href="%(sku_url)s" target="_blank">'
@@ -1261,6 +1260,7 @@ class SkuStockAdmin(admin.ModelAdmin):
         import operator
         from django.contrib.admin.utils import lookup_needs_distinct
         custom_search_fields = ['supplier_id', 'supplier_name']
+
         def construct_search(field_name):
             if field_name.startswith('^'):
                 return "%s__istartswith" % field_name[1:]
@@ -1315,17 +1315,21 @@ class SkuStockAdmin(admin.ModelAdmin):
         Returns the ChangeList class for use on the changelist page.
         """
         orderingdict = {'now_quantity': (F('post_num') + F('rg_quantity')
-                                         - F('history_quantity') - F('adjust_quantity') - F('inbound_quantity') - F('return_quantity'),
-                                         F('history_quantity') + F('adjust_quantity') + F('inbound_quantity') + F('return_quantity') - F(
+                                         - F('history_quantity') - F('adjust_quantity') - F('inbound_quantity') - F(
+            'return_quantity'),
+                                         F('history_quantity') + F('adjust_quantity') + F('inbound_quantity') + F(
+                                             'return_quantity') - F(
                                              'post_num') - F('rg_quantity')),
                         'unused_stock': (F('sold_num') + F('rg_quantity')
-                                         - F('history_quantity') - F('adjust_quantity') - F('inbound_quantity') - F('return_quantity'),
-                                         F('history_quantity') + F('adjust_quantity') + F('inbound_quantity') + F('return_quantity') - F(
+                                         - F('history_quantity') - F('adjust_quantity') - F('inbound_quantity') - F(
+                            'return_quantity'),
+                                         F('history_quantity') + F('adjust_quantity') + F('inbound_quantity') + F(
+                                             'return_quantity') - F(
                                              'sold_num') - F('rg_quantity')),
-                        'wait_assign_num':(F('post_num') + F('assign_num') - F('sold_num'),
-                                         F('sold_num') - F('post_num') - F('assign_num'))
+                        'wait_assign_num': (F('post_num') + F('assign_num') - F('sold_num'),
+                                            F('sold_num') - F('post_num') - F('assign_num'))
                         }
-        from django.contrib.admin.views.main import ChangeList, ORDER_VAR, SuspiciousOperation, ImproperlyConfigured,\
+        from django.contrib.admin.views.main import ChangeList, ORDER_VAR, SuspiciousOperation, ImproperlyConfigured, \
             IncorrectLookupParameters
 
         class StatsOrderChangeList(ChangeList):
@@ -1359,30 +1363,31 @@ class SkuStockAdmin(admin.ModelAdmin):
                     ordering.append('-pk')
                 return ordering
 
-            # def get_queryset(self, request):
-            #     (self.filter_specs, self.has_filters, remaining_lookup_params,
-            #      filters_use_distinct) = self.get_filters(request)
-            #     qs = self.root_queryset
-            #     for filter_spec in self.filter_specs:
-            #         new_qs = filter_spec.queryset(request, qs)
-            #         if new_qs is not None:
-            #             qs = new_qs
-            #     try:
-            #         qs = qs.filter(**remaining_lookup_params)
-            #     except (SuspiciousOperation, ImproperlyConfigured):
-            #         raise
-            #     except Exception as e:
-            #         raise IncorrectLookupParameters(e)
-            #     if not qs.query.select_related:
-            #         qs = self.apply_select_related(qs)
-            #     ordering = self.get_ordering(request, qs)
-            #     qs = qs.order_by(*ordering)
-            #     qs, search_use_distinct = self.model_admin.get_search_results(
-            #         request, qs, self.query)
-            #     if filters_use_distinct | search_use_distinct:
-            #         return qs.distinct()
-            #     else:
-            #         return qs
+                # def get_queryset(self, request):
+                #     (self.filter_specs, self.has_filters, remaining_lookup_params,
+                #      filters_use_distinct) = self.get_filters(request)
+                #     qs = self.root_queryset
+                #     for filter_spec in self.filter_specs:
+                #         new_qs = filter_spec.queryset(request, qs)
+                #         if new_qs is not None:
+                #             qs = new_qs
+                #     try:
+                #         qs = qs.filter(**remaining_lookup_params)
+                #     except (SuspiciousOperation, ImproperlyConfigured):
+                #         raise
+                #     except Exception as e:
+                #         raise IncorrectLookupParameters(e)
+                #     if not qs.query.select_related:
+                #         qs = self.apply_select_related(qs)
+                #     ordering = self.get_ordering(request, qs)
+                #     qs = qs.order_by(*ordering)
+                #     qs, search_use_distinct = self.model_admin.get_search_results(
+                #         request, qs, self.query)
+                #     if filters_use_distinct | search_use_distinct:
+                #         return qs.distinct()
+                #     else:
+                #         return qs
+
         return StatsOrderChangeList
 
     # def get_queryset(self, request):
@@ -1401,8 +1406,9 @@ class SkuStockAdmin(admin.ModelAdmin):
         sku_dict = {}
         sku_num = queryset.count()
         for stat in queryset:
-            sku_dict[stat.sku_id] = stat.history_quantity + stat.adjust_quantity + stat.inbound_quantity + stat.return_quantity \
-                                    - stat.rg_quantity - stat.sold_num
+            sku_dict[
+                stat.sku_id] = stat.history_quantity + stat.adjust_quantity + stat.inbound_quantity + stat.return_quantity \
+                               - stat.rg_quantity - stat.sold_num
         returns = ReturnGoods.generate(sku_dict, request.user.username)
         self.message_user(request, '本次对%d个SKU执行了退货, 生成了%d个退货单' % (sku_num, len(returns)))
         return HttpResponseRedirect('/admin/dinghuo/returngoods/?status__exact=0')
@@ -1417,13 +1423,12 @@ class SkuStockAdmin(admin.ModelAdmin):
             sku_dict[
                 stat.sku_id] = stat.history_quantity + stat.adjust_quantity + stat.inbound_quantity + stat.return_quantity \
                                - stat.rg_quantity - stat.sold_num
-        returns = ReturnGoods.generate(sku_dict, request.user.username,days=0)
+        returns = ReturnGoods.generate(sku_dict, request.user.username, days=0)
         self.message_user(request, '本次对%d个SKU执行了退货, 生成了%d个退货单' % (sku_num, len(returns)))
         return HttpResponseRedirect('/admin/dinghuo/returngoods/?status__exact=0')
 
     gen_return_goods_by_five.allow_tags = True
     gen_return_goods_by_five.short_description = u'从上架起0天后生成退货单'
-
 
     def mark_unreturn(self, request, queryset):
         from flashsale.dinghuo.models import UnReturnSku
@@ -1462,7 +1467,7 @@ class SkuStockAdmin(admin.ModelAdmin):
         sku = obj.sku
         product = obj.product
         barcode = sku.barcode.strip() or '%s%s' % (product.outer_id.strip(),
-                                                 sku.outer_id.strip())
+                                                   sku.outer_id.strip())
         return self.SKU_PREVIEW_TPL % {
             'sku_url': '/admin/items/productsku/%s/' % str(obj.sku_id),
             'skucode': barcode
@@ -1470,7 +1475,6 @@ class SkuStockAdmin(admin.ModelAdmin):
 
     skucode.allow_tags = True
     skucode.short_description = u'sku条码'
-
 
     PRODUCT_LINK = (
         '<a href="%(product_url)s" target="_blank">'
@@ -1481,6 +1485,7 @@ class SkuStockAdmin(admin.ModelAdmin):
         if supplier:
             return supplier.supplier_name
         return ''
+
     supplier.short_description = u'供应商'
 
     def product_id_link(self, obj):
@@ -1593,6 +1598,7 @@ class SkuStockAdmin(admin.ModelAdmin):
     _wait_assign_num.allow_tags = True
     _wait_assign_num.short_description = u'待分配数'
     _wait_assign_num.admin_order_field = 'wait_assign_num'
+
     def _wait_order_num(self, obj):
         return ('<a href="%(url)s" target="_blank">%(num)s</a>') % {
             'url': '/admin/dinghuo/orderdetail/?chichu_id=%s' % obj.sku_id,

@@ -20,7 +20,6 @@ class ProductInvalidConfirmView(APIView):
     template_name = "items/product_delete.html"
 
     def post(self, request):
-
         content = request.REQUEST
         product_ids = content.get('product_ids').split(',')
         origin_url = content.get('origin_url')

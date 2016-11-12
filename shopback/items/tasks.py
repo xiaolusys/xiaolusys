@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 PURCHASE_STOCK_PERCENT = 0.5
 UPDATE_WAIT_POST_DAYS = 20
 
+
 def get_cur_info():
     """Return the frame object for the caller's stack frame."""
     try:
@@ -1022,7 +1023,8 @@ def task_Auto_Download_Shelf():
 
 @task()
 def task_assign_stock_to_package_sku_item(instance):
-    logger.info("%s -sku_id:%s,%s,%s" % (get_cur_info(), instance.sku_id, instance.realtime_quantity, instance.assign_num))
+    logger.info(
+        "%s -sku_id:%s,%s,%s" % (get_cur_info(), instance.sku_id, instance.realtime_quantity, instance.assign_num))
     if instance.realtime_quantity > instance.assign_num:
         assign_stock_to_package_sku_item(instance)
     elif instance.realtime_quantity < instance.assign_num:
@@ -1034,14 +1036,14 @@ def assign_stock_to_package_sku_item(stat):
     available_num = stat.realtime_quantity - stat.assign_num
     logger = logging.getLogger('service')
     logger.info({
-                'action': 'skustat.pstat.assign_stock_to_package_sku_item.assign',
-                'sku_id': stat.sku_id,
-                'realtime_quantity': stat.realtime_quantity,
-                'assign_num': stat.assign_num,
-                'sold_num': stat.sold_num,
-                'post_num': stat.post_num,
-                'not_assign_num': stat.not_assign_num,
-            })
+        'action': 'skustat.pstat.assign_stock_to_package_sku_item.assign',
+        'sku_id': stat.sku_id,
+        'realtime_quantity': stat.realtime_quantity,
+        'assign_num': stat.assign_num,
+        'sold_num': stat.sold_num,
+        'post_num': stat.post_num,
+        'not_assign_num': stat.not_assign_num,
+    })
     if available_num > 0:
         package_sku_items = PackageSkuItem.objects.filter(sku_id=stat.sku_id,
                                                           assign_status=PackageSkuItem.NOT_ASSIGNED,
@@ -1068,27 +1070,30 @@ def relase_package_sku_item(stat):
     from shopback.trades.models import PackageSkuItem
     logger = logging.getLogger('service')
     logger.info({
-                'action': 'skustat.pstat.assign_stock_to_package_sku_item.relase',
-                'sku_id': stat.sku_id,
-                'realtime_quantity': stat.realtime_quantity,
-                'assign_num': stat.assign_num,
-                'sold_num': stat.sold_num,
-                'post_num': stat.post_num,
-                'not_assign_num': stat.not_assign_num,
-            })
-    pki = PackageSkuItem.objects.filter(sku_id=sku_id, assign_status=PackageSkuItem.ASSIGNED).order_by('-pay_time').first()
+        'action': 'skustat.pstat.assign_stock_to_package_sku_item.relase',
+        'sku_id': stat.sku_id,
+        'realtime_quantity': stat.realtime_quantity,
+        'assign_num': stat.assign_num,
+        'sold_num': stat.sold_num,
+        'post_num': stat.post_num,
+        'not_assign_num': stat.not_assign_num,
+    })
+    pki = PackageSkuItem.objects.filter(sku_id=sku_id, assign_status=PackageSkuItem.ASSIGNED).order_by(
+        '-pay_time').first()
     if pki:
         pki.reset_assign_status()
         logger.info({
-                'action': 'skustat.pstat.assign_stock_to_package_sku_item.relaserun',
-                'sku_id': stat.sku_id,
-                'psi_id': pki.id,
-                'realtime_quantity': stat.realtime_quantity,
-                'assign_num': stat.assign_num,
-                'sold_num': stat.sold_num,
-                'post_num': stat.post_num,
-                'not_assign_num': stat.not_assign_num,
-            })
+            'action': 'skustat.pstat.assign_stock_to_package_sku_item.relaserun',
+            'sku_id': stat.sku_id,
+            'psi_id': pki.id,
+            'realtime_quantity': stat.realtime_quantity,
+            'assign_num': stat.assign_num,
+            'sold_num': stat.sold_num,
+            'post_num': stat.post_num,
+            'not_assign_num': stat.not_assign_num,
+        })
+
+
 @task()
 @transaction.atomic
 def task_assign_stock_to_package_sku_item_bak(stat):
@@ -1110,10 +1115,10 @@ def task_assign_stock_to_package_sku_item_bak(stat):
 def task_relase_package_sku_item(stat):
     sku_id = stat.sku_id
     from shopback.trades.models import PackageSkuItem
-    pki = PackageSkuItem.objects.filter(sku_id=sku_id, assign_status=PackageSkuItem.ASSIGNED).order_by('-pay_time').first()
+    pki = PackageSkuItem.objects.filter(sku_id=sku_id, assign_status=PackageSkuItem.ASSIGNED).order_by(
+        '-pay_time').first()
     if pki:
         pki.reset_assign_status()
-
 
 
 @task()
@@ -1176,7 +1181,7 @@ def task_auto_shelf_prods():
         from supplychain.supplier.models import SaleProductManage, SaleProductManageDetail
         today = datetime.date.today()
         schedules = SaleProductManage.objects.filter(sale_time=today)
-        sale_product_ids = []   # 要上架的排期管理选品id
+        sale_product_ids = []  # 要上架的排期管理选品id
         for schedule in schedules:
             sale_product_ids += [d.sale_product_id for d in
                                  schedule.manage_schedule.filter(today_use_status=SaleProductManageDetail.NORMAL)]

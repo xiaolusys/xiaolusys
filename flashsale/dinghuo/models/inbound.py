@@ -731,7 +731,6 @@ class InBoundDetail(models.Model):
     @property
     def out_stock_num(self):
         all_allocate_quantity = self.all_allocate_quantity
-        #　self.out_stock = self.arrival_quantity > all_allocate_quantity
         return self.arrival_quantity - all_allocate_quantity
 
     @property

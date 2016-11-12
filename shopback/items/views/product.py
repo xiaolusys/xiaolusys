@@ -419,8 +419,7 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
                 tbody = propto['value']
             else:
                 properties_copy.append(propto)
-        return  properties_copy
-
+        return properties_copy
 
     def get_request_extras(self, request, model_product=None):
         """ 更新款式额外属性 """
@@ -511,7 +510,7 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         partial = kwargs.pop('partial', False)
         new_properties = request.data.get('new_properties') or None
         request_extras = request.data.get('extras') or None
-        if request_extras is not None or new_properties :
+        if request_extras is not None or new_properties:
             extras = self.get_request_extras(request, instance)
             request.data.update({'extras': extras})
 

@@ -552,13 +552,11 @@ class ProductSearchView(APIView):
         }
         return Response({'product': product_dict, 'code': 0})
 
-
     def get(self, request, *args, **kwargs):
         # print Product.objects.all()[1].outer_id
         outer_id = request.GET.get('outer_id')
         if outer_id:
             return self.get_skus_by_outer_id(outer_id)
-
 
         q = request.GET.get('q')
         # print q,"000"
@@ -1408,6 +1406,7 @@ class ProductSkuStatsTmpView(View):
             return HttpResponseRedirect('/admin/items/skustock')
         s = ','.join([str(p) for p in SkuStock.filter_by_supplier(supplier.id)])
         return HttpResponseRedirect('/admin/items/skustock?product_id__in=%s' % s)
+
 
 class ProductSkuStatsViewSet(View):
     pass

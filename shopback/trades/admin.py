@@ -45,8 +45,8 @@ from common.utils import (gen_cvs_tuple,
 import logging
 
 # fang  2015-8-19
-import re   
-from shopback.trades.models import TradeWuliu,ReturnWuLiu
+import re
+from shopback.trades.models import TradeWuliu, ReturnWuLiu
 from shopback.trades.tasks import send_package_task, send_package_call_Back
 
 logger = logging.getLogger('django.request')
@@ -221,18 +221,18 @@ class MergeTradeAdmin(ApproxAdmin):
     form = YundaCustomerForm
     # --------设置页面布局----------------
     fieldsets = (('订单基本信息:', {
-                    'classes': ('collapse',),
-                    'fields': (('tid', 'user', 'type', 'status')
-                               , ('buyer_nick', 'order_num', 'prod_num', 'trade_from')
-                               , ('total_fee', 'payment', 'discount_fee', 'adjust_fee', 'post_fee')
-                               , ('is_cod', 'seller_cod_fee', 'buyer_cod_fee', 'cod_fee', 'cod_status')
-                               , ('is_brand_sale', 'is_force_wlb', 'buyer_rate', 'seller_rate', 'seller_can_rate'
-                                  , 'is_lgtype', 'lg_aging_type')
-                               , ('send_time', 'lg_aging', 'step_paid_fee', 'step_trade_status')
-                               , ('created', 'pay_time', 'consign_time')
-                               , ('buyer_message', 'seller_memo', 'sys_memo')
-                               )
-                }),
+        'classes': ('collapse',),
+        'fields': (('tid', 'user', 'type', 'status')
+                   , ('buyer_nick', 'order_num', 'prod_num', 'trade_from')
+                   , ('total_fee', 'payment', 'discount_fee', 'adjust_fee', 'post_fee')
+                   , ('is_cod', 'seller_cod_fee', 'buyer_cod_fee', 'cod_fee', 'cod_status')
+                   , ('is_brand_sale', 'is_force_wlb', 'buyer_rate', 'seller_rate', 'seller_can_rate'
+                      , 'is_lgtype', 'lg_aging_type')
+                   , ('send_time', 'lg_aging', 'step_paid_fee', 'step_trade_status')
+                   , ('created', 'pay_time', 'consign_time')
+                   , ('buyer_message', 'seller_memo', 'sys_memo')
+                   )
+    }),
                  ('收货人及物流信息:', {
                      'classes': ('expand',),
                      'fields': (('receiver_name', 'receiver_state', 'receiver_city', 'receiver_district')
@@ -1047,9 +1047,10 @@ class MergeOrderChangeList(ChangeList):
 
 class MergeOrderAdmin(ApproxAdmin):
     list_display = (
-    'id', 'package_sku_item_link_to', 'merge_trade_link', 'outer_id', 'outer_sku_id', 'sku_properties_name', 'price',
-    'num',
-    'payment', 'gift_type', 'pay_time', 'refund_status', 'trade_status_link', 'sys_status')
+        'id', 'package_sku_item_link_to', 'merge_trade_link', 'outer_id', 'outer_sku_id', 'sku_properties_name',
+        'price',
+        'num',
+        'payment', 'gift_type', 'pay_time', 'refund_status', 'trade_status_link', 'sys_status')
     list_display_links = ('id',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
@@ -1261,8 +1262,9 @@ class WuliuAdmin(admin.ModelAdmin):
 
 admin.site.register(TradeWuliu, WuliuAdmin)
 
+
 class ReturnWuliuAdmin(admin.ModelAdmin):
-    list_display = ('id', 'tid', "rid",'logistics_company', 'out_sid', 'status', 'time', 'content', 'created',)
+    list_display = ('id', 'tid', "rid", 'logistics_company', 'out_sid', 'status', 'time', 'content', 'created',)
     search_fields = ['tid', 'out_sid']
     list_filter = ('status',)
 
@@ -1272,10 +1274,11 @@ admin.site.register(ReturnWuLiu, ReturnWuliuAdmin)
 
 class PackageOrderAdmin(admin.ModelAdmin):
     list_display = (
-    'pid', 'id_link', 'sys_status', 'type', 'out_sid', 'logistics_company_name', 'receiver_name', 'receiver_mobile', 'receiver_address_info',
-    'payment', 'operator', 'is_picking_print', 'is_express_print', 'redo_sign',
-    'is_send_sms', 'has_refund', 'ware_by', 'created', 'send_time', 'weight_time',
-    'consign_time', 'weight', 'merge_trade_id')
+        'pid', 'id_link', 'sys_status', 'type', 'out_sid', 'logistics_company_name', 'receiver_name', 'receiver_mobile',
+        'receiver_address_info',
+        'payment', 'operator', 'is_picking_print', 'is_express_print', 'redo_sign',
+        'is_send_sms', 'has_refund', 'ware_by', 'created', 'send_time', 'weight_time',
+        'consign_time', 'weight', 'merge_trade_id')
 
     search_fields = ['pid', 'id', 'out_sid', 'receiver_name', 'receiver_mobile']
     list_filter = ('sys_status', 'ware_by', 'status', 'redo_sign', 'is_qrcode', ('weight_time', DateFieldListFilter),)
@@ -1285,11 +1288,13 @@ class PackageOrderAdmin(admin.ModelAdmin):
 
     def id_link(self, obj):
         return "<a href='/admin/trades/packageskuitem?package_order_pid=%d'>%s</a>" % (obj.pid, obj.id)
+
     id_link.short_description = u'包裹码'
     id_link.allow_tags = True
 
     def receiver_address_info(self, obj):
         return obj.receiver_address_detail
+
     receiver_address_info.short_description = u'详细地址'
 
     def push_package_to_scan(self, request, queryset):
@@ -1347,7 +1352,8 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
         'id', 'sale_order_link_to', 'oid', 'sale_trade_id_link', 'receiver_mobile', 'out_sid', 'logistics_company_name',
         'package_order_link_to', 'package_sku_item_link_to', 'assign_status', 'sys_status',
         'pay_time', 'assign_time', 'product_title_link_to', 'ware_by', 'sku_id_link_to', 'sku_link_to', 'num', 'price',
-        'total_fee', 'payment', 'discount_fee', 'adjust_fee', 'purchase_order_unikey_link', 'orderlist_status', 'modified', 'created')
+        'total_fee', 'payment', 'discount_fee', 'adjust_fee', 'purchase_order_unikey_link', 'orderlist_status',
+        'modified', 'created')
 
     search_fields = ['id', 'sale_order_id', 'sale_trade_id', 'receiver_mobile', 'out_sid', 'package_order_pid',
                      'package_order_id', 'oid', 'sku_id', 'purchase_order_unikey']
@@ -1363,7 +1369,7 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
     def purchase_order_unikey_link(self, obj):
         if obj.purchase_order_unikey:
             return '<a href="/admin/dinghuo/orderlist/?purchase_order_unikey=%s" target="_blank"> %s </a>' % (
-            obj.purchase_order_unikey, obj.purchase_order_unikey)
+                obj.purchase_order_unikey, obj.purchase_order_unikey)
         return ''
 
     purchase_order_unikey_link.allow_tags = True
@@ -1403,6 +1409,7 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
         elif ol.stage == OrderList.STAGE_CHECKED:
             return u'审核待付款'
         return u'异常'
+
     orderlist_status.short_description = u'订货状态'
 
     def get_actions(self, request):

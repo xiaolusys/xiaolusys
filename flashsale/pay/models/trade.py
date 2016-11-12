@@ -400,6 +400,26 @@ class SaleTrade(BaseModel):
                 logger.error(exc.message, exc_info=True)
         self.confirm_payment()
         self.update_teambuy()
+        # self.set_order_paid()
+
+    def pay_confirm(self):
+        # 暂时用此方法替代charge_confirm进行测试
+        # 测试时忽略了charge
+        self.status = self.WAIT_SELLER_SEND_GOODS
+        self.pay_time = datetime.datetime.now()
+        self.save()
+        create_psi = (self.trade_type != SaleTrade.TEAMBUY_ORDER)
+        for so in self.sale_orders.all():
+            so.status = so.WAIT_SELLER_SEND_GOODS
+            so.pay_time = self.pay_time
+            so.save()
+            if create_psi:
+                so.set_psi_paid()
+
+    def set_order_paid(self):
+        if not self.trade_type == SaleTrade.TEAMBUY_ORDER:
+            for so in self.sale_orders.all():
+                so.set_psi_paid()
 
     def redeliver_sku_item(self, old_sale_order):
         sku = ProductSku.objects.get(id=old_sale_order.sku_id)
@@ -873,11 +893,11 @@ class SaleOrder(PayBaseModel):
     def refundable(self):
         return self.get_refundable()
 
-    def need_send(self):
-        if self.is_teambuy():
-            return self.teambuy_can_send()
-        else:
-            return self.status == SaleOrder.WAIT_SELLER_SEND_GOODS and self.refund_status in [0, 1, 2]
+    def set_psi_paid(self):
+        from shopback.trades.models import PackageSkuItem
+        if self.is_teambuy() and not self.teambuy_can_send():
+            return
+        psi = PackageSkuItem.create(self)
 
     def is_teambuy(self):
         return self.sale_trade.order_type == SaleTrade.TEAMBUY_ORDER
@@ -1001,8 +1021,10 @@ class SaleOrder(PayBaseModel):
         return self.is_seckill()
 
     def is_pending(self):
-        return self.status == SaleOrder.WAIT_SELLER_SEND_GOODS and \
-               self.refund_status <= SaleRefund.REFUND_REFUSE_BUYER
+        if self.is_teambuy():
+            return self.teambuy_can_send()
+        else:
+            return self.status == SaleOrder.WAIT_SELLER_SEND_GOODS and self.refund_status <= SaleRefund.REFUND_REFUSE_BUYER
 
     def is_confirmed(self):
         return self.status >= SaleOrder.WAIT_BUYER_CONFIRM_GOODS and \
@@ -1151,7 +1173,9 @@ def update_package_sku_item(sender, instance, created, **kwargs):
         from flashsale.pay.tasks import task_saleorder_update_package_sku_item
         task_saleorder_update_package_sku_item.delay(instance)
 
-post_save.connect(update_package_sku_item, sender=SaleOrder, dispatch_uid='post_save_update_package_sku_item')
+from shopmanager.celery_settings import CLOSE_CELERY
+if not CLOSE_CELERY:
+    post_save.connect(update_package_sku_item, sender=SaleOrder, dispatch_uid='post_save_update_package_sku_item')
 
 
 def saleorder_update_productskustats_waitingpay_num(sender, instance, *args, **kwargs):
@@ -1159,7 +1183,9 @@ def saleorder_update_productskustats_waitingpay_num(sender, instance, *args, **k
     task_saleorder_update_productskustats_waitingpay_num(instance.sku_id)
 
 
-post_save.connect(saleorder_update_productskustats_waitingpay_num, sender=SaleOrder,
+from shopmanager.celery_settings import CLOSE_CELERY
+if not CLOSE_CELERY:
+    post_save.connect(saleorder_update_productskustats_waitingpay_num, sender=SaleOrder,
                   dispatch_uid='post_save_aleorder_update_productskustats_waitingpay_num')
 
 

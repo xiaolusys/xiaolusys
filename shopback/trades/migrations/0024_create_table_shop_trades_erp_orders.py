@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('trades', '0021_add_field_reason'),
+        ('trades', '0023_skustock_delete_repair'),
     ]
 
     operations = [

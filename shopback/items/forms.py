@@ -37,7 +37,7 @@ class ProductSkuFormset(forms.models.BaseInlineFormSet):
         # BaseInlineFormSet, self).__init__(data, files, prefix=prefix,
         #                                         queryset=qs, **kwargs)
         forms.BaseModelFormSet.__init__(self, data, files, prefix=prefix,
-                                                queryset=qs, **kwargs)
+                                        queryset=qs, **kwargs)
 
 
 class ProductModelForm(forms.ModelForm):
@@ -54,7 +54,7 @@ class ProductModelForm(forms.ModelForm):
         super(ProductModelForm, self).__init__(*args, **kwargs)
         api_product = ProductCtl.retrieve(self.instance.id)
         self.initial['collect_num'] = api_product.get_realtime_quantity()
-        self.initial['wait_post_num'] =  api_product.get_wait_post_num()
+        self.initial['wait_post_num'] = api_product.get_wait_post_num()
         self.initial['lock_num'] = api_product.get_lock_num()
 
 

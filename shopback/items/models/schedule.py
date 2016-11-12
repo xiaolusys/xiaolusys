@@ -4,6 +4,7 @@ from django.db import models
 from core.models import AdminModel
 from .. import constants
 
+
 class ProductSchedule(AdminModel):
     r"""
     商品排期

@@ -142,6 +142,10 @@ class SaleSupplier(models.Model):
             ("sale_supplier_mgr", u"特卖供应商管理"),
         ]
 
+    @staticmethod
+    def get_by_id(supplier_id):
+        return SaleSupplier.objects.get(id=supplier_id)
+
     def __unicode__(self):
         return u'<%s,%s>' % (self.id, self.supplier_name)
 

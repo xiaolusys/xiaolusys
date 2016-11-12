@@ -28,7 +28,7 @@ from flashsale.pay.models import (
     UserAddress,
     gen_uuid_trade_tid,
 )
-from flashsale.pay.saledao import get_user_skunum_by_last24hours
+from flashsale.pay.apis.v1.order import get_user_skunum_by_last24hours
 from flashsale.coupon.models import UserCoupon
 from flashsale.restpro import permissions as perms
 from .. import serializers

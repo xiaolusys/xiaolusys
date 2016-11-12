@@ -10,7 +10,9 @@ from shopback.users.models import User
 from shopback import paramconfig as pcfg
 
 import logging
+
 logger = logging.getLogger(__name__)
+
 
 class Item(models.Model):
     """ 淘宝线上商品 """
