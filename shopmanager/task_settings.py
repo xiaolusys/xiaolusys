@@ -31,7 +31,6 @@ CELERY_IMPORTS = (
     'flashsale.xiaolumm.tasks_mama_push',
     'flashsale.xiaolumm.tasks_lesson',
     'flashsale.promotion.tasks_activity',
-    'flashsale.pay.tasks_stats',
     'flashsale.pay.tasks',
     'shopback.items.tasks_stats',
     'shopback.items.tasks',
