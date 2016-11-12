@@ -185,11 +185,11 @@ def task_orderdetail_update_productskustats_inbound_quantity(instance):
     if stat.inbound_quantity < total:
         stat.inbound_quantity = total
         stat.save(update_fields=['inbound_quantity', 'modified'])
-        stat.assign(instance.orderlist)
+        stat.assign(orderlist=instance.orderlist)
     elif stat.inbound_quantity > total:
         stat.inbound_quantity = total
         stat.save(update_fields=['inbound_quantity', 'modified'])
-        stat.relase_assign(instance.orderlist)
+        stat.relase_assign(orderlist=instance.orderlist)
 
 
 @task()

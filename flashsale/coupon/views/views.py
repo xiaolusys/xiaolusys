@@ -129,14 +129,16 @@ class ReleaseOmissive(APIView):
         except:
             return Response({'code': 2, "message": '客户不存在或重复'})
         from ..apis.v1.transfer import create_present_coupon_transfer_record
+
         message = u'发送成功'
         try:
             from ..models.transfer_coupon import CouponTransferRecord
+
             to_mama = cus.get_charged_mama()
             if CouponTransferRecord.objects.filter(uni_key__contains='gift', coupon_to_mama_id=to_mama.id).exists():
                 return Response({'code': 0, "message": u'已经发送'})
             template = CouponTemplate.objects.get(id=template_id)
-            uni_key = template.gen_usercoupon_unikey('gift_transfer', 1)
+            uni_key = template.gen_usercoupon_unikey('gift_transfer_%s' % cus.id, 1)
             cou = UserCoupon.send_coupon(cus, template, uniq_id=uni_key)
             create_present_coupon_transfer_record(cus, template, cou.id)
         except Exception as e:
@@ -151,7 +153,7 @@ class ReleaseOmissive(APIView):
         # # 交易成功订单
         # sale_orders = SaleOrder.objects.filter(item_id__in=item_ids, buyer_id=cus.id, status=SaleOrder.TRADE_FINISHED)
         # if time_from:
-        #     sale_orders = sale_orders.filter(pay_time__gte=time_from)
+        # sale_orders = sale_orders.filter(pay_time__gte=time_from)
         # if time_to:
         #     sale_orders = sale_orders.filter(pay_time__lte=time_to)
         # order_ids = []  # 用户的订单(一个数量为一个id)
