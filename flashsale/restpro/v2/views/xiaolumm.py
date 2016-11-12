@@ -507,7 +507,15 @@ class ReferalRelationshipViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
 
+    @list_route(methods=['GET'])
+    def elite_mama(self, request):
+        mama_id = get_mama_id(request.user)
+        queryset = self.queryset.filter(referal_from_mama_id=mama_id, referal_type__gte=XiaoluMama.ELITE).order_by('-created')
+        datalist = self.paginate_queryset(queryset)
+        serializer = serializers.ReferalRelationshipSerializer(datalist, many=True)
+        return self.get_paginated_response(serializer.data)
 
+    
 class GroupRelationshipViewSet(viewsets.ModelViewSet):
     """
     """
@@ -1032,40 +1040,59 @@ class CashOutPolicyView(APIView):
         return Response(data)
 
 
-class EnableEliteMamaView(APIView):
+class RecruitEliteMamaView(APIView):
     """
-    POST /rest/v2/mama/init_elite_mama
+    POST /rest/v2/mama/recruit_elite_mama
     """
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
 
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
+        referal_from_mama_id = get_mama_id(request.user)
+        
         content = request.GET
         mama_id = content.get("mama_id")
-        action = content.get("action")
         
         if not mama_id:
             res = {"code": 1, "info": u"必须提供mama_id！"}
             return Response(res)
 
         mama = XiaoluMama.objects.filter(id=mama_id).first()
-        mama.referal_from = 'INDIRECT'
+        if not mama:
+            info = u"妈妈ID %d不存在!" % mama_id
+            res = {"code": 2, "info": info}
+            return Response(res)
+            
+        rr = ReferalRelationship.objects.filter(referal_to_mama_id=mama_id).first()
+        if rr and rr.referal_from_mama_id != referal_from_mama_id:
+            res = {"code": 2, "info": u"该用户似乎已被其他妈妈推荐，请联系管理员处理！"}
+            return Response(res)
+
+        if rr and rr.referal_type >= XiaoluMama.ELITE:
+            res = {"code": 3, "info": u"该用户似乎已加入精英妈妈，请联系管理员处理！"}
+            return Response(res)
+        
+        if not rr:
+            customer = Customer.objects.filter(unionid=mama.unionid).first()
+            rr = ReferalRelationship(referal_from_mama_id=referal_from_mama_id,referal_to_mama_id=mama_id,
+                                     referal_to_mama_nick=customer.nick, referal_to_mama_img=customer.thumbnail,
+                                     referal_type=XiaoluMama.ELITE)
+            rr.save()
+        else:
+            rr.referal_type = ELITE
+            rr.save()
+        
         charge_time = datetime.datetime.now()
         renew_time = charge_time + datetime.timedelta(days=3)
-        info = u"精英妈妈帐户开启成功，请立即转入5张精品券！"
-        
-        if action == 'enable':
-            renew_time = charge_time + datetime.timedelta(days=365)
-            renew_tiem = datetime.datetime(renew_time.year, renew_time.month, renew_time.day)
-            
-            mama.charge_status = XiaoluMama.CHARGED
-            mama.last_renew_type = XiaoluMama.FULL
-            mama.charge_time = charge_time
-            mama.renew_time = renew_time
-            mama.agencylevel = XiaoluMama.A_LEVEL
-            info = u"精英妈妈帐户已正式开通！"
-            
+
+        mama.referal_from = 'INDIRECT'
+        mama.charge_status = XiaoluMama.CHARGED
+        mama.last_renew_type = XiaoluMama.ELITE
+        mama.charge_time = charge_time
+        mama.renew_time = renew_time
+        mama.agencylevel = XiaoluMama.A_LEVEL
         mama.save()
+        
+        info = u"精英妈妈帐户开启成功，请立即转入5张精品券！"
         res = {"code": 0, "info":info}
         return Response(res)
-        
