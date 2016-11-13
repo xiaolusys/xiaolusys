@@ -754,7 +754,6 @@ class MergeTradeAdmin(ApproxAdmin):
             return HttpResponse('<body style="text-align:center;"><h1>发货请求执行出错:（%s）</h1></body>' % exc.message)
 
         response_dict = {'task_id': send_tasks.task_id, 'replay_id': replay_trade.id}
-
         return render(
             request,
             'trades/send_trade_reponse.html',

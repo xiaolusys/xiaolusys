@@ -3,9 +3,6 @@ import os
 from kombu import Exchange, Queue
 from celery.schedules import crontab
 
-REDIS_HOST = '55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379'
-REDIS_AUTH = os.environ.get('REDIS_AUTH')
-
 ########################################################################################################################
 #说明:新增queue或定时任务需要注意的地方
 #新增queue, 并将queue配置到.drone.yml　启动参数里
@@ -20,9 +17,6 @@ REDIS_AUTH = os.environ.get('REDIS_AUTH')
 ########################################################################################################################
 
 ############################# BASE SETUP ################################
-
-CELERY_BROKER_URL = 'redis://:{0}@{1}:6379/29'.format(REDIS_AUTH, REDIS_HOST)
-CELERY_RESULT_BACKEND = 'django-cache'  # "amqp"
 
 BROKER_POOL_LIMIT = 0
 BROKER_CONNECTION_TIMEOUT = 10

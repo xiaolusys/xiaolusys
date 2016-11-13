@@ -54,7 +54,7 @@ DATABASES = {
         'PORT': '3306',  # Set to empty string for default. Not used with sqlite3.
         # 'CONN_MAX_AGE': 60, not work well with gevent greenlet
         'OPTIONS': {
-            'init_command': 'SET storage_engine=Innodb;',
+            # 'init_command': 'SET storage_engine=Innodb;',
             'charset': 'utf8',
             # 'sql_mode': 'STRICT_TRANS_TABLES',
         },  # storage_engine need mysql>5.4,and table_type need mysql<5.4

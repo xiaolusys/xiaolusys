@@ -15,7 +15,6 @@ django-celery-results==1.0.1
 django-filter==0.15.3
 django-http-proxy==0.4.3
 django-jsonfield==1.0.1
-django-kombu==0.9.4
 django-mathfilters==0.3.0
 django-oauth-toolkit==0.10.0
 django-prometheus==1.0.8
