@@ -1124,6 +1124,7 @@ class MamaVebViewConfSerialize(serializers.ModelSerializer):
 class CustomerShopsSerialize(serializers.ModelSerializer):
     class Meta:
         model = CustomerShops
+        exclude = ()
 
 
 class CuShopProsSerialize(serializers.ModelSerializer):
@@ -1138,16 +1139,19 @@ class CuShopProsSerialize(serializers.ModelSerializer):
 class XLSampleOrderSerialize(serializers.ModelSerializer):
     class Meta:
         model = XLSampleOrder
+        exclude = ()
 
 
 class XLFreeSampleSerialize(serializers.ModelSerializer):
     class Meta:
         model = XLFreeSample
+        exclude = ()
 
 
 class XLSampleSkuSerialize(serializers.ModelSerializer):
     class Meta:
         model = XLSampleSku
+        exclude = ()
 
 
 class BudgetLogSerialize(serializers.ModelSerializer):

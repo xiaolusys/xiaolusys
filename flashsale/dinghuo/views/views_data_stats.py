@@ -1,7 +1,7 @@
 # coding:utf-8
 __author__ = 'yann'
 from django.views.generic import View
-from django.shortcuts import HttpResponse, render_to_response
+from django.shortcuts import HttpResponse, render
 from flashsale.dinghuo.tasks import task_stats_product, task_stats_daily_product, task_stats_daily_order_by_group, \
     task_send_daily_message, task_write_supply_name, task_supplier_stat
 from django.template import RequestContext
@@ -101,8 +101,11 @@ class StatsProductView(View):
         cursor.execute(sql)
         raw = cursor.fetchall()
         all_data_list = format_time_from_tuple(raw)
-        return render_to_response("dinghuo/data_of_product.html", {"all_data": all_data_list},
-                                  context_instance=RequestContext(request))
+        return render(
+            request,
+            "dinghuo/data_of_product.html",
+            {"all_data": all_data_list},
+        )
 
 
 class StatsSupplierView(View):
@@ -129,9 +132,12 @@ class StatsSupplierView(View):
         else:
             end_date = today
         work_task = task_supplier_stat.delay(start_date, end_date, group_name)
-        return render_to_response("dinghuo/data_of_supplier.html", {"task_id": work_task, "start_date": start_date,
-                                                                    "end_date": end_date, "group_name": group_name},
-                                  context_instance=RequestContext(request))
+        return render(
+            request,
+            "dinghuo/data_of_supplier.html",
+            {"task_id": work_task, "start_date": start_date,
+             "end_date": end_date, "group_name": group_name},
+        )
 
 
 from rest_framework.views import APIView

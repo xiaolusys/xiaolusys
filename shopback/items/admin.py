@@ -9,7 +9,7 @@ from django.db import models
 from django.conf import settings
 from django.contrib import messages
 from django.core.urlresolvers import reverse
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.template import RequestContext
 from django.forms import TextInput, Textarea
 from django.db.models.signals import post_save
@@ -507,11 +507,13 @@ class ProductAdmin(ApproxAdmin):
                 pull_dict['success'] = True
             sync_items.append(pull_dict)
 
-        return render_to_response('items/product_action.html',
-                                  {'prods': sync_items,
-                                   'action_name': u'更新线上库存'},
-                                  context_instance=RequestContext(request),
-                                  content_type="text/html")
+        return render(
+            request,
+            'items/product_action.html',
+              {'prods': sync_items,
+               'action_name': u'更新线上库存'},
+              content_type="text/html"
+        )
 
     sync_items_stock.short_description = u"同步淘宝线上库存"
 
@@ -540,12 +542,13 @@ class ProductAdmin(ApproxAdmin):
         product_ids = ','.join([p.outer_id for p in queryset])
         origin_url = request.get_full_path()
 
-        return render_to_response('items/product_delete.html',
-                                  {'product_ids': product_ids,
-                                   'products': queryset,
-                                   'origin_url': origin_url},
-                                  context_instance=RequestContext(request),
-                                  content_type="text/html")
+        return render(
+            request,
+            'items/product_delete.html',
+              {'product_ids': product_ids,
+               'products': queryset,
+               'origin_url': origin_url},
+              content_type="text/html")
 
     invalid_product_action.short_description = u"作废库存商品（批量）"
 
@@ -580,11 +583,13 @@ class ProductAdmin(ApproxAdmin):
                 pull_dict['success'] = True
             sync_items.append(pull_dict)
 
-        return render_to_response('items/product_action.html',
-                                  {'prods': sync_items,
-                                   'action_name': u'更新分销线上库存'},
-                                  context_instance=RequestContext(request),
-                                  content_type="text/html")
+        return render(
+            request,
+            'items/product_action.html',
+              {'prods': sync_items,
+               'action_name': u'更新分销线上库存'},
+              content_type="text/html"
+        )
 
     sync_purchase_items_stock.short_description = u"同步分销商品库存"
 
@@ -636,11 +641,13 @@ class ProductAdmin(ApproxAdmin):
                 pull_dict['success'] = True
             sync_items.append(pull_dict)
 
-        return render_to_response('items/product_action.html',
-                                  {'prods': sync_items,
-                                   'action_name': u'取消商品对应订单缺货状态'},
-                                  context_instance=RequestContext(request),
-                                  content_type="text/html")
+        return render(
+            request,
+            'items/product_action.html',
+              {'prods': sync_items,
+               'action_name': u'取消商品对应订单缺货状态'},
+              content_type="text/html"
+        )
 
     cancle_orders_out_stock.short_description = u"取消订单商品缺货"
 
@@ -663,10 +670,12 @@ class ProductAdmin(ApproxAdmin):
                     p, guige)
                 product_dict['prod_skus'].append(sku_dict)
             productres.append(product_dict)
-        return render_to_response("dinghuo/addpurchasedetail.html",
-                                  {"productRestult": productres,
-                                   "drafts": orderDrAll},
-                                  context_instance=RequestContext(request))
+        return render(
+            request,
+            "dinghuo/addpurchasedetail.html",
+              {"productRestult": productres,
+               "drafts": orderDrAll},
+        )
 
     create_saleproduct_order.short_description = u"创建特卖商品订货单"
 
@@ -974,11 +983,13 @@ class ProductSkuAdmin(admin.ModelAdmin):
                 pull_dict['success'] = True
             sync_items.append(pull_dict)
 
-        return render_to_response('items/product_action.html',
-                                  {'prods': sync_items,
-                                   'action_name': u'取消规格对应订单缺货状态'},
-                                  context_instance=RequestContext(request),
-                                  content_type="text/html")
+        return render(
+            request,
+            'items/product_action.html',
+              {'prods': sync_items,
+               'action_name': u'取消规格对应订单缺货状态'},
+              content_type="text/html"
+        )
 
     cancle_items_out_stock.short_description = u"取消规格订单缺货"
 

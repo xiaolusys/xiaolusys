@@ -10,7 +10,7 @@ from collections import OrderedDict
 from django.core.urlresolvers import reverse
 from django.db.models import Q, Sum
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
-from django.shortcuts import render_to_response, render
+from django.shortcuts import render
 from django.template import RequestContext
 
 from shopapp.taobao import apis
@@ -1566,10 +1566,12 @@ def replay_trade_send_result(request, id):
         reponse_result['post_no'] = reponse_result.get('post_no',
                                                        None) or replay_trade.id
 
-        return render_to_response('trades/trade_post_success.html',
-                                  reponse_result,
-                                  context_instance=RequestContext(request),
-                                  content_type="text/html")
+        return render(
+            request,
+            'trades/trade_post_success.html',
+              reponse_result,
+              content_type="text/html"
+        )
 
 
 def replay_package_send_result(request, id):
@@ -1589,10 +1591,12 @@ def replay_package_send_result(request, id):
         reponse_result['post_no'] = reponse_result.get('post_no',
                                                        None) or replay_trade.id
 
-        return render_to_response('trades/trade_post_success.html',
-                                  reponse_result,
-                                  context_instance=RequestContext(request),
-                                  content_type="text/html")
+        return render(
+            request,
+            'trades/trade_post_success.html',
+              reponse_result,
+              content_type="text/html"
+        )
 
 
 class TradeSearchView(APIView):
@@ -2029,11 +2033,13 @@ def countFenxiaoAcount(request):
     fenxiaoDict = calFenxiaoInterval(fromDate, toDate)
     print 'fromDateShow', fromDateShow
 
-    return render_to_response('trades/trade_fenxiao_count.html',
-                              {'data': fenxiaoDict,
-                               'fromDateShow': fromDateShow,
-                               'toDateShow': toDateShow,},
-                              context_instance=RequestContext(request))
+    return render(
+        request,
+        'trades/trade_fenxiao_count.html',
+          {'data': fenxiaoDict,
+           'fromDateShow': fromDateShow,
+           'toDateShow': toDateShow,},
+    )
 
 
 def showFenxiaoDateilFilter(fenxiao, fdt, tdt):
@@ -2101,10 +2107,12 @@ def showFenxiaoDetail(request):
                                         i], receiver_district[i], receiver_address[i], payment[i], iid[
                                         i]))
 
-    return render_to_response('trades/trade_fenxiao_detail.html',
-                              {'FenxiaoDateil': FenxiaoDateil,
-                               'fenxiao_render_data': fenxiao_render_data,},
-                              context_instance=RequestContext(request))
+    return render(
+        request,
+        'trades/trade_fenxiao_detail.html',
+          {'FenxiaoDateil': FenxiaoDateil,
+           'fenxiao_render_data': fenxiao_render_data,},
+    )
 
 
 ########################## 提升订单优先级 ###########################

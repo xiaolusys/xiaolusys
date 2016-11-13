@@ -14,8 +14,10 @@ class QuestionSerialize(serializers.ModelSerializer):
 
     class Meta:
         model = Question
+        exclude = ()
 
 
 class ExamResultDetailSerialize(serializers.ModelSerializer):
     class Meta:
         model = ExamResultDetail
+        exclude = ()

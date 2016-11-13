@@ -3,7 +3,7 @@ __author__ = 'yann'
 import datetime
 from django.views.generic import View
 from django.contrib.auth.models import User
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.template import RequestContext
 from flashsale.xiaolumm.models import XiaoluMama
 from .models import StatisticsShopping, StatisticsShoppingByDay
@@ -44,11 +44,10 @@ class StatisticTongJi(View):
         countdata = StatisticsShoppingByDay.objects.filter(linkid=pk, tongjidate=target_date)
         if countdata:
             countdata = countdata[0]
-        return render_to_response("shopstats.html",
-                                  {'pk': int(pk), "data": data, "xiaolumamas": XLmamas, "countdata": countdata,
-                                   "prev_day": prev_day,
-                                   "target_date": target_date, "next_day": next_day},
-                                  context_instance=RequestContext(request))
+        return render(request,"shopstats.html",
+                      {'pk': int(pk), "data": data, "xiaolumamas": XLmamas, "countdata": countdata,
+                       "prev_day": prev_day,
+                       "target_date": target_date, "next_day": next_day})
 
 
 from flashsale.clickrebeta import tasks

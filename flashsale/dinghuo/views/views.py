@@ -10,8 +10,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import F, Q, Sum, Count
 from django.forms.models import model_to_dict
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import get_object_or_404
-from django.shortcuts import render_to_response
+from django.shortcuts import get_object_or_404, render
 from django.template import RequestContext
 from django.utils.safestring import mark_safe
 from django.views.decorators.csrf import csrf_exempt
@@ -232,12 +231,14 @@ def new_order(request):
                 sale_supplier = sale_suppliers[0]
                 supplier_name = sale_supplier.supplier_name
 
-    return render_to_response('dinghuo/shengchengorder.html',
-                              {"OrderDraft": all_drafts,
-                               "express": express,
-                               'buyer_name': buyer_name,
-                               'supplier_name': supplier_name},
-                              context_instance=RequestContext(request))
+    return render(
+        request,
+        'dinghuo/shengchengorder.html',
+          {"OrderDraft": all_drafts,
+           "express": express,
+           'buyer_name': buyer_name,
+           'supplier_name': supplier_name}
+    )
 
 
 def del_draft(request):
@@ -265,10 +266,11 @@ def add_purchase(request, outer_id):
                 p, guige)
             product_dict['prod_skus'].append(sku_dict)
         product_res.append(product_dict)
-    return render_to_response("dinghuo/addpurchasedetail.html",
-                              {"productRestult": product_res,
-                               "drafts": order_dr_all},
-                              context_instance=RequestContext(request))
+    return render(
+        request,
+        "dinghuo/addpurchasedetail.html",
+          {"productRestult": product_res,
+           "drafts": order_dr_all},)
 
 
 @csrf_exempt
@@ -301,13 +303,15 @@ def data_chart(req):
         group=u'采购C',
         stats_time__range=(start_date, end_date)).order_by('stats_time')
 
-    return render_to_response("dinghuo/data_grape.html",
-                              {"a_data": a_data,
-                               "b_data": b_data,
-                               "c_data": c_data,
-                               "start_date": start_date,
-                               "end_date": end_date},
-                              context_instance=RequestContext(req))
+    return render(
+        request,
+        "dinghuo/data_grape.html",
+          {"a_data": a_data,
+           "b_data": b_data,
+           "c_data": c_data,
+           "start_date": start_date,
+           "end_date": end_date},
+    )
 
 
 @csrf_exempt
@@ -410,21 +414,25 @@ def viewdetail(req, orderdetail_id):
     orderlist = OrderList.objects.get(id=orderdetail_id)
     orderdetail = OrderDetail.objects.filter(orderlist_id=orderdetail_id)
     express = OrderList.EXPRESS_CONPANYS
-    return render_to_response("dinghuo/orderdetail.html",
-                              {"orderlist": orderlist,
-                               "orderdetails": orderdetail,
-                               "express": express},
-                              context_instance=RequestContext(req))
+    return render(
+        req,
+        "dinghuo/orderdetail.html",
+          {"orderlist": orderlist,
+           "orderdetails": orderdetail,
+           "express": express}
+    )
 
 
 @csrf_exempt
 def detaillayer(req, orderdetail_id):
     orderlist = OrderList.objects.get(id=orderdetail_id)
     orderdetail = OrderDetail.objects.filter(orderlist_id=orderdetail_id)
-    return render_to_response("dinghuo/layerdetail.html",
-                              {"orderlist": orderlist,
-                               "orderdetails": orderdetail},
-                              context_instance=RequestContext(req))
+    return render(
+        req,
+        "dinghuo/layerdetail.html",
+      {"orderlist": orderlist,
+       "orderdetails": orderdetail},
+    )
 
 
 @csrf_exempt
@@ -665,12 +673,14 @@ class DailyDingHuoStatsView(View):
             else:
                 orderlist_dict['statusflag'] = False
             orderlists_list.append(orderlist_dict)
-        return render_to_response("dinghuo/dailystats.html",
-                                  {"orderlists_lists": orderlists_list,
-                                   "prev_day": prev_day,
-                                   "target_date": target_date,
-                                   "next_day": next_day},
-                                  context_instance=RequestContext(request))
+        return render(
+            request,
+            "dinghuo/dailystats.html",
+              {"orderlists_lists": orderlists_list,
+               "prev_day": prev_day,
+               "target_date": target_date,
+               "next_day": next_day},
+        )
 
 
 import flashsale.dinghuo.utils as tools
@@ -698,11 +708,13 @@ class StatsByProductIdView(View):
                 orderlist__status=u'作废').filter(product_id=product_id).filter(
                 orderlist__created__gte=dinghuo_begin)
 
-        return render_to_response("dinghuo/productstats.html",
-                                  {"orderdetails": order_details,
-                                   "dinghuo_begin": dinghuo_begin,
-                                   "product_id": product_id},
-                                  context_instance=RequestContext(request))
+        return render(
+            request,
+            "dinghuo/productstats.html",
+              {"orderdetails": order_details,
+               "dinghuo_begin": dinghuo_begin,
+               "product_id": product_id},
+        )
 
 
 from flashsale.dinghuo.models_user import MyUser
@@ -797,14 +809,16 @@ class DailyWorkView(View):
         trade_dict = sorted(trade_dict.items(),
                             key=lambda d: d[1]['sale_num'],
                             reverse=True)
-        return render_to_response("dinghuo/dailywork.html",
-                                  {"target_product": trade_dict,
-                                   "shelve_from": target_date,
-                                   "time_to": time_to,
-                                   "searchDinghuo": query_time,
-                                   'groupname': groupname,
-                                   "search_text": search_text},
-                                  context_instance=RequestContext(request))
+        return render(
+            request,
+            "dinghuo/dailywork.html",
+              {"target_product": trade_dict,
+               "shelve_from": target_date,
+               "time_to": time_to,
+               "searchDinghuo": query_time,
+               'groupname': groupname,
+               "search_text": search_text},
+        )
 
 
 def get_category(category):

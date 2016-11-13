@@ -5,3 +5,4 @@ from ..models.stocksale import StockSale
 class StockSaleSerializers(serializers.ModelSerializer):
     class Meta:
         model = StockSale
+        exclude = ()

@@ -683,6 +683,7 @@ from supplychain.supplier.models import SaleProduct
 class SaleProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = SaleProduct
+        exclude = ()
 
 
 from supplychain.supplier.models import HotProduct
@@ -691,6 +692,7 @@ from supplychain.supplier.models import HotProduct
 class HotProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = HotProduct
+        exclude = ()
 
 
 from shopback.refunds.models_refund_rate import ProRefunRcord
@@ -807,6 +809,7 @@ class ClickCountSerialize(serializers.ModelSerializer):
 class ClickSerialize(serializers.ModelSerializer):
     class Meta:
         model = Clicks
+        exclude = ()
 
 
 class StatisticsShoppingSerialize(serializers.ModelSerializer):
@@ -937,7 +940,7 @@ from flashsale.pay.models import CustomerShops, CuShopPros
 class CustomerShopsSerialize(serializers.ModelSerializer):
     class Meta:
         model = CustomerShops
-
+        exclude = ()
 
 class CuShopProsSerialize(serializers.ModelSerializer):
     sale_num = serializers.IntegerField(source='sale_num_salt', read_only=True)
@@ -954,16 +957,19 @@ from flashsale.promotion.models import XLSampleSku, XLFreeSample, XLSampleOrder
 class XLSampleOrderSerialize(serializers.ModelSerializer):
     class Meta:
         model = XLSampleOrder
+        exclude = ()
 
 
 class XLFreeSampleSerialize(serializers.ModelSerializer):
     class Meta:
         model = XLFreeSample
+        exclude = ()
 
 
 class XLSampleSkuSerialize(serializers.ModelSerializer):
     class Meta:
         model = XLSampleSku
+        exclude = ()
 
 
 from flashsale.pay.models import BudgetLog
@@ -992,6 +998,7 @@ from flashsale.apprelease.models import AppRelease
 class AppReleaseSerialize(serializers.ModelSerializer):
     class Meta:
         model = AppRelease
+        exclude = ()
 
 
 from flashsale.pay.models import FaqMainCategory, FaqsDetailCategory, SaleFaq
@@ -1048,6 +1055,7 @@ class LessonTopicSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LessonTopic
+        exclude = ()
 
 
 class LessonSerializer(serializers.ModelSerializer):
@@ -1071,6 +1079,7 @@ class InstructorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Instructor
+        exclude = ()
 
 
 class LessonAttendRecordSerializer(serializers.ModelSerializer):
@@ -1080,3 +1089,4 @@ class LessonAttendRecordSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LessonAttendRecord
+        exclude = ()
