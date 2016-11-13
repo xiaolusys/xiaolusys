@@ -3,10 +3,7 @@ import time
 import datetime
 import calendar
 from celery.task import task
-from celery.task.sets import subtask
 from django.conf import settings
-from django.db.models import Max, Sum
-from django.db import IntegrityError
 from common.utils import format_time, format_datetime
 from shopback.refunds.models import Refund
 from shopback.users.models import User

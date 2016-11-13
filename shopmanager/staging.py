@@ -28,7 +28,7 @@ SITE_URL = 'http://staging.xiaolumm.com/'
 #######################  WAP AND WEIXIN CONFIG ########################
 M_SITE_URL = 'http://staging.xiaolumm.com'
 
-CELERY_ALWAYS_EAGER = True
+CELERY_TASK_ALWAYS_EAGER = True
 CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 
 MYSQL_HOST = 'rm-bp17ea269uu21f9i1.mysql.rds.aliyuncs.com'
@@ -80,7 +80,7 @@ CACHES = {
     }
 }
 DJANGO_REDIS_IGNORE_EXCEPTIONS = True
-BROKER_URL = 'redis://%s%s/13'%(REDIS_AUTH and ':%s@'%REDIS_AUTH, REDIS_HOST)
+CELERY_BROKER_URL = 'redis://%s%s/13'%(REDIS_AUTH and ':%s@'%REDIS_AUTH, REDIS_HOST)
 
 import raven
 RAVEN_CONFIG = {

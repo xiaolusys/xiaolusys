@@ -3,6 +3,8 @@ import datetime
 from django.db import models, transaction
 from django.db.models import Q, Sum, F
 from django.db.models.signals import post_save
+from django.conf import settings
+
 from shopback.users.models import User
 from shopback.items.models import Item, Product, ProductSku
 from flashsale.pay.models import SaleOrder, SaleTrade
@@ -1002,8 +1004,8 @@ def update_productskustats(sender, instance, created, **kwargs):
     task_packageskuitem_update_productskustats(instance.sku_id)
     # task_packageskuitem_update_productskustats.delay(instance.sku_id)
 
-from shopmanager.celery_settings import CLOSE_CELERY
-if not CLOSE_CELERY:
+
+if not settings.CELERY_TASK_ALWAYS_EAGER:
     post_save.connect(update_productskustats, sender=PackageSkuItem, dispatch_uid='post_save_update_productskustats')
 
 
@@ -1030,8 +1032,8 @@ def update_purchase_arrangement(sender, instance, created, **kwargs):
     from flashsale.dinghuo.tasks import task_packageskuitem_update_purchase_arrangement
     task_packageskuitem_update_purchase_arrangement.delay(instance)
 
-from shopmanager.celery_settings import CLOSE_CELERY
-if not CLOSE_CELERY:
+
+if not settings.CELERY_TASK_ALWAYS_EAGER:
     post_save.connect(update_purchase_arrangement, sender=PackageSkuItem,
                   dispatch_uid='post_save_update_purchase_record')
 

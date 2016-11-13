@@ -3,6 +3,8 @@ import datetime
 from django.db import models, transaction
 from django.db.models import Sum
 from django.db.models.signals import post_save
+from django.conf import settings
+
 from core.models import BaseModel
 from flashsale.dinghuo import utils
 import logging
@@ -245,14 +247,14 @@ def update_purchase_order(sender, instance, created, **kwargs):
     from flashsale.dinghuo.tasks import task_purchase_detail_update_purchase_order
     task_purchase_detail_update_purchase_order.delay(instance)
 
-from shopmanager.celery_settings import CLOSE_CELERY
+
 
 def update_orderdetail(sender, instance, created, **kwargs):
     from flashsale.dinghuo.tasks import task_purchasedetail_update_orderdetail
     task_purchasedetail_update_orderdetail.delay(instance)
 
 
-if not CLOSE_CELERY:
+if not settings.CELERY_TASK_ALWAYS_EAGER:
     post_save.connect(update_purchase_order, sender=PurchaseDetail, dispatch_uid='post_save_update_purchase_order')
     post_save.connect(update_orderdetail, sender=PurchaseDetail, dispatch_uid='post_save_update_orderdetail')
 
@@ -371,6 +373,5 @@ def update_purchase_detail(sender, instance, created, **kwargs):
     task_purchasearrangement_update_purchasedetail.apply_async(args=[instance.id], countdown=3)
 
 
-from shopmanager.celery_settings import CLOSE_CELERY
-if not CLOSE_CELERY:
+if not settings.CELERY_TASK_ALWAYS_EAGER:
     post_save.connect(update_purchase_detail, sender=PurchaseArrangement, dispatch_uid='post_save_update_purchase_detail')

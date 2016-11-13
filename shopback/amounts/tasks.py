@@ -2,8 +2,6 @@ import os
 import time
 import datetime
 from celery.task import task
-from celery.task.sets import subtask
-from django.conf import settings
 from shopback.orders.models import Order, Trade
 from shopback.monitor.models import TradeExtraInfo
 from shopback.fenxiao.models import PurchaseOrder
@@ -52,7 +50,7 @@ def updateAllUserOrdersAmountTask(days=0, dt_f=None, dt_t=None):
         if hander_update:
             updateOrdersAmountTask(user.visitor_id, update_from=dt_f, update_to=dt_t)
         else:
-            subtask(updateOrdersAmountTask).delay(user.visitor_id, update_from=dt_f, update_to=dt_t)
+           updateOrdersAmountTask.delay(user.visitor_id, update_from=dt_f, update_to=dt_t)
 
 
 @task()
@@ -94,4 +92,4 @@ def updateAllUserPurchaseOrdersAmountTask(days=0, dt_f=None, dt_t=None):
         if hander_update:
             updatePurchaseOrdersAmountTask(user.visitor_id, update_from=dt_f, update_to=dt_t)
         else:
-            subtask(updatePurchaseOrdersAmountTask).delay(user.visitor_id, update_from=dt_f, update_to=dt_t)
+            updatePurchaseOrdersAmountTask.delay(user.visitor_id, update_from=dt_f, update_to=dt_t)

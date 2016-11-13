@@ -1,11 +1,8 @@
 # -*- coding:utf8 -*-
 import time
 import datetime
-import calendar
 import json
-from celery.exceptions import RetryTaskError
 from celery.task import task
-from celery.task.sets import subtask
 from django.conf import settings
 from django.db.models import Q, F
 from shopback import paramconfig as pcfg

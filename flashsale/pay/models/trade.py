@@ -1173,8 +1173,8 @@ def update_package_sku_item(sender, instance, created, **kwargs):
         from flashsale.pay.tasks import task_saleorder_update_package_sku_item
         task_saleorder_update_package_sku_item.delay(instance)
 
-from shopmanager.celery_settings import CLOSE_CELERY
-if not CLOSE_CELERY:
+
+if not settings.CELERY_TASK_ALWAYS_EAGER:
     post_save.connect(update_package_sku_item, sender=SaleOrder, dispatch_uid='post_save_update_package_sku_item')
 
 
@@ -1183,8 +1183,7 @@ def saleorder_update_productskustats_waitingpay_num(sender, instance, *args, **k
     task_saleorder_update_productskustats_waitingpay_num(instance.sku_id)
 
 
-from shopmanager.celery_settings import CLOSE_CELERY
-if not CLOSE_CELERY:
+if not settings.CELERY_TASK_ALWAYS_EAGER:
     post_save.connect(saleorder_update_productskustats_waitingpay_num, sender=SaleOrder,
                   dispatch_uid='post_save_aleorder_update_productskustats_waitingpay_num')
 

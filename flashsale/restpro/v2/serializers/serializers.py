@@ -329,6 +329,9 @@ class DailyStatsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DailyStats
+        fields = ('id', 'order_num', 'visitor_num', 'carry', 'today_carry_num', 'mama_id',
+                  'today_visitor_num', 'today_order_num', 'today_carry_num', 'today_active_value',
+                  'date_field', 'status')
 
 
 class ProductSimpleSerializerV2(serializers.ModelSerializer):
@@ -994,11 +997,13 @@ class CustomShareSerializer(serializers.HyperlinkedModelSerializer):
 class SaleProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = SaleProduct
+        fields = ('id', 'outer_id', 'title', 'price', 'pic_url', 'voting', 'created', 'modified', 'hot_value')
 
 
 class HotProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = HotProduct
+        fields = ('id', 'name', 'proid', 'pic_pth', 'site_url', 'price', 'hot_value', 'voting', 'memo', 'status', 'status')
 
 
 class ProRefunRcordSerializer(serializers.ModelSerializer):
@@ -1082,6 +1087,7 @@ class ClickCountSerialize(serializers.ModelSerializer):
 class ClickSerialize(serializers.ModelSerializer):
     class Meta:
         model = Clicks
+        fields = ("id", "linkid", "openid", "app_key", "click_time", "created")
 
 
 class StatisticsShoppingSerialize(serializers.ModelSerializer):
@@ -1164,12 +1170,13 @@ class XlmmFansCustomerInfoSerialize(serializers.ModelSerializer):
 class AppReleaseSerialize(serializers.ModelSerializer):
     class Meta:
         model = AppRelease
+        fields = ('nick', 'thumbnail', 'status', 'get_status_display')
 
 
 class SaleFaqDetailCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = FaqsDetailCategory
-        fields = ('id', 'main_category', 'icon_url', 'category_name', 'description')
+        fields = ('id', 'download_link', 'qrcode_link', 'status', 'release_time', 'auto_update', 'hash_value', 'version', 'version_code', 'device_type')
 
 
 class SaleFaqCategorySerializer(serializers.ModelSerializer):

@@ -1,13 +1,6 @@
 # -*- coding:utf8 -*-
 import time
 import datetime
-import json
-import urllib2
-import cgi
-from lxml import etree
-from StringIO import StringIO
-from celery.task import task
-from celery.task.sets import subtask
 from celery import Task
 
 from django.db.models import Q

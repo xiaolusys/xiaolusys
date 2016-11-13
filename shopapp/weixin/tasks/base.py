@@ -3,8 +3,6 @@ import time
 import datetime
 import json
 from celery.task import task
-from celery.task.sets import subtask
-from django.conf import settings
 
 from common.utils import update_model_fields, replace_utf8mb4
 from core.weixin import options

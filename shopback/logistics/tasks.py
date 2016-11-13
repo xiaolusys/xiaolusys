@@ -3,7 +3,6 @@ import time
 import datetime
 import calendar
 from celery.task import task
-from celery.task.sets import subtask
 from django.conf import settings
 from shopback import paramconfig as pcfg
 from shopback.logistics.models import Logistics
@@ -60,7 +59,7 @@ def updateAllUserOrdersLogisticsTask(update_from=None, update_to=None):
         if hander_update:
             saveUserOrdersLogisticsTask(user.visitor_id, update_from=update_from, update_to=update_to)
         else:
-            subtask(saveUserOrdersLogisticsTask).delay(user.visitor_id)
+            saveUserOrdersLogisticsTask.delay(user.visitor_id)
 
 
 @task(max_retries=3)

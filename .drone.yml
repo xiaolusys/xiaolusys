@@ -1,5 +1,5 @@
 build:
-  image: registry.aliyuncs.com/xiaolu-img/xiaolusys-base:50b63fa8d697e06004d3a5f76c2008eb6205d9b4
+  image: registry.aliyuncs.com/xiaolu-img/xiaolusys-base:ace432c6b93b5d8b4ba8fbb3cd4bc4bf4d00a481
   environment:
     - TARGET=staging
     - REDIS_AUTH=$$REDIS_AUTH
@@ -58,13 +58,13 @@ deploy:
         registry.aliyuncs.com/xiaolu-img/xiaolusys:latest gunicorn -k gevent -c gunicorn_config.py -w 4 shopmanager.wsgi
       - docker rm -f celery-flower
       - docker run --name=celery-flower --restart=always  --log-opt max-file=1 --log-opt max-size=1m
-        -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
+        -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH -e FLOWER_BASIC_AUTH=xiaolu:2016xiaoluyear
         -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:5555:5555 -e C_FORCE_ROOT=1
-        registry.aliyuncs.com/xiaolu-img/xiaolusys:latest celery flower -A shopmanager --loglevel=ERROR
+        registry.aliyuncs.com/xiaolu-img/xiaolusys:latest flower -A shopmanager --conf=shopmanager/task_settings.py
       - docker rm -f celerybeat
       - docker run --name=celerybeat --restart=always --log-opt max-file=1 --log-opt max-size=1m
         -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
-        -d registry.aliyuncs.com/xiaolu-img/xiaolusys:latest python manage.py celery beat --loglevel=ERROR
+        -d registry.aliyuncs.com/xiaolu-img/xiaolusys:latest celery -A shopmanager beat -l info -S django
   ssh:
     host: staging.xiaolumm.com
     user: root

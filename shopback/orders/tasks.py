@@ -3,16 +3,9 @@ import os
 import time
 import datetime
 from celery.task import task
-from celery.task.sets import subtask
 from django.conf import settings
-from shopback.orders.models import Order, Trade
 from shopback.users.models import User
 from shopback.monitor.models import TradeExtraInfo, SystemConfig, DayMonitorStatus
-from shopapp.taobao.exceptions import (RemoteConnectionException,
-                                  AppCallLimitedException,
-                                  UserFenxiaoUnuseException,
-                                  APIConnectionTimeOutException,
-                                  ServiceRejectionException)
 from shopback import paramconfig as pcfg
 from common.utils import (format_time,
                           format_datetime,

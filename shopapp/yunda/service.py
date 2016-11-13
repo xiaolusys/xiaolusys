@@ -6,13 +6,6 @@ import urllib2
 import cgi
 from lxml import etree
 from StringIO import StringIO
-from celery.task import task
-from celery.task.sets import subtask
-from celery import Task
-from django.core.paginator import Paginator
-from shopback import paramconfig as pcfg
-from shopback.trades.models import MergeTrade
-from shopapp.yunda.qrcode import cancel_order, search_order, parseTreeID2MailnoMap
 from shopapp.yunda.models import YundaCustomer, LogisticOrder, ParentPackageWeight, \
     TodaySmallPackageWeight, TodayParentPackageWeight, AnonymousYundaCustomer, YUNDA_CODE, NORMAL, DELETE
 from common.utils import valid_mobile, format_datetime, group_list

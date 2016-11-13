@@ -5,8 +5,6 @@ import time
 import datetime
 import calendar
 from django.conf import settings
-from celery.task import task
-from celery.task.sets import subtask
 from shopback.orders.tasks import saveUserIncrementOrdersTask
 from shopback.fenxiao.tasks import saveUserPurchaseOrderTask, saveUserIncrementPurchaseOrderTask
 from shopback.refunds.tasks import saveUserRefundOrderTask
