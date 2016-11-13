@@ -16,7 +16,7 @@ router.register(r'salescategory', views.SaleCategoryViewSet)
 router.register(r'preferencepool', views.PreferencePoolViewSet)
 
 router_urls = router.urls
-router_urls += ([
+router_urls += [
     url(r'^saleschedule/(?P<schedule_id>[0-9]+)/product$',
         views.SaleScheduleDetailViewSet.as_view({'get': 'list'}),
         name='saleschedule-product-list'),
@@ -49,7 +49,7 @@ router_urls += ([
     url(r'^saleschedule/(?P<schedule_id>[0-9]+)/update_assign_worker$',
         views.SaleScheduleDetailViewSet.as_view({'post': 'update_assign_worker'}),
         name='saleschedule-product-update-assign-worker'),
-])
+]
 
 urlpatterns = [
     url(r'^v1/', include(router_urls, namespace='chain_v1')),

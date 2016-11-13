@@ -370,6 +370,7 @@ class RetrieveSaleProductSerializer(serializers.ModelSerializer):
 class ModifySaleProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = SaleProduct
+        exclude = ()
 
     def validate_title(self, value):
         if value is None or not value.strip():
