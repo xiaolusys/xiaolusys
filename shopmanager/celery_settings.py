@@ -17,7 +17,8 @@ app.autodiscover_tasks()
 
 from . import task_settings as ts
 
-CELERY_RESULT_BACKEND = 'django-cache'  # "amqp"
+app.conf.accept_content = ts.CELERY_ACCEPT_CONTENT
+app.conf.task_serializer = ts.CELERY_TASK_SERIALIZER
 
 app.conf.task_queues = ts.CELERY_QUEUES
 app.conf.task_default_queue = ts.CELERY_DEFAULT_QUEUE
