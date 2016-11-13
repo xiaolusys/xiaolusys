@@ -1,8 +1,8 @@
 # coding=utf-8
-import time
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
+
 import datetime
-import calendar
-from celery.task import task
 from django.conf import settings
 from shopback import paramconfig as pcfg
 from shopback.logistics.models import Logistics

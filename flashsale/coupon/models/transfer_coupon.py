@@ -384,7 +384,7 @@ class CouponTransferRecord(BaseModel):
 
 
 def push_mama_coupon_audit(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm.tasks_mama_push import task_weixin_push_mama_coupon_audit
+    from flashsale.xiaolumm.tasks import task_weixin_push_mama_coupon_audit
 
     if not created or (instance.transfer_status is not instance.PENDING):
         return

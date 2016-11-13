@@ -33,7 +33,7 @@ def test_main():
 
 
 def test_push_new_mama_task():
-    from flashsale.xiaolumm.tasks_mama_push import task_push_new_mama_task
+    from flashsale.xiaolumm.tasks import task_push_new_mama_task
     from flashsale.xiaolumm.models.models import XiaoluMama
     from flashsale.xiaolumm.models.new_mama_task import NewMamaTask
 

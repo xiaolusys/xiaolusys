@@ -1,7 +1,8 @@
 # coding: utf8
-import datetime
-from celery.task import task
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
 
+import datetime
 from django.contrib.auth.models import User
 from flashsale.pay.models import Customer
 from flashsale.xiaolumm.models import XiaoluMama, PotentialMama, XlmmFans, AwardCarry, WeixinPushEvent

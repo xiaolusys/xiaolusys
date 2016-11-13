@@ -1,20 +1,20 @@
 # -*- encoding:utf-8 -*-
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
 
-import logging
-
-from celery.task import task
+import sys, datetime
 from django.db import IntegrityError
 from django.db.models import Sum, Count, F
 from common.utils import update_model_fields
-logger = logging.getLogger('celery.handler')
-service_logger = logging.getLogger('service')
 
 from flashsale.xiaolumm.models.models_fortune import MamaFortune, ActiveValue, OrderCarry, ReferalRelationship, \
     CarryRecord, GroupRelationship, MAMA_FORTUNE_HISTORY_LAST_DAY
 from flashsale.xiaolumm.models import CashOut
 from flashsale.xiaolumm.models.models_fans import XlmmFans
 
-import sys, datetime
+import logging
+logger = logging.getLogger('celery.handler')
+service_logger = logging.getLogger('service')
 
 
 def get_cur_info():

@@ -244,12 +244,12 @@ class MamaFortune(BaseModel):
 
 def update_week_carry_total(sender, instance, created, **kwargs):
     if instance.xlmm and (not instance.xlmm.is_staff) and instance.xlmm.is_available_rank():
-        from flashsale.xiaolumm import tasks_mama_carry_total
+        from flashsale.xiaolumm.tasks import task_fortune_update_week_carry_total, task_fortune_update_activity_carry_total
         from flashsale.xiaolumm.models.carry_total import RankActivity
-        tasks_mama_carry_total.task_fortune_update_week_carry_total.delay(instance.mama_id)
+        task_fortune_update_week_carry_total.delay(instance.mama_id)
         activity = RankActivity.now_activity()
         if activity:
-            tasks_mama_carry_total.task_fortune_update_activity_carry_total.delay(activity, instance.mama_id)
+            task_fortune_update_activity_carry_total.delay(activity, instance.mama_id)
 
 
 post_save.connect(update_week_carry_total,
@@ -278,11 +278,11 @@ class DailyStats(BaseModel):
 
 
 def confirm_previous_dailystats(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm import tasks_mama_dailystats
+    from flashsale.xiaolumm.tasks import task_confirm_previous_dailystats
     if created:
         mama_id = instance.mama_id
         date_field = instance.date_field
-        tasks_mama_dailystats.task_confirm_previous_dailystats.delay(mama_id, date_field, 2)
+        task_confirm_previous_dailystats.delay(mama_id, date_field, 2)
 
 
 post_save.connect(confirm_previous_dailystats,
@@ -367,11 +367,10 @@ class CarryRecord(BaseModel):
 
 
 def carryrecord_update_mamafortune(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm import tasks_mama_fortune
-    tasks_mama_fortune.task_carryrecord_update_mamafortune.delay(instance.mama_id)
+    from flashsale.xiaolumm.tasks import task_carryrecord_update_mamafortune, task_carryrecord_update_dailystats
+    task_carryrecord_update_mamafortune.delay(instance.mama_id)
 
-    from flashsale.xiaolumm import tasks_mama_dailystats
-    tasks_mama_dailystats.task_carryrecord_update_dailystats.delay(instance.mama_id, instance.date_field)
+    task_carryrecord_update_dailystats.delay(instance.mama_id, instance.date_field)
 
 
 post_save.connect(carryrecord_update_mamafortune,
@@ -379,9 +378,9 @@ post_save.connect(carryrecord_update_mamafortune,
 
 
 def carryrecord_update_xiaolumama_active_hasale(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm import tasks_mama
+    from flashsale.xiaolumm.tasks import carryrecord_update_xiaolumama_active_hasale
     if not instance.mama.active:
-        tasks_mama.carryrecord_update_xiaolumama_active_hasale.delay(instance.mama_id)
+        carryrecord_update_xiaolumama_active_hasale.delay(instance.mama_id)
 
 
 post_save.connect(carryrecord_update_xiaolumama_active_hasale,
@@ -401,7 +400,7 @@ def carryrecord_xlmm_newtask(sender, instance, **kwargs):
     """
     检测新手任务：完成第一笔点击收益
     """
-    from flashsale.xiaolumm.tasks_mama_push import task_push_new_mama_task
+    from flashsale.xiaolumm.tasks import task_push_new_mama_task
     from flashsale.xiaolumm.models.new_mama_task import NewMamaTask
 
     carryrecord = instance
@@ -509,7 +508,7 @@ def commission_xlmm_newtask(sender, instance, **kwargs):
     """
     检测新手任务：赚取第一笔佣金
     """
-    from flashsale.xiaolumm.tasks_mama_push import task_push_new_mama_task
+    from flashsale.xiaolumm.tasks import task_push_new_mama_task
     from flashsale.xiaolumm.models.new_mama_task import NewMamaTask
 
     ordercarry = instance
@@ -526,8 +525,8 @@ pre_save.connect(commission_xlmm_newtask,
 
 
 def ordercarry_update_carryrecord(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm import tasks_mama_carryrecord
-    tasks_mama_carryrecord.task_ordercarry_update_carryrecord.delay(instance)
+    from flashsale.xiaolumm.tasks import task_ordercarry_update_carryrecord
+    task_ordercarry_update_carryrecord.delay(instance)
 
 
 post_save.connect(ordercarry_update_carryrecord,
@@ -542,8 +541,8 @@ def ordercarry_weixin_push(sender, instance, created, **kwargs):
         return
     if instance.mama_id < 1:
         return
-    from flashsale.xiaolumm import tasks_mama_push
-    tasks_mama_push.task_weixin_push_ordercarry.delay(instance)
+    from flashsale.xiaolumm.tasks import task_weixin_push_ordercarry
+    task_weixin_push_ordercarry.delay(instance)
 
 post_save.connect(ordercarry_weixin_push,
                   sender=OrderCarry, dispatch_uid='post_save_ordercarry_weixin_push')
@@ -554,8 +553,8 @@ def ordercarry_app_push(sender, instance, created, **kwargs):
     """
     if not created:
         return
-    from flashsale.xiaolumm import tasks_mama_push
-    tasks_mama_push.task_app_push_ordercarry.delay(instance)
+    from flashsale.xiaolumm.tasks import task_app_push_ordercarry
+    task_app_push_ordercarry.delay(instance)
 
 post_save.connect(ordercarry_app_push,
                   sender=OrderCarry, dispatch_uid='post_save_ordercarry_app_push')
@@ -563,15 +562,15 @@ post_save.connect(ordercarry_app_push,
 
 # 首单奖励
 def ordercarry_send_first_award(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm import tasks_mama_fortune
+    from flashsale.xiaolumm.tasks import task_first_order_send_award, task_update_mamafortune_hasale_num
     from flashsale.xiaolumm.models.models import XiaoluMama
 
     if not instance.mama:
         return
 
     if instance.mama.last_renew_type == XiaoluMama.TRIAL:
-        tasks_mama_fortune.task_first_order_send_award.delay(instance.mama)
-    tasks_mama_fortune.task_update_mamafortune_hasale_num.delay(instance.mama_id)
+        task_first_order_send_award.delay(instance.mama)
+    task_update_mamafortune_hasale_num.delay(instance.mama_id)
 
 post_save.connect(ordercarry_send_first_award,
                   sender=OrderCarry, dispatch_uid='post_save_ordercarry_send_first_alwad')
@@ -582,10 +581,10 @@ def ordercarry_update_ordercarry(sender, instance, created, **kwargs):
         # find out parent mama_id, and this relationship must be established before the order creation date.
         referal_relationships = ReferalRelationship.objects.filter(referal_to_mama_id=instance.mama_id,
                                                                    created__lt=instance.created)
-        from flashsale.xiaolumm import tasks_mama
+        from flashsale.xiaolumm.tasks import task_update_second_level_ordercarry, task_update_second_level_ordercarry_by_trial
         if referal_relationships.count() > 0:
             referal_relationship = referal_relationships[0]
-            tasks_mama.task_update_second_level_ordercarry.delay(referal_relationship, instance)
+            task_update_second_level_ordercarry.delay(referal_relationship, instance)
         else:
             # 看潜在关系列表
             from flashsale.xiaolumm.models import PotentialMama
@@ -593,7 +592,7 @@ def ordercarry_update_ordercarry(sender, instance, created, **kwargs):
                 potential = PotentialMama.objects.filter(potential_mama=instance.mama_id).latest('created')
             except PotentialMama.DoesNotExist:
                 return
-            tasks_mama.task_update_second_level_ordercarry_by_trial.delay(potential, instance)
+            task_update_second_level_ordercarry_by_trial.delay(potential, instance)
 
 
 post_save.connect(ordercarry_update_ordercarry,
@@ -602,8 +601,8 @@ post_save.connect(ordercarry_update_ordercarry,
 
 def ordercarry_update_activevalue(sender, instance, created, **kwargs):
     if instance.carry_type == OrderCarry.WAP_ORDER or instance.carry_type == OrderCarry.APP_ORDER:
-        from flashsale.xiaolumm import tasks_mama_activevalue
-        tasks_mama_activevalue.task_ordercarry_update_activevalue.delay(instance.uni_key)
+        from flashsale.xiaolumm.tasks import task_ordercarry_update_activevalue
+        task_ordercarry_update_activevalue.delay(instance.uni_key)
 
 
 post_save.connect(ordercarry_update_activevalue,
@@ -614,15 +613,14 @@ def ordercarry_update_order_number(sender, instance, created, **kwargs):
     mama_id = instance.mama_id
     date_field = instance.date_field
 
-    from flashsale.xiaolumm import tasks_mama_clickcarry
-    tasks_mama_clickcarry.task_update_clickcarry_order_number.delay(mama_id, date_field)
+    from flashsale.xiaolumm.tasks import task_update_clickcarry_order_number, \
+        task_update_mamafortune_order_num, task_ordercarry_increment_dailystats
+    task_update_clickcarry_order_number.delay(mama_id, date_field)
 
-    from flashsale.xiaolumm import tasks_mama_fortune
-    tasks_mama_fortune.task_update_mamafortune_order_num.delay(mama_id)
+    task_update_mamafortune_order_num.delay(mama_id)
 
     if created:
-        from flashsale.xiaolumm import tasks_mama_dailystats
-        tasks_mama_dailystats.task_ordercarry_increment_dailystats.delay(mama_id, date_field)
+        task_ordercarry_increment_dailystats.delay(mama_id, date_field)
 
 
 post_save.connect(ordercarry_update_order_number,
@@ -724,8 +722,8 @@ class AwardCarry(BaseModel):
         self.save()
 
 def awardcarry_update_carryrecord(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm import tasks_mama_carryrecord
-    tasks_mama_carryrecord.task_awardcarry_update_carryrecord.delay(instance)
+    from flashsale.xiaolumm.tasks import task_awardcarry_update_carryrecord
+    task_awardcarry_update_carryrecord.delay(instance)
 
 
 post_save.connect(awardcarry_update_carryrecord,
@@ -738,9 +736,9 @@ def awardcarry_weixin_push(sender, instance, created, **kwargs):
     if instance.carry_type == AwardCarry.AWARD_SUBSCRIBE or instance.carry_type == AwardCarry.AWARD_INVITE_FANS:
         # 关注公众号, 增加粉丝, 任务通知已发, 这里不用重复发送
         return
-    from flashsale.xiaolumm import tasks_mama_push
+    from flashsale.xiaolumm.tasks import task_weixin_push_awardcarry
     if instance.mama_id > 0 and instance.status != 3:
-        tasks_mama_push.task_weixin_push_awardcarry.delay(instance)
+        task_weixin_push_awardcarry.delay(instance)
 
 post_save.connect(awardcarry_weixin_push,
                   sender=AwardCarry, dispatch_uid='post_save_awardcarry_weixin_push')
@@ -829,15 +827,15 @@ class ClickCarry(BaseModel):
 
 
 def weixin_push_clickcarry(sender, instance, fake=False, **kwargs):
-    from flashsale.xiaolumm.tasks_mama_push import task_weixin_push_clickcarry
+    from flashsale.xiaolumm.tasks import task_weixin_push_clickcarry
     task_weixin_push_clickcarry.delay(instance, fake=fake)
 
 clickcarry_signal.connect(weixin_push_clickcarry, sender=ClickCarry, dispatch_uid='add_clickcarry_weixin_push')
 
 
 def clickcarry_update_carryrecord(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm import tasks_mama_carryrecord
-    tasks_mama_carryrecord.task_clickcarry_update_carryrecord.delay(instance)
+    from flashsale.xiaolumm.tasks import task_clickcarry_update_carryrecord
+    task_clickcarry_update_carryrecord.delay(instance)
 
 
 post_save.connect(clickcarry_update_carryrecord,
@@ -845,12 +843,13 @@ post_save.connect(clickcarry_update_carryrecord,
 
 
 def confirm_previous_clickcarry(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm import tasks_mama_clickcarry
+    from flashsale.xiaolumm.tasks import task_confirm_previous_zero_order_clickcarry, \
+        task_confirm_previous_order_clickcarry
     if created:
         mama_id = instance.mama_id
         date_field = instance.date_field
-        tasks_mama_clickcarry.task_confirm_previous_zero_order_clickcarry.delay(mama_id, date_field, 2)
-        tasks_mama_clickcarry.task_confirm_previous_order_clickcarry.delay(mama_id, date_field, 7)
+        task_confirm_previous_zero_order_clickcarry.delay(mama_id, date_field, 2)
+        task_confirm_previous_order_clickcarry.delay(mama_id, date_field, 7)
 
 
 post_save.connect(confirm_previous_clickcarry,
@@ -908,9 +907,9 @@ class ActiveValue(BaseModel):
 
 
 def activevalue_update_mamafortune(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm import tasks_mama_fortune
+    from flashsale.xiaolumm.tasks import task_activevalue_update_mamafortune
     mama_id = instance.mama_id
-    tasks_mama_fortune.task_activevalue_update_mamafortune.delay(mama_id)
+    task_activevalue_update_mamafortune.delay(mama_id)
 
 
 post_save.connect(activevalue_update_mamafortune,
@@ -918,11 +917,11 @@ post_save.connect(activevalue_update_mamafortune,
 
 
 def confirm_previous_activevalue(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm import tasks_mama_activevalue
+    from flashsale.xiaolumm.tasks import task_confirm_previous_activevalue
     if created and instance.value_type == 1:
         mama_id = instance.mama_id
         date_field = instance.date_field
-        tasks_mama_activevalue.task_confirm_previous_activevalue.delay(mama_id, date_field, 2)
+        task_confirm_previous_activevalue.delay(mama_id, date_field, 2)
 
 
 post_save.connect(confirm_previous_activevalue,
@@ -1087,7 +1086,7 @@ def referalrelationship_xlmm_newtask(sender, instance, **kwargs):
     """
     检测新手任务：发展第一个代理　
     """
-    from flashsale.xiaolumm.tasks_mama_push import task_push_new_mama_task
+    from flashsale.xiaolumm.tasks import task_push_new_mama_task
     from flashsale.xiaolumm.models.new_mama_task import NewMamaTask
     from flashsale.xiaolumm.models.models import PotentialMama, XiaoluMama
 
@@ -1106,10 +1105,10 @@ pre_save.connect(referalrelationship_xlmm_newtask,
 
 
 def update_mamafortune_invite_num(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm import tasks_mama_fortune
+    from flashsale.xiaolumm.tasks import task_update_mamafortune_invite_num
 
     mama_id = instance.referal_from_mama_id
-    tasks_mama_fortune.task_update_mamafortune_invite_num.delay(mama_id)
+    task_update_mamafortune_invite_num.delay(mama_id)
 
 
 post_save.connect(update_mamafortune_invite_num,
@@ -1117,8 +1116,8 @@ post_save.connect(update_mamafortune_invite_num,
 
 
 def update_mamafortune_mama_level(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm import tasks_mama_fortune
-    tasks_mama_fortune.task_update_mamafortune_mama_level.delay(instance)
+    from flashsale.xiaolumm.tasks import task_update_mamafortune_mama_level
+    task_update_mamafortune_mama_level.delay(instance)
 
 post_save.connect(update_mamafortune_mama_level,
                   sender=ReferalRelationship, dispatch_uid='post_save_update_mamafortune_mama_level')
@@ -1162,7 +1161,7 @@ post_save.connect(update_mama_fans, sender=ReferalRelationship, dispatch_uid='po
 def referal_update_activevalue(sender, instance, created, **kwargs):
     if not created:
         return
-    from flashsale.xiaolumm.tasks_mama_activevalue import task_referal_update_activevalue
+    from flashsale.xiaolumm.tasks import task_referal_update_activevalue
     mama_id = instance.referal_from_mama_id
     date_field = instance.created.date()
     contributor_id = instance.referal_to_mama_id
@@ -1175,7 +1174,7 @@ post_save.connect(referal_update_activevalue,
 
 def update_referal_awardcarry(sender, instance, created, **kwargs):
     if instance.created.date() > MAMA_FORTUNE_HISTORY_LAST_DAY:
-        from flashsale.xiaolumm.tasks_mama import task_referal_update_awardcarry
+        from flashsale.xiaolumm.tasks import task_referal_update_awardcarry
         task_referal_update_awardcarry.delay(instance)
 
 
@@ -1185,7 +1184,7 @@ post_save.connect(update_referal_awardcarry,
 
 def update_group_awardcarry(sender, instance, created, **kwargs):
     if instance.created.date() > MAMA_FORTUNE_HISTORY_LAST_DAY:
-        from flashsale.xiaolumm.tasks_mama import task_update_group_awardcarry
+        from flashsale.xiaolumm.tasks import task_update_group_awardcarry
         task_update_group_awardcarry.delay(instance)
 
 post_save.connect(update_group_awardcarry,
@@ -1253,13 +1252,13 @@ def visitor_update_clickcarry_and_activevalue(sender, instance, created, **kwarg
     except XiaoluMama.DoesNotExist:
         return
 
-    from flashsale.xiaolumm.tasks_mama_clickcarry import task_visitor_increment_clickcarry
+    from flashsale.xiaolumm.tasks import task_visitor_increment_clickcarry
     task_visitor_increment_clickcarry.delay(mama_id, date_field, fake=is_fake)
 
-    from flashsale.xiaolumm.tasks_mama_activevalue import task_visitor_increment_activevalue
+    from flashsale.xiaolumm.tasks import task_visitor_increment_activevalue
     task_visitor_increment_activevalue.delay(mama_id, date_field)
 
-    from flashsale.xiaolumm.tasks_mama_dailystats import task_visitor_increment_dailystats
+    from flashsale.xiaolumm.tasks import task_visitor_increment_dailystats
     task_visitor_increment_dailystats.delay(mama_id, date_field)
 
 
@@ -1327,7 +1326,7 @@ def mama_app_version_check(sender, instance, created, **kwargs):
     if not created:
         return
 
-    from flashsale.xiaolumm.tasks_mama_push import task_weixin_push_update_app
+    from flashsale.xiaolumm.tasks import task_weixin_push_update_app
     task_weixin_push_update_app.delay(instance)
 
 post_save.connect(mama_app_version_check,

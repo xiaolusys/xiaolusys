@@ -1,9 +1,12 @@
 # coding=utf-8
+from __future__ import absolute_import, unicode_literals
+
 import datetime
 import logging
-from celery.task import task
+from celery import shared_task as task
 from django.db.models import F
-import constants
+
+from games.renewremind import constants
 from games.renewremind.models import RenewRemind
 from shopback import paramconfig as pcfg
 from shopapp.smsmgr.models import SMSPlatform, SMS_NOTIFY_TOCITY

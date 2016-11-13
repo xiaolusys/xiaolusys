@@ -1,15 +1,13 @@
 # -*- encoding:utf-8 -*-
-
-import logging
-import datetime
-from celery.task import task
-
-logger = logging.getLogger('celery.handler')
-
-from flashsale.xiaolumm.models.models_fortune import CarryRecord
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
 
 import sys
+import datetime
+from flashsale.xiaolumm.models.models_fortune import CarryRecord
 
+import logging
+logger = logging.getLogger('celery.handler')
 
 def get_cur_info():
     """Return the frame object for the caller's stack frame."""

@@ -1,9 +1,10 @@
 # -*- coding:utf-8 -*-
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
+
 import datetime
 import time
 import json
-from celery import Task
-from celery.task import task
 from django.conf import settings
 from django.db.models import Sum, Max
 from django.db import transaction
@@ -203,7 +204,7 @@ def updateProductWaitPostNumTask(pre_days=UPDATE_WAIT_POST_DAYS):
         Product.objects.updateProductWaitPostNum(product)
 
 
-class CalcProductSaleTask(Task):
+class CalcProductSaleTask(object):
     """ 更新商品销售数量任务 """
 
     def getYesterdayDate(self):
@@ -336,6 +337,9 @@ class CalcProductSaleTask(Task):
                     prod.warn_num = total_sale
                     prod.save()
 
+@task()
+def task_cancel_unused_yunda_sid(*args, **kwarg):
+    CalcProductSaleTask().run(*args, **kwarg)
 
 @task()
 def updateAllUserProductSkuTask():
@@ -370,24 +374,23 @@ def updateUserItemSkuFenxiaoProductTask(user_id):
 
 
 @task()
-def gradCalcProductSaleTask():
+def task_calc_product_sale_stats():
     """  计算商品销售 """
 
     dt = datetime.datetime.now()
-    gradSaleTask = CalcProductSaleTask()
     for day in (10, 20, 30):  # 分别间隔10,20,30天
         delta_days = dt - datetime.timedelta(days=day)
         if settings.DEBUG:
-            gradSaleTask(yest_date=delta_days)
+            task_cancel_unused_yunda_sid(yest_date=delta_days)
         else:
-            gradSaleTask.delay(yest_date=delta_days)
+            task_cancel_unused_yunda_sid.delay(yest_date=delta_days)
 
     yest_date = dt - datetime.timedelta(days=1)
     # 更新昨日的账单
     if settings.DEBUG:
-        CalcProductSaleTask()(yest_date=yest_date, update_warn_num=True)
+        task_cancel_unused_yunda_sid(yest_date=yest_date, update_warn_num=True)
     else:
-        CalcProductSaleTask().delay(yest_date=yest_date, update_warn_num=True)
+        task_cancel_unused_yunda_sid.delay(yest_date=yest_date, update_warn_num=True)
 
 
 ###########################################################  商品库存管理  ########################################################
@@ -703,7 +706,7 @@ def releaseProductTradesTask(outer_ids):
 from supplychain.supplier.models import SaleProduct
 
 
-class CalcProductSaleAsyncTask(Task):
+class CalcProductSaleAsyncTask(object):
     def getProductByOuterId(self, outer_id):
         try:
             return Product.objects.get(outer_id=outer_id)
@@ -963,6 +966,9 @@ class CalcProductSaleAsyncTask(Task):
                                         p_outer_id=p_outer_id, show_sale=show_sale)
         return sale_items
 
+@task()
+def task_calc_product_sale(*args, **kwargs):
+    CalcProductSaleAsyncTask().run(*args, **kwargs)
 
 def get_product_logsign(product):
     return '库存数={0},待发数={1},预留数={2},锁定数={3}'.format(product.collect_num, product.wait_post_num,

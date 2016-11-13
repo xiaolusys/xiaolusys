@@ -89,7 +89,7 @@ def add_day_carry(datalist, queryset, sum_field, scale=0.01, exclude_statuses=No
 
 
 
-from flashsale.xiaolumm.tasks_mama_fortune import task_mama_daily_app_visit_stats, task_mama_daily_tab_visit_stats
+from flashsale.xiaolumm.tasks import task_mama_daily_app_visit_stats, task_mama_daily_tab_visit_stats
 
 class MamaFortuneViewSet(viewsets.ModelViewSet):
     """

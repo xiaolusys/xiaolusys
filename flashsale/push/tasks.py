@@ -1,6 +1,6 @@
 # coding: utf-8
-
-from celery.task import task
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
 
 from .mipush import mipush_of_ios, mipush_of_android
 from shopapp.weixin.weixin_push import WeixinPush

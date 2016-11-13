@@ -1,9 +1,11 @@
 # -*- encoding:utf-8 -*-
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
+
 import calendar
 import datetime
 import logging
 
-from celery.task import task
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.db.models import F, Sum

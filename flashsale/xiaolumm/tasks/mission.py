@@ -1,8 +1,9 @@
 # -*- encoding:utf-8 -*-
-import datetime
-
-from celery.task import task
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
 from celery import group
+
+import datetime
 from django.db import IntegrityError
 from django.conf import settings
 

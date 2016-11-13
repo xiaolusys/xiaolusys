@@ -1,41 +1,35 @@
 # -*- coding:utf8 -*-
-import time
+from __future__ import absolute_import, unicode_literals
+
 import datetime
-from celery import Task
+from celery import shared_task as task
 
 from django.db.models import Q
 
 from .models import WeixinUserAward
 from .service import WeixinSaleService
 
+@task
+def task_notify_referal_award(user_openid):
+    wx_service = WeixinSaleService(user_openid)
+    wx_service.notifyReferalAward()
 
-class NotifyReferalAwardTask(Task):
-    max_retries = 1
+@task
+def task_notify_parent_award():
 
-    def run(self, user_openid):
-        wx_service = WeixinSaleService(user_openid)
+    end_remind_time = datetime.datetime.now() - datetime.timedelta(seconds=10 * 60)
 
-        wx_service.notifyReferalAward()
+    remind_filter = Q(remind_count__gte=3) | Q(remind_time__lte=end_remind_time)
+    wx_awards = WeixinUserAward.objects.filter(remind_filter,
+                                               is_notify=False,
+                                               is_share=False)
 
+    for award in wx_awards:
+        try:
+            wx_service = WeixinSaleService(award.user_openid)
+            wx_service.notifyAward()
 
-class NotifyParentAwardTask(Task):
-    max_retries = 1
-
-    def run(self):
-
-        end_remind_time = datetime.datetime.now() - datetime.timedelta(seconds=10 * 60)
-
-        remind_filter = Q(remind_count__gte=3) | Q(remind_time__lte=end_remind_time)
-        wx_awards = WeixinUserAward.objects.filter(remind_filter,
-                                                   is_notify=False,
-                                                   is_share=False)
-
-        for award in wx_awards:
-            try:
-                wx_service = WeixinSaleService(award.user_openid)
-                wx_service.notifyAward()
-
-                award.is_notify = True
-                award.save()
-            except Exception, exc:
-                pass
+            award.is_notify = True
+            award.save()
+        except Exception, exc:
+            pass

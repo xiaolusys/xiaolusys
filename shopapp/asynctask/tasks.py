@@ -1,4 +1,8 @@
 # -*- encoding:utf8 -*-
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task, Celery
+from celery.app.task import Task
+
 import sys
 import os
 import string
@@ -12,12 +16,7 @@ import urllib2
 from os.path import basename
 from urlparse import urlsplit
 from django.conf import settings
-from django.core.cache import cache
 from django.template.loader import render_to_string
-from celery.task import task, Task
-from celery.registry import tasks
-from celery.app.task import BaseTask
-from celery.signals import task_prerun
 from shopback.base.exception import NotImplement
 from shopapp.asynctask.models import (TaobaoAsyncTaskModel,
                                       PrintAsyncTaskModel,
@@ -27,8 +26,7 @@ from shopapp.asynctask.models import (TaobaoAsyncTaskModel,
                                       TASK_SUCCESS,
                                       TASK_ASYNCCOMPLETE,
                                       TASK_DOWNLOAD)
-from shopback.monitor.models import SystemConfig
-from shopback import paramconfig as pcfg
+
 from shopback.categorys.models import Category
 from shopback.orders.models import Trade
 from shopback.trades.models import MergeTrade, PackageOrder, PackageSkuItem
@@ -36,7 +34,6 @@ from shopback.items.models import Product, ProductSku
 
 from shopapp.taobao import apis
 import logging
-
 logger = logging.getLogger('django.request')
 
 TASK_STATUS = {
@@ -55,13 +52,14 @@ def full_class_name(ins):
 def taobaoAsyncHandleTask():
     """ 淘宝异步任务处理核心类 """
     asynctasks = TaobaoAsyncTaskModel.objects.filter(status__in=(TASK_ASYNCOK, TASK_ASYNCCOMPLETE, TASK_DOWNLOAD))
+    app = Celery()
     for asynctask in asynctasks:
         task_name = asynctask.task
 
         if not task_name:
             continue
 
-        task_handler = tasks[task_name]
+        task_handler = app.tasks[task_name]
         if asynctask.status == TASK_ASYNCOK:
             task_handler.is_taobao_complete(asynctask.task_id)
             asynctask = TaobaoAsyncTaskModel.objects.get(task_id=asynctask.task_id)
@@ -249,9 +247,6 @@ class AsyncCategoryTask(TaobaoAsyncBaseTask):
                 self.save_category(sub_cat_json)
 
 
-tasks.register(AsyncCategoryTask)
-
-
 # ================================ Async Order Task   ==================================
 class AsyncOrderTask(TaobaoAsyncBaseTask):
     def run(self, start_time, end_time, user_id, fetch_time=None, *args, **kwargs):
@@ -296,13 +291,13 @@ class AsyncOrderTask(TaobaoAsyncBaseTask):
             logger.error('async task result handle fail: %s' % exc, exc_info=True)
             return False
 
-
-tasks.register(AsyncOrderTask)
+@task
+def task_async_order(*args, **kwargs):
+    AsyncOrderTask().run(*args, **kwargs)
 
 from core.upload.upload import upload_data_to_remote, generate_private_url
 
-
-class PrintAsyncTask(Task):
+class PrintAsyncTask(object):
     ignore_result = False
 
     def genExpressData(self, trade_list):
@@ -438,11 +433,11 @@ class PrintAsyncTask(Task):
             express_data = self.genExpressData(trade_list)
         return 0
 
+@task
+def task_print_async(*args, **kwargs):
+    PrintAsyncTask().run(*args, **kwargs)
 
-tasks.register(PrintAsyncTask)
-
-
-class PrintAsyncTask2(Task):
+class PrintAsyncTask2(object):
     ignore_result = False
 
     def genExpressData(self, trade_list):
@@ -570,5 +565,6 @@ class PrintAsyncTask2(Task):
             express_data = self.genExpressData(package_orders)
         return 0
 
-
-tasks.register(PrintAsyncTask2)
+@task
+def task_print_async2(*args, **kwargs):
+    PrintAsyncTask2().run(*args, **kwargs)

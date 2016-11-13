@@ -1,8 +1,10 @@
 # -*- coding:utf-8 -*-
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
+
 import random
 import logging
 import datetime
-from celery.task import task
 from django.db.models import F
 from django.template import Context, Template
 from common.utils import update_model_fields, single_instance_task

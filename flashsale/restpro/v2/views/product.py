@@ -324,7 +324,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         xlmm = customer.get_charged_mama()
 
         visit_tab = MamaTabVisitStats.TAB_CARRY_LIST
-        from flashsale.xiaolumm.tasks_mama_fortune import task_mama_daily_tab_visit_stats
+        from flashsale.xiaolumm.tasks import task_mama_daily_tab_visit_stats
         task_mama_daily_tab_visit_stats.delay(xlmm.id, visit_tab)
 
         from flashsale.xiaolumm.models.models_rebeta import AgencyOrderRebetaScheme

@@ -1,7 +1,9 @@
 # -*- encoding:utf8 -*-
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
+
 import datetime
 from django.db.models import F
-from celery.task import task
 
 from shopapp.weixin.models import WXOrder
 from flashsale.pay.models import SaleTrade

@@ -1,17 +1,19 @@
 # coding:utf-8
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
+
 import datetime
 from django.db.models import F, Sum
 from django.conf import settings
 from celery import chain
-from celery.task import task
 
 from flashsale.xiaolumm.models import XiaoluMama, CarryLog, AgencyLevel
 from .models import Clicks, UserClicks, ClickCount, WeekCount
 from shopapp.weixin.models import WeixinUnionID
 from common.modelutils import update_model_change_fields
 from . import constants
-import logging
 
+import logging
 logger = logging.getLogger(__name__)
 
 CLICK_ACTIVE_START_TIME = datetime.datetime(2015, 6, 15, 10)

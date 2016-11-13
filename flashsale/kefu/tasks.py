@@ -1,10 +1,11 @@
 # -*- encoding:utf8 -*-
-from __future__ import division
+from __future__ import division, absolute_import, unicode_literals
+
 import json
 import datetime
 
 from django.core.serializers.json import DjangoJSONEncoder
-from celery.task import task
+from celery import shared_task as task
 
 from flashsale.kefu.models import KefuPerformance
 from flashsale.pay.models import SaleRefund

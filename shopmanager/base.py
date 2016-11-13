@@ -133,7 +133,6 @@ INSTALLED_APPS =[
     'django.contrib.sites',
     'django.contrib.staticfiles',
 
-    'djkombu',
     'gunicorn',
     'httpproxy',
     'tagging.apps.TaggingConfig',

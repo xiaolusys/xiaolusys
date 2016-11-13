@@ -1,20 +1,17 @@
 # -*- encoding:utf-8 -*-
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
 
-import logging
-
-from celery.task import task
+import sys
 from django.db.models import Sum
-
 from flashsale.xiaolumm import util_description
-
-logger = logging.getLogger('celery.handler')
-
 from flashsale.xiaolumm.models.models_lesson import LessonAttendRecord, LessonTopic, Lesson, Instructor, TopicAttendRecord
 from flashsale.xiaolumm.models.models_fortune import AwardCarry
 from flashsale.xiaolumm import util_unikey
 from flashsale.xiaolumm.models import XiaoluMama
 
-import sys
+import logging
+logger = logging.getLogger('celery.handler')
 
 
 def get_cur_info():

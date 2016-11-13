@@ -1,4 +1,7 @@
 # -*- coding:utf8 -*-
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
+
 import os
 import re
 import zlib
@@ -6,8 +9,7 @@ import cookielib
 import datetime
 import urllib, urllib2
 from BeautifulSoup import BeautifulSoup
-from celery import Task
-from celery.task import task
+
 from .models import SaleProduct, SaleSupplier, SaleCategory
 import logging
 from django.db.models import Sum
@@ -26,7 +28,7 @@ ENCODING_RE = re.compile('^.+charset=(?P<encoding>[\w]+)')
 ckjar = cookielib.MozillaCookieJar(os.path.join('/tmp/', 'cookies.txt'))
 
 
-class CrawTask(Task):
+class CrawTask(object):
     def getBeaSoupByCrawUrl(self, url):
         headers = {'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
                    'Accept-Encoding': 'gzip,deflate',

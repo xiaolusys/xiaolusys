@@ -1156,10 +1156,10 @@ def order_trigger(sender, instance, created, raw, **kwargs):
                 task_create_transfer_coupon.delay(instance)
                 return
 
-            from flashsale.xiaolumm.tasks_mama_relationship_visitor import task_update_referal_relationship
+            from flashsale.xiaolumm.tasks import task_update_referal_relationship
             task_update_referal_relationship.delay(instance)
     else:
-        from flashsale.xiaolumm.tasks_mama import task_order_trigger
+        from flashsale.xiaolumm.tasks import task_order_trigger
         task_order_trigger.delay(instance)
 
 

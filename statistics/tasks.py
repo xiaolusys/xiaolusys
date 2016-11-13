@@ -1,8 +1,10 @@
 # coding=utf-8
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
+
 import logging
 import datetime
 import calendar
-from celery.task import task
 from django.db.models import Sum
 from django.contrib.auth.models import User
 from shopback.items.models import Product

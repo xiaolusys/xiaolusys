@@ -938,7 +938,7 @@ class XiaoluMama(BaseModel):
         if not commission:
             return NewMamaTask.TASK_FIRST_COMMISSION
 
-        from flashsale.xiaolumm.tasks_mama_fortune import task_new_guy_task_complete_send_award
+        from flashsale.xiaolumm.tasks import task_new_guy_task_complete_send_award
         task_new_guy_task_complete_send_award.delay(self)
 
         return None
@@ -958,8 +958,8 @@ class XiaoluMama(BaseModel):
 
 
 def xiaolumama_update_mamafortune(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm import tasks_mama_fortune
-    tasks_mama_fortune.task_xiaolumama_update_mamafortune.delay(instance.pk, instance.cash)
+    from flashsale.xiaolumm.tasks import task_xiaolumama_update_mamafortune
+    task_xiaolumama_update_mamafortune.delay(instance.pk, instance.cash)
 
 
 post_save.connect(xiaolumama_update_mamafortune,
@@ -1176,8 +1176,8 @@ class CashOut(BaseModel):
 
 
 def cashout_update_mamafortune(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm import tasks_mama_fortune
-    tasks_mama_fortune.task_cashout_update_mamafortune.delay(instance.xlmm)
+    from flashsale.xiaolumm.tasks import task_cashout_update_mamafortune
+    task_cashout_update_mamafortune.delay(instance.xlmm)
 
 
 post_save.connect(cashout_update_mamafortune,
@@ -1420,7 +1420,7 @@ def potentialmama_xlmm_newtask(sender, instance, **kwargs):
     """
     检测新手任务：发展第一个代理　
     """
-    from flashsale.xiaolumm.tasks_mama_push import task_push_new_mama_task
+    from flashsale.xiaolumm.tasks import task_push_new_mama_task
     from flashsale.xiaolumm.models.new_mama_task import NewMamaTask
     from flashsale.xiaolumm.models.models_fortune import ReferalRelationship
 

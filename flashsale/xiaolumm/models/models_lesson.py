@@ -237,7 +237,7 @@ class Lesson(BaseModel):
 
 
 def lesson_update_instructor_attender_num(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm.tasks_lesson import task_lesson_update_instructor_attender_num
+    from flashsale.xiaolumm.tasks import task_lesson_update_instructor_attender_num
     task_lesson_update_instructor_attender_num.delay(instance.instructor_id)
 
 post_save.connect(lesson_update_instructor_attender_num,
@@ -245,7 +245,7 @@ post_save.connect(lesson_update_instructor_attender_num,
 
 
 def lesson_update_instructor_payment(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm.tasks_lesson import task_lesson_update_instructor_payment
+    from flashsale.xiaolumm.tasks import task_lesson_update_instructor_payment
     task_lesson_update_instructor_payment.delay(instance)
 
 post_save.connect(lesson_update_instructor_payment,
@@ -301,14 +301,14 @@ class LessonAttendRecord(BaseModel):
 
 
 def lessonattendrecord_create_topicattendrecord(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm.tasks_lesson import task_lessonattendrecord_create_topicattendrecord
+    from flashsale.xiaolumm.tasks import task_lessonattendrecord_create_topicattendrecord
     task_lessonattendrecord_create_topicattendrecord.delay(instance)
 
 post_save.connect(lessonattendrecord_create_topicattendrecord,
                   sender=LessonAttendRecord, dispatch_uid='post_save_lessonattendrecord_topicattendrecord')
 
 def update_lesson_attender_num(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm.tasks_lesson import task_update_lesson_attender_num
+    from flashsale.xiaolumm.tasks import task_update_lesson_attender_num
     task_update_lesson_attender_num.delay(instance.lesson_id)
 
 post_save.connect(update_lesson_attender_num,
@@ -349,7 +349,7 @@ class TopicAttendRecord(BaseModel):
 
 def topicattendrecord_validate_lessonattendrecord(sender, instance, created, **kwargs):
     if created:
-        from flashsale.xiaolumm.tasks_lesson import task_topicattendrecord_validate_lessonattendrecord
+        from flashsale.xiaolumm.tasks import task_topicattendrecord_validate_lessonattendrecord
         lesson_attend_record_id = instance.lesson_attend_record_id
         task_topicattendrecord_validate_lessonattendrecord.delay(lesson_attend_record_id)
 
@@ -357,7 +357,7 @@ post_save.connect(topicattendrecord_validate_lessonattendrecord,
                   sender=TopicAttendRecord, dispatch_uid='post_save_topicattendrecord_lessonattendrecord')
 
 def update_topic_attender_num(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm.tasks_lesson import task_update_topic_attender_num
+    from flashsale.xiaolumm.tasks import task_update_topic_attender_num
     task_update_topic_attender_num.delay(instance.topic_id)
 
 post_save.connect(update_topic_attender_num, sender=TopicAttendRecord, dispatch_uid='post_save_update_topic_attender_num')

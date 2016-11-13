@@ -1,18 +1,18 @@
 # -*- encoding:utf-8 -*-
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
+
 import datetime
-import logging
-
-from celery.task import task
-
-logger = logging.getLogger('celery.handler')
-
 from flashsale.xiaolumm.models.models_fans import XlmmFans
 from flashsale.pay.models import Customer, BudgetLog
 from flashsale.promotion.models import RedEnvelope, XLSampleApply, AwardWinner, AppDownloadRecord, \
     DownloadMobileRecord, DownloadUnionidRecord, ActivityEntry
-from utils import get_application
+from flashsale.promotion.utils import get_application
 
 import sys, random
+
+import logging
+logger = logging.getLogger('celery.handler')
 
 
 def get_cur_info():

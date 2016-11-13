@@ -376,7 +376,7 @@ class NinePicAdverAdmin(admin.ModelAdmin):
 
     def push_to_mama(self, request, queryset):
         """推送九张图更新消息给代理"""
-        from tasks_mama_push import task_push_ninpic_remind
+        from flashsale.xiaolumm.tasks import task_push_ninpic_remind
 
         if queryset.count() == 1:
             ninepic = queryset[0]

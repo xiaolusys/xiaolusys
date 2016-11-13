@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 import os
+from kombu import Exchange, Queue
 from celery.schedules import crontab
 
 REDIS_HOST = '55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379'
@@ -54,9 +55,10 @@ CELERY_TASK_RESULT_EXPIRES = 60 * 60  # half hour
 # Set redis as celery result backend
 CELERY_REDIS_MAX_CONNECTIONS = 8
 
-# # Don't use pickle as serializer, json is much safer
-# CELERY_TASK_SERIALIZER = "json"
-# CELERY_ACCEPT_CONTENT = ['application/json']
+# Don't use pickle as serializer, json is much safer
+CELERY_TASK_SERIALIZER = "pickle"
+CELERY_RESULT_SERIALIZER = "pickle"
+CELERY_ACCEPT_CONTENT = ['application/x-python-serialize']
 
 CELERYD_HIJACK_ROOT_LOGGER = False
 CELERYD_PREFETCH_MULTIPLIER = 4
@@ -64,12 +66,6 @@ if os.environ.get('INSTANCE') == 'celery-gevent':
     CELERYD_PREFETCH_MULTIPLIER = 0
 
 CELERY_TIMEZONE = 'Asia/Shanghai'
-
-# CELERYD_POOL = 'gevent'
-# CELERYD_CONCURRENCY = 32  # 16 processes in paralle
-
-
-from kombu import Exchange, Queue
 
 CELERY_DEFAULT_QUEUE = 'default'
 CELERY_QUEUES = (
@@ -100,28 +96,9 @@ CELERY_DEFAULT_EXCHANGE_TYPE = 'topic'
 CELERY_DEFAULT_ROUTING_KEY = 'default'
 
 CELERY_IMPORTS = (
-    'shopback.trades.tasks_release',
-    'flashsale.xiaolumm.tasks',
-    'flashsale.xiaolumm.tasks_mama',
-    'flashsale.xiaolumm.tasks_mama_activevalue',
-    'flashsale.xiaolumm.tasks_mama_fortune',
-    'flashsale.xiaolumm.tasks_mama_relationship_visitor',
-    'flashsale.xiaolumm.tasks_mama_carryrecord',
-    'flashsale.xiaolumm.tasks_mama_carry_total',
-    'flashsale.xiaolumm.tasks_mama_clickcarry',
-    'flashsale.xiaolumm.tasks_mama_dailystats',
-    'flashsale.xiaolumm.tasks_mama_push',
-    'flashsale.xiaolumm.tasks_lesson',
     'flashsale.promotion.tasks_activity',
-    'flashsale.pay.tasks',
     'shopback.items.tasks_stats',
-    'shopback.items.tasks',
-    'shopapp.weixin.tasks.tasks_order_push',
-    'statistics.tasks',
-    'flashsale.restpro.tasks',
     'flashsale.forecast.apis',
-    'flashsale.dinghuo.tasks',
-    'supplychain.supplier.tasks',
 )
 
 
@@ -257,124 +234,124 @@ SKU_STATS_ROUTES = {
 
 
 DAILY_STATS_ROUTES = {
-    'flashsale.xiaolumm.tasks_mama_dailystats.task_confirm_previous_dailystats': {
+    'flashsale.xiaolumm.tasks.tasks_mama_dailystats.task_confirm_previous_dailystats': {
         'queue': 'activevalue',
         'routing_key': 'activevalue.task_confirm_previous_dailystats',
     },
-    'flashsale.xiaolumm.tasks_mama_dailystats.task_visitor_increment_dailystats': {
+    'flashsale.xiaolumm.tasks.tasks_mama_dailystats.task_visitor_increment_dailystats': {
         'queue': 'activevalue',
         'routing_key': 'activevalue.task_visitor_increment_dailystats',
     },
-    'flashsale.xiaolumm.tasks_mama_dailystats.task_carryrecord_update_dailystats': {
+    'flashsale.xiaolumm.tasks.tasks_mama_dailystats.task_carryrecord_update_dailystats': {
         'queue': 'activevalue',
         'routing_key': 'activevalue.task_carryrecord_update_dailystats',
     },
-    'flashsale.xiaolumm.tasks_mama_dailystats.task_ordercarry_increment_dailystats': {
+    'flashsale.xiaolumm.tasks.tasks_mama_dailystats.task_ordercarry_increment_dailystats': {
         'queue': 'activevalue',
         'routing_key': 'activevalue.task_ordercarry_increment_dailystats',
     },
 }
 
 ACTIVE_VALUE_ROUTES = {
-    'flashsale.xiaolumm.tasks_mama_activevalue.task_confirm_previous_activevalue': {
+    'flashsale.xiaolumm.tasks.tasks_mama_activevalue.task_confirm_previous_activevalue': {
         'queue': 'activevalue',
         'routing_key': 'activevalue.task_confirm_previous_activevalue',
     },
-    'flashsale.xiaolumm.tasks_mama_activevalue.task_fans_update_activevalue': {
+    'flashsale.xiaolumm.tasks.tasks_mama_activevalue.task_fans_update_activevalue': {
         'queue': 'activevalue',
         'routing_key': 'activevalue.task_fans_update_activevalue',
     },
-    'flashsale.xiaolumm.tasks_mama_activevalue.task_ordercarry_update_activevalue': {
+    'flashsale.xiaolumm.tasks.tasks_mama_activevalue.task_ordercarry_update_activevalue': {
         'queue': 'activevalue',
         'routing_key': 'activevalue.task_ordercarry_update_activevalue',
     },
-    'flashsale.xiaolumm.tasks_mama_activevalue.task_referal_update_activevalue': {
+    'flashsale.xiaolumm.tasks.tasks_mama_activevalue.task_referal_update_activevalue': {
         'queue': 'activevalue',
         'routing_key': 'activevalue.task_referal_update_activevalue',
     },
-    'flashsale.xiaolumm.tasks_mama_activevalue.task_visitor_increment_activevalue': {
+    'flashsale.xiaolumm.tasks.tasks_mama_activevalue.task_visitor_increment_activevalue': {
         'queue': 'activevalue',
         'routing_key': 'activevalue.task_visitor_increment_activevalue',
     }
 }
 
 MAMA_FORTUNE_ROUTES = {
-    'flashsale.xiaolumm.tasks_mama_fortune.task_xiaolumama_update_mamafortune': {
+    'flashsale.xiaolumm.tasks.tasks_mama_fortune.task_xiaolumama_update_mamafortune': {
         'queue': 'mamafortune',
         'routing_key': 'mamafortune.task_xiaolumama_update_mamafortune',
     },
-    'flashsale.xiaolumm.tasks_mama_fortune.task_cashout_update_mamafortune': {
+    'flashsale.xiaolumm.tasks.tasks_mama_fortune.task_cashout_update_mamafortune': {
         'queue': 'mamafortune',
         'routing_key': 'mamafortune.task_cashout_update_mamafortune',
     },
-    'flashsale.xiaolumm.tasks_mama_fortune.task_carryrecord_update_mamafortune': {
+    'flashsale.xiaolumm.tasks.tasks_mama_fortune.task_carryrecord_update_mamafortune': {
         'queue': 'mamafortune',
         'routing_key': 'mamafortune.task_carryrecord_update_mamafortune',
     },
-    'flashsale.xiaolumm.tasks_mama_fortune.task_activevalue_update_mamafortune': {
+    'flashsale.xiaolumm.tasks.tasks_mama_fortune.task_activevalue_update_mamafortune': {
         'queue': 'mamafortune',
         'routing_key': 'mamafortune.task_activevalue_update_mamafortune',
     },
-    'flashsale.xiaolumm.tasks_mama_fortune.task_update_mamafortune_invite_num': {
+    'flashsale.xiaolumm.tasks.tasks_mama_fortune.task_update_mamafortune_invite_num': {
         'queue': 'mamafortune',
         'routing_key': 'mamafortune.task_update_mamafortune_invite_num',
     },
-    'flashsale.xiaolumm.tasks_mama_fortune.task_update_mamafortune_invite_trial_num': {
+    'flashsale.xiaolumm.tasks.tasks_mama_fortune.task_update_mamafortune_invite_trial_num': {
         'queue': 'mamafortune',
         'routing_key': 'mamafortune.task_update_mamafortune_invite_trial_num',
     },
-    'flashsale.xiaolumm.tasks_mama_fortune.task_update_mamafortune_fans_num': {
+    'flashsale.xiaolumm.tasks.tasks_mama_fortune.task_update_mamafortune_fans_num': {
         'queue': 'mamafortune',
         'routing_key': 'mamafortune.task_update_mamafortune_fans_num',
     },
-    'flashsale.xiaolumm.tasks_mama_fortune.task_update_mamafortune_order_num': {
+    'flashsale.xiaolumm.tasks.tasks_mama_fortune.task_update_mamafortune_order_num': {
         'queue': 'mamafortune',
         'routing_key': 'mamafortune.task_update_mamafortune_order_num',
     },
-    'flashsale.xiaolumm.tasks_mama_fortune.task_update_mamafortune_mama_level': {
+    'flashsale.xiaolumm.tasks.tasks_mama_fortune.task_update_mamafortune_mama_level': {
         'queue': 'mamafortune',
         'routing_key': 'mamafortune.task_update_mamafortune_mama_level',
     },
-    'flashsale.xiaolumm.tasks_mama_fortune.task_send_activate_award': {
+    'flashsale.xiaolumm.tasks.tasks_mama_fortune.task_send_activate_award': {
         'queue': 'mamafortune',
         'routing_key': 'mamafortune.task_send_activate_award',
     },
-    'flashsale.xiaolumm.tasks_mama_fortune.task_update_mamafortune_active_num': {
+    'flashsale.xiaolumm.tasks.tasks_mama_fortune.task_update_mamafortune_active_num': {
         'queue': 'mamafortune',
         'routing_key': 'mamafortune.task_update_mamafortune_active_num',
     },
-    'flashsale.xiaolumm.tasks_mama_fortune.task_update_mamafortune_hasale_num': {
+    'flashsale.xiaolumm.tasks.tasks_mama_fortune.task_update_mamafortune_hasale_num': {
         'queue': 'mamafortune',
         'routing_key': 'mamafortune.task_update_mamafortune_hasale_num',
     },
-    'flashsale.xiaolumm.tasks_mama_fortune.task_mama_daily_app_visit_stats': {
+    'flashsale.xiaolumm.tasks.tasks_mama_fortune.task_mama_daily_app_visit_stats': {
         'queue': 'mamafortune',
         'routing_key': 'mamafortune.task_mama_daily_app_visit_stats',
     },
-    'flashsale.xiaolumm.tasks_mama_fortune.task_mama_daily_tab_visit_stats': {
+    'flashsale.xiaolumm.tasks.tasks_mama_fortune.task_mama_daily_tab_visit_stats': {
         'queue': 'mamafortune',
         'routing_key': 'mamafortune.task_mama_daily_tab_visit_stats',
     },
 }
 
 MAMA_RELATIONSHIP_ROUTES = {
-    'flashsale.xiaolumm.tasks_mama_relationship_visitor.task_update_unique_visitor': {
+    'flashsale.xiaolumm.tasks.tasks_mama_relationship_visitor.task_update_unique_visitor': {
         'queue': 'relationship',
         'routing_key': 'relationship.task_update_unique_visitor',
     },
-    'flashsale.xiaolumm.tasks_mama_relationship_visitor.task_update_referal_relationship': {
+    'flashsale.xiaolumm.tasks.tasks_mama_relationship_visitor.task_update_referal_relationship': {
         'queue': 'relationship',
         'routing_key': 'relationship.task_update_referal_relationship',
     },
-    'flashsale.xiaolumm.tasks_mama_relationship_visitor.task_update_group_relationship': {
+    'flashsale.xiaolumm.tasks.tasks_mama_relationship_visitor.task_update_group_relationship': {
         'queue': 'relationship',
         'routing_key': 'relationship.task_update_group_relationship',
     },
-    'flashsale.xiaolumm.tasks_mama_relationship_visitor.task_login_activate_appdownloadrecord': {
+    'flashsale.xiaolumm.tasks.tasks_mama_relationship_visitor.task_login_activate_appdownloadrecord': {
         'queue': 'relationship',
         'routing_key': 'relationship.task_login_activate_appdownloadrecord',
     },
-    'flashsale.xiaolumm.tasks_mama_relationship_visitor.task_login_create_appdownloadrecord': {
+    'flashsale.xiaolumm.tasks.tasks_mama_relationship_visitor.task_login_create_appdownloadrecord': {
         'queue': 'relationship',
         'routing_key': 'relationship.task_login_create_appdownloadrecord',
     },
@@ -418,82 +395,82 @@ MAMA_RELATIONSHIP_ROUTES = {
         'queue': 'relationship',
         'routing_key': 'relationship.task_create_appdownloadrecord_with_mobile',
     },
-    'flashsale.xiaolumm.tasks_lesson.task_create_lessonattendrecord': {
+    'flashsale.xiaolumm.tasks.tasks_lesson.task_create_lessonattendrecord': {
         'queue': 'relationship',
         'routing_key': 'relationship.task_create_lessonattendrecord',
     },
-    'flashsale.xiaolumm.tasks_lesson.task_create_instructor_application': {
+    'flashsale.xiaolumm.tasks.tasks_lesson.task_create_instructor_application': {
         'queue': 'relationship',
         'routing_key': 'relationship.task_create_instructor_application',
     },
-    'flashsale.xiaolumm.tasks_lesson.task_lessonattendrecord_create_topicattendrecord': {
+    'flashsale.xiaolumm.tasks.tasks_lesson.task_lessonattendrecord_create_topicattendrecord': {
         'queue': 'relationship',
         'routing_key': 'relationship.task_lessonattendrecord_create_topicattendrecord',
     },
-    'flashsale.xiaolumm.tasks_lesson.task_topicattendrecord_validate_lessonattendrecord': {
+    'flashsale.xiaolumm.tasks.tasks_lesson.task_topicattendrecord_validate_lessonattendrecord': {
         'queue': 'relationship',
         'routing_key': 'relationship.task_topicattendrecord_validate_lessonattendrecord',
     },
-    'flashsale.xiaolumm.tasks_lesson.task_update_topic_attender_num': {
+    'flashsale.xiaolumm.tasks.tasks_lesson.task_update_topic_attender_num': {
         'queue': 'relationship',
         'routing_key': 'relationship.task_update_topic_attender_num',
     },
-    'flashsale.xiaolumm.tasks_lesson.task_update_lesson_attender_num': {
+    'flashsale.xiaolumm.tasks.tasks_lesson.task_update_lesson_attender_num': {
         'queue': 'relationship',
         'routing_key': 'relationship.task_update_lesson_attender_num',
     },
-    'flashsale.xiaolumm.tasks_lesson.task_lesson_update_instructor_attender_num': {
+    'flashsale.xiaolumm.tasks.tasks_lesson.task_lesson_update_instructor_attender_num': {
         'queue': 'relationship',
         'routing_key': 'relationship.task_lesson_update_instructor_attender_num',
     },
-    'flashsale.xiaolumm.tasks_lesson.task_lesson_update_instructor_payment': {
+    'flashsale.xiaolumm.tasks.tasks_lesson.task_lesson_update_instructor_payment': {
         'queue': 'relationship',
         'routing_key': 'relationship.task_lesson_update_instructor_payment',
     },
 }
 
 MAMA_CARRY_ROUTES = {
-    'flashsale.xiaolumm.tasks_mama_clickcarry.task_confirm_previous_zero_order_clickcarry': {
+    'flashsale.xiaolumm.tasks.tasks_mama_clickcarry.task_confirm_previous_zero_order_clickcarry': {
         'queue': 'mama',
         'routing_key': 'mama.task_confirm_previous_zero_order_clickcarry',
     },
-    'flashsale.xiaolumm.tasks_mama_clickcarry.task_confirm_previous_order_clickcarry': {
+    'flashsale.xiaolumm.tasks.tasks_mama_clickcarry.task_confirm_previous_order_clickcarry': {
         'queue': 'mama',
         'routing_key': 'mama.task_confirm_previous_order_clickcarry',
     },
-    'flashsale.xiaolumm.tasks_mama_clickcarry.task_visitor_increment_clickcarry': {
+    'flashsale.xiaolumm.tasks.tasks_mama_clickcarry.task_visitor_increment_clickcarry': {
         'queue': 'mama',
         'routing_key': 'mama.task_visitor_increment_clickcarry',
     },
-    'flashsale.xiaolumm.tasks_mama_clickcarry.task_update_clickcarry_order_number': {
+    'flashsale.xiaolumm.tasks.tasks_mama_clickcarry.task_update_clickcarry_order_number': {
         'queue': 'mama',
         'routing_key': 'mama.task_update_clickcarry_order_number',
     },
-    'flashsale.xiaolumm.tasks_mama.task_referal_update_awardcarry': {
+    'flashsale.xiaolumm.tasks.tasks_mama.task_referal_update_awardcarry': {
         'queue': 'mama',
         'routing_key': 'mama.task_referal_update_awardcarry',
     },
-    'flashsale.xiaolumm.tasks_mama.task_update_group_awardcarry': {
+    'flashsale.xiaolumm.tasks.tasks_mama.task_update_group_awardcarry': {
         'queue': 'mama',
         'routing_key': 'mama.task_update_group_awardcarry',
     },
-    'flashsale.xiaolumm.tasks_mama.task_update_ordercarry': {
+    'flashsale.xiaolumm.tasks.tasks_mama.task_update_ordercarry': {
         'queue': 'mama',
         'routing_key': 'mama.task_update_ordercarry',
     },
-    'flashsale.xiaolumm.tasks_mama.task_update_second_level_ordercarry': {
+    'flashsale.xiaolumm.tasks.tasks_mama.task_update_second_level_ordercarry': {
         'queue': 'mama',
         'routing_key': 'mama.task_update_second_level_ordercarry',
     },
-    'flashsale.xiaolumm.tasks_mama.task_update_second_level_ordercarry_by_trial': {
+    'flashsale.xiaolumm.tasks.tasks_mama.task_update_second_level_ordercarry_by_trial': {
         'queue': 'mama',
         'routing_key': 'mama.task_update_second_level_ordercarry_by_trial',
     },
-    'flashsale.xiaolumm.tasks_mama.task_order_trigger': {
+    'flashsale.xiaolumm.tasks.tasks_mama.task_order_trigger': {
         'queue': 'mama',
         'routing_key': 'mama.task_order_trigger',
     },
-    'flashsale.xiaolumm.tasks_mama.carryrecord_update_xiaolumama_active_hasale': {
+    'flashsale.xiaolumm.tasks.tasks_mama.carryrecord_update_xiaolumama_active_hasale': {
         'queue': 'mama',
         'routing_key': 'mama.carryrecord_update_xiaolumama_active_hasale',
     },
@@ -527,38 +504,38 @@ MAMA_CARRY_ROUTES = {
 # }
 
 MAMA_CARRYRECORD_ROUTES = {
-    'flashsale.xiaolumm.tasks_mama_carryrecord.task_awardcarry_update_carryrecord': {
+    'flashsale.xiaolumm.tasks.tasks_mama_carryrecord.task_awardcarry_update_carryrecord': {
         'queue': 'carryrecord',
         'routing_key': 'carryrecord.task_awardcarry_update_carryrecord',
     },
-    'flashsale.xiaolumm.tasks_mama_carryrecord.task_ordercarry_update_carryrecord': {
+    'flashsale.xiaolumm.tasks.tasks_mama_carryrecord.task_ordercarry_update_carryrecord': {
         'queue': 'carryrecord',
         'routing_key': 'carryrecord.task_ordercarry_update_carryrecord',
     },
-    'flashsale.xiaolumm.tasks_mama_carryrecord.task_clickcarry_update_carryrecord': {
+    'flashsale.xiaolumm.tasks.tasks_mama_carryrecord.task_clickcarry_update_carryrecord': {
         'queue': 'carryrecord',
         'routing_key': 'carryrecord.task_clickcarry_update_carryrecord',
     },
-    'flashsale.xiaolumm.tasks_mama_fortune.task_first_order_send_award': {
+    'flashsale.xiaolumm.tasks.tasks_mama_fortune.task_first_order_send_award': {
         'queue': 'carryrecord',
         'routing_key': 'carryrecord.task_first_order_send_award',
     },
-    'flashsale.xiaolumm.tasks_mama_fortune.task_new_guy_task_complete_send_award': {
+    'flashsale.xiaolumm.tasks.tasks_mama_fortune.task_new_guy_task_complete_send_award': {
         'queue': 'carryrecord',
         'routing_key': 'carryrecord.task_new_guy_task_complete_send_award',
     },
-    'flashsale.xiaolumm.tasks_mama_fortune.task_subscribe_weixin_send_award': {
+    'flashsale.xiaolumm.tasks.tasks_mama_fortune.task_subscribe_weixin_send_award': {
         'queue': 'carryrecord',
         'routing_key': 'carryrecord.task_subscribe_weixin_send_award',
     },
 
 }
 MAMA_CARRYTOTAL_ROUTES = {
-    'flashsale.xiaolumm.tasks_mama_carry_total.task_fortune_update_week_carry_total': {
+    'flashsale.xiaolumm.tasks.tasks_mama_carry_total.task_fortune_update_week_carry_total': {
         'queue': 'carrytotal',
         'routing_key': 'carrytotal.task_fortune_update_week_carry_total',
     },
-    'flashsale.xiaolumm.tasks_mama_carry_total.task_fortune_update_activity_carry_total': {
+    'flashsale.xiaolumm.tasks.tasks_mama_carry_total.task_fortune_update_activity_carry_total': {
         'queue': 'carrytotal',
         'routing_key': 'carrytotal.task_fortune_update_activity_carry_total',
     },
@@ -801,47 +778,47 @@ CELERY_ROUTES = {
         'queue': 'notify',
         'routing_key': 'notify.confirm_trade_charge',
     },  # 小鹿订单确认支付
-    'flashsale.xiaolumm.tasks_mama_push.task_push_ninpic_remind': {
+    'flashsale.xiaolumm.tasks.tasks_mama_push.task_push_ninpic_remind': {
         'queue': 'notify',
         'routing_key': 'notify.task_push_ninpic_remind',
     },  # 九张图更新推送代理
-    'flashsale.xiaolumm.tasks_mama_push.task_app_push_ordercarry': {
+    'flashsale.xiaolumm.tasks.tasks_mama_push.task_app_push_ordercarry': {
         'queue': 'notify',
         'routing_key': 'notify.task_app_push_ordercarry',
     },  # 妈妈奖金APP推送
-    'flashsale.xiaolumm.tasks_mama_push.task_push_new_mama_task': {
+    'flashsale.xiaolumm.tasks.tasks_mama_push.task_push_new_mama_task': {
         'queue': 'notify',
         'routing_key': 'notify.task_push_new_mama_task',
     },  # 妈妈新手任务引导推送
-    'flashsale.xiaolumm.tasks_mama_push.task_sms_push_mama': {
+    'flashsale.xiaolumm.tasks.tasks_mama_push.task_sms_push_mama': {
         'queue': 'notify',
         'routing_key': 'notify.task_sms_push_mama',
     },  # 新加入１元妈妈短信推送
-    'flashsale.xiaolumm.tasks_mama_push.task_push_mama_cashout_msg': {
+    'flashsale.xiaolumm.tasks.tasks_mama_push.task_push_mama_cashout_msg': {
         'queue': 'notify',
         'routing_key': 'notify.task_push_mama_cashout_msg',
     },  # 代理有提现成功推送消息提醒
-    'flashsale.xiaolumm.tasks_mama_push.task_weixin_push_awardcarry': {
+    'flashsale.xiaolumm.tasks.tasks_mama_push.task_weixin_push_awardcarry': {
         'queue': 'notify',
         'routing_key': 'notify.task_weixin_push_awardcarry',
     },  # 妈妈奖金微信推送
-    'flashsale.xiaolumm.tasks_mama_push.task_weixin_push_clickcarry': {
+    'flashsale.xiaolumm.tasks.tasks_mama_push.task_weixin_push_clickcarry': {
         'queue': 'notify',
         'routing_key': 'notify.task_weixin_push_clickcarry',
     },  # 妈妈点击收益微信推送
-    'flashsale.xiaolumm.tasks_mama_push.task_weixin_push_mama_coupon_audit': {
+    'flashsale.xiaolumm.tasks.tasks_mama_push.task_weixin_push_mama_coupon_audit': {
         'queue': 'notify',
         'routing_key': 'notify.task_weixin_push_mama_coupon_audit',
     },  # 妈妈精品券申请审核微信推送
-    'flashsale.xiaolumm.tasks_mama_push.task_weixin_push_ordercarry': {
+    'flashsale.xiaolumm.tasks.tasks_mama_push.task_weixin_push_ordercarry': {
         'queue': 'notify',
         'routing_key': 'notify.task_weixin_push_ordercarry',
     },  # 妈妈奖金微信推送
-    'flashsale.xiaolumm.tasks_mama_push.task_weixin_push_update_app': {
+    'flashsale.xiaolumm.tasks.tasks_mama_push.task_weixin_push_update_app': {
         'queue': 'notify',
         'routing_key': 'notify.task_weixin_push_update_app',
     },  # 妈妈APP更新微信推送
-    'flashsale.xiaolumm.tasks_mama_push.task_weixin_push_invite_trial': {
+    'flashsale.xiaolumm.tasks.tasks_mama_push.task_weixin_push_invite_trial': {
         'queue': 'notify',
         'routing_key': 'notify.task_weixin_push_invite_trial',
     },  # 妈妈邀请体验妈妈微信推送
@@ -901,11 +878,11 @@ CELERY_ROUTES = {
         'routing_key': 'frency.task_notify_lack_refund',
     },  # 缺货退款通知
     #######################################################
-    'shopapp.asynctask.tasks.PrintAsyncTask': {
+    'shopapp.asynctask.tasks.task_print_async': {
         'queue': 'async',
         'routing_key': 'async.async_invoice_print',
     },  # 发货单打印任务
-    'shopapp.asynctask.tasks.PrintAsyncTask2': {
+    'shopapp.asynctask.tasks.task_print_async2': {
         'queue': 'async',
         'routing_key': 'async.async_invoice_print',
     },  # 发货单打印任务
@@ -981,7 +958,12 @@ CELERY_ROUTES.update(APIS_ROUTES)
 CELERY_ROUTES.update(DINGHUO_ROUTES)
 CELERY_ROUTES.update(QRCODE_ROUTES)
 
-
+CELERY_TASK_ROUTES = {
+    'flashsale.pay.tasks.task_sync_xlmm_fans_nick_thumbnail': {
+        'queue': 'frency',
+        'routing_key': 'frency.task_sync_xlmm_fans_nick_thumbnail',
+    }
+}
 ####### schedule task  ########
 SYNC_MODEL_SCHEDULE = {
     u'定时淘宝分销订单增量下载任务': {  # 增量更新分销部分订单
@@ -1003,7 +985,7 @@ SYNC_MODEL_SCHEDULE = {
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
     u'分段日期统计商品销售数据': {  # 将昨日的订单数更新为商品的警告库位
-        'task': 'shopback.items.tasks.gradCalcProductSaleTask',
+        'task': 'shopback.items.tasks.task_calc_product_sale_stats',
         'schedule': crontab(minute="30", hour='3'),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
@@ -1043,12 +1025,6 @@ SYNC_MODEL_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
-    u'定时释放定时提醒订单': {
-        'task': 'shopback.trades.tasks_release.CancelMergeOrderStockOutTask',
-        'schedule': crontab(minute="5", hour=','.join([str(i) for i in range(8, 22, 1)])),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
     u'定时下载更新小鹿特卖订单': {
         'task': 'flashsale.pay.tasks.pull_Paid_SaleTrade',
         'schedule': crontab(minute="20", hour="3,12"),
@@ -1078,12 +1054,6 @@ SYNC_MODEL_SCHEDULE = {
 }
 
 SHOP_APP_SCHEDULE = {
-    u'定时抓取商品评价': {
-        'task': 'shopapp.comments.tasks.crawAllUserOnsaleItemComment',
-        'schedule': crontab(minute="0", hour="8,10,12,14,16,18,20,22"),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
     # u'定时上架任务': {  # 定时上架任务
     #     'task': 'shopapp.autolist.tasks.updateAllItemListTask',
     #     'schedule': crontab(minute='*/10', hour=','.join([str(i) for i in range(7, 24)])),
@@ -1103,19 +1073,19 @@ SHOP_APP_SCHEDULE = {
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
     u'定时韵达录单任务': {
-        'task': 'shopapp.yunda.tasks.UpdateYundaOrderAddrTask',
+        'task': 'shopapp.yunda.tasks.task_update_yunda_order_addr',
         'schedule': crontab(minute="0", hour="10,13"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
     u'定时取消二维码未揽件单号': {
-        'task': 'shopapp.yunda.tasks.CancelUnsedYundaSidTask',
+        'task': 'shopapp.yunda.tasks.task_cancel_unused_yunda_sid',
         'schedule': crontab(minute="0", hour="4"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
     u'定时系统订单重量更新至韵达对接系统': {
-        'task': 'shopapp.yunda.tasks.PushYundaPackageWeightTask',
+        'task': 'shopapp.yunda.tasks.task_push_yunda_package_weight',
         'schedule': crontab(minute="*/15", hour="17,18,19,20,21,22,23"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
@@ -1163,7 +1133,7 @@ SHOP_APP_SCHEDULE = {
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
     u'定时短信通知微信用户': {
-        'task': 'shopapp.weixin_sales.tasks.NotifyParentAwardTask',
+        'task': 'shopapp.weixin_sales.tasks.task_notify_parent_award',
         'schedule': crontab(minute="*/5", ),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
@@ -1176,7 +1146,7 @@ SHOP_APP_SCHEDULE = {
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
     u'定时统计昨日小鹿妈妈真实性评分': {
-        'task': 'flashsale.xiaolumm.tasks_mama_dailystats.task_xlmm_score',
+        'task': 'flashsale.xiaolumm.tasks.tasks_mama_dailystats.task_xlmm_score',
         'schedule': crontab(minute="00", hour='2'),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
@@ -1260,7 +1230,7 @@ SHOP_APP_SCHEDULE = {
     #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     # },
     u'定时生成管理员代理状况汇总csv文件': {
-        'task': 'flashsale.xiaolumm.tasks_manager_summary.task_make_Manager_Summary_Cvs',
+        'task': 'flashsale.xiaolumm.tasks.tasks_manager_summary.task_make_Manager_Summary_Cvs',
         'schedule': crontab(minute="45", hour="6"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
@@ -1372,7 +1342,7 @@ SHOP_APP_SCHEDULE = {
     },
 
     u'定时推送九张图上新内容': {
-        'task': 'flashsale.xiaolumm.tasks_mama_push.task_push_ninpic_peroid',
+        'task': 'flashsale.xiaolumm.tasks.tasks_mama_push.task_push_ninpic_peroid',
         'schedule': crontab(minute="*/15"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
@@ -1494,13 +1464,13 @@ SHOP_APP_SCHEDULE = {
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
     u'定时更新小鹿妈妈排名3分钟': {
-        'task': 'flashsale.xiaolumm.tasks_mama_carry_total.task_schedule_update_carry_total_ranking',
+        'task': 'flashsale.xiaolumm.tasks.tasks_mama_carry_total.task_schedule_update_carry_total_ranking',
         'schedule': crontab(minute="30", hour="0"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
     u'定时更新妈妈团队排名30分钟': {
-        'task': 'flashsale.xiaolumm.tasks_mama_carry_total.task_schedule_update_team_carry_total_ranking',
+        'task': 'flashsale.xiaolumm.tasks.tasks_mama_carry_total.task_schedule_update_team_carry_total_ranking',
         'schedule': crontab(minute="59", hour="0"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
@@ -1570,3 +1540,5 @@ CELERYBEAT_SCHEDULE = {}
 CELERYBEAT_SCHEDULE.update(SYNC_MODEL_SCHEDULE)
 
 CELERYBEAT_SCHEDULE.update(SHOP_APP_SCHEDULE)
+
+# CELERY_BEAT_SCHEDULE = CELERYBEAT_SCHEDULE

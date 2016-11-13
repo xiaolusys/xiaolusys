@@ -1,8 +1,10 @@
 # -*- coding:utf8 -*-
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
+
 import json
 import time
 import datetime
-from celery.task import task
 from django.db.models import Q
 from shopback import paramconfig as pcfg
 from shopback.trades.models import MergeTrade, MergeBuyerTrade

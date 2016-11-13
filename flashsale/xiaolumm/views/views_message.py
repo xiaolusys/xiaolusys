@@ -10,7 +10,7 @@ from rest_framework.decorators import detail_route, list_route
 from core.utils.modelutils import get_class_fields
 from collections import OrderedDict
 
-from flashsale.xiaolumm.tasks_mama_fortune import task_mama_daily_tab_visit_stats
+from flashsale.xiaolumm.tasks import task_mama_daily_tab_visit_stats
 from flashsale.xiaolumm.models import MamaTabVisitStats
 
 class XlmmMessageViewSet(viewsets.GenericViewSet, viewsets.mixins.ListModelMixin):

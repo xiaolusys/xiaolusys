@@ -6,8 +6,7 @@ setup_djagno_environ()
 import django
 django.setup()
 import datetime
-from flashsale.xiaolumm.tasks_mama_carry_total import *
-from flashsale.xiaolumm.tasks_mama import *
+from flashsale.xiaolumm.tasks import *
 from flashsale.pay.models import SaleOrder
 
 if __name__ == '__main__':

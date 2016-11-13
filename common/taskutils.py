@@ -1,3 +1,5 @@
+from __future__ import absolute_import, unicode_literals
+
 import types
 from django.conf import settings
 from django.core.cache import cache
@@ -6,8 +8,7 @@ import logging
 
 def single_instance_task(timeout, prefix=''):
     def task_exc(func):
-
-        from celery.task import task
+        from celery import shared_task as task
 
         def delay(self, *args, **kwargs):
             return self.apply(args, kwargs)
@@ -35,8 +36,7 @@ def single_instance_task(timeout, prefix=''):
 
 def single_record_task(timeout, prefix=''):
     def task_exc(func):
-
-        from celery.task import task
+        from celery import shared_task as task
 
         def delay(self, *args, **kwargs):
             return self.apply(args, kwargs)

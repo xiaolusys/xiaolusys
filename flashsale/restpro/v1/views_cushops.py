@@ -63,7 +63,7 @@ class CustomerShopsViewSet(viewsets.ModelViewSet):
                 xlmm = customer.get_charged_mama()
                 if xlmm:
                     mm_linkid = xlmm.id
-                    from flashsale.xiaolumm.tasks_mama_fortune import task_mama_daily_tab_visit_stats
+                    from flashsale.xiaolumm.tasks import task_mama_daily_tab_visit_stats
                     task_mama_daily_tab_visit_stats.delay(xlmm.id, MamaTabVisitStats.TAB_MAMA_SHOP)
                     
             shop_info = model_to_dict(shop)

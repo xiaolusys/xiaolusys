@@ -1,9 +1,11 @@
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
+
 import logging
 import json
 import sys
 from django.db import IntegrityError, transaction
 from django.db.models import Sum
-from celery.task import task
 
 from shopback.items.models import SkuStock, ProductSku
 
@@ -30,7 +32,7 @@ def task_productsku_create_productskustats(sku_id, product_id):
 
 
 @task()
-@transaction.atomic
+# @transaction.atomic
 def task_productsku_update_productskustats(sku_id, product_id):
     stats = SkuStock.objects.filter(sku_id=sku_id)
     if not stats.exists():

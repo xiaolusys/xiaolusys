@@ -91,11 +91,11 @@ def update_activevalue(sender, instance, created, **kwargs):
     if not created:
         return
 
-    from flashsale.xiaolumm import tasks_mama_activevalue
+    from flashsale.xiaolumm.tasks import task_fans_update_activevalue
     mama_id = instance.xlmm
     fans_customer_id = instance.fans_cusid
     date_field = instance.created.date()
-    tasks_mama_activevalue.task_fans_update_activevalue.delay(mama_id, fans_customer_id, date_field)
+    task_fans_update_activevalue.delay(mama_id, fans_customer_id, date_field)
 
 
 post_save.connect(update_activevalue, sender=XlmmFans, dispatch_uid='post_save_update_activevalue')
@@ -104,9 +104,9 @@ post_save.connect(update_activevalue, sender=XlmmFans, dispatch_uid='post_save_u
 def update_mamafortune_fans_num(sender, instance, created, **kwargs):
     if not created:
         return
-    from flashsale.xiaolumm import tasks_mama_fortune
+    from flashsale.xiaolumm.tasks import task_update_mamafortune_fans_num
     mama_id = instance.xlmm
-    tasks_mama_fortune.task_update_mamafortune_fans_num.delay(mama_id)
+    task_update_mamafortune_fans_num.delay(mama_id)
 
 
 post_save.connect(update_mamafortune_fans_num,
@@ -117,7 +117,7 @@ def xlmmfans_xlmm_newtask(sender, instance, **kwargs):
     """
     检测新手任务：　获取第一个粉丝
     """
-    from flashsale.xiaolumm.tasks_mama_push import task_push_new_mama_task
+    from flashsale.xiaolumm.tasks import task_push_new_mama_task
     from flashsale.xiaolumm.models.new_mama_task import NewMamaTask
     from flashsale.xiaolumm.models.models import XiaoluMama
 
@@ -157,7 +157,7 @@ def login_activate_appdownloadrecord(user):
     a fan of the related user.
     """
 
-    from flashsale.xiaolumm.tasks_mama_relationship_visitor import task_login_activate_appdownloadrecord, \
+    from flashsale.xiaolumm.tasks import task_login_activate_appdownloadrecord, \
         task_login_create_appdownloadrecord
     task_login_activate_appdownloadrecord.delay(user)
     # task_login_create_appdownloadrecord.delay()

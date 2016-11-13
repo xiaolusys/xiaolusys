@@ -13,7 +13,7 @@ from flashsale.xiaolumm.models import XiaoluMama, MamaTabVisitStats
 from flashsale.xiaolumm.models.models_advertis import XlmmAdvertis, NinePicAdver, MamaVebViewConf
 from . import serializers
 from django_statsd.clients import statsd
-from flashsale.xiaolumm.tasks_mama_fortune import task_mama_daily_tab_visit_stats
+from flashsale.xiaolumm.tasks import task_mama_daily_tab_visit_stats
 
 
 class XlmmAdvertisViewSet(viewsets.ModelViewSet):

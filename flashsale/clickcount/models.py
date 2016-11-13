@@ -41,7 +41,7 @@ class Clicks(models.Model):
 
 def update_unique_visitor(sender, instance, created, **kwargs):
     if created and instance.isvalid:
-        from flashsale.xiaolumm.tasks_mama_relationship_visitor import task_update_unique_visitor
+        from flashsale.xiaolumm.tasks import task_update_unique_visitor
         mama_id = instance.linkid
         openid = instance.openid
         app_key = instance.app_key
