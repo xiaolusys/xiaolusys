@@ -3,7 +3,7 @@
     功能：质量问题的退货 要追踪到买手 以便 了解渠道问题
 """
 from django.db import connection
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
 import json
@@ -18,8 +18,11 @@ def tracert_Page_Show(request):
     today = date_today.strftime("%Y-%m-%d")
     third_day = date_today - datetime.timedelta(days=30)  # 默认30天
     third_day_p = third_day.strftime("%Y-%m-%d")
-    return render_to_response("refunds/refund_pro_quality_tracert.html", {"third_day_p": third_day_p, "today": today},
-                              context_instance=RequestContext(request))
+    return render(
+        request,
+        "refunds/refund_pro_quality_tracert.html",
+        {"third_day_p": third_day_p, "today": today},
+    )
 
 
 @csrf_exempt

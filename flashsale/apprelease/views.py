@@ -1,7 +1,6 @@
 # coding=utf-8
 import datetime
 from django.shortcuts import render, redirect
-from django.shortcuts import render_to_response
 from django.template import RequestContext
 from rest_framework import permissions, authentication, renderers
 from rest_framework.views import APIView
@@ -26,7 +25,7 @@ class addNewReleaseView(APIView):
     renderer_classes = (renderers.BrowsableAPIRenderer,)
 
     def get(self, request):
-        response = render_to_response(self.template, {}, context_instance=RequestContext(request))
+        response = render(request, self.template, {})
         return response
 
     def post(self, request):
@@ -45,16 +44,15 @@ class addNewReleaseView(APIView):
             before_release_time = old_rel.release_time
             if release_time < before_release_time:
                 message = '存在版本号为{0}发布时间为{1},该时间大于{2},不予发布！'.format(old_rel.version, before_release_time, release_time)
-                return render_to_response(self.template, {"message": message,
+                return render(request, self.template, {"message": message,
                                                           "download_link": download_link,
-                                                          "qrcode_link": qrcode_link},
-                                          context_instance=RequestContext(request))
+                                                          "qrcode_link": qrcode_link})
             if old_rel.version == version or old_rel.hash_value == hash_value:
                 message = '版本号{0}已经存在！'.format(old_rel.version)
-                return render_to_response(self.template, {"message": message,
-                                                          "download_link": download_link,
-                                                          "qrcode_link": qrcode_link},
-                                          context_instance=RequestContext(request))
+                return render(request, self.template, {
+                    "message": message,
+                    "download_link": download_link,
+                    "qrcode_link": qrcode_link})
         app = AppRelease(
             download_link=download_link,
             qrcode_link=qrcode_link,

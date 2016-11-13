@@ -7,6 +7,7 @@ from shopback.logistics.models import LogisticsCompany
 class ExpressCompanySerialize(serializers.ModelSerializer):
     class Meta:
         model = LogisticsCompany
+        exclude = ()
 
 
 class ReceiptGoodsSerialize(serializers.ModelSerializer):
@@ -17,4 +18,5 @@ class ReceiptGoodsSerialize(serializers.ModelSerializer):
 
     class Meta:
         model = ReceiptGoods
+        exclude = ()
 

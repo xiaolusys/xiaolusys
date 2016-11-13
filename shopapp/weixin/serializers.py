@@ -6,6 +6,7 @@ from .models import WXProduct
 class WeixinProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = WXProduct
+        exclude = ()
 
 # fields = ('product_id','product_list','product_ids','next','code','response')
 #         exclude = ('url',)

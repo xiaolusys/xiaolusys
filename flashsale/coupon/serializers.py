@@ -43,11 +43,13 @@ class UserCouponSerialize(serializers.ModelSerializer):
 class OrderShareCouponSerialize(serializers.ModelSerializer):
     class Meta:
         model = OrderShareCoupon
+        exclude = ()
 
 
 class TmpShareCouponSerialize(serializers.ModelSerializer):
     class Meta:
         model = TmpShareCoupon
+        exclude = ()
 
 
 class TmpShareCouponMapSerialize(serializers.ModelSerializer):

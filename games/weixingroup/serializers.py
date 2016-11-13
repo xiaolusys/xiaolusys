@@ -27,13 +27,16 @@ class MamaGroupsSerializers(serializers.ModelSerializer):
 class GroupFansSerializers(serializers.ModelSerializer):
     class Meta:
         model = GroupFans
+        exclude = ()
 
 
 class ActivityEntrySerializers(serializers.ModelSerializer):
     class Meta:
         model = ActivityEntry
+        exclude = ()
 
 
 class ActivityUsersSerializers(serializers.ModelSerializer):
     class Meta:
         model = ActivityUsers
+        exclude = ()

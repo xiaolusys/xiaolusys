@@ -9,7 +9,7 @@ from django.db import models
 from django.views.decorators.csrf import csrf_protect
 from django.forms import TextInput, Textarea, Select
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.template import RequestContext
 from django.utils.encoding import force_unicode
 from core.utils.modelutils import get_class_fields
@@ -722,11 +722,13 @@ class MergeTradeAdmin(ApproxAdmin):
         success_trades = MergeTrade.objects.filter(id__in=pull_success_ids)
         fail_trades = MergeTrade.objects.filter(id__in=pull_fail_ids)
 
-        return render_to_response('trades/repullsuccess.html',
-                                  {'success_trades': success_trades,
-                                   'fail_trades': fail_trades},
-                                  context_instance=RequestContext(request),
-                                  content_type="text/html")
+        return render(
+            request,
+            'trades/repullsuccess.html',
+              {'success_trades': success_trades,
+               'fail_trades': fail_trades},
+              content_type="text/html"
+        )
 
     pull_order_action.short_description = "重新下单".decode('utf8')
 
@@ -753,10 +755,12 @@ class MergeTradeAdmin(ApproxAdmin):
 
         response_dict = {'task_id': send_tasks.task_id, 'replay_id': replay_trade.id}
 
-        return render_to_response('trades/send_trade_reponse.html',
-                                  response_dict,
-                                  context_instance=RequestContext(request),
-                                  content_type="text/html")
+        return render(
+            request,
+            'trades/send_trade_reponse.html',
+              response_dict,
+              content_type="text/html"
+        )
 
     push_trade_to_scan.short_description = "同步发货".decode('utf8')
 
@@ -781,11 +785,13 @@ class MergeTradeAdmin(ApproxAdmin):
 
         fail_trades = MergeTrade.objects.filter(id__in=trade_ids, is_locked=True)
 
-        return render_to_response('trades/unlock_trade_status_template.html',
-                                  {'success_trades': success_trades,
-                                   'fail_trades': fail_trades},
-                                  context_instance=RequestContext(request),
-                                  content_type="text/html")
+        return render(
+            request,
+            'trades/unlock_trade_status_template.html',
+              {'success_trades': success_trades,
+               'fail_trades': fail_trades},
+            content_type="text/html"
+        )
 
     unlock_trade_action.short_description = "订单解锁".decode('utf8')
 
@@ -1150,10 +1156,12 @@ class MergeTradeDeliveryAdmin(admin.ModelAdmin):
 
         response_dict = {'task_id': send_tasks.task_id, 'origin_url': request.get_full_path()}
 
-        return render_to_response('trades/delivery_trade_reponse.html',
-                                  response_dict,
-                                  context_instance=RequestContext(request),
-                                  content_type="text/html")
+        return render(
+            request,
+            'trades/delivery_trade_reponse.html',
+            response_dict,
+            content_type="text/html"
+        )
 
     delivery_trade.short_description = "订单发货单号上传".decode('utf8')
 
@@ -1184,8 +1192,12 @@ class ReplayPostTradeAdmin(admin.ModelAdmin):
             reponse_result = get_replay_results(replay_trade)
             reponse_result['post_no'] = reponse_result.get('post_no', None) or replay_trade.id
 
-        return render_to_response('trades/trade_post_success.html', reponse_result,
-                                  context_instance=RequestContext(request), content_type="text/html")
+        return render(
+            request,
+            'trades/trade_post_success.html',
+            reponse_result,
+            content_type="text/html"
+        )
 
     replay_post.short_description = "重现发货清单".decode('utf8')
 
@@ -1206,9 +1218,12 @@ class ReplayPostTradeAdmin(admin.ModelAdmin):
             replay_trade.check_date = datetime.datetime.now()
             replay_trade.save()
 
-        return render_to_response('trades/trade_accept_check.html',
-                                  {'trades': wait_scan_trades, 'is_success': is_success},
-                                  context_instance=RequestContext(request), content_type="text/html")
+        return render(
+            request,
+            'trades/trade_accept_check.html',
+             {'trades': wait_scan_trades, 'is_success': is_success},
+              content_type="text/html"
+        )
 
     check_post.short_description = "验证是否完成".decode('utf8')
 
@@ -1225,8 +1240,12 @@ class ReplayPostTradeAdmin(admin.ModelAdmin):
         reponse_result = get_replay_results(replaypost)
         reponse_result['post_no'] = reponse_result.get('post_no', None) or replaypost.id
 
-        return render_to_response('trades/trade_post_success.html', reponse_result,
-                                  context_instance=RequestContext(request), content_type="text/html")
+        return render(
+            request,
+            'trades/trade_post_success.html',
+            reponse_result,
+             content_type="text/html"
+        )
 
     merge_post_result.short_description = "合并发货批次".decode('utf8')
 
@@ -1314,10 +1333,12 @@ class PackageOrderAdmin(admin.ModelAdmin):
 
         response_dict = {'task_id': send_tasks.task_id, 'replay_id': replay_trade.id}
 
-        return render_to_response('trades/send_package_reponse.html',
-                                  response_dict,
-                                  context_instance=RequestContext(request),
-                                  content_type="text/html")
+        return render(
+            request,
+            'trades/send_package_reponse.html',
+              response_dict,
+              content_type="text/html"
+        )
 
     push_package_to_scan.short_description = "同步发货".decode('utf8')
 

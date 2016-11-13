@@ -2,7 +2,7 @@
 from __future__ import division
 
 from django.views.generic import View
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.template import RequestContext
 from django.db import connection
 import datetime
@@ -154,7 +154,8 @@ class StatsRepeatView(View):
 
         customer_repeat_buy_data = calc_customer_repeat_buy(
             start_date, end_date, category=category, user_type=user_type)
-        return render_to_response(
+        return render(
+            request,
             "xiaolumm/data2repeatshop.html",
             {
                 # "task_id": task_id,
@@ -166,8 +167,7 @@ class StatsRepeatView(View):
                 "month_range": range(1, len(customer_repeat_buy_data)+1),
                 'category': category,
                 'user_type': user_type,
-            },
-            context_instance=RequestContext(request)
+            }
         )
 
 
@@ -199,15 +199,15 @@ class StatsSaleView(View):
         end_month = end_date.month
         month_range = range(start_month, end_month + 1)
         task_id = task_calc_package.delay(start_date, end_date, False)
-        return render_to_response(
+        return render(
+            request,
             "xiaolumm/data2sale.html",
             {
                 "month_range": month_range,
                 "task_id_sale": task_id,
                 "start_date": start_date,
                 "end_date": end_date
-            },
-            context_instance=RequestContext(request)
+            }
         )
 
 
@@ -218,6 +218,8 @@ class StatsSalePeopleView(View):
         start_time_str = content.get("df", None)
         end_time_str = content.get("dt", None)
         send_tasks = task_calc_xlmm.delay(start_time_str, end_time_str)
-        return render_to_response("xiaolumm/data2salepeople.html",
-                                  {"task_id": send_tasks},
-                                  context_instance=RequestContext(request))
+        return render(
+            request,
+            "xiaolumm/data2salepeople.html",
+            {"task_id": send_tasks}
+        )

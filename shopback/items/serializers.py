@@ -211,3 +211,4 @@ class ProductSkuUpdateSerializer(serializers.ModelSerializer):
 class ModelProductSkuContrastSerializer(serializers.ModelSerializer):
     class Meta:
         model = ModelProductSkuContrast
+        exclude = ()

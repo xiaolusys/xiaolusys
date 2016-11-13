@@ -6,7 +6,7 @@ import random
 
 from django.db.models import Sum
 from django.http import HttpResponse, Http404
-from django.shortcuts import redirect, render_to_response
+from django.shortcuts import redirect, render
 from django.template import RequestContext
 from django.core.cache import cache
 
@@ -58,10 +58,9 @@ def popularize_Cost(request):
                                                 date__lte=date_to)
 
     date_dic = {"prev_month": prev_month, "next_month": next_month}
-    return render_to_response("popularize/popularize_cost.html",
+    return render(request, "popularize/popularize_cost.html",
                               {"date_dic": date_dic,
-                               'popularizes': popularizes},
-                              context_instance=RequestContext(request))
+                               'popularizes': popularizes})
 
 
 class DailyStatsViewSet(viewsets.GenericViewSet):

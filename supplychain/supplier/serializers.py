@@ -595,6 +595,7 @@ class ManageDetailAssignWorkerSerializer(serializers.ModelSerializer):
 class SaleProductManageDetailSimpleSerializer(serializers.ModelSerializer):
     class Meta:
         model = SaleProductManageDetail
+        exclude = ()
 
 
 class PreferencePoolSerializer(serializers.ModelSerializer):

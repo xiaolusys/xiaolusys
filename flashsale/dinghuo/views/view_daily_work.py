@@ -9,7 +9,7 @@ from django.contrib.auth.models import User
 from django.db import connection
 from django.db.models import Max, Sum, Q
 from django.forms.models import model_to_dict
-from django.shortcuts import render_to_response, HttpResponse
+from django.shortcuts import render, HttpResponse
 from django.template import RequestContext
 from django.views.generic import View
 
@@ -146,17 +146,18 @@ class DailyDingHuoView(View):
                 else:
                     trade_dict[product[0]].append(temp_dict)
         trade_dict = sorted(trade_dict.items(), key=lambda d: d[0])
-        return render_to_response("dinghuo/dailywork2.html",
-                                  {"target_product": trade_dict,
-                                   "shelve_from": target_date,
-                                   "time_to": time_to,
-                                   "searchDinghuo": query_time,
-                                   'groupname': groupname,
-                                   "dhstatus": dhstatus,
-                                   "search_text": search_text,
-                                   "total_more_num": total_more_num,
-                                   "total_less_num": total_less_num},
-                                  context_instance=RequestContext(request))
+        return render(
+            request,
+            "dinghuo/dailywork2.html",
+              {"target_product": trade_dict,
+               "shelve_from": target_date,
+               "time_to": time_to,
+               "searchDinghuo": query_time,
+               'groupname': groupname,
+               "dhstatus": dhstatus,
+               "search_text": search_text,
+               "total_more_num": total_more_num,
+               "total_less_num": total_less_num})
 
 
 class DailyDingHuoView2(View):
@@ -201,16 +202,17 @@ class DailyDingHuoView2(View):
         task_id = task_ding_huo.delay(shelve_from, time_to, groupname, search_text,
                                       target_date, dinghuo_begin, query_time,
                                       dhstatus)
-        return render_to_response("dinghuo/daily_work.html",
-                                  {"task_id": task_id,
-                                   "shelve_from": target_date,
-                                   "time_to": time_to,
-                                   "searchDinghuo_end": query_time,
-                                   'groupname': groupname,
-                                   "dhstatus": dhstatus,
-                                   "search_text": search_text,
-                                   "searchDinghuo_begin": dinghuo_begin},
-                                  context_instance=RequestContext(request))
+        return render(
+            request,
+            "dinghuo/daily_work.html",
+              {"task_id": task_id,
+               "shelve_from": target_date,
+               "time_to": time_to,
+               "searchDinghuo_end": query_time,
+               'groupname': groupname,
+               "dhstatus": dhstatus,
+               "search_text": search_text,
+               "searchDinghuo_begin": dinghuo_begin})
 
 
 class DailyDingHuoOptimizeView(View):
@@ -250,16 +252,17 @@ class DailyDingHuoOptimizeView(View):
         product_dict = get_product_dict(shelve_from, time_to, groupname,
                                         search_text, target_date, dinghuo_begin,
                                         query_time, dhstatus)
-        return render_to_response("dinghuo/daily_work_optimize.html",
-                                  {"product_dict": product_dict,
-                                   "shelve_from": target_date,
-                                   "time_to": time_to,
-                                   "searchDinghuo_end": query_time,
-                                   'groupname': groupname,
-                                   "dhstatus": dhstatus,
-                                   "search_text": search_text,
-                                   "searchDinghuo_begin": dinghuo_begin},
-                                  context_instance=RequestContext(request))
+        return render(
+            request,
+            "dinghuo/daily_work_optimize.html",
+              {"product_dict": product_dict,
+               "shelve_from": target_date,
+               "time_to": time_to,
+               "searchDinghuo_end": query_time,
+               'groupname': groupname,
+               "dhstatus": dhstatus,
+               "search_text": search_text,
+               "searchDinghuo_begin": dinghuo_begin})
 
 
 def get_product_dict(shelve_from, time_to, groupname, search_text, target_date,
@@ -306,7 +309,6 @@ def get_product_dict(shelve_from, time_to, groupname, search_text, target_date,
 from flashsale.dinghuo import functions2view
 from flashsale.dinghuo.models import OrderDetail, OrderDraft
 from shopback.items.models import Product, ProductSku
-from django.core import serializers
 
 
 class ShowPicView(View):

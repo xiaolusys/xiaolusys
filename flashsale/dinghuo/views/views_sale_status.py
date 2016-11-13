@@ -1,7 +1,7 @@
 # coding:utf-8
 __author__ = 'yann'
 from django.views.generic import View
-from django.shortcuts import HttpResponse, render_to_response, HttpResponseRedirect
+from django.shortcuts import HttpResponse, render, HttpResponseRedirect
 from flashsale.dinghuo.tasks import task_stats_product, task_stats_daily_product, task_stats_daily_order_by_group, \
     task_send_daily_message, task_write_supply_name
 from django.template import RequestContext
@@ -50,10 +50,12 @@ class SaleHotView(View):
         end_time_str = content.get("dt", datetime.date.today().strftime('%Y-%m-%d'))
         category = content.get("category", None)
         send_tasks = task_calc_hot_sale.delay(start_time_str, end_time_str, category)
-        return render_to_response("dinghuo/data2hotsale.html",
-                                  {"task_id": send_tasks, "start_date": start_time_str,
-                                   "end_date": end_time_str, "category": category},
-                                  context_instance=RequestContext(request))
+        return render(
+            request,
+            "dinghuo/data2hotsale.html",
+              {"task_id": send_tasks, "start_date": start_time_str,
+               "end_date": end_time_str, "category": category},
+        )
 
 
 class SaleBadView(View):
@@ -66,10 +68,12 @@ class SaleBadView(View):
         end_time_str = content.get("dt", datetime.date.today().strftime('%Y-%m-%d'))
         category = content.get("category", None)
         send_tasks = task_calc_sale_bad.delay(start_time_str, end_time_str, category)
-        return render_to_response("dinghuo/data2salebad.html",
-                                  {"task_id": send_tasks, "start_date": start_time_str,
-                                   "end_date": end_time_str, "category": category},
-                                  context_instance=RequestContext(request))
+        return render(
+            request,
+            "dinghuo/data2salebad.html",
+              {"task_id": send_tasks, "start_date": start_time_str,
+               "end_date": end_time_str, "category": category},
+        )
 
 
 from django.db.models import Q
@@ -102,10 +106,12 @@ class TopStockView(View):
             end_date = today
         """找出选择的开始月份和结束月份"""
         send_tasks = task_calc_stock_top.delay(start_time_str, end_time_str, int(limit_num))
-        return render_to_response("dinghuo/data2stock.html",
-                                  {"task_id": send_tasks, "start_date": start_date,
-                                   "end_date": end_date, "limit_num": limit_num},
-                                  context_instance=RequestContext(request))
+        return render(
+            request,
+            "dinghuo/data2stock.html",
+              {"task_id": send_tasks, "start_date": start_date,
+               "end_date": end_date, "limit_num": limit_num},
+        )
 
 
 from rest_framework import generics

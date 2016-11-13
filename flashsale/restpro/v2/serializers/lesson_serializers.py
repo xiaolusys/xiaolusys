@@ -62,6 +62,7 @@ class InstructorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Instructor
+        exclude = ()
 
 
 class LessonAttendRecordSerializer(serializers.ModelSerializer):
@@ -71,6 +72,7 @@ class LessonAttendRecordSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LessonAttendRecord
+        exclude = ()
 
         
 

@@ -13,7 +13,7 @@ from flashsale.dinghuo.models import OrderDraft
 from shopback.items.models import Product, ProductSku, SkuStock
 from django.template.context import RequestContext
 from django.forms import model_to_dict
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from rest_framework.decorators import detail_route, list_route
 
 
@@ -49,10 +49,12 @@ class RePurchaseViewSet(viewsets.GenericViewSet):
             sku_dict['wait_post_num'] = SkuStock.get_by_sku(sku.id).wait_post_num
             product_dict['prod_skus'].append(sku_dict)
         productres = product_dicts.values()
-        return render_to_response('dinghuo/purchase/purchase.html',
-                                  {"productRestult": productres,
-                                   "drafts": orderDrAll},
-                                  context_instance=RequestContext(request))
+        return render(
+            request,
+            'dinghuo/purchase/purchase.html',
+              {"productRestult": productres,
+               "drafts": orderDrAll}
+        )
 
     def create(self, request, pk=None):
         result = {}

@@ -13,7 +13,7 @@ import urllib
 from django.db.models import F
 from django.forms.models import model_to_dict
 from django.http import HttpResponse
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.template import RequestContext
 from django.views.generic import View
 from django.views.decorators.csrf import csrf_exempt
@@ -121,15 +121,17 @@ class ChangeDetailView(View):
                 'memo': inbound.memo,
                 'info': inbound.get_easy_info()
             })
-        return render_to_response("dinghuo/changedetail.html",
-                                  {"orderlist": order_list,
-                                   "flagofstatus": flag_of_status,
-                                   "flagofquestion": flag_of_question,
-                                   "flag_of_sample": flag_of_sample,
-                                   "orderdetails": order_list_list,
-                                   'product_link': product_link, 'buyer_name': buyer_name,
-                                   'inbounds': inbound_dicts},
-                                  context_instance=RequestContext(request))
+        return render(
+            request,
+            "dinghuo/changedetail.html",
+              {"orderlist": order_list,
+               "flagofstatus": flag_of_status,
+               "flagofquestion": flag_of_question,
+               "flag_of_sample": flag_of_sample,
+               "orderdetails": order_list_list,
+               'product_link': product_link, 'buyer_name': buyer_name,
+               'inbounds': inbound_dicts},
+        )
 
     @staticmethod
     def post(request, order_detail_id):
@@ -222,13 +224,15 @@ class ChangeDetailView(View):
             logger = logging.getLogger('django.request')
             logger.error(exc.message, exc_info=True)
 
-        return render_to_response("dinghuo/changedetail.html",
-                                  {"orderlist": order_list,
-                                   "flagofstatus": flag_of_status,
-                                   'flagofquestion': flag_of_question,
-                                   "orderdetails": order_list_list,
-                                   "flag_of_sample": flag_of_sample},
-                                  context_instance=RequestContext(request))
+        return render(
+            request,
+            "dinghuo/changedetail.html",
+              {"orderlist": order_list,
+               "flagofstatus": flag_of_status,
+               'flagofquestion': flag_of_question,
+               "orderdetails": order_list_list,
+               "flag_of_sample": flag_of_sample},
+        )
 
 
 class AutoNewOrder(View):
@@ -237,9 +241,11 @@ class AutoNewOrder(View):
         user = request.user
         functions.save_draft_from_detail_id(order_list_id, user)
         all_drafts = OrderDraft.objects.all().filter(buyer_name=user)
-        return render_to_response("dinghuo/shengchengorder.html",
-                                  {"OrderDraft": all_drafts},
-                                  context_instance=RequestContext(request))
+        return render(
+            request,
+            "dinghuo/shengchengorder.html",
+             {"OrderDraft": all_drafts},
+        )
 
 
 def update_dinghuo_part_information(request):

@@ -1,6 +1,6 @@
 # coding=utf-8
 __author__ = 'linjie'
-from django.shortcuts import render_to_response, render
+from django.shortcuts import render
 from django.template import RequestContext
 from models import MergeTrade, MergeOrder
 import datetime
@@ -69,8 +69,11 @@ def xlmm_Product_Analysis(request):
     cursor = connection.cursor()
     cursor.execute(sql)
     raw = cursor.fetchall()
-    return render_to_response('product_analysis/xlmm_pro_analysis.html', {'raw': raw, 'date_dic': date_dic},
-                              context_instance=RequestContext(request))
+    return render(
+        request,
+        'product_analysis/xlmm_pro_analysis.html',
+        {'raw': raw, 'date_dic': date_dic},
+    )
 
 
 @csrf_exempt
@@ -120,8 +123,11 @@ def product_Analysis(request):
     cursor = connection.cursor()
     cursor.execute(sql)
     raw = cursor.fetchall()
-    return render_to_response('product_analysis/product_analysis.html', {'data': raw, 'date_dic': date_dic},
-                              context_instance=RequestContext(request))
+    return render(
+        request,
+        'product_analysis/product_analysis.html',
+        {'data': raw, 'date_dic': date_dic},
+    )
 
 
 # 统计特卖商品销售前100（按周），按编码去掉最后一位来聚合
@@ -176,8 +182,11 @@ def product_Top100_By_Week(request):
     raw = cursor.fetchall()
 
     date_dic = {"prev_week": prev_week, "next_week": next_week}
-    return render_to_response('product_analysis/product_analysis_top100.html', {'data': raw, 'date_dic': date_dic},
-                              context_instance=RequestContext(request))
+    return render(
+        request,
+        'product_analysis/product_analysis_top100.html',
+        {'data': raw, 'date_dic': date_dic},
+    )
 
 
 # 统计特卖商品剩余库存最多的前100个
@@ -217,8 +226,11 @@ def product_Collect_Topp100(request):
         else:
             pro[i[0]].append({"product_name": i[1], 'collect_num': i[2], 'properties_alias': i[3], 'quantity': i[4]})
 
-    return render_to_response('product_analysis/product_analysis_collect_top100.html', {'data': pro},
-                              context_instance=RequestContext(request))
+    return render(
+        request,
+        'product_analysis/product_analysis_collect_top100.html',
+        {'data': pro},
+    )
 
 
 # 打开订单送货时间查询页面

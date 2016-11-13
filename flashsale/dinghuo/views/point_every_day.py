@@ -3,7 +3,7 @@ from __future__ import division
 # coding:utf-8
 __author__ = 'yann'
 
-from django.shortcuts import render_to_response, HttpResponse
+from django.shortcuts import render, HttpResponse
 from django.template import RequestContext
 from django.views.generic import View
 from flashsale.dinghuo.models import RecordGroupPoint
@@ -58,18 +58,20 @@ class RecordPointView(View):
         c_sale_point = get_sale_point(3, week_begin, week_to)
         all_point = RecordGroupPoint.objects.exclude(get_point=0).filter(
             record_time__range=(week_begin, week_to)).filter(group_id=group_id)
-        return render_to_response("dinghuo/data_of_point.html",
-                                  {"target_date": target_date, "a_ding_huo_point": a_ding_huo_point,
-                                   "b_ding_huo_point": b_ding_huo_point, "c_ding_huo_point": c_ding_huo_point,
-                                   "a_sale_point": a_sale_point, "a_all_point": a_all_point,
-                                   "a_percentage": a_percentage,
-                                   "b_sale_point": b_sale_point, "b_all_point": b_all_point,
-                                   "b_percentage": b_percentage,
-                                   "c_sale_point": c_sale_point, "c_all_point": c_all_point,
-                                   "c_percentage": c_percentage,
-                                   "all_point": all_point,
-                                   "week_begin": week_begin, "week_to": week_to},
-                                  context_instance=RequestContext(request))
+        return render(
+            request,
+            "dinghuo/data_of_point.html",
+              {"target_date": target_date, "a_ding_huo_point": a_ding_huo_point,
+               "b_ding_huo_point": b_ding_huo_point, "c_ding_huo_point": c_ding_huo_point,
+               "a_sale_point": a_sale_point, "a_all_point": a_all_point,
+               "a_percentage": a_percentage,
+               "b_sale_point": b_sale_point, "b_all_point": b_all_point,
+               "b_percentage": b_percentage,
+               "c_sale_point": c_sale_point, "c_all_point": c_all_point,
+               "c_percentage": c_percentage,
+               "all_point": all_point,
+               "week_begin": week_begin, "week_to": week_to}
+        )
 
     @staticmethod
     def post(request):
