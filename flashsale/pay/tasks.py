@@ -1,9 +1,10 @@
 # -*- encoding:utf-8 -*-
+from __future__ import absolute_import, unicode_literals
 import re
 import datetime
 import logging
 
-from celery.task import task
+from celery import shared_task as task
 from django.conf import settings
 from django.db import models
 from django.db import transaction

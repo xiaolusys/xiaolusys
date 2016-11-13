@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-from __future__ import division
+from __future__ import division, absolute_import, unicode_literals
 
 __author__ = 'yann'
 import re
@@ -7,9 +7,8 @@ import sys
 import urllib2
 import json
 import datetime
-from collections import defaultdict
 
-from celery.task import task
+from celery import shared_task as task
 from django.db import connection
 from django.db.models import Max, Sum
 from django.contrib.auth.models import User
@@ -577,7 +576,7 @@ def task_ding_huo(shelve_from, time_to, groupname, search_text, target_date, din
     return result_dict
 
 
-import function_of_task_optimize
+from . import function_of_task_optimize
 
 
 @task()

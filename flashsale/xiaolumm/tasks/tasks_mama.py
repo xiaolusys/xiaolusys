@@ -1,22 +1,21 @@
 # -*- encoding:utf-8 -*-
-import global_setup
-import logging
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
+
+import sys
 import datetime
-from celery.task import task
 from django.db import IntegrityError
 
 from flashsale.xiaolumm import util_description
-
-logger = logging.getLogger('celery.handler')
-
 from flashsale.xiaolumm.models.models_fortune import OrderCarry, AwardCarry, ReferalRelationship
 from flashsale.pay.models import Customer
 from flashsale.xiaolumm import util_unikey
 from flashsale.xiaolumm import utils
 from flashsale.xiaolumm.models import XiaoluMama
 
-import sys
-
+import global_setup
+import logging
+logger = logging.getLogger('celery.handler')
 
 def get_cur_info():
     """Return the frame object for the caller's stack frame."""
@@ -459,7 +458,7 @@ def task_order_trigger(sale_order):
 @task()
 def carryrecord_update_xiaolumama_active_hasale(mmid):
     from flashsale.xiaolumm.models import CarryRecord
-    from flashsale.xiaolumm import tasks_mama_fortune
+    from . import tasks_mama_fortune
     mama = XiaoluMama.objects.get(id=mmid)
     if not mama.active:
         active = CarryRecord.objects.filter(mama_id=mmid, carry_type=CarryRecord.CR_CLICK, status__in=[1, 2]).exists()

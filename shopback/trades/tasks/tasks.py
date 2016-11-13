@@ -1,9 +1,12 @@
 # -*- coding:utf-8 -*-
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
+
 import time
 import datetime
 import calendar
 import json
-from celery.task import task
+
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Q, Sum, Count, F
@@ -690,7 +693,6 @@ def task_Gen_Logistic_Report_File_By_Month(pre_month=1):
     task_Gen_Logistic_Report_File(date_from, date_to)
 
 
-from . import serializers
 from common.utils import (parse_date, CSVUnicodeWriter, parse_datetime, format_date, format_datetime)
 from shopback.refunds.models import REFUND_STATUS, Refund
 

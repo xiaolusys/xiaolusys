@@ -1,11 +1,11 @@
 # -*- encoding:utf-8 -*-
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
 
 import datetime
 import sys
 
-from celery.task import task
 from django.db.models import F
-
 from flashsale.xiaolumm import util_description, util_unikey
 from flashsale.xiaolumm.models.models_fortune import ActiveValue, OrderCarry, UniqueVisitor
 

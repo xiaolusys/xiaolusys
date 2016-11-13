@@ -12,7 +12,7 @@ from django.shortcuts import render_to_response
 from shopback.base.authentication import login_required_ajax
 from shopapp.weixin.views import WeiXinUser, VipCode, get_user_openid
 from .models import WeixinUserPicture, WeixinUserAward, WeixinLinkShare
-from .tasks import NotifyReferalAwardTask
+from .tasks import task_notify_referal_award
 from shopapp.signals import weixin_referal_signal
 from django.shortcuts import redirect
 
@@ -88,7 +88,7 @@ class AwardNotifyView(View):
             wx_award, state = WeixinUserAward.objects.get_or_create(user_openid=user_openid)
 
             if not wx_award.is_share:
-                NotifyReferalAwardTask().delay(user_openid)
+                task_notify_referal_award.delay(user_openid)
 
                 wx_award.is_share = True
                 wx_award.award_val = award_val

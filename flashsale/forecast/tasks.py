@@ -1,8 +1,10 @@
 # coding:utf-8
+from __future__ import absolute_import, unicode_literals
+
 import datetime
 from django.conf import settings
 from django.db.models import Max
-from celery.task import task
+from celery import shared_task as task
 
 from .models import ForecastInbound, ForecastInboundDetail, ForecastStats, RealInbound
 from . import services

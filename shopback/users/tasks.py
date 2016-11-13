@@ -1,8 +1,7 @@
 # -*- coding:utf-8 -*-
-import datetime
-import time
-import json
-from celery.task import task
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
+
 from shopback import paramconfig as pcfg
 from shopback.items.tasks import updateUserItemsTask, updateUserProductSkuTask
 from shopback.fenxiao.tasks import saveUserFenxiaoProductTask

@@ -1,5 +1,7 @@
 # -*- coding:utf-8 -*-
-from celery.task import task
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
+
 from flashsale.promotion.models.freesample import DownloadUnionidRecord, DownloadMobileRecord
 
 

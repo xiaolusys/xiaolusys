@@ -1,7 +1,8 @@
 # coding:utf-8
-import datetime
-from celery import task
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
 
+import datetime
 from .models import (
     ForecastInbound,
     ForecastInboundDetail,

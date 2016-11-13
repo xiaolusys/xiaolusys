@@ -317,13 +317,13 @@ class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
         if key == "signup":
             lesson_id = content.get("lesson_id")
             if lesson_id:
-                from flashsale.xiaolumm.tasks_lesson import task_create_lessonattendrecord
+                from flashsale.xiaolumm.tasks import task_create_lessonattendrecord
 
                 task_create_lessonattendrecord.delay(lesson_id, userinfo)
                 html = "%s?lesson_id=%s&unionid=%s" % (activity_entry.get_html(key), lesson_id, unionid)
 
         if key == "apply":
-            from flashsale.xiaolumm.tasks_lesson import task_create_instructor_application
+            from flashsale.xiaolumm.tasks import task_create_instructor_application
 
             task_create_instructor_application.delay(userinfo)
             html = "%s?unionid=%s" % (activity_entry.get_html(key), unionid)

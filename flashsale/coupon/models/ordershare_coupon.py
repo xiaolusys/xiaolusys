@@ -107,7 +107,7 @@ def coupon_share_xlmm_newtask(sender, instance, **kwargs):
     """
     检测新手任务：分享第一个红包
     """
-    from flashsale.xiaolumm.tasks_mama_push import task_push_new_mama_task
+    from flashsale.xiaolumm.tasks import task_push_new_mama_task
     from flashsale.xiaolumm.models.new_mama_task import NewMamaTask
     from flashsale.pay.models.user import Customer
 

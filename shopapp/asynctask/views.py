@@ -2,7 +2,7 @@ import datetime
 import json
 
 from .models import PrintAsyncTaskModel
-from shopapp.asynctask.tasks import AsyncCategoryTask, AsyncOrderTask, PrintAsyncTask, PrintAsyncTask2
+from shopapp.asynctask import tasks
 from common.utils import parse_date
 
 from rest_framework import generics
@@ -27,7 +27,7 @@ class AsyncCategoryView(APIView):
     def get(self, request, cids, *args, **kwargs):
         profile = request.user.get_profile()
         seller_type = profile.type
-        result = AsyncCategoryTask.delay(cids, profile.visitor_id, seller_type=seller_type)
+        result = tasks.AsyncCategoryTask.delay(cids, profile.visitor_id, seller_type=seller_type)
 
         return Response({"task_id": result})
 
@@ -47,7 +47,7 @@ class AsyncOrderView(APIView):
         start_dt = parse_date(start_dt)
         end_dt = parse_date(end_dt)
 
-        result = AsyncOrderTask.delay(start_dt, end_dt, profile.visitor_id)
+        result = tasks.task_async_order.delay(start_dt, end_dt, profile.visitor_id)
         return Response({"task_id": result})
 
     post = get
@@ -101,7 +101,7 @@ class AsyncInvoice2PrintView(APIView):
             operator=profile.username,
             params=json.dumps(params))
 
-        print_async_task = PrintAsyncTask2.delay(task_model.pk)
+        print_async_task = tasks.task_print_async2.delay(task_model.pk)
 
         return Response({"task_id": print_async_task, "async_print_id": task_model.pk})
 
@@ -125,7 +125,7 @@ class AsyncExpressPrintView(APIView):
             operator=profile.username,
             params=json.dumps(params))
 
-        print_async_task = PrintAsyncTask.delay(task_model.pk)
+        print_async_task = tasks.task_print_async.delay(task_model.pk)
 
         return Response({"task_id": print_async_task, "async_print_id": task_model.pk})
 

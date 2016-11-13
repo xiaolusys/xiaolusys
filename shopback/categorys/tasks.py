@@ -1,7 +1,9 @@
 # -*- coding:utf8 -*-
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
+
 import datetime
 from django.conf import settings
-from celery.task import task
 from shopback.categorys.models import Category, CategorySaleStat
 from shopback.monitor.models import SystemConfig
 from shopapp.taobao import apis

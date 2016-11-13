@@ -1,7 +1,9 @@
 # -*- coding:utf-8 -*-
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
+
 import datetime
 import time
-from celery.task import task
 from shopback.items.models import Item
 from shopapp.autolist.models import Logs, ItemListTask, SUCCESS, EXECERROR, UNEXECUTE
 from common.utils import getSignatureTaoBao, format_time, single_instance_task

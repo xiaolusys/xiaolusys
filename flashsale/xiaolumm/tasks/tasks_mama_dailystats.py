@@ -1,18 +1,18 @@
 # -*- encoding:utf-8 -*-
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
 
+import sys
 import datetime
-import logging
-
-from celery.task import task
 from django.db import IntegrityError
 from django.db.models import F, Sum
 
 from flashsale.xiaolumm import util_unikey
 from flashsale.xiaolumm.models.models_fortune import DailyStats, UniqueVisitor, OrderCarry, CarryRecord
 
+import logging
 logger = logging.getLogger('celery.handler')
 
-import sys
 
 
 def get_cur_info():

@@ -1,8 +1,10 @@
 # -*- coding:utf8 -*-
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
+
 import os
 import time
 import datetime
-from celery.task import task
 from django.conf import settings
 from shopback.users.models import User
 from shopback.monitor.models import TradeExtraInfo, SystemConfig, DayMonitorStatus

@@ -177,7 +177,7 @@ class UserAdmin(admin.ModelAdmin):
     # 异步下载近三个月订单
     def async_pull_lastest_trades(self, request, queryset):
 
-        from shopapp.asynctask.tasks import AsyncOrderTask
+        from shopapp.asynctask.tasks import task_async_order
 
         pull_users = []
         for user in queryset:
@@ -188,7 +188,7 @@ class UserAdmin(admin.ModelAdmin):
                     s_dt = end_dt - datetime.timedelta((i + 1) * 30, 0, 0)
                     e_dt = end_dt - datetime.timedelta(i * 30, 0, 0)
                     # 异步批量更新订单
-                    AsyncOrderTask.delay(s_dt, e_dt, user.visitor_id)
+                    task_async_order.delay(s_dt, e_dt, user.visitor_id)
             except Exception, exc:
                 pull_dict['success'] = False
                 pull_dict['errmsg'] = exc.message or '%s' % exc

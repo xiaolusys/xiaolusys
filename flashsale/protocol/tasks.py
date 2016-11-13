@@ -1,7 +1,8 @@
 # coding=utf-8
-from celery import task
-import logging
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
 
+import logging
 log = logging.getLogger(__name__)
 
 

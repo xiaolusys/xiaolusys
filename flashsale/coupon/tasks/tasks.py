@@ -1,7 +1,9 @@
 # coding=utf-8
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
+
 import logging
 import datetime
-from celery.task import task
 from django.db.models import F, Sum
 from flashsale.xiaolumm.models import XiaoluMama
 from django.db import IntegrityError

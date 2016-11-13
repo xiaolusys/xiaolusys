@@ -1,7 +1,8 @@
 # coding: utf8
-import datetime
-from celery.task import task
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
 
+import datetime
 from shopapp.weixin.weixin_apis import WeiXinAPI
 from shopapp.weixin.models import WeixinFans, WeixinUnionID
 

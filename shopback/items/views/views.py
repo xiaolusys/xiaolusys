@@ -1248,7 +1248,7 @@ class StatProductSaleView(APIView):
     post = get
 
 
-from shopback.items.tasks import CalcProductSaleAsyncTask
+from shopback.items.tasks import task_calc_product_sale
 
 
 class StatProductSaleAsyncView(APIView):
@@ -1281,7 +1281,7 @@ class StatProductSaleAsyncView(APIView):
         if p_outer_id:
             params.update(outer_id__startswith=p_outer_id)
 
-        task_id = CalcProductSaleAsyncTask().delay(params, buyer_name=buyer_name, supplier=supplier,
+        task_id = task_calc_product_sale.delay(params, buyer_name=buyer_name, supplier=supplier,
                                                    p_outer_id=p_outer_id, show_sale=show_sale)
         sale_items = {
             'df': format_date(self.parseDate(start_dt)),

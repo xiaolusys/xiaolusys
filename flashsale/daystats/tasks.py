@@ -1,11 +1,11 @@
 # coding:utf8 
-from __future__ import division
+from __future__ import division, absolute_import, unicode_literals
 
 import datetime
 import logging
 from calendar import monthrange
 
-from celery.task import task
+from celery import shared_task as task
 from django.conf import settings
 from django.db.models import Sum
 

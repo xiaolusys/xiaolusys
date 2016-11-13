@@ -5,10 +5,13 @@
 应用场景：
 每小时优禾订单自动同步到优禾的旺店通系统
 """
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
+
+import simplejson
 from datetime import datetime
 from shopback.trades.models import PackageSkuItem, PackageOrder
 from shopback.logistics.models import LogisticsCompany
-import simplejson
 from shopback.trades.models_erp import ErpOrder
 from flashsale.pay.models.trade import SaleOrder
 from flashsale.dinghuo.models.purchase_order import OrderList

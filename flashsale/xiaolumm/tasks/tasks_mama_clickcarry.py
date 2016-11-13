@@ -1,19 +1,20 @@
 # -*- encoding:utf-8 -*-
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
 
-import logging
-
-from celery.task import task
+import sys
+import datetime
 
 from flashsale.xiaolumm import util_description
 from flashsale.xiaolumm.signals import clickcarry_signal
 
-logger = logging.getLogger('celery.handler')
-
 from flashsale.xiaolumm.models.models_fortune import OrderCarry, ClickCarry, UniqueVisitor, ClickPlan
 from flashsale.xiaolumm import util_unikey
 
-import sys
-import datetime
+
+
+import logging
+logger = logging.getLogger('celery.handler')
 
 
 # def get_click_plan(order_num):

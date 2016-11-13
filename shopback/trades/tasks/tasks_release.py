@@ -1,5 +1,10 @@
 # -*- coding:utf8 -*-
-from celery import Task
+##################################3
+### deprecated
+##################################3
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
+
 from celery import group
 
 from shopback.trades.models import (MergeTrade,
@@ -7,8 +12,7 @@ from shopback.trades.models import (MergeTrade,
 
 from shopback.items.tasks import releaseProductTradesTask
 
-
-class CancelMergeOrderStockOutTask(Task):
+class CancelMergeOrderStockOutTask(object):
     """ 定时检查并取消订单缺货任务 """
 
     def get_stockout_productcode_tuple(self):
@@ -21,3 +25,9 @@ class CancelMergeOrderStockOutTask(Task):
     def run(self, *args, **kwargs):
         pcode_tuple = self.get_stockout_productcode_tuple()
         group([releaseProductTradesTask.s(pcode) for pcode in pcode_tuple])()
+
+@task()
+def task_cancel_mergeorder_stockout(*args, **kwarg):
+    CancelMergeOrderStockOutTask().run(*args, **kwarg)
+
+

@@ -2,8 +2,10 @@
 """
 代理相关的推送信息
 """
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
+
 import datetime
-from celery.task import task
 from flashsale.xiaolumm.models import XiaoluMama, NinePicAdver, WeixinPushEvent
 from flashsale.push import push_mama
 from shopapp.weixin.weixin_push import WeixinPush

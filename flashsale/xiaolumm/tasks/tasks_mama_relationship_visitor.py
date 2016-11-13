@@ -1,18 +1,17 @@
 # -*- encoding:utf-8 -*-
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
 
-import logging
-
-from celery.task import task
+import sys
 from django.db import IntegrityError
-
-logger = logging.getLogger('celery.handler')
 
 from flashsale.xiaolumm.models.models_fortune import ReferalRelationship, GroupRelationship, UniqueVisitor
 from flashsale.pay.models import Customer
 from flashsale.xiaolumm.models import XiaoluMama, PotentialMama
 from flashsale.xiaolumm import utils
-import sys
 
+import logging
+logger = logging.getLogger('celery.handler')
 
 def get_cur_info():
     """Return the frame object for the caller's stack frame."""

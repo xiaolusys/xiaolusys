@@ -1,7 +1,7 @@
-import os
-import time
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
+
 import datetime
-from celery.task import task
 from shopback.orders.models import Order, Trade
 from shopback.monitor.models import TradeExtraInfo
 from shopback.fenxiao.models import PurchaseOrder

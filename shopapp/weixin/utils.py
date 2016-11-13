@@ -1,4 +1,7 @@
 # coding: utf8
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
+
 import re
 import hashlib
 import urllib2
@@ -14,7 +17,6 @@ from PIL import (
     ImageFont
 )
 import simplejson
-from celery.task import task
 
 from flashsale.xiaolumm.models import XiaoluMama
 from shopapp.weixin.weixin_apis import WeiXinAPI

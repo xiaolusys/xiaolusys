@@ -1,12 +1,13 @@
 # -*- coding:utf8 -*-
-import time
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
+
 import datetime
-import json
 import urllib2
 import cgi
 from lxml import etree
 from StringIO import StringIO
-from celery import Task
+
 from django.core.paginator import Paginator
 from shopback import paramconfig as pcfg
 from shopback.trades.models import MergeTrade
@@ -91,7 +92,7 @@ def post_yunda_service(req_url, data='', headers=None):
     return res
 
 
-class CancelUnsedYundaSidTask(Task):
+class CancelUnsedYundaSidTask(object):
     """ 取消韵达二维码打单但未发出单号 """
     max_retries = 3
     interval_days = 10
@@ -161,8 +162,11 @@ class CancelUnsedYundaSidTask(Task):
         except Exception, exc:
             raise self.retry(exc=exc, countdown=RETRY_INTERVAL)
 
+@task()
+def task_cancel_unused_yunda_sid():
+    CancelUnsedYundaSidTask().run()
 
-class UpdateYundaOrderAddrTask(Task):
+class UpdateYundaOrderAddrTask(object):
     max_retries = 3
     pg = []
 
@@ -275,8 +279,11 @@ class UpdateYundaOrderAddrTask(Task):
         finally:
             LogisticOrder.objects.filter(id__in=update_oids).update(sync_addr=True)
 
+@task()
+def task_update_yunda_order_addr():
+    UpdateYundaOrderAddrTask().run()
 
-class SyncYundaScanWeightTask(Task):
+class SyncYundaScanWeightTask(object):
     max_retries = 3
     pg = []
 
@@ -426,8 +433,11 @@ class SyncYundaScanWeightTask(Task):
             MergeTrade.objects.filter(id__in=update_oids).update(
                 is_charged=True, charge_time=datetime.datetime.now())
 
+@task()
+def task_sync_yund_scan_weight():
+    SyncYundaScanWeightTask().run()
 
-class PushYundaPackageWeightTask(Task):
+class PushYundaPackageWeightTask(object):
     max_retries = 3
 
     def getSourceData(self):
@@ -504,3 +514,7 @@ class PushYundaPackageWeightTask(Task):
 
             trade.is_charged = True
             trade.save()
+
+@task()
+def task_push_yunda_package_weight():
+    PushYundaPackageWeightTask().run()

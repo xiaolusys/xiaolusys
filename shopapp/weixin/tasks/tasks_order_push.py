@@ -1,6 +1,8 @@
 # encoding=utf8
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
+
 from datetime import datetime, timedelta
-from celery.task import task
 from shopapp.weixin.weixin_push import WeixinPush
 from flashsale.pay.models.teambuy import TeamBuy, TeamBuyDetail
 

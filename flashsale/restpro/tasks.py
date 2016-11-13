@@ -1,9 +1,11 @@
 # -*- coding:utf-8 -*-
+from __future__ import absolute_import, unicode_literals
+
 __author__ = 'yann'
 import json
 import urllib, urllib2
 
-from celery.task import task
+from celery import shared_task as task
 from django.contrib.auth.models import User as DjangoUser
 from django.db.models import F
 from core.options import log_action, ADDITION, CHANGE

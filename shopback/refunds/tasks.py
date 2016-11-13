@@ -1,8 +1,10 @@
 # coding=utf-8
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
+
 import time
 import datetime
 import calendar
-from celery.task import task
 from django.conf import settings
 from common.utils import format_time, format_datetime
 from shopback.refunds.models import Refund
@@ -55,7 +57,7 @@ def updateAllUserRefundOrderTask(days=0, update_from=None, update_to=None):
 
 
 from flashsale.pay.models import SaleOrder, SaleRefund
-from models_refund_rate import PayRefundRate
+from .models_refund_rate import PayRefundRate
 
 
 def refDataToMol(target_day=None):

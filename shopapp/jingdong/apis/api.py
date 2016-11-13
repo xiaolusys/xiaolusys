@@ -1,4 +1,6 @@
 # -*- coding:utf8 -*-
+from __future__ import absolute_import, unicode_literals
+
 __author__ = 'meixqhi'
 import re
 import inspect
@@ -9,8 +11,6 @@ import json
 import urllib
 import urllib2
 from django.conf import settings
-from celery.task import task
-from celery.app.task import BaseTask
 from common.utils import format_datetime, format_date
 from shopapp.jingdong.utils import getJDSignature
 from .exceptions import JDRequestException, JDAuthTokenException

@@ -1,8 +1,10 @@
 # -*- coding:utf8 -*-
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
+
 import re
 import json
 from django.conf import settings
-from celery import Task
 
 from shopapp.tmcnotify.models import TmcUser, TmcMessage
 from shopback.trades.service import TradeService, OrderService
@@ -238,3 +240,7 @@ class ProcessMessageTask(Task):
 
         else:
             self.successConsumeMessage(message)
+
+@task
+def task_process_message(*args, **kwargs):
+    ProcessMessageTask().run(*args, **kwargs)

@@ -1,14 +1,12 @@
 # -*- encoding:utf-8 -*-
-from celery.task import task
-from common.taskutils import single_instance_task
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
+
+import datetime
 from flashsale.xiaolumm.models.carry_total import ActivityMamaCarryTotal
 from flashsale.xiaolumm.models.rank import WeekMamaCarryTotal, WeekMamaTeamCarryTotal, WeekRank
-from django.conf import settings
-import datetime
-TIMEOUT = 15 * 60 if not settings.DEBUG else 15
 
 import logging, sys
-
 logger = logging.getLogger('celery.handler')
 
 

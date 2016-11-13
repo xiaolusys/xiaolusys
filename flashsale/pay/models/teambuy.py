@@ -92,7 +92,7 @@ class TeamBuy(AdminModel):
         self.status = 1
         self.save()
         self.trigger_saleorder()
-        from shopapp.weixin.tasks.tasks_order_push import task_pintuan_success_push
+        from shopapp.weixin.tasks import task_pintuan_success_push
         task_pintuan_success_push.delay(self)  # 拼团成功微信推送
 
     def set_status_failed(self):
@@ -115,7 +115,7 @@ class TeamBuy(AdminModel):
         if len(oids) == 0:
             raise Exception(u'此团购名下没有订单')
         self.save()
-        from shopapp.weixin.tasks.tasks_order_push import task_pintuan_fail_push
+        from shopapp.weixin.tasks import task_pintuan_fail_push
         task_pintuan_fail_push.delay(self)  # 拼团失败微信推送
 
     def get_shareparams(self, **params):

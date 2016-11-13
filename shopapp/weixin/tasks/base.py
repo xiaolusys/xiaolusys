@@ -1,8 +1,9 @@
 # -*- coding:utf-8 -*-
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
+
 import time
 import datetime
-import json
-from celery.task import task
 
 from common.utils import update_model_fields, replace_utf8mb4
 from core.weixin import options

@@ -1,7 +1,9 @@
 # coding=utf-8
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
+
 import datetime
 from flashsale.pay.models.user import Customer
-from celery.task import task
 from flashsale.promotion.models.freesample import AppDownloadRecord
 
 @task()
