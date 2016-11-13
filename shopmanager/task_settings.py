@@ -54,9 +54,9 @@ CELERY_TASK_RESULT_EXPIRES = 60 * 60  # half hour
 # Set redis as celery result backend
 CELERY_REDIS_MAX_CONNECTIONS = 8
 
-# # Don't use pickle as serializer, json is much safer
-# CELERY_TASK_SERIALIZER = "json"
-# CELERY_ACCEPT_CONTENT = ['application/json']
+# Don't use pickle as serializer, json is much safer
+CELERY_TASK_SERIALIZER = "pickle"
+CELERY_ACCEPT_CONTENT = ['pickle']
 
 CELERYD_HIJACK_ROOT_LOGGER = False
 CELERYD_PREFETCH_MULTIPLIER = 4
