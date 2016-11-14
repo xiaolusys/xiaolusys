@@ -29,6 +29,7 @@ SITE_URL = 'http://staging.xiaolumm.com/'
 M_SITE_URL = 'http://staging.xiaolumm.com'
 
 CELERY_TASK_ALWAYS_EAGER = True
+CLOSE_CELERY = False
 CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 
 MYSQL_HOST = 'rm-bp17ea269uu21f9i1.mysql.rds.aliyuncs.com'
