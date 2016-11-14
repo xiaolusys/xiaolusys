@@ -63,7 +63,7 @@ urlpatterns = [
     url(r'^zone_analysis/province/$', csrf_exempt(views.by_zone_Province), name="show_Zone_Page"),
     url(r'^zone_analysis/city/$', csrf_exempt(views.by_zone_City), name="by_zone_City"),
     url(r'^qiniu/$', views.QiniuAPIView.as_view()),
-    url(r'^ref_reason/$', csrf_exempt(views.RefundReason.as_view())),
+    # url(r'^ref_reason/$', csrf_exempt(views.RefundReason.as_view())),
     url(r'^change_model_name_api/$', views.ModelChangeAPIView.as_view()),
     url(r'^post_poster/$', csrf_exempt(views.PostGoodShelf.as_view())),
     url(r'^change_sku_item/$', csrf_exempt(views.change_sku_item), name="change_sku_item"),

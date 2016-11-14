@@ -573,6 +573,7 @@ class BudgetLog(PayBaseModel):
     referal_id = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'引用id')
     status = models.IntegerField(choices=STATUS_CHOICES, db_index=True, default=CONFIRMED, verbose_name=u'状态')
     uni_key = models.CharField(max_length=128, unique=True, null=True, verbose_name=u'唯一ID')
+    objects = managers.BudgetLogManager()
 
     def __unicode__(self):
         return u'<%s,%s>' % (self.customer_id, self.flow_amount)
