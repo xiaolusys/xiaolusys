@@ -254,7 +254,7 @@ def update_orderdetail(sender, instance, created, **kwargs):
     task_purchasedetail_update_orderdetail.delay(instance)
 
 
-if not settings.CELERY_TASK_ALWAYS_EAGER:
+if not settings.CLOSE_CELERY:
     post_save.connect(update_purchase_order, sender=PurchaseDetail, dispatch_uid='post_save_update_purchase_order')
     post_save.connect(update_orderdetail, sender=PurchaseDetail, dispatch_uid='post_save_update_orderdetail')
 
@@ -373,5 +373,5 @@ def update_purchase_detail(sender, instance, created, **kwargs):
     task_purchasearrangement_update_purchasedetail.apply_async(args=[instance.id], countdown=3)
 
 
-if not settings.CELERY_TASK_ALWAYS_EAGER:
+if not settings.CLOSE_CELERY:
     post_save.connect(update_purchase_detail, sender=PurchaseArrangement, dispatch_uid='post_save_update_purchase_detail')

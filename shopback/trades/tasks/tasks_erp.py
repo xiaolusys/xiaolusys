@@ -28,7 +28,7 @@ def parse_sku_code(supplier_sku_code):
 def task_sync_order_to_erp():
     # 获取订货单
     order_list = OrderList.objects.filter(
-        sys_status=OrderList.ST_DRAFT,
+        stage=OrderList.STAGE_DRAFT,
         supplier_id=SUPPLIER_YOUHE_ID
     ).first()
 
@@ -109,7 +109,7 @@ def task_sync_order_to_erp():
         })
 
     # 审核订货单
-    order_list.verfiy_order()
+    order_list.verify_order()
 
     # 同步到优禾
     print '='*20, len(wdt_orders)
@@ -117,7 +117,7 @@ def task_sync_order_to_erp():
     for item in wdt_orders:
         wdt_order = item['wdt_order']
 
-        is_exists = ErpOrder.objects.using('local').filter(sale_order_oid=wdt_order['IF_OrderCode']).first()
+        is_exists = ErpOrder.objects.filter(sale_order_oid=wdt_order['IF_OrderCode']).first()
         if is_exists:
             print u'已经存在', wdt_order['IF_OrderCode']
             continue
@@ -147,7 +147,7 @@ def task_sync_order_to_erp():
         erp_order.supplier_name = item['supplier'].supplier_code
         erp_order.sync_status = status
         erp_order.sync_result = result
-        erp_order.save(using='local')
+        erp_order.save()
 
 
 def task_sync_erp_deliver():

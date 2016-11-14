@@ -1025,7 +1025,7 @@ def update_productskustats(sender, instance, created, **kwargs):
     # task_packageskuitem_update_productskustats.delay(instance.sku_id)
 
 
-if not settings.CELERY_TASK_ALWAYS_EAGER:
+if not settings.CLOSE_CELERY:
     post_save.connect(update_productskustats, sender=PackageSkuItem, dispatch_uid='post_save_update_productskustats')
 
 
@@ -1053,7 +1053,7 @@ def update_purchase_arrangement(sender, instance, created, **kwargs):
     task_packageskuitem_update_purchase_arrangement.delay(instance)
 
 
-if not settings.CELERY_TASK_ALWAYS_EAGER:
+if not settings.CLOSE_CELERY:
     post_save.connect(update_purchase_arrangement, sender=PackageSkuItem,
                   dispatch_uid='post_save_update_purchase_record')
 
