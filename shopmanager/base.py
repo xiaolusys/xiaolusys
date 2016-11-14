@@ -15,11 +15,11 @@ global_setup.cancel_pingpp_charge_ssl_verify()
 
 DEBUG = False
 
-ADMINS = (
+ADMINS = ()
+
+MANAGERS = (
     ('meixqhi', 'xiuqing.mei@xiaolumeimei.com'),
 )
-
-MANAGERS = ADMINS
 
 ALLOWED_HOSTS = ['.huyi.so', '.xiaolu.so', '.xiaolumeimei.com', '.xiaolumm.com', '.xip.io']
 

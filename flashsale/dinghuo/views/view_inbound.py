@@ -91,7 +91,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
                           ori_orderlist_id=orderlist_id,
                           memo='\n'.join(tmp))
         if relate_orderids:
-            inbound.orderlist_ids = relate_orderids
+            inbound.orderlist_ids = list(relate_orderids.values_list('id', flat=True))
         inbound.save()
         
         inbounddetails_dict = {}

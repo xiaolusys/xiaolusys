@@ -152,7 +152,6 @@ def task_packageskuitem_update_productskustats(sku_id):
         update_fields.append('modified')
         stat.save(update_fields=update_fields)
 
-
 @task
 def task_refundproduct_update_productskustats_return_quantity(sku_id):
     from shopback.refunds.models import RefundProduct

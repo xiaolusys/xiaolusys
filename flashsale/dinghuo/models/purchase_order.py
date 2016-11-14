@@ -251,6 +251,9 @@ class OrderList(models.Model):
         return self.stage not in [OrderList.STAGE_DRAFT, OrderList.STAGE_COMPLETED, OrderList.STAGE_DELETED,
                                   OrderList.STAGE_STATE]
 
+    def can_receive(self):
+        return self.stage in [OrderList.STAGE_RECEIVE, OrderList.STAGE_STATE, OrderList.STAGE_COMPLETED]
+
     def is_finished(self):
         return self.stage in [OrderList.STAGE_STATE, OrderList.STAGE_COMPLETED]
 
@@ -390,10 +393,10 @@ class OrderList(models.Model):
         ods_total = ods_res['total'] or 0
 
         if psis_total == 0:
-            return u'至少要有一个待订货skuitem'
+            raise Exception(u'至少要有一个待订货skuitem')
 
         if psis_total != ods_total:
-            return u'数量不对，审核失败'
+            raise Exception(u'数量不对，审核失败')
 
         if self.supplier.ware_by == WARE_THIRD and self.stage < OrderList.STAGE_CHECKED:
             psi_oids = [p.oid for p in psis]

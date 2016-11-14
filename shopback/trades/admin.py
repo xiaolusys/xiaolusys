@@ -747,8 +747,8 @@ class MergeTradeAdmin(ApproxAdmin):
                                                           order_num=len(trade_ids),
                                                           trade_ids=','.join([str(i) for i in trade_ids]))
             from shopback.trades.tasks import sendTaobaoTradeTask, sendTradeCallBack
-            send_tasks = chord([sendTaobaoTradeTask.s(user_id, trade.id)
-                                for trade in queryset])(sendTradeCallBack.s(replay_trade.id), ax_retries=300)
+            send_tasks = chord(sendTaobaoTradeTask.s(user_id, trade.id) for trade in queryset)\
+                (sendTradeCallBack.s(replay_trade.id), ax_retries=300)
 
         except Exception, exc:
             logger.error(exc.message, exc_info=True)
