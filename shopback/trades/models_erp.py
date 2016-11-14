@@ -41,7 +41,7 @@ class ErpOrder(BaseModel):
     logistics_code = models.CharField(max_length=16, verbose_name=u'物流公司编号')
     logistics_name = models.CharField(max_length=16, verbose_name=u'物流公司名称')
     post_id = models.CharField(max_length=16, verbose_name=u'物流编号')
-    delivery_time = models.DateTimeField(verbose_name=u'发货时间')
+    delivery_time = models.DateTimeField(null=True, verbose_name=u'发货时间')
 
     class Meta:
         db_table = 'shop_trades_erp_orders'

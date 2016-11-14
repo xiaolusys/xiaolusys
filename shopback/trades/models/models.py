@@ -1261,5 +1261,3 @@ class ReturnWuLiu(models.Model):
 
     def __unicode__(self):
         return '<%d,%s,%s,%s>' % (self.id, self.status, self.content, dict(REPLAY_TRADE_STATUS).get(self.status, ''))
-
-
