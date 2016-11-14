@@ -19,7 +19,7 @@ logger = logging.getLogger('django.request')
 from shopback.monitor.models import XiaoluSwitch
 
 
-ACTIVATE_MAMA_LINK = 'http://m.xiaolumeimei.com/rest/v1/users/weixin_login/?next=/rest/v2/mama/activate'
+ACTIVATE_MAMA_LINK = 'https://m.xiaolumeimei.com/rest/v1/users/weixin_login/?next=/rest/v2/mama/activate'
 
 
 class WXMessageHttpProxy(HttpProxy):
