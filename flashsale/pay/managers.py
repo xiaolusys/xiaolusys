@@ -45,3 +45,8 @@ class CustomerManager(BaseManager):
         queryset = super(CustomerManager, self).get_queryset()
         return queryset.filter(status=self.model.NORMAL).order_by('-created')
 
+
+class BudgetLogManager(BaseManager):
+    def get_refund_postage_budget_logs(self):
+        # type: () -> List[BudgetLog]
+        return self.get_queryset().filter(budget_log_type=self.model.BG_REFUND_POSTAGE)

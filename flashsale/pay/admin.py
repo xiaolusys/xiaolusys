@@ -558,7 +558,12 @@ class SaleRefundAdmin(BaseModelAdmin):
 
     class Media:
         css = {"all": ()}
-        js = ("salerefund/js/salerefund.js", "layer-v1.9.2/layer/layer.js")
+        js = (
+            '/static/jquery/jquery-2.1.1.min.js',
+            "/static/layer-v1.9.2/layer/layer.js",
+            "/static/layer-v1.9.2/layer/extend/layer.ext.js",
+            "/static/salerefund/js/salerefund.js",
+        )
 
 
 admin.site.register(SaleRefund, SaleRefundAdmin)

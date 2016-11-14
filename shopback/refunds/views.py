@@ -287,7 +287,8 @@ class RefundView(APIView):
             sale_refund = refund_product.get_sale_refund()
             if not sale_refund:
                 return
-            is_finish = sale_refund.return_fee_by_refund_product()
+            from flashsale.pay.apis.v1.refund import return_fee_by_refund_product
+            is_finish = return_fee_by_refund_product(sale_refund)
             if is_finish:
                 refund_product.is_finish = True
         refund_product.save(update_fields=['is_finish'])

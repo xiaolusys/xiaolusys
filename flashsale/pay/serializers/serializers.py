@@ -156,7 +156,6 @@ class SaleRefundSerializer(serializers.ModelSerializer):
     trade_logistics_company = serializers.CharField(source='package_skuitem.logistics_company_name')
     trade_out_sid = serializers.CharField(source='package_skuitem.out_sid')
     trade_consign_time = serializers.DateTimeField(source='package_skuitem.finish_time')
-
     order_pic_path = serializers.CharField(source='saleorder.pic_path')
     order_payment = serializers.FloatField(source='saleorder.payment')
     order_status = serializers.IntegerField(source='saleorder.status')
@@ -168,6 +167,61 @@ class SaleRefundSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SaleRefund
+        fields = (
+            'id',
+            'refund_no',
+            'trade_id',
+            'order_id',
+            'buyer_id',
+            'buyer_nick',
+            'mobile',
+            'phone',
+            'refund_id',
+            'charge',
+            'channel',
+            'refund_channel',
+            'item_id',
+            'title',
+            'sku_id',
+            'sku_name',
+            'ware_by',
+            'refund_num',
+            'total_fee',
+            'payment',
+            'refund_fee',
+            'amount_flow',
+            'success_time',
+            'company_name',
+            'sid',
+            'reason',
+            'proof_pic',
+            'desc',
+            'feedback',
+            'has_good_return',
+            'has_good_change',
+            'is_lackrefund',
+            'lackorder_id',
+            'good_status',
+            'status',
+            'postage_num',
+            'coupon_num',
+            'refund_fee_message',
+            'tid',
+            'channel_display',
+            'status_display',
+            'good_status_display',
+            'trade_logistics_company',
+            'trade_out_sid',
+            'trade_consign_time',
+            'order_pic_path',
+            'order_payment',
+            'order_status',
+            'order_pay_time',
+            'order_status_display',
+            'postage_num_money',
+            'coupon_num_money',
+            'manual_refund'
+        )
 
     def get_refund_fee_message(self, obj):
         trade = obj.sale_trade
