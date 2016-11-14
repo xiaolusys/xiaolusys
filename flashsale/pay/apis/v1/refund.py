@@ -1,7 +1,23 @@
 # coding:utf-8
+__ALL__ = [
+    'get_sale_refund_by_id',
+    'create_refund_order',
+    'return_fee_by_refund_product',
+    'refund_postage',
+]
+from django.db import transaction
 from core.options import log_action, ADDITION, CHANGE
-from flashsale.pay.models import SaleOrder, SaleRefund
-from flashsale.pay import tasks
+from ...models import SaleOrder, SaleRefund
+from ... import tasks
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def get_sale_refund_by_id(id):
+    # type: (int) -> SaleRefund
+    return SaleRefund.objects.get(id=id)
 
 
 def create_refund_order(user_id, order_id, reason, num, refund_fee, refund_channel,
@@ -47,3 +63,54 @@ def create_refund_order(user_id, order_id, reason, num, refund_fee, refund_chann
     tasks.pushTradeRefundTask.delay(refund.id)
     return refund
 
+
+def refund_postage(sale_refund):
+    # type: (SaleRefund) -> bool
+    """为退款单退邮费
+    """
+    from flashsale.pay.models import BudgetLog
+
+    if 0 < sale_refund.postage_num <= 2000:
+        BudgetLog.create_salerefund_postage_log(sale_refund, sale_refund.postage_num)
+        return True
+    return False
+
+
+def refund_coupon(sale_refund):
+    # type : () -> bool
+    """补邮费优惠券给用户
+    """
+    from flashsale.coupon.models import UserCoupon
+
+    if sale_refund.coupon_num > 0:
+        try:
+            UserCoupon.create_salerefund_post_coupon(sale_refund.buyer_id, sale_refund.trade_id,
+                                                     money=(sale_refund.coupon_num / 100))
+            return True
+        except Exception as e:
+            logger.info({'action': u'return_fee_by_refund_product', 'message': e.message})
+            return False
+    return False
+
+
+@transaction.atomic()
+def return_fee_by_refund_product(sale_refund):
+    # type: (SaleRefund) -> bool
+    """
+    功能：　根据　refund app 的RefundProduct 来给用户退款
+    1. 状态检查
+    2. 退　退款　到余额
+    3. 退　邮费　到余额
+    4. 补贴　优惠券
+    5. 修改退款单状态
+    """
+    if sale_refund.good_status != SaleRefund.BUYER_RETURNED_GOODS \
+            or sale_refund.status != SaleRefund.REFUND_CONFIRM_GOODS:
+        logger.error({'action': u'return_fee_by_refund_product',
+                      'message': u'退款单状态错误 不予退款',
+                      'salerefund': sale_refund.id})
+        return False
+    refund_postage(sale_refund)  # 补邮费
+    refund_coupon(sale_refund)  # 补优惠券
+    sale_refund.refund_fast_approve()  # 退订单金额(退款成功)　
+    return True

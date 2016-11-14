@@ -13,6 +13,7 @@ from core.options import log_action, CHANGE
 from shopback.items.models import Product, ProductDaySale
 from flashsale.pay.models import SaleRefund
 from flashsale.pay import serializers
+from ..apis.v1.refund import return_fee_by_refund_product
 
 import logging
 
@@ -97,7 +98,7 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
         instance = self.queryset.filter(id=serializer.data.get('id')).first()
         message = u'审核退款单'
         if manual_refund == 'on':  # 开启手动退款
-            instance.return_fee_by_refund_product()
+            return_fee_by_refund_product(instance)
             message = u'操作手动退款'
         log_action(request.user.id, instance, CHANGE, message)
         return Response(serializer.data)

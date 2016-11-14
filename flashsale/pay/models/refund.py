@@ -503,49 +503,6 @@ class SaleRefund(PayBaseModel):
         push = WeixinPush()
         push.push_refund_notify(self, WeixinPushEvent.SALE_REFUND_GOODS_SUCCESS)  # 推送退款成功微信消息
 
-    def refund_postage(self):
-        # type : () -> None
-        """退邮费给用户
-        """
-        from flashsale.pay.models import BudgetLog
-
-        if 0 < self.postage_num <= 2000:
-            BudgetLog.create_salerefund_postage_log(self, self.postage_num)
-
-    def refund_coupon(self):
-        # type : () -> None
-        """补邮费给用户
-        """
-        from flashsale.coupon.models import UserCoupon
-
-        if self.coupon_num > 0:
-            try:
-                UserCoupon.create_salerefund_post_coupon(self.buyer_id, self.trade_id, money=(self.coupon_num / 100))
-            except Exception as e:
-                logger.info({'action': u'return_fee_by_refund_product', 'message': e.message})
-                return None
-
-    @transaction.atomic()
-    def return_fee_by_refund_product(self):
-        # type: () -> bool
-        """
-        功能：　根据　refund app 的RefundProduct 来给用户退款
-        1. 状态检查
-        2. 退　退款　到余额
-        3. 退　邮费　到余额
-        4. 补贴　优惠券
-        5. 修改退款单状态
-        """
-        if self.good_status != SaleRefund.BUYER_RETURNED_GOODS or self.status != SaleRefund.REFUND_CONFIRM_GOODS:
-            logger.error({'action': u'return_fee_by_refund_product',
-                          'message': u'退款单状态错误 不予退款',
-                          'salerefund': self.id})
-            return False
-        self.refund_postage()  # 补邮费
-        self.refund_coupon()  # 补优惠券
-        self.refund_fast_approve()  # 退订单金额(退款成功)　
-        return True
-
 
 def handle_sale_refund_signal(sender, instance, created, raw, *args, **kwargs):
     """ 特卖退款单生成触发更新库存数及锁定数信号 """
