@@ -6,7 +6,7 @@ import cStringIO as StringIO
 from django.contrib import admin
 from django.db import models
 from django.contrib import messages
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
 from django.forms import TextInput, Textarea
@@ -160,9 +160,12 @@ class PurchaseAdmin(admin.ModelAdmin):
 
             log_action(request.user.id, purchase, CHANGE, u'更新库存商品价格')
 
-        return render_to_response('purchases/purchase_addon_template.html',
-                                  {'purchases': approval_purchases},
-                                  context_instance=RequestContext(request), content_type="text/html")
+        return render(
+            request,
+            'purchases/purchase_addon_template.html',
+              {'purchases': approval_purchases},
+              content_type="text/html"
+        )
 
     addon_cost_action.short_description = u"更新成本价"
 
@@ -340,9 +343,12 @@ class PurchaseStorageAdmin(admin.ModelAdmin):
 
         unaddon_storages = queryset.filter(is_addon=False)
 
-        return render_to_response('purchases/storage_addon_template.html',
-                                  {'addon_storages': addon_storages, 'unaddon_storages': unaddon_storages},
-                                  context_instance=RequestContext(request), content_type="text/html")
+        return render(
+            request,
+            'purchases/storage_addon_template.html',
+              {'addon_storages': addon_storages, 'unaddon_storages': unaddon_storages},
+              content_type="text/html"
+        )
 
     addon_stock_action.short_description = u"更新库存数"
 

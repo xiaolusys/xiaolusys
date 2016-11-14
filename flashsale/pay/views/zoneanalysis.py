@@ -3,7 +3,7 @@ import json
 import datetime
 
 from django.db import connection, transaction
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
@@ -63,8 +63,11 @@ def by_zone_City(request):
 def show_Zone_Page(request):
     date_today = datetime.datetime.today()
     today = date_today.strftime("%Y-%m-%d")
-    return render_to_response("pay/zone_analysis/zone_analysis.html", {"today": today},
-                              context_instance=RequestContext(request))
+    return render(
+        request,
+        "pay/zone_analysis/zone_analysis.html",
+        {"today": today},
+    )
 
 
 def pay_trade(sql=None):

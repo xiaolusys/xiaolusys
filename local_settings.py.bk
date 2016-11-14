@@ -4,7 +4,6 @@ import os
 from .base import *
 
 DEBUG = True
-TEMPLATE_DEBUG = DEBUG
 
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_COOKIE_AGE = 12 * 60 * 60
@@ -28,13 +27,16 @@ PROJECT_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.mysql',  # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-#         'NAME': 'shopmgr',  # Or path to database file if using sqlite3.
+#         'NAME': 'shopmgr_v1',  # Or path to database file if using sqlite3.
 #         'USER': 'meixqhi',  # Not used with sqlite3.
 #         'PASSWORD': '123123',  # Not used with sqlite3.
 #         'HOST': '192.168.1.101',  # Set to empty string for localhost. Not used with sqlite3. #192.168.0.28
 #         'PORT': '3306',  # Set to empty string for default. Not used with sqlite3.
-#         'OPTIONS':  {'init_command': 'SET storage_engine=Innodb;',
-#                      'charset': 'utf8'},  # storage_engine need mysql>5.4,and table_type need mysql<5.4
+#         'OPTIONS':  {
+#             # 'init_command': 'SET storage_engine=Innodb;',
+#             'charset': 'utf8',
+#             # 'sql_mode': 'STRICT_TRANS_TABLES',
+#         },  # storage_engine need mysql>5.4,and table_type need mysql<5.4
 #         'TEST':{
 #             'NAME': 'test_shopmgr_mxq',
 #             'CHARSET': 'utf8',
@@ -53,8 +55,11 @@ DATABASES = {
         'HOST': 'dev.xiaolumm.com',
         # Set to empty string for localhost. Not used with sqlite3. #192.168.0.28
         'PORT': '30001',  # Set to empty string for default. Not used with sqlite3.
-        'OPTIONS': {'init_command': 'SET storage_engine=Innodb;',
-                    'charset': 'utf8'},  # storage_engine need mysql>5.4,and table_type need mysql<5.4
+        'OPTIONS': {
+            # 'init_command': 'SET storage_engine=Innodb;',
+            'charset': 'utf8',
+            # 'sql_mode': 'STRICT_TRANS_TABLES',
+        },  # storage_engine need mysql>5.4,and table_type need mysql<5.4
         'TEST': {
             'NAME': 'test_xiaoludb',
             'CHARSET': 'utf8',
@@ -68,8 +73,8 @@ DATABASES = {
 #         'ENGINE': 'django.db.backends.mysql',
 #         # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
 #         'NAME': 'xiaoludb',  # Or path to database file if using sqlite3.
-#         'USER': 'xiaoludbo',  # Not used with sqlite3.
-#         'PASSWORD': 'expired_',  # Not used with sqlite3.
+#         'USER': 'xiaoludba',  # Not used with sqlite3.
+#         'PASSWORD': 'xiaolu_2016jm',  # Not used with sqlite3.
 #         'HOST': 'd.xiaolumm.com',
 #         # Set to empty string for localhost. Not used with sqlite3. #192.168.0.28
 #         'PORT': '30001',  # Set to empty string for default. Not used with sqlite3.
@@ -97,29 +102,17 @@ else:
 SITE_URL = 'http://127.0.0.1:9000'
 M_SITE_URL = 'http://127.0.0.1:9000'
 
-# MIDDLEWARE_CLASSES = (
-#     'raven.contrib.django.middleware.SentryResponseErrorIdMiddleware',
-#     'core.middleware.middleware.SecureRequiredMiddleware',
-#     'core.middleware.middleware.DisableDRFCSRFCheck',
-#     'django.middleware.common.CommonMiddleware',
-#     'django.contrib.sessions.middleware.SessionMiddleware',
-#     'django.middleware.csrf.CsrfViewMiddleware',
-#     'django.middleware.locale.LocaleMiddleware',
-#     'django.contrib.auth.middleware.AuthenticationMiddleware',
-#     'django.contrib.messages.middleware.MessageMiddleware',
-# )
-
 CACHES = {
     'default': {
         'BACKEND': 'redis_cache.RedisCache',
         'LOCATION': '192.168.1.102:6379',
         'OPTIONS':{
-            'DB': 1,
+            'DB': 4,
             # 'PARSER_CLASS': 'redis.connection.HiredisParser',
         }
     }
 }
-BROKER_URL = 'redis://192.168.1.102:6379/9'
+CELERY_BROKER_URL = 'redis://192.168.1.102:6379/7'
 
 ##################################################################
 INTERNAL_IPS = ('127.0.0.1',)
@@ -137,10 +130,10 @@ DEBUG_TOOLBAR_PANELS = [
     # 'debug_toolbar.panels.logging.LoggingPanel',
     # 'debug_toolbar.panels.redirects.RedirectsPanel',
 ]
-MIDDLEWARE_CLASSES = (
-    # 'debug_toolbar.middleware.DebugToolbarMiddleware',
-    # 'core.middleware.middleware.ProfileMiddleware',
-) + MIDDLEWARE_CLASSES
+MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + (
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+    'core.middleware.middleware.ProfileMiddleware',
+)
 
 INSTALLED_APPS.extend([
     'debug_toolbar',
@@ -157,9 +150,9 @@ RAVEN_CONFIG = {
     'release': raven.fetch_git_sha(PROJECT_ROOT),
 }
 
-########################### ONEAPM Statsd ##############################
+########################### Statsd ##############################
 STATSD_CLIENT = 'django_statsd.clients.normal'
-#STATSD_PORT = 8251
+# STATSD_PORT = 8251
 # STATSD_CLIENT = 'statsd.oneapm'
 # STATSD_CELERY_SIGNALS = True
 # MIDDLEWARE_CLASSES = (
@@ -188,12 +181,12 @@ PINGPP_CLENTIP         = "127.0.0.1"
 QINIU_ACCESS_KEY = "M7M4hlQTLlz_wa5-rGKaQ2sh8zzTrdY8JNKNtvKN"
 QINIU_SECRET_KEY = "8MkzPO_X7KhYQjINrnxsJ2eq5bsxKU1XmE8oMi4x"
 
-QINIU_PRIVATE_BUCKET = 'invoiceroom' #七牛私有空间
+QINIU_PRIVATE_BUCKET = 'invoiceroom'
 QINIU_PRIVATE_DOMAIN = '7xrpt3.com2.z0.glb.qiniucdn.com'
+QINIU_PUBLIC_BUCKET = 'xiaolumm'
+QINIU_PUBLIC_DOMAIN = 'img.xiaolumeimei.com'
 
-QINIU_PUBLIC_BUCKET = 'xiaolumama' #七牛公开空间,保存分享二维码,及其它商品信息
-QINIU_PUBLIC_DOMAIN = '7xrst8.com2.z0.glb.qiniucdn.com'
-
+############### REMOTE MEDIA STORAGE ################
 QINIU_BUCKET_NAME   = 'mediaroom'
 QINIU_BUCKET_DOMAIN = '7xogkj.com1.z0.glb.clouddn.com'
 QINIU_SECURE_URL    = 0

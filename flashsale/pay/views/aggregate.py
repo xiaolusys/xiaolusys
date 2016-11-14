@@ -3,7 +3,7 @@ import datetime
 from django.db import transaction
 from django.forms.models import model_to_dict
 from django.views.generic import View
-from django.shortcuts import HttpResponse, render_to_response, redirect
+from django.shortcuts import HttpResponse, render, redirect
 from django.template import RequestContext
 
 from rest_framework import generics
@@ -25,7 +25,10 @@ logger = logging.getLogger(__name__)
 class AggregateProductView(View):
     @staticmethod
     def get(request):
-        return render_to_response("pay/aggregate_product.html", context_instance=RequestContext(request))
+        return render(
+            request,
+            "pay/aggregate_product.html"
+        )
 
     @staticmethod
     @transaction.atomic
@@ -76,10 +79,12 @@ class ModelProductView(View):
             target_model = model_change[0]
             all_product = Product.objects.filter(model_id=model_change[0].id, status__in=(Product.NORMAL,Product.REMAIN))
             content_img = model_change[0].content_imgs.split()
-        return render_to_response("pay/aggregate_product2already.html",
-                                  {"target_model": target_model, "all_product": all_product,
-                                   "all_model_product": all_model_product, "content_img": content_img},
-                                  context_instance=RequestContext(request))
+        return render(
+            request,
+            "pay/aggregate_product2already.html",
+              {"target_model": target_model, "all_product": all_product,
+               "all_model_product": all_model_product, "content_img": content_img},
+        )
 
     @staticmethod
     def post(request):
@@ -96,9 +101,12 @@ class ModelProductView(View):
                 temp_pro.save()
                 log_action(request.user.id, temp_pro, CHANGE, u'修改款式ID为{0}'.format(model_id))
         all_product = Product.objects.filter(model_id=m.id)
-        return render_to_response("pay/aggregate_product2already.html", {"target_model": m, "all_product": all_product,
-                                                                         "all_model_product": all_model_product},
-                                  context_instance=RequestContext(request))
+        return render(
+            request,
+            "pay/aggregate_product2already.html",
+            {"target_model": m, "all_product": all_product,
+              "all_model_product": all_model_product},
+        )
 
 
 class CheckModelExistView(View):
@@ -150,13 +158,19 @@ class AggregateProductCheckView(View):
                     product_dict['model_product'] = "0"
             product_res.append(product_dict)
             product_res.sort()
-        return render_to_response("pay/check_product.html", {"all_product": product_res, "sale_time": sale_time},
-                                  context_instance=RequestContext(request))
+        return render(
+            request,
+            "pay/check_product.html",
+            {"all_product": product_res, "sale_time": sale_time}
+        )
 
     @staticmethod
     def post(request):
         post = request.POST
-        return render_to_response("pay/check_product.html", context_instance=RequestContext(request))
+        return render(
+            request,
+            "pay/check_product.html",
+        )
 
 
 class ChuanTuAPIView(generics.ListCreateAPIView):

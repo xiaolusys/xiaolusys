@@ -6,7 +6,7 @@ import json
 import datetime
 from django.views.generic import View
 from django.http import HttpResponse
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.template import RequestContext
 
 from common.modelutils import update_model_fields
@@ -24,8 +24,11 @@ class PostGoodShelf(View):
             categray = "童装"
         elif categray == "female":
             categray = "女装"
-        return render_to_response('poster/upload_poster.html', {"date": date, "categray": categray},
-                                  context_instance=RequestContext(request))
+        return render(
+            request,
+            'poster/upload_poster.html',
+            {"date": date, "categray": categray},
+        )
 
     def post(self, request):
         content = request.POST

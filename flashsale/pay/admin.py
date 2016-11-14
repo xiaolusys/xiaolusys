@@ -625,13 +625,15 @@ class EnvelopAdmin(admin.ModelAdmin):
 
         origin_url = request.get_full_path()
 
-        return render_to_response('pay/confirm_envelop.html',
-                                  {'origin_url': origin_url,
-                                   'envelop_ids': envelop_ids,
-                                   'total_amount': total_amount / 100.0,
-                                   'envelop_count': envelop_count},
-                                  context_instance=RequestContext(request),
-                                  content_type="text/html")
+        return render(
+            request,
+            'pay/confirm_envelop.html',
+              {'origin_url': origin_url,
+               'envelop_ids': envelop_ids,
+               'total_amount': total_amount / 100.0,
+               'envelop_count': envelop_count},
+              content_type="text/html"
+        )
 
     send_envelop_action.short_description = u"发送微信红包"
 

@@ -227,7 +227,7 @@ class WeixinUserModelView(View):
                             content_type="application/json")
 
 
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.template import RequestContext
 
 
@@ -316,9 +316,11 @@ class OrderInfoView(View):
 
         title = u'订单查询'
         if wx_user.isValid() == False:
-            response = render_to_response('weixin/remind.html',
-                                          {"title": title, "openid": user_openid},
-                                          context_instance=RequestContext(request))
+            response = render(
+                request,
+                'weixin/remind.html',
+                  {"title": title, "openid": user_openid},
+            )
             response.set_cookie("openid", user_openid)
             return response
 
@@ -331,8 +333,10 @@ class OrderInfoView(View):
         if latest_trades.count() == 0:
             wx_trades = WXOrder.objects.filter(buyer_openid=user_openid).order_by('-order_create_time')
             if wx_trades.count() == 0:
-                response = render_to_response('weixin/noorderinfo.html',
-                                              context_instance=RequestContext(request))
+                response = render(
+                    request,
+                    'weixin/noorderinfo.html',
+                )
                 response.set_cookie("openid", user_openid)
                 return response
 
@@ -419,12 +423,14 @@ class OrderInfoView(View):
             and data["status"] == pcfg.TRADE_FINISHED):
             post_fee_refund = True
 
-        response = render_to_response('weixin/orderinfo.html',
-                                      {'tradedata': data, "traces": shipping_traces, "score_passed": score_passed,
-                                       "specific_order_finished": specific_order_finished, "refund": refund,
-                                       "passed": passed, "openid": user_openid, "score_refund": score_refund,
-                                       "post_fee_refund": post_fee_refund},
-                                      context_instance=RequestContext(request))
+        response = render(
+            request,
+            'weixin/orderinfo.html',
+              {'tradedata': data, "traces": shipping_traces, "score_passed": score_passed,
+               "specific_order_finished": specific_order_finished, "refund": refund,
+               "passed": passed, "openid": user_openid, "score_refund": score_refund,
+               "post_fee_refund": post_fee_refund},
+        )
         response.set_cookie("openid", user_openid)
         return response
 
@@ -451,11 +457,13 @@ class BabyInfoView(View):
 
         years = [2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015]
         months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-        response = render_to_response('weixin/babyinfo.html',
-                                      {'user': wx_user, 'years': years,
-                                       'months': months, 'openid': openid,
-                                       'from_page': from_page},
-                                      context_instance=RequestContext(request))
+        response = render(
+            request,
+            'weixin/babyinfo.html',
+              {'user': wx_user, 'years': years,
+               'months': months, 'openid': openid,
+               'from_page': from_page},
+        )
         response.set_cookie("openid", openid)
         return response
 
@@ -603,16 +611,18 @@ class ReferalView(View):
         for r in rs:
             referal_bonus += r.bonus_value * 0.01
 
-        response = render_to_response('weixin/ambass.html',
-                                      {'openid': user_openid,
-                                       'referal_count': referal_count,
-                                       'referal_bonus': referal_bonus,
-                                       'vipcode': vipcode, 'coupon': coupon,
-                                       'payment': payment, 'num_orders': len(effect_mobiles),
-                                       'effect_mobiles': effect_mobiles,
-                                       'coupon_click_count': coupon_click_count,
-                                       'referal_images': referal_images},
-                                      context_instance=RequestContext(request))
+        response = render(
+            request,
+            'weixin/ambass.html',
+              {'openid': user_openid,
+               'referal_count': referal_count,
+               'referal_bonus': referal_bonus,
+               'vipcode': vipcode, 'coupon': coupon,
+               'payment': payment, 'num_orders': len(effect_mobiles),
+               'effect_mobiles': effect_mobiles,
+               'coupon_click_count': coupon_click_count,
+               'referal_images': referal_images},
+        )
         response.set_cookie("openid", user_openid)
         return response
 
@@ -642,8 +652,11 @@ class RefundSubmitView(View):
                                             review_note=review_note, user_openid=user_openid, mobile=mobile)
         else:
             obj = obj[0]
-        response = render_to_response('weixin/refundresponse.html', {"refund": obj},
-                                      context_instance=RequestContext(request))
+        response = render(
+            request,
+            'weixin/refundresponse.html',
+            {"refund": obj},
+        )
         return response
 
 
@@ -656,9 +669,11 @@ class RefundReviewView(View):
         for refund in refundlist:
             refund.pay_amount = refund.pay_amount * 0.01
 
-        response = render_to_response('weixin/refundreview.html',
-                                      {"refundlist": refundlist, "refund_status": refund_status},
-                                      context_instance=RequestContext(request))
+        response = render(
+            request,
+            'weixin/refundreview.html',
+              {"refundlist": refundlist, "refund_status": refund_status},
+        )
         return response
 
     def post(self, request):
@@ -719,10 +734,14 @@ class RefundReviewView(View):
         html = 'weixin/refundreviewblock.html'
         if refund_status == 1:
             html = 'weixin/finalizeblock.html'
-        response = render_to_response(html, {"first_refund": next_refund,
-                                             "first_trade": next_trade,
-                                             "sample_order": sample_order},
-                                      context_instance=RequestContext(request))
+        response = render(
+            request,
+            html,
+            {"first_refund": next_refund,
+             "first_trade": next_trade,
+             "sample_order": sample_order
+             },
+        )
         return response
 
 
@@ -758,9 +777,12 @@ class RefundRecordView(View):
         html = 'weixin/refundreviewblock.html'
         if refund_status == 1:
             html = 'weixin/finalizeblock.html'
-        response = render_to_response(html, {"first_refund": refund, "first_trade": trade,
-                                             "sample_order": sample_order, "score_buy": score_buy},
-                                      context_instance=RequestContext(request))
+        response = render(
+            request,
+            html,
+            {"first_refund": refund, "first_trade": trade,
+            "sample_order": sample_order, "score_buy": score_buy},
+        )
         return response
 
 
@@ -814,13 +836,16 @@ class FreeSampleView(View):
         minutes = (delta.seconds - hours * 3600) / 60
 
         html = 'weixin/freesamples.html'
-        response = render_to_response(
+        response = render(
+            request,
             html,
-            {"wx_user": wx_user, "fcode": fcode, "started": started,
+            {
+             "wx_user": wx_user, "fcode": fcode, "started": started,
              "order_exist": order_exist, "order_number": 1000,  # today_orders.count(),
              "self_vipcode": self_vipcode,
-             "days": days, "hours": hours, "minutes": minutes},
-            context_instance=RequestContext(request))
+             "days": days, "hours": hours, "minutes": minutes
+             },
+        )
         response.set_cookie("openid", user_openid)
         return response
 
@@ -885,8 +910,11 @@ class SampleApplyView(View):
         param = {"sample": sample, "sku": skus[0], "color": color, "wx_user": wx_user, "fcode": fcode,
                  "hongbao_pass": hongbao_pass}
 
-        response = render_to_response("weixin/sampleapply.html", param,
-                                      context_instance=RequestContext(request))
+        response = render(
+            request,
+            "weixin/sampleapply.html",
+            param,
+        )
         response.set_cookie("openid", user_openid)
         return response
 
@@ -977,12 +1005,14 @@ class SampleAdsView(View):
             share_url = request.build_absolute_uri().split('#')[0]
             wx_api = WeiXinAPI()
             signparams = wx_api.getShareSignParams(share_url)
-            response = render_to_response('weixin/sampleads1.html',
-                                          {"identical": identical, "vipcode": vipcode,
-                                           "pk": wx_user_pk, 'wx_user': users[0],
-                                           'signkey': signparams, 'hongbao_pass': hongbao_pass,
-                                           'kefu_url': kefu_url},
-                                          context_instance=RequestContext(request))
+            response = render(
+                request,
+                'weixin/sampleads1.html',
+                  {"identical": identical, "vipcode": vipcode,
+                   "pk": wx_user_pk, 'wx_user': users[0],
+                   'signkey': signparams, 'hongbao_pass': hongbao_pass,
+                   'kefu_url': kefu_url},
+            )
             return response
 
         redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://m.xiaolumeimei.com/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
@@ -1079,17 +1109,19 @@ class ResultView(View):
 
         sample_kefu_url = IMG_URL_PREFIX + [KFMAP['tangbao'], KFMAP['xiaoxi44']][sidx]
 
-        response = render_to_response('weixin/invite_result1.html',
-                                      {'wx_user': wx_user,
-                                       'sample_order': sample_order,
-                                       'vip_code': vip_code,
-                                       'link_click': link_click,
-                                       'sample_pass': sample_pass,
-                                       'hongbao_pass': hongbao_pass,
-                                       'user_charged': user_charged,
-                                       'kefu_url': kefu_url,
-                                       'sample_kefu_url': sample_kefu_url},
-                                      context_instance=RequestContext(request))
+        response = render(
+            request,
+            'weixin/invite_result1.html',
+              {'wx_user': wx_user,
+               'sample_order': sample_order,
+               'vip_code': vip_code,
+               'link_click': link_click,
+               'sample_pass': sample_pass,
+               'hongbao_pass': hongbao_pass,
+               'user_charged': user_charged,
+               'kefu_url': kefu_url,
+               'sample_kefu_url': sample_kefu_url},
+        )
         response.set_cookie("openid", user_openid)
 
         return response
@@ -1195,12 +1227,14 @@ class FinalListView(View):
         num_pages = paginator.num_pages
         next_page = min(page + 1, num_pages)
         prev_page = max(page - 1, 1)
-        response = render_to_response('weixin/final_list.html',
-                                      {"items": items, 'num_pages': num_pages,
-                                       'total': total, 'num_per_page': num_per_page,
-                                       'prev_page': prev_page, 'next_page': next_page,
-                                       'page': page, 'batch': batch, 'month': month},
-                                      context_instance=RequestContext(request))
+        response = render(
+            request,
+            'weixin/final_list.html',
+              {"items": items, 'num_pages': num_pages,
+               'total': total, 'num_per_page': num_per_page,
+               'prev_page': prev_page, 'next_page': next_page,
+               'page': page, 'batch': batch, 'month': month},
+        )
         return response
 
 
@@ -1218,8 +1252,11 @@ class PayGuideView(View):
             if orders.count() > 0:
                 passed = True
 
-        response = render_to_response('weixin/pai_guide.html', {"passed": passed},
-                                      context_instance=RequestContext(request))
+        response = render(
+            request,
+            'weixin/pai_guide.html',
+            {"passed": passed},
+        )
         return response
 
 
@@ -1253,22 +1290,29 @@ class VipCouponView(View):
 
         title = u'VIP优惠券'
         if wx_user.isValid() == False:
-            response = render_to_response('weixin/remind.html',
-                                          {"title": title, "openid": user_openid},
-                                          context_instance=RequestContext(request))
+            response = render(
+                request,
+                'weixin/remind.html',
+                  {"title": title, "openid": user_openid},
+            )
             response.set_cookie("openid", user_openid)
             return response
 
-        response = render_to_response('weixin/vipcoupon.html', {"openid": user_openid, "coupon_pk": "5"},
-                                      context_instance=RequestContext(request))
+        response = render(
+            request,
+            'weixin/vipcoupon.html',
+            {"openid": user_openid, "coupon_pk": "5"},
+        )
         response.set_cookie("openid", user_openid)
         return response
 
 
 class CouponFaqView(View):
     def get(self, request):
-        response = render_to_response('weixin/coupon_faq.html',
-                                      context_instance=RequestContext(request))
+        response = render(
+            request,
+            'weixin/coupon_faq.html',
+        )
         return response
 
 
@@ -1324,9 +1368,11 @@ class SurveyView(View):
             ratio1 = "%.2f" % ratio1
             ratio2 = "%.2f" % ratio2
 
-        response = render_to_response('weixin/survey.html',
-                                      {"exist": exist, "total": total, "ratio1": ratio1, "ratio2": ratio2},
-                                      context_instance=RequestContext(request))
+        response = render(
+            request,
+            'weixin/survey.html',
+              {"exist": exist, "total": total, "ratio1": ratio1, "ratio2": ratio2},
+        )
         response.set_cookie("openid", user_openid)
         return response
 
@@ -1362,9 +1408,11 @@ class SampleChooseView(View):
             if sample_chooses.count() > 0:
                 exist = True
 
-        response = render_to_response('weixin/sample_choose.html',
-                                      {"exist": exist},
-                                      context_instance=RequestContext(request))
+        response = render(
+            request,
+            'weixin/sample_choose.html',
+              {"exist": exist},
+        )
         response.set_cookie("openid", user_openid)
         return response
 
@@ -1408,9 +1456,11 @@ class ScoreView(View):
             score_type=WeixinScoreItem.INVITE).order_by('-created')
         invite_items = WeixinScoreItem.objects.filter(user_openid=wx_user.openid, score_type=WeixinScoreItem.INVITE)
 
-        response = render_to_response('weixin/score.html',
-                                      {'score': score, 'items': items, 'invite_items': invite_items},
-                                      context_instance=RequestContext(request))
+        response = render(
+            request,
+            'weixin/score.html',
+              {'score': score, 'items': items, 'invite_items': invite_items},
+        )
         return response
 
 
@@ -1455,9 +1505,11 @@ class ScoreMenuView(View):
 
         title = u'积分查询'
         if wx_user.isValid() == False:
-            response = render_to_response('weixin/remind.html',
-                                          {"title": title, "openid": user_openid},
-                                          context_instance=RequestContext(request))
+            response = render(
+                request,
+                'weixin/remind.html',
+                  {"title": title, "openid": user_openid},
+            )
             response.set_cookie("openid", user_openid)
             return response
 
@@ -1488,22 +1540,27 @@ class ScoreMenuView(View):
             frozen_score, state = SampleFrozenScore.objects.get_or_create(user_openid=user_openid,
                                                                           sample_id=sample_order.id)
             wait_frozen_score = min(50 - frozen_score.frozen_score, score / 10 * 10)
-        response = render_to_response('weixin/scoremenu.html', {"score": score, "pk": pk,
-                                                                "vipcode": vipcode,
-                                                                "wait_frozen_score": wait_frozen_score,
-                                                                "sample_order": sample_order,
-                                                                "frozen_score": frozen_score,
-                                                                "sample_start": sample_start,
-                                                                "referal_images": referal_images},
-                                      context_instance=RequestContext(request))
+        response = render(
+            request,
+            'weixin/scoremenu.html',
+            {"score": score, "pk": pk,
+            "vipcode": vipcode,
+            "wait_frozen_score": wait_frozen_score,
+            "sample_order": sample_order,
+            "frozen_score": frozen_score,
+            "sample_start": sample_start,
+            "referal_images": referal_images},
+        )
         response.set_cookie("openid", user_openid)
         return response
 
 
 class GiftView(View):
     def get(self, request):
-        response = render_to_response('weixin/gift.html',
-                                      context_instance=RequestContext(request))
+        response = render(
+            request,
+            'weixin/gift.html',
+        )
         return response
 
 
@@ -1657,8 +1714,10 @@ class TestView(View):
         #         print request.META.get('HTTP_USER_AGENT')
         #         print request.META.get('HTTP_USER_AGENT').find('MicroMessenger')
 
-        response = render_to_response('weixin/sampleads1.html',
-                                      context_instance=RequestContext(request))
+        response = render(
+            request,
+            'weixin/sampleads1.html',
+        )
         return response
 
 
@@ -1667,8 +1726,11 @@ class TestCodeView(View):
         #         print request.META.get('HTTP_USER_AGENT')
         #         print request.META.get('HTTP_USER_AGENT').find('MicroMessenger')
 
-        response = render_to_response('weixin/testcode.html', {'kfmap': KFMAP, 'url_prifix': IMG_URL_PREFIX},
-                                      context_instance=RequestContext(request))
+        response = render(
+            request,
+            'weixin/testcode.html',
+            {'kfmap': KFMAP, 'url_prifix': IMG_URL_PREFIX},
+        )
         return response
 
 
@@ -1686,9 +1748,11 @@ def weixinorder_detail(request):
 
     title = u'订单查询'
     if wx_user.isValid() == False:
-        response = render_to_response('weixin/remind.html',
-                                      {"title": title, "openid": user_openid},
-                                      context_instance=RequestContext(request))
+        response = render(
+            request,
+            'weixin/remind.html',
+              {"title": title, "openid": user_openid},
+        )
         response.set_cookie("openid", user_openid)
         return response
 
@@ -1703,8 +1767,10 @@ def weixinorder_detail(request):
     if latest_trades.count() == 0:
         wx_trades = WXOrder.objects.filter(buyer_openid=user_openid).order_by('-order_create_time')
         if wx_trades.count() == 0:
-            response = render_to_response('weixin/noorderinfo.html',
-                                          context_instance=RequestContext(request))
+            response = render(
+                request,
+                'weixin/noorderinfo.html',
+            )
             response.set_cookie("openid", user_openid)
             return response
 
@@ -1812,9 +1878,11 @@ def weixinorder_detail(request):
     #  "passed":passed, "openid":user_openid, "score_refund":score_refund,
     # "post_fee_refund":post_fee_refund},
     # context_instance=RequestContext(request))
-    response = render_to_response('weixin/weixinorder_detail.html',
-                                  {'info': rec1},
-                                  context_instance=RequestContext(request))
+    response = render(
+        request,
+        'weixin/weixinorder_detail.html',
+          {'info': rec1},
+    )
 
     response.set_cookie("openid", user_openid)
     return response

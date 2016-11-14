@@ -16,7 +16,7 @@ import json
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import connection
 from django.http import HttpResponse
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
 
@@ -47,8 +47,11 @@ def by_Linkid_Analysis(request):
 def show_Orderlink_Page(request):
     date_today = datetime.datetime.today()
     today = date_today.strftime("%Y-%m-%d")
-    return render_to_response("order_linkid_analysis/order_linkid_analysis.html", {"today": today},
-                              context_instance=RequestContext(request))
+    return render(
+        request,
+        "order_linkid_analysis/order_linkid_analysis.html",
+        {"today": today},
+    )
 
 
 def order_num(sql=None):

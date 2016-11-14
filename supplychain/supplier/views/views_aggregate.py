@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from django.views.generic import View
-from django.shortcuts import HttpResponse, render_to_response, redirect
+from django.shortcuts import HttpResponse, render, redirect
 from django.template import RequestContext
 from django.utils.safestring import mark_safe
 
@@ -34,9 +34,11 @@ class AggregateProductView(View):
                     if schema:
                         miscs.append('<span>返利计划：%s</span>' % schema)
             p.misc = mark_safe('<br>'.join(miscs))
-        return render_to_response("aggregate_product.html",
-                                  {"sale_product": s[0] if s.count() > 0 else None, "all_product": all_product},
-                                  context_instance=RequestContext(request))
+        return render(
+            request,
+            "aggregate_product.html",
+              {"sale_product": s[0] if s.count() > 0 else None, "all_product": all_product},
+        )
 
     @staticmethod
     @transaction.atomic
@@ -59,6 +61,8 @@ class GetProductView(View):
         product_id = request.GET.get("product")
         s = SaleProduct.objects.filter(id=product_id)
 
-        return render_to_response("aggregate_product.html",
-                                  {"sale_product": s[0] if s.count() > 0 else None},
-                                  context_instance=RequestContext(request))
+        return render(
+            request,
+            "aggregate_product.html",
+              {"sale_product": s[0] if s.count() > 0 else None},
+        )

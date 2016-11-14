@@ -9,7 +9,7 @@ import urlparse
 from celery import chain
 from django.contrib.auth.models import User
 from django.http import HttpResponse, Http404
-from django.shortcuts import redirect, render_to_response
+from django.shortcuts import redirect, render
 from django.template import RequestContext
 from django.views.generic import View
 from flashsale.xiaolumm.models.models_advertis import XlmmAdvertis
@@ -39,7 +39,10 @@ WEB_SHARE_URL = "{site_url}/mall/?mm_linkid={mm_linkid}&ufrom={ufrom}"
 # SHOPURL = "http://m.xiaolumeimei.com/mm/plist/"
 
 def landing(request):
-    return render_to_response("mama_landing.html", context_instance=RequestContext(request))
+    return render(
+        request,
+        "mama_landing.html",
+    )
 
 
 class WeixinAuthCheckView(WeixinAuthMixin, View):
@@ -61,14 +64,14 @@ class WeixinAuthCheckView(WeixinAuthMixin, View):
         if wxuser_qs.exists():
             wxuser = wxuser_qs[0]
 
-        return render_to_response(
+        return render(
+            request,
             'wxauth_checkview.html',
             {'openid': openid,
              'unionid': unionid,
              'xlmm': xlmm,
              'wxuser': wxuser,
              },
-            context_instance=RequestContext(request)
         )
 
 
@@ -135,7 +138,11 @@ class CashoutView(WeixinAuthMixin, View):
                 "referal_list": referal_list,
                 "could_cash_out": int(could_cash_out)}
 
-        response = render_to_response("mama_cashout.html", data, context_instance=RequestContext(request))
+        response = render(
+            request,
+            "mama_cashout.html",
+            data,
+        )
         self.set_cookie_openid_and_unionid(response, openid, unionid)
         return response
 
@@ -229,7 +236,10 @@ class MamaStatsView(WeixinAuthMixin, View):
                 update_model_fields(xlmm, update_fields=['mobile', 'weikefu'])
 
             if xlmm.status == XiaoluMama.FROZEN:
-                return render_to_response("mama_404.html")
+                return render(
+                    request,
+                    "mama_404.html"
+                )
 
             mobile_revised = "%s****%s" % (mobile[:3], mobile[-4:])
 
@@ -294,7 +304,11 @@ class MamaStatsView(WeixinAuthMixin, View):
         except Exception, exc:
             logger.error(exc.message, exc_info=True)
 
-        response = render_to_response("mama_stats.html", data, context_instance=RequestContext(request))
+        response = render(
+            request,
+            "mama_stats.html",
+            data,
+        )
         self.set_cookie_openid_and_unionid(response, openid, unionid)
         return response
 
@@ -337,7 +351,10 @@ class MamaIncomeDetailView(WeixinAuthMixin, View):
         try:
             xlmm, state = XiaoluMama.objects.get_or_create(openid=unionid)
             if xlmm.status == XiaoluMama.FROZEN:
-                return render_to_response("mama_404.html")
+                return render(
+                    request,
+                    "mama_404.html"
+                )
 
             exam_pass = xlmm.exam_Passed()
             order_num = 0
@@ -414,7 +431,11 @@ class MamaIncomeDetailView(WeixinAuthMixin, View):
         except Exception, exc:
             logger.error(exc.message, exc_info=True)
 
-        response = render_to_response("mama_income.html", data, context_instance=RequestContext(request))
+        response = render(
+            request,
+            "mama_income.html",
+            data,
+        )
         self.set_cookie_openid_and_unionid(response, openid, unionid)
         return response
 
@@ -485,10 +506,12 @@ class StatsView(View):
                           "buyer_num": buyer_num, "order_num": order_num}
             data.append(data_entry)
 
-        return render_to_response("stats.html",
-                                  {'pk': int(pk), "data": data, "managers": managers, "prev_day": prev_day,
-                                   "target_date": target_date, "next_day": next_day},
-                                  context_instance=RequestContext(request))
+        return render(
+            request,
+            "stats.html",
+              {'pk': int(pk), "data": data, "managers": managers, "prev_day": prev_day,
+               "target_date": target_date, "next_day": next_day},
+        )
 
 def get_share_url(next_page=None, mm_linkid=None, ufrom=None):
     """ 获取分享链接 """
@@ -695,9 +718,11 @@ def cash_Out_Verify(request, id, xlmm):
                   'sum_carry_in': float(sum_carry_in)/100, 'sum_carry_out': float(sum_carry_out)/100,
                   'carry_in_minus_out': float(carry_in_minus_out)/100}
     data.append(data_entry)
-    return render_to_response("mama_cashout_verify.html",
-                              {"data": data},
-                              context_instance=RequestContext(request))
+    return render(
+        request,
+        "mama_cashout_verify.html",
+          {"data": data},
+    )
 
 
 from django.db import transaction
@@ -836,9 +861,12 @@ def stats_summary(request):
     if target_date < today:
         next_day = target_date + datetime.timedelta(days=1)
     data = manage_Summar(date_time)
-    return render_to_response("stats_summary.html", {"data": data, "prev_day": prev_day,
-                                                     "target_date": target_date, "next_day": next_day},
-                              context_instance=RequestContext(request))
+    return render(
+        request,
+        "stats_summary.html",
+        {"data": data, "prev_day": prev_day,
+         "target_date": target_date, "next_day": next_day},
+    )
 
 
 ###################### 妈妈审核功能

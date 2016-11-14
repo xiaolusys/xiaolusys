@@ -3,7 +3,7 @@ import json
 from django.db.models import Q,F
 from django.views.generic import View
 from django.http import Http404,HttpResponse
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.template import RequestContext
 from .models import PickGroup,WavePick,PickItem,PickPublish
 from shopback.trades.models import MergeTrade
@@ -18,9 +18,11 @@ class WaveView(View):
     def get(self,request):
         
         groups = PickGroup.objects.all()
-        response = render_to_response('create_wave.html', 
-                                      {"groups":groups}, 
-                                      context_instance=RequestContext(request))
+        response = render(
+            request,
+            'create_wave.html',
+              {"groups":groups},
+        )
         return response
         
     def post(self,request):
@@ -30,9 +32,11 @@ class WaveView(View):
         group    = PickGroup.objects.get(id=group_id)
         wave_id  = group.generateWaveNoByGroup()
                 
-        response = render_to_response('wave_item_list.html', 
-                                      {"wave_id":wave_id}, 
-                                      context_instance=RequestContext(request))
+        response = render(
+            request,
+            'wave_item_list.html',
+              {"wave_id":wave_id},
+        )
         return response
         
 
@@ -124,9 +128,11 @@ class WaveDetailView(View):
                 pick_item.save()
                 
         
-        response = render_to_response('wave_detail.html', 
-                                      {"wave_id":wave_id,"order_items":order_items}, 
-                                      context_instance=RequestContext(request))
+        response = render(
+            request,
+            'wave_detail.html',
+              {"wave_id":wave_id,"order_items":order_items},
+            )
         return response
         
     def post(self,request,wave_id):
@@ -191,11 +197,13 @@ class AllocateView(View):
         pick_alloctates = self.getPickItemAllocate(wave_id)
         group_id = self.getPickGroupByWaveNo(wave_id)
         
-        response = render_to_response('allocate_detail.html', 
-                                      {"group_id":group_id,
-                                       "wave_id":wave_id,
-                                       "pick_alloctates":pick_alloctates},
-                                      context_instance=RequestContext(request))
+        response = render(
+            request,
+            'allocate_detail.html',
+              {"group_id":group_id,
+               "wave_id":wave_id,
+               "pick_alloctates":pick_alloctates},
+        )
         return response
         
     
