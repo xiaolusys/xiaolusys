@@ -77,7 +77,7 @@ def refund_postage(sale_refund):
 
 
 def refund_coupon(sale_refund):
-    # type : () -> bool
+    # type : (SaleRefund) -> bool
     """补邮费优惠券给用户
     """
     from flashsale.coupon.models import UserCoupon
@@ -96,13 +96,7 @@ def refund_coupon(sale_refund):
 @transaction.atomic()
 def return_fee_by_refund_product(sale_refund):
     # type: (SaleRefund) -> bool
-    """
-    功能：　根据　refund app 的RefundProduct 来给用户退款
-    1. 状态检查
-    2. 退　退款　到余额
-    3. 退　邮费　到余额
-    4. 补贴　优惠券
-    5. 修改退款单状态
+    """根据　refund app 的RefundProduct 来给用户退款
     """
     if sale_refund.good_status != SaleRefund.BUYER_RETURNED_GOODS \
             or sale_refund.status != SaleRefund.REFUND_CONFIRM_GOODS:
