@@ -591,8 +591,10 @@ class SkuStock(models.Model):
         """
         from shopback.trades.models import PackageSkuItem
         now_num = self.realtime_quantity - self.assign_num
-        if now_num <= 0:
+        if now_num == 0:
             return
+        if now_num < 0:
+            self.relase_assign(psi_id, orderlist)
         if psi_id:
             psi = PackageSkuItem.objects.filter(sku_id=self.sku_id,
                                                 id=psi_id,
