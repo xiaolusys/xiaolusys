@@ -8,6 +8,7 @@
 from __future__ import absolute_import, unicode_literals
 from celery import shared_task as task
 
+import re
 import simplejson
 from datetime import datetime
 from shopback.trades.models import PackageSkuItem, PackageOrder
@@ -22,7 +23,7 @@ SUPPLIER_YOUHE_ID = 29463
 
 def parse_sku_code(supplier_sku_code):
     # SKUCODE,NUM;SKUCODE2,NUM; => [(SKUCODE, NUM),(SKU_CODE, NUM)]
-    return [filter(None, x.split(',')) for x in supplier_sku_code.split(';') if x]
+    return [filter(None, re.split(',|，', x)) for x in re.split(';|；', supplier_sku_code) if x]
 
 
 def task_sync_order_to_erp():
@@ -156,7 +157,10 @@ def task_sync_erp_deliver():
     """
 
     # 获取未发货订单
-    erp_orders = ErpOrder.objects.filter(order_status=ErpOrder.CHECK_TRADE)
+    erp_orders = ErpOrder.objects.filter(
+        order_status=ErpOrder.CHECK_TRADE,
+        sync_status=ErpOrder.SUCCESS
+    )
 
     wdt = WangDianTong()
     for erp_order in erp_orders:
