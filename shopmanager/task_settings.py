@@ -20,8 +20,8 @@ from celery.schedules import crontab
 
 CELERY_RESULT_BACKEND = 'django-cache'
 
-BROKER_POOL_LIMIT = 0
-BROKER_CONNECTION_TIMEOUT = 10
+CELERY_BROKER_POOL_LIMIT = 0
+CELERY_BROKER_CONNECTION_TIMEOUT = 10
 
 # 某个程序中出现的队列，在broker中不存在，则立刻创建它
 # CELERY_CREATE_MISSING_QUEUES = True
@@ -29,7 +29,7 @@ BROKER_CONNECTION_TIMEOUT = 10
 CELERYD_MAX_TASKS_PER_CHILD = 1000
 
 # 任务发出后，经过一段时间还未收到acknowledge , 就将任务重新交给其他worker执行
-BROKER_TRANSPORT_OPTIONS = {
+CELERY_BROKER_TRANSPORT_OPTIONS = {
     'visibility_timeout': 3600,
     'max_connections': 8,
 }
@@ -87,16 +87,20 @@ CELERY_QUEUES = (
     Queue('qrcode', routing_key='qrcode.#'),
 )
 
+CELERY_TASK_QUEUES = CELERY_QUEUES
 CELERY_DEFAULT_EXCHANGE = 'default'
 CELERY_DEFAULT_EXCHANGE_TYPE = 'topic'
 CELERY_DEFAULT_ROUTING_KEY = 'default'
+
+CELERY_TASK_DEFAULT_EXCHANGE = 'default'
+CELERY_TASK_DEFAULT_EXCHANGE_TYPE = 'topic'
+CELERY_TASK_DEFAULT_ROUTING_KEY = 'default'
 
 CELERY_IMPORTS = (
     'flashsale.promotion.tasks_activity',
     'shopback.items.tasks_stats',
     'flashsale.forecast.apis',
 )
-
 
 APIS_ROUTES = {
     'flashsale.forecast.apis.api_create_or_update_forecastinbound_by_orderlist': {
@@ -958,12 +962,8 @@ CELERY_ROUTES.update(APIS_ROUTES)
 CELERY_ROUTES.update(DINGHUO_ROUTES)
 CELERY_ROUTES.update(QRCODE_ROUTES)
 
-CELERY_TASK_ROUTES = {
-    'flashsale.pay.tasks.task_sync_xlmm_fans_nick_thumbnail': {
-        'queue': 'frency',
-        'routing_key': 'frency.task_sync_xlmm_fans_nick_thumbnail',
-    }
-}
+CELERY_TASK_ROUTES = CELERY_ROUTES
+
 ####### schedule task  ########
 SYNC_MODEL_SCHEDULE = {
     u'定时淘宝分销订单增量下载任务': {  # 增量更新分销部分订单
@@ -1541,4 +1541,4 @@ CELERYBEAT_SCHEDULE.update(SYNC_MODEL_SCHEDULE)
 
 CELERYBEAT_SCHEDULE.update(SHOP_APP_SCHEDULE)
 
-# CELERY_BEAT_SCHEDULE = CELERYBEAT_SCHEDULE
+CELERY_BEAT_SCHEDULE = CELERYBEAT_SCHEDULE

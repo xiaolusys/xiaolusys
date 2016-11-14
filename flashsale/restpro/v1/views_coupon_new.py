@@ -190,7 +190,7 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         """　根据参数生成不同类型的优惠券,多张优惠券逗号分隔 """
-        content = request.POST
+        content = request.data
         template_ids = content.get("template_id") or ''
         if not template_ids:  # 参数有误
             return Response({"code": 7, "res": "优惠券不存在", "coupons": ""})
@@ -237,7 +237,7 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_owner_queryset(request)).filter(id=coupon_id)
         coupon = queryset.get(id=pk)
 
-        content = request.POST
+        content = request.data
         cart_ids = content.get("cart_ids", None)
         pro_num = content.get("pro_num", None)
         item = content.get("item_id", None)
@@ -505,7 +505,7 @@ class OrderShareCouponViewSet(viewsets.ModelViewSet):
         if customer is None:
             default_return.update({"code": 2, "msg": "用户不存在"})
             return Response(default_return)
-        content = request.POST
+        content = request.data
         uniq_id = content.get('uniq_id') or ''  # 订单分享创建
         ufrom = content.get("ufrom") or ''
         if not uniq_id:
@@ -541,7 +541,7 @@ class OrderShareCouponViewSet(viewsets.ModelViewSet):
         customer = get_customer(request)
         if customer is None:
             return Response({"code": 2, "msg": "用户不存在", "share_link": ''})
-        content = request.POST
+        content = request.data
         uniq_id = content.get('uniq_id') or ''  # 活动分享创建
         ufrom = content.get("ufrom") or ''
         if not uniq_id:
@@ -561,7 +561,7 @@ class OrderShareCouponViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['post', 'get'])
     def pick_order_share_coupon(self, request):
-        content = request.POST
+        content = request.data
         uniq_id = content.get("uniq_id") or ''
         ufrom = content.get("ufrom") or ''
         customer = get_customer(request)
@@ -601,7 +601,7 @@ class OrderShareCouponViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['post'])
     def pick_active_share_coupon(self, request):
-        content = request.POST
+        content = request.data
         uniq_id = content.get("uniq_id") or ''
         ufrom = content.get("ufrom") or ''
         customer = get_customer(request)
@@ -659,7 +659,7 @@ class TmpShareCouponViewset(viewsets.ModelViewSet):
         """
         提交临时优惠券
         """
-        content = request.POST
+        content = request.data
         mobile = content.get('mobile') or ''
         uniq_id = content.get("uniq_id") or ''
         coupon = {

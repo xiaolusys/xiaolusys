@@ -66,7 +66,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['POST'])
     def start_transfer(self, request, *args, **kwargs):
-        content = request.POST
+        content = request.data
         
         coupon_num = content.get("coupon_num") or None
         product_id = content.get("product_id")

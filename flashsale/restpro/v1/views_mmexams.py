@@ -191,7 +191,7 @@ class MmexamsViewSet(viewsets.ModelViewSet):
         xlmm = customer.get_charged_mama()
         if not xlmm:
             return Response({"code": 3, "info": "请申请成为小鹿妈妈后参加考试！"})
-        content = request.POST
+        content = request.data
         question_id = content.get("question_id") or None
         answer = content.get("answer") or None
         if not (question_id and answer):
@@ -237,7 +237,7 @@ class MmexamsViewSet(viewsets.ModelViewSet):
         if not xlmm:
             return Response({"code": 2, "info": "请申请成为小鹿妈妈后参加考试！",
                              "exam_result": default_result})
-        content = request.POST
+        content = request.data
         sheaves = content.get("sheaves") or None
         now = datetime.datetime.now()
         exam = Mamaexam.objects.filter(sheaves=sheaves, valid=True, start_time__lte=now, expire_time__gte=now).first()

@@ -305,7 +305,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
     def fill_mama_info(self, request):
         if not request.user or not request.user.is_authenticated():
             raise exceptions.PermissionDenied()
-        content = request.POST
+        content = request.data
         customer = get_object_or_404(Customer, user=request.user)
         mama_mobile = content.get('mama_mobile') or ''
         if (not customer.unionid) or (not customer.unionid.strip()):
@@ -333,7 +333,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
     def mama_register_pay(self, request):
         if not request.user or not request.user.is_authenticated():
             raise exceptions.PermissionDenied()
-        content = request.POST
+        content = request.data
         product_id = content.get('product_id')
         sku_id = content.get('sku_id')
         sku_num = int(content.get('num', '1'))
@@ -814,7 +814,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
 
     def create(self, request, *args, **kwargs):
         """代理提现"""
-        content = request.POST
+        content = request.data
         cash_type = content.get('choice', None)
         cashout_amount = content.get('cashout_amount', None)
 
@@ -898,7 +898,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         amount=1.5 #金额1.5元
         verify_code=123456 #验证码123456
         """
-        content = request.POST or request.GET
+        content = request.data or request.GET
 
         amount = content.get('amount', None)  # 以元为单位
         verify_code = content.get('verify_code', None)
@@ -992,7 +992,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
     @list_route(methods=['post'])
     def cashout_to_budget(self, request):
         """ 代理提现到用户余额 """
-        cashout_amount = request.POST.get('cashout_amount', None)
+        cashout_amount = request.data.get('cashout_amount', None)
         customer, xlmm = self.get_customer_and_xlmm(request)
         if not (xlmm and customer):
             info = u'你的帐号异常，请联系管理员！'
@@ -1042,7 +1042,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
     @list_route(methods=['post'])
     def cancal_cashout(self, request):
         """ 取消提现 接口 """
-        pk = request.POST.get("id", None)
+        pk = request.data.get("id", None)
         queryset = self.get_owner_queryset(request).filter(id=pk)
         if queryset.exists():
             cashout = queryset[0]

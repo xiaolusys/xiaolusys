@@ -22,13 +22,13 @@ class KdnViewSet(APIView):
         return Response(True)
 
     def post(self, request, *args, **kwargs):
-        EBusinessID = request.POST.get("EBusinessID", 1)
-        PushTime = request.POST.get("PushTime", 1)
-        Count = request.POST.get("Count", 1)
-        Data = request.POST.get("Data", 1)
-        DataSign = request.POST.get("DataSign", 1)
-        RequestData = request.POST.get("RequestData", 1)
-        RequestType = request.POST.get("RequestType", 1)
+        EBusinessID = request.data.get("EBusinessID", 1)
+        PushTime = request.data.get("PushTime", 1)
+        Count = request.data.get("Count", 1)
+        Data = request.data.get("Data", 1)
+        DataSign = request.data.get("DataSign", 1)
+        RequestData = request.data.get("RequestData", 1)
+        RequestType = request.data.get("RequestType", 1)
         logger.info({
             'action': 'push.kdn',
             "EBusinessID":EBusinessID,
