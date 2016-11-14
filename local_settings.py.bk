@@ -19,6 +19,7 @@ MAMA_MISSION_PUSH_SWITCH = False  # 妈妈周激励推送开关
 
 ORMCACHE_ENABLE = False
 CELERY_TASK_ALWAYS_EAGER = True
+CLOSE_CELERY = False
 CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
