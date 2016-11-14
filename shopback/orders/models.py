@@ -77,7 +77,7 @@ class Trade(models.Model):
 
     is_brand_sale = models.BooleanField(default=False)
     is_force_wlb = models.BooleanField(default=False)
-    trade_from = models.CharField(max_length=32, blank=True)
+    trade_from = models.CharField(default='', max_length=32, blank=True)
 
     is_lgtype = models.BooleanField(default=False)
     lg_aging = models.DateTimeField(null=True, blank=True)

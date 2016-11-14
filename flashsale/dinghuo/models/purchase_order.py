@@ -251,6 +251,9 @@ class OrderList(models.Model):
         return self.stage not in [OrderList.STAGE_DRAFT, OrderList.STAGE_COMPLETED, OrderList.STAGE_DELETED,
                                   OrderList.STAGE_STATE]
 
+    def can_receive(self):
+        return self.stage in [OrderList.STAGE_RECEIVE, OrderList.STAGE_STATE, OrderList.STAGE_COMPLETED]
+
     def is_finished(self):
         return self.stage in [OrderList.STAGE_STATE, OrderList.STAGE_COMPLETED]
 

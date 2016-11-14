@@ -991,10 +991,10 @@ class SaleOrder(PayBaseModel):
 
     def confirm_sign_order(self):
         """确认签收 修改该订单状态到 确认签收状态"""
-        self.status = self.TRADE_BUYER_SIGNED
+        self.status = SaleOrder.TRADE_BUYER_SIGNED
         self.sign_time = datetime.datetime.now()
         self.save(update_fields=['status', 'sign_time'])
-
+        self.package_sku.set_status_finish()
         sale_trade = self.sale_trade
         unsign_orders = sale_trade.normal_orders.exclude(
             status__in=(SaleOrder.TRADE_BUYER_SIGNED, SaleOrder.TRADE_FINISHED))
