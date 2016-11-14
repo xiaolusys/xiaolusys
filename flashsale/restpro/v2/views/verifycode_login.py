@@ -303,8 +303,7 @@ class VerifyCodeView(views.APIView):
     """
 
     def post(self, request):
-        content = request.data
-
+        content = request.data.copy()
         mobile = content.get("mobile", "0")
         action = content.get("action", "")
         verify_code = content.get("verify_code", "")
@@ -406,7 +405,7 @@ class PasswordLoginView(views.APIView):
     """
 
     def post(self, request):
-        content = request.data
+        content = request.data.copy()
         username = content.get('username', '0')
         password = content.get('password', '')
         next_url = content.get('next', '/index.html')
@@ -478,7 +477,9 @@ class WeixinAppLoginView(views.APIView):
         """
         app客户端微信授权登陆
         """
-        params = request.data
+        params = request.data.copy()
+        for k, v in request.GET.iteritems():
+            params[k] = v
 
         if not check_sign(request):
             return Response({"rcode": 1, "msg": u'登录失败'})
