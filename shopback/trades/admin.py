@@ -1,4 +1,6 @@
 # coding: utf-8
+from __future__ import absolute_import, unicode_literals
+
 import json
 import time
 import datetime
@@ -25,9 +27,6 @@ from shopback.trades.models import (PackageOrder,
                                     ReplayPostTrade,
                                     MergeTradeDelivery)
 from shopback import paramconfig as pcfg
-from shopback.fenxiao.models import PurchaseOrder
-from shopback.trades.tasks import sendTaobaoTradeTask, sendTradeCallBack
-from shopback.trades import permissions as perms
 from .forms import YundaCustomerForm
 from shopback.trades.filters import (TradeStatusFilter,
                                      OrderPendingStatusFilter)
@@ -661,12 +660,14 @@ class MergeTradeAdmin(ApproxAdmin):
                     MergeTrade.objects.mergeRemover(main_trade)
 
         trades = MergeTrade.objects.filter(id__in=trade_ids)
-        return render_to_response('trades/mergesuccess.html',
-                                  {'trades': trades,
-                                   'merge_status': is_merge_success,
-                                   'fail_reason': fail_reason},
-                                  context_instance=RequestContext(request),
-                                  content_type="text/html")
+        return request(
+            request,
+            'trades/mergesuccess.html',
+              {'trades': trades,
+               'merge_status': is_merge_success,
+               'fail_reason': fail_reason},
+              content_type="text/html",
+        )
 
     merge_order_action.short_description = "合并订单".decode('utf8')
 
@@ -745,16 +746,15 @@ class MergeTradeAdmin(ApproxAdmin):
             replay_trade = ReplayPostTrade.objects.create(operator=request.user.username,
                                                           order_num=len(trade_ids),
                                                           trade_ids=','.join([str(i) for i in trade_ids]))
-
+            from shopback.trades.tasks import sendTaobaoTradeTask, sendTradeCallBack
             send_tasks = chord([sendTaobaoTradeTask.s(user_id, trade.id)
-                                for trade in queryset])(sendTradeCallBack.s(replay_trade.id), max_retries=300)
+                                for trade in queryset])(sendTradeCallBack.s(replay_trade.id), ax_retries=300)
 
         except Exception, exc:
             logger.error(exc.message, exc_info=True)
             return HttpResponse('<body style="text-align:center;"><h1>发货请求执行出错:（%s）</h1></body>' % exc.message)
 
         response_dict = {'task_id': send_tasks.task_id, 'replay_id': replay_trade.id}
-
         return render(
             request,
             'trades/send_trade_reponse.html',

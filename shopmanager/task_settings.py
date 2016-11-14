@@ -3,9 +3,6 @@ import os
 from kombu import Exchange, Queue
 from celery.schedules import crontab
 
-REDIS_HOST = '55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379'
-REDIS_AUTH = os.environ.get('REDIS_AUTH')
-
 ########################################################################################################################
 #说明:新增queue或定时任务需要注意的地方
 #新增queue, 并将queue配置到.drone.yml　启动参数里
@@ -21,8 +18,7 @@ REDIS_AUTH = os.environ.get('REDIS_AUTH')
 
 ############################# BASE SETUP ################################
 
-CELERY_BROKER_URL = 'redis://:{0}@{1}:6379/29'.format(REDIS_AUTH, REDIS_HOST)
-CELERY_RESULT_BACKEND = 'django-cache'  # "amqp"
+CELERY_RESULT_BACKEND = 'django-cache'
 
 BROKER_POOL_LIMIT = 0
 BROKER_CONNECTION_TIMEOUT = 10
@@ -753,9 +749,13 @@ CELERY_ROUTES = {
         'queue': 'peroid',
         'routing_key': 'peroid.push_xlmm_pending_cash',
     },  # 结算小鹿妈妈们待确认提成
-    'flashsale.xiaolumm.tasks.mission.task_batch_execute_mission_update': {
+    'flashsale.xiaolumm.tasks.mission.task_batch_create_or_update_mama_mission_state': {
         'queue': 'peroid',
-        'routing_key': 'peroid.task_batch_execute_mission_update',
+        'routing_key': 'peroid.task_batch_create_or_update_mama_mission_state',
+    },
+    'flashsale.xiaolumm.tasks.mission.task_batch_push_mission_state_msg_to_weixin_user': {
+        'queue': 'peroid',
+        'routing_key': 'peroid.task_batch_push_mission_state_msg_to_weixin_user',
     },
     #######################################################
     'shopapp.notify.tasks.process_trade_notify_task': {
