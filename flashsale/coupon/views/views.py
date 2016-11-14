@@ -81,9 +81,8 @@ class ReleaseOmissive(APIView):
     template_name = "sale/release_usercoupon.html"
     permission_classes = (permissions.IsAuthenticated,)
 
-
     def get(self, request):
-        content = request.REQUEST
+        content = request.GET
         buyer_id = content.get("buyer_id")
         model_ids = content.get("model_ids")
         time_from = content.get('time_from')
