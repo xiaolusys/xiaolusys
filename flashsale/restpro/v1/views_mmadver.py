@@ -115,7 +115,7 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
         share_times = request.data.get('share_times') or 0
         save_times = min(int(save_times), 1)
         share_times = min(int(share_times), 1)
-        request_data = request.data
+        request_data = request.data.copy()
         request_data.update({'save_times': instance.save_times + save_times})
         request_data.update({'share_times': instance.share_times + share_times})
         serializer = serializers.ModifyTimesNinePicAdverSerialize(instance, data=request_data, partial=partial)
