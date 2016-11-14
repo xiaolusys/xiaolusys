@@ -20,7 +20,7 @@ class EnvelopConfirmSendView(View):
         envelop_ids = content.get('envelop_ids', '').split(',')
         secret = content.get('secret')
 
-        admin_email = settings.ADMINS[0][1]
+        admin_email = settings.MANAGERS[0][1]
         if secret.strip() != admin_email:
             messages.add_message(request, messages.ERROR, u'请输入正确的红包发送暗号！')
             return redirect(origin_url)

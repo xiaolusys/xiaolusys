@@ -569,7 +569,7 @@ class SaleRefundAdmin(BaseModelAdmin):
 admin.site.register(SaleRefund, SaleRefundAdmin)
 
 from django.db.models import Sum
-from django.shortcuts import redirect, render_to_response
+from django.shortcuts import redirect, render
 from django.template import RequestContext
 from .forms import EnvelopForm, CustomShareForm
 from shopapp.weixin.models_base import WeixinUnionID

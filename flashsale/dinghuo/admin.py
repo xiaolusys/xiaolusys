@@ -250,6 +250,7 @@ class OrderListAdmin(BaseModelAdmin):
     # test_order_action.short_description = u"审核(已付款)"
 
     def verify_order_action(self, request, queryset):
+        print 'verify_order_action', request
         for orderlist in queryset:
             pds = PurchaseDetail.objects.filter(purchase_order_unikey=orderlist.purchase_order_unikey)
             # from flashsale.dinghuo.models_purchase import PurchaseRecord, PurchaseArrangement, PurchaseDetail, PurchaseOrder
