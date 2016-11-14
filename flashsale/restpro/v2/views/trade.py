@@ -678,7 +678,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
         self.logger_request(request)
         user_agent = request.META.get('HTTP_USER_AGENT')
-        content = request.data.copy()
+        content = request.data
         tuuid = content.get('uuid')
         customer = Customer.objects.filter(user=request.user).first()
         cart_ids = [i for i in content.get('cart_ids', '').split(',') if i.isdigit()]
@@ -887,7 +887,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     @list_route(methods=['post'])
     def buynow_create(self, request, *args, **kwargs):
         """ 立即购买订单支付接口 """
-        CONTENT  = request.data.copy()
+        CONTENT  = request.data
         user_agent = request.META.get('HTTP_USER_AGENT')
         tuuid = CONTENT.get('uuid')
         item_id  = CONTENT.get('item_id')
