@@ -912,7 +912,7 @@ class PackageSkuItem(BaseModel):
                 else:
                     self.status = PSI_STATUS.MERGED
             elif not self.package_order:
-                self.status = PSI_STATUS.ASSIGNES
+                self.status = PSI_STATUS.READY
         elif self.assign_status == PackageSkuItem.NOT_ASSIGNED:
             if self.purchase_order_unikey and self.order_list.can_receive():
                 self.status = PSI_STATUS.BOOKED
