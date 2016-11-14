@@ -5,11 +5,11 @@ from rest_framework.response import Response
 from rest_framework import exceptions
 from django.shortcuts import get_object_or_404
 
-from . import forms
+from .. import forms
 
 from flashsale.finance.models import Bill, BillRelation
 from django.contrib.contenttypes.models import ContentType
-from .serializers import BillRelationSerializer, BillSerializer
+from ..serializers import BillRelationSerializer, BillSerializer
 
 
 class BillViewSet(viewsets.GenericViewSet):

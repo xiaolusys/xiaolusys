@@ -1,20 +1,25 @@
 # coding: utf-8
-
 from django.conf.urls import include, url
-from rest_framework import routers, viewsets
-from flashsale.finance.views import BillViewSet
+from rest_framework import routers
+from .views import stats
+from .views import bill
 
 router = routers.DefaultRouter(trailing_slash=False)
-router.register(r'bill_list', BillViewSet,'bill_list')
+router.register(r'bill_list', bill.BillViewSet, 'bill_list')
+router_urls = router.urls
 
+router_urls += ([
+    url(r'^channel_pay_stats$', stats.FinanceChannelPayApiView.as_view(), name='v1-finance-channel-pay-stats'),
+    url(r'^refund_stats$', stats.FinanceRefundApiView.as_view(), name='v1-finance-refund-status-stats'),
+    url(r'^return_good_stats$', stats.FinanceReturnGoodApiView.as_view(), name='v1-finance-return-good-stats'),
+    url(r'^deposit_stats$', stats.FinanceDepositApiView.as_view(), name='v1-finance-deposit-stats'),
+    url(r'^cost_stats$', stats.FinanceCostApiView.as_view(), name='v1-finance-cost-stats'),
+    url(r'^stock_stats$', stats.FinanceStockApiView.as_view(), name='v1-finance-stock-stats'),
+    url(r'^mama_order_carry_stats$', stats.MamaOrderCarryStatApiView.as_view(), name='v1-finance-carry-stats'),
+])
 
 urlpatterns = [
-    # url(r'^bill/(?P<bill_id>[0-9]+)/$', 'flashsale.finance.views.bill_detail', name='bill_detail'),
-    # url(r'^confirm_bill/$', 'flashsale.finance.views.confirm_bill', name='confirm_bill'),
-    # url(r'^deal/$', 'flashsale.finance.views.deal', name='deal'),
-    # url(r'^pay_bill/$', 'flashsale.finance.views.pay_bill', name='pay_bill'),
-    # url(r'^change_note/$', 'flashsale.finance.views.change_note', name='change_note'),
-    # url(r'^finish_bill/$', 'flashsale.finance.views.finish_bill', name='finish_bill')
+    url(r'^v1/', include(router_urls, namespace='finance_v1')),
 ]
 
 urlpatterns += router.urls
