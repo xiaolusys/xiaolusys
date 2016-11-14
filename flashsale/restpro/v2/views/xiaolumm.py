@@ -431,11 +431,6 @@ class AwardCarryViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
 
-    @list_route(methods=['get'])
-    def change(self, request):
-        data = request.data.copy()
-        data.update({'jjj':333})
-        return Response(data)
 
 
 class ActiveValueViewSet(viewsets.ModelViewSet):

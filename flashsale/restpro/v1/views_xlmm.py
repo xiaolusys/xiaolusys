@@ -333,8 +333,9 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
     def mama_register_pay(self, request):
         if not request.user or not request.user.is_authenticated():
             raise exceptions.PermissionDenied()
-        content = request.data.copy()
-        for k,v in content.iteritems():
+
+        content = {}
+        for k,v in request.POST.iteritems():
             content[k] = v
 
         product_id = content.get('product_id')
@@ -382,6 +383,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             logger.info({'action': 'v1_mama_register_pay_error', 'mama_id': xlmm.id, 'message': exc.message})
             Product.objects.releaseLockQuantity(product_sku, sku_num)
             raise exceptions.APIException(u'订单生成异常')
+        print 'debug:', content
         response_charge = self.pingpp_charge(sale_trade, **content)
         return Response(response_charge)
 
@@ -817,7 +819,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
 
     def create(self, request, *args, **kwargs):
         """代理提现"""
-        content = request.data.copy()
+        content = request.data
         cash_type = content.get('choice', None)
         cashout_amount = content.get('cashout_amount', None)
 

@@ -303,7 +303,10 @@ class VerifyCodeView(views.APIView):
     """
 
     def post(self, request):
-        content = request.data.copy()
+        content = {}
+        for k,v in request.POST.iteritems():
+            content[k] = v
+
         mobile = content.get("mobile", "0")
         action = content.get("action", "")
         verify_code = content.get("verify_code", "")
@@ -405,7 +408,7 @@ class PasswordLoginView(views.APIView):
     """
 
     def post(self, request):
-        content = request.data.copy()
+        content = request.data
         username = content.get('username', '0')
         password = content.get('password', '')
         next_url = content.get('next', '/index.html')
@@ -450,9 +453,8 @@ def check_sign(request):
        URL:~?noncestr=1442995986abcdef&timestamp=1442995986&sign=366a83819b064149a7f4e9f6c06f1e60eaeb02f7
        POST: 'a=1&b=3&c=2'
     """
-    CONTENT = request.GET
     params = {}
-    for k, v in CONTENT.iteritems():
+    for k, v in request.GET.iteritems():
         params[k] = v
     timestamp = params.get('timestamp')
     if not timestamp or time.time() - int(timestamp) > 6 * 60 * 60:
@@ -477,8 +479,8 @@ class WeixinAppLoginView(views.APIView):
         """
         app客户端微信授权登陆
         """
-        params = request.data.copy()
-        for k, v in request.GET.iteritems():
+        params = {}
+        for k, v in request.POST.iteritems():
             params[k] = v
 
         if not check_sign(request):
