@@ -217,7 +217,7 @@ def task_create_or_update_mama_mission_state(mama_id):
 
     # mama sale weekly
     fresh_mama_weekly_mission_bycat(xiaolumama, MamaMission.CAT_SALE_MAMA, year_week)
-
+    
     mama_group = GroupRelationship.objects.filter(leader_mama_id=mama_id).first()
     if mama_group:
         # TODO@meron 新增团队妈妈
@@ -237,9 +237,15 @@ def task_create_or_update_mama_mission_state(mama_id):
 
 
 @task
-def task_batch_execute_mission_update(params_list, task_func):
+def task_batch_create_or_update_mama_mission_state(params_list):
     """ small batch execute a larget tasks """
-    jobs = group([task_func.s(*param) for param in params_list])
+    jobs = group([task_create_or_update_mama_mission_state.s(*param) for param in params_list])
+    jobs.delay()
+
+@task
+def task_batch_push_mission_state_msg_to_weixin_user(params_list):
+    """ small batch execute a larget tasks """
+    jobs = group([task_push_mission_state_msg_to_weixin_user.s(*param) for param in params_list])
     jobs.delay()
 
 
@@ -255,7 +261,7 @@ def task_update_all_mama_mission_state():
     for i in range(0, len(xiaolumama_ids), batch_number):
         mama_ids = xiaolumama_ids[i : i + batch_number]
         params = [(mama_id, ) for mama_id in mama_ids]
-        task_batch_execute_mission_update.delay(params, task_create_or_update_mama_mission_state)
+        task_batch_create_or_update_mama_mission_state.delay(params)
 
 
 @task
@@ -279,7 +285,7 @@ def task_notify_all_mama_staging_mission():
     for i in range(0, len(mission_ids), batch_number):
         mama_ids = mission_ids[i: i + batch_number]
         params = [(mama_id, MamaMissionRecord.STAGING) for mama_id in mama_ids]
-        task_batch_execute_mission_update.delay(params, task_push_mission_state_msg_to_weixin_user)
+        task_batch_push_mission_state_msg_to_weixin_user.delay(params)
 
 
 
