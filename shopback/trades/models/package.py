@@ -654,6 +654,26 @@ class PackageSkuItem(BaseModel):
         expire_time = datetime.datetime.now() - datetime.timedelta(days=1)
         return [i for i in PackageSkuItem.get_failed_express() if i.failed_retrieve_time < expire_time]
 
+    def get_supplier_product_info(self):
+        """
+        获取供应商的商品信息
+        """
+        from supplychain.supplier.models.product import SaleProduct
+
+        product_sku = self.product_sku
+        product = product_sku.product
+        sale_product = SaleProduct.objects.filter(id=product.sale_product).first()
+        sale_supplier = sale_product.sale_supplier
+
+        return {
+            'supplier': sale_supplier,
+            'supplier_sku_code': product_sku.supplier_skucode,
+            'supplier_sku_sale_price': sale_product.sale_price,
+            'sale_product': sale_product,
+            'product': product,
+            'product_sku': product_sku
+        }
+
     @property
     def sale_order(self):
         if not hasattr(self, '_sale_order_'):
