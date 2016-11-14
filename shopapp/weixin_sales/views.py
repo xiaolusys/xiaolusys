@@ -7,7 +7,7 @@ from django.db.models import F
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 from django.template import RequestContext
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 
 from shopback.base.authentication import login_required_ajax
 from shopapp.weixin.views import WeiXinUser, VipCode, get_user_openid
@@ -71,9 +71,11 @@ class AwardNotifyView(View):
         if my_awards.count() > 0:
             is_share = my_awards[0].is_share
 
-        response = render_to_response('weixin/sales/gift.html',
-                                      {'user_openid': user_openid, "is_share": is_share},
-                                      context_instance=RequestContext(request))
+        response = render(
+            request,
+            'weixin/sales/gift.html',
+              {'user_openid': user_openid, "is_share": is_share},
+        )
         response.set_cookie("openid", user_openid)
         return response
 
@@ -153,10 +155,12 @@ class AwardShareView(View):
             if users[0].openid == openid:
                 identical = True
 
-            response = render_to_response('weixin/sales/share.html',
-                                          {"identical": identical, "vipcode": vipcode, "pk": wx_user_pk,
-                                           "nickname": nickname, "referal_images": referal_images},
-                                          context_instance=RequestContext(request))
+            response = render(
+                request,
+                'weixin/sales/share.html',
+                  {"identical": identical, "vipcode": vipcode, "pk": wx_user_pk,
+                   "nickname": nickname, "referal_images": referal_images},
+            )
             return response
 
         redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://m.xiaolumeimei.com/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"

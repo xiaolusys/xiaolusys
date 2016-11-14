@@ -11,7 +11,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Sum, Q
 from django.http import HttpResponse, Http404
 from django.shortcuts import get_object_or_404
-from django.shortcuts import redirect, render_to_response
+from django.shortcuts import redirect, render
 from django.template import RequestContext
 from django.views.generic import View
 from rest_framework import permissions, authentication
@@ -165,19 +165,21 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         else:
             download = False
             img_src = get_product_img(0)  # 获取默认图片图片
-        response = render_to_response(self.xlsampleapply,
-                                      {"active_start": active_start,
-                                       "vipcode": vipcode,
-                                       "from_customer": from_customer,
-                                       "pro": pro,
-                                       "openid": openid,
-                                       "wxprofile": wxprofile,
-                                       "referal": referal,
-                                       "title": title, "mobile": mobile,
-                                       "download": download,
-                                       "img_src": img_src,
-                                       "mobile_message": self.mobile_default_message},
-                                      context_instance=RequestContext(request))
+        response = render(
+            request,
+            self.xlsampleapply,
+              {"active_start": active_start,
+               "vipcode": vipcode,
+               "from_customer": from_customer,
+               "pro": pro,
+               "openid": openid,
+               "wxprofile": wxprofile,
+               "referal": referal,
+               "title": title, "mobile": mobile,
+               "download": download,
+               "img_src": img_src,
+               "mobile_message": self.mobile_default_message},
+        )
         if self.is_from_weixin(request):
             self.set_cookie_openid_and_unionid(response, openid, unionid)
 
@@ -203,12 +205,13 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         mobile = mobiles[0] if len(mobiles) >= 1 else None
 
         if not mobile:
-            return render_to_response(self.xlsampleapply,
-                                      {"vipcode": vipcode,
-                                       "pro": pro,
-                                       "mobile": vmobile,
-                                       "mobile_message": self.mobile_error_message},
-                                      context_instance=RequestContext(request))
+            return render(
+                self.xlsampleapply,
+                  {"vipcode": vipcode,
+                   "pro": pro,
+                   "mobile": vmobile,
+                   "mobile_message": self.mobile_error_message},
+            )
 
         xls = get_customer_apply(**{"mobile": mobile, 'openid': openid})
         if not xls:  # 如果没有申请记录则创建记录
@@ -242,10 +245,12 @@ class XLSampleapplyView(WeixinAuthMixin, View):
                 url = '/sale/promotion/xlsampleorder/'
                 return redirect(url)
             img_src = get_product_img(xls.sku_code)  # 获取sku图片
-        return render_to_response(self.xlsampleapply,
-                                  {"vipcode": vipcode, "pro": pro, "img_src": img_src,
-                                   "mobile": vmobile, "download": True},
-                                  context_instance=RequestContext(request))
+        return render(
+            request,
+            self.xlsampleapply,
+              {"vipcode": vipcode, "pro": pro, "img_src": img_src,
+               "mobile": vmobile, "download": True},
+        )
 
 
 from common.utils import valid_mobile
@@ -503,16 +508,20 @@ class XlSampleOrderView(View):
                     url = '/sale/promotion/xlsampleapply/?ufrom=app&from_customer=1'
                     return redirect(url)
 
-            return render_to_response(self.order_page,
-                                      {"pro": pro,
-                                       "res": res,
-                                       "title": title,
-                                       "img_src": img_src,
-                                       "active_start": active_start,
-                                       "sample_order": sample_order
-                                       },
-                                      context_instance=RequestContext(request))
-        return render_to_response(self.order_page, {"pro": pro, "title": title},
+            return render(
+                request,
+                self.order_page,
+                  {"pro": pro,
+                   "res": res,
+                   "title": title,
+                   "img_src": img_src,
+                   "active_start": active_start,
+                   "sample_order": sample_order
+                   },
+            )
+        return render(
+            request,
+            self.order_page, {"pro": pro, "title": title},
                                   context_instance=RequestContext(request))
 
     def post(self, request):
@@ -527,13 +536,15 @@ class XlSampleOrderView(View):
         title = "活动正式订单"
         if mobile is None:
             error_message = "请验证手机"
-            return render_to_response(self.order_page,
-                                      {
-                                          "pro": pro,
-                                          "title": title,
-                                          "error_message": error_message
-                                      },
-                                      context_instance=RequestContext(request))  # 缺少参数
+            return render(
+                request,
+                self.order_page,
+                  {
+                      "pro": pro,
+                      "title": title,
+                      "error_message": error_message
+                  },
+            )  # 缺少参数
         xlapply = get_customer_apply(**{"mobile": mobile})
         if xlapply:  # 有　试用申请　记录的
             # 激活申请
@@ -541,14 +552,19 @@ class XlSampleOrderView(View):
             outer_ids = ['', ]
             outer_ids[0] = outer_id
             res = self.get_promotion_result(customer.id, outer_ids, mobile, xlorder)
-            return render_to_response(self.order_page, {"pro": pro, "res": res},
-                                      context_instance=RequestContext(request))
+            return render(
+                request,
+                self.order_page, {"pro": pro, "res": res},
+            )
 
         not_apply_message = "您还没有试用申请，请先申请再激活．．．"
-        return render_to_response(self.order_page, {"pro": pro,
-                                                    "title": title,
-                                                    "not_apply": not_apply_message},
-                                  context_instance=RequestContext(request))
+        return render(
+            request,
+            self.order_page,
+            {"pro": pro,
+            "title": title,
+            "not_apply": not_apply_message},
+        )
 
 
 class CusApplyOrdersView(APIView):
@@ -562,8 +578,11 @@ class CusApplyOrdersView(APIView):
         customer_id = customer.id if customer else 0
         applys = XLSampleApply.objects.filter(from_customer=customer_id).exclude(user_openid='')
         apply_results = applys.values('headimgurl', 'nick', 'created', 'status')
-        return render_to_response(self.promote_condition, {'apply_results': apply_results},
-                                  context_instance=RequestContext(request))
+        return render(
+            request,
+            self.promote_condition,
+            {'apply_results': apply_results},
+        )
 
 
 def update_red_packet():
@@ -756,7 +775,11 @@ class QrCodeView(APIView):
         customer = get_customer(request)
         qrimg = self.gen_custmer_share_qrcode_pic(customer.id, 'wxapp')
         data = {"qrimg": qrimg, "thumbnail": customer.thumbnail, "nick": customer.nick}
-        response = render_to_response(self.template, data, context_instance=RequestContext(request))
+        response = render(
+            request,
+            self.template,
+            data,
+        )
         return response
 
 

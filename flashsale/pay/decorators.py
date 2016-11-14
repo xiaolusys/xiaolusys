@@ -3,7 +3,7 @@ import urllib
 from functools import wraps
 from django.http import HttpResponseRedirect
 from django.utils.decorators import available_attrs
-from django.shortcuts import redirect, render_to_response
+from django.shortcuts import redirect, render
 from django.template import RequestContext
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.core.urlresolvers import reverse
@@ -53,10 +53,10 @@ def sale_buyer_required(view_func):
             "title": u'登录',
             REDIRECT_FIELD_NAME: request.build_absolute_uri().split('#')[0]
         }
-        return render_to_response(
+        return render(
+            request,
             constants.MALL_LOGIN_URL,
             defaults,
-            context_instance=RequestContext(request)
         )
 
     return _checklogin

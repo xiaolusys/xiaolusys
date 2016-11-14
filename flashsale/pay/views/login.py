@@ -1,7 +1,7 @@
 # -*- encoding:utf8 -*-
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.template import RequestContext
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
@@ -25,8 +25,10 @@ def flashsale_login(request):
             "title": u'登录',
             REDIRECT_FIELD_NAME: next_url
         }
-        return render_to_response("pay/mlogin.html", defaults,
-                                  context_instance=RequestContext(request))
+        return render(
+            request,
+            "pay/mlogin.html", defaults,
+        )
     else:
         req_params = request.POST
         user = authenticate(request=request, **req_params)
@@ -35,8 +37,10 @@ def flashsale_login(request):
                 "title": u'登录',
                 REDIRECT_FIELD_NAME: next_url
             }
-            return render_to_response("pay/mlogin.html", defaults,
-                                      context_instance=RequestContext(request))
+            return render(
+                request,
+                "pay/mlogin.html", defaults,
+            )
         request.session[SESSION_KEY] = user.id
         auth_login(request, user)
         return HttpResponseRedirect(next_url)

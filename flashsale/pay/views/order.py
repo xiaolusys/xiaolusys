@@ -1,10 +1,7 @@
 # -*- encoding:utf8 -*-
 import json
 import datetime
-from django.http import HttpResponseRedirect
-from django.core.urlresolvers import reverse
-from django.shortcuts import render_to_response, render
-from django.template import RequestContext
+from django.shortcuts import render, render
 
 from shopback.items.models import Product, ProductSku
 from flashsale.pay.models import SaleTrade, SaleOrder, SaleRefund
