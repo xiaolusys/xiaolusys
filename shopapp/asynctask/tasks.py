@@ -567,4 +567,4 @@ class PrintAsyncTask2(object):
 
 @task
 def task_print_async2(*args, **kwargs):
-    PrintAsyncTask2().run(*args, **kwargs)
+    return PrintAsyncTask2().run(*args, **kwargs)
