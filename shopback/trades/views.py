@@ -1279,7 +1279,7 @@ class ExchangeOrderView(APIView):
 
     def get(self, request, *args, **kwargs):
 
-        origin_no = MergeTrade._meta.get_field('tid')[0].get_default()
+        origin_no = MergeTrade._meta.get_field('tid').get_default()
         sellers = serializers.UserSerializer(User.objects.all(), many=True).data
 
         return Response({'object': {'origin_no': origin_no,
@@ -1386,7 +1386,7 @@ class DirectOrderView(APIView):
 
         content = request.GET
         type = content.get('type', '')
-        origin_no = MergeTrade._meta.get_field('tid')[0].get_default()
+        origin_no = MergeTrade._meta.get_field('tid').get_default()
         sellers = User.objects.all()
 
         return Response(
