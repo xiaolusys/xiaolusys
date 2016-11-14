@@ -77,16 +77,28 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
                                    start_time__lt=tomorrow).filter(start_time__lt=now)
         return queryset
 
+    def get_xlmm(self):
+        if not hasattr(self, '_xlmm_'):
+            customer = Customer.objects.get(user=self.request.user)
+            self._xlmm_ = customer.get_charged_mama()
+        return self._xlmm_
+
+    def get_serializer_context(self):
+        xlmm = self.get_xlmm()
+        return {
+            'request': self.request,
+            'format': self.format_kwarg,
+            'view': self,
+            "mama_id": xlmm.id
+        }
+
     def list(self, request, *args, **kwargs):
-        customer = Customer.objects.get(user=request.user)
-        xlmm = customer.get_charged_mama()
+        xlmm = self.get_xlmm()
         queryset = self.get_today_queryset(self.get_queryset())
         if request.data.get('ordering') is None:
             queryset = queryset.order_by('-start_time')
         queryset = self.filter_queryset(queryset)
-        request_data = request.data.copy()
-        request_data.update({"mama_id": xlmm.id})
-        serializer = self.get_serializer(queryset, many=True, context={'request_data': request_data})
+        serializer = self.get_serializer(queryset, many=True)
         # 统计代码
         statsd.incr('xiaolumm.ninepic_count')
         task_mama_daily_tab_visit_stats.delay(xlmm.id, MamaTabVisitStats.TAB_DAILY_NINEPIC)

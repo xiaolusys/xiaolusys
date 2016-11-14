@@ -232,6 +232,7 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         data = serializers_v2.APIModelProductListSerializer(obj).data
         return Response([data])
 
+
     @list_route(methods=['get'])
     def product_choice(self, request, *args, **kwargs):
         if not request.user.is_authenticated():
