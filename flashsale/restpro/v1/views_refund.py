@@ -64,7 +64,7 @@ def modify_logistic_refund(customer, company, order, sid, refund):
 
 def refund_Handler(request):
     try:
-        content = request.POST
+        content = request.data
         modify = int(content.get("modify", 0))
         company = content.get("company", '')
         sid = content.get("sid", '')

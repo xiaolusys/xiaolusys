@@ -611,7 +611,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         return budget_amount
 
     def logger_request(self, request):
-        data = request.POST
+        data = request.data
         cookies = dict([(k, v) for k, v in request.COOKIES.items() if k in ('mm_linkid', 'ufrom')])
         logger.info({
             'code': 0,
@@ -678,7 +678,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
         self.logger_request(request)
         user_agent = request.META.get('HTTP_USER_AGENT')
-        content = request.POST
+        content = request.data
         tuuid = content.get('uuid')
         customer = Customer.objects.filter(user=request.user).first()
         cart_ids = [i for i in content.get('cart_ids', '').split(',') if i.isdigit()]
@@ -887,7 +887,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     @list_route(methods=['post'])
     def buynow_create(self, request, *args, **kwargs):
         """ 立即购买订单支付接口 """
-        CONTENT  = request.POST
+        CONTENT  = request.data
         user_agent = request.META.get('HTTP_USER_AGENT')
         tuuid = CONTENT.get('uuid')
         item_id  = CONTENT.get('item_id')
@@ -1111,9 +1111,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         _errmsg = {SaleTrade.WAIT_SELLER_SEND_GOODS: u'订单无需重复付款',
                    SaleTrade.TRADE_CLOSED_BY_SYS: u'订单已关闭或超时',
                    'default': u'订单不在可支付状态'}
-        channel = request.POST.get('channel','')
+        channel = request.data.get('channel','')
         instance = self.get_object()
-        logger.warn('charge:%s, %s' % (instance.tid, request.POST))
+        logger.warn('charge:%s, %s' % (instance.tid, request.data))
         if channel and channel != instance.channel:
             instance.channel = channel
             instance.save(update_fields=['channel'])

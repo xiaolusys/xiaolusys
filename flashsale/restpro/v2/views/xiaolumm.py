@@ -634,7 +634,7 @@ class XlmmFansViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['POST'])
     def change_mama(self, request):
-        new_mama_id = request.POST.get('new_mama_id')
+        new_mama_id = request.data.get('new_mama_id')
         fans = XlmmFans.get_by_customer_id(request.user.customer.id)
         new_mama = get_object_or_404(XiaoluMama, pk=new_mama_id)
         if not fans:
@@ -1079,7 +1079,7 @@ class RecruitEliteMamaView(APIView):
                                      referal_type=XiaoluMama.ELITE)
             rr.save()
         else:
-            rr.referal_type = ELITE
+            rr.referal_type = XiaoluMama.ELITE
             rr.save()
         
         charge_time = datetime.datetime.now()

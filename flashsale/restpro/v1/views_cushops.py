@@ -211,7 +211,7 @@ class CuShopProsViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['post'])
     def add_pro_to_shop(self, request, *args, **kwargs):
-        content = request.POST
+        content = request.data
         product = content.get('product', None)
         if product is None:
             return Response({"code": 1, 'message': '缺少参数'})  # 参数缺失
@@ -229,7 +229,7 @@ class CuShopProsViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['post'])
     def remove_pro_from_shop(self, request):
-        content = request.POST
+        content = request.data
         product = content.get('product', None)
         if product is None:
             return Response({"code": 1})  # 参数缺失
@@ -244,7 +244,7 @@ class CuShopProsViewSet(viewsets.ModelViewSet):
         参数：需要换的产品 change_pro　更换到哪个位置的产品 target_pro
         注意：默认是放到目标位置的上面, position 排序
         """
-        content = request.POST
+        content = request.data
         change_id = content.get("change_id", None)
         target_id = content.get("target_id", None)
         target_position, change_position = 0, 0

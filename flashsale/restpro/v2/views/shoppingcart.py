@@ -277,7 +277,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     @list_route(methods=['post'])
     def sku_num_enough(self, request, *args, **kwargs):
         """ 规格数量是否充足 """
-        content = request.POST
+        content = request.data
         sku_id = content.get('sku_id', '')
         sku_num = content.get('sku_num', '')
         if not sku_id.isdigit() or not sku_num.isdigit():

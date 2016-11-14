@@ -69,7 +69,7 @@ class KdnView(APIView):
         #     return Response(kdn_wuliu_extra.format_content(**format_exp_info))
 
     def post(self, request, *args, **kwargs):
-        content = request.POST
+        content = request.data
         DataSign = content.get("DataSign", None)
         RequestData = content.get("RequestData", None)
         RequestData = json.loads(RequestData)

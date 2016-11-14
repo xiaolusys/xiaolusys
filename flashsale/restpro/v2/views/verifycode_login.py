@@ -187,7 +187,7 @@ class SendCodeView(views.APIView):
     """
 
     def post(self, request):
-        content = request.POST
+        content = request.data
         mobile = content.get("mobile", "0")
         action = content.get("action", "")
 
@@ -303,7 +303,7 @@ class VerifyCodeView(views.APIView):
     """
 
     def post(self, request):
-        content = request.POST
+        content = request.data
 
         mobile = content.get("mobile", "0")
         action = content.get("action", "")
@@ -340,9 +340,9 @@ class VerifyCodeView(views.APIView):
         if action == 'register' or action == 'sms_login':
             # force to use SMSLoginBackend for authentication
             # content['sms_code'] = verify_code (ERROR)
-            request.POST._mutable = True  # 开启可变
+            # request.data._mutable = True  # 开启可变
             content.update({'sms_code': verify_code})
-            request.POST._mutable = False  # 关闭可变
+            # request.data._mutable = False  # 关闭可变
 
             user = authenticate(request=request, **content)
             if not user or user.is_anonymous():
@@ -369,7 +369,7 @@ class ResetPasswordView(views.APIView):
         """
         reset password after verifying code
         """
-        content = request.POST
+        content = request.data
         mobile = content.get("mobile", "0")
         pwd1 = content.get("password1", "")
         pwd2 = content.get("password2", "")
@@ -406,7 +406,7 @@ class PasswordLoginView(views.APIView):
     """
 
     def post(self, request):
-        content = request.POST
+        content = request.data
         username = content.get('username', '0')
         password = content.get('password', '')
         next_url = content.get('next', '/index.html')
@@ -478,18 +478,17 @@ class WeixinAppLoginView(views.APIView):
         """
         app客户端微信授权登陆
         """
-        content = request.POST
+        params = request.data
 
         if not check_sign(request):
             return Response({"rcode": 1, "msg": u'登录失败'})
 
-        params = request.POST
         user = authenticate(request=request, **params)
         if not user or user.is_anonymous():
             return Response({"rcode": 2, "msg": u'登录异常'})
 
         login(request, user)
-        if is_from_app(content):
+        if is_from_app(params):
             login_activate_appdownloadrecord(user)
 
         return Response({"rcode": 0, "msg": u'登录成功'})

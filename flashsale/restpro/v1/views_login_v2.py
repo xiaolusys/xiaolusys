@@ -111,9 +111,9 @@ class LoginViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.Gene
     @list_route(methods=['post'])
     def customer_login(self, request):
         """验证用户登录"""
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        next_url = request.POST.get('next', '/index.html')
+        username = request.data.get('username')
+        password = request.data.get('password')
+        next_url = request.data.get('next', '/index.html')
         if not username or not password:
             return Response({"code": 1, "message": u"用户名和密码不全呢！", 'next': ''})
 
@@ -148,7 +148,7 @@ class LoginViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.Gene
         if not check_sign(request):
             return Response({"code": 1, "message": u'登陆失败'})
 
-        params = request.POST
+        params = request.data
         user = authenticate(request=request, **params)
         if not user or user.is_anonymous():
             return Response({"code": 2, "message": u'登陆异常'})
@@ -159,7 +159,7 @@ class LoginViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.Gene
     @list_route(methods=['post'])
     def sms_login(self, request, *args, **kwargs):
         """ 短信验证码登陆 """
-        req_params = request.POST
+        req_params = request.data
         mobile = req_params.get('mobile', '')
 
         if mobile == "" or not re.match(PHONE_NUM_RE, mobile):

@@ -172,7 +172,7 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
                          "active_dec": active_dec})
 
     def create(self, request, *args, **kwargs):
-        content = request.POST
+        content = request.data
         customer = get_object_or_404(Customer, user=request.user)
         outer_id = content.get('outer_id', None)
         sku_code = content.get('sku_code', None)

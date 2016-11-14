@@ -101,7 +101,6 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         """ 获取用户订单及订单明细列表, 因为包含用户定制信息，该接口 """
         lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
-
         assert lookup_url_kwarg in self.kwargs, (
             'Expected view %s to be called with a URL keyword argument '
             'named "%s". Fix your URL conf, or set the `.lookup_field` '

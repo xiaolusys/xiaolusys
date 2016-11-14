@@ -155,7 +155,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
     @list_route(methods=['post'])
     def check_code_user(self, request):
         """验证码校验（判断验证码是否过时，超次，并新建用户）"""
-        post = request.POST
+        post = request.data
         mobile = post['username']
         client_valid_code = post.get('valid_code', 0)
         current_time = datetime.datetime.now()
@@ -282,7 +282,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
     @list_route(methods=['post'])
     def check_vcode(self, request, **kwargs):
         """根据手机号和验证码创建用户账户"""
-        content = request.POST
+        content = request.data
         mobile = content.get('mobile')
         vcode = content.get('vcode')
 
@@ -314,9 +314,9 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         # 判断网址的结尾是不是登录请求网址(ajax url请求)
         if not request.path.endswith("customer_login"):
             return Response({"result": "fail"})
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        next_url = request.POST.get('next', '/index.html')
+        username = request.data.get('username')
+        password = request.data.get('password')
+        next_url = request.data.get('next', '/index.html')
         if not username or not password:
             return Response({"code": 1, "result": "null"})
         try:
@@ -398,7 +398,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         if not self.check_sign(request):
             return Response({"code": 1, "is_login": False, "info": "invalid sign"})
 
-        req_params = request.POST
+        req_params = request.data
         user1 = authenticate(request=request, **req_params)
         if not user1 or user1.is_anonymous():
             return Response({"code": 2, "is_login": False, "info": "invalid user"})
@@ -418,7 +418,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
     @list_route(methods=['post'])
     def send_code(self, request, *args, **kwargs):
         """ 根据手机号获取验证码 """
-        mobile = request.POST['mobile']
+        mobile = request.data['mobile']
         current_time = datetime.datetime.now()
         if mobile == "" or not re.match(PHONE_NUM_RE, mobile):
             return Response({"code": 2, "info": "手机号码有误"})
@@ -435,7 +435,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
     @list_route(methods=['post'])
     def sms_login(self, request, *args, **kwargs):
         """ 短信验证码登陆 """
-        req_params = request.POST
+        req_params = request.data
         mobile = req_params.get('mobile', '')
         if mobile == "" or not re.match(PHONE_NUM_RE, mobile):
             return Response({"code": 2, "info": "手机号码有误"})
@@ -878,7 +878,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
             6 提现不能超过200
            11　已经提现过一次无审核２元
         """
-        content = request.POST
+        content = request.data
         cashout_amount = content.get('cashout_amount', None)
         channel = content.get('channel', None)
         verify_code = content.get('verify_code', None)
@@ -912,7 +912,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['post'])
     def open_debug_for_app(self, request):
-        content = request.POST
+        content = request.data
         debug_secret = content.get("debug_secret") or ''
         if debug_secret != "xlmm@16888&a":
             return Response({"rcode": 1, "msg": "开启失败"})

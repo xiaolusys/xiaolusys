@@ -247,7 +247,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     @list_route(methods=['post'])
     def sku_num_enough(self, request, *args, **kwargs):
         """ 规格数量是否充足 """
-        content = request.POST
+        content = request.data
         sku_id = content.get('sku_id', '')
         sku_num = content.get('sku_num', '')
         if not sku_id.isdigit() or not sku_num.isdigit():
@@ -891,7 +891,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         return budget_amount
 
     def logger_request(self, request):
-        data = request.POST
+        data = request.data
         cookies = dict([(k, v) for k, v in request.COOKIES.items() if k in ('mm_linkid', 'ufrom')])
         logger.info({'code': 0, 'info': u'付款请求v2', 'channel': data.get('channel'),
                      'user_agent':request.META.get('HTTP_USER_AGENT'), 'cookies':cookies,
@@ -902,7 +902,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         """ 购物车订单支付接口 """
         self.logger_request(request)
 
-        CONTENT = request.POST
+        CONTENT = request.data
         tuuid = CONTENT.get('uuid')
         if not UUID_RE.match(tuuid):
             logger.error('invalid uuid: %s' % CONTENT)
@@ -920,7 +920,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         # 这里不对购物车状态进行过滤，防止订单创建过程中购物车状态发生变化
         if cart_qs.count() != len(cart_ids):
             logger.warn('debug cart v1:content_type=%s,params=%s,cart_qs=%s' % (
-            request.META.get('CONTENT_TYPE', ''), request.POST, cart_qs.count()))
+            request.META.get('CONTENT_TYPE', ''), request.data, cart_qs.count()))
             raise exceptions.ParseError(u'购物车已结算待支付')
         xlmm = self.get_xlmm(request)
         total_fee = round(float(CONTENT.get('total_fee', '0')) * 100)
@@ -999,7 +999,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get', 'post'])
     def buynow_create(self, request, *args, **kwargs):
         """ 立即购买订单支付接口 """
-        CONTENT = request.POST
+        CONTENT = request.data
         tuuid = CONTENT.get('uuid')
         if not UUID_RE.match(tuuid):
             logger.error('invalid uuid: %s' % CONTENT)

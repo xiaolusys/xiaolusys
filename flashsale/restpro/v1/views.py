@@ -104,7 +104,7 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
-        content = request.POST
+        content = request.data
         order_id = int(content.get("id", 0))
         order = get_object_or_404(SaleOrder, id=order_id)
         # 如果Order已经付款 refund_type = BUYER_NOT_RECEIVED
@@ -207,7 +207,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
     # @detail_route(methods=['post'])
     def update(self, request, pk, *args, **kwargs):
         customer = get_object_or_404(Customer, user=request.user)
-        content = request.POST
+        content = request.data
         receiver_state = content.get('receiver_state', '').strip()
         receiver_city = content.get('receiver_city', '').strip()
         receiver_district = content.get('receiver_district', '').strip()
@@ -307,7 +307,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'])
     def change_company_code(self, request, pk, *args, **kwargs):
-        content = request.POST
+        content = request.data
         company_code = content.get('logistic_company_code', '')
         referal_trade_id = content.get('referal_trade_id', '')
         address = self.get_object()
@@ -333,7 +333,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
     def create_address(self, request):
         customer = get_object_or_404(Customer, user=request.user)
         customer_id = customer.id  # 获取用户id
-        content = request.POST
+        content = request.data
         default = content.get('default') or ''
         receiver_state = content.get('receiver_state', '').strip()
         receiver_city = content.get('receiver_city', '').strip()
@@ -344,7 +344,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         logistic_company_code = content.get('logistic_company_code', '').strip()
         if not receiver_state or not receiver_city or not receiver_district or not receiver_name \
                 or not re.compile(regex.REGEX_MOBILE).match(receiver_mobile):
-            logger.warn('address unmatch: agent=%s, post=%s' % (request.META.get('HTTP_USER_AGENT'), request.POST))
+            logger.warn('address unmatch: agent=%s, post=%s' % (request.META.get('HTTP_USER_AGENT'), request.data))
             return Response({'ret': False, "msg": "地址信息不全", "info": "地址信息不全", 'code': 2})
         try:
             address, state = UserAddress.objects.get_or_create(
