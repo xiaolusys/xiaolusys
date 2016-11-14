@@ -33,6 +33,7 @@ MYSQL_AUTH = os.environ.get('MYSQL_AUTH')
 REDIS_HOST = '55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379'
 REDIS_AUTH = os.environ.get('REDIS_AUTH')
 
+CLOSE_CELERY = False
 if os.environ.get('TARGET') == 'django18':
     CELERY_TASK_ALWAYS_EAGER = True
     CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
