@@ -119,7 +119,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         if not customer:
             return Response({"code": 7, "info": u"用户未找到"})  # 登录过期
 
-        data = request.data
+        data = request.data.copy()
         product_id = data.get("item_id", None)
         sku_id = data.get("sku_id", None)
         sku_num = data.get('num', '1')

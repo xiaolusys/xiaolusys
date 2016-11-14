@@ -333,7 +333,10 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
     def mama_register_pay(self, request):
         if not request.user or not request.user.is_authenticated():
             raise exceptions.PermissionDenied()
-        content = request.data
+        content = request.data.copy()
+        for k,v in content.iteritems():
+            content[k] = v
+
         product_id = content.get('product_id')
         sku_id = content.get('sku_id')
         sku_num = int(content.get('num', '1'))
@@ -814,7 +817,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
 
     def create(self, request, *args, **kwargs):
         """代理提现"""
-        content = request.data
+        content = request.data.copy()
         cash_type = content.get('choice', None)
         cashout_amount = content.get('cashout_amount', None)
 

@@ -23,7 +23,10 @@ class PackagOrderOperateView(APIView):
     """ 处理订单 """
 
     def post(self, request, *args, **kwargs):
-        content = request.POST
+        content = request.data.copy()
+        for k,v in request.GET.iteritems():
+            content[k] = v
+
         package_order_ids = content.get('package_order_ids')
         operator = content.get('operator', '')
         package_order_ids = package_order_ids.split(',')
@@ -46,7 +49,10 @@ class PackagOrderRevertView(APIView):
     # return Response({'isSuccess': True})
     # def revert_packages(self, package_order_ids):
     def post(self, request, *args, **kwargs):
-        content = request.POST
+        content = request.data.copy()
+        for k, v in request.GET.iteritems():
+            content[k] = v
+
         package_order_ids = content.get('package_order_ids')
         for package_order in PackageOrder.objects.filter(pid__in=package_order_ids.split(','), is_locked=True):
             package_order.is_express_print = False
@@ -63,7 +69,10 @@ class PackagOrderExpressView(APIView):
 
     def post(self, request, *args, **kwargs):
         # def setOutSid(package_order_id, out_sid, is_qrcode=False, qrcode_msg=''):
-        content = request.POST
+        content = request.data.copy()
+        for k, v in request.GET.iteritems():
+            content[k] = v
+
         package_order_id = content.get('package_order_id')
         out_sid = content.get('out_sid', '')
         is_qrcode = content.get('is_qrcode', False)
@@ -278,7 +287,10 @@ class PackageScanWeightView(APIView):
 
 class PackagePrintPostView(APIView):
     def post(self, request, *args, **kwargs):
-        content = request.GET or request.POST
+        content = request.data.copy()
+        for k, v in request.GET.iteritems():
+            content[k] = v
+
         package_order_ids = content.get('package_order_ids')
         package_order_ids = package_order_ids.split(',')
         package_orders = PackageOrder.objects.filter(pid__in=package_order_ids,
@@ -296,7 +308,10 @@ class PackagePrintPostView(APIView):
 
 class PackagePrintExpressView(APIView):
     def post(self, request, *args, **kwargs):
-        content = request.GET or request.POST
+        content = request.data.copy()
+        for k, v in request.GET.iteritems():
+            content[k] = v
+
         package_order_ids = content.get('package_order_ids')
         package_order_ids = package_order_ids.split(',')
         package_orders = PackageOrder.objects.filter(pid__in=package_order_ids)
@@ -307,7 +322,10 @@ class PackagePrintExpressView(APIView):
 
 class PackagePrintPickingView(APIView):
     def post(self, request, *args, **kwargs):
-        content = request.GET or request.POST
+        content = request.data.copy()
+        for k, v in request.GET.iteritems():
+            content[k] = v
+
         package_order_ids = content.get('package_order_ids','')
         package_order_ids = package_order_ids.split(',')
         package_orders = PackageOrder.objects.filter(pid__in=package_order_ids)
@@ -342,7 +360,10 @@ class PackageReviewView(APIView):
 
 class PackageClearRedoView(APIView):
     def post(self, request, *args, **kwargs):
-        content = request.GET or request.POST
+        content = request.data.copy()
+        for k, v in request.GET.iteritems():
+            content[k] = v
+
         package_order_pid = content.get('package_order_pid')
         package_order = PackageOrder.objects.get(pid=package_order_pid)
         package_order.redo_sign = False

@@ -42,7 +42,7 @@ class PromotionGoodsViewSet(viewsets.ModelViewSet):
     @list_route(methods=['post'])
     def save_pics(self, request):
 
-        content = request.GET
+        content = request.data
         arr = content.get("arr", None)
         act_id = content.get("promotion_id", None)
         data = eval(arr)  # json字符串转化
