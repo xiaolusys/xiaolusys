@@ -1,20 +1,20 @@
-from __future__ import absolute_import
-
+from __future__ import absolute_import, unicode_literals
 import os
-import django
 from celery import Celery
 
 # set the default Django settings module for the 'celery' program.
 from global_setup import setup_djagno_environ
 setup_djagno_environ()
-django.setup()
 
 app = Celery('shopmanager')
-# Using a string here means the worker will not have to
-# pickle the object when using Windows.
+
+# Using a string here means the worker don't have to serialize
+# the configuration object to child processes.
+# - namespace='CELERY' means all celery-related configuration keys
+#   should have a `CELERY_` prefix.
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
+# Load task modules from all registered Django app configs.
 app.autodiscover_tasks()
-
 
 

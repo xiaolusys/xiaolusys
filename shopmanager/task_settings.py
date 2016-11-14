@@ -18,6 +18,8 @@ from celery.schedules import crontab
 
 ############################# BASE SETUP ################################
 
+CELERY_RESULT_BACKEND = 'django-cache'
+
 BROKER_POOL_LIMIT = 0
 BROKER_CONNECTION_TIMEOUT = 10
 
