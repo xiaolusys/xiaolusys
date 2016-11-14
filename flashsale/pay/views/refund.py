@@ -1,8 +1,10 @@
 # -*- encoding:utf8 -*-
+import collections
 import datetime
 from django.forms import model_to_dict
 from django.db.models import Sum
 from rest_framework.response import Response
+from rest_framework.decorators import detail_route
 from rest_framework import permissions
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework.views import APIView
@@ -13,8 +15,8 @@ from core.options import log_action, CHANGE
 from shopback.items.models import Product, ProductDaySale
 from flashsale.pay.models import SaleRefund
 from flashsale.pay import serializers
-from ..apis.v1.refund import return_fee_by_refund_product
-
+from ..apis.v1.refund import get_sale_refund_by_id, return_fee_by_refund_product, refund_postage
+from ..models import BudgetLog
 import logging
 
 logger = logging.getLogger(__name__)
@@ -83,8 +85,8 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         manual_refund = request.data.get('manual_refund')
         status = int(request.data.get('status'))
-        if not instance.is_modifiable:
-            raise exceptions.APIException(u'退款单当前状态不予更新退款单!')
+        # if not instance.is_modifiable:
+        # raise exceptions.APIException(u'退款单当前状态不予更新退款单!')
         if instance.status == SaleRefund.REFUND_WAIT_RETURN_GOODS and \
                         status not in (SaleRefund.REFUND_WAIT_RETURN_GOODS,
                                        SaleRefund.REFUND_APPROVE,
@@ -103,3 +105,16 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
         log_action(request.user.id, instance, CHANGE, message)
         return Response(serializer.data)
 
+    @detail_route(methods=['post'])
+    def refund_postage_manual(self, request, *args, **kwargs):
+        # type: (HttpRequest, *Any, **Any) -> HttpResponse
+        id = kwargs.get('pk')
+        default_return = collections.defaultdict(code=0, info='操作成功!')
+        if BudgetLog.objects.get_refund_postage_budget_logs().filter(referal_id=id).exists():  # 该退款单的退货补邮费记录
+            default_return.update({'code': 2, 'info': '已经有退货补邮费记录了'})
+            return Response(default_return)
+        sale_refund = get_sale_refund_by_id(id)
+        is_refunded = refund_postage(sale_refund)
+        if not is_refunded:
+            default_return.update({'code': 1, 'info': '操作失败!'})
+        return Response(default_return)
