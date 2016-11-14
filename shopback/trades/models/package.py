@@ -14,7 +14,7 @@ from shopback.items.models import SkuStock
 from flashsale import pay
 import logging
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_THIRD, WARE_CHOICES
-from shopback.trades.constants import PSI_STATUS, SYS_ORDER_STATUS, IN_EFFECT
+from shopback.trades.constants import PSI_STATUS, SYS_ORDER_STATUS, IN_EFFECT, PO_STATUS
 #
 from shopback import paramconfig as pcfg
 from models import TRADE_TYPE, TAOBAO_TRADE_STATUS
@@ -35,24 +35,15 @@ class PackageOrder(models.Model):
     status = models.CharField(max_length=32, db_index=True,
                               choices=TAOBAO_TRADE_STATUS, blank=True,
                               default=pcfg.TRADE_NO_CREATE_PAY, verbose_name=u'系统状态')
-    PKG_NEW_CREATED = 'PKG_NEW_CREATED'
-    WAIT_PREPARE_SEND_STATUS = 'WAIT_PREPARE_SEND_STATUS'
-    WAIT_CHECK_BARCODE_STATUS = 'WAIT_CHECK_BARCODE_STATUS'
-    WAIT_SCAN_WEIGHT_STATUS = 'WAIT_SCAN_WEIGHT_STATUS'
-    WAIT_CUSTOMER_RECEIVE = 'WAIT_CUSTOMER_RECEIVE'
-    FINISHED_STATUS = 'FINISHED_STATUS'
-    DELETE = 'DELETE'
-    PACKAGE_STATUS = (
-        (PKG_NEW_CREATED, u'初始状态'),
-        (WAIT_PREPARE_SEND_STATUS, u'待发货准备'),
-        (WAIT_CHECK_BARCODE_STATUS, u'待扫描验货'),
-        (WAIT_SCAN_WEIGHT_STATUS, u'待扫描称重'),
-        (WAIT_CUSTOMER_RECEIVE, u'待收货'),
-        (FINISHED_STATUS, u'已到货'),
-        (DELETE, u'已作废')
-    )
+    PKG_NEW_CREATED = PO_STATUS.PKG_NEW_CREATED
+    WAIT_PREPARE_SEND_STATUS = PO_STATUS.WAIT_PREPARE_SEND_STATUS
+    WAIT_CHECK_BARCODE_STATUS = PO_STATUS.WAIT_CHECK_BARCODE_STATUS
+    WAIT_SCAN_WEIGHT_STATUS = PO_STATUS.WAIT_SCAN_WEIGHT_STATUS
+    WAIT_CUSTOMER_RECEIVE = PO_STATUS.WAIT_CUSTOMER_RECEIVE
+    FINISHED_STATUS = PO_STATUS.FINISHED_STATUS
+    DELETE = PO_STATUS.DELETE
     sys_status = models.CharField(max_length=32, db_index=True,
-                                  choices=PACKAGE_STATUS, blank=True,
+                                  choices=PO_STATUS.CHOICES, blank=True,
                                   default=PKG_NEW_CREATED, verbose_name=u'系统状态')
     sku_num = models.IntegerField(default=0, verbose_name=u'当前SKU种类数')
     order_sku_num = models.IntegerField(default=0, verbose_name=u'用户订货SKU种类总数')
@@ -886,7 +877,7 @@ class PackageSkuItem(BaseModel):
         SkuStock.set_psi_sent(self.sku_id, self.num)
 
     def set_status_finish(self):
-        self.status = PSI_STATUS.SENT
+        self.status = PSI_STATUS.FINISH
         self.assign_status = 1
         self.save()
         SkuStock.set_psi_finish(self.sku_id, self.num)
@@ -899,6 +890,37 @@ class PackageSkuItem(BaseModel):
         SkuStock.set_psi_cancel(self.sku_id, ori_status, self.num)
     # -----------------------------------
 
+    def reset_status(self):
+        """
+            依据当前订单信息，设置status
+        """
+        from flashsale.pay.models import SaleOrder
+        if self.assign_status == PackageSkuItem.CANCELED:
+            self.status = PSI_STATUS.CANCEL
+        elif self.sale_order.status == SaleOrder.TRADE_BUYER_SIGNED:
+            self.status = PSI_STATUS.FINISH
+        elif self.assign_status == PackageSkuItem.FINISHED:
+            self.status = PSI_STATUS.SENT
+        elif self.assign_status == PackageSkuItem.VIRTUAL_ASSIGNED:
+            self.status = PSI_STATUS.THIRD_SEND
+        elif self.assign_status == PackageSkuItem.ASSIGNED:
+            if self.package_order:
+                if self.package_order.sys_status == PO_STATUS.WAIT_SCAN_WEIGHT_STATUS:
+                    self.status = PSI_STATUS.WAITPOST
+                elif self.package_order.sys_status == PO_STATUS.WAIT_CHECK_BARCODE_STATUS:
+                    self.status = PSI_STATUS.WAITSCAN
+                else:
+                    self.status = PSI_STATUS.MERGED
+            elif not self.package_order:
+                self.status = PSI_STATUS.ASSIGNES
+        elif self.assign_status == PackageSkuItem.NOT_ASSIGNED:
+            if self.purchase_order_unikey and self.order_list.can_receive():
+                self.status = PSI_STATUS.BOOKED
+            elif self.purchase_order_unikey:
+                self.status = PSI_STATUS.PREPARE_BOOK
+        else:
+            self.status = PSI_STATUS.PAID
+            
     @staticmethod
     def unsend_orders_cnt(buyer_id):
         payed_counts = SaleOrder.objects.filter(buyer_id=buyer_id, status=SaleOrder.WAIT_SELLER_SEND_GOODS).count()

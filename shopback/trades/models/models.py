@@ -223,7 +223,7 @@ class MergeTrade(models.Model):
 
     is_brand_sale = models.BooleanField(default=False, verbose_name=u'品牌特卖')
     is_force_wlb = models.BooleanField(default=False, verbose_name=u'物流宝')
-    trade_from = models.IntegerField(choices=(), verbose_name=u'交易来源')
+    trade_from = models.IntegerField(choices=(), default=0, verbose_name=u'交易来源')
 
     is_lgtype = models.BooleanField(default=False, verbose_name=u'速递')
     lg_aging = models.DateTimeField(null=True, blank=True, verbose_name=u'速递送达时间')
