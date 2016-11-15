@@ -177,10 +177,14 @@ class FinanceCostApiView(APIView):
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
     cost_sql = "SELECT SUM(o.payment), SUM(sku.cost * o.num), " \
                "SUM(o.payment)/SUM(sku.cost * o.num) , SUM(o.num), " \
-               "DATE(o.pay_time) AS cost_date FROM flashsale_order AS o LEFT JOIN shop_items_productsku" \
-               " AS sku ON sku.id = o.sku_id WHERE o.pay_time BETWEEN '{0}' " \
+               "DATE(o.pay_time) AS cost_date, p.category_id AS category " \
+               "FROM flashsale_order AS o " \
+               "LEFT JOIN shop_items_product AS p ON o.item_id = p.id " \
+               "LEFT JOIN shop_items_productsku AS sku ON sku.id = o.sku_id " \
+               "WHERE o.pay_time BETWEEN '{0}' " \
                "AND '{1}' AND o.status >= 2 AND o.status <= 5 AND o.refund_status=0 " \
-               "AND o.sku_id != '11873' AND o.sku_id!='221408' AND o.sku_id!='221409'  GROUP BY cost_date;"
+               "AND o.sku_id != '11873' AND o.sku_id!='221408' AND o.sku_id!='221409'  " \
+               "GROUP BY category, cost_date ORDER BY cost_date;"
 
     def get(self, request):
         date_from, date_to, date_from_time, date_to_time = date_handler(request)
@@ -188,18 +192,85 @@ class FinanceCostApiView(APIView):
         cursor = connection.cursor()
         cursor.execute(sql)
         raw = cursor.fetchall()
-        results = []
+        items = []
+        total_payment = 0
+        total_cost = 0
+        total_num = 0
+        by_date_items = {}
+        by_category_items = {}
+        from shopback.categorys.models import ProductCategory
+
+        cas = ProductCategory.objects.all()
+        cas_info = {}
+        for ca in cas:
+            cas_info[ca.cid] = ca.__unicode__()
         for i in raw:
-            results.append({
+            total_payment += i[0]
+            total_cost += i[1]
+            total_num += i[3]
+            items.append({
                 'sum_payment': i[0],
                 'sum_cost': i[1],
                 'profit': i[2],
                 'sum_num': i[3],
-                'date': i[4]
+                'date': i[4],
+                'category': i[5],
+                'category_name': cas_info[i[5]],
             })
+            date = i[4].strftime("%Y-%m-%d")
+            if date not in by_date_items:
+                by_date_items[date] = {
+                    'sum_payment': i[0],
+                    'sum_cost': i[1],
+                    'profit': i[2],
+                    'sum_num': i[3],
+                    'date': date
+                }
+            else:
+                by_date_items[date]['sum_payment'] += i[0]
+                by_date_items[date]['sum_cost'] += i[1]
+                by_date_items[date]['profit'] = by_date_items[date]['sum_payment'] / by_date_items[date]['sum_cost']
+                by_date_items[date]['sum_num'] += i[3]
+            category = i[5]
+            if category not in by_category_items:
+                by_category_items[category] = {
+                    'sum_payment': i[0],
+                    'sum_cost': i[1],
+                    'profit': i[2],
+                    'sum_num': i[3],
+                    'category': category,
+                    'category_name': cas_info[category]
+                }
+            else:
+                by_category_items[category]['sum_payment'] += i[0]
+                by_category_items[category]['sum_cost'] += i[1]
+                by_category_items[category]['profit'] = by_category_items[category]['sum_payment'] / \
+                                                        by_category_items[category]['sum_cost']
+                by_category_items[category]['sum_num'] += i[3]
         cursor.close()
-        return Response({'code': 0, 'info': 'success', 'sql': sql,
-                         'results': results})
+        date_keys = by_date_items.keys()
+        date_keys.sort()
+        category_keys = by_category_items.keys()
+        category_keys.sort()
+
+        results = {
+            'code': 0,
+            'info': 'success',
+            'desc': u'交易成本统计',
+            'aggregate_data': {
+                'total_payment': total_payment,
+                'total_cost': total_cost,
+                'total_num': total_num,
+                'total_Profit': round(total_cost / total_payment, 5)
+            },
+            'sql': sql,
+            'details': {
+                'group_by_date': [by_date_items[key] for key in date_keys],
+                'group_by_category': [by_category_items[key] for key in category_keys],
+                'items': sorted(items, key=lambda k: k['category']),
+            }
+        }
+        return Response(results)
 
 
 def product_category_map():
