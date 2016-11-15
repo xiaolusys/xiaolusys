@@ -633,6 +633,7 @@ def task_close_refund(days=None):
 @task(serializer='pickle')
 @transaction.atomic
 def task_saleorder_update_package_sku_item(sale_order):
+
     from shopback.trades.models import PackageSkuItem
     from shopback.items.models import ProductSku, SkuStock
     items = PackageSkuItem.objects.filter(sale_order_id=sale_order.id)
@@ -681,8 +682,9 @@ def task_saleorder_update_package_sku_item(sale_order):
             sku_item.save()
     elif sale_order.is_pending():
         if sku_item.assign_status == PackageSkuItem.CANCELED:
-            sku_item.assign_status = PackageSkuItem.NOT_ASSIGNED
-            sku_item.clear_order_info()
+            pass
+            # sku_item.assign_status = PackageSkuItem.NOT_ASSIGNED
+            # sku_item.clear_order_info()
 
 
 @task()
