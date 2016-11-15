@@ -8,6 +8,11 @@ __ALL__ = [
 from ...models.schedule import SaleProductManage, SaleProductManageDetail
 
 
+def get_schedule_by_id(id):
+    # type: (int) -> SaleProductManage
+    return SaleProductManage.objects.get(id=id)
+
+
 def get_future_schedules():
     # type: () -> List[SaleProductManage]
     """未来排期
