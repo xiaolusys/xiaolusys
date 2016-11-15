@@ -13,8 +13,7 @@ from shopback.users.models import User as Seller
 from common.utils import (format_time,
                           format_datetime,
                           format_year_month,
-                          parse_datetime,
-                          single_instance_task)
+                          parse_datetime,)
 from shopapp.taobao import apis
 import logging
 
@@ -192,7 +191,7 @@ def updateAllUserIncrementPurchaseOrderTask(update_from=None, update_to=None):
                 monitor_status.save()
 
 
-@single_instance_task(60 * 60, prefix='shopback.fenxiao.tasks.')
+@task()
 def updateAllUserIncrementPurchasesTask():
     """ 增量更新分销平台订单信息 """
 

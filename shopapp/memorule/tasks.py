@@ -20,7 +20,7 @@ import logging
 logger = logging.getLogger('django.request')
 
 
-@single_instance_task(30 * 60, prefix='shopapp.memorule.tasks.')
+@task()
 def updateTradeAndOrderByRuleMemo():
     rule_memos = RuleMemo.objects.filter(is_used=False).exclude(rule_memo='')
     for rule_memo in rule_memos:
@@ -79,7 +79,7 @@ def updateTradeAndOrderByRuleMemo():
                 logger.error('update rule error', exc_info=True)
 
 
-@single_instance_task(30 * 60, prefix='shopapp.memorule.tasks.')
+@task()
 def updateTradeSellerFlagTask():
     system_config = SystemConfig.getconfig()
     if system_config and system_config.is_flag_auto:

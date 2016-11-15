@@ -113,7 +113,7 @@ def updateItemListTask(num_iid):
     task.save()
 
 
-@single_instance_task(30 * 60, prefix='shopapp.autolist.tasks.')
+@task()
 def updateAllItemListTask():
     currentdate = datetime.datetime.now()
     currenttime = time.mktime(currentdate.timetuple())

@@ -33,6 +33,7 @@ CELERY_BROKER_TRANSPORT_OPTIONS = {
 }
 
 # Sensible settings for celery
+CELERY_ALWAYS_EAGER = False
 CELERY_TASK_ALWAYS_EAGER = False
 CELERY_ACKS_LATE = True
 CELERY_TASK_PUBLISH_RETRY = True
@@ -61,8 +62,8 @@ if os.environ.get('INSTANCE') == 'celery-gevent':
 
 CELERY_TIMEZONE = 'Asia/Shanghai'
 
-CELERY_DEFAULT_QUEUE = 'default'
 CELERY_QUEUES = (
+    Queue('celery', routing_key='tasks.#'),
     Queue('default', routing_key='tasks.#'),
     Queue('notify', routing_key='notify.#'),
     Queue('weixin', routing_key='weixin.#'),
@@ -86,10 +87,8 @@ CELERY_QUEUES = (
 )
 
 CELERY_TASK_QUEUES = CELERY_QUEUES
-CELERY_DEFAULT_EXCHANGE = 'default'
-CELERY_DEFAULT_EXCHANGE_TYPE = 'topic'
-CELERY_DEFAULT_ROUTING_KEY = 'default'
 
+CELERY_TASK_DEFAULT_QUEUE = 'default'
 CELERY_TASK_DEFAULT_EXCHANGE = 'default'
 CELERY_TASK_DEFAULT_EXCHANGE_TYPE = 'topic'
 CELERY_TASK_DEFAULT_ROUTING_KEY = 'default'
@@ -204,7 +203,7 @@ SKU_STATS_ROUTES = {
         'routing_key': 'skustats.task_refundproduct_update_productskustats_return_quantity',
     },
 
-    'shopback.trades.tasks.task_packageskuitem_update_productskusalestats_num': {
+    'shopback.trades.tasks.tasks.task_packageskuitem_update_productskusalestats_num': {
         'queue': 'skustats',
         'routing_key': 'skustats.task_packageskuitem_update_productskusalestats_num',
     },
@@ -888,27 +887,27 @@ CELERY_ROUTES = {
         'queue': 'async',
         'routing_key': 'async.async_invoice_print',
     },  # 发货单打印任务
-    'shopback.trades.tasks.sendTaobaoTradeTask': {
+    'shopback.trades.tasks.tasks.sendTaobaoTradeTask': {
         'queue': 'async',
         'routing_key': 'async.sendTaobaoTradeTask',
     },  # 订单发货任务
-    'shopback.trades.tasks.sendTradeCallBack': {
+    'shopback.trades.tasks.tasks.sendTradeCallBack': {
         'queue': 'async',
         'routing_key': 'async.sendTradeCallBack',
     },  # 订单发货回调任务
-    'shopback.trades.tasks.send_package_task': {
+    'shopback.trades.tasks.tasks.send_package_task': {
         'queue': 'async',
         'routing_key': 'async.send_package_task',
     },  # 包裹发货任务
-    'shopback.trades.tasks.send_package_call_Backs': {
+    'shopback.trades.tasks.tasks.send_package_call_Backs': {
         'queue': 'async',
         'routing_key': 'async.send_package_call_Back',
     },  # 包裹发货任务
-    'shopback.trades.tasks.uploadTradeLogisticsTask': {
+    'shopback.trades.tasks.tasks.uploadTradeLogisticsTask': {
         'queue': 'async',
         'routing_key': 'async.uploadTradeLogisticsTask',
     },  # 上传订单物流信息任务
-    'shopback.trades.tasks.deliveryTradeCallBack': {
+    'shopback.trades.tasks.tasks.deliveryTradeCallBack': {
         'queue': 'async',
         'routing_key': 'async.deliveryTradeCallBack',
     },  # 上传订单物流回调任务
@@ -994,7 +993,7 @@ SYNC_MODEL_SCHEDULE = {
          'args':(1,None,None,)
      },
     u'定时更新设置提醒的订单入问题单': {  # 更新定时提醒订单
-        'task': 'shopback.trades.tasks.regularRemainOrderTask',
+        'task': 'shopback.trades.tasks.tasks.regularRemainOrderTask',
         'schedule': crontab(minute="0", hour='0,12,17'),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
@@ -1018,7 +1017,7 @@ SYNC_MODEL_SCHEDULE = {
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
     u'定时生成每月物流信息报表': {  # 更新库存
-        'task': 'shopback.trades.tasks.task_Gen_Logistic_Report_File_By_Month',
+        'task': 'shopback.trades.tasks.tasks.task_Gen_Logistic_Report_File_By_Month',
         'schedule': crontab(minute="0", hour="4", day_of_month='10'),  #
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
@@ -1401,31 +1400,31 @@ SHOP_APP_SCHEDULE = {
 
     },
     u'实时统计当前待发货准备的packageskuitem的数据':{
-        'task': 'shopback.trades.tasks.task_schedule_check_packageskuitem_cnt',
+        'task': 'shopback.trades.tasks.tasks.task_schedule_check_packageskuitem_cnt',
         'schedule': crontab(minute="0"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
     u'实时统计备货的packageskuitem':{
-        'task': 'shopback.trades.tasks.task_schedule_check_assign_num',
+        'task': 'shopback.trades.tasks.tasks.task_schedule_check_assign_num',
         'schedule': crontab(minute="2"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
     u'实时统计可备货但未备货的packageskuitem和空包裹':{
-        'task': 'shopback.trades.tasks.task_schedule_check_stock_not_assign',
+        'task': 'shopback.trades.tasks.tasks.task_schedule_check_stock_not_assign',
         'schedule': crontab(minute="3"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
     u'实时统计购物车中sku数':{
-        'task': 'shopback.trades.tasks.task_schedule_check_shoppingcart_cnt',
+        'task': 'shopback.trades.tasks.tasks.task_schedule_check_shoppingcart_cnt',
         'schedule': crontab(minute="4"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
     u'实时统计待支付的sku数':{
-        'task': 'shopback.trades.tasks.task_schedule_check_waitingpay_cnt',
+        'task': 'shopback.trades.tasks.tasks.task_schedule_check_waitingpay_cnt',
         'schedule': crontab(minute="6"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}

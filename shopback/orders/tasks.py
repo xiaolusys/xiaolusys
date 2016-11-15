@@ -2,8 +2,6 @@
 from __future__ import absolute_import, unicode_literals
 from celery import shared_task as task
 
-import os
-import time
 import datetime
 from django.conf import settings
 from shopback.users.models import User
@@ -12,8 +10,7 @@ from shopback import paramconfig as pcfg
 from common.utils import (format_time,
                           format_datetime,
                           format_year_month,
-                          parse_datetime,
-                          single_instance_task)
+                          parse_datetime,)
 from shopapp.taobao import apis
 import logging
 
@@ -157,7 +154,7 @@ def updateAllUserIncrementOrdersTask(update_from=None, update_to=None):
                 monitor_status.save()
 
 
-@single_instance_task(12 * 60 * 60, prefix='shopback.orders.tasks.')
+@task()
 def updateAllUserWaitPostOrderTask():
     users = User.effect_users.TAOBAO
     for user in users:
@@ -165,7 +162,7 @@ def updateAllUserWaitPostOrderTask():
                                  status=pcfg.WAIT_SELLER_SEND_GOODS)
 
 
-@single_instance_task(60 * 60, prefix='shopback.orders.tasks.')
+@task()
 def updateAllUserIncrementTradesTask():
     """ 增量更新订单信息 """
 
