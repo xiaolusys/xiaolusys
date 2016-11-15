@@ -1,4 +1,7 @@
 # -*- coding:utf8 -*-
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task as task
+
 import os
 import re
 import time
@@ -15,7 +18,6 @@ from shopback.monitor.models import DayMonitorStatus
 from shopapp.report.reportform import TradesToXLSFile
 from common.utils import format_time, parse_datetime, format_datetime, format_date, format_year_month
 from shopback.users.models import User
-from common.utils import single_instance_task
 import logging
 
 logger = logging.getLogger('django.request')
@@ -24,7 +26,7 @@ BLANK_CHAR = ''
 MONTH_TRADE_FILE_TEMPLATE = 'D%s.xls'
 
 
-@single_instance_task(24 * 60 * 60, prefix='shopapp.report.tasks.')
+@task()
 def updateMonthTradeXlsFileTask(year=None, month=None):
     dt = datetime.datetime.now()
     update_year_month = year and month

@@ -9,7 +9,7 @@ from django.db import transaction
 from core.utils.modelutils import update_model_fields
 from core.models import BaseModel
 from shopback.items.models import ProductSku, Product
-from shopback.warehouse.constants import WARE_CHOICES, WARE_NONE
+from shopback.warehouse.constants import WARE_CHOICES, WARE_NONE, WARE_GZ
 from supplychain.supplier.models import SaleSupplier
 from shopback.trades.models import SkuStock
 import logging
@@ -725,7 +725,7 @@ class OrderList(models.Model):
         return columns, items
 
     @staticmethod
-    def create_or_update(purchase_order_unikey):
+    def create_or_update(purchase_order_unikey, od=None):
         ol = OrderList.objects.filter(purchase_order_unikey=purchase_order_unikey).first()
         if not ol:
             supplier_id = purchase_order_unikey.split('-')[0]
@@ -734,7 +734,7 @@ class OrderList(models.Model):
             if supplier.ware_by == WARE_GZ:
                 p_district = OrderList.GUANGDONG
             now = datetime.datetime.now()
-            ol = OrderList(purchase_order_unikey=od.purchase_order_unikey, order_amount=od.total_price,
+            ol = OrderList(purchase_order_unikey=purchase_order_unikey, order_amount=od.total_price,
                            supplier_id=supplier.id, p_district=p_district, created_by=OrderList.CREATED_BY_MACHINE,
                            status=OrderList.SUBMITTING, note=u'-->%s:动态生成订货单' % now.strftime('%m月%d %H:%M'))
 
@@ -746,9 +746,9 @@ class OrderList(models.Model):
 
             ol.save()
         else:
-            od_sum = OrderDetail.objects.filter(purchase_order_unikey=od.purchase_order_unikey).aggregate(
+            od_sum = OrderDetail.objects.filter(purchase_order_unikey=purchase_order_unikey).aggregate(
                 total=Sum('total_price'))
-            purchase_total_num = OrderDetail.objects.filter(purchase_order_unikey=od.purchase_order_unikey).aggregate(
+            purchase_total_num = OrderDetail.objects.filter(purchase_order_unikey=purchase_order_unikey).aggregate(
                 total=Sum('buy_quantity')).get('total') or 0
             total = od_sum['total'] or 0
             if ol.order_amount != total or ol.purchase_total_num != purchase_total_num:
@@ -757,7 +757,7 @@ class OrderList(models.Model):
                     ol.purchase_total_num = purchase_total_num
                     ol.save(update_fields=['order_amount', 'updated', 'purchase_total_num'])
                 else:
-                    logger.warn("ZIFEI error: tying to modify booked order_list| ol.id: %s, od: %s" % (ol.id, od.id))
+                    logger.warn("tying to modify booked order_list| ol.id: %s, od: %s" % (ol.id,))
             else:
                 ol.save(update_fields=['updated'])
 

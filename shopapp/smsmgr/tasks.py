@@ -7,7 +7,7 @@ import logging
 import datetime
 from django.db.models import F
 from django.template import Context, Template
-from common.utils import update_model_fields, single_instance_task
+from common.utils import update_model_fields
 from flashsale.pay.models import Register
 from shopapp.smsmgr.service import SMS_CODE_MANAGER_TUPLE
 from shopback import paramconfig as pcfg
@@ -89,7 +89,7 @@ def gen_package_post_sms_content(package_order, package_sku_item, delay_days):
     return template.render(context)
 
 
-@single_instance_task(60 * 60, prefix='shopapp.smsmgr.tasks.')
+@task()
 def task_notify_package_post(package_order):
     """
     :param package_order: PackageOrder instance
@@ -169,7 +169,7 @@ def gen_lack_refund_sms_content(sale_order):
     return template.render(context)
 
 
-@single_instance_task(60 * 60, prefix='shopapp.smsmgr.tasks.')
+@task()
 def task_notify_lack_refund(sale_order):
     """
     :param package_order: PackageOrder instance
