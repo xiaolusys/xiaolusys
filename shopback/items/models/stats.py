@@ -694,8 +694,8 @@ class SkuStock(models.Model):
             else:
                 check_if_err = True
                 SkuStock.set_psi_not_assigned(self.sku_id, 0, stat=True, warning=True)
-        if self.realtime_quantity - self.assign_num < 0 and self.assign_num > 0 and check_if_err and again:
-            self.relase_assign(again=False)
+        # if self.realtime_quantity - self.assign_num < 0 and self.assign_num > 0 and check_if_err and again:
+        #     self.relase_assign(again=False)
 
 
 def invalid_apiskustat_cache(sender, instance, *args, **kwargs):
