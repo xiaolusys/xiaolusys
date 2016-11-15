@@ -207,8 +207,8 @@ class SMSLoginBackend(object):
         3, if not else,then create django user
         """
         content = request.POST
-        mobile = content.get('mobile')
-        sms_code = content.get('sms_code')
+        mobile = kwargs.get('mobile') or content.get('sms_code')
+        sms_code = kwargs.get('sms_code') or content.get('sms_code')
         if not (request.path.startswith("/rest/") and mobile and sms_code):
             return None
 

@@ -18,8 +18,6 @@ from celery.schedules import crontab
 
 ############################# BASE SETUP ################################
 
-CELERY_RESULT_BACKEND = 'django-cache'
-
 CELERY_BROKER_POOL_LIMIT = 0
 CELERY_BROKER_CONNECTION_TIMEOUT = 10
 
@@ -54,7 +52,7 @@ CELERY_REDIS_MAX_CONNECTIONS = 8
 # Don't use pickle as serializer, json is much safer
 CELERY_TASK_SERIALIZER = "pickle"
 CELERY_RESULT_SERIALIZER = "pickle"
-CELERY_ACCEPT_CONTENT = ['application/x-python-serialize']
+CELERY_ACCEPT_CONTENT = ['pickle']
 
 CELERYD_HIJACK_ROOT_LOGGER = False
 CELERYD_PREFETCH_MULTIPLIER = 4

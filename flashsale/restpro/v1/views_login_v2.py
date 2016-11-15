@@ -164,6 +164,7 @@ class LoginViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.Gene
 
         if mobile == "" or not re.match(PHONE_NUM_RE, mobile):
             return Response({"code": 2, "message": u"手机号码有误"})
+
         sms_code = req_params.get('sms_code', '')
         if not sms_code or not sms_code.isdigit():
             return Response({"code": 3, "message": u"验证码有误"})

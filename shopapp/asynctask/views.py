@@ -74,7 +74,8 @@ class AsyncInvoicePrintView(APIView):
             operator=profile.username,
             params=json.dumps(params))
 
-        print_async_task = PrintAsyncTask.delay(task_model.pk)
+        from shopapp.asynctask.tasks import task_print_async
+        print_async_task = task_print_async.delay(task_model.pk)
 
         return Response({"task_id": print_async_task, "async_print_id": task_model.pk})
 
