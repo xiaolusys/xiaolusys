@@ -8,12 +8,19 @@ from rest_framework.decorators import list_route
 from rest_framework.response import Response
 from django.contrib.auth.models import User
 from . import serializers
+from core import pagination
 
 
 class UserFilter(filters.FilterSet):
     class Meta:
         model = User
         fields = ['id', 'is_staff', 'is_active', 'username']
+
+
+class LargeResultsSetPagination(pagination.PageNumberPagination):
+    page_size = 100
+    page_size_query_param = 'page_size'
+    max_page_size = 1000
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
@@ -33,6 +40,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
     filter_class = UserFilter
+    pagination_class = LargeResultsSetPagination
 
     @list_route(methods=['get'])
     def current_user(self, request, *args, **kwargs):
