@@ -22,6 +22,10 @@ from ..apis.activity import get_activity_by_id, create_activity, update_activity
 from ..utils import choice_2_name_value
 from ..deps import get_future_topic_schedules
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class ActivityViewSet(viewsets.ModelViewSet):
     queryset = ActivityEntry.objects.all().order_by('-order_val', '-start_time')
