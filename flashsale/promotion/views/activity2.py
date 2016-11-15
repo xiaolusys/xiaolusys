@@ -93,8 +93,15 @@ class ActivityViewSet(viewsets.ModelViewSet):
         update_activity(instance_id, **request.data)
         return Response(serializer.data)
 
+    @detail_route(methods=['get', 'post'])
+    def correlate_schedule(self, request, *args, **kwargs):
+        # type: (HttpRequest, *Any, **Any) -> Response
+
+        return Response()
+
     @list_route(methods=['get'])
     def pro_list_filters(self, request, *args, **kwargs):
+        # type: (HttpRequest, *Any, **Any) -> Response
         pic_type = choice_2_name_value(ActivityProduct.PIC_TYPE_CHOICES)
         return Response({'pic_type': pic_type})
 
