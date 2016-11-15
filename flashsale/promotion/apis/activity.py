@@ -129,8 +129,8 @@ def create_activity(title, act_type, start_time, end_time, **kwargs):
     _validate_start_end_time(start_time, end_time)
     activity = activity.create()
     if act_type == ActivityEntry.ACT_TOPIC:
-        activity.act_link = 'https://m.xiaolumeimei.com/mall/activity/topTen/model/2?id={0}'.format(activity.id)
-    activity.share_link = 'https://m.xiaolumeimei.com/m/{mama_id}?next=' + activity.act_link
+        activity.act_link = 'http://m.xiaolumeimei.com/mall/activity/topTen/model/2?id={0}'.format(activity.id)
+    activity.share_link = 'http://m.xiaolumeimei.com/m/{mama_id}?next=' + activity.act_link
     activity.save()
     return activity
 
@@ -214,7 +214,10 @@ def create_activity_pro(activity_id, product_img, **kwargs):
         else:
             location_id = 1
     else:
-        latest_pro = pros.latest('location_id')
+        try:
+            latest_pro = pros.latest('location_id')
+        except:
+            latest_pro = None
         location_id = latest_pro.location_id + 1 if latest_pro else 2
         # 如果是非底部图片　当前活动有底部图片则要挪动底部图片到底部
         _set_footer_pic_location(activity_id, location_id)
