@@ -161,6 +161,7 @@ class PackageOrder(models.Model):
             sku_item.out_sid = self.out_sid
             sku_item.logistics_company_name = self.logistics_company.name
             sku_item.logistics_company_code = self.logistics_company.code
+            # sku_item.set_status_sent()
             sku_item.assign_status = PackageSkuItem.FINISHED
             sku_item.set_assign_status_time()
             sku_item.save()
