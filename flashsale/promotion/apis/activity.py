@@ -129,8 +129,8 @@ def create_activity(title, act_type, start_time, end_time, **kwargs):
     _validate_start_end_time(start_time, end_time)
     activity = activity.create()
     if act_type == ActivityEntry.ACT_TOPIC:
-        activity.act_link = 'https://m.xiaolumeimei.com/mall/activity/topTen/model/2?id={0}'.format(activity.id)
-    activity.share_link = 'https://m.xiaolumeimei.com/m/{mama_id}?next=' + activity.act_link
+        activity.act_link = 'http://m.xiaolumeimei.com/mall/activity/topTen/model/2?id={0}'.format(activity.id)
+    activity.share_link = 'http://m.xiaolumeimei.com/m/{mama_id}?next=' + activity.act_link
     activity.save()
     return activity
 
