@@ -666,7 +666,8 @@ class SkuStock(models.Model):
                                                 # status=PSI_STATUS.ASSIGNED,
                                                 assign_status=PackageSkuItem.ASSIGNED).first()
             if psi:
-                psi.set_status_not_assigned()
+                # psi.set_status_not_assigned()
+                psi.reset_assign_status()
             else:
                 check_if_err = True
                 SkuStock.set_psi_not_assigned(self.sku_id, 0, stat=True, warning=True)
@@ -676,7 +677,8 @@ class SkuStock(models.Model):
                                                 # status=PSI_STATUS.ASSIGNED,
                                                 assign_status=PackageSkuItem.ASSIGNED).first()
             if psi:
-                psi.set_status_not_assigned()
+                # psi.set_status_not_assigned()
+                psi.reset_assign_status()
             else:
                 check_if_err = True
                 SkuStock.set_psi_not_assigned(self.sku_id, 0, stat=True, warning=True)
@@ -686,7 +688,8 @@ class SkuStock(models.Model):
                                                 assign_status=PackageSkuItem.ASSIGNED).order_by(
                 '-pay_time').first()
             if psi:
-                psi.set_status_not_assigned()
+                # psi.set_status_not_assigned()
+                psi.reset_assign_status()
             else:
                 check_if_err = True
                 SkuStock.set_psi_not_assigned(self.sku_id, 0, stat=True, warning=True)
