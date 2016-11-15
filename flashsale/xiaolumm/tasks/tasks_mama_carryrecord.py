@@ -19,7 +19,7 @@ def get_cur_info():
     return f.f_code.co_name
 
 
-@task()
+@task(serializer='pickle')
 def task_awardcarry_update_carryrecord(carry):
     #print "%s, mama_id: %s" % (get_cur_info(), carry.mama_id)
     if carry.mama_id <= 0:
