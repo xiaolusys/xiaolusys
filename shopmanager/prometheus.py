@@ -60,6 +60,7 @@ DATABASES = {
     }
 }
 
+DJANGO_REDIS_IGNORE_EXCEPTIONS = True
 CACHES = {
     'default': {
         'BACKEND': 'redis_cache.RedisCache',
@@ -79,13 +80,22 @@ CACHES = {
         }
     }
 }
-DJANGO_REDIS_IGNORE_EXCEPTIONS = True
-CELERY_BROKER_URL = 'redis://:{0}@{1}:6379/29'.format(REDIS_AUTH, REDIS_HOST)
+
 
 INSTALLED_APPS.extend([
     'django_prometheus',
 ])
 
+##########################CELERY TASK##########################
+CLOSE_CELERY = False
+if os.environ.get('TARGET') == 'django18':
+    CELERY_TASK_ALWAYS_EAGER = True
+    CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
+
+CELERY_BROKER_URL = 'redis://:{0}@{1}:6379/29'.format(REDIS_AUTH, REDIS_HOST)
+CELERY_RESULT_BACKEND = 'redis://:{0}@{1}:6379/28'.format(REDIS_AUTH, REDIS_HOST)
+
+##########################SENTRY RAVEN##########################
 import raven
 RAVEN_CONFIG = {
     'dsn': 'http://1e0aad4415454d5c9bbc22ac02a14b2e:42d9a07d79a2462fbc76eb543ac25fbf@sentry.xiaolumm.com/5',

@@ -28,10 +28,6 @@ SITE_URL = 'http://staging.xiaolumm.com/'
 #######################  WAP AND WEIXIN CONFIG ########################
 M_SITE_URL = 'http://staging.xiaolumm.com'
 
-CELERY_TASK_ALWAYS_EAGER = True
-CLOSE_CELERY = False
-CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
-
 MYSQL_HOST = 'rm-bp17ea269uu21f9i1.mysql.rds.aliyuncs.com'
 MYSQL_AUTH = 'Xiaolu_test123'
 REDIS_HOST = '55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379'
@@ -60,7 +56,7 @@ DATABASES = {
     }
 }
 
-
+DJANGO_REDIS_IGNORE_EXCEPTIONS = True
 CACHES = {
     'default': {
         'BACKEND': 'redis_cache.RedisCache',
@@ -80,9 +76,16 @@ CACHES = {
         }
     }
 }
-DJANGO_REDIS_IGNORE_EXCEPTIONS = True
-CELERY_BROKER_URL = 'redis://%s%s/13'%(REDIS_AUTH and ':%s@'%REDIS_AUTH, REDIS_HOST)
 
+##########################CELERY TASK##########################
+CLOSE_CELERY = False
+CELERY_TASK_ALWAYS_EAGER = True
+CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
+
+CELERY_BROKER_URL = 'redis://:{0}@{1}:6379/19'.format(REDIS_AUTH, REDIS_HOST)
+CELERY_RESULT_BACKEND = 'redis://:{0}@{1}:6379/18'.format(REDIS_AUTH, REDIS_HOST)
+
+##########################SENTRY RAVEN##########################
 import raven
 RAVEN_CONFIG = {
     'dsn': 'http://2d63e1b731cd4e53a32b0bc096fd3566:a38d367f2c644d81b353dabfbb941070@sentry.xiaolumm.com/4',
