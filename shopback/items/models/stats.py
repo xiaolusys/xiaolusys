@@ -600,6 +600,7 @@ class SkuStock(models.Model):
             return
         if now_num < 0:
             self.relase_assign(psi_id, orderlist)
+            return
         if psi_id:
             psi = PackageSkuItem.objects.filter(sku_id=self.sku_id,
                                                 id=psi_id,
