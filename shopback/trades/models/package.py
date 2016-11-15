@@ -30,8 +30,6 @@ class PackageOrder(models.Model):
     id = models.CharField(max_length=100, verbose_name=u'包裹码', unique=True)
     tid = models.CharField(max_length=32, verbose_name=u'参考交易单号')
     ware_by = models.IntegerField(default=WARE_SH, db_index=True, choices=WARE_CHOICES, verbose_name=u'所属仓库')
-    type = models.CharField(max_length=32, choices=TRADE_TYPE, db_index=True, default=pcfg.SALE_TYPE,
-                            blank=True, verbose_name=u'订单类型')
     status = models.CharField(max_length=32, db_index=True,
                               choices=TAOBAO_TRADE_STATUS, blank=True,
                               default=pcfg.TRADE_NO_CREATE_PAY, verbose_name=u'系统状态')
@@ -595,7 +593,7 @@ class PackageSkuItem(BaseModel):
     failed_retrieve_time = models.DateTimeField(null=True, default=None, verbose_name=u'快递查询失败时间')
 
     purchase_order_unikey = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'订货单唯一ID')
-
+    sys_note = models.CharField(max_length=32, blank=True, verbose_name=u'系统备注')
     # 待废弃
     price = models.FloatField(default=0.0, verbose_name=u'单价')
     total_fee = models.FloatField(default=0.0, verbose_name=u'总费用')
