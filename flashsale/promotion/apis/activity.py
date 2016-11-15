@@ -208,8 +208,8 @@ def create_activity_pro(activity_id, product_img, **kwargs):
     foot_share_img = 'http://img.xiaolumeimei.com/top101476965460253.jpg'
     pros = get_activity_pros_by_activity_id(activity_id)
     pic_type = kwargs.get('pic_type')
-    if pic_type and pic_type == ActivityProduct.BANNER_PIC_TYPE:  # 头图
-        banner = pros.filter(pic_type == ActivityProduct.BANNER_PIC_TYPE).first()
+    if pic_type == ActivityProduct.BANNER_PIC_TYPE:  # 头图
+        banner = pros.filter(pic_type=ActivityProduct.BANNER_PIC_TYPE).first()
         if banner:
             location_id = banner.location_id - 1  # banner图片向前递减
         else:
@@ -244,7 +244,7 @@ def update_activity_pro(id, **kwargs):
     ap = get_activity_pro_by_id(id)
     head_img_url = None
     for k, v in kwargs.iteritems():
-        if k == 'pic_type' and ActivityProduct.GOODS_VERTICAL_PIC_TYPE and ap.model_id:  # 图片竖放 有款式　则选头图
+        if k == 'pic_type' and v == ActivityProduct.GOODS_VERTICAL_PIC_TYPE and ap.model_id:  # 图片竖放 有款式　则选头图
             modelproduct = get_modelproduct_by_id(ap.model_id)
             head_img_url = modelproduct.head_img_url if modelproduct else ''
         if hasattr(ap, k) and getattr(ap, k) != v:
