@@ -191,7 +191,7 @@ def push_envelop_get_msg(sender, instance, created, **kwargs):
     sent_status = instance.send_status
     if sent_status != Envelop.SENT:
         return
-    task_push_mama_cashout_msg.s(instance).delay()
+    task_push_mama_cashout_msg.delay(instance)
 
 
 post_save.connect(push_envelop_get_msg, sender=Envelop)
