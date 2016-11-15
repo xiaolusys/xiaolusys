@@ -747,8 +747,13 @@ class MergeTradeAdmin(ApproxAdmin):
                                                           order_num=len(trade_ids),
                                                           trade_ids=','.join([str(i) for i in trade_ids]))
             from shopback.trades.tasks import sendTaobaoTradeTask, sendTradeCallBack
-            send_tasks = chord([sendTaobaoTradeTask.s(user_id, trade.id) for trade in queryset])\
-                (sendTradeCallBack.s(replay_trade.id), ax_retries=300)
+            if queryset.count() <= 1:
+                trade = queryset.first()
+                trade_ids = sendTaobaoTradeTask(user_id, trade.id)
+                send_tasks = sendTradeCallBack.delay(trade_ids, replay_trade.id)
+            else:
+                send_tasks = chord([sendTaobaoTradeTask.s(user_id, trade.id) for trade in queryset])\
+                    (sendTradeCallBack.s(replay_trade.id), ax_retries=300)
 
         except Exception, exc:
             logger.error(exc.message, exc_info=True)
@@ -1148,8 +1153,13 @@ class MergeTradeDeliveryAdmin(admin.ModelAdmin):
                 self.message_user(request, u'没有可发货的订单')
                 return
 
-            send_tasks = chord([uploadTradeLogisticsTask.s(trade.trade_id, user_id) for trade in queryset])(
-                deliveryTradeCallBack.s(), max_retries=300)
+            if queryset.count() <= 1:
+                trade = queryset.first()
+                uploadTradeLogisticsTask(trade.trade_id, user_id)
+                send_tasks = deliveryTradeCallBack.delay()
+            else:
+                send_tasks = chord([uploadTradeLogisticsTask.s(trade.trade_id, user_id) for trade in queryset])(
+                    deliveryTradeCallBack.s(), max_retries=300)
 
         except Exception, exc:
             return HttpResponse('<body style="text-align:center;"><h1>发货信息上传执行出错:（%s）</h1></body>' % exc.message)

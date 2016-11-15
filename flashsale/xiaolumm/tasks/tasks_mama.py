@@ -378,7 +378,7 @@ def validate_self_mama(mama, order_created_time):
         return True
     return False
 
-@task()
+@task(serializer='pickle')
 def task_order_trigger(sale_order):
     from flashsale.xiaolumm.models.models_fans import XlmmFans
     logger.info("%s, saleorder_pk: %s" % (get_cur_info(), sale_order.id))

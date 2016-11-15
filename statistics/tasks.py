@@ -545,7 +545,7 @@ def task_update_agg_sale_stats(sale_stats, time_from, time_to, upper_timely_type
             old_stat.save(update_fields=update_fields)
 
 
-@task()
+@task(serializer='pickle')
 def task_update_product_sku_stats(product_sku_stats):
     """
     :param product_sku_stats: SkuStock instance

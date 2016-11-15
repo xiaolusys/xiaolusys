@@ -630,7 +630,7 @@ def task_close_refund(days=None):
     res = map(close_15_refund, refunds)
 
 
-@task
+@task(serializer='pickle')
 @transaction.atomic
 def task_saleorder_update_package_sku_item(sale_order):
     from shopback.trades.models import PackageSkuItem
