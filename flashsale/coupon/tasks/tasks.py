@@ -11,7 +11,7 @@ from django.db import IntegrityError
 logger = logging.getLogger(__name__)
 
 
-@task()
+@task(serializer='pickle')
 def task_update_tpl_released_coupon_nums(template):
     """
     template : CouponTemplate instance

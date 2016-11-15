@@ -46,7 +46,7 @@ def task_push_ninpic_peroid():
         task_push_ninpic_remind(ninpic)
 
 
-@task
+@task(serializer='pickle')
 def task_push_mama_cashout_msg(envelop):
     """ 代理提现成功推送 """
     recipient = envelop.recipient

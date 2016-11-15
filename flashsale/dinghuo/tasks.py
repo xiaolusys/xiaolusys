@@ -1485,7 +1485,7 @@ def task_orderdetail_update_orderlist(od):
             ol.save(update_fields=['updated'])
 
 
-@task()
+@task(serializer='pickle')
 @transaction.atomic
 def task_purchasearrangement_update_purchasedetail(paid):
     klogger = logging.getLogger('service')
