@@ -75,6 +75,14 @@ class ActivityEntry(BaseModel):
         """
         return self.extras.get('schedule_id')
 
+    def get_schedule_suppliers(self):
+        # type : (None) -> Optional[List[SaleSupplier]]
+        if self.schedule_id:
+            from ..deps import get_schedule_by_id
+            schedule = get_schedule_by_id(id=int(self.schedule_id))
+            return schedule.sale_suppliers
+        return None
+
     def get_html(self, key):
         htmls = self.extras.get("html", {})
         if key in htmls:

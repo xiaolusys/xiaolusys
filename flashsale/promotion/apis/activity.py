@@ -16,7 +16,7 @@ __ALL__ = [
 ]
 import datetime
 from ..models import ActivityEntry, ActivityProduct
-from ..deps import get_schedule_products_by_schedule_id
+from ..deps import get_schedule_products_by_schedule_id, get_modelproduct_by_id
 
 
 def get_activity_by_id(id):
@@ -131,7 +131,7 @@ def create_activity(title, act_type, start_time, end_time, **kwargs):
     if act_type == ActivityEntry.ACT_TOPIC:
         activity.act_link = 'http://m.xiaolumeimei.com/mall/activity/topTen/model/2?id={0}'.format(activity.id)
     activity.share_link = 'http://m.xiaolumeimei.com/m/{mama_id}?next=' + activity.act_link
-    activity.order_val = activity.id    # 默认排序值是当前id
+    activity.order_val = activity.id  # 默认排序值是当前id
     activity.save()
     return activity
 
@@ -242,9 +242,15 @@ def update_activity_pro(id, **kwargs):
     """更新活动产品
     """
     ap = get_activity_pro_by_id(id)
+    head_img_url = None
     for k, v in kwargs.iteritems():
+        if k == 'pic_type' and ActivityProduct.GOODS_VERTICAL_PIC_TYPE and ap.model_id:  # 图片竖放 有款式　则选头图
+            modelproduct = get_modelproduct_by_id(ap.model_id)
+            head_img_url = modelproduct.head_img_url if modelproduct else ''
         if hasattr(ap, k) and getattr(ap, k) != v:
             setattr(ap, k, v)
+    if head_img_url:
+        ap.product_img = head_img_url
     ap = ap.save()
     return ap
 

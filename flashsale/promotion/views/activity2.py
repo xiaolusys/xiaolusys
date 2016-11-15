@@ -27,6 +27,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+class ActivityEntryFilter(filters.FilterSet):
+    class Meta:
+        model = ActivityEntry
+        fields = ['id', 'is_active', 'act_type']
+
+
 class ActivityViewSet(viewsets.ModelViewSet):
     queryset = ActivityEntry.objects.all().order_by('-order_val', '-start_time')
     serializer_class = ActivitySerializer
@@ -34,6 +40,7 @@ class ActivityViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser, permissions.DjangoModelPermissions)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
+    filter_class = ActivityEntryFilter
 
     def destroy(self, request, *args, **kwargs):
         raise exceptions.APIException(u'不予删除操作')
@@ -42,7 +49,7 @@ class ActivityViewSet(viewsets.ModelViewSet):
     def list_filters(self, request, *args, **kwargs):
         # type: (HttpRequest, *Any, **Any) -> Response
         act_type = choice_2_name_value(ActivityEntry.ACT_CHOICES)
-        f_schedules = get_future_topic_schedules().values('id', 'upshelf_time', 'offshelf_time')
+        f_schedules = get_future_topic_schedules().order_by('sale_time').values('id', 'upshelf_time', 'offshelf_time')
         return Response({
             'act_type': act_type,
             'schedules': f_schedules,
@@ -93,8 +100,21 @@ class ActivityViewSet(viewsets.ModelViewSet):
         update_activity(instance_id, **request.data)
         return Response(serializer.data)
 
+    @detail_route(methods=['get', 'post'])
+    def correlate_schedule(self, request, *args, **kwargs):
+        # type: (HttpRequest, *Any, **Any) -> Response
+        """关联排期
+        """
+        activity_id = int(kwargs.get('pk'))
+        schedule_id = request.POST.get('schedule_id')
+        activity = get_activity_by_id(activity_id)
+        aps = create_activity_pros_by_schedule_id(activity.id, int(schedule_id))
+        serializer = ActivityProductSerializer(aps, many=True)
+        return Response(serializer.data)
+
     @list_route(methods=['get'])
     def pro_list_filters(self, request, *args, **kwargs):
+        # type: (HttpRequest, *Any, **Any) -> Response
         pic_type = choice_2_name_value(ActivityProduct.PIC_TYPE_CHOICES)
         return Response({'pic_type': pic_type})
 

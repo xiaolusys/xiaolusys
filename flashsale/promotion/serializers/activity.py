@@ -7,6 +7,7 @@ class ActivitySerializer(serializers.ModelSerializer):
     is_active_display = serializers.SerializerMethodField()
     login_required_display = serializers.SerializerMethodField()
     act_type_display = serializers.CharField(source='get_act_type_display', read_only=True)
+    memo_display = serializers.SerializerMethodField()
 
     class Meta:
         model = ActivityEntry
@@ -32,6 +33,7 @@ class ActivitySerializer(serializers.ModelSerializer):
             'is_active_display',
             'login_required_display',
             'act_type_display',
+            'memo_display',
         )
 
     def get_login_required_display(self, obj):
@@ -45,6 +47,14 @@ class ActivitySerializer(serializers.ModelSerializer):
         if obj.is_active:
             return u'已上线'
         return u'未上线'
+
+    def get_memo_display(self, obj):
+        # type: (ActivityEntry) -> text_type
+        if obj.act_type == ActivityEntry.ACT_TOPIC:  # 专题类型则获取该专题对应排期的供应商名称
+            suppliers = obj.get_schedule_suppliers()
+            if suppliers:
+                return '&'.join([i['supplier_name'] for i in suppliers.values('supplier_name')])
+        return ''
 
 
 class ActivityProductSerializer(serializers.ModelSerializer):
