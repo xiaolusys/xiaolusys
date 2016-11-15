@@ -609,11 +609,11 @@ post_save.connect(update_package_sku_item, sender=MergeTrade, dispatch_uid='post
 
 # 平台名称与存储编码映射
 TF_CODE_MAP = {
-    pcfg.TF_WAP: pcfg.TF_WAP,
-    pcfg.TF_HITAO: pcfg.TF_HITAO,
-    pcfg.TF_TOP: pcfg.TF_TOP,
-    pcfg.TF_TAOBAO: pcfg.TF_TAOBAO,
-    pcfg.TF_JHS: pcfg.TF_JHS,
+    pcfg.TF_WAP: 1,
+    pcfg.TF_HITAO: 2,
+    pcfg.TF_TOP: 4,
+    pcfg.TF_TAOBAO: 8,
+    pcfg.TF_JHS: 16,
 }
 
 

@@ -271,7 +271,6 @@ class MergeTradeManager(BaseManager):
         update_model_fields(trade, update_fields=['modified'])
 
     def mapTradeFromToCode(self, trade_from):
-
         from .models import TF_CODE_MAP
 
         from_code = 0

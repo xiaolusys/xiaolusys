@@ -293,7 +293,7 @@ class AsyncOrderTask(TaobaoAsyncBaseTask):
 
 @task
 def task_async_order(*args, **kwargs):
-    AsyncOrderTask().run(*args, **kwargs)
+    return AsyncOrderTask().run(*args, **kwargs)
 
 from core.upload.upload import upload_data_to_remote, generate_private_url
 
@@ -311,7 +311,7 @@ class PrintAsyncTask(object):
             dt = datetime.datetime.now()
             trade_data = {'ins': trade,
                           'today': dt,
-                          'juhuasuan': trade.trade_from & trade.trade_from.JHS == trade.trade_from.JHS,
+                          'juhuasuan': trade.trade_from,
                           'order_nums': 0,
                           'total_fee': 0,
                           'discount_fee': 0,
@@ -435,7 +435,7 @@ class PrintAsyncTask(object):
 
 @task
 def task_print_async(*args, **kwargs):
-    PrintAsyncTask().run(*args, **kwargs)
+    return PrintAsyncTask().run(*args, **kwargs)
 
 class PrintAsyncTask2(object):
     ignore_result = False
