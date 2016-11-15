@@ -1,14 +1,12 @@
-# -*- coding:utf-8 -*-
+# coding=utf-8
 import urlparse
 import json
 from django.conf import settings
 from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, get_object_or_404
 from django.core.urlresolvers import reverse
-from django.contrib.auth.models import User
 from rest_framework.views import APIView
 from rest_framework import authentication
-from rest_framework import permissions
 from rest_framework import renderers
 from rest_framework.response import Response
 
@@ -21,7 +19,7 @@ from . import constants
 
 import logging
 
-logger = logging.getLogger('django.reqeust')
+logger = logging.getLogger(__name__)
 
 
 class DressShareMixin(object):
