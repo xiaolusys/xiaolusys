@@ -505,7 +505,7 @@ class OrderShareCouponViewSet(viewsets.ModelViewSet):
         if customer is None:
             default_return.update({"code": 2, "msg": "用户不存在"})
             return Response(default_return)
-        content = request.POST
+        content = request.POST or request.GET
         uniq_id = content.get('uniq_id') or ''  # 订单分享创建
         ufrom = content.get("ufrom") or ''
         if not uniq_id:
