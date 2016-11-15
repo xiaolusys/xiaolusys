@@ -636,7 +636,7 @@ class SkuStock(models.Model):
                     psis.append(psi)
                 else:
                     break
-            self.assign_num += self.realtime_quantity - now_num
+            self.assign_num = self.realtime_quantity - now_num
             self.save()
             for psi in psis:
                 psi.save()
