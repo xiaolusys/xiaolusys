@@ -131,6 +131,7 @@ def create_activity(title, act_type, start_time, end_time, **kwargs):
     if act_type == ActivityEntry.ACT_TOPIC:
         activity.act_link = 'http://m.xiaolumeimei.com/mall/activity/topTen/model/2?id={0}'.format(activity.id)
     activity.share_link = 'http://m.xiaolumeimei.com/m/{mama_id}?next=' + activity.act_link
+    activity.order_val = activity.id
     activity.save()
     return activity
 
