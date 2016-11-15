@@ -177,7 +177,7 @@ class MmexamsViewSet(viewsets.ModelViewSet):
         default_questoion.update({"question_content": question_content, "user_answer": user_answer})
         return Response(default_questoion)
 
-    @list_route(methods=['get', 'post'])
+    @list_route(methods=['get'])
     def create_answer_detail(self, request):
         """
         添加答题明细
@@ -191,7 +191,7 @@ class MmexamsViewSet(viewsets.ModelViewSet):
         xlmm = customer.get_charged_mama()
         if not xlmm:
             return Response({"code": 3, "info": "请申请成为小鹿妈妈后参加考试！"})
-        content = request.data
+        content = request.GET
         question_id = content.get("question_id") or None
         answer = content.get("answer") or None
         if not (question_id and answer):
@@ -237,7 +237,7 @@ class MmexamsViewSet(viewsets.ModelViewSet):
         if not xlmm:
             return Response({"code": 2, "info": "请申请成为小鹿妈妈后参加考试！",
                              "exam_result": default_result})
-        content = request.data
+        content = request.GET or request.POST
         sheaves = content.get("sheaves") or None
         now = datetime.datetime.now()
         exam = Mamaexam.objects.filter(sheaves=sheaves, valid=True, start_time__lte=now, expire_time__gte=now).first()
