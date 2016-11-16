@@ -351,7 +351,7 @@ def task_create_appdownloadrecord_with_mobile(from_customer, mobile):
         mobiledown.save(update_fields=update_fields)
 
 
-@task()
+@task(serializer='pickle')
 def task_collect_mobile_download_record(instance):
     """
     instance: DownloadMobileRecord instance
@@ -386,7 +386,7 @@ def task_collect_mobile_download_record(instance):
         appdownload.save(update_fields=update_fields)
 
 
-@task()
+@task(serializer='pickle')
 def task_collect_union_download_record(instance):
     """
     instance: DownloadUnionidRecord instance
