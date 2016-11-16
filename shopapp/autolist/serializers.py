@@ -1,4 +1,4 @@
-# coding:utf-8
+# coding=utf-8
 from shopapp.autolist.models import ItemListTask
 from shopapp.autolist.forms import ItemListTaskForm
 from rest_framework import serializers

@@ -1,4 +1,4 @@
-# coding:utf-8
+# coding=utf-8
 import re
 from django.contrib import admin
 from django.contrib.admin.views.main import ChangeList
