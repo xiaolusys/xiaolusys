@@ -877,7 +877,7 @@ class PackageSkuItem(BaseModel):
 
     def set_status_finish(self):
         self.status = PSI_STATUS.FINISH
-        self.assign_status = 1
+        self.assign_status = 2
         self.save()
         SkuStock.set_psi_finish(self.sku_id, self.num)
 
