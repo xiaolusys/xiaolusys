@@ -9,7 +9,7 @@ from django.forms import model_to_dict
 from flashsale.pay.models import SaleTrade, SaleOrder, SaleRefund, Customer
 from rest_framework.exceptions import APIException
 from common.modelutils import update_model_fields
-from core.options import log_action, CHANGE
+from core.options import log_action, CHANGE, ADDITION
 
 
 class RefundCouponView(APIView):
@@ -140,7 +140,9 @@ class ReleaseOmissive(APIView):
             template = CouponTemplate.objects.get(id=template_id)
             uni_key = template.gen_usercoupon_unikey('gift_transfer_%s' % cus.id, 1)
             cou = UserCoupon.send_coupon(cus, template, uniq_id=uni_key)
-            create_present_coupon_transfer_record(cus, template, cou.id)
+            transf_record = create_present_coupon_transfer_record(cus, template, cou.id)
+            log_action(request.user, cou, ADDITION, u'添加优惠券记录,对应精品券id为%s' % transf_record.id)
+            log_action(request.user, transf_record, ADDITION, u'添加精品流通记录,对应优惠券id为%s' % cou.id)
         except Exception as e:
             message = e.message
         return Response({'code': 0, "message": message})
@@ -155,7 +157,7 @@ class ReleaseOmissive(APIView):
         # if time_from:
         # sale_orders = sale_orders.filter(pay_time__gte=time_from)
         # if time_to:
-        #     sale_orders = sale_orders.filter(pay_time__lte=time_to)
+        # sale_orders = sale_orders.filter(pay_time__lte=time_to)
         # order_ids = []  # 用户的订单(一个数量为一个id)
         # for order in sale_orders:
         #     for i in range(order.num):
