@@ -842,7 +842,7 @@ def task_add_product_to_customer_shop(customer):
             cu_pro.save()
 
 
-@task()
+@task(serializer='pickle')
 def task_add_user_order_integral(sale_order):
     """
     :arg sale_order : SaleOrder instance
@@ -894,7 +894,7 @@ def task_add_user_order_integral(sale_order):
             integral_log.save(update_fields=['log_status'])
 
 
-@task()
+@task(serializer='pickle')
 def task_calculate_total_order_integral(integral_log):
     """
     :arg integral_log IntegralLog instance

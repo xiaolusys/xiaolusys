@@ -242,7 +242,7 @@ def task_sampleapply_update_appdownloadrecord(application):
             mobiledown.save()
 
 
-@task()
+@task(serializer='pickle')
 def task_appdownloadrecord_update_fans(record):
     """
     All fans logic/relationship starts from here. Any other fans logic should be canceled.
