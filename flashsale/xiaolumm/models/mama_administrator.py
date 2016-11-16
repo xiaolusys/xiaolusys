@@ -22,7 +22,7 @@ class MamaAdministrator(BaseModel):
         if item:
             administrator = item.administrator
         else:
-            administrators = XiaoluAdministrator.objects.filter(id__gte=11, id__lte=17)
+            administrators = XiaoluAdministrator.objects.filter(id__gte=11)
             num = mama.id % administrators.count()
             administrator = administrators[num]
 
