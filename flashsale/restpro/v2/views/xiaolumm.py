@@ -1051,7 +1051,7 @@ class RecruitEliteMamaView(APIView):
     def post(self, request, *args, **kwargs):
         referal_from_mama_id = get_mama_id(request.user)
         
-        content = request.GET
+        content = request.POST
         mama_id = content.get("mama_id")
         
         if not mama_id:
