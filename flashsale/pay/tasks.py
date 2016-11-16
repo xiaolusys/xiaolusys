@@ -682,9 +682,8 @@ def task_saleorder_update_package_sku_item(sale_order):
             sku_item.save()
     elif sale_order.is_pending():
         if sku_item.assign_status == PackageSkuItem.CANCELED:
-            pass
-            # sku_item.assign_status = PackageSkuItem.NOT_ASSIGNED
-            # sku_item.clear_order_info()
+            sku_item.assign_status = PackageSkuItem.NOT_ASSIGNED
+            sku_item.clear_order_info()
 
 
 @task()
