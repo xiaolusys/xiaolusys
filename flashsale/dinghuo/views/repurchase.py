@@ -1,4 +1,4 @@
-# coding:utf-8
+# coding=utf-8
 """
     补单进货
 """

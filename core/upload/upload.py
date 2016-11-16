@@ -1,4 +1,4 @@
-# coding:utf-8
+# coding=utf-8
 from django.conf import settings
 
 from qiniu import Auth, put_file, put_data, etag, urlsafe_base64_encode

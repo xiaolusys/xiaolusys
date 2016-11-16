@@ -1,4 +1,4 @@
-# coding:utf-8
+# coding=utf-8
 
 YUNDA = u'YUNDA'
 STO = u'STO'

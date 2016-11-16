@@ -1,4 +1,4 @@
-# coding:utf-8
+# coding=utf-8
 from rest_framework import generics
 from shopback.categorys.models import ProductCategory
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer

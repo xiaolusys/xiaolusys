@@ -1,4 +1,4 @@
-# coding:utf-8
+# coding=utf-8
 __ALL__ = [
     'get_sale_refund_by_id',
     'create_refund_order',

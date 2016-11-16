@@ -1,4 +1,4 @@
-# coding:utf-8
+# coding=utf-8
 import datetime
 import json
 import re
@@ -2109,7 +2109,7 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
 
     @detail_route(methods=['POST'])
     def import_package(self, request, pk):
-        data = request.POST.get('data')
+        data = request.data.get('data')
         order_list = get_object_or_404(OrderList, pk=pk)
         errors = []
         for item in data:

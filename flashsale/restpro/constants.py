@@ -1,4 +1,4 @@
-# coding:utf-8
+# coding=utf-8
 """ 
 订单支付方式列表
 key: 表示支付类型；
