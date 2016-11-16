@@ -1,3 +1,6 @@
+# coding:utf-8
+from __future__ import unicode_literals
+
 import json
 from django.conf.urls import include, url
 from django.views.decorators.csrf import csrf_exempt

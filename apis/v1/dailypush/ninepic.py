@@ -1,4 +1,6 @@
 # coding=utf-8
+from __future__ import unicode_literals
+
 __ALL__ = [
     'get_nine_pic_advertisement_by_id',
     'get_nine_pic_advertisements_by_ids',

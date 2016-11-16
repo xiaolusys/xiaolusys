@@ -1,4 +1,6 @@
 # coding=utf-8
+from __future__ import unicode_literals
+
 """
 代理广告处理
 """

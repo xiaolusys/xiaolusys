@@ -1,4 +1,6 @@
 # -*- coding:utf8 -*-
+from __future__ import unicode_literals
+
 import json
 import time
 from common.utils import parse_datetime

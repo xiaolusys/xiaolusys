@@ -1,4 +1,5 @@
 # daemon=True
+from __future__ import unicode_literals
 # use gunicorn run django low version should use gunicorn_django commond, but will raise 
 # Exception KeyError: KeyError(46012208,) in <module 'threading' from '/usr/lib/python2.7/threading.pyc'> ignored
 

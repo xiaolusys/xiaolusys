@@ -1,4 +1,6 @@
 # -*- coding:utf-8 -*-
+from __future__ import unicode_literals
+
 import datetime
 from collections import OrderedDict
 from django.db import models

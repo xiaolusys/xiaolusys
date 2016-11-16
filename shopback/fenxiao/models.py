@@ -1,4 +1,6 @@
 # -*- coding:utf8 -*-
+from __future__ import unicode_literals
+
 """
 淘宝分销平台模型:
 FenxiaoProduct:为分销平台商品,
