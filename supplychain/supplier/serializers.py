@@ -444,13 +444,16 @@ class SaleProductManageSerializer(serializers.ModelSerializer):
 
         category_product_nums = {}
         details = []
-        manage_schedules = obj.manage_schedule.all()
-        for d in manage_schedules:
-            details.append(d.sale_product)
-            if not category_product_nums.has_key(d.sale_category):
-                category_product_nums[d.sale_category] = 1
+        schedule_product_ids = list(obj.manage_schedule.values_list('sale_product_id',flat=True))
+        schedule_category_ids = SaleProduct.objects.filter(id__in=schedule_product_ids)\
+            .values_list('sale_category_id',flat=True)
+        cat_id_fullname_map = SaleCategory.get_salecategory_fullnamemap()
+        for cat_id in schedule_category_ids:
+            cat_fullname = cat_id_fullname_map[cat_id]
+            if not category_product_nums.has_key(cat_fullname):
+                category_product_nums[cat_fullname] = 1
             else:
-                category_product_nums[d.sale_category] += 1
+                category_product_nums[cat_fullname] += 1
         category_product_num_list = [{'category_name': k, 'product_num': v} for k, v in category_product_nums.iteritems()]
         supplier_product_nums = {}
         # 50 以下　　50-100　100-150  >150

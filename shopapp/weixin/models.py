@@ -94,7 +94,7 @@ class WeiXinAccount(models.Model):
 
     @classmethod
     def gen_account_list_cache_key(cls):
-        return '%s.%s.list_cache_key'%(__file__, cls.__name__)
+        return 'weixin_account_list_cache_key'
 
     @classmethod
     def getWeixinAccountValueList(cls):
