@@ -7,7 +7,7 @@ from ...models.transfer_coupon import CouponTransferRecord
 
 
 def create_present_coupon_transfer_record(customer, template, coupon_id):
-    # type: (Customer, CouponTemplate, int)
+    # type: (Customer, CouponTemplate, int) -> CouponTransferRecord
     """创建赠送优惠券流通记录
     """
     to_mama = customer.get_charged_mama()
@@ -38,5 +38,6 @@ def create_present_coupon_transfer_record(customer, template, coupon_id):
                                       product_img=product_img, coupon_num=1, transfer_type=transfer_type,
                                       uni_key=uni_key, date_field=date_field, transfer_status=transfer_status)
         coupon.save()
+        return coupon
     except Exception as e:
         return e
