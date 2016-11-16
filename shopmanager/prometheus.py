@@ -31,10 +31,6 @@ MYSQL_AUTH = os.environ.get('MYSQL_AUTH')
 REDIS_HOST = '55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379'
 REDIS_AUTH = os.environ.get('REDIS_AUTH')
 
-if os.environ.get('TARGET') == 'django18':
-    CELERY_TASK_ALWAYS_EAGER = True
-    CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
-
 if os.environ.get('INSTANCE') == 'mall':
     LOGIN_URL = '/mall/user/login'
 
@@ -89,7 +85,7 @@ INSTALLED_APPS.extend([
 CLOSE_CELERY = False
 if os.environ.get('TARGET') == 'django18':
     CELERY_TASK_ALWAYS_EAGER = True
-    CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
+    CELERY_TASK_EAGER_PROPAGATES = True
 
 CELERY_BROKER_URL = 'redis://:{0}@{1}:6379/29'.format(REDIS_AUTH, REDIS_HOST)
 CELERY_RESULT_BACKEND = 'redis://:{0}@{1}:6379/28'.format(REDIS_AUTH, REDIS_HOST)
