@@ -141,7 +141,7 @@ def task_weixin_push_ordercarry(ordercarry):
         pass
 
 
-@task
+@task(serializer='pickle')
 def task_weixin_push_update_app(app_visit):
     device_type = app_visit.device_type
     device = ''

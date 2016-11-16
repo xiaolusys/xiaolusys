@@ -55,7 +55,7 @@ def task_awardcarry_update_carryrecord(carry):
         carry_record.save()
 
 
-@task()
+@task(serializer='pickle')
 def task_ordercarry_update_carryrecord(carry):
     if carry.mama_id <= 0:
         return
@@ -79,7 +79,7 @@ def task_ordercarry_update_carryrecord(carry):
     carry_record.save()
 
 
-@task()
+@task(serializer='pickle')
 def task_clickcarry_update_carryrecord(carry):
     if carry.mama_id <= 0:
         return

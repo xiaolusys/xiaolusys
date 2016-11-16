@@ -1377,7 +1377,7 @@ def create_dinghuo():
 from django.db import IntegrityError
 
 
-@task()
+@task(serializer='pickle')
 def task_purchase_detail_update_purchase_order(pd):
     # print "debug: %s" % utils.get_cur_info()
     res = PurchaseDetail.objects.filter(purchase_order_unikey=pd.purchase_order_unikey). \
