@@ -151,12 +151,12 @@ def fetch_wxpub_mama_manager_qrcode_media_id(mama_id, wxpubId):
 def generate_qrcode(words, picture=None):
     from MyQR import myqr
 
-    path = '/tmp/'
+    path = str('/tmp/')
     version, level, qr_name = myqr.run(
         words.encode('utf8'),
         version=10,
-        level='H',
-        picture=picture,
+        level=str('H'),
+        picture=str(picture),
         colorized=True,
         contrast=1.0,
         brightness=1.0,

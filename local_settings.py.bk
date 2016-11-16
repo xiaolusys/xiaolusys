@@ -90,7 +90,7 @@ DATABASES = {
 
 
 
-FANGZHENG_LANTINGHEI_FONT_PATH = '/tmp/方正兰亭黑.ttf'
+FANGZHENG_LANTINGHEI_FONT_PATH = '/data/fonts/方正兰亭黑.TTF'
 if DEBUG:
     STATICFILES_DIRS = (
        os.path.join(PROJECT_ROOT, "site_media", "static"),
