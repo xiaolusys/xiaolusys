@@ -1012,12 +1012,12 @@ SYNC_MODEL_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
-    u'定时更新分销商品库存': {  # 更新库存
-        'task': 'shopback.items.tasks.updateAllUserPurchaseItemNumTask',
-        'schedule': crontab(minute="0", hour="7"),  #
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
+    # u'定时更新分销商品库存': {  # 更新库存
+    #     'task': 'shopback.items.tasks.updateAllUserPurchaseItemNumTask',
+    #     'schedule': crontab(minute="0", hour="7"),  #
+    #     'args': (),
+    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    # },
     u'定时生成每月物流信息报表': {  # 更新库存
         'task': 'shopback.trades.tasks.tasks.task_Gen_Logistic_Report_File_By_Month',
         'schedule': crontab(minute="0", hour="4", day_of_month='10'),  #
@@ -1089,24 +1089,24 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
-    u'定时增量下载更新微信订单': {
-        'task': 'shopapp.weixin.tasks.base.pullWaitPostWXOrderTask',
-        'schedule': crontab(minute="0", hour="*/2"),
-        'args': (None, None),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
-    u'定时增量更新微信维权订单': {
-        'task': 'shopapp.weixin.tasks.base.pullFeedBackWXOrderTask',
-        'schedule': crontab(minute="30", hour="*/2"),
-        'args': (None, None),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
-    u'定时同步微信商品库存': {
-        'task': 'shopapp.weixin.tasks.base.syncWXProductNumTask',
-        'schedule': crontab(minute="10", hour='1,12'),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
+    # u'定时增量下载更新微信订单': {
+    #     'task': 'shopapp.weixin.tasks.base.pullWaitPostWXOrderTask',
+    #     'schedule': crontab(minute="0", hour="*/2"),
+    #     'args': (None, None),
+    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    # },
+    # u'定时增量更新微信维权订单': {
+    #     'task': 'shopapp.weixin.tasks.base.pullFeedBackWXOrderTask',
+    #     'schedule': crontab(minute="30", hour="*/2"),
+    #     'args': (None, None),
+    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    # },
+    # u'定时同步微信商品库存': {
+    #     'task': 'shopapp.weixin.tasks.base.syncWXProductNumTask',
+    #     'schedule': crontab(minute="10", hour='1,12'),
+    #     'args': (),
+    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    # },
     u'定时增量下载京东订单信息': {
         'task': 'shopapp.jingdong.tasks.pullAllJDShopOrderByModifiedTask',
         'schedule': crontab(minute="*/15", hour=','.join([str(i) for i in range(9, 23)])),
@@ -1119,18 +1119,18 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
-    u'定时更新特卖订单订单列表': {
-        'task': 'flashsale.pay.tasks.push_SaleTrade_To_MergeTrade',
-        'schedule': crontab(minute="0", hour="*/7"),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
-    u'定时更新特卖及微信订单状态': {
-        'task': 'flashsale.xiaolumm.tasks.base.task_Update_Sale_And_Weixin_Order_Status',
-        'schedule': crontab(minute="0", hour="6"),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
+    # u'定时更新特卖订单订单列表': {
+    #     'task': 'flashsale.pay.tasks.push_SaleTrade_To_MergeTrade',
+    #     'schedule': crontab(minute="0", hour="*/7"),
+    #     'args': (),
+    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    # },
+    # u'定时更新特卖及微信订单状态': {
+    #     'task': 'flashsale.xiaolumm.tasks.base.task_Update_Sale_And_Weixin_Order_Status',
+    #     'schedule': crontab(minute="0", hour="6"),
+    #     'args': (),
+    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    # },
     u'定时短信通知微信用户': {
         'task': 'shopapp.weixin_sales.tasks.task_notify_parent_award',
         'schedule': crontab(minute="*/5", ),

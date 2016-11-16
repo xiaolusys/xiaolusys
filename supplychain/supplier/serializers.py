@@ -527,7 +527,7 @@ class ManageDetailUseStatusField(serializers.Field):
 
 
 class SaleProductManageDetailSerializer(serializers.ModelSerializer):
-    # sale_category = SaleCategorySerializer()
+    sale_category = serializers.SerializerMethodField()
     product_name = serializers.CharField(source='sale_product.title', read_only=True)
     supplier_name = serializers.CharField(source='sale_product.sale_supplier.supplier_name', read_only=True)
     product_purchase_price = serializers.CharField(source='sale_product.sale_price', read_only=True)
@@ -588,6 +588,12 @@ class SaleProductManageDetailSerializer(serializers.ModelSerializer):
         if obj.item_products:
             return True
         return False
+
+    def get_sale_category(self, obj):
+        if not obj.sale_product:
+            return ''
+        cat_id = obj.sale_product.sale_category_id
+        return SaleCategory.get_salecategory_fullnamemap().get(cat_id) or ''
 
 
 class ManageDetailAssignWorkerSerializer(serializers.ModelSerializer):
