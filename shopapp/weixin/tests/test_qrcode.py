@@ -1,6 +1,6 @@
 # encoding=utf8
 from django.test import TestCase
-from shopapp.weixin.utils import generate_colorful_qrcode
+from shopapp.weixin.utils import generate_colorful_qrcode, generate_qrcode
 
 class GenerateQrcodeTestCase(TestCase):
     fixtures = []
@@ -28,5 +28,4 @@ class GenerateQrcodeTestCase(TestCase):
             "y": 409
           }
         }
-        generate_colorful_qrcode(params)
-
+        # generate_colorful_qrcode(params)
