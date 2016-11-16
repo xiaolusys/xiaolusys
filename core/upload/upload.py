@@ -7,11 +7,11 @@ import qiniu.config
 def upload_data_to_remote(filepath, iostream):
     """ 上传私有文件到第三方 """
     #需要填写你的 Access Key 和 Secret Key
-    access_key = settings.QINIU_ACCESS_KEY
-    secret_key = settings.QINIU_SECRET_KEY
-
+    access_key = str(settings.QINIU_ACCESS_KEY)
+    secret_key = str(settings.QINIU_SECRET_KEY)
+    filepath   = str(filepath)
     #要上传的空间
-    bucket_name = settings.QINIU_PRIVATE_BUCKET
+    bucket_name = str(settings.QINIU_PRIVATE_BUCKET)
 
     #构建鉴权对象
     q = Auth(access_key, secret_key)
@@ -26,11 +26,11 @@ def upload_data_to_remote(filepath, iostream):
 def upload_public_to_remote(filepath, iostream):
     """ 上传公开文件到第三方 """
     #需要填写你的 Access Key 和 Secret Key
-    access_key = settings.QINIU_ACCESS_KEY
-    secret_key = settings.QINIU_SECRET_KEY
-
+    access_key = str(settings.QINIU_ACCESS_KEY)
+    secret_key = str(settings.QINIU_SECRET_KEY)
+    filepath   = str(filepath)
     #要上传的空间
-    bucket_name = settings.QINIU_BUCKET_NAME
+    bucket_name = str(settings.QINIU_BUCKET_NAME)
 
     #构建鉴权对象
     q = Auth(access_key, secret_key)
@@ -46,10 +46,10 @@ def upload_public_to_remote(filepath, iostream):
 
 def generate_private_url(filepath):
 
-    access_key = settings.QINIU_ACCESS_KEY
-    secret_key = settings.QINIU_SECRET_KEY
-
-    bucket_domain = settings.QINIU_PRIVATE_DOMAIN
+    access_key = str(settings.QINIU_ACCESS_KEY)
+    secret_key = str(settings.QINIU_SECRET_KEY)
+    filepath = str(filepath)
+    bucket_domain = str(settings.QINIU_PRIVATE_DOMAIN)
 
     q = Auth(access_key, secret_key)
 

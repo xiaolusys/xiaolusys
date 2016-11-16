@@ -151,12 +151,12 @@ def fetch_wxpub_mama_manager_qrcode_media_id(mama_id, wxpubId):
 def generate_qrcode(words, picture=None):
     from MyQR import myqr
 
-    path = '/tmp/'
+    path = str('/tmp/')
     version, level, qr_name = myqr.run(
-        words.encode('utf8'),
+        str(words),
         version=10,
-        level='H',
-        picture=picture,
+        level=str('H'),
+        picture=str(picture),
         colorized=True,
         contrast=1.0,
         brightness=1.0,
@@ -235,7 +235,7 @@ def generate_colorful_qrcode(params):
     text_spacing = params.get('text', {}).get('spacing', 4)
     font_path = params.get('text', {}).get('font', settings.FANGZHENG_LANTINGHEI_FONT_PATH)
     font_size = params.get('text', {}).get('font_size', 24)
-    font = ImageFont.truetype(font_path.encode('utf8'), font_size)
+    font = ImageFont.truetype(type(font_path) == unicode and font_path.encode('utf8') or font_path, font_size)
 
     qrcode_url = params.get('qrcode', {}).get('url', '')
     qrcode_text = params.get('qrcode', {}).get('text', '')
