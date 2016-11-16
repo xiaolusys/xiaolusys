@@ -1,4 +1,4 @@
-# coding:utf-8
+# coding=utf-8
 
 XIAOLU_PUBID = 'gh_3ee7d76a5f9d'
 

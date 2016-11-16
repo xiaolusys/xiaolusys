@@ -1,4 +1,4 @@
-# coding:utf-8
+# coding=utf-8
 from rest_framework import generics
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework import permissions

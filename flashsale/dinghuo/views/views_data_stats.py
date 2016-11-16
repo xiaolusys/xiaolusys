@@ -1,4 +1,4 @@
-# coding:utf-8
+# coding=utf-8
 __author__ = 'yann'
 from django.views.generic import View
 from django.shortcuts import HttpResponse, render

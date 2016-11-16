@@ -1,4 +1,4 @@
-# coding:utf-8
+# coding=utf-8
 __author__ = 'yann'
 from shopback.trades.models import MergeOrder
 from flashsale.dinghuo import paramconfig as pcfg

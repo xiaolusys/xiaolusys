@@ -1,4 +1,4 @@
-# coding:utf-8
+# coding=utf-8
 __author__ = 'yan.huang'
 from django.contrib import admin
 from django.http import HttpResponseRedirect

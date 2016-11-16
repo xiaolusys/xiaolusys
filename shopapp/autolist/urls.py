@@ -1,4 +1,4 @@
-# coding:utf-8
+# coding=utf-8
 from django.conf.urls import url, include
 # from core.options.authentication import UserLoggedInAuthentication
 # fangkaineng  7-29好像没有用这个方法，就删掉了

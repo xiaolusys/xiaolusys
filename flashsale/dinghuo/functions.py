@@ -1,4 +1,4 @@
-# coding:utf-8
+# coding=utf-8
 __author__ = 'yann'
 import datetime
 from django.forms.models import model_to_dict

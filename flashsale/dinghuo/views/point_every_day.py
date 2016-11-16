@@ -1,6 +1,6 @@
 from __future__ import division
 
-# coding:utf-8
+# coding=utf-8
 __author__ = 'yann'
 
 from django.shortcuts import render, HttpResponse

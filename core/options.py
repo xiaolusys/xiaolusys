@@ -1,4 +1,4 @@
-# coding:utf-8
+# coding=utf-8
 __author__ = 'imeron'
 from django.contrib.auth.models import User
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION

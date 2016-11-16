@@ -1,4 +1,4 @@
-# coding:utf-8
+# coding=utf-8
 import datetime
 from django.db.models import F, Q, Sum
 from rest_framework import generics
