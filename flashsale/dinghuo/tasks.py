@@ -1415,14 +1415,14 @@ def task_purchasedetail_update_orderdetail(pd):
     od = OrderDetail.objects.filter(purchase_detail_unikey=pd.uni_key).first()
     if not od:
         product = utils.get_product(pd.sku_id)
-        od = OrderDetail(product_id=product.id, outer_id=pd.outer_id, product_name=pd.title, chichu_id=pd.sku_id,
+        od = OrderDetail(product_id=str(product.id), outer_id=pd.outer_id, product_name=pd.title, chichu_id=pd.sku_id,
                          product_chicun=pd.sku_properties_name, buy_quantity=total, buy_unitprice=pd.unit_price_display,
                          total_price=total_price, purchase_detail_unikey=pd.uni_key,
                          purchase_order_unikey=pd.purchase_order_unikey)
 
         ol = OrderList.objects.filter(purchase_order_unikey=pd.purchase_order_unikey).first()
         if ol:
-            od.orderlist_id = ol.id
+            od.orderlist = ol
 
         od.save()
     else:
