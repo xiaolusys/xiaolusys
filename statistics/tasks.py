@@ -86,7 +86,7 @@ def task_statistics_product_sale_num(sale_time_left, sale_time_right, category):
     return {"data": data, "time_consuming": str(end_time - start_time)}
 
 
-@task()
+@task(serializer='pickle')
 def task_update_sale_order_stats_record(sale_order):
     """
     更新统计模块的 SaleOrderStatsRecord 记录
@@ -183,7 +183,7 @@ def find_parent_record_type(stats):
     return None
 
 
-@task()
+@task(serializer='pickle')
 def task_statsrecord_update_salestats(stats_record):
     """
     :type stats_record: SaleOrderStatsRecord instance
@@ -406,7 +406,7 @@ def find_upper_timely_type(timely_type):
     return None
 
 
-@task()
+@task(serializer='pickle')
 def task_update_parent_sale_stats(sale_stats):
     """
     更新 时间维度 的 统计记录
@@ -484,7 +484,7 @@ def task_update_parent_sale_stats(sale_stats):
         create_snapshot_record(sale_stats)
 
 
-@task()
+@task(serializer='pickle')
 def task_update_agg_sale_stats(sale_stats, time_from, time_to, upper_timely_type, tag):
     """
     timely_type 类型为TIMELY_TYPE_DATE_DETAIL record_type <= TYPE_BD 的记录 更新到周 月 季度 年
@@ -634,7 +634,7 @@ def create_stock_snapshot_record(stock_stats):
     yesterday_snapshot.save()  # 保存快照信息
 
 
-@task()
+@task(serializer='pickle')
 def task_update_parent_stock_stats(stock_stats):
     parent_id = stock_stats.parent_id
     if stock_stats.record_type >= constants.TYPE_AGG:  # 买手上级别不从本task 更新
@@ -706,7 +706,7 @@ def task_update_parent_stock_stats(stock_stats):
         create_stock_snapshot_record(stock_stats)
 
 
-@task()
+@task(serializer='pickle')
 def task_update_agg_stock_stats(stock_stats, time_from, time_to, upper_timely_type, tag):
     record_type = stock_stats.record_type
     if stock_stats.record_type > constants.TYPE_AGG:  # 总计上级别不从本task 更新
@@ -806,7 +806,7 @@ def judgement_schedule_manager(managers, saleorderstatsrecord):
     return a[0]
 
 
-@task()
+@task(serializer='pickle')
 def task_statsrecord_update_model_stats(saleorderstatsrecord, review_days=None):
     """
     订单明细记录更新款式统计
