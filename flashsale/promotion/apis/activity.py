@@ -265,24 +265,33 @@ def delete_activity_pro(id):
 
 
 def create_activity_pros_by_schedule_id(activity_id, schedule_id):
-    # type: (int, int) -> List[ActivityProduct]
+    # type: (int, int) -> List[Optional[ActivityProduct]]
     """更具活动id和排期id创建活动产品
     """
     activity = get_activity_by_id(activity_id)
     schedule_pros = get_schedule_products_by_schedule_id(int(schedule_id)).order_by('order_weight')
     aps = []
-    model_ids = [i['model_id'] for i in activity.activity_products.values('model_id')]
+    ac_model_ids = [i['model_id'] for i in activity.activity_products.values('model_id')]
     location_id = 2
+    schedule_model_ids = []
     for pro in schedule_pros:
         modelproduct = pro.modelproduct
-        if modelproduct and modelproduct.id not in model_ids:  # 存在款式并且没有设置在本活动中则添加到本活动中
-            kwargs = {
-                'product_name': modelproduct.name,
-                'model_id': modelproduct.id,
-                'location_id': location_id,
-            }
-            ap = create_activity_pro(activity_id, modelproduct.head_img_url, **kwargs)
-            aps.append(ap)
+        if modelproduct:
+            schedule_model_ids.append(modelproduct.id)  # 待用
+            if modelproduct.id not in ac_model_ids:  # 存在款式并且没有设置在本活动中则添加到本活动中
+                kwargs = {
+                    'product_name': modelproduct.name,
+                    'model_id': modelproduct.id,
+                    'location_id': location_id,
+                }
+                ap = create_activity_pro(activity_id, modelproduct.head_img_url, **kwargs)
+                aps.append(ap)
         location_id += 1
+    # 纯粹的产品类型记录
+    pure_acps = activity.activity_products.filter(pic_type__in=[ActivityProduct.GOODS_HORIZEN_PIC_TYPE,
+                                                                ActivityProduct.GOODS_VERTICAL_PIC_TYPE])
+    pure_model_ids = [p['model_id'] for p in pure_acps.values('model_id')]
+    xx = set(pure_model_ids) - set(schedule_model_ids)  # 在活动里面的产品　但是　不在　排期里面的　删除掉
+    activity.activity_products.filter(model_id__in=xx).delete()
     return aps
 
