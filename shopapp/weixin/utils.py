@@ -235,7 +235,7 @@ def generate_colorful_qrcode(params):
     text_spacing = params.get('text', {}).get('spacing', 4)
     font_path = params.get('text', {}).get('font', settings.FANGZHENG_LANTINGHEI_FONT_PATH)
     font_size = params.get('text', {}).get('font_size', 24)
-    font = ImageFont.truetype(font_path, font_size)
+    font = ImageFont.truetype(font_path.encode('utf8'), font_size)
 
     qrcode_url = params.get('qrcode', {}).get('url', '')
     qrcode_text = params.get('qrcode', {}).get('text', '')
