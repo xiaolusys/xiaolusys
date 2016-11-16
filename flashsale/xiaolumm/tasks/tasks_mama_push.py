@@ -230,7 +230,7 @@ def task_app_push_ordercarry(ordercarry):
     # AppPush.push_mama_ordercarry_to_all(ordercarry)
 
 
-@task
+@task(serializer='pickle')
 def task_push_new_mama_task(xlmm, current_task, params=None):
     """
     通知完成某新手任务，同时提醒下一个任务

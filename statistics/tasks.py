@@ -86,7 +86,7 @@ def task_statistics_product_sale_num(sale_time_left, sale_time_right, category):
     return {"data": data, "time_consuming": str(end_time - start_time)}
 
 
-@task()
+@task(serializer='pickle')
 def task_update_sale_order_stats_record(sale_order):
     """
     更新统计模块的 SaleOrderStatsRecord 记录
@@ -183,7 +183,7 @@ def find_parent_record_type(stats):
     return None
 
 
-@task()
+@task(serializer='pickle')
 def task_statsrecord_update_salestats(stats_record):
     """
     :type stats_record: SaleOrderStatsRecord instance
