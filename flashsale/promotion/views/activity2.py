@@ -100,7 +100,7 @@ class ActivityViewSet(viewsets.ModelViewSet):
         update_activity(instance_id, **request.data)
         return Response(serializer.data)
 
-    @detail_route(methods=['get', 'post'])
+    @detail_route(methods=['post'])
     def correlate_schedule(self, request, *args, **kwargs):
         # type: (HttpRequest, *Any, **Any) -> Response
         """关联排期
@@ -108,7 +108,6 @@ class ActivityViewSet(viewsets.ModelViewSet):
         activity_id = int(kwargs.get('pk'))
         schedule_id = request.POST.get('schedule_id')
         activity = get_activity_by_id(activity_id)
-        print '--->', activity
         if not schedule_id:
             schedule_id = activity.schedule_id
         if not schedule_id:

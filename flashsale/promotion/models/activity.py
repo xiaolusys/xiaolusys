@@ -73,7 +73,9 @@ class ActivityEntry(BaseModel):
         # type: () -> Optional[int]
         """专题类型在extras获取关联的排期id
         """
-        return self.extras.get('schedule_id')
+        if isinstance(self.extras, dict):
+            return self.extras.get('schedule_id')
+        return None
 
     def get_schedule_suppliers(self):
         # type : (None) -> Optional[List[SaleSupplier]]
