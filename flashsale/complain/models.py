@@ -1,4 +1,6 @@
 # -*- coding:utf-8 -*-
+from __future__ import unicode_literals
+
 __author__ = 'yan.huang'
 from django.db import models
 import datetime

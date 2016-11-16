@@ -1,4 +1,6 @@
-# -*- coding:utf-8 -*-
+# coding=utf-8
+from __future__ import unicode_literals
+
 import os
 from kombu import Exchange, Queue
 from celery.schedules import crontab

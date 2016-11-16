@@ -1,4 +1,6 @@
 # coding=utf-8
+from __future__ import unicode_literals
+
 import datetime
 from copy import copy
 from django.db import models, transaction

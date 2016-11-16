@@ -1,4 +1,5 @@
 # -*- coding:utf-8 -*-
+from __future__ import unicode_literals
 __author__ = 'yann'
 from django.db import models
 from django.contrib.auth.models import User as DjangoUser

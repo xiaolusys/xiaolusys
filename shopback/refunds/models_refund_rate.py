@@ -1,4 +1,5 @@
 # coding=utf-8
+from __future__ import unicode_literals
 """
 退款率模型, 数据计算方法
 """

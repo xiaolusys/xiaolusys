@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-from __future__ import division
+from __future__ import division, unicode_literals
 
 __author__ = 'yann'
 from django.db import models

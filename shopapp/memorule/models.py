@@ -1,4 +1,6 @@
 # -*- coding:utf8 -*-
+from __future__ import unicode_literals
+
 __author__ = 'meixqhi'
 import os.path
 import json

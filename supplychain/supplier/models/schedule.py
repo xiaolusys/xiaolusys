@@ -1,4 +1,6 @@
 # -*- coding:utf-8 -*-
+from __future__ import unicode_literals
+
 import datetime
 from django.core.cache import cache
 from django.db import models

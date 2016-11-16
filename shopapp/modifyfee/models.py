@@ -1,4 +1,5 @@
 # -*- coding:utf8 -*-
+from __future__ import unicode_literals
 import datetime
 from django.db import models
 from shopapp.signals import modify_fee_signal

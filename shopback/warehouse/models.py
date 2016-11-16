@@ -1,4 +1,6 @@
 # -*- coding:utf8 -*-
+from __future__ import unicode_literals
+
 import logging
 from django.utils.encoding import smart_unicode
 from django.db import models
