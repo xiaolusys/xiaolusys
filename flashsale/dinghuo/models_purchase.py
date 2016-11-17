@@ -345,8 +345,9 @@ class PurchaseArrangement(BaseModel):
 
 
     def generate_order(pa):
-        if pa.gen_order:
-            return 
+        # 已执行过本方法的再次执行没有问题 应该注意 initial_book为True和status为１正常不该执行此方法
+        #if pa.gen_order:
+        #    return
         uni_key = utils.gen_purchase_detail_unikey(pa)
         pd = PurchaseDetail.objects.filter(uni_key=uni_key).first()
         if not pd:
