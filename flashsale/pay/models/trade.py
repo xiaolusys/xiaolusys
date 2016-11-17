@@ -843,7 +843,7 @@ class SaleOrder(PayBaseModel):
     refund_fee = models.FloatField(default=0.0, verbose_name=u'退款费用')
     refund_status = models.IntegerField(choices=SaleRefund.REFUND_STATUS,
                                         default=SaleRefund.NO_REFUND,
-                                        blank=True, verbose_name='退款状态')
+                                        blank=True, verbose_name=u'退款状态')
 
     status = models.IntegerField(choices=ORDER_STATUS, default=TRADE_NO_CREATE_PAY,
                                  db_index=True, blank=True, verbose_name=u'订单状态')
