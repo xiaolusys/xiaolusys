@@ -37,22 +37,19 @@ from flashsale.xiaolumm.models.carry_total import MamaCarryTotal, MamaTeamCarryT
     CarryTotalRecord
 from flashsale.xiaolumm.models.score import XlmmEffectScore, XlmmTeamEffScore
 
+
 class XiaoluMamaAdmin(ApproxAdmin):
     user_groups = []
 
     form = forms.XiaoluMamaForm
-    list_display = (
-        'id', 'customer_id', 'mama_data_display', 'get_cash_display', 'total_inout_item', 'last_renew_type',
-        'agencylevel',
-        'charge_link', 'group_select', 'click_state', 'exam_pass', 'progress', 'hasale', 'charge_time',
-        'status', 'referal_from', 'mama_Verify')
+    list_display = ('id', 'customer_id', 'links_display', 'last_renew_type', 'renew_time', 'agencylevel',
+                    'progress', 'hasale', 'charge_time', 'status', 'refer_to_mama', 'deposit_infos')
     list_filter = (
         'progress', 'agencylevel', 'last_renew_type', 'manager', 'status', 'charge_status', 'hasale',
         ('charge_time', DateFieldListFilter),)
-        #'user_group')
-    list_display_links = ('id', 'mama_data_display',)
+    list_display_links = ('id',)
     search_fields = ['=id', '=mobile', '=manager', 'weikefu', '=openid', '=referal_from']
-    list_per_page = 25
+    list_per_page = 15
 
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = self.readonly_fields
@@ -66,8 +63,8 @@ class XiaoluMamaAdmin(ApproxAdmin):
         Returns the ChangeList class for use on the changelist page.
         """
         from shopapp.weixin.models import UserGroup
-        default_code = ['BLACK', 'NORMAL']
-        default_code.append(request.user.username)
+
+        default_code = ['BLACK', 'NORMAL', request.user.username]
 
         self.user_groups = UserGroup.objects.filter(code__in=default_code)
 
@@ -80,14 +77,12 @@ class XiaoluMamaAdmin(ApproxAdmin):
         if obj.user_group:
             categorys.add(obj.user_group)
 
-        cat_list = ["<select class='group_select' gid='%s'>" % obj.id]
-        cat_list.append("<option value=''>-------------------</option>")
+        cat_list = ["<select class='group_select' gid='%s'>" % obj.id, "<option value=''>-------------------</option>"]
         for cat in categorys:
 
             if obj and obj.user_group == cat:
                 cat_list.append("<option value='%s' selected>%s</option>" % (cat.id, cat))
                 continue
-
             cat_list.append("<option value='%s'>%s</option>" % (cat.id, cat))
         cat_list.append("</select>")
 
@@ -96,88 +91,61 @@ class XiaoluMamaAdmin(ApproxAdmin):
     group_select.allow_tags = True
     group_select.short_description = u"所属群组"
 
-    def total_inout_item(self, obj):
+    def refer_to_mama(self, obj):
+        # type: () -> text_type
+        """推荐人
+        """
+        r = obj.get_refer_to_relationships()
+        f_id = r.referal_from_mama_id if r else ''
+        return '<a target="_blank"' \
+               'href="/admin/xiaolumm/xiaolumama/?id=%s">%s</a>' % (f_id, f_id)
+    refer_to_mama.allow_tags = True
+    refer_to_mama.short_description = u"推荐人妈妈"
 
-        mm_clogs = CarryLog.objects.filter(xlmm=obj.id)  # .exclude(log_type=CarryLog.ORDER_RED_PAC)
+    def links_display(self, obj):
+        # type: (XiaoluMama) -> txt_type
+        """相关链接集合
+        """
+        saletrade = '<a target="_blank" href="/admin/pay/saletrade/?buyer_id=%s">订单</a>' % obj.customer_id
+        customer = '<a target="_blank" href="/admin/pay/customer/?id=%s">用户</a>' % obj.customer_id
+        coupon = '<a target="_blank" href="/admin/coupon/usercoupon/?customer_id=%s">优惠券</a>' % obj.customer_id
+        transcoupon = '<a target="_blank" href="/admin/coupon/coupontransferrecord/?coupon_to_mama_id=%s">精品券</a>' % obj.id
+        click = '<a target="_blank" href="/admin/clickcount/clicks/?linkid=%s">点击</a>' % obj.id  # 列表
+        fans = '<a target="_blank" href="/admin/xiaolumm/xlmmfans/?xlmm=%s">粉丝</a>' % obj.id  # 粉丝列表
+        referal = '<a target="_blank" href="/admin/xiaolumm/referalrelationship/?referal_from_mama_id=%s">邀请</a>' % obj.id
+        exam = '<a target="_blank" href="/admin/mmexam/result/?customer_id=%s">考试</a>' % obj.customer_id
+        l = [
+            saletrade,
+            customer,
+            coupon,
+            transcoupon,
+            click,
+            fans,
+            referal,
+            exam
+        ]
+        return ' | '.join(l)
+    links_display.allow_tags = True
+    links_display.short_description = u"相关链接"
 
-        income_qs = mm_clogs.filter(carry_type=CarryLog.CARRY_IN, status=CarryLog.CONFIRMED)
-        total_income = income_qs.aggregate(total_value=Sum('value')).get('total_value') or 0
+    def deposit_infos(self, obj):
+        # type: (XiaoluMama) -> text_type
+        """押金支付信息
+        """
+        orders = obj.get_deposit_orders().values('sale_trade_id', 'payment')
+        payments = [str(i['payment']) for i in orders]
+        t_ids = [str(i['sale_trade_id']) for i in orders]
+        saletrade = '<a target="_blank" ' \
+                    'href="/admin/pay/saletrade/?id__in=%s">%s</a>' % (','.join(t_ids), ' | '.join(payments))
+        cashs = obj.get_deposit_cashouts().values('id', 'value')
+        vs = [str(k['value'] / 100.0) for k in cashs if k]
+        c_ids = [str(j['id']) for j in cashs]
+        cashouts = '<a target="_blank" ' \
+                   'href="/admin/xiaolumm/cashout/?id__in=%s">%s</a>' % (','.join(c_ids), ' | '.join(vs))
+        return saletrade + '<br>' + cashouts
 
-        outcome_qs = mm_clogs.filter(carry_type=CarryLog.CARRY_OUT, status=CarryLog.CONFIRMED)
-        total_pay = outcome_qs.aggregate(total_value=Sum('value')).get('total_value') or 0
-
-        return (u'<div><p>总收入：%s</p><p>总支出：%s</p></div>' % (total_income / 100.0, total_pay / 100.0))
-
-    total_inout_item.allow_tags = True
-    total_inout_item.short_description = u"总收入/支出"
-
-    def charge_link(self, obj):
-        if obj.charge_status == XiaoluMama.CHARGED:
-            return u'%s' % obj.manager_name
-
-        if obj.charge_status == XiaoluMama.FROZEN:
-            return obj.get_charge_status_display()
-        return (u'未接管')
-        # return ('<a href="javascript:void(0);" class="btn btn-primary btn-charge" '
-        # + 'style="color:white;" sid="{0}">接管</a></p>'.format(obj.id))
-        #
-
-    charge_link.allow_tags = True
-    charge_link.short_description = u"管理员"
-
-    def exam_pass(self, obj):
-        if obj.exam_Passed():
-            return u'<img src="/static/admin/img/icon-yes.gif"></img>&nbsp;已通过'
-        return u'<img src="/static/admin/img/icon-no.gif"></img>&nbsp;未通过'
-
-    exam_pass.allow_tags = True
-    exam_pass.short_description = u"考试状态"
-
-    def click_state(self, obj):
-        dt = datetime.date.today()
-        return (
-            u'<div><a style="display:block;" href="/admin/xiaolumm/statisticsshopping/?shoptime__gte=%s&linkid=%s&">今日订单</a>' % (
-                dt, obj.id) +
-            u'<br><a style="display:block;" href="/admin/xiaolumm/clicks/?click_time__gte=%s&linkid=%s">今日点击</a></div>' % (
-                dt, obj.id))
-
-    click_state.allow_tags = True
-    click_state.short_description = u"妈妈统计"
-
-    def mama_Verify(self, obj):
-        from flashsale.xiaolumm.views.views import get_Deposit_Trade
-
-        trade = get_Deposit_Trade(obj.openid, obj.mobile)
-        if obj.manager == 0 and obj.charge_status == XiaoluMama.UNCHARGE and trade is not None:  # 该代理没有管理员 并且没有被接管
-            return (
-                u'<button type="button" id="daili_{0}" class="btn btn-warning btn-xs" data-toggle="modal" data-target=".bs-example-modal-sm_mama_verify{0}">代理审核</button> '
-                u'<div id="mymodal_{0}" class="modal fade bs-example-modal-sm_mama_verify{0}" tabindex="-1" role="dialog" aria-labelledby="motaikuang{0}">'
-                u'<div class="modal-dialog modal-sm">'
-                u'<div class="modal-content" >'
-
-                u'<div class="input-group">'
-                u'<input type="text" id="weikefu_{0}" class="form-control" placeholder="昵称" aria-describedby="basic-addon3">'
-                u'<input type="text" id="tuijianren_{0}" class="form-control" placeholder="推荐人手机" aria-describedby="basic-addon2">'
-                u'<span class="input-group-addon" id="bt_verify_{0}" onclick="mama_verify({0})">确定审核</span>'
-                u'</div>'
-
-                u'</div>'
-                u'</div>'
-                u'</div>'.format(obj.id))
-        if obj.manager == 0 and obj.charge_status == XiaoluMama.UNCHARGE and trade is None:
-            return (u'没有交押金')
-        else:
-            return (u'已经审核')
-
-    mama_Verify.allow_tags = True
-    mama_Verify.short_description = u"妈妈审核"
-
-    def mama_data_display(self, obj):
-        html = u'<a href="/m/xlmm_info/?id={1}" target="_blank">{0}</a>'
-        return html.format(obj.mobile, obj.id)
-
-    mama_data_display.allow_tags = True
-    mama_data_display.short_description = u"妈妈信息"
+    deposit_infos.allow_tags = True
+    deposit_infos.short_description = u"押金单"
 
     class Media:
         css = {"all": ("admin/css/forms.css", "css/admin/dialog.css"

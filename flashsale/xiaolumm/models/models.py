@@ -199,12 +199,6 @@ class XiaoluMama(BaseModel):
         """ 妈妈考试是否通过 """
         return True
 
-    #         from flashsale.mmexam.models import Result
-    #         results = Result.objects.filter(daili_user=self.openid)
-    #         if results.count() > 0  and results[0].is_Exam_Funished():
-    #             return True
-    #         return False
-
     def need_pay_deposite(self):
         """ 是否需要支付押金 """
         return self.progress in ('', self.NONE, self.PROFILE) and self.agencylevel < 2
@@ -461,6 +455,27 @@ class XiaoluMama(BaseModel):
     def is_chargeable(self):
         return self.charge_status != self.CHARGED
 
+    def get_deposit_cashouts(self):
+        # type: () -> List[CashOut]
+        """押金充值提现
+        """
+        from flashsale.xiaolumm.models import CashOut
+
+        d_cashouts = CashOut.objects.filter(xlmm=self.id, status=CashOut.APPROVED, cash_out_type=CashOut.MAMA_RENEW)
+        return d_cashouts
+
+    def get_deposit_orders(self):
+        # type: () -> List[SaleOrder]
+        """押金订单
+        """
+        from flashsale.pay.models import SaleOrder
+
+        d_orders = SaleOrder.objects.filter(buyer_id=self.customer_id,
+                                            status__gte=2,
+                                            status__lte=5,
+                                            sale_trade__order_type=2)
+        return d_orders
+
     def deposit_pay(self):
         # type: () -> bool
         """支付押金
@@ -637,10 +652,17 @@ class XiaoluMama(BaseModel):
             self._mama_fortune_ = MamaFortune.objects.filter(mama_id=self.id).first()
         return self._mama_fortune_
 
-    def get_parent_mama_ids(self):
+    def get_refer_to_relationships(self):
+        # type: () -> Optional[ReferalRelationship]
+        """获取被推荐关系记录
+        """
         from .models_fortune import ReferalRelationship
+        ship = ReferalRelationship.objects.filter(referal_to_mama_id=self.id).first()
+        return ship
+
+    def get_parent_mama_ids(self):
         res = []
-        parent = ReferalRelationship.objects.filter(referal_to_mama_id=self.id).first()
+        parent = self.get_refer_to_relationships()
         if parent:
             res.append(parent.referal_from_mama_id)
         if self.last_renew_type == XiaoluMama.TRIAL:
