@@ -396,9 +396,9 @@ class PurchaseArrangement(BaseModel):
 def update_purchase_detail(sender, instance, created, **kwargs):
     if instance.gen_order:
         return
-
     from flashsale.dinghuo.tasks import task_purchasearrangement_update_purchasedetail
-    transaction.on_commit(task_purchasearrangement_update_purchasedetail.delay(instance.id))
+    transaction.on_commit(lambda: task_purchasearrangement_update_purchasedetail.delay(instance.id))
+
 
 if not settings.CLOSE_CELERY:
     post_save.connect(update_purchase_detail, sender=PurchaseArrangement, dispatch_uid='post_save_update_purchase_detail')
