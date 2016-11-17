@@ -1,10 +1,5 @@
 # coding=utf-8
 from __future__ import unicode_literals, absolute_import
-
-__ALL__ = [
-    'mama_pay_deposit',
-]
-
 from core.options import get_systemoa_user
 from core.options import log_action, CHANGE
 from flashsale.coupon.apis.v1.usercoupon import release_coupon_for_deposit
@@ -12,6 +7,10 @@ from flashsale.pay.apis.v1.customer import get_customer_by_id
 from ...models import XiaoluMama
 from ...signals import signal_xiaolumama_register_success
 from .potentialmama import update_potential_by_deposit, create_potential_mama
+
+__ALL__ = [
+    'mama_pay_deposit',
+]
 
 
 def mama_pay_deposit(customer_id, deposit_type, referrer, oid=None):

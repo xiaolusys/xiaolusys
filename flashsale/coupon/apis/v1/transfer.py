@@ -1,9 +1,10 @@
 # coding=utf-8
+import datetime
+from ...models.transfer_coupon import CouponTransferRecord
+
 __ALL__ = [
     'create_coupon_transfer_record',
 ]
-import datetime
-from ...models.transfer_coupon import CouponTransferRecord
 
 
 def create_present_coupon_transfer_record(customer, template, coupon_id):

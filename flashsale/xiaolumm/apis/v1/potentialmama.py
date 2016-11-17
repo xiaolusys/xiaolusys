@@ -1,12 +1,12 @@
 # coding=utf-8
 from __future__ import unicode_literals, absolute_import
+from ...models import PotentialMama
 
 __ALL__ = [
     'get_potential_mama_by_mama_id',
     'create_potential_mama',
     'update_potential_by_deposit',
 ]
-from ...models import PotentialMama
 
 
 def get_potential_mama_by_mama_id(mama_id):
