@@ -400,8 +400,8 @@ def update_purchase_detail(sender, instance, created, **kwargs):
     # task_purchasearrangement_update_purchasedetail.delay(instance) 存在bug，数据不一致
     # 这个任务激发前使用了事务，任务内部直接使用instance和aggregate，由于不是使用记录，不会等待锁关闭，aggregate直接使用索引得出了结果——但此结果是事务提交前的结果。导致了错误。
     # 解决办法：延迟3秒，等待事务完成，并且只传id,保证即使索引没更新也可以拿到正确数据。
-    task_purchasearrangement_update_purchasedetail.apply_async(args=[instance.id], countdown=3)
+    task_purchasearrangement_update_purchasedetail.apply_async(args=[instance.id])
 
-
+transaction.on_commit(update_purchase_detail)
 if not settings.CLOSE_CELERY:
     post_save.connect(update_purchase_detail, sender=PurchaseArrangement, dispatch_uid='post_save_update_purchase_detail')
