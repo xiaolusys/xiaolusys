@@ -36,8 +36,10 @@ class CouponTransferRecord(BaseModel):
     IN_BUY_COUPON = 4  # 花钱买券/in
     IN_RETURN_COUPON = 5  # 下属退券/in
     IN_RETURN_GOODS = 6  # 退货退券/in
+    IN_GIFT_COUPON = 7  # 系统赠送/in
     TRANSFER_TYPES = ((OUT_CASHOUT, u'退券换钱'), (OUT_TRANSFER, u'转给下属'), (OUT_CONSUMED, u'直接买货'),
-                      (IN_BUY_COUPON, u'花钱买券'), (IN_RETURN_COUPON, u'下属退券'), (IN_RETURN_GOODS, u'退货退券'))
+                      (IN_BUY_COUPON, u'花钱买券'), (IN_RETURN_COUPON, u'下属退券'), (IN_RETURN_GOODS, u'退货退券'),
+                      (IN_GIFT_COUPON, u'系统赠送'))
 
     PENDING = 1
     PROCESSED = 2
