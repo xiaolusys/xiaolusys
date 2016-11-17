@@ -8,7 +8,7 @@ from shopapp.calendar.views import MainEventPageView, StaffEventView, delete_sta
 from shopback.base.authentication import login_required_ajax
 
 urlpatterns = [
-    url(r'^default.html', TemplateView.as_view(template_name="fullcalendar/default.html")),
+    url(r'^index/', TemplateView.as_view(template_name="fullcalendar/default.html")),
     url(r'delete/(?P<id>\d{1,20})/', csrf_exempt(login_required_ajax(delete_staff_event))),
     url(r'complete/(?P<id>\d{1,20})/', csrf_exempt(login_required_ajax(complete_staff_event))),
     url(r'^$', MainEventPageView.as_view()),
