@@ -258,6 +258,23 @@ class SaleRefund(PayBaseModel):
         # type: () -> text_type
         return u'退款(oid:%s),%s' % (self.order_id, self.reason)
 
+    def get_refund_coupons(self):
+        # type: () -> Optional[List[BudgetLog]]
+        from flashsale.coupon.models import UserCoupon
+
+        return UserCoupon.objects.filter(coupon_type=UserCoupon.TYPE_COMPENSATE,
+                                         customer_id=self.buyer_id,
+                                         uniq_id__contains=self.trade_id)
+
+    def get_refund_postage_budget_logs(self):
+        # type: () -> List[BudgetLog]
+        """
+        功能：　获取补邮费退到余额信息
+        """
+        from flashsale.pay.models import BudgetLog
+
+        return BudgetLog.objects.filter(referal_id=self.id, budget_log_type=BudgetLog.BG_REFUND_POSTAGE)
+
     def get_refund_budget_logs(self):
         # type: () -> List[BudgetLog]
         """

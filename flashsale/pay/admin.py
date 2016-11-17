@@ -328,7 +328,7 @@ from .tasks import notifyTradeRefundTask
 
 
 class SaleRefundAdmin(BaseModelAdmin):
-    list_display = ('id_link', 'refund_no', 'order_no', 'package_sku_item_link_to', 'channel', 'refund_channel',
+    list_display = ('id_link', 'refund_no', 'buyer_id', 'order_no', 'package_sku_item_link_to', 'channel', 'refund_channel',
                     'title', 'sku_id', 'refund_fee', 'has_good_return', 'has_good_change', 'created', 'success_time',
                     'order_status', 'is_lackrefund', 'status', 'refund_pro_link')
 
@@ -337,7 +337,7 @@ class SaleRefundAdmin(BaseModelAdmin):
         "created", "modified")
     list_display_links = ['refund_no']
     search_fields = ['=refund_no', '=trade_id', '=order_id', '=refund_id', '=mobile']
-    list_per_page = 20
+    list_per_page = 15
 
     def id_link(self, obj):
         return ('<a href="%(url)s" target="_blank">'
@@ -367,10 +367,24 @@ class SaleRefundAdmin(BaseModelAdmin):
     package_sku_item_link_to.short_description = u'SKU交易单号'
 
     def order_no(self, obj):
+        # type: () -> text_type
         strade = SaleTrade.objects.get(id=obj.trade_id)
-        # html = '<a onclick="show_page({1})" class="click_row_{1}">{0}</a>'.format(strade.tid, obj.id)
         html = '<a onclick="showSaleRefundPage({0})" class="click_row_{0}">{1}</a>'.format(obj.id, strade.tid)
-        return html
+        bls = obj.get_refund_budget_logs().values('id', 'flow_amount')
+        bids = [str(i['id'])for i in bls]
+        vs = [str(j['flow_amount'] / 100.0) for j in bls]
+        html2 = "<a target='_blank' href='/admin/pay/budgetlog/?id__in=%s'>钱包退款:%s</a>" % (','.join(bids), ' | '.join(vs))
+
+        postages = obj.get_refund_postage_budget_logs().values('id', 'flow_amount')
+        pbids = [str(i['id'])for i in postages]
+        pvs = [str(j['flow_amount'] / 100.0) for j in postages]
+        html3 = "<a target='_blank' href='/admin/pay/budgetlog/?id__in=%s'>补邮费:%s</a>" % (','.join(pbids), ' | '.join(pvs))
+
+        coupons = obj.get_refund_coupons().values('id', 'value')
+        cids = [str(i['id'])for i in coupons]
+        cs = [str(j['value']) for j in coupons]
+        html4 = "<a target='_blank' href='/admin/coupon/usercoupon/?id__in=%s'>补优惠券:%s</a>" % (','.join(cids), ' | '.join(cs))
+        return '<br>'.join([html, html2, html3, html4])
 
     order_no.allow_tags = True
     order_no.short_description = "交易编号"
