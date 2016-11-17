@@ -129,7 +129,7 @@ class PurchaseOrder(BaseModel):
                     ol.purchase_total_num = self.book_num
                     ol.save(update_fields=['order_amount', 'updated', 'purchase_total_num'])
                 else:
-                    logger.error("HY error: tying to modify booked order_list| ol.id: %s" % (ol.id,))
+                    logger.error("HY error: trying to modify booked order_list| ol.id: %s" % (ol.id,))
             else:
                 ol.save(update_fields=['updated'])
 
@@ -182,6 +182,10 @@ class PurchaseDetail(BaseModel):
     @property
     def purchase_order(self):
         return PurchaseOrder.objects.get(uni_key=self.purchase_order_unikey)
+
+    @property
+    def arrangements(self):
+        return self.purchase_order.arrangements.filter(sku_id=self.sku_id, status=1, num__gt=0)
 
     def has_extra(self):
         return self.status == PurchaseOrder.BOOKED and self.book_num > self.need_num
@@ -246,6 +250,15 @@ class PurchaseDetail(BaseModel):
                 od.total_price = pd.total_price
                 od.save(update_fields=['buy_quantity', 'buy_unitprice', 'total_price', 'updated'])
 
+    def set_pa_inbound(self):
+        self.arrangements.update(inbound_in=False)
+        num = self.arrival_num
+        for pa in self.arrangements:
+            if num >= pa.num:
+                pa.inbound_in = True
+                num -= pa.num
+                pa.save()
+
 # def update_purchase_order(sender, instance, created, **kwargs):
 #     from flashsale.dinghuo.tasks import task_purchase_detail_update_purchase_order
 #     task_purchase_detail_update_purchase_order.delay(instance)
@@ -289,6 +302,7 @@ class PurchaseArrangement(BaseModel):
                                                 verbose_name=u'PO状态')
     initial_book = models.BooleanField(default=False, db_index=True, verbose_name=u'是否已订货')
     gen_order = models.BooleanField(default=False)
+    inbound_in = models.BooleanField(default=False, db_index=True, verbose_name=u'是否已入仓')
     class Meta:
         db_table = 'flashsale_dinghuo_purchase_arrangement'
         app_label = 'dinghuo'
