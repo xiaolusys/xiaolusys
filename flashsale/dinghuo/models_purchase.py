@@ -384,7 +384,8 @@ class PurchaseArrangement(BaseModel):
 
     def cancel(self):
         if self.initial_book:
-            raise Exception(u'此订单已订货:%s' % self.oid)
+            return
+            # raise Exception(u'此订单已订货:%s' % self.oid)
         self.status = PurchaseArrangement.CANCEL
         self.save()
         uni_key = utils.gen_purchase_detail_unikey(self)
