@@ -345,6 +345,9 @@ class PurchaseArrangement(BaseModel):
 
 
     def generate_order(pa):
+        # 已执行过本方法的再次执行没有问题 应该注意 initial_book为True和status为１正常不该执行此方法
+        #if pa.gen_order:
+        #    return
         uni_key = utils.gen_purchase_detail_unikey(pa)
         pd = PurchaseDetail.objects.filter(uni_key=uni_key).first()
         if not pd:
@@ -394,10 +397,7 @@ def update_purchase_detail(sender, instance, created, **kwargs):
     if instance.gen_order:
         return
     from flashsale.dinghuo.tasks import task_purchasearrangement_update_purchasedetail
-    # task_purchasearrangement_update_purchasedetail.delay(instance) 存在bug，数据不一致
-    # 这个任务激发前使用了事务，任务内部直接使用instance和aggregate，由于不是使用记录，不会等待锁关闭，aggregate直接使用索引得出了结果——但此结果是事务提交前的结果。导致了错误。
-    # 解决办法：延迟3秒，等待事务完成，并且只传id,保证即使索引没更新也可以拿到正确数据。
-    task_purchasearrangement_update_purchasedetail.apply_async(args=[instance.id], countdown=3)
+    transaction.on_commit(lambda: task_purchasearrangement_update_purchasedetail.delay(instance.id))
 
 
 if not settings.CLOSE_CELERY:
