@@ -329,66 +329,18 @@ def task_push_msg_pasting_coupon():
         user_coupons.update(is_pushed=True)
 
 
-def get_deposit_money(buyer_id):
-    from flashsale.xiaolumm.models import CashOut
-    from flashsale.pay.models import Customer, SaleTrade
-
-    cusomter = Customer.objects.get(id=buyer_id)
-    xlmm = cusomter.get_xiaolumm()
-    deposite_cashouts = CashOut.objects.filter(
-        xlmm=xlmm.id,
-        cash_out_type=CashOut.MAMA_RENEW,
-        status__in=[CashOut.COMPLETED, CashOut.APPROVED])
-    deposit_trades = SaleTrade.objects.filter(
-        buyer_id=buyer_id,
-        order_type=SaleTrade.DEPOSITE_ORDER,
-        status__in=[SaleTrade.WAIT_SELLER_SEND_GOODS, SaleTrade.TRADE_FINISHED])
-    d_m = deposite_cashouts.aggregate(t_v=Sum('value')).get('t_v') or 0
-    t_m = deposit_trades.aggregate(t_p=Sum('payment')).get('t_p') or 0
-    return d_m / 100.0 + t_m
-
-
-@app.task()
-def task_release_coupon_for_mama_deposit(buyer_id, deposite_type):
+@app.tasks()
+def task_release_coupon_for_deposit(customer_id, deposit_type):
     from flashsale.coupon.models import UserCoupon
-
-    deposite_type_tplids_map = {
-        XiaoluMama.HALF: [117, 118, 79],
+    deposit_type_tplids_map = {
+        XiaoluMama.HALF: [117, 118, 79],  # [121, 124]99+99
         XiaoluMama.FULL: [117, 118, 121, 39]
     }
-    tpl_ids = deposite_type_tplids_map[deposite_type]
-
+    if deposit_type not in deposit_type_tplids_map:
+        return
+    tpl_ids = deposit_type_tplids_map[deposit_type]
     for template_id in tpl_ids:
-        UserCoupon.objects.create_normal_coupon(buyer_id=buyer_id, template_id=template_id)
-
-
-@app.task()
-def task_release_coupon_for_mama_deposit_double_99(buyer_id):
-    """ 续费才进入此方法 """
-    from flashsale.coupon.models import UserCoupon
-
-    tpl_ids = [121, 124]  # 100 + 15
-    for template_id in tpl_ids:
-        UserCoupon.objects.create_normal_coupon(buyer_id=buyer_id, template_id=template_id)
-
-
-@app.task()
-def task_release_coupon_for_mama_renew(customer, saleorder):
-    # type: (Customer, SaleOrder) -> None
-    """用户重复续费送优惠券
-    """
-    from flashsale.coupon.models import UserCoupon, CouponTemplate
-    from flashsale.pay.models import SaleOrder
-
-    deposite_type_tplids_map = {
-        XiaoluMama.FULL: [117, 118, 121, 39]
-    }
-    tpl_ids = deposite_type_tplids_map[XiaoluMama.FULL]
-    order_id = saleorder.id
-    for tpl_id in tpl_ids:
-        template = CouponTemplate.objects.get(id=tpl_id)
-        uni_key = template.gen_usercoupon_unikey(order_id)
-        UserCoupon.send_coupon(customer, template, uniq_id=uni_key)
+        UserCoupon.objects.create_normal_coupon(buyer_id=customer_id, template_id=template_id)
 
 
 @app.task()

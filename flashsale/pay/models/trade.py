@@ -671,6 +671,33 @@ def category_trade_stat(sender, obj, **kwargs):
 signal_saletrade_pay_confirm.connect(category_trade_stat, sender=SaleTrade)
 
 
+def trigger_mama_deposit_action(sender, obj, *args, **kwargs):
+    """根据押金订单处理妈妈记录:
+    """
+    if not (obj.status == SaleTrade.WAIT_SELLER_SEND_GOODS and obj.is_Deposite_Order()):
+        return
+    try:
+        from flashsale.xiaolumm.apis.v1.xiaolumama import mama_pay_deposit
+        order = obj.sale_orders.first()
+        deposit_type = 0
+        if order.is_1_deposit():
+            deposit_type = 1
+        elif order.is_99_deposit():
+            deposit_type = 99
+        elif order.is_188_deposit():
+            deposit_type = 188
+        referrer = int(str(obj.extras_info.get('mm_linkid', '')).strip() or '0' if obj.extras_info else '0')  # 推荐人id
+        mama_pay_deposit(obj.buyer_id, deposit_type, referrer, oid=None)
+        order.status = SaleTrade.TRADE_FINISHED
+        order.save(update_fields=['status'])
+    except Exception as e:
+        logging.error(e)
+
+signal_saletrade_pay_confirm.connect(trigger_mama_deposit_action,
+                                     sender=SaleTrade,
+                                     dispatch_uid="signal_trigger_mama_deposit_action")
+
+
 def update_customer_first_paytime(sender, obj, **kwargs):
     """
     订单支付后，检测用户是否第一次购买，如果是，更新用户第一次购买时间

@@ -39,7 +39,7 @@ MM_CLICK_PER_ORDER_PLUS_COUNT = 50
 class XiaoluMama(BaseModel):
     DIRECT = 'DIRECT'
     INDIRECT = 'INDIRECT'
-    
+
     EFFECT = 'effect'
     FROZEN = 'forzen'
     CANCEL = 'cancel'
@@ -84,13 +84,12 @@ class XiaoluMama(BaseModel):
         (VIP6_LEVEL, "VIP6"),
         (VIP8_LEVEL, "VIP8"),
     )
-    SCAN  = 3
+    SCAN = 3
     TRIAL = 15
     ELITE = 90
-    HALF  = 183
-    FULL  = 365
+    HALF = 183
+    FULL = 365
 
-    
     RENEW_TYPE = (
         (SCAN, u'试用3'),
         (TRIAL, u'试用15'),
@@ -185,6 +184,7 @@ class XiaoluMama(BaseModel):
     @property
     def user_group(self):
         from shopapp.weixin.models import UserGroup
+
         if self.user_group_id:
             return UserGroup.objects.get(id=self.user_group_id)
 
@@ -438,6 +438,7 @@ class XiaoluMama(BaseModel):
     def get_base_deposite(self):
         """ 获取妈妈实际押金金额 """
         from flashsale.clickrebeta.models import StatisticsShopping
+
         shopscount = StatisticsShopping.objects.filter(linkid=self.id).count()
         clickcounts = ClickCount.objects.filter(linkid=self.id)
         click_nums = clickcounts.aggregate(total_count=Sum('valid_num')).get('total_count') or 0
@@ -516,7 +517,7 @@ class XiaoluMama(BaseModel):
         if self.charge_status == XiaoluMama.UNCHARGE:  # 如果是没有接管的可以试用
             return True
         elif self.charge_status == XiaoluMama.CHARGED and self.status == XiaoluMama.FROZEN and \
-                self.last_renew_type in [XiaoluMama.TRIAL, XiaoluMama.SCAN]:
+                        self.last_renew_type in [XiaoluMama.TRIAL, XiaoluMama.SCAN]:
             return True
         return False
 
@@ -542,7 +543,7 @@ class XiaoluMama(BaseModel):
         无需审核，小额提现
         """
         return self.agencylevel >= self.VIP_LEVEL and \
-            self.charge_status == self.CHARGED and self.status == self.EFFECT
+               self.charge_status == self.CHARGED and self.status == self.EFFECT
 
     def is_relationshipable(self):
         return self.agencylevel >= self.VIP_LEVEL and \
@@ -552,7 +553,7 @@ class XiaoluMama(BaseModel):
         today = datetime.date.today()
         today_time = datetime.datetime(today.year, today.month, today.day)
         return self.agencylevel >= self.VIP_LEVEL and self.charge_status == self.CHARGED and \
-            self.status == self.EFFECT
+               self.status == self.EFFECT
 
     def get_cash_iters(self):
         if not self.is_cashoutable():
@@ -587,6 +588,7 @@ class XiaoluMama(BaseModel):
         share_link = constants.MAMA_SHARE_LINK.format(**{'site_url': settings.M_SITE_URL,
                                                          'mm_linkid': self.id})
         from core.upload.xqrcode import push_qrcode_to_remote
+
         qrcode_url = push_qrcode_to_remote(qr_path, share_link)
 
         return qrcode_url
@@ -595,6 +597,7 @@ class XiaoluMama(BaseModel):
         """ 获取妈妈的特卖用户对象 """
         if not hasattr(self, '_customer_'):
             from flashsale.pay.models import Customer
+
             self._customer_ = Customer.objects.filter(unionid=self.openid).first()
         return self._customer_
 
@@ -602,6 +605,7 @@ class XiaoluMama(BaseModel):
         """ 获取妈妈的特卖用户对象 """
         if not hasattr(self, '_mama_customer_'):
             from flashsale.pay.models import Customer
+
             self._mama_customer_ = Customer.objects.filter(unionid=self.openid).order_by('status').first()
         return self._mama_customer_
 
@@ -610,19 +614,20 @@ class XiaoluMama(BaseModel):
         if type(condition) == list:
             condition = {'id__in': condition}
         from flashsale.pay.models import Customer
+
         unionids_ids = XiaoluMama.objects.filter(**condition).values_list('id', 'openid')
         unionids_dict = dict(unionids_ids)
         mid_unionids_dict = dict([(u[1], u[0]) for u in unionids_ids])
         unionids = unionids_dict.values()
         unionid_cusids = Customer.objects.filter(unionid__in=unionids).values_list('unionid', 'id')
         cusid_unionid_dict = dict([(u[1], u[0]) for u in unionid_cusids])
-        mama_dict = {mid_unionids_dict[cusid_unionid_dict[cusid]]:cusid for cusid in cusid_unionid_dict}
+        mama_dict = {mid_unionids_dict[cusid_unionid_dict[cusid]]: cusid for cusid in cusid_unionid_dict}
         return mama_dict
         # if len(unionids) != len(mama_ids):
-        #     raise Exception(u"这些妈妈没有unionid:" + str(list(set(mama_ids) - set(mama_ids))))
+        # raise Exception(u"这些妈妈没有unionid:" + str(list(set(mama_ids) - set(mama_ids))))
         # if len(unionids2) != len(unionids):
-        #     err_unionids = list(set(unionids) - set(unionids2))
-        #     raise Exception(u'这些妈妈没有对应的cusid:' + str([cusid_unionid_dict[id] for id in err_unionids]))
+        # err_unionids = list(set(unionids) - set(unionids2))
+        # raise Exception(u'这些妈妈没有对应的cusid:' + str([cusid_unionid_dict[id] for id in err_unionids]))
         # mama_dict = {mama_id: unionid_cusid_dict[unionids_dict[mama_id]] for mama_id in mama_ids}
         # return mama_dict
 
@@ -633,6 +638,7 @@ class XiaoluMama(BaseModel):
     @property
     def customer_id(self):
         from flashsale.pay.models import Customer
+
         c = Customer.objects.filter(unionid=self.openid).first()
         if c:
             return c.id
@@ -649,6 +655,7 @@ class XiaoluMama(BaseModel):
     @property
     def mama_fortune(self):
         from flashsale.xiaolumm.models import MamaFortune
+
         if not hasattr(self, '_mama_fortune_'):
             self._mama_fortune_ = MamaFortune.objects.filter(mama_id=self.id).first()
         return self._mama_fortune_
@@ -658,6 +665,7 @@ class XiaoluMama(BaseModel):
         """获取被推荐关系记录
         """
         from .models_fortune import ReferalRelationship
+
         ship = ReferalRelationship.objects.filter(referal_to_mama_id=self.id).first()
         return ship
 
@@ -677,6 +685,7 @@ class XiaoluMama(BaseModel):
             获取下二级用户
         """
         from .models_fortune import ReferalRelationship
+
         lv1_id = [self.id]
         lv2_ids = [i['referal_to_mama_id'] for i in
                    ReferalRelationship.objects.filter(referal_from_mama_id=self.id).values('referal_to_mama_id')]
@@ -698,6 +707,7 @@ class XiaoluMama(BaseModel):
         """
         res = [self.id]
         from .models_fortune import ReferalRelationship
+
         r = ReferalRelationship.objects.filter(referal_to_mama_id=self.id).first()
         if r:
             if r.referal_from_mama_id:
@@ -708,11 +718,13 @@ class XiaoluMama(BaseModel):
 
     def get_invite_normal_mama_ids(self):
         from .models_fortune import ReferalRelationship
+
         return [i['referal_to_mama_id'] for i in
                 ReferalRelationship.objects.filter(referal_from_mama_id=self.id).values('referal_to_mama_id')]
 
     def get_activite_num(self):
         from .models_fortune import CarryRecord
+
         i = 0
         mmids = self.get_invite_normal_mama_ids() + self.get_invite_potential_mama_ids()
         for mmid in mmids:
@@ -723,10 +735,12 @@ class XiaoluMama(BaseModel):
         return i
 
     def get_invite_potential_mama_ids(self):
-        return [p['potential_mama'] for p in PotentialMama.objects.filter(referal_mama=self.id).values('potential_mama')]
+        return [p['potential_mama'] for p in
+                PotentialMama.objects.filter(referal_mama=self.id).values('potential_mama')]
 
     def get_active_invite_potential_mama_ids(self):
         from .models_fortune import CarryRecord
+
         res = []
         mmids = self.get_invite_potential_mama_ids()
         for mmid in mmids:
@@ -815,6 +829,7 @@ class XiaoluMama(BaseModel):
     @property
     def elite_level(self):
         from flashsale.coupon.models import CouponTransferRecord
+
         stock_num, in_num, out_num = CouponTransferRecord.get_stock_num(self.id)
         if in_num >= 1000:
             return 'SP'
@@ -827,7 +842,7 @@ class XiaoluMama(BaseModel):
         if in_num >= 5:
             return 'Associate'
         return 'Associate'
-        
+
     def fill_info(self, mobile, referal_from):
         update_fields = []
         if self.mobile is None or (not self.mobile.strip()):
@@ -958,7 +973,7 @@ class XiaoluMama(BaseModel):
             return NewMamaTask.TASK_FIRST_FANS
 
         mama_recommend = PotentialMama.objects.filter(referal_mama=self.id).exists() or \
-            ReferalRelationship.objects.filter(referal_from_mama_id=self.id).exists()
+                         ReferalRelationship.objects.filter(referal_from_mama_id=self.id).exists()
         if not mama_recommend:
             return NewMamaTask.TASK_FIRST_MAMA_RECOMMEND
 
@@ -967,26 +982,25 @@ class XiaoluMama(BaseModel):
             return NewMamaTask.TASK_FIRST_COMMISSION
 
         from flashsale.xiaolumm.tasks import task_new_guy_task_complete_send_award
+
         task_new_guy_task_complete_send_award.delay(self)
 
         return None
 
-    @classmethod
-    def get_referal_mama_id(cls, customer, extras_info=None):
-        """ 根据订单获取用户的推荐人 订单上面没有的话则寻找粉丝记录的妈妈作为推荐人 """
-        extra_link = extras_info.get('mm_linkid') or 0 if extras_info else 0
-        mama_id = str(extra_link).strip()
-        mm_linkid = int(mama_id) if mama_id.isdigit() else 0
-        if not mm_linkid:   # 没有则获取粉丝记录
-            from flashsale.xiaolumm.models import XlmmFans
-            fans = XlmmFans.objects.filter(fans_cusid=customer.id).first()
-            return fans.xlmm if fans else 0
-        else:
-            return mm_linkid
+    def get_fans_referrer_mama_id(self):
+        # type: () -> int
+        """获取当前妈妈粉丝记录的推荐妈妈
+        """
+        customer = self.get_customer()
+        if not customer: return 0
+        from flashsale.xiaolumm.models import XlmmFans
+        fans = XlmmFans.objects.filter(fans_cusid=customer.id).first()
+        return fans.xlmm if fans else 0
 
 
 def xiaolumama_update_mamafortune(sender, instance, created, **kwargs):
     from flashsale.xiaolumm.tasks import task_xiaolumama_update_mamafortune
+
     task_xiaolumama_update_mamafortune.delay(instance.pk, instance.cash)
 
 
@@ -1010,6 +1024,7 @@ def created_instructor_for_mama(sender, instance, created, **kwargs):
     """
     if instance.charge_status == XiaoluMama.CHARGED and instance.status == XiaoluMama.EFFECT:
         from flashsale.xiaolumm.models import Instructor
+
         customer = instance.get_customer()
         if not customer:
             return
@@ -1025,8 +1040,9 @@ def created_instructor_for_mama(sender, instance, created, **kwargs):
                 mama_id=instance.id,
                 status=Instructor.STATUS_EFFECT)
 
+
 # post_save.connect(created_instructor_for_mama, sender=XiaoluMama,
-#                   dispatch_uid=u'post_save_created_instructor_for_mama')
+# dispatch_uid=u'post_save_created_instructor_for_mama')
 
 
 class AgencyLevel(models.Model):
@@ -1073,13 +1089,13 @@ class AgencyLevel(models.Model):
             return 0
         return 0
 
-    #         click_price = 0
-    #         if order_num > 2:
-    #             click_price = 0.3
-    #         else:
-    #             click_price += order_num * 0.1
+    # click_price = 0
+    # if order_num > 2:
+    # click_price = 0.3
+    # else:
+    # click_price += order_num * 0.1
     #
-    #         return click_price * 100
+    # return click_price * 100
 
     def get_Max_Valid_Clickcount(self, order_num):
         return MM_CLICK_DAY_BASE_COUNT + MM_CLICK_PER_ORDER_PLUS_COUNT * order_num
@@ -1149,10 +1165,11 @@ class CashOut(BaseModel):
     @classmethod
     def is_cashout_limited(cls, mama_id):
         from flashsale.restpro.v2.views.xiaolumm import CashOutPolicyView
+
         CASHOUT_NUM_LIMIT = CashOutPolicyView.DAILY_CASHOUT_TRIES
         date_field = datetime.date.today()
-        cnt = cls.objects.filter(xlmm=mama_id, cash_out_type=cls.RED_PACKET, date_field=date_field).\
-              exclude(status=cls.CANCEL).exclude(status=cls.REJECTED).count()
+        cnt = cls.objects.filter(xlmm=mama_id, cash_out_type=cls.RED_PACKET, date_field=date_field). \
+            exclude(status=cls.CANCEL).exclude(status=cls.REJECTED).count()
         if cnt < CASHOUT_NUM_LIMIT and cnt >= 0:
             return False
         return True
@@ -1161,7 +1178,7 @@ class CashOut(BaseModel):
     def gen_uni_key(cls, mama_id, cash_out_type):
         date_field = datetime.date.today()
         count = cls.objects.filter(xlmm=mama_id, cash_out_type=cash_out_type, date_field=date_field).count()
-        return '%s-%d-%d|%s' % (cash_out_type, mama_id, count+1, date_field)
+        return '%s-%d-%d|%s' % (cash_out_type, mama_id, count + 1, date_field)
 
     @property
     def value_money(self):
@@ -1205,6 +1222,7 @@ class CashOut(BaseModel):
 
 def cashout_update_mamafortune(sender, instance, created, **kwargs):
     from flashsale.xiaolumm.tasks import task_cashout_update_mamafortune
+
     task_cashout_update_mamafortune.delay(instance.xlmm)
 
 
@@ -1353,6 +1371,7 @@ class CarryLog(models.Model):
     def get_type_shop_cnt(self):
         """ 计算订单补贴类型的当天订单数量"""
         from flashsale.clickrebeta.models import StatisticsShopping
+
         lefttime = self.carry_date
         righttime = lefttime + datetime.timedelta(days=1)
         cnt = StatisticsShopping.objects.filter(linkid=self.xlmm,
@@ -1423,26 +1442,6 @@ class PotentialMama(BaseModel):
     def gen_uni_key(cls, mama_id, referal_from_mama_id):
         return '/'.join([str(mama_id), str(referal_from_mama_id)])
 
-    def update_full_member(self, last_renew_type, extra=None):
-        """ 妈妈成为正式妈妈　切换is_full_member状态为True """
-        update_fields = []
-        if self.last_renew_type != last_renew_type:
-            self.last_renew_type = last_renew_type
-            update_fields.append('last_renew_type')
-        if not self.is_full_member:
-            self.is_full_member = True
-            update_fields.append('is_full_member')
-        if isinstance(self.extras, dict):
-            self.extras.update(extra)
-            update_fields.append('extras')
-        else:
-            self.extras = extra
-            update_fields.append('extras')
-        if update_fields:
-            self.save(update_fields=update_fields)
-            return True
-        return False
-
 
 def potentialmama_xlmm_newtask(sender, instance, **kwargs):
     """
@@ -1457,10 +1456,11 @@ def potentialmama_xlmm_newtask(sender, instance, **kwargs):
     xlmm = XiaoluMama.objects.filter(id=xlmm_id).first()
 
     item = PotentialMama.objects.filter(referal_mama=xlmm_id).exists() or \
-        ReferalRelationship.objects.filter(referal_from_mama_id=xlmm_id).exists()
+           ReferalRelationship.objects.filter(referal_from_mama_id=xlmm_id).exists()
 
     if not item:
         task_push_new_mama_task.delay(xlmm, NewMamaTask.TASK_FIRST_MAMA_RECOMMEND)
+
 
 pre_save.connect(potentialmama_xlmm_newtask,
                  sender=PotentialMama, dispatch_uid='pre_save_potentialmama_xlmm_newtask')
@@ -1495,8 +1495,8 @@ pre_save.connect(potentialmama_xlmm_newtask,
 
 
 def update_mama_relationship(sender, instance, created, **kwargs):
-    #if not instance.is_full_member:
-    #    return
+    # if not instance.is_full_member:
+    # return
     from flashsale.xiaolumm.models import ReferalRelationship
     from core.options import log_action, CHANGE, get_systemoa_user
 
@@ -1549,57 +1549,6 @@ post_save.connect(update_mama_relationship,
 #post_save.connect(send_invite_trial_weixin_push,
 #                  sender=PotentialMama, dispatch_uid='post_save_send_invite_trial_weixin_push')
 
-
-def unitary_mama(obj):
-    """
-    一元开店
-    1. 修改记录为接管状态
-    2. 添加 renew_time　now + 15d
-    3. 修改代理等级到 A 类
-    """
-    from flashsale.xiaolumm.tasks import task_unitary_mama
-    task_unitary_mama(obj)
-
-
-def register_mama(obj):
-    """
-    代理注册
-    1. 修改记录为接管状态
-    2. 添加 renew_time　now + 365d　or 183d
-    3. 修改代理等级到 A 类
-    4. 填写推荐人
-    """
-    from flashsale.xiaolumm.tasks import task_register_mama
-    task_register_mama(obj)
-
-
-def renew_mama(obj):
-    """
-    代理续费
-    1. 更新 renew_time
-    """
-    from flashsale.xiaolumm.tasks import task_renew_mama
-
-    task_renew_mama(obj)
-
-from flashsale.pay.signals import signal_saletrade_pay_confirm
-from flashsale.pay.models import SaleTrade
-
-
-def trigger_mama_deposit_action(sender, obj, *args, **kwargs):
-    # 这里的先后顺序不能变　
-    # 先判断是否能续费　在看接管状态
-    renew_mama(obj)
-    unitary_mama(obj)
-    register_mama(obj)
-
-
-signal_saletrade_pay_confirm.connect(trigger_mama_deposit_action,
-                                     sender=SaleTrade,
-                                     dispatch_uid="signal_trigger_mama_deposit_action")
-
-
-# 首单红包，10单红包
 
 class OrderRedPacket(models.Model):
     xlmm = models.IntegerField(unique=True, blank=False, verbose_name=u"妈妈编号")

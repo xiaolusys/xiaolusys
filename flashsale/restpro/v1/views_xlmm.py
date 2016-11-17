@@ -34,7 +34,7 @@ from flashsale.xiaolumm.models.models_fans import XlmmFans, FansNumberRecord
 from flashsale.xiaolumm.models.models_fortune import MamaFortune
 from flashsale.pay.models import Envelop
 from shopapp.weixin.models import WeixinUnionID
-
+from flashsale.xiaolumm.apis.v1.potentialmama import update_potential_by_deposit
 
 from shopback.items.models import Product, ProductSku
 from . import serializers
@@ -1238,14 +1238,9 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             default_return.update({"code": 2, "info": "余额不足"})
             return Response(default_return)
         try:
-            from flashsale.coupon.tasks import task_release_coupon_for_mama_deposit, \
-                task_release_coupon_for_mama_deposit_double_99
+            from flashsale.coupon.apis.v1.usercoupon import task_release_coupon_for_deposit
 
-            if xlmm.last_renew_type == XiaoluMama.HALF:
-                task_release_coupon_for_mama_deposit_double_99.delay(customer.id)
-            else:
-                task_release_coupon_for_mama_deposit.delay(customer.id, days_map[exchange_type])
-
+            task_release_coupon_for_deposit.delay(customer.id, days_map[exchange_type])
         except Exception as exc:
             logger.warn({'action': 'mama_exchange_deposit', 'mama_id': xlmm.id,
                          'exchange_type': exchange_type, 'message': exc.message})
@@ -1261,12 +1256,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         days = days_map[exchange_type]
         xlmm.update_renew_day(days)
         log_action(request.user, xlmm, CHANGE, u'用户妈妈钱包兑换代理续费修改字段')
-        potential = PotentialMama.objects.filter(potential_mama=xlmm.id).first()  # 续费的潜在妈妈
-        if potential:
-            extra = {"cashout_id": cash.id}
-            state = potential.update_full_member(last_renew_type=xlmm.last_renew_type, extra=extra)  # 续费转正
-            if state:
-                log_action(request.user, potential, CHANGE, u'用户钱包兑换妈妈续费')
+        update_potential_by_deposit(xlmm.id, xlmm.last_renew_type, cashout_id=cash.id)
         return Response(default_return)
 
 
