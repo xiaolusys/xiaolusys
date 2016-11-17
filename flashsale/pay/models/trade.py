@@ -401,8 +401,8 @@ class SaleTrade(BaseModel):
             except Exception, exc:
                 logger.error(exc.message, exc_info=True)
         self.confirm_payment()
+        self.set_order_paid()
         self.update_teambuy()
-        # self.set_order_paid()
 
     def pay_confirm(self):
         # 暂时用此方法替代charge_confirm进行测试
@@ -419,7 +419,7 @@ class SaleTrade(BaseModel):
                 so.set_psi_paid()
 
     def set_order_paid(self):
-        if not self.trade_type == SaleTrade.TEAMBUY_ORDER:
+        if self.trade_type == SaleTrade.SALE_ORDER:
             for so in self.sale_orders.all():
                 so.set_psi_paid()
 
@@ -843,7 +843,7 @@ class SaleOrder(PayBaseModel):
     refund_fee = models.FloatField(default=0.0, verbose_name=u'退款费用')
     refund_status = models.IntegerField(choices=SaleRefund.REFUND_STATUS,
                                         default=SaleRefund.NO_REFUND,
-                                        blank=True, verbose_name='退款状态')
+                                        blank=True, verbose_name=u'退款状态')
 
     status = models.IntegerField(choices=ORDER_STATUS, default=TRADE_NO_CREATE_PAY,
                                  db_index=True, blank=True, verbose_name=u'订单状态')
@@ -956,6 +956,9 @@ class SaleOrder(PayBaseModel):
         refund_fee = refund_fee if refund_fee else self.payment
         salerefund = SaleRefund.create_salerefund(self, refund_num, refund_fee, reason, good_status,
                                                   desc=desc, refund_channel=refund_channel, proof_pic=proof_pic)
+        if good_status == SaleRefund.BUYER_NOT_RECEIVED:
+            if self.package_sku:
+                self.package_sku.set_status_cancel()
         return salerefund
 
     def is_finishable(self):
@@ -1180,8 +1183,8 @@ def update_package_sku_item(sender, instance, created, **kwargs):
         task_saleorder_update_package_sku_item.delay(instance)
 
 
-if not settings.CLOSE_CELERY:
-    post_save.connect(update_package_sku_item, sender=SaleOrder, dispatch_uid='post_save_update_package_sku_item')
+# if not settings.CLOSE_CELERY:
+#     post_save.connect(update_package_sku_item, sender=SaleOrder, dispatch_uid='post_save_update_package_sku_item')
 
 
 def saleorder_update_productskustats_waitingpay_num(sender, instance, *args, **kwargs):

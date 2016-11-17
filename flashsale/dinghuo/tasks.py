@@ -1494,6 +1494,8 @@ def task_purchasearrangement_update_purchasedetail(paid):
         'paid': paid
     })
     pa = PurchaseArrangement.objects.get(id=paid)
+    pa.generate_order()
+    return
 
     res = PurchaseArrangement.objects.filter(purchase_order_unikey=pa.purchase_order_unikey,
                                              sku_id=pa.sku_id, status=PurchaseArrangement.EFFECT).aggregate(total=Sum('num'))

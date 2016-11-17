@@ -761,6 +761,10 @@ class PackageSkuItem(BaseModel):
             return '亲，申请退货后请注意退货流程，记得填写快递单号哦～'
         return ''
 
+    def get_purchase_arrangement(self):
+        from flashsale.dinghuo.models_purchase import PurchaseArrangement
+        return PurchaseArrangement.objects.filter(oid=self.oid).first()
+
     # ---------------------------------------供应链核心方法--------------------------------------------------------------
     @staticmethod
     def create(sale_order):
@@ -882,11 +886,19 @@ class PackageSkuItem(BaseModel):
         SkuStock.set_psi_finish(self.sku_id, self.num)
 
     def set_status_cancel(self):
+        """
+            已产生Pa但未审核　直接取消并关pa
+        """
+        if self.assign_status == 3:
+            raise Exception(u'已取消的包裹商品不能再次取消:%s' % self.id)
+        pa = self.get_purchase_arrangement()
+        if pa and not pa.initial_book:
+            pa.cancel()
         ori_status = self.status
         self.status = PSI_STATUS.CANCEL
-        self.assign_status = 1
+        self.assign_status = 3
         self.save()
-        SkuStock.set_psi_cancel(self.sku_id, ori_status, self.num)
+        SkuStock.set_psi_cancel(self.sku_id, self.num, ori_status)
     # -----------------------------------
 
     def reset_status(self):

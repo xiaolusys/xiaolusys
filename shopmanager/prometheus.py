@@ -137,15 +137,35 @@ STATSD_HOST = '192.168.0.1'
 STATSD_PORT = 8251
 STATSD_CLIENT = 'oneapm_statsd.oneapm'
 # STATSD_CELERY_SIGNALS = True
+########################### PROMETHEUS ################################
 MIDDLEWARE_CLASSES = (
     'django_prometheus.middleware.PrometheusBeforeMiddleware',
     'django_statsd.middleware.GraphiteRequestTimingMiddleware',
     'django_statsd.middleware.GraphiteMiddleware',
+    'dogslow.WatchdogMiddleware',
 ) + MIDDLEWARE_CLASSES
 
 MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + (
     'django_prometheus.middleware.PrometheusAfterMiddleware',
 )
+########################### DOGSLOW FOR PROMETHEUS ################################
+# Watchdog is enabled by default, to temporarily disable, set to False:
+DOGSLOW = True
+
+# By default, Watchdog will create log files with the backtraces.
+# You can also set the location of where it stores them:
+DOGSLOW_LOG_TO_FILE = False
+
+# Log requests taking longer than 25 seconds:
+DOGSLOW_TIMER = 3
+
+# Also log to this logger (defaults to none):
+DOGSLOW_LOGGER = 'dogslow'
+DOGSLOW_LOG_LEVEL = 'WARNING'
+
+# Print (potentially huge!) local stack variables (off by default, use
+# True for more detailed, but less manageable reports)
+DOGSLOW_STACK_VARS = False
 
 #################### TAOBAO SETTINGS ###################
 APPKEY = '12545735'  # app name guanyi erp ,younishijie
@@ -180,6 +200,7 @@ LOGGER_HANDLERS = [
     ('supplychain', 'sentry,file'),
     ('statistics', 'sentry,file'),
     ('django.request', 'sentry,file'),
+    ('dogslow', 'sentry,file'),
     ('sentry.errors', 'sentry,file'),
     ('celery.handler', 'sentry,file'),
     ('notifyserver.handler', 'sentry,file'),
