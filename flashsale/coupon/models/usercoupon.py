@@ -4,7 +4,7 @@ from core.models import BaseModel
 from django.db import models
 from flashsale.pay.options import uniqid
 from core.fields import JSONCharMyField
-from flashsale.coupon.managers import UserCouponManager
+from .managers.usercoupon import UserCouponManager
 from flashsale.coupon import tasks
 
 

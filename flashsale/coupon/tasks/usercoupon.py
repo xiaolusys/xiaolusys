@@ -4,7 +4,6 @@ from shopmanager import celery_app as app
 
 import logging
 import datetime
-from django.db.models import F, Sum
 from flashsale.xiaolumm.models import XiaoluMama
 from django.db import IntegrityError
 
