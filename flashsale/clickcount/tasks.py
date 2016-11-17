@@ -1,6 +1,6 @@
 # coding=utf-8
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import datetime
 from django.db.models import F, Sum
@@ -22,7 +22,7 @@ CLICK_MAX_LIMIT_DATE = datetime.date(2015, 6, 5)
 SWITCH_CLICKREBETA_DATE = datetime.date(2016, 2, 24)
 
 
-@task()
+@app.task()
 def task_Create_Click_Record(xlmmid, openid, unionid, click_time, app_key):
     """
     异步保存妈妈分享点击记录
@@ -59,7 +59,7 @@ def task_Create_Click_Record(xlmmid, openid, unionid, click_time, app_key):
     return click.id
 
 
-@task()
+@app.task()
 def task_Update_User_Click(click_id, *args, **kwargs):
     if not click_id:
         return
@@ -125,7 +125,7 @@ def calc_Xlmm_ClickRebeta(xlmm, time_from, time_to, xlmm_cc=None):
     return click_rebeta
 
 
-@task()
+@app.task()
 def task_Push_ClickCount_To_MamaCash(target_date):
     """ 计算每日妈妈点击数现金提成，并更新到妈妈钱包账户"""
 
@@ -160,13 +160,13 @@ def task_Push_ClickCount_To_MamaCash(target_date):
         XiaoluMama.objects.filter(id=mm_cc.linkid).update(pending=F('pending') + click_rebeta)
 
 
-@task
+@app.task
 def task_Delete_Mamalink_Clicks(pre_date):
     clicks = Clicks.objects.filter(created__lt=pre_date)
     clicks.delete()
 
 
-@task(max_retries=3, default_retry_delay=5)
+@app.task(max_retries=3, default_retry_delay=5)
 def task_Record_User_Click(pre_day=1):
     """ 计算每日妈妈点击数，汇总"""
     pre_date = datetime.date.today() - datetime.timedelta(days=pre_day)
@@ -205,7 +205,7 @@ def task_Record_User_Click(pre_day=1):
 from flashsale.clickrebeta.models import StatisticsShoppingByDay
 
 
-@task(max_retries=3, default_retry_delay=5)
+@app.task(max_retries=3, default_retry_delay=5)
 def task_Record_User_Click_Weekly(date_from, date_to, week_code):
     """ 功能：统计date_from - date_to 时间段 的点击 购买 情况 计算转化率
         查询： ClickCount  StatisticsShoppingByDay
@@ -242,7 +242,7 @@ def task_Record_User_Click_Weekly(date_from, date_to, week_code):
         week_count.save()
 
 
-@task()
+@app.task()
 def week_Count_week_Handdle(pre_week_start_dt=None):
     """计算上一周的 开始时间 和 结束时间
     编码周= 'year + month + id'  id = 上一周是本年的 第 id 周
@@ -276,7 +276,7 @@ def push_history_week_data():  # 初始执行
         week_Count_week_Handdle(pre_week_start_dt=week_date)
 
 
-@task()
+@app.task()
 def task_Count_ClickCount_Info(instance=None, created=None):
     if not created:
         return

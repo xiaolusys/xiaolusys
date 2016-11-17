@@ -5,7 +5,7 @@ __author__ = 'yann'
 import json
 import urllib, urllib2
 
-from celery import shared_task as task
+from shopmanager import celery_app as app
 from django.contrib.auth.models import User as DjangoUser
 from django.db.models import F
 from core.options import log_action, ADDITION, CHANGE
@@ -47,7 +47,7 @@ POST_CODE_NAME_MAP = {'YUNDA': u'韵达快递',
                       }
 
 
-@task(max_retries=3, default_retry_delay=5)
+@app.task(max_retries=3, default_retry_delay=5)
 def task_off_the_shelf(product_id=None):
     """
         如果有传入商品的id，就执行一个
@@ -152,14 +152,14 @@ def close_timeout_carts_and_orders_reset_cart_num(skus=[]):
             logger.error(exc.message, exc_info=True)
 
 
-@task()
+@app.task()
 def task_add_shoppingcart_num(instance):
     stat = SkuStock.get_by_sku(instance.sku_id)
     SkuStock.objects.filter(sku_id=stat.sku_id).update(shoppingcart_num=F('shoppingcart_num')+instance.num)
     return close_timeout_carts_and_orders_reset_cart_num([instance.sku_id])
 
 
-@task()
+@app.task()
 def task_schedule_cart():
     """
         定时清空购物车中已经超过预留时间和订单中未支付的。
@@ -179,7 +179,7 @@ BAIDU_POST_CODE_EXCHANGE = {
     'QFKD': 'quanfengkuaidi',
 }
 
-@task()
+@app.task()
 def get_third_apidata(trade):
     """ 访问第三方api 获取物流参数 并保存到本地数据库　"""
     tid = trade.tid
@@ -192,7 +192,7 @@ def get_third_apidata(trade):
     SaveWuliu_only.delay(tid, content)  # 异步任务，存储物 流信息到数据库
     return
 
-@task()
+@app.task()
 def get_third_apidata_by_packetid(packetid, company_code):
     """ 使用包裹id访问第三方api 获取物流参数 并保存到本地数据库　"""
 
@@ -205,7 +205,7 @@ def get_third_apidata_by_packetid(packetid, company_code):
     SaveWuliu_by_packetid.delay(packetid, content)  # 异步任务，存储物 流信息到数据库
     return
 
-@task()
+@app.task()
 def get_third_apidata_by_packetid_return(rid,packetid, company_code):   #by huazi
     """ 使用包裹id访问第三方api 获取退货物流参数 并保存到本地数据库　"""
 
@@ -220,7 +220,7 @@ def get_third_apidata_by_packetid_return(rid,packetid, company_code):   #by huaz
     SaveReturnWuliu_by_packetid.delay(rid,packetid,content)
     return
 
-@task()
+@app.task()
 def kdn_sub(rid, expName, expNo):
     logging.warn(expNo)
     logging.warn("开始订阅了")
@@ -228,7 +228,7 @@ def kdn_sub(rid, expName, expNo):
     exp_info = {"expName": expName, "expNo": expNo}
     kdn_subscription_sub(**exp_info)
 
-@task()
+@app.task()
 def kdn_search(rid, expName, expNo):
     logging.warn(expNo)
     logging.warn("开始查询了")
@@ -236,7 +236,7 @@ def kdn_search(rid, expName, expNo):
     exp_info = {"expName": expName, "expNo": expNo}
     kdn_subscription(**exp_info)
 
-@task()
+@app.task()
 def kdn_get_push(*args, **kwargs):
     logger.warn({'action': "kdn", 'info': "kdn_get_push"})
     tradewuliu = TradeWuliu.objects.filter(logistics_company=kwargs['logistics_company'],
@@ -251,7 +251,7 @@ def kdn_get_push(*args, **kwargs):
         comfirm_get(kwargs["out_sid"], kwargs["status"])
 
 
-@task(max_retries=3, default_retry_delay=5)
+@app.task(max_retries=3, default_retry_delay=5)
 def SaveWuliu_only(tid, content):
     """
         用户点击物流信息，进行物流信息存入数据库。
@@ -274,7 +274,7 @@ def SaveWuliu_only(tid, content):
                                       content=da['content'], time=da['time'])
 
 
-@task(max_retries=3, default_retry_delay=5)
+@app.task(max_retries=3, default_retry_delay=5)
 def SaveWuliu_by_packetid(packetid, content):
     """
         用户点击物流信息，进行物流信息存入数据库。
@@ -296,7 +296,7 @@ def SaveWuliu_by_packetid(packetid, content):
                                       out_sid=content['order'], errcode=content['errcode'],
                                       content=da['content'], time=da['time'])
 
-@task(max_retries=3, default_retry_delay=5)  #by huazi
+@app.task(max_retries=3, default_retry_delay=5)  #by huazi
 def SaveReturnWuliu_by_packetid(rid,packetid, content):
     """
         用户点击物流信息，进行物流信息存入数据库。
@@ -323,7 +323,7 @@ def SaveReturnWuliu_by_packetid(rid,packetid, content):
 
 
 #
-@task()
+@app.task()
 def update_all_logistics():
     from flashsale.restpro.v1.views_wuliu_new import get_third_apidata_by_packetid
     sale_trades = SaleTrade.objects.filter(status__in= [SaleTrade.WAIT_SELLER_SEND_GOODS,
@@ -350,7 +350,7 @@ def update_all_logistics():
     logger = logging.getLogger(__name__)
     logger.warn({"action":"kdn",'update_all_logistics_trades':'counts=%d,update_counts=%d' % (sale_trades.count(), num)})
 
-# @task()
+# @app.task()
 # def update_all_return_logistics():     #by huazi
 #     from flashsale.restpro.v1.views_wuliu_new import get_third_apidata_by_packetid_return
 #     salerefunds = SaleRefund.objects.filter(status__in=[SaleRefund.REFUND_WAIT_RETURN_GOODS,
@@ -373,7 +373,7 @@ def update_all_logistics():
 #                 logging.warn("物流公司express_key%s,物流单号%s" % (company_id.express_key,i.sid))
 #     logger.warn('update_all_return_logistics')
 
-@task()
+@app.task()
 def update_all_return_logistics_bykdn():
     from flashsale.restpro.v1.views_wuliu_new import get_third_apidata_by_packetid_return
     salerefunds = SaleRefund.objects.filter(status__in=[SaleRefund.REFUND_WAIT_RETURN_GOODS,
@@ -397,13 +397,13 @@ def update_all_return_logistics_bykdn():
                 logging.warn("物流公司%s,物流单号%s" % (i.company_name,i.sid))
     logger.warn('update_all_return_logistics')
 
-@task()
+@app.task()
 def delete_logistics_three_month_ago():
     delete_time = datetime.datetime.now() - datetime.timedelta(days=90)
     TradeWuliu.objects.filter(time__lte=delete_time).delete()
     logger.warn('删除数据库中3个月前的物流数据')
 
-@task()
+@app.task()
 def prods_position_handler():
     """ 初始化店铺产品的信息 """
     shops = CustomerShops.objects.all()

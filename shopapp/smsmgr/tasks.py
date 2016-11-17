@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import random
 import logging
@@ -89,7 +89,7 @@ def gen_package_post_sms_content(package_order, package_sku_item, delay_days):
     return template.render(context)
 
 
-@task()
+@app.task()
 def task_notify_package_post(package_order):
     """
     :param package_order: PackageOrder instance
@@ -169,7 +169,7 @@ def gen_lack_refund_sms_content(sale_order):
     return template.render(context)
 
 
-@task()
+@app.task()
 def task_notify_lack_refund(sale_order):
     """
     :param package_order: PackageOrder instance
@@ -296,7 +296,7 @@ def send_later_not_post_notify(sale_order):
 
 # TODO 缺货退款通知
 
-@task()
+@app.task()
 def task_deliver_goods_later():
     """ 付款五天未发货通知 """
     if True:  # 不发送该 短信通知 即 超 时 没有发货的订单不会提醒用户短信
@@ -317,7 +317,7 @@ def task_deliver_goods_later():
         send_later_not_post_notify(order)
 
 
-@task()
+@app.task()
 def task_register_code(mobile, send_type="1"):
     """ 短信验证码 """
     # 选择默认短信平台商，如果没有，任务退出

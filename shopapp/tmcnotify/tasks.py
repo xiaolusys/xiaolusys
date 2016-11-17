@@ -1,6 +1,6 @@
 # -*- coding:utf8 -*-
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import re
 import json
@@ -241,6 +241,6 @@ class ProcessMessageTask(Task):
         else:
             self.successConsumeMessage(message)
 
-@task
+@app.task
 def task_process_message(*args, **kwargs):
     ProcessMessageTask().run(*args, **kwargs)

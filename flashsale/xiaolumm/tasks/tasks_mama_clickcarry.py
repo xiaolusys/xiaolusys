@@ -1,6 +1,6 @@
 # -*- encoding:utf-8 -*-
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import sys
 import datetime
@@ -78,7 +78,7 @@ def confirm_clickcarry(click_carry, mama_id, date_field):
     click_carry.save()
 
 
-@task()
+@app.task()
 def task_confirm_previous_zero_order_clickcarry(mama_id, today_date_field, num_days):
     """
     This is how a zero order clickcarry gets confirmed:
@@ -107,7 +107,7 @@ def task_confirm_previous_zero_order_clickcarry(mama_id, today_date_field, num_d
         click_carry.status = 2  # confirm
         click_carry.save()
 
-@task()
+@app.task()
 def task_confirm_previous_order_clickcarry(mama_id, today_date_field, num_days):
     end_date_field = today_date_field - datetime.timedelta(days=num_days)
 
@@ -209,7 +209,7 @@ def plan_for_price_limit_name(order_num, carry_plan_id):
     return price, limit, name
 
 
-@task()
+@app.task()
 def task_visitor_increment_clickcarry(mama_id, date_field, fake=False):
 
     uni_key = util_unikey.gen_clickcarry_unikey(mama_id, date_field)
@@ -240,7 +240,7 @@ def task_visitor_increment_clickcarry(mama_id, date_field, fake=False):
             click_carrys.update(click_num=click_num)
 
 
-@task()
+@app.task()
 def task_update_clickcarry_order_number(mama_id, date_field):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
 

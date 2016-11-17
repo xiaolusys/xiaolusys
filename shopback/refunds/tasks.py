@@ -1,6 +1,6 @@
 # coding=utf-8
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import time
 import datetime
@@ -17,7 +17,7 @@ __author__ = 'meixqhi'
 logger = logging.getLogger('django.request')
 
 
-@task(max_retries=3)
+@app.task(max_retries=3)
 def saveUserRefundOrderTask(user_id, update_from=None, update_to=None):
     update_from = format_datetime(update_from)
     update_to = format_datetime(update_to)
@@ -43,7 +43,7 @@ def saveUserRefundOrderTask(user_id, update_from=None, update_to=None):
         cur_page += 1
 
 
-@task()
+@app.task()
 def updateAllUserRefundOrderTask(days=0, update_from=None, update_to=None):
     hander_update = update_from and update_to
     if not hander_update:
@@ -95,7 +95,7 @@ def flushHistToRefRat(bt=None):
         print u"统计时间:%s" % bt
 
 
-@task()
+@app.task()
 def fifDaysRateFlush(days=30):
     """ 每天定时执行 刷新过去30天的数据 """
     for i in range(days):
@@ -114,7 +114,7 @@ from supplychain.supplier.models import SaleProduct
 from django.db.models import F
 
 
-@task()
+@app.task()
 def taskRefundRecord(obj):
     order = SaleOrder.objects.get(id=obj.order_id)
     trade = order.sale_trade

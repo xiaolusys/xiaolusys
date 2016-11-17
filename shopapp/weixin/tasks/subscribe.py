@@ -1,6 +1,6 @@
 # coding: utf8
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import datetime
 from shopapp.weixin.weixin_apis import WeiXinAPI
@@ -9,7 +9,7 @@ from shopapp.weixin.models import WeixinFans, WeixinUnionID
 import logging
 logger = logging.getLogger(__name__)
 
-@task(max_retries=3, default_retry_delay=5)
+@app.task(max_retries=3, default_retry_delay=5)
 def task_subscribe_or_unsubscribe_update_userinfo(openid, wx_pubid, event, eventKey):
     try:
         wx_api = WeiXinAPI()

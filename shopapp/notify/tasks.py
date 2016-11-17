@@ -1,6 +1,6 @@
 # -*- coding:utf8 -*-
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import time
 import datetime
@@ -32,7 +32,7 @@ class EmptyMemo(Exception):
 
 
 ############################ 订单主动消息处理  ###############################
-@task(max_retries=3)
+@app.task(max_retries=3)
 def process_trade_notify_task(id):
     """ 处理交易主动通知信息 """
     try:
@@ -199,7 +199,7 @@ def process_trade_notify_task(id):
 
 
 ############################ 商品主动消息处理  ###############################
-@task(max_retries=5)
+@app.task(max_retries=5)
 def process_item_notify_task(id):
     """商品主动消息处理"""
     try:
@@ -241,7 +241,7 @@ def process_item_notify_task(id):
 
 
 ############################ 退款主动消息处理  ###############################
-@task(max_retries=5)
+@app.task(max_retries=5)
 def process_refund_notify_task(id):
     """
     退款处理
@@ -355,7 +355,7 @@ def process_refund_notify_task(id):
 
 
 ############################ 批量下载订单主动消息处理  ###############################
-@task(max_retries=3)
+@app.task(max_retries=3)
 def process_trade_interval_notify_task(user_id, update_from=None, update_to=None):
     update_handler = update_from and update_to
     try:
@@ -398,7 +398,7 @@ def process_trade_interval_notify_task(user_id, update_from=None, update_to=None
 
 
 ############################ 批量下载商品主动消息处理  ###############################
-@task(max_retries=3)
+@app.task(max_retries=3)
 def process_item_interval_notify_task(user_id, update_from=None, update_to=None):
     update_handler = update_from and update_to
     try:
@@ -441,7 +441,7 @@ def process_item_interval_notify_task(user_id, update_from=None, update_to=None)
 
 
 ############################ 批量下载退款主动消息处理  ###############################
-@task(max_retries=3)
+@app.task(max_retries=3)
 def process_refund_interval_notify_task(user_id, update_from=None, update_to=None):
     update_handler = update_from and update_to
     try:
@@ -484,7 +484,7 @@ def process_refund_interval_notify_task(user_id, update_from=None, update_to=Non
 
 
 ############################ 增量订单主动消息处理  ###############################
-@task
+@app.task
 def process_trade_increment_notify_task():
     users = User.objects.all()
     for user in users:
@@ -492,7 +492,7 @@ def process_trade_increment_notify_task():
 
 
 ############################ 增量商品主动消息处理  ###############################
-@task
+@app.task
 def process_item_increment_notify_task():
     users = User.objects.all()
     for user in users:
@@ -500,7 +500,7 @@ def process_item_increment_notify_task():
 
 
 ############################ 增量退款主动消息处理  ###############################
-@task
+@app.task
 def process_refund_increment_notify_task():
     users = User.objects.all()
     for user in users:
@@ -508,7 +508,7 @@ def process_refund_increment_notify_task():
 
 
 ############################ 丢失主动消息处理  ###############################
-@task
+@app.task
 def process_discard_notify_task(begin, end, user_id=None):
     if not user_id:
         user_id = User.objects.all()[0].visitor_id
@@ -538,7 +538,7 @@ def process_discard_notify_task(begin, end, user_id=None):
             process_refund_interval_notify_task.delay(user_id, update_from=start, update_to=end)
 
 
-@task()
+@app.task()
 def delete_success_notify_record_task(days):
     # 更新定时提醒订单
     dt = datetime.datetime.now() - datetime.timedelta(days, 0, 0)

@@ -1,6 +1,6 @@
 # -*- encoding:utf-8 -*-
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import sys
 from django.db.models import Sum
@@ -24,7 +24,7 @@ def get_cur_info():
     return f.f_code.co_name
 
 
-@task()
+@app.task()
 def task_create_lessonattendrecord(lesson_id, userinfo):
     student_unionid = userinfo.get("unionid")
     student_nick = userinfo.get("nickname")
@@ -42,7 +42,7 @@ def task_create_lessonattendrecord(lesson_id, userinfo):
                                     student_nick=student_nick, student_image=student_image, uni_key=uni_key)
             ar.save()
 
-@task()
+@app.task()
 def task_create_instructor_application(userinfo):
     unionid = userinfo.get("unionid")
     nick = userinfo.get("nickname")
@@ -63,7 +63,7 @@ def task_create_instructor_application(userinfo):
     
     
     
-@task()
+@app.task()
 def task_lessonattendrecord_create_topicattendrecord(lesson_attend_record):
     unionid = lesson_attend_record.student_unionid
     lesson_id = lesson_attend_record.lesson_id
@@ -81,14 +81,14 @@ def task_lessonattendrecord_create_topicattendrecord(lesson_attend_record):
         t.save()
 
     
-@task()
+@app.task()
 def task_topicattendrecord_validate_lessonattendrecord(lesson_attend_record_id):
     record = LessonAttendRecord.objects.get(id=lesson_attend_record_id)
     record.status = LessonAttendRecord.STATUS_EFFECT
     record.save(update_fields=['status'])
 
 
-@task()
+@app.task()
 def task_update_topic_attender_num(topic_id):
     num_attender = TopicAttendRecord.objects.filter(topic_id=topic_id).count()
     topic = LessonTopic.objects.get(id=topic_id)
@@ -96,7 +96,7 @@ def task_update_topic_attender_num(topic_id):
     topic.save(update_fields=['num_attender'])
 
 
-@task()
+@app.task()
 def task_update_lesson_attender_num(lesson_id):
     num_attender = LessonAttendRecord.objects.filter(lesson_id=lesson_id).count()
     effect_num_attender = LessonAttendRecord.objects.filter(lesson_id=lesson_id, status=LessonAttendRecord.STATUS_EFFECT).count()
@@ -106,7 +106,7 @@ def task_update_lesson_attender_num(lesson_id):
     lesson.save(update_fields=['num_attender', 'effect_num_attender'])
 
 
-@task()
+@app.task()
 def task_lesson_update_instructor_attender_num(instructor_id):
     res = Lesson.objects.filter(instructor_id=instructor_id).aggregate(total=Sum('num_attender'))
     num_attender = res['total'] or 0
@@ -116,7 +116,7 @@ def task_lesson_update_instructor_attender_num(instructor_id):
     instructor.save(update_fields=['num_attender'])
 
 
-@task()
+@app.task()
 def task_lesson_update_instructor_payment(lesson):
     instructor_id = lesson.instructor_id
     instructor = Instructor.objects.get(id=instructor_id)

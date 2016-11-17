@@ -444,6 +444,9 @@ class SaleProductManageSerializer(serializers.ModelSerializer):
 
         category_product_nums = {}
         details = []
+        for d in obj.manage_schedule.all().only('sale_product_id'):
+            details.append(d.sale_product)
+
         schedule_product_ids = list(obj.manage_schedule.values_list('sale_product_id',flat=True))
         schedule_category_ids = SaleProduct.objects.filter(id__in=schedule_product_ids)\
             .values_list('sale_category_id',flat=True)
@@ -455,6 +458,7 @@ class SaleProductManageSerializer(serializers.ModelSerializer):
             else:
                 category_product_nums[cat_fullname] += 1
         category_product_num_list = [{'category_name': k, 'product_num': v} for k, v in category_product_nums.iteritems()]
+
         supplier_product_nums = {}
         # 50 以下　　50-100　100-150  >150
         price_zone_num = {}

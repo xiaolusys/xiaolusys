@@ -1,6 +1,6 @@
 # -*- encoding:utf-8 -*-
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import sys
 from django.db import IntegrityError
@@ -23,7 +23,7 @@ def get_cur_info():
     return f.f_code.co_name
 
 
-@task()
+@app.task()
 def task_update_referal_relationship(sale_order):
     sale_trade = sale_order.sale_trade
     customer_id = sale_trade.buyer_id
@@ -113,7 +113,7 @@ def task_update_referal_relationship(sale_order):
     record.save()
 
 
-@task()
+@app.task()
 def task_update_group_relationship(leader_mama_id, referal_relationship):
 
     records = GroupRelationship.objects.filter(member_mama_id=referal_relationship.referal_to_mama_id)
@@ -133,7 +133,7 @@ from flashsale.xiaolumm.util_unikey import gen_uniquevisitor_unikey
 from shopapp.weixin.options import get_unionid_by_openid
 
 
-@task()
+@app.task()
 def task_update_unique_visitor(mama_id, openid, appkey, click_time):
 
     if XiaoluMama.objects.filter(pk=mama_id).count() <= 0:
@@ -167,7 +167,7 @@ from flashsale.promotion.models import AppDownloadRecord
 from flashsale.xiaolumm.models.models_fans import XlmmFans
 
 
-@task()
+@app.task()
 def task_login_activate_appdownloadrecord(user):
     customer = Customer.objects.normal_customer.filter(user=user).first()
     if not customer:
@@ -211,7 +211,7 @@ def task_login_activate_appdownloadrecord(user):
 
     
  
-@task()
+@app.task()
 def task_login_create_appdownloadrecord(user):
     customer = Customer.objects.normal_customer.filter(user=user).first()
     if not customer:

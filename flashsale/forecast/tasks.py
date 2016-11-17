@@ -4,7 +4,7 @@ from __future__ import absolute_import, unicode_literals
 import datetime
 from django.conf import settings
 from django.db.models import Max
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 from .models import ForecastInbound, ForecastInboundDetail, ForecastStats, RealInbound
 from . import services
@@ -12,7 +12,7 @@ from . import services
 import logging
 logger = logging.getLogger(__name__)
 
-@task(max_retries=3, default_retry_delay=60)
+@app.task(max_retries=3, default_retry_delay=60)
 def task_forecast_update_stats_data(finbound_id):
     try:
         forecast_inbound = ForecastInbound.objects.get(id=finbound_id)

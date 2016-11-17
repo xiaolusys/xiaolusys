@@ -2,19 +2,19 @@
 from __future__ import absolute_import, unicode_literals
 
 import datetime
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 from django.db.models import Q
 
 from .models import WeixinUserAward
 from .service import WeixinSaleService
 
-@task
+@app.task
 def task_notify_referal_award(user_openid):
     wx_service = WeixinSaleService(user_openid)
     wx_service.notifyReferalAward()
 
-@task
+@app.task
 def task_notify_parent_award():
 
     end_remind_time = datetime.datetime.now() - datetime.timedelta(seconds=10 * 60)

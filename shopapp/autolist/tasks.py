@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import datetime
 import time
@@ -50,7 +50,7 @@ def write_to_log_db(task, response):
     log.save()
 
 
-@task(max_retries=3)
+@app.task(max_retries=3)
 def updateItemListTask(num_iid):
     try:
         task = ItemListTask.objects.get(num_iid=num_iid)
@@ -113,7 +113,7 @@ def updateItemListTask(num_iid):
     task.save()
 
 
-@task()
+@app.task()
 def updateAllItemListTask():
     currentdate = datetime.datetime.now()
     currenttime = time.mktime(currentdate.timetuple())

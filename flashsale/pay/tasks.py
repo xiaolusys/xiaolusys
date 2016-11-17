@@ -4,7 +4,7 @@ import re
 import datetime
 import logging
 
-from celery import shared_task as task
+from shopmanager import celery_app as app
 from django.conf import settings
 from django.db import models
 from django.db import transaction
@@ -27,7 +27,7 @@ __author__ = 'meixqhi'
 logger = logging.getLogger(__name__)
 
 
-@task()
+@app.task()
 def task_Update_Sale_Customer(unionid, openid=None, app_key=None):
     """ 更新特卖用户　微信授权信息 """
     if openid and app_key:
@@ -52,7 +52,7 @@ def task_Update_Sale_Customer(unionid, openid=None, app_key=None):
         logger.debug(exc.message, exc_info=True)
 
 
-@task()
+@app.task()
 def task_Refresh_Sale_Customer(user_params, app_key=None):
     """ 更新特卖用户　微信授权信息 """
     openid, unionid = user_params.get('openid'), user_params.get('unionid')
@@ -84,7 +84,7 @@ def task_Refresh_Sale_Customer(user_params, app_key=None):
         logger.debug(exc.message, exc_info=True)
 
 
-@task()
+@app.task()
 def task_Merge_Sale_Customer(user, code):
     """ 根据当前登录用户，更新微信授权信息 """
 
@@ -128,7 +128,7 @@ def task_Merge_Sale_Customer(user, code):
 from shopback.trades.models import MergeTrade
 
 
-@task()
+@app.task()
 def task_Push_SaleTrade_Finished(pre_days=10):
     """
     定时将待确认状态小鹿特卖订单更新成已完成：
@@ -158,7 +158,7 @@ def task_Push_SaleTrade_Finished(pre_days=10):
             strade.save(update_fields=['status'])
 
 
-@task(max_retries=3, default_retry_delay=60)
+@app.task(max_retries=3, default_retry_delay=60)
 def confirmTradeChargeTask(sale_trade_id, charge_time=None, charge=None):
     """ 订单确认付款,并更新状态 """
     strade = SaleTrade.objects.get(id=sale_trade_id)
@@ -167,7 +167,7 @@ def confirmTradeChargeTask(sale_trade_id, charge_time=None, charge=None):
     saleservice.payTrade()
 
 
-@task(max_retries=3, default_retry_delay=60)
+@app.task(max_retries=3, default_retry_delay=60)
 def notifyTradePayTask(notify):
     """ 订单确认支付通知消息，如果订单分阶段支付，则在原单ID后追加:[tid]-[数字] """
     try:
@@ -212,7 +212,7 @@ def notifyTradePayTask(notify):
 from .options import getOrCreateSaleSeller
 
 
-@task(max_retries=3, default_retry_delay=60)
+@app.task(max_retries=3, default_retry_delay=60)
 def notifyTradeRefundTask(notify):
     try:
         refund_id = notify['id']
@@ -245,7 +245,7 @@ def notifyTradeRefundTask(notify):
         raise notifyTradeRefundTask.retry(exc=exc)
 
 
-@task(max_retries=3, default_retry_delay=30)
+@app.task(max_retries=3, default_retry_delay=30)
 def pushTradeRefundTask(refund_id):
     """ 发货前申请,　检查是否极速退款 """
     try:
@@ -286,7 +286,7 @@ def pushTradeRefundTask(refund_id):
         raise pushTradeRefundTask.retry(exc=exc)
 
 
-@task
+@app.task
 def pull_Paid_SaleTrade(pre_day=1, interval=1):
     """ pre_day:表示从几天前开始；interval:表示从pre_day开始更新多少天的数据 """
     target = datetime.datetime.now() - datetime.timedelta(days=pre_day)
@@ -320,7 +320,7 @@ def pull_Paid_SaleTrade(pre_day=1, interval=1):
             break
 
 
-@task
+@app.task
 def push_SaleTrade_To_MergeTrade():
     """ 更新特卖订单到订单列表 """
 
@@ -338,7 +338,7 @@ def push_SaleTrade_To_MergeTrade():
 from flashsale.pay.models import Envelop
 
 
-@task(max_retries=3, default_retry_delay=10)
+@app.task(max_retries=3, default_retry_delay=10)
 def task_handle_envelope_notify(notify):
     try:
         envelop = Envelop.objects.get(id=notify['order_no'])
@@ -347,7 +347,7 @@ def task_handle_envelope_notify(notify):
         raise task_handle_envelope_notify.retry(exc=exc)
 
 
-@task
+@app.task
 def task_Pull_Red_Envelope(pre_day=7):
     """更新红包
     {
@@ -407,7 +407,7 @@ from shopapp.weixin.models import WeixinUnionID
 from django.conf import settings
 
 
-@task
+@app.task
 def task_Record_Mama_Fans(instance, created):
     """
     记录代理粉丝任务
@@ -454,7 +454,7 @@ def task_Record_Mama_Fans(instance, created):
 from flashsale.pay.models import BudgetLog, UserBudget
 from django.db.models import Sum
 
-@task(max_retries=3, default_retry_delay=6)
+@app.task(max_retries=3, default_retry_delay=6)
 def task_budgetlog_update_userbudget(budget_log):
     customer_id = budget_log.customer_id
     bglogs = BudgetLog.objects.filter(customer_id=customer_id).exclude(status=BudgetLog.CANCELED)
@@ -540,7 +540,7 @@ def send_refund_msg(refund):
 from flashsale.push.push_refund import push_refund_app_msg
 
 
-@task
+@app.task
 def task_send_msg_for_refund(refund):
     """
     退款单状态变化的时候
@@ -555,7 +555,7 @@ def task_send_msg_for_refund(refund):
 from flashsale.push.push_usercoupon import user_coupon_release_push
 
 
-@task
+@app.task
 def task_release_coupon_push(customer_id):
     """ 特卖用户领取红包 """
     user_coupon_release_push(customer_id, push_tpl_id=9)
@@ -606,7 +606,7 @@ def close_15_refund(refund):
     return True
 
 
-@task
+@app.task
 def task_close_refund(days=None):
     """
     指定时间之前的退款单 状态切换为关闭状态
@@ -630,7 +630,7 @@ def task_close_refund(days=None):
     res = map(close_15_refund, refunds)
 
 
-@task(serializer='pickle')
+@app.task(serializer='pickle')
 @transaction.atomic
 def task_saleorder_update_package_sku_item(sale_order):
 
@@ -686,7 +686,7 @@ def task_saleorder_update_package_sku_item(sale_order):
             sku_item.clear_order_info()
 
 
-@task()
+@app.task()
 def tasks_set_user_address_id(sale_trade):
     ua, state = UserAddress.objects.get_or_create(
         cus_uid=sale_trade.buyer_id,
@@ -703,7 +703,7 @@ def tasks_set_user_address_id(sale_trade):
         ua.save()
     SaleTrade.objects.filter(id=sale_trade.id).update(user_address_id=ua.id)
 
-@task()
+@app.task()
 def tasks_set_address_priority_logistics_code(address_id, logistics_company_id):
 
     from shopback.logistics.models import LogisticsCompany
@@ -716,7 +716,7 @@ def tasks_set_address_priority_logistics_code(address_id, logistics_company_id):
 
 
 
-@task()
+@app.task()
 def tasks_update_sale_trade_status(sale_trade_id):
     # logger.warn('tasks_update_sale_trade_status check:' + str(sale_trade_id))
     sale_order_status = [s['status']
@@ -758,7 +758,7 @@ def tasks_update_sale_trade_status(sale_trade_id):
             SaleTrade.objects.filter(id=sale_trade_id).update(status=SaleTrade.TRADE_FINISHED)
 
 
-@task()
+@app.task()
 def task_customer_update_weixinuserinfo(customer):
     if not customer.unionid:
         return
@@ -770,7 +770,7 @@ def task_customer_update_weixinuserinfo(customer):
         info.save()
 
 
-@task()
+@app.task()
 def task_sync_xlmm_fans_nick_thumbnail(customer):
     """ 更新小鹿妈妈粉丝的头像和昵称 """
     from flashsale.xiaolumm.models import XlmmFans
@@ -780,7 +780,7 @@ def task_sync_xlmm_fans_nick_thumbnail(customer):
     fans.update_nick_thumbnail(customer.nick, customer.thumbnail)
 
 
-@task()
+@app.task()
 def task_sync_xlmm_mobile_by_customer(customer):
     """ 更新小鹿妈妈的手机号 """
     xlmm = customer.get_xiaolumm()
@@ -790,7 +790,7 @@ def task_sync_xlmm_mobile_by_customer(customer):
     xlmm.update_mobile(mobile.strip())
 
 
-@task()
+@app.task()
 def task_add_product_to_customer_shop(customer):
     """
     为代理用户店铺添加　推送中的商品
@@ -843,7 +843,7 @@ def task_add_product_to_customer_shop(customer):
             cu_pro.save()
 
 
-@task(serializer='pickle')
+@app.task(serializer='pickle')
 def task_add_user_order_integral(sale_order):
     """
     :arg sale_order : SaleOrder instance
@@ -895,7 +895,7 @@ def task_add_user_order_integral(sale_order):
             integral_log.save(update_fields=['log_status'])
 
 
-@task(serializer='pickle')
+@app.task(serializer='pickle')
 def task_calculate_total_order_integral(integral_log):
     """
     :arg integral_log IntegralLog instance
@@ -917,7 +917,7 @@ def task_calculate_total_order_integral(integral_log):
     Integral.create_integral(customer_id=user, integral_value=total_point)
 
 
-@task()
+@app.task()
 def task_tongji_trade_source():
     from django_statsd.clients import statsd
     from django.db import connection
@@ -960,7 +960,7 @@ def task_tongji_trade_source():
     statsd.timing('xiaolumm.postpay_from_direct_count', direct_count)
 
 
-@task()
+@app.task()
 def task_schedule_check_teambuy():
     _now = datetime.datetime.now()
     for teambuy in TeamBuy.objects.filter(limit_time__lt=_now, status=0):

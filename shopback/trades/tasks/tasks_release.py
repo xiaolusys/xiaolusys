@@ -3,7 +3,7 @@
 ### deprecated
 ##################################3
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 from celery import group
 
@@ -26,7 +26,7 @@ class CancelMergeOrderStockOutTask(object):
         pcode_tuple = self.get_stockout_productcode_tuple()
         group([releaseProductTradesTask.s(pcode) for pcode in pcode_tuple])()
 
-@task()
+@app.task()
 def task_cancel_mergeorder_stockout(*args, **kwarg):
     CancelMergeOrderStockOutTask().run(*args, **kwarg)
 

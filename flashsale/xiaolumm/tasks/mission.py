@@ -1,6 +1,6 @@
 # -*- encoding:utf-8 -*-
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 from celery import group
 
 import datetime
@@ -15,7 +15,7 @@ from flashsale.xiaolumm.models import XiaoluMama, AwardCarry, OrderCarry, \
 import logging
 logger = logging.getLogger(__name__)
 
-@task(max_retries=3, default_retry_delay=60)
+@app.task(max_retries=3, default_retry_delay=60)
 def task_push_mission_state_msg_to_weixin_user(mission_record_id, state):
     """state: staging,任务未完成状态通知; finished,任务完成奖励通知； confirm,任务奖励确认通知; cancel,任务奖励取消通知;"""
     try:
@@ -193,7 +193,7 @@ def fresh_mama_weekly_mission_bycat(xiaolumama, cat_type, year_week):
             break
 
 
-@task
+@app.task
 def task_create_or_update_mama_mission_state(mama_id):
     """
     妈妈周激励任务生成条件:
@@ -236,20 +236,20 @@ def task_create_or_update_mama_mission_state(mama_id):
         create_or_update_weekly_mission(xiaolumama, record.mission, pre_year_week)
 
 
-@task
+@app.task
 def task_batch_create_or_update_mama_mission_state(params_list):
     """ small batch execute a larget tasks """
     jobs = group([task_create_or_update_mama_mission_state.s(*param) for param in params_list])
     jobs.delay()
 
-@task
+@app.task
 def task_batch_push_mission_state_msg_to_weixin_user(params_list):
     """ small batch execute a larget tasks """
     jobs = group([task_push_mission_state_msg_to_weixin_user.s(*param) for param in params_list])
     jobs.delay()
 
 
-@task
+@app.task
 def task_update_all_mama_mission_state():
     xiaolumms = XiaoluMama.objects.filter(
         status=XiaoluMama.EFFECT,
@@ -264,7 +264,7 @@ def task_update_all_mama_mission_state():
         task_batch_create_or_update_mama_mission_state.delay(params)
 
 
-@task
+@app.task
 def task_notify_all_mama_staging_mission():
     """ 消息通知妈妈还有哪些未完成任务 """
     year_week = datetime.datetime.now().strftime('%Y-%W')
@@ -289,7 +289,7 @@ def task_notify_all_mama_staging_mission():
 
 
 
-@task(max_retries=3, default_retry_delay=5)
+@app.task(max_retries=3, default_retry_delay=5)
 def task_send_mama_weekly_award(mama_id, mission_record_id):
     """ 发放妈妈周激励奖励 """
     # TODO@meron 需要个时间将提成确认
@@ -317,7 +317,7 @@ def task_send_mama_weekly_award(mama_id, mission_record_id):
         raise task_send_mama_weekly_award.retry(exc=exc)
 
 
-@task(max_retries=3, default_retry_delay=60)
+@app.task(max_retries=3, default_retry_delay=60)
 def task_cancel_or_finish_mama_mission_award(mission_record_id):
     try:
         mama_mission = MamaMissionRecord.objects.filter(
@@ -341,7 +341,7 @@ def task_cancel_or_finish_mama_mission_award(mission_record_id):
 
 
 
-@task(max_retries=3, default_retry_delay=5)
+@app.task(max_retries=3, default_retry_delay=5)
 def task_update_all_mama_mission_award_states():
     """　更新一周前妈妈周任务激励佣金 """
     aweek_ago = datetime.datetime.now() - datetime.timedelta(days=7)
@@ -355,7 +355,7 @@ def task_update_all_mama_mission_award_states():
     jobs.delay()
 
 
-@task(max_retries=3, default_retry_delay=5)
+@app.task(max_retries=3, default_retry_delay=5)
 def task_cancel_mama_weekly_award(mama_id, mission_record_id):
     """ 取消周激励提成 """
     try:

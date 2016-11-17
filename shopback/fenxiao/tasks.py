@@ -1,6 +1,6 @@
 # -*- coding:utf8 -*-
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import time
 import datetime
@@ -22,7 +22,7 @@ __author__ = 'meixqhi'
 logger = logging.getLogger('django.request')
 
 
-@task()
+@app.task()
 def saveUserFenxiaoProductTask(seller_id):
     seller = Seller.getSellerByVisitorId(seller_id)
     if not seller.has_fenxiao:
@@ -62,7 +62,7 @@ def saveUserFenxiaoProductTask(seller_id):
             .exclude(pid__in=fenxiao_product_ids).update(status=FenxiaoProduct.DOWN)
 
 
-@task(max_retries=3)
+@app.task(max_retries=3)
 def saveUserPurchaseOrderTask(seller_id, update_from=None, update_to=None, status=None):
     seller = Seller.getSellerByVisitorId(seller_id)
     if not seller.has_fenxiao:
@@ -114,7 +114,7 @@ def saveUserPurchaseOrderTask(seller_id, update_from=None, update_to=None, statu
         raise saveUserPurchaseOrderTask.retry(exc=exc, countdown=60)
 
 
-@task()
+@app.task()
 def saveUserIncrementPurchaseOrderTask(seller_id, update_from=None, update_to=None):
     seller = Seller.getSellerByVisitorId(seller_id)
     if not seller.has_fenxiao:
@@ -152,7 +152,7 @@ def saveUserIncrementPurchaseOrderTask(seller_id, update_from=None, update_to=No
         cur_page += 1
 
 
-@task()
+@app.task()
 def updateAllUserIncrementPurchaseOrderTask(update_from=None, update_to=None):
     update_handler = update_from and update_to
     dt = datetime.datetime.now()
@@ -191,7 +191,7 @@ def updateAllUserIncrementPurchaseOrderTask(update_from=None, update_to=None):
                 monitor_status.save()
 
 
-@task()
+@app.task()
 def updateAllUserIncrementPurchasesTask():
     """ 增量更新分销平台订单信息 """
 

@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import datetime
 import time
@@ -41,7 +41,7 @@ def get_cur_info():
     return f.f_code.co_name
 
 
-@task()
+@app.task()
 def updateUserItemsTask(user_id):
     """ 更新淘宝线上商品信息入库 """
     has_next = True
@@ -104,7 +104,7 @@ def updateUserItemsTask(user_id):
     return len(onsale_item_ids)
 
 
-@task()
+@app.task()
 def updateAllUserItemsTask():
     """ 更新所有用户商品信息任务 """
 
@@ -113,7 +113,7 @@ def updateAllUserItemsTask():
         updateUserItemsTask.delay(user.visitor_id)
 
 
-@task()
+@app.task()
 def updateUserProductSkuTask(user_id=None, outer_ids=None, force_update_num=False):
     """ 更新用户商品SKU规格信息任务 """
 
@@ -195,7 +195,7 @@ def updateUserProductSkuTask(user_id=None, outer_ids=None, force_update_num=Fals
                 prop_dict = {}
 
 
-@task()
+@app.task()
 def updateProductWaitPostNumTask(pre_days=UPDATE_WAIT_POST_DAYS):
     """ 更新商品待发数任务 """
     pre_date = datetime.datetime.now() - datetime.timedelta(days=pre_days)
@@ -337,11 +337,11 @@ class CalcProductSaleTask(object):
                     prod.warn_num = total_sale
                     prod.save()
 
-@task()
+@app.task()
 def task_cancel_unused_yunda_sid(*args, **kwarg):
     CalcProductSaleTask().run(*args, **kwarg)
 
-@task()
+@app.task()
 def updateAllUserProductSkuTask():
     """ 更新所有用户SKU信息任务 """
     users = Seller.effect_users.filter(is_primary=True)
@@ -349,7 +349,7 @@ def updateAllUserProductSkuTask():
         updateUserProductSkuTask.delay(user.visitor_id)
 
 
-@task()
+@app.task()
 def updateUserItemsEntityTask(user_id):
     """ 更新用户商品及SKU信息任务 """
     updateUserItemsTask(user_id)
@@ -357,7 +357,7 @@ def updateUserItemsEntityTask(user_id):
     updateUserProductSkuTask.delay(user_id)
 
 
-@task()
+@app.task()
 def updateAllUserItemsEntityTask():
     """ 更新所有用户商品及SKU信息任务 """
     users = Seller.effect_users.all()
@@ -365,7 +365,7 @@ def updateAllUserItemsEntityTask():
         updateUserItemsEntityTask.delay(user.visitor_id)
 
 
-@task()
+@app.task()
 def updateUserItemSkuFenxiaoProductTask(user_id):
     """ 更新用户商品信息，SKU信息及分销商品信息任务 """
     updateUserItemsTask(user_id)
@@ -373,7 +373,7 @@ def updateUserItemSkuFenxiaoProductTask(user_id):
     saveUserFenxiaoProductTask(user_id)
 
 
-@task()
+@app.task()
 def task_calc_product_sale_stats():
     """  计算商品销售 """
 
@@ -650,7 +650,7 @@ def updatePurchaseItemNum(user_id, pid):
                                                  end_at=item_dict['modified'])
 
 
-@task()
+@app.task()
 def updateUserItemNumTask(user_id):
     updateUserItemsTask(user_id)
     updateUserProductSkuTask(user_id)
@@ -663,7 +663,7 @@ def updateUserItemNumTask(user_id):
             logger.error(u'更新淘宝库存异常:%s' % exc, exc_info=True)
 
 
-@task()
+@app.task()
 def updateUserPurchaseItemNumTask(user_id):
     saveUserFenxiaoProductTask(user_id)
 
@@ -676,7 +676,7 @@ def updateUserPurchaseItemNumTask(user_id):
             logger.error(u'更新分销库存异常:%s' % exc.message, exc_info=True)
 
 
-@task()
+@app.task()
 def updateAllUserItemNumTask():
     updateProductWaitPostNumTask()
 
@@ -684,7 +684,7 @@ def updateAllUserItemNumTask():
         updateUserItemNumTask(user.visitor_id)
 
 
-@task()
+@app.task()
 def updateAllUserPurchaseItemNumTask():
     updateProductWaitPostNumTask()
 
@@ -697,7 +697,7 @@ def updateAllUserPurchaseItemNumTask():
 from shopback.items.service import releaseProductTrades
 
 
-@task
+@app.task
 def releaseProductTradesTask(outer_ids):
     for outer_id in outer_ids:
         releaseProductTrades(outer_id)
@@ -966,7 +966,7 @@ class CalcProductSaleAsyncTask(object):
                                         p_outer_id=p_outer_id, show_sale=show_sale)
         return sale_items
 
-@task()
+@app.task()
 def task_calc_product_sale(*args, **kwargs):
     CalcProductSaleAsyncTask().run(*args, **kwargs)
 
@@ -975,7 +975,7 @@ def get_product_logsign(product):
                                                     product.remain_num, product.lock_num)
 
 
-@task()
+@app.task()
 def task_Auto_Upload_Shelf():
     """ 自动上架商品　"""
     logger = logging.getLogger('celery.handler')
@@ -1000,7 +1000,7 @@ def task_Auto_Upload_Shelf():
     logger.warn("{0}系统自动上架{1}个产品,未通过审核{2}个产品".format(datetime.datetime.now(), count, unverify_no), exc_info=True)
 
 
-@task()
+@app.task()
 def task_Auto_Download_Shelf():
     """ 自动下架商品 """
     logger = logging.getLogger('celery.handler')
@@ -1024,7 +1024,7 @@ def task_Auto_Download_Shelf():
     logger.warn("{0}系统自动下架{1}个产品,含未通过审核{2}个产品".format(datetime.datetime.now(), count, unverify_no), exc_info=True)
 
 
-@task()
+@app.task()
 def task_assign_stock_to_package_sku_item(instance):
     logger.info(
         "%s -sku_id:%s,%s,%s" % (get_cur_info(), instance.sku_id, instance.realtime_quantity, instance.assign_num))
@@ -1097,7 +1097,7 @@ def relase_package_sku_item(stat):
         })
 
 
-@task()
+@app.task()
 @transaction.atomic
 def task_assign_stock_to_package_sku_item_bak(stat):
     from shopback.trades.models import PackageSkuItem
@@ -1113,7 +1113,7 @@ def task_assign_stock_to_package_sku_item_bak(stat):
             package_sku_item.save()
 
 
-@task()
+@app.task()
 @transaction.atomic
 def task_relase_package_sku_item(stat):
     sku_id = stat.sku_id
@@ -1124,7 +1124,7 @@ def task_relase_package_sku_item(stat):
         pki.reset_assign_status()
 
 
-@task()
+@app.task()
 def task_update_productskustats_inferior_num(sku_id):
     from flashsale.dinghuo.models import InBoundDetail, RGDetail, ReturnGoods
     inferior_num = InBoundDetail.objects.filter(sku_id=sku_id, checked=True,
@@ -1137,7 +1137,7 @@ def task_update_productskustats_inferior_num(sku_id):
     stat.save(update_fields=['inferior_num'])
 
 
-@task()
+@app.task()
 def task_update_inferiorsku_rg_quantity(sku_id):
     from flashsale.dinghuo.models import RGDetail
     rg_quantity = RGDetail.get_inferior_total(sku_id, SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME)
@@ -1147,7 +1147,7 @@ def task_update_inferiorsku_rg_quantity(sku_id):
         stat.save(update_fields=['rg_quantity'])
 
 
-@task()
+@app.task()
 def task_update_inferiorsku_return_quantity(sku_id):
     from shopback.refunds.models import RefundProduct
     quantity = RefundProduct.get_total(sku_id, can_reuse=False,
@@ -1158,7 +1158,7 @@ def task_update_inferiorsku_return_quantity(sku_id):
         stat.save(update_fields=['return_quantity'])
 
 
-@task()
+@app.task()
 def task_update_inferiorsku_inbound_quantity(sku_id):
     from flashsale.dinghuo.models import InBoundDetail
     quantity = InBoundDetail.get_inferior_total(
@@ -1169,12 +1169,12 @@ def task_update_inferiorsku_inbound_quantity(sku_id):
         stat.save(update_fields=['inbound_quantity'])
 
 
-# @task()
+# @app.task()
 def task_stock_adjust_update_productskustats_inferior_num(sku_id, product_id):
     pass
 
 
-@task(max_retries=3, default_retry_delay=5)
+@app.task(max_retries=3, default_retry_delay=5)
 def task_auto_shelf_prods():
     """
     1. 自动上架产品：　已经审核的产品　并且在下架状态的产品　修改状态到上架
@@ -1245,7 +1245,7 @@ def task_auto_shelf_prods():
         raise task_auto_shelf_prods.retry(countdown=60 * 5, exc=exc)
 
 
-@task()
+@app.task()
 def task_productskustats_update_productsku(stats):
     sku_id = stats.sku_id
     psku = ProductSku.objects.get(id=sku_id)
@@ -1254,7 +1254,7 @@ def task_productskustats_update_productsku(stats):
         psku.save(update_fields=['lock_num'])
 
 
-@task()
+@app.task()
 def task_supplier_update_product_ware_by(supplier):
     from shopback.items.models import Product
     spids = [i.id for i in supplier.supplier_products.all()]

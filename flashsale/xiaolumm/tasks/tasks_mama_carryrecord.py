@@ -1,6 +1,6 @@
 # -*- encoding:utf-8 -*-
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import sys
 import datetime
@@ -19,7 +19,7 @@ def get_cur_info():
     return f.f_code.co_name
 
 
-@task(serializer='pickle')
+@app.task(serializer='pickle')
 def task_awardcarry_update_carryrecord(carry):
     #print "%s, mama_id: %s" % (get_cur_info(), carry.mama_id)
     if carry.mama_id <= 0:
@@ -55,7 +55,7 @@ def task_awardcarry_update_carryrecord(carry):
         carry_record.save()
 
 
-@task(serializer='pickle')
+@app.task(serializer='pickle')
 def task_ordercarry_update_carryrecord(carry):
     if carry.mama_id <= 0:
         return
@@ -79,7 +79,7 @@ def task_ordercarry_update_carryrecord(carry):
     carry_record.save()
 
 
-@task(serializer='pickle')
+@app.task(serializer='pickle')
 def task_clickcarry_update_carryrecord(carry):
     if carry.mama_id <= 0:
         return

@@ -1,11 +1,11 @@
 # -*- coding:utf-8 -*-
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 from flashsale.promotion.models.freesample import DownloadUnionidRecord, DownloadMobileRecord
 
 
-@task()
+@app.task()
 def task_write_download_unionid_record(fans):
     from flashsale.xiaolumm.models import XiaoluMama
     if XiaoluMama.objects.filter(openid=fans.union_id).first():

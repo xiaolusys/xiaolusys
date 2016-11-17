@@ -22,16 +22,20 @@ from celery.schedules import crontab
 
 CELERY_BROKER_POOL_LIMIT = 10
 CELERY_BROKER_CONNECTION_TIMEOUT = 10
+CELERY_WORDER_PREFETCH_MULTIPLIER = 4
+if os.environ.get('INSTANCE') == 'celery-gevent':
+    CELERY_BROKER_POOL_LIMIT = 0
+    CELERY_WORDER_PREFETCH_MULTIPLIER = 0
 
 # 某个程序中出现的队列，在broker中不存在，则立刻创建它
 # CELERY_CREATE_MISSING_QUEUES = True
 # 每个worker最多执行40个任务就会被销毁，可防止内存泄露
-CELERY_WORKER_MAX_TASKS_PER_CHILD = 1000
+CELERY_WORKER_MAX_TASKS_PER_CHILD = 500
 
 # 任务发出后，经过一段时间还未收到acknowledge , 就将任务重新交给其他worker执行
 CELERY_BROKER_TRANSPORT_OPTIONS = {
     'visibility_timeout': 3600,
-    'max_connections': 8,
+    # 'max_connections': 8,
 }
 
 # Sensible settings for celery
@@ -57,10 +61,6 @@ CELERY_RESULT_SERIALIZER = "pickle"
 CELERY_ACCEPT_CONTENT = ['pickle', 'json']
 
 CELERY_WORKER_HIJACK_ROOT_LOGGER = False
-CELERY_WORDER_PREFETCH_MULTIPLIER = 4
-if os.environ.get('INSTANCE') == 'celery-gevent':
-    CELERY_WORDER_PREFETCH_MULTIPLIER = 0
-
 CELERY_TIMEZONE = 'Asia/Shanghai'
 
 CELERY_QUEUES = (

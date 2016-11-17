@@ -1,6 +1,7 @@
 # -*- encoding:utf8 -*-
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task, Celery
+from shopmanager import celery_app as app
+from celery import Celery
 from celery.app.task import Task
 
 import sys
@@ -48,7 +49,7 @@ def full_class_name(ins):
     return ins.__module__ + '.' + ins.__class__.__name__
 
 
-@task()
+@app.task()
 def taobaoAsyncHandleTask():
     """ 淘宝异步任务处理核心类 """
     asynctasks = TaobaoAsyncTaskModel.objects.filter(status__in=(TASK_ASYNCOK, TASK_ASYNCCOMPLETE, TASK_DOWNLOAD))
@@ -291,7 +292,7 @@ class AsyncOrderTask(TaobaoAsyncBaseTask):
             logger.error('async task result handle fail: %s' % exc, exc_info=True)
             return False
 
-@task
+@app.task
 def task_async_order(*args, **kwargs):
     return AsyncOrderTask().run(*args, **kwargs)
 
@@ -433,7 +434,7 @@ class PrintAsyncTask(object):
             express_data = self.genExpressData(trade_list)
         return 0
 
-@task
+@app.task
 def task_print_async(*args, **kwargs):
     return PrintAsyncTask().run(*args, **kwargs)
 
@@ -565,6 +566,6 @@ class PrintAsyncTask2(object):
             express_data = self.genExpressData(package_orders)
         return 0
 
-@task
+@app.task
 def task_print_async2(*args, **kwargs):
     return PrintAsyncTask2().run(*args, **kwargs)

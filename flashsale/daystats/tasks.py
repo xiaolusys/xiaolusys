@@ -5,7 +5,7 @@ import datetime
 import logging
 from calendar import monthrange
 
-from celery import shared_task as task
+from shopmanager import celery_app as app
 from django.conf import settings
 from django.db.models import Sum
 
@@ -26,7 +26,7 @@ from .models import DailyStat, PopularizeCost
 logger = logging.getLogger('celery.handler')
 
 
-@task()
+@app.task()
 def task_Push_Sales_To_DailyStat(target_date):
     """ 统计每日特卖数据(点击,访客,成交额) """
     df = datetime.datetime(target_date.year, target_date.month, target_date.day, 0, 0, 0)
@@ -95,7 +95,7 @@ def task_Push_Sales_To_DailyStat(target_date):
     dstat.save()
 
 
-@task()
+@app.task()
 def task_Calc_Sales_Stat_By_Day(pre_day=1):
     pre_date = datetime.date.today() - datetime.timedelta(days=pre_day)
 
@@ -159,7 +159,7 @@ def calc_mama_carry_cost_by_day(date):
     ]
 
 
-@task()
+@app.task()
 def task_PopularizeCost_By_Day(pre_day=1):
     # 统计记录某天推广支出
     pre_date = datetime.date.today() - datetime.timedelta(days=pre_day)
@@ -216,7 +216,7 @@ def task_PopularizeCost_By_Day(pre_day=1):
 from flashsale.daystats.models import DaystatCalcResult
 
 
-@task(max_retries=3, default_retry_delay=5)
+@app.task(max_retries=3, default_retry_delay=5)
 def task_calc_xlmm(start_time_str, end_time_str):
     """计算某个月内所有购买的人数和小鹿妈妈数量，重复购买"""
     try:
@@ -283,7 +283,7 @@ from shopback.items.models import Product
 from django.db.models import Q
 
 
-@task(max_retries=3, default_retry_delay=5)
+@app.task(max_retries=3, default_retry_delay=5)
 def task_calc_hot_sale(start_time_str, end_time_str, category, limit=100):
     """计算热销商品"""
     try:
@@ -385,7 +385,7 @@ def task_calc_hot_sale(start_time_str, end_time_str, category, limit=100):
         raise task_calc_hot_sale.retry(exc=exc)
 
 
-@task(max_retries=3, default_retry_delay=5)
+@app.task(max_retries=3, default_retry_delay=5)
 def task_calc_sale_bad(start_time_str, end_time_str, category, limit=100):
     """计算滞销商品"""
     try:
@@ -456,7 +456,7 @@ def task_calc_sale_bad(start_time_str, end_time_str, category, limit=100):
         raise task_calc_sale_bad.retry(exc=exc)
 
 
-@task()
+@app.task()
 def task_calc_stock_top(start_time_str, end_time_str, limit=100):
     """计算库存多的商品"""
 
@@ -542,7 +542,7 @@ def get_new_user(user_data, old_user):
     return new_user
 
 
-@task(max_retries=3, default_retry_delay=5)
+@app.task(max_retries=3, default_retry_delay=5)
 def task_calc_new_user_repeat(start_date, end_date):
     """计算新用户的重复购买率"""
 
@@ -607,7 +607,7 @@ def task_calc_new_user_repeat(start_date, end_date):
 from shopback.trades.models import MergeTrade
 
 
-@task(max_retries=3, default_retry_delay=5)
+@app.task(max_retries=3, default_retry_delay=5)
 def task_calc_package(start_date, end_date, old=True):
     """计算包裹数量"""
     try:
@@ -663,7 +663,7 @@ def task_calc_package(start_date, end_date, old=True):
         raise task_calc_package.retry(exc=exc)
 
 
-@task(max_retries=1, default_retry_delay=5)
+@app.task(max_retries=1, default_retry_delay=5)
 def task_calc_performance_by_user(start_date, end_date, category="0"):
     """计算买手绩效"""
     try:
@@ -765,7 +765,7 @@ REFUND_REASON = (u'其他', u'错拍', u'缺货', u'开线/脱色/脱毛/有色�
                  u'发错货/漏发', u'没有发货', u'未收到货', u'与描述不符', u'退运费', u'发票问题', u'七天无理由退换货')
 
 
-@task(max_retries=1, default_retry_delay=5)
+@app.task(max_retries=1, default_retry_delay=5)
 def task_calc_performance_by_supplier(start_date, end_date, category="0"):
     """计算供应商"""
     try:
@@ -979,7 +979,7 @@ def format_time(time_of_long):
 import collections
 
 
-@task(max_retries=1, default_retry_delay=5)
+@app.task(max_retries=1, default_retry_delay=5)
 def task_calc_sale_product(start_date, end_date, category="0"):
     """计算选品情况"""
     try:
@@ -1038,7 +1038,7 @@ def task_calc_sale_product(start_date, end_date, category="0"):
     return {"nv_data": nv_data, "child_data": child_data}
 
 
-@task(max_retries=1, default_retry_delay=5)
+@app.task(max_retries=1, default_retry_delay=5)
 def task_calc_operate_data(start_date, end_date, category="0"):
     """计算运营数据"""
     try:

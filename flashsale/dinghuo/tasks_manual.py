@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import datetime
 from shopback.items.models import Product, ProductSku
@@ -10,7 +10,7 @@ from supplychain.supplier.models import SaleProduct
 from core.options import log_action, CHANGE, get_systemoa_user
 
 
-@task()
+@app.task()
 def task_dinghuo_supplier():
     """将供应商名字写入订货表"""
     since_time = datetime.date(2015, 9, 20)

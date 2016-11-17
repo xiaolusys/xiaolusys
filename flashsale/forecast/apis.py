@@ -1,6 +1,6 @@
 # coding=utf-8
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import datetime
 from .models import (
@@ -65,7 +65,7 @@ def orderlist_change_forecastinbound(order_list):
     logger.info('orderlist_change_forecastinbound end: %s' % order_list)
 
 
-@task(max_retries=3, default_retry_delay=60)
+@app.task(max_retries=3, default_retry_delay=60)
 def api_create_or_update_forecastinbound_by_orderlist(order_list, force_update=False):
     logger.info('api_create_or_update_forecastinbound start: %s'% order_list)
     from flashsale.dinghuo.models import OrderList
@@ -98,7 +98,7 @@ def api_create_or_update_forecastinbound_by_orderlist(order_list, force_update=F
     logger.info('api_create_or_update_forecastinbound end: %s' % order_list)
 
 
-@task(max_retries=3, default_retry_delay=60)
+@app.task(max_retries=3, default_retry_delay=60)
 def api_create_or_update_realinbound_by_inbound(inbound_id):
     """ base on dinghuo inbound complete signal updates """
     logger.info('api_create_or_update_realinbound: %s' % inbound_id)

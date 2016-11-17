@@ -1,6 +1,6 @@
 # -*- coding:utf8 -*-
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import os
 import re
@@ -680,7 +680,7 @@ class CrawBBWItemsTask(CrawTask):
             self.crawBrands(craw_url, category=category_name)
 
 
-@task()
+@app.task()
 def task_calculate_supplier_stats_data(stats_record):
     """
     stats: statistics app SaleStats instance
@@ -745,7 +745,7 @@ def task_calculate_supplier_stats_data(stats_record):
         figure.save()
 
 
-@task
+@app.task
 def task_check_schedule_is_lock():
     """
     检查排期是否锁定
