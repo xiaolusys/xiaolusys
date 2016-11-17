@@ -999,8 +999,7 @@ def update_orderlist(sender, instance, created, **kwargs):
     from flashsale.dinghuo.tasks import task_orderdetail_update_orderlist
     task_orderdetail_update_orderlist.delay(instance)
 
-
-post_save.connect(update_orderlist, sender=OrderDetail, dispatch_uid='post_save_update_orderlist')
+#post_save.connect(update_orderlist, sender=OrderDetail, dispatch_uid='post_save_update_orderlist')
 
 
 class OrderGuarantee(BaseModel):
