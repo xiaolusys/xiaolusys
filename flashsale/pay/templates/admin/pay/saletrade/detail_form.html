@@ -1,4 +1,4 @@
-{% extends "admin/change_form.html" %}
+{% extends "admin/base_site_v3.html" %}
 {% load i18n admin_urls static admin_list %}
 
 {% block extrastyle %}
@@ -309,6 +309,7 @@
     }
 
     function change_sku_item( sale_order_id, SKU, num){
+    　　alert('test');
         var url = "/mm/change_sku_item/";
         var data = {"sale_order_id": sale_order_id, "SKU":SKU ,"num": num
         };
@@ -331,7 +332,7 @@
         change_sku_item(sale_order_id, SKU, num);
     }
 
-$(document).ready(function(){
+$(function(){
     $('#btn_edit_seller_memo').click(edit_seller_memo);
 
     $(".change123").click(function(evt){
