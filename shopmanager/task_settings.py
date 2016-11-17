@@ -1293,18 +1293,6 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
-    u'定时上架库存商品任务': {
-        'task': 'shopback.items.tasks.task_Auto_Upload_Shelf',
-        'schedule': crontab(minute="0", hour="10"),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
-    u'定时下架库存商品任务': {
-        'task': 'shopback.items.tasks.task_Auto_Download_Shelf',
-        'schedule': crontab(minute="0", hour="14"),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
     u'定时统计发出库存和新增订货任务': {
         'task': 'flashsale.dinghuo.tasks.task_stat_category_inventory_data',
         'schedule': crontab(minute="0", hour="5"),
