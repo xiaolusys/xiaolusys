@@ -996,10 +996,12 @@ class RedirectStatsLinkView(APIView):
     def get(self, request, *args, **kwargs):
         content = request.GET
         link_id = content.get("link_id", "") #re.compile('').match(
+        import re
+        id_array = re.findall("\d+", link_id)
         url = content.get('url') or ''
 
-        if link_id:
-            redirect_link, tab_id = self.links[int(link_id)]
+        if link_id and id_array and len(id_array) > 0:
+            redirect_link, tab_id = self.links[int(id_array[0])]
         elif url:
             redirect_link = url
             tab_id = MamaTabVisitStats.TAB_WX_PUSH_AD
