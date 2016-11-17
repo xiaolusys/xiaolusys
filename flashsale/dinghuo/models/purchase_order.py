@@ -620,9 +620,8 @@ class OrderList(models.Model):
         from shopback.trades.models import PackageSkuItem
         psis = PackageSkuItem.objects.filter(purchase_order_unikey=self.purchase_order_unikey, assign_status=2)
         sku_nums = {i['sku_id']: i['total'] for i in psis.values('sku_id').annotate(total=Sum('num'))}
-        for sku_id in sku_nums:
-            od = self.order_list.filter(chichu_id=str(sku_id)).first()
-            od.arrival_quantity = sku_nums.get(sku_id, 0)
+        for od in self.order_list.all():
+            od.arrival_quantity = sku_nums.get(int(od.chichu_id), 0)
             if not od.arrival_time:
                 od.arrival_time = datetime.datetime.now()
             od.save()
