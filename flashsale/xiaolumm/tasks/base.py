@@ -844,7 +844,7 @@ def task_unitary_mama(obj):
     if not xlmm.is_trialable():  # 不可试用
         return
     mama_charged = xlmm.chargemama()
-    xlmm.update_renew_day(XiaoluMama.TRIAL)   # 更新 status  last_renew_type renew_time
+    xlmm.update_renew_day(XiaoluMama.TRIAL)  # 更新 status  last_renew_type renew_time
 
     if mama_charged:
         sys_oa = get_systemoa_user()
@@ -881,7 +881,7 @@ def task_unitary_mama(obj):
         outer_id__startswith=Product.DIPOSITE_CODE_PREFIX,
         payment=1.0,
         pay_time__range=(
-        time_from, time_to)).count())
+            time_from, time_to)).count())
 
     statsd.timing('xiaolumm.payed_mama_count', SaleOrder.objects.filter(
         outer_id__startswith=Product.DIPOSITE_CODE_PREFIX, pay_time__range=(time_from, time_to)).count())
@@ -928,7 +928,7 @@ def task_register_mama(obj):
     if order.is_188_deposit():
         renew_days = XiaoluMama.FULL
 
-    xlmm.update_renew_day(renew_days)   # 更新 status  last_renew_type renew_time
+    xlmm.update_renew_day(renew_days)  # 更新 status  last_renew_type renew_time
     mama_charged = xlmm.chargemama()
     xlmm.deposit_pay()  # 支付押金
 
@@ -972,7 +972,8 @@ def task_renew_mama(obj):
     :type obj: SaleTrade instance
     """
     from flashsale.pay.models import SaleTrade
-    from flashsale.coupon.tasks import task_release_coupon_for_mama_deposit_double_99, task_release_coupon_for_mama_renew
+    from flashsale.coupon.tasks import task_release_coupon_for_mama_deposit_double_99, \
+        task_release_coupon_for_mama_renew
     if not (obj.status == SaleTrade.WAIT_SELLER_SEND_GOODS and obj.is_Deposite_Order()):
         return
     order = obj.sale_orders.all().first()
@@ -994,7 +995,7 @@ def task_renew_mama(obj):
     if xlmm.last_renew_type == XiaoluMama.HALF:  # 如果当前的妈妈已经是9半年元的代理则将会成为全年的代理 # 补发优惠券
         task_release_coupon_for_mama_deposit_double_99.delay(order_customer.id)
 
-    state = xlmm.update_renew_day(renew_days)   # 更新 status  last_renew_type renew_time
+    state = xlmm.update_renew_day(renew_days)  # 更新 status  last_renew_type renew_time
     # 修改该潜在关系　到转正状态
     protentialmama = PotentialMama.objects.filter(potential_mama=xlmm.id).first()
     update_xlmm_referal_from(protentialmama, xlmm, order.oid)  # 潜在关系以订单为准　如果订单中没有则在　潜在关系列表中　找
@@ -1027,13 +1028,13 @@ def task_mama_postphone_renew_time_by_active():
     妈妈(正式)当天有活跃度情况下续费时间向后添加一天
     """
     pass
-    #from flashsale.xiaolumm.models.models_fortune import ActiveValue
-    #mamas = XiaoluMama.objects.filter(status=XiaoluMama.EFFECT,
+    # from flashsale.xiaolumm.models.models_fortune import ActiveValue
+    # mamas = XiaoluMama.objects.filter(status=XiaoluMama.EFFECT,
     #                                  agencylevel__gte=XiaoluMama.VIP_LEVEL,
     #                                  last_renew_type=XiaoluMama.FULL,  # 年费用户才添加天数
     #                                  charge_status=XiaoluMama.CHARGED)
-    #yesterday = datetime.date.today() - datetime.timedelta(days=1)
-    #for mama in mamas:
+    # yesterday = datetime.date.today() - datetime.timedelta(days=1)
+    # for mama in mamas:
     #    try:
     #        if ActiveValue.objects.filter(mama_id=mama.id, date_field=yesterday).exists():
     #            if isinstance(mama.renew_time, datetime.datetime):
@@ -1055,7 +1056,7 @@ def task_update_trial_mama_full_member_by_condition(mama):
     这里用续费天数　判断
     """
     if True:
-        return 
+        return
     trial_mama = XiaoluMama.objects.filter(mobile=mama.referal_from,
                                            status=XiaoluMama.EFFECT,  # 自接管后　15天　变为冻结
                                            last_renew_type=XiaoluMama.TRIAL).first()  # 推荐人(试用用户并且是有效状态的)
@@ -1112,7 +1113,7 @@ def task_update_mama_agency_level_in_condition(date=None):
     condition_mama_ids = set(week_order_value_gte100)
     log_ids = ','.join([str(i) for i in condition_mama_ids])
     logger.info({'action': 'task_update_mama_agency_level_in_condition',
-                'condition_mama_ids': log_ids})
+                 'condition_mama_ids': log_ids})
 
     xlmms = XiaoluMama.objects.filter(id__in=condition_mama_ids, agencylevel=XiaoluMama.A_LEVEL)
     xlmms.update(agencylevel=XiaoluMama.VIP_LEVEL)
