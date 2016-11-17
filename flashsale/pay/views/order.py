@@ -495,7 +495,7 @@ def get_mrgid(request):
 
 
 def sent_sku_item_again(request):
-    content = request.GET
+    content = request.POST
     sale_order_id = content.get("sale_order_id", None)
     sale_order = get_object_or_404(SaleOrder, id=sale_order_id)
     sale_trade = sale_order.sale_trade

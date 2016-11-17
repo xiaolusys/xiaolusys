@@ -1491,7 +1491,7 @@ def task_purchasearrangement_update_purchasedetail(paid):
     klogger = logging.getLogger('service')
     klogger.info({
         'action': 'skustat.pstat.task_purchasearrangement_update_purchasedetail.start',
-        'paid': paid
+        'pa_id': paid
     })
     pa = PurchaseArrangement.objects.get(id=paid)
     pa.generate_order()
