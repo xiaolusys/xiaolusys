@@ -1,4 +1,6 @@
 # coding=utf-8
+from __future__ import unicode_literals
+
 from core.models import BaseModel
 from flashsale.xiaolumm.models import MamaDailyAppVisit
 from flashsale.xiaolumm.models import XiaoluMama

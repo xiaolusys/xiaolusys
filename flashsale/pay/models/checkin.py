@@ -1,4 +1,6 @@
 # encoding=utf8
+from __future__ import unicode_literals
+
 from django.db import models
 from .base import BaseModel
 from flashsale.pay.models.user import Customer

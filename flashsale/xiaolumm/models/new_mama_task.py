@@ -1,4 +1,6 @@
 # encoding=utf8
+from __future__ import unicode_literals
+
 class NewMamaTask(object):
 
     TASK_SUBSCRIBE_WEIXIN = u'subscribe_weixin'

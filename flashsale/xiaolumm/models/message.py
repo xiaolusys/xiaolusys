@@ -1,4 +1,6 @@
 # coding=utf-8
+from __future__ import unicode_literals
+
 from django.db import models
 from core.models import AdminModel, BaseModel
 from django.db.models import Q
