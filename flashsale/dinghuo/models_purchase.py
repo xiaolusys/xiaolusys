@@ -345,6 +345,8 @@ class PurchaseArrangement(BaseModel):
 
 
     def generate_order(pa):
+        if pa.gen_order:
+            return 
         uni_key = utils.gen_purchase_detail_unikey(pa)
         pd = PurchaseDetail.objects.filter(uni_key=uni_key).first()
         if not pd:
