@@ -684,8 +684,11 @@ class XiaoluMama(BaseModel):
         return lv1_id, lv2_ids, lv3_ids
 
     def get_team_member_ids(self):
+        """
+            获取team member妈妈直接推荐的人，即只有下一级
+        """
         from .models_fortune import ReferalRelationship
-        ids = [r['referal_to_mama_id'] for r in ReferalRelationship.objects.filter(Q(referal_from_mama_id=self.id)|Q(referal_from_grandma_id=self.id)).values('referal_to_mama_id')]
+        ids = [r['referal_to_mama_id'] for r in ReferalRelationship.objects.filter(referal_from_mama_id=self.id).values('referal_to_mama_id')]
         return [self.id] + ids
 
     def get_family_memeber_ids(self):
