@@ -1,4 +1,6 @@
 # 　coding:utf-8
+from __future__ import unicode_literals
+
 import datetime
 import logging
 from django.conf import settings

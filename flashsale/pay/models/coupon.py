@@ -1,4 +1,6 @@
 # coding= utf-8
+from __future__ import unicode_literals
+
 """
 模板：负责优惠券的定义（用途，价值，标题）
 券池：负责不同优惠券的生成，查询，发放，作废
