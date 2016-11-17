@@ -1,5 +1,5 @@
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import logging
 import json
@@ -22,7 +22,7 @@ def get_cur_info():
     return f.f_code.co_name
 
 
-@task()
+@app.task()
 def task_productsku_create_productskustats(sku_id, product_id):
     from shopback.items.models import SkuStock
     stats = SkuStock.objects.filter(sku_id=sku_id)
@@ -31,7 +31,7 @@ def task_productsku_create_productskustats(sku_id, product_id):
         stat.save()
 
 
-@task()
+@app.task()
 # @transaction.atomic
 def task_productsku_update_productskustats(sku_id, product_id):
     stats = SkuStock.objects.filter(sku_id=sku_id)
@@ -40,7 +40,7 @@ def task_productsku_update_productskustats(sku_id, product_id):
         stat.save()
 
 
-@task(max_retries=3, default_retry_delay=6)
+@app.task(max_retries=3, default_retry_delay=6)
 def task_product_upshelf_update_productskusalestats(sku_id):
     """
     Recalculate and update init_waitassign_num,sale_start_time.
@@ -74,7 +74,7 @@ def task_product_upshelf_update_productskusalestats(sku_id):
             sku_id, wait_assign_num))
 
 
-@task(max_retries=3, default_retry_delay=6)
+@app.task(max_retries=3, default_retry_delay=6)
 def task_product_downshelf_update_productskusalestats(sku_id, sale_end_time):
     """
     Recalculate and update sale_end_time,status.
@@ -102,7 +102,7 @@ def task_product_downshelf_update_productskusalestats(sku_id, sale_end_time):
             sku_id, sale_end_time))
 
 
-@task()
+@app.task()
 def task_product_upshelf_notify_favorited_customer(modelproduct):
     from flashsale.push.app_push import AppPush
     customer_ids = modelproduct.favorites_set.values('customer_id')
@@ -111,7 +111,7 @@ def task_product_upshelf_notify_favorited_customer(modelproduct):
         AppPush.push_product_to_customer(customer_id['customer_id'], modelproduct)
 
 
-@task()
+@app.task()
 def task_packageskuitem_update_productskustats(sku_id):
     """
     1) we added db_index=True for pay_time in packageskuitem;
@@ -152,7 +152,7 @@ def task_packageskuitem_update_productskustats(sku_id):
         update_fields.append('modified')
         stat.save(update_fields=update_fields)
 
-@task
+@app.task
 def task_refundproduct_update_productskustats_return_quantity(sku_id):
     from shopback.refunds.models import RefundProduct
     logger.info("%s -sku_id:%s" % (get_cur_info(), sku_id))
@@ -167,7 +167,7 @@ def task_refundproduct_update_productskustats_return_quantity(sku_id):
         stat.assign()
 
 
-@task(max_retries=3, default_retry_delay=6)
+@app.task(max_retries=3, default_retry_delay=6)
 def task_orderdetail_update_productskustats_inbound_quantity(instance):
     """
     Whenever we have products inbound, we update the inbound quantity.
@@ -193,7 +193,7 @@ def task_orderdetail_update_productskustats_inbound_quantity(instance):
         stat.relase_assign(orderlist=instance.orderlist)
 
 
-@task()
+@app.task()
 def task_update_product_sku_stat_rg_quantity(sku_id):
     from flashsale.dinghuo.models.purchase_return import RGDetail, ReturnGoods
     logger.info("%s -sku_id:%s" % (get_cur_info(), sku_id))
@@ -211,7 +211,7 @@ def task_update_product_sku_stat_rg_quantity(sku_id):
         stat.assign()
 
 
-@task(max_retries=3, default_retry_delay=6)
+@app.task(max_retries=3, default_retry_delay=6)
 @transaction.atomic
 def task_shoppingcart_update_productskustats_shoppingcart_num(sku_id):
     """
@@ -234,7 +234,7 @@ def task_shoppingcart_update_productskustats_shoppingcart_num(sku_id):
         raise task_shoppingcart_update_productskustats_shoppingcart_num.retry(exc=exc)
 
 
-@task(max_retries=3, default_retry_delay=6)
+@app.task(max_retries=3, default_retry_delay=6)
 def task_saleorder_update_productskustats_waitingpay_num(sku_id):
     """
     Recalculate and update post_num.

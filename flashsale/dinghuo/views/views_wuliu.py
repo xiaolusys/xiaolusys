@@ -13,7 +13,7 @@ def view_wuliu(req, orderdetail_id):
     if orderlist.express_no != "" and orderlist.express_company != "":
         result = getLogisticTrace(orderlist.express_no, orderlist.express_company)
     return render(
-        request,
+        req,
         "dinghuo/wuliu/wuliu.html",
         {"orderlist": orderlist, 'result': result},
     )

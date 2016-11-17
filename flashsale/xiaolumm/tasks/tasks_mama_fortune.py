@@ -1,6 +1,6 @@
 # -*- encoding:utf-8 -*-
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import sys, datetime
 from django.db import IntegrityError
@@ -42,7 +42,7 @@ def create_mamafortune_with_integrity(mama_id, **kwargs):
     # MamaFortune.objects.filter(mama_id=mama_id).update(**kwargs)
 
 
-@task(max_retries=3, default_retry_delay=6)
+@app.task(max_retries=3, default_retry_delay=6)
 def task_xiaolumama_update_mamafortune(mama_id, cash):
     logger.warn("%s - mama_id: %s, params: %s" % (get_cur_info(), mama_id, cash))
     fortunes = MamaFortune.objects.filter(mama_id=mama_id)
@@ -62,7 +62,7 @@ def task_xiaolumama_update_mamafortune(mama_id, cash):
 CASHOUT_HISTORY_LAST_DAY_TIME = datetime.datetime(2016, 3, 30, 23, 59, 59)
 
 
-@task(max_retries=3, default_retry_delay=6)
+@app.task(max_retries=3, default_retry_delay=6)
 def task_cashout_update_mamafortune(mama_id):
     cashout_sum = CashOut.objects.filter(xlmm=mama_id, approve_time__gt=CASHOUT_HISTORY_LAST_DAY_TIME).values(
         'status').annotate(total=Sum('value'))
@@ -91,7 +91,7 @@ def task_cashout_update_mamafortune(mama_id):
             raise task_cashout_update_mamafortune.retry(exc=exc)
 
 
-@task(max_retries=3, default_retry_delay=6)
+@app.task(max_retries=3, default_retry_delay=6)
 def task_carryrecord_update_mamafortune(mama_id):
     #print "%s, mama_id: %s" % (get_cur_info(), mama_id)
 
@@ -118,7 +118,7 @@ def task_carryrecord_update_mamafortune(mama_id):
             raise task_carryrecord_update_mamafortune.retry(exc=exc)
 
 
-@task(max_retries=3, default_retry_delay=6)
+@app.task(max_retries=3, default_retry_delay=6)
 def task_activevalue_update_mamafortune(mama_id):
     """
     更新妈妈activevalue
@@ -146,7 +146,7 @@ def task_activevalue_update_mamafortune(mama_id):
             raise task_activevalue_update_mamafortune.retry(exc=exc)
 
 
-@task(max_retries=3, default_retry_delay=6)
+@app.task(max_retries=3, default_retry_delay=6)
 def task_update_mamafortune_invite_num(mama_id):
     #print "%s, mama_id: %s" % (get_cur_info(), mama_id)
     from flashsale.xiaolumm.models import XiaoluMama
@@ -173,7 +173,7 @@ def task_update_mamafortune_invite_num(mama_id):
             raise task_update_mamafortune_invite_num.retry(exc=exc)
 
 
-#@task()
+#@app.task()
 #def task_update_mamafortune_invite_trial_num(mama_id):
 #    #print "%s, mama_id: %s" % (get_cur_info(), mama_id)
 #    from flashsale.xiaolumm.models import PotentialMama
@@ -185,7 +185,7 @@ def task_update_mamafortune_invite_num(mama_id):
 #    fortune.save(update_fields=['invite_trial_num','invite_all_num','modified'])
 
 
-@task(max_retries=3, default_retry_delay=6)
+@app.task(max_retries=3, default_retry_delay=6)
 def task_update_mamafortune_mama_level(relationship):
     #print "%s, mama_id: %s" % (get_cur_info(), mama_id)
     from flashsale.xiaolumm.models import XiaoluMama
@@ -218,7 +218,7 @@ def task_update_mamafortune_mama_level(relationship):
             raise task_update_mamafortune_mama_level.retry(exc=exc)
 
 
-@task(max_retries=3, default_retry_delay=6)
+@app.task(max_retries=3, default_retry_delay=6)
 def task_update_mamafortune_fans_num(mama_id):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
 
@@ -236,7 +236,7 @@ def task_update_mamafortune_fans_num(mama_id):
             raise task_update_mamafortune_fans_num.retry(exc=exc)
 
 
-@task(max_retries=3, default_retry_delay=6)
+@app.task(max_retries=3, default_retry_delay=6)
 def task_update_mamafortune_order_num(mama_id):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
     records = OrderCarry.objects.filter(mama_id=mama_id).exclude(status=3).values('contributor_id')
@@ -253,7 +253,7 @@ def task_update_mamafortune_order_num(mama_id):
             raise task_update_mamafortune_order_num.retry(exc=exc)
 
 
-@task()
+@app.task()
 def task_update_mamafortune_active_num(mama_id):
     from flashsale.xiaolumm.models import XiaoluMama
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
@@ -273,7 +273,7 @@ def task_update_mamafortune_active_num(mama_id):
         fortune.save()
 
 
-@task()
+@app.task()
 def task_update_mamafortune_hasale_num(mama_id):
     from flashsale.xiaolumm.models import XiaoluMama
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
@@ -292,7 +292,7 @@ def task_update_mamafortune_hasale_num(mama_id):
         fortune.save()
 
 
-@task()
+@app.task()
 def task_send_activate_award(potential_mama):
     from flashsale.xiaolumm.models import XiaoluMama
     from flashsale.xiaolumm.models.models_fortune import AwardCarry
@@ -329,7 +329,7 @@ def task_send_activate_award(potential_mama):
         AwardCarry.send_award(mama, award_num, u'邀请1元妈妈奖励', award_desc, uni_key, status=2, carry_type=7)
 
 
-@task(max_retries=3, default_retry_delay=6)
+@app.task(max_retries=3, default_retry_delay=6)
 def task_first_order_send_award(mama):
     from flashsale.xiaolumm.models.models_fortune import AwardCarry
 
@@ -345,7 +345,7 @@ def task_first_order_send_award(mama):
     AwardCarry.send_award(mama, 5, u'首单奖励', u'首单奖励,继续加油！', uni_key, status=2, carry_type=5)
 
 
-@task(max_retries=3, default_retry_delay=6)
+@app.task(max_retries=3, default_retry_delay=6)
 def task_new_guy_task_complete_send_award(mama):
     """
     发送新手任务奖励: 新妈妈发5元，推荐妈妈发10元
@@ -376,7 +376,7 @@ def task_new_guy_task_complete_send_award(mama):
                               contributor_mama_id=mama.id)  # 确定收益
 
 
-@task(max_retries=3, default_retry_delay=6)
+@app.task(max_retries=3, default_retry_delay=6)
 def task_subscribe_weixin_send_award(mama):
     """
     新妈妈第一次关注小鹿美美奖励５元
@@ -406,7 +406,7 @@ def get_app_version_from_user_agent(key, user_agent):
             version = pair[1]
     return version
 
-@task
+@app.task
 def task_mama_daily_app_visit_stats(mama_id, user_agent):
     from flashsale.xiaolumm.models import MamaDailyAppVisit
     from flashsale.xiaolumm.models import XiaoluMama
@@ -463,7 +463,7 @@ def task_mama_daily_app_visit_stats(mama_id, user_agent):
     })
 
 
-@task
+@app.task
 def task_mama_daily_tab_visit_stats(mama_id, stats_tab):
     from flashsale.xiaolumm.models import MamaDailyTabVisit
 

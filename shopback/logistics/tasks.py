@@ -1,6 +1,6 @@
 # coding=utf-8
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import datetime
 from django.conf import settings
@@ -20,7 +20,7 @@ __author__ = 'meixqhi'
 logger = logging.getLogger('django.request')
 
 
-@task(max_retries=3)
+@app.task(max_retries=3)
 def saveUserOrdersLogisticsTask(user_id, update_from=None, update_to=None):
     if not (update_from and update_to):
         dt = datetime.datetime.now()
@@ -49,7 +49,7 @@ def saveUserOrdersLogisticsTask(user_id, update_from=None, update_to=None):
         cur_page += 1
 
 
-@task()
+@app.task()
 def updateAllUserOrdersLogisticsTask(update_from=None, update_to=None):
     hander_update = update_from and update_to
 
@@ -62,7 +62,7 @@ def updateAllUserOrdersLogisticsTask(update_from=None, update_to=None):
             saveUserOrdersLogisticsTask.delay(user.visitor_id)
 
 
-@task(max_retries=3)
+@app.task(max_retries=3)
 def saveUserUnfinishOrdersLogisticsTask(user_id, update_from=None, update_to=None):
     trades = Trade.objects.filter(user__visitor_id=user_id, status__in=pcfg.ORDER_OK_STATUS,
                                   consign_time__gte=update_from, consign_time__lte=update_to)
@@ -83,7 +83,7 @@ def saveUserUnfinishOrdersLogisticsTask(user_id, update_from=None, update_to=Non
             Logistics.save_logistics_through_dict(user_id, logistics_dict)
 
 
-@task()
+@app.task()
 def updateAllUserUnfinishOrdersLogisticsTask(update_from=None, update_to=None):
     users = User.objects.all()
 
@@ -91,7 +91,7 @@ def updateAllUserUnfinishOrdersLogisticsTask(update_from=None, update_to=None):
         saveUserUnfinishOrdersLogisticsTask(user.visitor_id, update_from=update_from, update_to=update_to)
 
 
-@task(max_retries=3, default_retry_delay=6)
+@app.task(max_retries=3, default_retry_delay=6)
 def task_get_logistics_company(package_order_id):
     package_order = PackageOrder.objects.get(id=package_order_id)
     if package_order.sys_status == PackageOrder.WAIT_PREPARE_SEND_STATUS and not package_order.logistics_company:

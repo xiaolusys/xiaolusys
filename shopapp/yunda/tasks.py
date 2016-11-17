@@ -1,6 +1,6 @@
 # -*- coding:utf8 -*-
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import datetime
 import urllib2
@@ -162,7 +162,7 @@ class CancelUnsedYundaSidTask(object):
         except Exception, exc:
             raise self.retry(exc=exc, countdown=RETRY_INTERVAL)
 
-@task()
+@app.task()
 def task_cancel_unused_yunda_sid():
     CancelUnsedYundaSidTask().run()
 
@@ -279,7 +279,7 @@ class UpdateYundaOrderAddrTask(object):
         finally:
             LogisticOrder.objects.filter(id__in=update_oids).update(sync_addr=True)
 
-@task()
+@app.task()
 def task_update_yunda_order_addr():
     UpdateYundaOrderAddrTask().run()
 
@@ -433,7 +433,7 @@ class SyncYundaScanWeightTask(object):
             MergeTrade.objects.filter(id__in=update_oids).update(
                 is_charged=True, charge_time=datetime.datetime.now())
 
-@task()
+@app.task()
 def task_sync_yund_scan_weight():
     SyncYundaScanWeightTask().run()
 
@@ -515,6 +515,6 @@ class PushYundaPackageWeightTask(object):
             trade.is_charged = True
             trade.save()
 
-@task()
+@app.task()
 def task_push_yunda_package_weight():
     PushYundaPackageWeightTask().run()

@@ -1,6 +1,6 @@
 # -*- encoding:utf-8 -*-
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import calendar
 import datetime
@@ -32,7 +32,7 @@ AGENCY_RECRUIT_DAYS = 1
 RED_PACK_START_TIME = datetime.datetime(2015, 7, 6, 0, 0)  # 订单红包开放时间
 
 
-@task()
+@app.task()
 def task_Push_Pending_Carry_Cash(xlmm_id=None):
     """
     将待确认金额重新计算并加入妈妈现金账户
@@ -181,7 +181,7 @@ def order_Red_Packet(xlmm):
                     mama.push_carrylog_to_cash(red_pac_carry_log)
 
 
-@task()
+@app.task()
 def task_Update_Xlmm_Order_By_Day(xlmm, target_date):
     """
     更新每天妈妈订单状态及提成
@@ -203,7 +203,7 @@ def task_Update_Xlmm_Order_By_Day(xlmm, target_date):
         logger.error(exc.message or 'Order Red Packet Error', exc_info=True)
 
 
-@task()
+@app.task()
 def task_Push_Pending_ClickRebeta_Cash(day_ago=CLICK_REBETA_DAYS, xlmm_id=None):
     """
     计算待确认点击提成并计入妈妈现金帐号
@@ -248,7 +248,7 @@ def task_Push_Pending_ClickRebeta_Cash(day_ago=CLICK_REBETA_DAYS, xlmm_id=None):
         xlmm.push_carrylog_to_cash(clog)
 
 
-@task()
+@app.task()
 def task_Push_Pending_OrderRebeta_Cash(day_ago=ORDER_REBETA_DAYS, xlmm_id=None):
     """
     计算待确认订单提成并计入妈妈现金帐号
@@ -299,7 +299,7 @@ def task_Push_Pending_OrderRebeta_Cash(day_ago=ORDER_REBETA_DAYS, xlmm_id=None):
         xlmm.push_carrylog_to_cash(cl)
 
 
-@task()
+@app.task()
 def task_Push_Pending_AgencyRebeta_Cash(day_ago=AGENCY_SUBSIDY_DAYS, xlmm_id=None):
     """
     计算代理贡献订单提成
@@ -364,7 +364,7 @@ def calc_Mama_Thousand_Rebeta(xlmm, start, end):
     return sum_wxorderamount
 
 
-@task()
+@app.task()
 def task_ThousandRebeta(date_from, date_to):
     """
     计算千元提成
@@ -397,7 +397,7 @@ def get_pre_month(year, month):
     return year, month - 1
 
 
-@task
+@app.task
 def task_Calc_Month_ThousRebeta(pre_month=1):
     """
     按月计算千元代理提成
@@ -416,7 +416,7 @@ def task_Calc_Month_ThousRebeta(pre_month=1):
     task_ThousandRebeta(date_from, date_to)
 
 
-@task()
+@app.task()
 def task_Push_Pending_ThousRebeta_Cash(day_ago=ORDER_REBETA_DAYS, xlmm_id=None):
     """
     计算待确认千元提成并计入妈妈现金帐号
@@ -469,7 +469,7 @@ def task_Push_Pending_ThousRebeta_Cash(day_ago=ORDER_REBETA_DAYS, xlmm_id=None):
 ### 代理提成表 的task任务   计算 每个妈妈的代理提成，上交的给推荐人的提成
 
 
-@task()
+@app.task()
 def task_AgencySubsidy_MamaContribu(target_date):  # 每天 写入记录
     """
     计算每日代理提成
@@ -511,14 +511,14 @@ def task_AgencySubsidy_MamaContribu(target_date):  # 每天 写入记录
             carry_log_f.save()
 
 
-@task
+@app.task
 def task_Calc_Agency_Contribu(pre_day=1):
     pre_date = datetime.date.today() - datetime.timedelta(days=pre_day)
 
     task_AgencySubsidy_MamaContribu(pre_date)
 
 
-@task
+@app.task
 def task_Calc_Agency_Rebeta_Pending_And_Cash():
     # 计算妈妈昨日代理贡献金额
     task_Calc_Agency_Contribu(pre_day=1)
@@ -540,7 +540,7 @@ def calc_mama_roi(xlmm, dfrom, dto):
 
 
 ### 代理提成表 的task任务   计算 每个妈妈的代理提成，上交的给推荐人的提成
-@task()
+@app.task()
 def task_Calc_Mama_Lasttwoweek_Stats(pre_day=0):  # 每天 写入记录
     """
     计算每日妈妈过去两周点击转化
@@ -571,7 +571,7 @@ def task_Calc_Mama_Lasttwoweek_Stats(pre_day=0):  # 每天 写入记录
         mm_stats.save()
 
 
-@task()
+@app.task()
 def task_Push_WXOrder_Finished(pre_days=10):
     """ 定时将待确认状态微信小店订单更新成已完成 """
 
@@ -623,7 +623,7 @@ def task_Push_WXOrder_Finished(pre_days=10):
             ship_trade.save()
 
 
-@task
+@app.task
 def task_Update_Sale_And_Weixin_Order_Status(pre_days=10):
     task_Push_WXOrder_Finished.delay(pre_days=pre_days)
 
@@ -632,7 +632,7 @@ def task_Update_Sale_And_Weixin_Order_Status(pre_days=10):
     task_Push_SaleTrade_Finished.delay(pre_days=pre_days)
 
 
-@task()
+@app.task()
 def task_mama_Verify_Action(user_id=None, mama_id=None, referal_mobile=None, weikefu=None):
     from ..views.views import get_Deposit_Trade, create_coupon
     from core.options import log_action, ADDITION, CHANGE
@@ -713,7 +713,7 @@ def task_mama_Verify_Action(user_id=None, mama_id=None, referal_mobile=None, wei
     return 'ok'
 
 
-@task()
+@app.task()
 def task_upgrade_mama_level_to_vip():
     """
     ### 代理升级: 提现金额大于　2000 　的A　类代理升级为 vip
@@ -737,7 +737,7 @@ def task_upgrade_mama_level_to_vip():
             log_action(sys_oa.id, mm, CHANGE, u'A类代理满2000元指标 %s : %s 升级' % (old_target_complete, mm.target_complete))
 
 
-@task()
+@app.task()
 def xlmmClickTop(time_from, time_to):
     # 妈妈编号 点击数量 订单数量 购买人数 转化率（百分比） 管理员
     clics = ClickCount.objects.filter(write_time__gte=time_from, write_time__lte=time_to)
@@ -770,7 +770,7 @@ def xlmmClickTop(time_from, time_to):
     return data
 
 
-@task()
+@app.task()
 def xlmmOrderTop(time_from, time_to):
     stps = StatisticsShopping.objects.filter(status__in=(StatisticsShopping.FINISHED,
                                                          StatisticsShopping.WAIT_SEND),
@@ -802,7 +802,7 @@ def xlmmOrderTop(time_from, time_to):
     return data
 
 
-@task()
+@app.task()
 def task_period_check_mama_renew_state():
     """
     定时检查代理是否需要续费　
@@ -825,7 +825,7 @@ def task_period_check_mama_renew_state():
             logger.error(u"task_period_check_mama_renew_state FROZEN mama:%s, error info: %s" % (emm.id, e))
 
 
-@task()
+@app.task()
 def task_unitary_mama(obj):
     """
     :type obj: SaleTrade instance
@@ -904,7 +904,7 @@ def update_xlmm_referal_from(protentialmama, xlmm, oid):
         log_action(sys_oa, xlmm, CHANGE, u'注册为正式妈妈,从潜在妈妈列表id: %s 写推荐关系' % protentialmama.id)
 
 
-@task()
+@app.task()
 def task_register_mama(obj):
     """
     :type obj: SaleTrade instance
@@ -966,7 +966,7 @@ def task_register_mama(obj):
         pay_time__range=(time_from, time_to)).count())
 
 
-@task()
+@app.task()
 def task_renew_mama(obj):
     """
     :type obj: SaleTrade instance
@@ -1022,7 +1022,7 @@ def task_renew_mama(obj):
             outer_id__startswith=Product.DIPOSITE_CODE_PREFIX, pay_time__range=(time_from, time_to)).count())
 
 
-@task()
+@app.task()
 def task_mama_postphone_renew_time_by_active():
     """
     妈妈(正式)当天有活跃度情况下续费时间向后添加一天
@@ -1047,7 +1047,7 @@ def task_mama_postphone_renew_time_by_active():
     #        continue
 
 
-@task()
+@app.task()
 def task_update_trial_mama_full_member_by_condition(mama):
     """
     检查该妈妈的推荐人是否是　试用用户　
@@ -1082,7 +1082,7 @@ def task_update_trial_mama_full_member_by_condition(mama):
             log_action(sys_oa, potential, CHANGE, u'满足转正条件,转为正式妈妈')
 
 
-@task()
+@app.task()
 def task_update_mama_agency_level_in_condition(date=None):
     """
     1. 邀请正式总数4个（含4个）

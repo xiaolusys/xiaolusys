@@ -1,6 +1,6 @@
 # -*- coding:utf8 -*-
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import json
 import time
@@ -20,7 +20,7 @@ import logging
 logger = logging.getLogger('django.request')
 
 
-@task()
+@app.task()
 def updateTradeAndOrderByRuleMemo():
     rule_memos = RuleMemo.objects.filter(is_used=False).exclude(rule_memo='')
     for rule_memo in rule_memos:
@@ -79,7 +79,7 @@ def updateTradeAndOrderByRuleMemo():
                 logger.error('update rule error', exc_info=True)
 
 
-@task()
+@app.task()
 def updateTradeSellerFlagTask():
     system_config = SystemConfig.getconfig()
     if system_config and system_config.is_flag_auto:

@@ -1,6 +1,6 @@
 # -*- encoding:utf-8 -*-
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import sys
 import datetime
@@ -27,7 +27,7 @@ def get_cur_info():
     return f.f_code.co_name
 
 
-@task()
+@app.task()
 def task_update_second_level_ordercarry_by_trial(potential, order_carry):
     """
     这里的potential 是　PotentialMama instance (并且必须是is_full_member=False的)　因为转正的有转正的task写记录　不从这里写
@@ -80,7 +80,7 @@ def task_update_second_level_ordercarry_by_trial(potential, order_carry):
     record.save()
 
 
-@task()
+@app.task()
 def task_update_second_level_ordercarry(referal_relationship, order_carry):
     print "%s, mama_id: %s" % (get_cur_info(), order_carry.mama_id)
 
@@ -132,7 +132,7 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
     record.save()
 
 
-@task(serializer='pickle')
+@app.task(serializer='pickle')
 def task_update_ordercarry(mama_id, order, customer_pk, carry_amount, agency_level, carry_plan_name, via_app):
     """
     Whenever a sku order gets saved, trigger this task to update 
@@ -246,7 +246,7 @@ def task_update_ordercarry(mama_id, order, customer_pk, carry_amount, agency_lev
 #    return group_carry_array[idx - 1][1]
 
 
-@task()
+@app.task()
 def task_referal_update_awardcarry(relationship):
     #print "%s, mama_id: %s" % (get_cur_info(), relationship.referal_from_mama_id)
 
@@ -310,7 +310,7 @@ def task_referal_update_awardcarry(relationship):
         award_carry.save()
 
 
-@task()
+@app.task()
 def task_update_group_awardcarry(relationship):
     from flashsale.xiaolumm.models.models_fortune import AwardCarry, ReferalRelationship, GroupRelationship
 
@@ -385,7 +385,7 @@ def validate_self_mama(mama, order_created_time):
         return True
     return False
 
-@task(serializer='pickle')
+@app.task(serializer='pickle')
 def task_order_trigger(sale_order):
     from flashsale.xiaolumm.models.models_fans import XlmmFans
     logger.info("%s, saleorder_pk: %s" % (get_cur_info(), sale_order.id))
@@ -462,7 +462,7 @@ def task_order_trigger(sale_order):
     #task_update_ordercarry.apply_async(args=[mm_linkid_mama.pk, sale_order, customer_id, carry_amount, agency_level,
     #                             carry_scheme.name, via_app], countdown=1)
 
-@task()
+@app.task()
 def carryrecord_update_xiaolumama_active_hasale(mmid):
     from flashsale.xiaolumm.models import CarryRecord
     from . import tasks_mama_fortune

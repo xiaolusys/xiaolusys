@@ -1,6 +1,6 @@
 # -*- coding:utf8 -*-
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import os
 import re
@@ -26,7 +26,7 @@ BLANK_CHAR = ''
 MONTH_TRADE_FILE_TEMPLATE = 'D%s.xls'
 
 
-@task()
+@app.task()
 def updateMonthTradeXlsFileTask(year=None, month=None):
     dt = datetime.datetime.now()
     update_year_month = year and month

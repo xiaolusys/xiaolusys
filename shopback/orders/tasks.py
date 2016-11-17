@@ -1,6 +1,6 @@
 # -*- coding:utf8 -*-
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import datetime
 from django.conf import settings
@@ -21,7 +21,7 @@ TASK_SUCCESS = 'SUCCESS'
 TASK_FAIL = 'FAIL'
 
 
-@task(max_retries=3)
+@app.task(max_retries=3)
 def saveUserDuringOrdersTask(user_id, update_from=None, update_to=None, status=None):
     """ 下载用户商城订单 """
     update_tids = []
@@ -82,7 +82,7 @@ def saveUserDuringOrdersTask(user_id, update_from=None, update_to=None, status=N
                 logger.error(u'更新订单信息异常:%s' % exc, exc_info=True)
 
 
-@task()
+@app.task()
 def saveUserIncrementOrdersTask(user_id, update_from=None, update_to=None):
     s_dt_f = format_datetime(update_from)
     s_dt_t = format_datetime(update_to)
@@ -116,7 +116,7 @@ def saveUserIncrementOrdersTask(user_id, update_from=None, update_to=None):
         cur_page += 1
 
 
-@task()
+@app.task()
 def updateAllUserIncrementOrdersTask(update_from=None, update_to=None):
     """ 使用淘宝增量交易接口更新订单信息 """
 
@@ -154,7 +154,7 @@ def updateAllUserIncrementOrdersTask(update_from=None, update_to=None):
                 monitor_status.save()
 
 
-@task()
+@app.task()
 def updateAllUserWaitPostOrderTask():
     users = User.effect_users.TAOBAO
     for user in users:
@@ -162,7 +162,7 @@ def updateAllUserWaitPostOrderTask():
                                  status=pcfg.WAIT_SELLER_SEND_GOODS)
 
 
-@task()
+@app.task()
 def updateAllUserIncrementTradesTask():
     """ 增量更新订单信息 """
 

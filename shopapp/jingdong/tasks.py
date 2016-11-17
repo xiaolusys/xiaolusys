@@ -1,6 +1,6 @@
 # -*- coding:utf8 -*-
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import time
 import datetime
@@ -14,7 +14,7 @@ import logging
 logger = logging.getLogger('celery.handler')
 
 
-@task
+@app.task
 def pullJDProductByVenderidTask(vender_id, ware_status=1):
     page = 1
     page_size = 100
@@ -66,7 +66,7 @@ def pullJDProductByVenderidTask(vender_id, ware_status=1):
             .update(ware_status=JDProduct.SYSTEM_DOWN)
 
 
-@task
+@app.task
 def pullJDLogisticByVenderidTask(vender_id):
     from shopback.users.models import User
 
@@ -83,7 +83,7 @@ def pullJDLogisticByVenderidTask(vender_id):
         jd_logistic.save()
 
 
-@task
+@app.task
 def pullJDOrderByModifiedTask(jd_shop, status_list, begintime=None, endtime=None):
     page = 1
     page_size = 2
@@ -107,7 +107,7 @@ def pullJDOrderByModifiedTask(jd_shop, status_list, begintime=None, endtime=None
             JDShopService.createMergeTrade(jd_order)
 
 
-@task
+@app.task
 def pullJDOrderByVenderIdTask(vender_id, status_list=[JDOrder.ORDER_STATE_WSTO]):
     jd_shop = JDShop.objects.get(vender_id=vender_id)
 
@@ -125,7 +125,7 @@ def pullJDOrderByVenderIdTask(vender_id, status_list=[JDOrder.ORDER_STATE_WSTO])
     jd_shop.updateOrderUpdated(endtime)
 
 
-@task
+@app.task
 def pullAllJDShopOrderByModifiedTask(status_list=[JDOrder.ORDER_STATE_WSTO,
                                                   JDOrder.ORDER_STATE_FL,
                                                   JDOrder.ORDER_STATE_TC]):
@@ -135,7 +135,7 @@ def pullAllJDShopOrderByModifiedTask(status_list=[JDOrder.ORDER_STATE_WSTO,
         pullJDOrderByVenderIdTask(user.visitor_id)
 
 
-@task
+@app.task
 def syncWareStockByJDShopTask(jd_ware):
     """
     """
@@ -217,7 +217,7 @@ def syncWareStockByJDShopTask(jd_ware):
                                                  end_at=datetime.datetime.now())
 
 
-@task
+@app.task
 def syncJDUserWareNumTask(jd_user):
     jd_wares = JDProduct.objects.filter(vender_id=jd_user.visitor_id,
                                         ware_status=JDProduct.ON_SALE)
@@ -226,7 +226,7 @@ def syncJDUserWareNumTask(jd_user):
         syncWareStockByJDShopTask(jd_ware)
 
 
-@task
+@app.task
 def syncAllJDUserWareNumTask():
     from shopback.users.models import User
 

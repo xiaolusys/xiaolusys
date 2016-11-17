@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import time
 import datetime
@@ -63,7 +63,7 @@ def update_weixin_productstock():
                 logger.error(exc.message, exc_info=True)
 
 
-@task(max_retries=3, default_retry_delay=60)
+@app.task(max_retries=3, default_retry_delay=60)
 def task_Update_Weixin_Userinfo(openId, unionId=None, userinfo={}, accessToken=None):
     """ 通过接口获取用户信息 """
     _wx_api = WeiXinAPI()
@@ -98,7 +98,7 @@ def task_Update_Weixin_Userinfo(openId, unionId=None, userinfo={}, accessToken=N
     WeixinUnionID.objects.get_or_create(openid=openId, app_key=app_key, unionid=wx_user.unionid)
 
 
-@task(max_retries=3, default_retry_delay=60)
+@app.task(max_retries=3, default_retry_delay=60)
 def task_Mod_Merchant_Product_Status(outer_ids, status):
     from shopback.items.models import Product
     from shopback import signals
@@ -141,7 +141,7 @@ def task_Mod_Merchant_Product_Status(outer_ids, status):
         raise exception
 
 
-@task
+@app.task
 def pullWXProductTask():
     _wx_api = WeiXinAPI()
     products = _wx_api.getMerchantByStatus(0)
@@ -155,7 +155,7 @@ def pullWXProductTask():
         .update(status=WXProduct.DOWN_SHELF)
 
 
-@task
+@app.task
 def pullWaitPostWXOrderTask(begintime, endtime, full_update=False):
 
     from shopapp.weixin.service import WxShopService
@@ -188,7 +188,7 @@ def pullWaitPostWXOrderTask(begintime, endtime, full_update=False):
     _wx_api._wx_account.changeOrderUpdated(dt)
 
 
-@task
+@app.task
 def pullFeedBackWXOrderTask(begintime, endtime):
 
     from shopapp.weixin.service import WxShopService
@@ -212,7 +212,7 @@ def pullFeedBackWXOrderTask(begintime, endtime):
     _wx_api._wx_account.changeRefundUpdated(dt)
 
 
-@task
+@app.task
 def syncStockByWxShopTask(wx_product):
     from shopback.items.models import Product, ProductSku, ItemNumTaskLog
     from shopback.trades.models import MergeOrder
@@ -311,7 +311,7 @@ def syncStockByWxShopTask(wx_product):
                                                  end_at=datetime.datetime.now())
 
 
-@task
+@app.task
 def syncWXProductNumTask():
     pullWXProductTask()
 
@@ -324,7 +324,7 @@ def syncWXProductNumTask():
 from core.weixin.options import valid_openid
 
 
-@task
+@app.task
 def task_snsauth_update_weixin_userinfo(userinfo, app_key):
     """
     Every time we have snsauth userfinfo, we update WeixinUserInfo.
@@ -363,7 +363,7 @@ def task_snsauth_update_weixin_userinfo(userinfo, app_key):
         record.save()
 
 
-@task(max_retries=3, default_retry_delay=60)
+@app.task(max_retries=3, default_retry_delay=60)
 def task_refresh_weixin_access_token():
     appkeys = WeiXinAccount.objects.filter(is_active=True).values_list('app_id', flat=True)
     wx_api = WeiXinAPI()

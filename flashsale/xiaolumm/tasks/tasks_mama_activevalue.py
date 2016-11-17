@@ -1,6 +1,6 @@
 # -*- encoding:utf-8 -*-
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import datetime
 import sys
@@ -20,7 +20,7 @@ def get_cur_info():
     return f.f_code.co_name
 
 
-@task()
+@app.task()
 def task_fans_update_activevalue(mama_id, fans_customer_id, date_field):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
 
@@ -38,7 +38,7 @@ def task_fans_update_activevalue(mama_id, fans_customer_id, date_field):
     active_value.save()
 
 
-@task()
+@app.task()
 def task_ordercarry_update_activevalue(order_carry_unikey):
     value_type = 2
     order_carrys = OrderCarry.objects.filter(uni_key=order_carry_unikey)
@@ -80,7 +80,7 @@ def task_ordercarry_update_activevalue(order_carry_unikey):
     active_value.save()
 
 
-@task()
+@app.task()
 def task_referal_update_activevalue(mama_id, date_field, contributor_id):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
     value_type = 3  # referal
@@ -97,7 +97,7 @@ def task_referal_update_activevalue(mama_id, date_field, contributor_id):
     active_value.save()
 
 
-@task()
+@app.task()
 def task_confirm_previous_activevalue(mama_id, today_date_field, num_days):
     """
     This is how a click-type activevalue gets confirmed:
@@ -121,7 +121,7 @@ def task_confirm_previous_activevalue(mama_id, today_date_field, num_days):
         active_value.save()
 
 
-@task()
+@app.task()
 def task_visitor_increment_activevalue(mama_id, date_field):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
     value_type = 1  # click

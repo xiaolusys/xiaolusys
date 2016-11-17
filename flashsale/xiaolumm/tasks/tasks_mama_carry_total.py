@@ -1,6 +1,6 @@
 # -*- encoding:utf-8 -*-
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import datetime
 from flashsale.xiaolumm.models.carry_total import ActivityMamaCarryTotal
@@ -20,17 +20,17 @@ def get_cur_info():
     return f.f_code.co_name
 
 
-@task()
+@app.task()
 def task_fortune_update_week_carry_total(mama_id):
     WeekMamaCarryTotal.update_or_create(mama_id)
 
 
-@task()
+@app.task()
 def task_fortune_update_activity_carry_total(activity, mama_id):
     ActivityMamaCarryTotal.update_or_create(activity, mama_id)
 
 
-@task()
+@app.task()
 def task_schedule_update_carry_total_ranking():
     logger.warn("task_schedule_update_carry_total_ranking: %s" % (get_cur_info(),))
     # 周一把上周的也重设一次排名
@@ -41,7 +41,7 @@ def task_schedule_update_carry_total_ranking():
     WeekMamaCarryTotal.reset_rank_duration()
 
 
-@task()
+@app.task()
 def task_schedule_update_team_carry_total_ranking():
     logger.warn(" task_schedule_update_carry_total_ranking: %s" % (get_cur_info(),))
     if datetime.datetime.now().weekday() == 1:

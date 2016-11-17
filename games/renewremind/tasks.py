@@ -3,7 +3,7 @@ from __future__ import absolute_import, unicode_literals
 
 import datetime
 import logging
-from celery import shared_task as task
+from shopmanager import celery_app as app
 from django.db.models import F
 
 from games.renewremind import constants
@@ -58,7 +58,7 @@ def send_message(mobile, message, taskName):
         logger.error(exc.message or '%s发送出错' % taskName, exc_info=True)
 
 
-@task()
+@app.task()
 def trace_renew_remind_send_msm():
     """ 追踪续费服务提醒记录处理 """
     reminds = RenewRemind.objects.filter(is_trace=True)  # 在追踪状态的续费提醒记录

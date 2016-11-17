@@ -1,12 +1,12 @@
 # coding=utf-8
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import logging
 log = logging.getLogger(__name__)
 
 
-@task
+@app.task
 def task_site_push(id=None):
     # type: (Optional[int]) -> None
     """如果有半个小时内的推送设置记录（未推送状态的）　则　执行推送该消息给客户端程序

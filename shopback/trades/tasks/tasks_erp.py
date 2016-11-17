@@ -6,7 +6,7 @@
 每小时优禾订单自动同步到优禾的旺店通系统
 """
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import re
 import simplejson

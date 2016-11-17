@@ -1,6 +1,6 @@
 # -*- encoding:utf-8 -*-
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import sys
 import datetime
@@ -39,7 +39,7 @@ def create_dailystats_with_integrity(mama_id, date_field, uni_key, **kwargs):
     # DailyStats.objects.filter(mama_id=mama_id, date_field=date_field, uni_key=uni_key).update(**kwargs)
 
 
-@task()
+@app.task()
 def task_confirm_previous_dailystats(mama_id, today_date_field, num_days):
     # print "%s, mama_id: %s" % (get_cur_info(), mama_id)
 
@@ -69,7 +69,7 @@ def task_confirm_previous_dailystats(mama_id, today_date_field, num_days):
         stats.save()
 
 
-@task(max_retries=3, default_retry_delay=6)
+@app.task(max_retries=3, default_retry_delay=6)
 def task_visitor_increment_dailystats(mama_id, date_field):
     # print "%s, mama_id: %s" % (get_cur_info(), mama_id)
 
@@ -90,7 +90,7 @@ def task_visitor_increment_dailystats(mama_id, date_field):
         records.update(today_visitor_num=F('today_visitor_num') + 1)
 
 
-@task(max_retries=3, default_retry_delay=6)
+@app.task(max_retries=3, default_retry_delay=6)
 def task_carryrecord_update_dailystats(mama_id, date_field):
     # print "%s, mama_id: %s" % (get_cur_info(), mama_id)
 
@@ -117,7 +117,7 @@ def task_carryrecord_update_dailystats(mama_id, date_field):
         records.update(today_carry_num=today_carry_num)
 
 
-@task(max_retries=3, default_retry_delay=6)
+@app.task(max_retries=3, default_retry_delay=6)
 def task_ordercarry_increment_dailystats(mama_id, date_field):
     # print "%s, mama_id: %s" % (get_cur_info(), mama_id)
 
@@ -138,7 +138,7 @@ def task_ordercarry_increment_dailystats(mama_id, date_field):
         records.update(today_order_num=F('today_order_num') + 1)
 
 
-@task()
+@app.task()
 def task_xlmm_score():
     from flashsale.xiaolumm.models.score import XlmmEffectScore, XlmmTeamEffScore
     XlmmEffectScore.batch_generate()

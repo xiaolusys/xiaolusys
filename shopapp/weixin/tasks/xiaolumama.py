@@ -1,6 +1,6 @@
 # coding: utf8
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import datetime
 from django.contrib.auth.models import User
@@ -46,7 +46,7 @@ def get_or_fetch_userinfo(openid, wx_pubid):
     return userinfo
 
 
-@task
+@app.task
 def task_create_scan_customer(wx_userinfo):
     unionid = wx_userinfo['unionid']
     thumbnail = wx_userinfo['headimgurl']
@@ -58,7 +58,7 @@ def task_create_scan_customer(wx_userinfo):
         cu = Customer(unionid=unionid, user=user, thumbnail=thumbnail, nick=nick)
         cu.save()
 
-@task
+@app.task
 def task_create_scan_xiaolumama(wx_userinfo):
     unionid = wx_userinfo['unionid']
     mama = XiaoluMama.objects.filter(openid=unionid).first()
@@ -67,7 +67,7 @@ def task_create_scan_xiaolumama(wx_userinfo):
         mama.save()
 
 
-@task(max_retries=3, default_retry_delay=15)
+@app.task(max_retries=3, default_retry_delay=15)
 def task_get_unserinfo_and_create_accounts(openid, wx_pubid):
     """
     Initially, this task should be invoked for every weixin user.
@@ -95,7 +95,7 @@ def task_get_unserinfo_and_create_accounts(openid, wx_pubid):
         raise task_get_unserinfo_and_create_accounts.retry(exc=exc)
     
     
-@task    
+@app.task
 def task_create_scan_potential_mama(referal_from_mama_id, potential_mama_id, potential_mama_unionid):
     if referal_from_mama_id == potential_mama_id:
         return
@@ -116,7 +116,7 @@ def task_create_scan_potential_mama(referal_from_mama_id, potential_mama_id, pot
     pm.save()
 
 
-@task(max_retries=3, default_retry_delay=15)
+@app.task(max_retries=3, default_retry_delay=15)
 def task_create_or_update_weixinfans_upon_subscribe_or_scan(openid, wx_pubid, event, eventkey):
     """
     For subscribe.
@@ -156,7 +156,7 @@ def task_create_or_update_weixinfans_upon_subscribe_or_scan(openid, wx_pubid, ev
     except Exception, exc:
         raise task_create_or_update_weixinfans_upon_subscribe_or_scan.retry(exc=exc)
 
-@task
+@app.task
 def task_update_weixinfans_upon_unsubscribe(openid, wx_pubid):
     """
     For unsubscribe.
@@ -169,7 +169,7 @@ def task_update_weixinfans_upon_unsubscribe(openid, wx_pubid):
     WeixinFans.objects.filter(app_key=app_key, openid=openid).update(subscribe=False, unsubscribe_time=unsubscribe_time)
     
 
-@task
+@app.task
 def task_activate_xiaolumama(openid, wx_pubid):
     wx_api = WeiXinAPI()
     wx_api.setAccountId(wxpubId=wx_pubid)
@@ -216,7 +216,7 @@ def task_activate_xiaolumama(openid, wx_pubid):
     #    task_weixinfans_create_budgetlog.delay(referal_mama.openid, potential_mama_unionid, BudgetLog.BG_REFERAL_FANS)
     
 
-@task(max_retries=3, default_retry_delay=6)
+@app.task(max_retries=3, default_retry_delay=6)
 def task_weixinfans_update_xlmmfans(referal_from_mama_id, referal_to_unionid):
 
     try:
@@ -277,7 +277,7 @@ def create_push_event_subscribe(mama_id, unionid, carry_num, date_field):
     
 
     
-@task(max_retries=3, default_retry_delay=60)
+@app.task(max_retries=3, default_retry_delay=60)
 def task_weixinfans_create_subscribe_awardcarry(unionid):
     carry_num = 100
     carry_type = AwardCarry.AWARD_SUBSCRIBE # 关注公众号
@@ -362,7 +362,7 @@ def create_push_event_invite_fans(mama_id, contributor_nick, contributor_mama_id
     
 
     
-@task(max_retries=3, default_retry_delay=5)
+@app.task(max_retries=3, default_retry_delay=5)
 def task_weixinfans_create_fans_awardcarry(referal_from_mama_id, referal_to_unionid):
     if referal_from_mama_id < 1:
         return
@@ -493,7 +493,7 @@ def get_or_create_weixin_xiaolumm(wxpubId, openid, event, eventKey):
 
     return xiaolumm
 
-@task(max_retries=3, default_retry_delay=5)
+@app.task(max_retries=3, default_retry_delay=5)
 def task_create_mama_referal_qrcode_and_response_weixin(wxpubId, openid, event, eventKey):
     """ to_username: 公众号id, from_username: 关注用户id """
     if XiaoluSwitch.is_switch_open(3):
@@ -530,7 +530,7 @@ def task_create_mama_referal_qrcode_and_response_weixin(wxpubId, openid, event, 
         raise task_create_mama_referal_qrcode_and_response_weixin.retry(exc=exc)
 
 
-@task(max_retries=3, default_retry_delay=5)
+@app.task(max_retries=3, default_retry_delay=5)
 def task_create_mama_and_response_manager_qrcode(wxpubId, openid, event, eventKey):
     """ to_username: 公众号id, from_username: 关注用户id """
     try:

@@ -1,5 +1,5 @@
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import datetime
 from shopback.orders.models import Order, Trade
@@ -15,7 +15,7 @@ import logging
 logger = logging.getLogger('django.request')
 
 
-@task()
+@app.task()
 def updateOrdersAmountTask(user_id, update_from=None, update_to=None):
     finish_trades = Trade.objects.filter(user__visitor_id=user_id, consign_time__gte=update_from,
                                          consign_time__lte=update_to, status__in=pcfg.ORDER_OK_STATUS)
@@ -35,7 +35,7 @@ def updateOrdersAmountTask(user_id, update_from=None, update_to=None):
         trade_extra_info.save()
 
 
-@task()
+@app.task()
 def updateAllUserOrdersAmountTask(days=0, dt_f=None, dt_t=None):
     hander_update = dt_f and dt_t
     if not hander_update:
@@ -53,7 +53,7 @@ def updateAllUserOrdersAmountTask(days=0, dt_f=None, dt_t=None):
            updateOrdersAmountTask.delay(user.visitor_id, update_from=dt_f, update_to=dt_t)
 
 
-@task()
+@app.task()
 def updatePurchaseOrdersAmountTask(user_id, update_from=None, update_to=None):
     user = User.objects.get(visitor_id=user_id)
     if not user.has_fenxiao:
@@ -77,7 +77,7 @@ def updatePurchaseOrdersAmountTask(user_id, update_from=None, update_to=None):
         trade_extra_info.save()
 
 
-@task()
+@app.task()
 def updateAllUserPurchaseOrdersAmountTask(days=0, dt_f=None, dt_t=None):
     hander_update = dt_f and dt_t
     if not hander_update:

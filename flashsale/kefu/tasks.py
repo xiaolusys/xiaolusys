@@ -5,7 +5,7 @@ import json
 import datetime
 
 from django.core.serializers.json import DjangoJSONEncoder
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 from flashsale.kefu.models import KefuPerformance
 from flashsale.pay.models import SaleRefund
@@ -15,7 +15,7 @@ import logging
 logger = logging.getLogger('celery.handler')
 
 
-@task(max_retries=1, default_retry_delay=5)
+@app.task(max_retries=1, default_retry_delay=5)
 def task_record_kefu_performance(start_date, end_date, record_type="0"):
     """客服操作"""
     try:
@@ -58,7 +58,7 @@ from shopback import paramconfig as pcfg
 from django.db.models import F
 
 
-@task()
+@app.task()
 def task_send_message(content, mobile):
     """发送短信"""
     # 选择默认短信平台商，如果没有，任务退出

@@ -1,6 +1,6 @@
 # coding=utf-8
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import logging
 import datetime
@@ -11,7 +11,7 @@ from django.db import IntegrityError
 logger = logging.getLogger(__name__)
 
 
-@task(serializer='pickle')
+@app.task(serializer='pickle')
 def task_update_tpl_released_coupon_nums(template):
     """
     template : CouponTemplate instance
@@ -39,7 +39,7 @@ def task_update_tpl_released_coupon_nums(template):
     return
 
 
-@task()
+@app.task()
 def task_update_share_coupon_release_count(share_coupon):
     """
     share_coupon : OrderShareCoupon instance
@@ -53,7 +53,7 @@ def task_update_share_coupon_release_count(share_coupon):
     return
 
 
-@task()
+@app.task()
 def task_update_coupon_use_count(coupon, trade_tid):
     """
     1. count the CouponTemplate 'has_used_count' field when use coupon
@@ -95,7 +95,7 @@ def task_update_coupon_use_count(coupon, trade_tid):
     return
 
 
-@task()
+@app.task()
 def task_release_coupon_for_order(saletrade):
     """
     - SaleTrade pay confirm single to drive this task.
@@ -117,7 +117,7 @@ def task_release_coupon_for_order(saletrade):
     return
 
 
-@task()
+@app.task()
 def task_freeze_coupon_by_refund(salerefund):
     """
     - SaleRefund refund signal to drive this task.
@@ -131,7 +131,7 @@ def task_freeze_coupon_by_refund(salerefund):
         cous.update(status=UserCoupon.FREEZE)
 
 
-@task()
+@app.task()
 def task_release_mama_link_coupon(saletrade):
     """
     - SaleTrade pay confirm single to drive this task
@@ -168,7 +168,7 @@ def task_release_mama_link_coupon(saletrade):
     return
 
 
-@task()
+@app.task()
 def task_change_coupon_status_used(saletrade):
     coupon_ids = saletrade.extras_info.get('coupon') or []
     from flashsale.coupon.models import UserCoupon
@@ -184,7 +184,7 @@ def task_change_coupon_status_used(saletrade):
         usercoupon.use_coupon(saletrade.tid)
 
 
-@task()
+@app.task()
 def task_update_user_coupon_status_2_past():
     """
     - timing to update the user coupon to past.
@@ -199,7 +199,7 @@ def task_update_user_coupon_status_2_past():
     cous.update(status=UserCoupon.PAST)  # 更新为过期优惠券
 
 
-@task()
+@app.task()
 def task_release_coupon_for_register(instance):
     """
      - release coupon for register a new Customer instance ( when post save created a Customer instance run this task)
@@ -223,7 +223,7 @@ def task_release_coupon_for_register(instance):
     return
 
 
-@task()
+@app.task()
 def task_roll_back_usercoupon_by_refund(trade_tid, num):
     from flashsale.coupon.models import UserCoupon
     from flashsale.pay.models import Customer
@@ -248,7 +248,7 @@ def task_roll_back_usercoupon_by_refund(trade_tid, num):
     return
 
 
-@task()
+@app.task()
 def task_update_mobile_download_record(tempcoupon):
     from flashsale.coupon.models import OrderShareCoupon
 
@@ -269,7 +269,7 @@ def task_update_mobile_download_record(tempcoupon):
     dl_record.save()
 
 
-@task()
+@app.task()
 def task_update_unionid_download_record(usercoupon):
     from flashsale.promotion.models import DownloadUnionidRecord, DownloadMobileRecord
 
@@ -303,7 +303,7 @@ def task_update_unionid_download_record(usercoupon):
         dl_record.save()
 
 
-@task()
+@app.task()
 def task_push_msg_pasting_coupon():
     """
     推送：　明天过期的没有推送过的优惠券将推送用户告知
@@ -348,7 +348,7 @@ def get_deposit_money(buyer_id):
     return d_m / 100.0 + t_m
 
 
-@task()
+@app.task()
 def task_release_coupon_for_mama_deposit(buyer_id, deposite_type):
     from flashsale.coupon.models import UserCoupon
 
@@ -362,7 +362,7 @@ def task_release_coupon_for_mama_deposit(buyer_id, deposite_type):
         UserCoupon.objects.create_normal_coupon(buyer_id=buyer_id, template_id=template_id)
 
 
-@task()
+@app.task()
 def task_release_coupon_for_mama_deposit_double_99(buyer_id):
     """ 续费才进入此方法 """
     from flashsale.coupon.models import UserCoupon
@@ -372,7 +372,7 @@ def task_release_coupon_for_mama_deposit_double_99(buyer_id):
         UserCoupon.objects.create_normal_coupon(buyer_id=buyer_id, template_id=template_id)
 
 
-@task()
+@app.task()
 def task_release_coupon_for_mama_renew(customer, saleorder):
     # type: (Customer, SaleOrder) -> None
     """用户重复续费送优惠券
@@ -391,7 +391,7 @@ def task_release_coupon_for_mama_renew(customer, saleorder):
         UserCoupon.send_coupon(customer, template, uniq_id=uni_key)
 
 
-@task()
+@app.task()
 def task_create_transfer_coupon(sale_order):
     # type: (SaleOrder) -> None
     """

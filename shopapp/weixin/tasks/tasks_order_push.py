@@ -1,13 +1,13 @@
 # encoding=utf8
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 from datetime import datetime, timedelta
 from shopapp.weixin.weixin_push import WeixinPush
 from flashsale.pay.models.teambuy import TeamBuy, TeamBuyDetail
 
 
-@task
+@app.task
 def task_pintuan_success_push(teambuy):
     details = TeamBuyDetail.objects.filter(teambuy_id=teambuy.id)
     customers = [x.customer for x in details]
@@ -17,7 +17,7 @@ def task_pintuan_success_push(teambuy):
         push.push_pintuan_success(teambuy, customer)
 
 
-@task
+@app.task
 def task_pintuan_fail_push(teambuy):
     details = TeamBuyDetail.objects.filter(teambuy_id=teambuy.id)
     customers = [x.customer for x in details]
@@ -27,7 +27,7 @@ def task_pintuan_fail_push(teambuy):
         push.push_pintuan_fail(teambuy, customer)
 
 
-@task
+@app.task
 def task_pintuan_need_more_people_push():
     expire_time = datetime.now() + timedelta(hours=6)
     teambuys = TeamBuy.objects.filter(status=0, limit_time__lte=expire_time)  # 开团状态

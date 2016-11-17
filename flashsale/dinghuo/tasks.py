@@ -8,7 +8,7 @@ import urllib2
 import json
 import datetime
 
-from celery import shared_task as task
+from shopmanager import celery_app as app
 from django.db import connection
 from django.db.models import Max, Sum
 from django.contrib.auth.models import User
@@ -31,7 +31,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-@task(max_retries=3, default_retry_delay=5)
+@app.task(max_retries=3, default_retry_delay=5)
 def task_update_order_group_key(order_ids):
     """ order ids 更新 order group key """
     order_id_set = set()
@@ -43,7 +43,7 @@ def task_update_order_group_key(order_ids):
     logger.info('task_update_order_group_key:order_ids=%s, group_key=%s' % (order_id_set, order_group_key))
 
 
-@task(max_retries=3, default_retry_delay=5)
+@app.task(max_retries=3, default_retry_delay=5)
 def task_stats_paytopack(pay_date, sku_num, total_days):
     try:
         entry, status = PayToPackStats.objects.get_or_create(pay_date=pay_date)
@@ -54,7 +54,7 @@ def task_stats_paytopack(pay_date, sku_num, total_days):
         raise task_stats_paytopack.retry(exc=exc)
 
 
-@task(max_retries=3, default_retry_delay=5)
+@app.task(max_retries=3, default_retry_delay=5)
 def task_stats_daily_product(pre_day=1):
     """计算原始数据表"""
     try:
@@ -68,13 +68,13 @@ def task_stats_daily_product(pre_day=1):
         raise task_stats_daily_product.retry(exc=exc)
 
 
-@task()
+@app.task()
 def task_stats_product():
     """计算汇总的表"""
     function_of_task.daily_data_stats_update()
 
 
-@task(max_retries=3, default_retry_delay=5)
+@app.task(max_retries=3, default_retry_delay=5)
 def task_stats_daily_order_by_group(pre_day=1):
     """每组统计，已经暂停使用"""
     try:
@@ -146,7 +146,7 @@ def task_stats_daily_order_by_group(pre_day=1):
         raise task_stats_daily_order_by_group.retry(exc=exc)
 
 
-@task(max_retries=3, default_retry_delay=5)
+@app.task(max_retries=3, default_retry_delay=5)
 def task_send_daily_message():
     """使用企业号发送每日订货短信，已经暂停使用"""
     try:
@@ -159,7 +159,7 @@ def task_send_daily_message():
         raise task_send_daily_message.retry(exc=exc)
 
 
-@task(max_retries=3, default_retry_delay=5)
+@app.task(max_retries=3, default_retry_delay=5)
 def task_write_supply_name():
     """根据填写的商品链接抓取供应商，已经停止使用"""
     try:
@@ -209,7 +209,7 @@ def get_supply_name(name):
 from supplychain.basic.fetch_urls import getBeaSoupByCrawUrl
 
 
-@task()
+@app.task()
 def task_write_supply_name2():
     try:
         all_data = OrderList.objects.exclude(status=u'作废').filter(supplier_shop="")
@@ -243,7 +243,7 @@ from flashsale.dinghuo.models import RecordGroupPoint
 from flashsale.dinghuo.models_user import MyUser, MyGroup
 
 
-@task(max_retries=3, default_retry_delay=5)
+@app.task(max_retries=3, default_retry_delay=5)
 def task_daily_stat_group_point():
     """每组得分情况，已经作废"""
     try:
@@ -283,7 +283,7 @@ def task_daily_stat_group_point():
         raise task_daily_stat_group_point.retry(exc=exc)
 
 
-@task(max_retries=3, default_retry_delay=5)
+@app.task(max_retries=3, default_retry_delay=5)
 def task_daily_stat_ding_huo():
     """订货达标任务，已经作废"""
     try:
@@ -452,7 +452,7 @@ def save_point_by_time(time_from, time_to, user_a, user_b, user_c):
     record_point[0].save()
 
 
-@task()
+@app.task()
 def task_supplier_stat(start_date, end_date, group_name):
     if group_name == 0:
         group_sql = ""
@@ -481,7 +481,7 @@ def task_supplier_stat(start_date, end_date, group_name):
     return raw
 
 
-@task()
+@app.task()
 def task_ding_huo(shelve_from, time_to, groupname, search_text, target_date, dinghuo_begin, query_time, dhstatus):
     """非没有退款状态的，不算作销售数"""
     order_sql = "select id,outer_id,sum(num) as sale_num,outer_sku_id,pay_time from " \
@@ -579,7 +579,7 @@ def task_ding_huo(shelve_from, time_to, groupname, search_text, target_date, din
 from . import function_of_task_optimize
 
 
-@task()
+@app.task()
 def task_ding_huo_optimize(shelve_from, time_to, groupname, search_text, target_date, dinghuo_begin, query_time,
                            dhstatus):
     """非没有退款状态的，不算作销售数,没有之前的速度快"""
@@ -711,7 +711,7 @@ def get_sale_product_supplier(sale_product):
         return 0
 
 
-@task()
+@app.task()
 def calcu_refund_info_by_pro_v2(date_from=None, date_to=None):
     # SKUID   sku_id
     # 产品ID   pro_id
@@ -793,7 +793,7 @@ def calcu_refund_info_by_pro_v2(date_from=None, date_to=None):
 from flashsale.dinghuo.models import DailyStatsPreview, DailySupplyChainStatsOrder
 
 
-@task()
+@app.task()
 def task_daily_preview(default_time=15):
     function_of_settime(default_time)
 
@@ -836,7 +836,7 @@ def function_of_settime(default_time):
 
 
 # 2015-12-12
-@task()
+@app.task()
 def task_supplier_avg_post_time(days=5):
     """ 统计供应商的平均发货时间
         计算方法：　供应商每次（到货时间　－　发货时间）之和　／　发货次数
@@ -878,7 +878,7 @@ from django.db.models import F
 from common.modelutils import update_model_fields
 
 
-@task()
+@app.task()
 def task_category_stock_data(days=15):
     """
         统计产品分类中的进货数据
@@ -911,7 +911,7 @@ def task_category_stock_data(days=15):
 from .models import SaleInventoryStat
 
 
-@task()
+@app.task()
 def task_stat_category_inventory_data(date=None):
     """
         统计当天的订货表的新增采购数　未到货总数　到货数 童女装分类
@@ -1368,7 +1368,7 @@ def create_orderlist(supplier):
             _merge(supplier, old_orderlist)
 
 
-@task(max_retries=3, default_retry_delay=5)
+@app.task(max_retries=3, default_retry_delay=5)
 def create_dinghuo():
     for supplier in get_suppliers(datetime.datetime(2016, 4, 1)):
         create_orderlist(supplier)
@@ -1377,7 +1377,7 @@ def create_dinghuo():
 from django.db import IntegrityError
 
 
-@task(serializer='pickle')
+@app.task(serializer='pickle')
 def task_purchase_detail_update_purchase_order(pd):
     # print "debug: %s" % utils.get_cur_info()
     res = PurchaseDetail.objects.filter(purchase_order_unikey=pd.purchase_order_unikey). \
@@ -1404,7 +1404,7 @@ def task_purchase_detail_update_purchase_order(pd):
             po.save(update_fields=['book_num', 'need_num', 'arrival_num', 'modified'])
 
 
-@task(serializer='pickle')
+@app.task(serializer='pickle')
 def task_purchasedetail_update_orderdetail(pd):
     # we should re-calculate the num of records each time we sync pd and od.
     res = PurchaseArrangement.objects.filter(purchase_order_unikey=pd.purchase_order_unikey,
@@ -1435,12 +1435,12 @@ def task_purchasedetail_update_orderdetail(pd):
             od.save(update_fields=['buy_quantity', 'buy_unitprice', 'total_price', 'updated'])
 
 
-@task(serializer='pickle')
+@app.task(serializer='pickle')
 def task_orderlist_update_self(ol):
     ol.update_stage()
 
 
-@task(serializer='pickle')
+@app.task(serializer='pickle')
 def task_orderdetail_update_orderlist(od):
     if not od.purchase_order_unikey:
         od.orderlist.save()
@@ -1485,7 +1485,7 @@ def task_orderdetail_update_orderlist(od):
             ol.save(update_fields=['updated'])
 
 
-@task(serializer='pickle')
+@app.task(serializer='pickle')
 @transaction.atomic
 def task_purchasearrangement_update_purchasedetail(paid):
     klogger = logging.getLogger('service')
@@ -1525,7 +1525,7 @@ def task_purchasearrangement_update_purchasedetail(paid):
             return
 
 
-@task()
+@app.task()
 @transaction.atomic
 def task_packageskuitem_update_purchase_arrangement(psi):
     pa = PurchaseArrangement.objects.filter(oid=psi.oid).first()
@@ -1598,7 +1598,7 @@ def send_msg(mobile, content):
         logger.error(exc.message or 'empty error', exc_info=True)
 
 
-@task()
+@app.task()
 def task_update_purchasedetail_status(po):
     """
     invoke when user click button to book purchase_order.
@@ -1606,7 +1606,7 @@ def task_update_purchasedetail_status(po):
     pds = PurchaseDetail.objects.filter(purchase_order_unikey=po.uni_key).update(status=po.status)
 
 
-@task()
+@app.task()
 def task_update_purchasearrangement_status(po):
     """
     invoke when user click button to book purchase_order.
@@ -1615,7 +1615,7 @@ def task_update_purchasearrangement_status(po):
         purchase_order_status=po.status)
 
 
-@task()
+@app.task()
 def task_update_purchasearrangement_initial_book(po):
     """
     invoke when user click button to book purchase_order.
@@ -1630,7 +1630,7 @@ def task_update_purchasearrangement_initial_book(po):
         PackageSkuItem.objects.filter(oid=pa.oid).update(purchase_order_unikey=po.uni_key, book_time=book_time)
 
 
-@task()
+@app.task()
 def task_check_with_purchase_order(ol):
     res = OrderDetail.objects.filter(orderlist=ol).aggregate(total=Sum('buy_quantity'))
     total = res['total'] or 0
@@ -1687,7 +1687,7 @@ from shopback.trades.models import PackageSkuItem
 #     log.save()
 #
 #
-# @task()
+# @app.task()
 # def task_packageskuitem_check_purchaserecord():
 #     type = SaleOrderSyncLog.PSI_PR
 #     log = SaleOrderSyncLog.objects.filter(type=type, status=SaleOrderSyncLog.COMPLETED).order_by('-time_from').first()
@@ -1758,7 +1758,7 @@ def create_purchaseorder_booknum_check_log(time_from, type, uni_key):
     log.save()
 
 
-@task()
+@app.task()
 def task_check_purchaseorder_booknum():
     type = SaleOrderSyncLog.BOOKNUM
     log = SaleOrderSyncLog.objects.filter(type=type, status=SaleOrderSyncLog.COMPLETED).order_by('-time_from').first()
@@ -1824,7 +1824,7 @@ def create_inbound_out_stock_check_log(time_from, uni_key):
     log.save()
 
 
-@task()
+@app.task()
 def task_inbound_check_out_stock():
     type = SaleOrderSyncLog.INBOUND_OUT_STOCK
     log = SaleOrderSyncLog.objects.filter(type=type, status=SaleOrderSyncLog.COMPLETED).order_by('-time_from').first()
@@ -1856,7 +1856,7 @@ def create_inbound_inferior_check_log(time_from, uni_key):
     log.save()
 
 
-@task()
+@app.task()
 def task_inbound_check_inferior():
     return
     type = SaleOrderSyncLog.INBOUND_INFERIOR
@@ -1882,7 +1882,7 @@ def get_orderdetail_buyer_maping(start_time, end_time):
     detail_buyer_values_list = orderdetails.values_list('product_id', 'orderlist__buyer').distinct()
     return dict(detail_buyer_values_list)
 
-@task()
+@app.task()
 def task_save_package_backorder_stats():
     logger.info('task_save_package_backorder_stats start')
     from shopback.trades.models import PackageSkuItem

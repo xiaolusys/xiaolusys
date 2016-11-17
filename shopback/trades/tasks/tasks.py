@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import time
 import datetime
@@ -212,7 +212,7 @@ def get_replay_package_results(replay_trade):
     return reponse_result
 
 
-@task()
+@app.task()
 def sendTradeCallBack(trade_ids, *args, **kwargs):
     try:
         replay_trade = ReplayPostTrade.objects.get(id=args[0])
@@ -226,7 +226,7 @@ def sendTradeCallBack(trade_ids, *args, **kwargs):
         return None
 
 
-@task()
+@app.task()
 def send_package_call_Back(trade_ids, *args, **kwargs):
     try:
         replay_trade = ReplayPostTrade.objects.get(id=args[0])
@@ -240,7 +240,7 @@ def send_package_call_Back(trade_ids, *args, **kwargs):
         return None
 
 
-@task(ignore_result=False)
+@app.task(ignore_result=False)
 def sendTaobaoTradeTask(operator_id, trade_id):
     """ 淘宝发货任务 """
 
@@ -311,7 +311,7 @@ def sendTaobaoTradeTask(operator_id, trade_id):
     return trade_id
 
 
-@task(ignore_result=False)
+@app.task(ignore_result=False)
 def send_package_task(operator_id, trade_id):
     """ 淘宝发货任务 """
     # trade = MergeTrade.objects.get(id=trade_id)
@@ -339,12 +339,12 @@ def send_package_task(operator_id, trade_id):
     return trade_id
 
 
-@task(ignore_result=False)
+@app.task(ignore_result=False)
 def deliveryTradeCallBack(*args, **kwargs):
     return (None)
 
 
-@task(max_retries=3, default_retry_delay=30, ignore_result=False)
+@app.task(max_retries=3, default_retry_delay=30, ignore_result=False)
 def uploadTradeLogisticsTask(trade_id, operator_id):
     try:
         merge_trade = MergeTrade.objects.get(id=trade_id)
@@ -402,7 +402,7 @@ def uploadTradeLogisticsTask(trade_id, operator_id):
                    u'快递单号上传成功[%s:%s]' % (merge_trade.logistics_company.name, merge_trade.out_sid))
 
 
-@task()
+@app.task()
 def regularRemainOrderTask():
     """更新定时提醒订单"""
     dt = datetime.datetime.now()
@@ -411,13 +411,13 @@ def regularRemainOrderTask():
         .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
 
 
-@task
+@app.task
 def saveTradeByTidTask(tid, seller_nick):
     user = User.objects.get(nick=seller_nick)
     Trade.get_or_create(tid, user.visitor_id)
 
 
-@task()
+@app.task()
 def importTradeFromFileTask(fileName):
     """根据导入文件获取淘宝订单"""
     with open(fileName, 'r') as f:
@@ -433,7 +433,7 @@ def importTradeFromFileTask(fileName):
                 pass
 
 
-@task()
+@app.task()
 def pushBuyerToCustomerTask(day):
     """ 将订单买家信息保存为客户信息 """
 
@@ -506,7 +506,7 @@ def get_Logistic_Company_Key_Name_Map():
 from common.utils import replace_utf8mb4
 
 
-@task()
+@app.task()
 def task_Gen_Order_Report_File(date_from, date_to, file_dir=None):
     un_maps = get_User_Key_Name_Map()
     lc_maps = get_Logistic_Company_Key_Name_Map()
@@ -550,7 +550,7 @@ def task_Gen_Order_Report_File(date_from, date_to, file_dir=None):
         cursor.close()
 
 
-@task()
+@app.task()
 def task_Gen_Logistic_Report_File(date_from, date_to, file_dir=None):
     un_maps = get_User_Key_Name_Map()
     lc_maps = get_Logistic_Company_Key_Name_Map()
@@ -623,7 +623,7 @@ def is_order_refund(status, sys_status):
     return False
 
 
-@task()
+@app.task()
 def task_Gen_XiaoluSale_Report(date_from, date_to, file_dir=''):
     un_maps = get_User_Key_Name_Map()
 
@@ -679,7 +679,7 @@ def previous_year_month(year, month):
     return year, month - 1
 
 
-@task()
+@app.task()
 def task_Gen_Logistic_Report_File_By_Month(pre_month=1):
     dt = datetime.datetime.now()
     year, month = dt.year, dt.month
@@ -697,7 +697,7 @@ from common.utils import (parse_date, CSVUnicodeWriter, parse_datetime, format_d
 from shopback.refunds.models import REFUND_STATUS, Refund
 
 
-@task()
+@app.task()
 def task_Gen_Product_Statistic(shop_id, sc_by, wait_send, p_outer_id, start_dt, end_dt, is_sale="1"):
     order_qs = getSourceOrders(shop_id=shop_id, sc_by=sc_by, wait_send=wait_send,
                                p_outer_id=p_outer_id, start_dt=start_dt, end_dt=end_dt, is_sale=is_sale)
@@ -904,7 +904,7 @@ from shopback.trades.models import PackageSkuItem, PackageOrder
 from flashsale.pay.models import SaleOrder, SaleTrade, SaleRefund
 
 
-@task(max_retries=3, default_retry_delay=6)
+@app.task(max_retries=3, default_retry_delay=6)
 def task_packageskuitem_update_productskusalestats_num(sku_id, pay_time):
     """
     Recalculate and update skustats_num.
@@ -926,19 +926,19 @@ def task_packageskuitem_update_productskusalestats_num(sku_id, pay_time):
         sale_stat.save(update_fields=["num"])
 
 
-@task()
+@app.task()
 def task_update_package_stat_num(instance):
     from shopback.trades.models import PackageStat, PackageOrder
     num = PackageStat.get_sended_package_num(instance.id)
     PackageStat.objects.filter(id=instance.id).update(num=num)
 
 
-@task()
+@app.task()
 def task_set_sale_order(instance):
     instance.set_sale_order_id()
 
 
-@task()
+@app.task()
 @transaction.atomic
 def task_update_package_order(skuitem_id):
     instance = PackageSkuItem.objects.get(id=skuitem_id)
@@ -998,7 +998,7 @@ def task_update_package_order(skuitem_id):
                 sys_status=PackageOrder.WAIT_CUSTOMER_RECEIVE)
 
 
-@task()
+@app.task()
 def task_merge_trade_update_package_sku_item(merge_trade):
     if merge_trade.type == pcfg.SALE_TYPE and merge_trade.sys_status == MergeTrade.FINISHED_STATUS:
         from shopback.trades.models import PackageSkuItem
@@ -1010,7 +1010,7 @@ def task_merge_trade_update_package_sku_item(merge_trade):
                 sku_item.save()
 
 
-@task()
+@app.task()
 def task_merge_trade_update_sale_order(merge_trade):
     if merge_trade.type == pcfg.SALE_TYPE and merge_trade.sys_status == MergeTrade.FINISHED_STATUS:
         from shopback.trades.models import PackageSkuItem
@@ -1041,7 +1041,7 @@ def create_packageskuitem_check_log(time_from, type, uni_key):
     log.save()
 
 
-@task()
+@app.task()
 def task_saleorder_check_packageskuitem():
     type = SaleOrderSyncLog.SO_PSI
     log = SaleOrderSyncLog.objects.filter(type=type, status=SaleOrderSyncLog.COMPLETED).order_by('-time_from').first()
@@ -1116,7 +1116,7 @@ def create_packageorder_finished_check_log(time_from, uni_key):
     log.save()
 
 
-@task()
+@app.task()
 def task_packageorder_send_check_packageorder():
     type = SaleOrderSyncLog.PACKAGE_SKU_FINISH_NUM
     log = SaleOrderSyncLog.objects.filter(type=type, status=SaleOrderSyncLog.COMPLETED).order_by('-time_from').first()
@@ -1230,27 +1230,27 @@ def create_packageorder_realtime_check_log(time_from, uni_key):
     log.save()
 
 
-@task()
+@app.task()
 def task_schedule_check_packageskuitem_cnt():
     realtime_check(SaleOrderSyncLog.PACKAGE_SKU_NUM, create_packageorder_realtime_check_log)
 
 
-@task()
+@app.task()
 def task_schedule_check_assign_num():
     realtime_check(SaleOrderSyncLog.PACKAGE_ASSIGN_NUM, create_assign_check_log)
 
 
-@task()
+@app.task()
 def task_schedule_check_stock_not_assign():
     realtime_check(SaleOrderSyncLog.PACKAGE_STOCK_NOTASSIGN, create_stock_not_assign_check_log)
 
 
-@task()
+@app.task()
 def task_schedule_check_waitingpay_cnt():
     realtime_check(SaleOrderSyncLog.SALE_ORDER_WAITING_PAY, create_waitingpay_cnt_check_log)
 
 
-@task()
+@app.task()
 def task_schedule_check_shoppingcart_cnt():
     realtime_check(SaleOrderSyncLog.SALE_ORDER_SHOPPING_CART, create_shoppingcart_cnt_check_log)
 

@@ -3,7 +3,7 @@
 代理相关的推送信息
 """
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import datetime
 from flashsale.xiaolumm.models import XiaoluMama, NinePicAdver, WeixinPushEvent
@@ -14,7 +14,7 @@ from shopapp.weixin.models import WeixinUnionID
 from django.db.models import Count, Sum
 from django.db import IntegrityError
 
-@task
+@app.task
 def task_push_ninpic_remind(ninpic):
     """
     当有九张图更新的时候推送
@@ -30,7 +30,7 @@ def task_push_ninpic_remind(ninpic):
     push_mama.push_msg_to_topic_mama(message)
 
 
-@task
+@app.task
 def task_push_ninpic_peroid():
     """　
     定时检查任务 自动执行推送
@@ -46,7 +46,7 @@ def task_push_ninpic_peroid():
         task_push_ninpic_remind(ninpic)
 
 
-@task(serializer='pickle')
+@app.task(serializer='pickle')
 def task_push_mama_cashout_msg(envelop):
     """ 代理提现成功推送 """
     recipient = envelop.recipient
@@ -57,7 +57,7 @@ def task_push_mama_cashout_msg(envelop):
         map(push_mama.push_msg_to_mama(None), mamas)
 
 
-@task
+@app.task
 def task_weixin_push_awardcarry(awardcarry):
     from shopapp.weixin.weixin_push import WeixinPush
     wp = WeixinPush()
@@ -72,13 +72,13 @@ def task_weixin_push_awardcarry(awardcarry):
     wp.push_mama_award(awardcarry, courage_remarks, to_url)
 
 
-@task
+@app.task
 def task_weixin_push_clickcarry(clickcarry, fake=False):
     wp = WeixinPush()
     wp.push_mama_clickcarry(clickcarry, fake=fake)
 
 
-@task(max_retries=3, default_retry_delay=6)
+@app.task(max_retries=3, default_retry_delay=6)
 def task_weixin_push_ordercarry(ordercarry):
     from flashsale.pay.models import SaleOrder
     from flashsale.xiaolumm.models import OrderCarry
@@ -141,7 +141,7 @@ def task_weixin_push_ordercarry(ordercarry):
         pass
 
 
-@task(serializer='pickle')
+@app.task(serializer='pickle')
 def task_weixin_push_update_app(app_visit):
     device_type = app_visit.device_type
     device = ''
@@ -171,7 +171,7 @@ def task_weixin_push_update_app(app_visit):
     wp.push_mama_update_app(mama_id, user_version, latest_version, to_url, device=device)
 
 
-@task
+@app.task
 def task_weixin_push_invite_trial(potential_mama):
     from flashsale.xiaolumm.models import PotentialMama, ReferalRelationship, AwardCarry
 
@@ -222,7 +222,7 @@ def task_weixin_push_invite_trial(potential_mama):
     wp.push_mama_invite_trial(referal_mama_id,potential_mama_id, diff_num,award_num,invite_num,award_sum,trial_num,carry_num)
 
 
-@task
+@app.task
 def task_app_push_ordercarry(ordercarry):
     from flashsale.push.app_push import AppPush
     if ordercarry.carry_num_display() > 0:
@@ -230,7 +230,7 @@ def task_app_push_ordercarry(ordercarry):
     # AppPush.push_mama_ordercarry_to_all(ordercarry)
 
 
-@task(serializer='pickle')
+@app.task(serializer='pickle')
 def task_push_new_mama_task(xlmm, current_task, params=None):
     """
     通知完成某新手任务，同时提醒下一个任务
@@ -260,7 +260,7 @@ def task_push_new_mama_task(xlmm, current_task, params=None):
     wxpush.push_new_mama_task(xlmm.id, header=header, footer=footer, to_url=to_url, params=params)
 
 
-@task
+@app.task
 def task_sms_push_mama(xlmm):
     """
     新加入一元妈妈，发送短信引导关注小鹿美美
@@ -272,7 +272,7 @@ def task_sms_push_mama(xlmm):
     sms.push_mama_subscribe_weixin(customer)
 
 
-@task
+@app.task
 def task_weixin_push_invite_fans_limit(today_invites, max_daily_fans_invites):
     """
     通知每日邀请上限，超过不发奖金。
@@ -280,7 +280,7 @@ def task_weixin_push_invite_fans_limit(today_invites, max_daily_fans_invites):
     pass
 
 
-@task(max_retries=3, default_retry_delay=6)
+@app.task(max_retries=3, default_retry_delay=6)
 def task_weixin_push_mama_coupon_audit(coupon_record):
     """
     精品券审核申请推送

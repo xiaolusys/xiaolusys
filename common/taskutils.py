@@ -8,7 +8,7 @@ import logging
 
 def single_instance_task(timeout, prefix=''):
     def task_exc(func):
-        from celery import shared_task as task
+        from shopmanager import celery_app as app
 
         def delay(self, *args, **kwargs):
             return self.apply(args, kwargs)
@@ -36,7 +36,7 @@ def single_instance_task(timeout, prefix=''):
 
 def single_record_task(timeout, prefix=''):
     def task_exc(func):
-        from celery import shared_task as task
+        from shopmanager import celery_app as app
 
         def delay(self, *args, **kwargs):
             return self.apply(args, kwargs)

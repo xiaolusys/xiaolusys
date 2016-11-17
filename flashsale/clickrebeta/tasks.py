@@ -1,6 +1,6 @@
 # -*- encoding:utf8 -*-
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import datetime
 from django.db.models import F
@@ -17,7 +17,7 @@ __author__ = 'yann'
 logger = logging.getLogger('celery.handler')
 
 
-@task()
+@app.task()
 def task_Push_Rebeta_To_MamaCash(target_date):
     carry_no = int(target_date.strftime('%y%m%d'))
 
@@ -49,7 +49,7 @@ def task_Push_Rebeta_To_MamaCash(target_date):
 from .models import tongji_wxorder, tongji_saleorder
 
 
-@task(max_retries=3, default_retry_delay=5)
+@app.task(max_retries=3, default_retry_delay=5)
 def task_Tongji_User_Order(pre_day=1):
     try:
         pre_date = datetime.date.today() - datetime.timedelta(days=pre_day)
@@ -78,7 +78,7 @@ def task_Tongji_User_Order(pre_day=1):
         raise task_Tongji_User_Order.retry(exc=exc)
 
 
-@task(max_retries=3, default_retry_delay=5)
+@app.task(max_retries=3, default_retry_delay=5)
 def task_Tongji_All_Order():
     try:
         StatisticsShoppingByDay.objects.all().delete()
@@ -130,7 +130,7 @@ def update_Xlmm_Shopping_OrderStatus(order_list):
         order.save()
 
 
-@task()
+@app.task()
 def task_Update_Shoppingorder_Status(pre_day=11):
     target_date = datetime.datetime.now() - datetime.timedelta(days=pre_day)
     shopings = StatisticsShopping.objects.filter(shoptime__lt=target_date,

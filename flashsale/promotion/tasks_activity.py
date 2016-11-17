@@ -1,6 +1,6 @@
 # -*- encoding:utf-8 -*-
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import datetime
 from flashsale.xiaolumm.models.models_fans import XlmmFans
@@ -50,7 +50,7 @@ def gen_envelope_type_value_pair(customer_id, event_id):
 from flashsale.push import push_activity
 
 
-@task()
+@app.task()
 def task_generate_red_envelope(application):
     """
     We generate redenvelope only if the application is activated, that means we
@@ -95,7 +95,7 @@ def task_generate_red_envelope(application):
         push_activity.activity_red_packet_release_push(customer_id)
 
 
-@task()
+@app.task()
 def task_activate_application(event_id, customer, imei):
     unionid, mobile = customer.unionid, customer.mobile
     if not unionid or not mobile:
@@ -115,7 +115,7 @@ def task_activate_application(event_id, customer, imei):
         application.save()
 
 
-@task()
+@app.task()
 def task_envelope_create_budgetlog(envelope):
     budget_logs = BudgetLog.objects.filter(customer_id=envelope.customer_id, referal_id=envelope.uni_key)
     if budget_logs.count() > 0:
@@ -132,7 +132,7 @@ def task_envelope_create_budgetlog(envelope):
     budget_log.save()
 
 
-@task()
+@app.task()
 def task_envelope_update_budgetlog(envelope):
     if not envelope.is_cashable():
         return
@@ -146,7 +146,7 @@ def task_envelope_update_budgetlog(envelope):
         push_activity.activity_open_red_packet_push(envelope.customer_id)
 
 
-@task()
+@app.task()
 def task_userinfo_update_application(userinfo):
     nickname = userinfo.get("nickname")
     headimgurl = userinfo.get("headimgurl")
@@ -170,7 +170,7 @@ def task_userinfo_update_application(userinfo):
             application.save()
 
 
-@task()
+@app.task()
 def task_decide_award_winner(envelope):
     card_num = RedEnvelope.objects.filter(customer_id=envelope.customer_id, type=1, status=1).count()
     if card_num < 9:
@@ -204,7 +204,7 @@ def get_appdownloadrecord(unionid, mobile):
     return None
 
 
-@task()
+@app.task()
 def task_sampleapply_update_appdownloadrecord(application):
     """
     We make sure the appdownloadrecord will be created only if we have unionid or mobile.
@@ -242,7 +242,7 @@ def task_sampleapply_update_appdownloadrecord(application):
             mobiledown.save()
 
 
-@task(serializer='pickle')
+@app.task(serializer='pickle')
 def task_appdownloadrecord_update_fans(record):
     """
     All fans logic/relationship starts from here. Any other fans logic should be canceled.
@@ -298,7 +298,7 @@ def task_appdownloadrecord_update_fans(record):
     fan.save()
 
 
-@task()
+@app.task()
 def task_create_appdownloadrecord_with_userinfo(from_customer, userinfo):
     """
     通过扫码邀请粉丝有微信授权信息记录
@@ -327,7 +327,7 @@ def task_create_appdownloadrecord_with_userinfo(from_customer, userinfo):
         unioindown.save(update_fields=update_fields)
 
 
-@task()
+@app.task()
 def task_create_appdownloadrecord_with_mobile(from_customer, mobile):
     """
     通过扫码邀请粉丝有手机号下载记录
@@ -351,7 +351,7 @@ def task_create_appdownloadrecord_with_mobile(from_customer, mobile):
         mobiledown.save(update_fields=update_fields)
 
 
-@task(serializer='pickle')
+@app.task(serializer='pickle')
 def task_collect_mobile_download_record(instance):
     """
     instance: DownloadMobileRecord instance
@@ -386,7 +386,7 @@ def task_collect_mobile_download_record(instance):
         appdownload.save(update_fields=update_fields)
 
 
-@task(serializer='pickle')
+@app.task(serializer='pickle')
 def task_collect_union_download_record(instance):
     """
     instance: DownloadUnionidRecord instance
@@ -418,7 +418,7 @@ def task_collect_union_download_record(instance):
         appdownload.save(update_fields=update_fields)
 
 
-@task()
+@app.task()
 def task_close_activity_everday():
     now = datetime.datetime.now()
     unclose_activity = ActivityEntry.objects.filter(is_active=True, end_time__lte=now)

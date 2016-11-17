@@ -1,6 +1,6 @@
 # coding=utf-8
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task as task
+from shopmanager import celery_app as app
 
 import os
 import datetime
@@ -9,7 +9,7 @@ from common.utils import CSVUnicodeWriter
 
 REPORT_DIR = 'report'
 
-@task()
+@app.task()
 def task_make_Manager_Summary_Cvs(file_dir=None):
     print 'summary task is running .....'
     from ..views import manage_Summar
