@@ -562,7 +562,10 @@ class WeixinPush(object):
             mama_id=mama_id, date_field=today, event_type=event_type).order_by('-created').first()
 
         if last_event:
-            _, _, _, last_click_num, last_total_value = last_event.uni_key.split('-')
+            if last_event.uni_key.startswith('fake'):
+                _, _, _, _, last_click_num, last_total_value = last_event.uni_key.split('-')
+            else:
+                _, _, _, last_click_num, last_total_value = last_event.uni_key.split('-')
             carry_count = clickcarry.click_num - int(last_click_num)
             carry_money = clickcarry.total_value - int(last_total_value)
 

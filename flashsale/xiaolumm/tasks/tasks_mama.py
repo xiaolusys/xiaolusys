@@ -249,6 +249,10 @@ def task_update_ordercarry(mama_id, order, customer_pk, carry_amount, agency_lev
 @task()
 def task_referal_update_awardcarry(relationship):
     #print "%s, mama_id: %s" % (get_cur_info(), relationship.referal_from_mama_id)
+
+    if relationship.referal_type == XiaoluMama.ELITE:
+        return
+    
     from_mama_id = relationship.referal_from_mama_id
     to_mama_id = relationship.referal_to_mama_id
     carry_type = 1 # 直接推荐
@@ -309,6 +313,9 @@ def task_referal_update_awardcarry(relationship):
 @task()
 def task_update_group_awardcarry(relationship):
     from flashsale.xiaolumm.models.models_fortune import AwardCarry, ReferalRelationship, GroupRelationship
+
+    if relationship.referal_type == XiaoluMama.ELITE:
+        return
 
     from_mama_id = relationship.referal_from_grandma_id
     to_mama_id = relationship.referal_to_mama_id

@@ -936,7 +936,7 @@ def activevalue_update_last_renew_time(sender, instance, created, **kwargs):
     from flashsale.xiaolumm.models import XiaoluMama
 
     mama_id = instance.mama_id
-    mama = XiaoluMama.objects.filter(id=mama_id,last_renew_type=XiaoluMama.FULL,status=XiaoluMama.EFFECT,charge_status=XiaoluMama.CHARGED).first()
+    mama = XiaoluMama.objects.filter(id=mama_id,last_renew_type__gte=XiaoluMama.ELITE,status=XiaoluMama.EFFECT,charge_status=XiaoluMama.CHARGED).exclude(last_renew_type=XiaoluMama.HALF).first()
     if not mama:
         return
 
