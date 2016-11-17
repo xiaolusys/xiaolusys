@@ -26,6 +26,7 @@ from .refund import SaleRefund
 from .user import Customer, UserBudget
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES, WARE_THIRD
 import logging
+
 logger = logging.getLogger(__name__)
 
 FLASH_SELLER_ID = 'flashsale'
@@ -240,7 +241,8 @@ class SaleTrade(BaseModel):
 
     @property
     def receiver_address_detail(self):
-        return str(self.receiver_state) + str(self.receiver_city) + str(self.receiver_district) + str(self.receiver_address)
+        return str(self.receiver_state) + str(self.receiver_city) + str(self.receiver_district) + str(
+            self.receiver_address)
 
     @property
     def order_buyer(self):
@@ -434,7 +436,7 @@ class SaleTrade(BaseModel):
         cnt = self.sale_orders.count()
         old_sale_order_oid = old_sale_order.oid
         if '-' in old_sale_order.oid:
-            cnt = int(old_sale_order.oid.split('-')[1])+1
+            cnt = int(old_sale_order.oid.split('-')[1]) + 1
             old_sale_order_oid = old_sale_order.oid.split('-')[0]
         new_sale_order.oid = '%s-%s' % (old_sale_order_oid, str(cnt))
         new_sale_order.status = SaleOrder.WAIT_SELLER_SEND_GOODS
@@ -522,7 +524,6 @@ class SaleTrade(BaseModel):
                 return
             usercoupon.release_usercoupon()  # 修改该优惠券的状态到未使用
 
-
     @property
     def unsign_orders(self):
         """ 允许签收的订单 （已经付款、已发货、货到付款签收）"""
@@ -572,6 +573,7 @@ class SaleTrade(BaseModel):
             from flashsale.pay.models import TeamBuy, TeamBuyDetail
             if not TeamBuyDetail.objects.filter(tid=instance.tid).first():
                 TeamBuy.create_or_join(instance)
+
 
 def add_renew_deposit_record(sender, obj, **kwargs):
     """
@@ -759,6 +761,7 @@ signal_saletrade_refund_post.connect(freeze_coupon_by_refund, sender=SaleRefund)
 def update_teambuy(sender, instance, created, **kwargs):
     instance.update_teambuy()
 
+
 post_save.connect(update_teambuy, sender=SaleTrade, dispatch_uid='post_save_saletrade_update_teambuy')
 
 
@@ -885,7 +888,7 @@ class SaleOrder(PayBaseModel):
         """ 是否打包 """
         from shopback.trades.models import PackageSkuItem
         package_sku_item = self.package_sku
-        if package_sku_item and package_sku_item.assign_status !=PackageSkuItem.NOT_ASSIGNED and package_sku_item.package_order_id:
+        if package_sku_item and package_sku_item.assign_status != PackageSkuItem.NOT_ASSIGNED and package_sku_item.package_order_id:
             return True
         return False
 
@@ -907,7 +910,7 @@ class SaleOrder(PayBaseModel):
         return TeamBuyDetail.objects.get(oid=self.oid).teambuy.status == 1
 
     def get_refundable(self):
-        #return self.sale_trade.status in SaleTrade.REFUNDABLE_STATUS?
+        # return self.sale_trade.status in SaleTrade.REFUNDABLE_STATUS?
         if self.status not in (SaleOrder.WAIT_SELLER_SEND_GOODS, SaleOrder.TRADE_BUYER_SIGNED):
             return False
         if self.is_deposit() and self.sale_trade.status not in SaleTrade.REFUNDABLE_STATUS:
@@ -920,9 +923,11 @@ class SaleOrder(PayBaseModel):
         # type: (int) -> float
         """计算退款费用　
         """
+
         def fake_round(x, y):
             # type: (float, int) -> float
-            return int(x/float(y) * 100) * 0.01
+            return int(x / float(y) * 100) * 0.01
+
         if num == 0:  # 提交的退款产品数量为0
             return 0
         elif num == self.num:  # 退款数量等于购买数量 全额退款
@@ -1040,7 +1045,7 @@ class SaleOrder(PayBaseModel):
 
     def is_transfer_coupon(self):
         return self.is_deposit() and \
-            (self.outer_sku_id != '1' and self.outer_sku_id != '2' and self.outer_sku_id != '3')
+               (self.outer_sku_id != '1' and self.outer_sku_id != '2' and self.outer_sku_id != '3')
 
     def is_1_deposit(self):
         return self.is_deposit() and self.outer_sku_id == '3'
@@ -1142,6 +1147,7 @@ class SaleOrder(PayBaseModel):
     def product(self):
         return self.product_sku.product
 
+
 def order_trigger(sender, instance, created, raw, **kwargs):
     """
     SaleOrder save triggers adding carry to OrderCarry.
@@ -1185,7 +1191,7 @@ def saleorder_update_productskustats_waitingpay_num(sender, instance, *args, **k
 
 if not settings.CLOSE_CELERY:
     post_save.connect(saleorder_update_productskustats_waitingpay_num, sender=SaleOrder,
-                  dispatch_uid='post_save_aleorder_update_productskustats_waitingpay_num')
+                      dispatch_uid='post_save_aleorder_update_productskustats_waitingpay_num')
 
 
 def saleorder_update_saletrade_status(sender, instance, *args, **kwargs):
@@ -1214,7 +1220,7 @@ class SaleOrderSyncLog(BaseModel):
     BOOKNUM = 3
     PACKAGE_SKU_NUM = 4  # PackageSkuItem -> PackageOrder
     INBOUND_OUT_STOCK = 5  # InBoundDetail -> InBound out_stock
-    INBOUND_INFERIOR = 6   # InBoundDetail -> InBound inferior
+    INBOUND_INFERIOR = 6  # InBoundDetail -> InBound inferior
     PACKAGE_SKU_FINISH_NUM = 7
     PACKAGE_ASSIGN_NUM = 8
     PACKAGE_STOCK_NOTASSIGN = 9
