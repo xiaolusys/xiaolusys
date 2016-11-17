@@ -1,6 +1,7 @@
 # -*- encoding:utf8 -*-
 from __future__ import absolute_import, unicode_literals
-from shopmanager import celery_app as app, Celery
+from shopmanager import celery_app as app
+from celery import Celery
 from celery.app.task import Task
 
 import sys
