@@ -3,7 +3,6 @@ from core.models import BaseModel
 from django.db import models
 from core.fields import JSONCharMyField
 from django.db.models.signals import pre_save
-from .managers.ordersharecoupon import OrderShareCouponManager
 
 
 def default_share_extras():
