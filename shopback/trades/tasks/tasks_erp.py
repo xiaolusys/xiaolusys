@@ -168,6 +168,7 @@ def task_sync_erp_deliver():
     for erp_order in erp_orders:
         try:
             result = wdt.query_logistics(erp_order.erp_order_id)
+            sale_order_oids = result.get('sale_order_oids', [])
         except Exception:
             continue
 
@@ -180,8 +181,14 @@ def task_sync_erp_deliver():
         delivery_time = datetime.strptime(result['snd_time'], '%Y-%m-%d %H:%M:%S')
         logistics_company = LogisticsCompany.objects.filter(code=logistics_code).first()
 
-        package_sku_item = PackageSkuItem.objects.get(id=erp_order.package_sku_item_id)
-        package_order = PackageOrder.objects.get(id=package_sku_item.package_order_id)
-        package_order.finish_third_package(post_id, logistics_company)
+        # 发货
+        for sale_order_oid in sale_order_oids:
+            eo = ErpOrder.objects.filter(sale_order_oid=sale_order_oid).first()
+            if not eo:
+                continue
 
-        erp_order.update_logistics(logistics_code, logistics_name, post_id, delivery_time)
+            package_sku_item = PackageSkuItem.objects.get(id=eo.package_sku_item_id)
+            package_order = PackageOrder.objects.get(id=package_sku_item.package_order_id)
+            package_order.finish_third_package(post_id, logistics_company)
+
+            eo.update_logistics(logistics_code, logistics_name, post_id, delivery_time)

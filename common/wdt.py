@@ -94,6 +94,7 @@ class WangDianTong(object):
         logistics_code = json['LogisticsCode']  # 物流公司编号
         logistics_name = json['LogisticsName']  # 物流公司名称
         post_id = json['PostID']  # 物流编号
+        sale_order_oids = json.get('TradeNO2', '').split(',')  # 来源单号
 
         is_send = True if trade_status == 'over_trade' else False
 
@@ -103,7 +104,8 @@ class WangDianTong(object):
             'snd_time': snd_time,
             'logistics_code': logistics_code,
             'logistics_name': logistics_name,
-            'post_id': post_id
+            'post_id': post_id,
+            'sale_order_oids': sale_order_oids,
         }
 
     def get_products(self, start_time=None, end_time=None, goods_no=None,
@@ -178,7 +180,7 @@ class WangDianTong(object):
 def main():
     wdt = WangDianTong()
     # resp = wdt.create_order()
-    resp = wdt.query_logistics('JY201611050016')
+    resp = wdt.query_logistics('JY201611140046')
     # resp = wdt.query_order('JY201611040022')
     # print simplejson.dumps(resp, indent=2)
     for k, v in resp.items():
