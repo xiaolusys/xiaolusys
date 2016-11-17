@@ -93,7 +93,7 @@ CELERY_RESULT_BACKEND = 'redis://:{0}@{1}:6379/28'.format(REDIS_AUTH, REDIS_HOST
 ##########################SENTRY RAVEN##########################
 import raven
 RAVEN_CONFIG = {
-    'dsn': 'http://1e0aad4415454d5c9bbc22ac02a14b2e:42d9a07d79a2462fbc76eb543ac25fbf@sentry.xiaolumm.com/5',
+    'dsn': 'http://8f3cfd4d83e34c899fc1ec9e7d803d73:996d9f459a944d988ae707939035e95c@sentry.xiaolumm.com/9',
     # If you are using git, you can also automatically configure the
     # release based on the git info.
     'release': raven.fetch_git_sha(PROJECT_ROOT),
