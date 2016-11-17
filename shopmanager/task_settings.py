@@ -20,13 +20,13 @@ from celery.schedules import crontab
 
 ############################# BASE SETUP ################################
 
-CELERY_BROKER_POOL_LIMIT = 0
+CELERY_BROKER_POOL_LIMIT = 10
 CELERY_BROKER_CONNECTION_TIMEOUT = 10
 
 # 某个程序中出现的队列，在broker中不存在，则立刻创建它
 # CELERY_CREATE_MISSING_QUEUES = True
 # 每个worker最多执行40个任务就会被销毁，可防止内存泄露
-CELERYD_MAX_TASKS_PER_CHILD = 1000
+CELERY_WORKER_MAX_TASKS_PER_CHILD = 1000
 
 # 任务发出后，经过一段时间还未收到acknowledge , 就将任务重新交给其他worker执行
 CELERY_BROKER_TRANSPORT_OPTIONS = {
@@ -35,16 +35,15 @@ CELERY_BROKER_TRANSPORT_OPTIONS = {
 }
 
 # Sensible settings for celery
-CELERY_ALWAYS_EAGER = False
 CELERY_TASK_ALWAYS_EAGER = False
-CELERY_ACKS_LATE = True
+CELERY_TASK_ACKS_LATE = True
 CELERY_TASK_PUBLISH_RETRY = True
-CELERY_DISABLE_RATE_LIMITS = False
+CELERY_WORKER_DISABLE_RATE_LIMITS = False
 
 # By default we will ignore result
 # If you want to see results and try out tasks interactively, change it to False
 # Or change this setting on tasks level
-CELERY_IGNORE_RESULT = False
+CELERY_TASK_IGNORE_RESULT = False
 CELERY_SEND_TASK_ERROR_EMAILS = False
 CELERY_CHORD_PROPAGATES = True
 CELERY_TASK_RESULT_EXPIRES = 60 * 60  # half hour
@@ -57,10 +56,10 @@ CELERY_TASK_SERIALIZER = "pickle"
 CELERY_RESULT_SERIALIZER = "pickle"
 CELERY_ACCEPT_CONTENT = ['pickle', 'json']
 
-CELERYD_HIJACK_ROOT_LOGGER = False
-CELERYD_PREFETCH_MULTIPLIER = 4
+CELERY_WORKER_HIJACK_ROOT_LOGGER = False
+CELERY_WORDER_PREFETCH_MULTIPLIER = 4
 if os.environ.get('INSTANCE') == 'celery-gevent':
-    CELERYD_PREFETCH_MULTIPLIER = 0
+    CELERY_WORDER_PREFETCH_MULTIPLIER = 0
 
 CELERY_TIMEZONE = 'Asia/Shanghai'
 
