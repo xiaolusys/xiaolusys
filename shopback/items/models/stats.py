@@ -288,7 +288,7 @@ class SkuStock(models.Model):
     def set_psi_init_paid(sku_id, num, stat=STAT_SIGN, warning=WARNING):
         change_fields = ['sold_num', 'paid_num', 'psi_paid_num']
         if stat:
-            SkuStock.stat_warning(sku_id, change_fields, warning, stat)
+            SkuStock.stat_warning(sku_id, change_fields, False, stat)
         else:
             SkuStock._objects.filter(sku_id=sku_id).update(sold_num=F('sold_num') + num,
                                                            psi_paid_num=F('psi_paid_num') + num,
