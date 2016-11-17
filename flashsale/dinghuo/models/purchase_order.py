@@ -368,15 +368,19 @@ class OrderList(models.Model):
         """
         from shopback.trades.models import PackageSkuItem
         from flashsale.dinghuo.models_purchase import PurchaseDetail
-        pds = PurchaseDetail.objects.filter(purchase_order_unikey=self.purchase_order_unikey)
 
-        sku_ids = [pd.sku_id for pd in pds]
-        psis = PackageSkuItem.objects.filter(
-            sku_id__in=sku_ids,
-            assign_status__in=[PackageSkuItem.NOT_ASSIGNED, PackageSkuItem.ASSIGNED],
-            purchase_order_unikey=''
-        )
-        # return PackageSkuItem.objects.filter(purchase_order_unikey=self.purchase_order_unikey)
+        if self.status == OrderList.STAGE_DRAFT:
+            pds = PurchaseDetail.objects.filter(purchase_order_unikey=self.purchase_order_unikey, book_num__gt=0)
+            sku_ids = [pd.sku_id for pd in pds]
+            psis = PackageSkuItem.objects.filter(
+                sku_id__in=sku_ids,
+                assign_status__in=[PackageSkuItem.NOT_ASSIGNED],
+                purchase_order_unikey=''
+            )
+        elif self.status != OrderList.STAGE_DELETED:
+            psis = PackageSkuItem.objects.filter(purchase_order_unikey=self.purchase_order_unikey)
+        else:
+            psis = []
         return psis
 
     def verify_order(self):
