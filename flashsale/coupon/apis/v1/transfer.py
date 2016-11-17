@@ -21,7 +21,7 @@ def create_present_coupon_transfer_record(customer, template, coupon_id):
     from_mama_thumbnail = 'http://7xogkj.com2.z0.glb.qiniucdn.com/222-ohmydeer.png?imageMogr2/thumbnail/60/format/png'
     from_mama_nick = 'SYSTEM'
 
-    transfer_type = CouponTransferRecord.IN_BUY_COUPON
+    transfer_type = CouponTransferRecord.IN_GIFT_COUPON
     date_field = datetime.date.today()
     transfer_status = CouponTransferRecord.DELIVERED
     uni_key = "%s-%s-%s" % ('gift', to_mama.id, coupon_id)

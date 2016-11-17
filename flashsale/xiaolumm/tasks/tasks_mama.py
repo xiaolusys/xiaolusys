@@ -132,7 +132,7 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
     record.save()
 
 
-@task()
+@task(serializer='pickle')
 def task_update_ordercarry(mama_id, order, customer_pk, carry_amount, agency_level, carry_plan_name, via_app):
     """
     Whenever a sku order gets saved, trigger this task to update 
