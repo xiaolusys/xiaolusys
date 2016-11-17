@@ -95,7 +95,7 @@ admin.site.register(TmpShareCoupon, TmpShareCouponAdmin)
 
 class CouponTransferRecordAdmin(admin.ModelAdmin):
     list_display = ('coupon_from_mama_id', 'from_mama_nick', 'coupon_to_mama_id', 'to_mama_nick', 'template_id', 'template_name',
-                    'coupon_value', 'coupon_num', 'total_num', 'transfer_type', 'transfer_status', 'status', 'uni_key', 'date_field',
+                    'coupon_value', 'coupon_num',  'transfer_type', 'transfer_status', 'total_num', 'status', 'uni_key', 'date_field',
                     'init_from_mama_id','order_no', 'modified', 'created')
     list_filter = ('transfer_type', 'transfer_status', 'status', ('created', DateFieldListFilter))
     search_fields = ['=coupon_from_mama_id', '=coupon_to_mama_id']
