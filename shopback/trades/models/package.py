@@ -1085,10 +1085,10 @@ def update_purchase_arrangement(sender, instance, created, **kwargs):
     from flashsale.dinghuo.tasks import task_packageskuitem_update_purchase_arrangement
     task_packageskuitem_update_purchase_arrangement.delay(instance)
 
-
-if not settings.CLOSE_CELERY:
-    post_save.connect(update_purchase_arrangement, sender=PackageSkuItem,
-                  dispatch_uid='post_save_update_purchase_record')
+#
+# if not settings.CLOSE_CELERY:
+#     post_save.connect(update_purchase_arrangement, sender=PackageSkuItem,
+#                   dispatch_uid='post_save_update_purchase_record')
 
 
 def check_saleorder_sync(sender, instance, created, **kwargs):
@@ -1096,9 +1096,9 @@ def check_saleorder_sync(sender, instance, created, **kwargs):
         from shopback.trades.tasks import task_saleorder_check_packageskuitem
         task_saleorder_check_packageskuitem.delay()
 
-
-post_save.connect(check_saleorder_sync, sender=PackageSkuItem,
-                  dispatch_uid='post_save_check_saleorder_sync')
+#
+# post_save.connect(check_saleorder_sync, sender=PackageSkuItem,
+#                   dispatch_uid='post_save_check_saleorder_sync')
 
 
 def get_package_address_dict(package_order):
