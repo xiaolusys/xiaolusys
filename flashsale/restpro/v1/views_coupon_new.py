@@ -21,6 +21,7 @@ from flashsale.pay.tasks import task_release_coupon_push
 from flashsale.promotion.models import XLSampleOrder
 from flashsale.coupon import constants
 from flashsale.pay.models import SaleTrade
+from flashsale.coupon.apis.v1.ordersharecoupon import create_share_coupon
 
 logger = logging.getLogger(__name__)
 
@@ -522,7 +523,8 @@ class OrderShareCouponViewSet(viewsets.ModelViewSet):
             return Response(default_return)
         if not ufrom:
             logger.warn('customer:{0}, param ufrom is None'.format(customer.id))
-        state, order_share = OrderShareCoupon.objects.create_coupon_share(tpl, customer, uniq_id, ufrom)
+        order_share = create_share_coupon(tpl.id, customer.id, uniq_id, ufrom,
+                                          customer_nick=customer.nick, customer_thumbnail=customer.thumbnail)
 
         share_link = 'rest/v1/users/weixin_login/?next=/mall/order/redpacket?uniq_id={0}&ufrom={1}'.format(
             order_share.uniq_id, ufrom)
@@ -554,7 +556,8 @@ class OrderShareCouponViewSet(viewsets.ModelViewSet):
             return Response({"code": 3, "msg": "分享出错", "share_link": ''})
         if not ufrom:
             logger.warn('customer:{0}, param ufrom is None'.format(customer.id))
-        state, active_share = OrderShareCoupon.objects.create_coupon_share(tpl, customer, uniq_id, ufrom)
+        active_share = create_share_coupon(tpl.id, customer.id, uniq_id, ufrom,
+                                           customer_nick=customer.nick, customer_thumbnail=customer.thumbnail)
         share_link = '/pages/acsharecoupon.html?uniq_id={0}&ufrom={1}'.format(active_share.uniq_id, ufrom)
         share_link = urlparse.urljoin(settings.M_SITE_URL, share_link)
         return Response({"code": 0, "msg": "分享成功", "share_link": share_link})
