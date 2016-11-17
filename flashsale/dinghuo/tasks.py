@@ -1404,7 +1404,7 @@ def task_purchase_detail_update_purchase_order(pd):
             po.save(update_fields=['book_num', 'need_num', 'arrival_num', 'modified'])
 
 
-@task()
+@task(serializer='pickle')
 def task_purchasedetail_update_orderdetail(pd):
     # we should re-calculate the num of records each time we sync pd and od.
     res = PurchaseArrangement.objects.filter(purchase_order_unikey=pd.purchase_order_unikey,
@@ -1435,12 +1435,12 @@ def task_purchasedetail_update_orderdetail(pd):
             od.save(update_fields=['buy_quantity', 'buy_unitprice', 'total_price', 'updated'])
 
 
-@task()
+@task(serializer='pickle')
 def task_orderlist_update_self(ol):
     ol.update_stage()
 
 
-@task()
+@task(serializer='pickle')
 def task_orderdetail_update_orderlist(od):
     if not od.purchase_order_unikey:
         od.orderlist.save()
