@@ -480,16 +480,19 @@ def refunding_state(request, state_id):
 
     return render(request, 'pay/order_flash.html', {'info': rec, 'time': real_today, 'yesterday': today})
 
+
 def get_mrgid(request):
-    content = request.GET
+    content = request.POST
     sale_order_id = content.get("sale_order_id", None)
     sale_order = get_object_or_404(SaleOrder, id=sale_order_id)
     try:
         sale_trade = sale_order.sale_trade_id
         sale_order = sale_order.id
-        return HttpResponse(json.dumps({"res":True,"data":[{"trade_id":sale_trade,"order_id":sale_order}],"desc": ""}))
-    except Exception,msg:
-        return HttpResponse(json.dumps({"res":False,"data":[],"desc":str(msg)}))
+        return HttpResponse(
+            json.dumps({"res": True, "data": [{"trade_id": sale_trade, "order_id": sale_order}], "desc": ""}))
+    except Exception, msg:
+        return HttpResponse(json.dumps({"res": False, "data": [], "desc": str(msg)}))
+
 
 def sent_sku_item_again(request):
     content = request.GET
@@ -498,10 +501,9 @@ def sent_sku_item_again(request):
     sale_trade = sale_order.sale_trade
     try:
         sale_trade.redeliver_sku_item(sale_order)
-        return HttpResponse(json.dumps({"res":True ,"data":[], "desc": ""}))
+        return HttpResponse(json.dumps({"res": True, "data": [], "desc": ""}))
     except Exception, e0:
-        return HttpResponse(json.dumps({"res":False ,"data":[], "desc": str(e0)}))
-
+        return HttpResponse(json.dumps({"res": False, "data": [], "desc": str(e0)}))
 
 
 def change_sku_item(request):
@@ -542,7 +544,7 @@ def update_memo(request):
 
 
 def refund_fee(request):
-    content = request.GET
+    content = request.POST
     sale_order = int(content.get("sale_order_id", None))
     sale_order = get_object_or_404(SaleOrder, id=sale_order)  # 退款sale_order对象
     from flashsale.pay.models import TeamBuyDetail
