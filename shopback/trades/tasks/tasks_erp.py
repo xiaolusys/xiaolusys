@@ -29,12 +29,15 @@ def parse_sku_code(supplier_sku_code):
 def task_sync_order_to_erp():
     # 获取订货单
     order_list = OrderList.objects.filter(
+        created_by=OrderList.CREATED_BY_MACHINE,
         stage=OrderList.STAGE_DRAFT,
         supplier_id=SUPPLIER_YOUHE_ID
     ).first()
 
     if not order_list:
         return
+
+    print '==> order_list:', order_list.id
 
     # 获取优禾订单 PackageSkuItem
     package_sku_items = order_list.package_sku_items
@@ -55,8 +58,7 @@ def task_sync_order_to_erp():
 
         # 如果供应商不是"优禾""
         if supplier.id != SUPPLIER_YOUHE_ID:
-            continue
-            # raise Exception(u'该订单%s:供应商不是优禾 sale_product:%s' % (item.sale_order_id, sale_product))
+            raise Exception(u'该订单%s:供应商不是优禾 sale_product:%s' % (item.sale_order_id, sale_product))
 
         if supplier_sku_code.strip() == '':
             raise Exception(u'该订单%s:SKU没有外部编码 sale_product:%s' % (item.sale_order_id, sale_product))
@@ -120,11 +122,11 @@ def task_sync_order_to_erp():
 
         is_exists = ErpOrder.objects.filter(sale_order_oid=wdt_order['IF_OrderCode']).first()
         if is_exists:
-            print u'已经存在', wdt_order['IF_OrderCode']
+            print 'order has exist:', wdt_order['IF_OrderCode']
             continue
 
         erp_order = ErpOrder()
-        wdt_order['Remark'] = '小鹿美美测试不要发货'
+        # wdt_order['Remark'] = '小鹿美美测试不要发货'
         try:
             result = wdt.create_order(wdt_order)
             if result['ResultCode'] == 0:

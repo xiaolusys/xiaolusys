@@ -11,6 +11,7 @@
 
 {% block content %}
 <div id="content-main">
+
 {% if app_list %}
     {% for app in app_list %}
         <div class="app-{{ app.app_label }} module">
@@ -46,18 +47,17 @@
     <p>{% trans "You don't have permission to edit anything." %}</p>
 {% endif %}
 </div>
-</div>
-
 {% endblock %}
 
 {% block sidebar %}
-<div id="content-related" style="width:1350px;">
-
-    <div class="content-calendar" style="width:800px;">
-        {% include "fullcalendar/default.html" %}
+<div id="content-related">
+    <div class="module" style="width:930px;height:760px;">
+        <h2>{% trans '日程计划' %}</h2>
+        <h3>{% trans '我的日程计划' %}</h3>
+        <iframe src="/app/calendar/default.html" style="width:930px;height:760px;border:none;"></iframe>
     </div>
 
-    <div class="module" id="recent-actions-module" style="width:250px;float:left;margin:10px;">
+    <div class="module" id="recent-actions-module" style="margin-top: 60px;">
         <h2>{% trans 'Recent actions' %}</h2>
         <h3>{% trans 'My actions' %}</h3>
             {% load log %}
@@ -85,5 +85,4 @@
             {% endif %}
     </div>
 </div>
-
 {% endblock %}

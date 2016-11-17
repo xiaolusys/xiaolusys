@@ -444,13 +444,16 @@ class SaleProductManageSerializer(serializers.ModelSerializer):
 
         category_product_nums = {}
         details = []
-        manage_schedules = obj.manage_schedule.all()
-        for d in manage_schedules:
-            details.append(d.sale_product)
-            if not category_product_nums.has_key(d.sale_category):
-                category_product_nums[d.sale_category] = 1
+        schedule_product_ids = list(obj.manage_schedule.values_list('sale_product_id',flat=True))
+        schedule_category_ids = SaleProduct.objects.filter(id__in=schedule_product_ids)\
+            .values_list('sale_category_id',flat=True)
+        cat_id_fullname_map = SaleCategory.get_salecategory_fullnamemap()
+        for cat_id in schedule_category_ids:
+            cat_fullname = cat_id_fullname_map[cat_id]
+            if not category_product_nums.has_key(cat_fullname):
+                category_product_nums[cat_fullname] = 1
             else:
-                category_product_nums[d.sale_category] += 1
+                category_product_nums[cat_fullname] += 1
         category_product_num_list = [{'category_name': k, 'product_num': v} for k, v in category_product_nums.iteritems()]
         supplier_product_nums = {}
         # 50 以下　　50-100　100-150  >150
@@ -524,7 +527,7 @@ class ManageDetailUseStatusField(serializers.Field):
 
 
 class SaleProductManageDetailSerializer(serializers.ModelSerializer):
-    # sale_category = SaleCategorySerializer()
+    sale_category = serializers.SerializerMethodField()
     product_name = serializers.CharField(source='sale_product.title', read_only=True)
     supplier_name = serializers.CharField(source='sale_product.sale_supplier.supplier_name', read_only=True)
     product_purchase_price = serializers.CharField(source='sale_product.sale_price', read_only=True)
@@ -585,6 +588,12 @@ class SaleProductManageDetailSerializer(serializers.ModelSerializer):
         if obj.item_products:
             return True
         return False
+
+    def get_sale_category(self, obj):
+        if not obj.sale_product:
+            return ''
+        cat_id = obj.sale_product.sale_category_id
+        return SaleCategory.get_salecategory_fullnamemap().get(cat_id) or ''
 
 
 class ManageDetailAssignWorkerSerializer(serializers.ModelSerializer):

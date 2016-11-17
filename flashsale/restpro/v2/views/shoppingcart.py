@@ -445,9 +445,10 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         product = product_sku.product
         ware_by = product.ware_by
         default_address = customer.get_default_address()
+        default_company_code = default_address and default_address.logistic_company_code or ''
         selectable_logistics = self.get_selectable_logistics(
             ware_by,
-            default_company_code=default_address.logistic_company_code)
+            default_company_code=default_company_code)
 
         product_sku_dict = serializers.ProductSkuSerializer(product_sku).data
         product_sku_dict['product'] = serializers.ProductSerializer(

@@ -56,7 +56,8 @@ class SaleCategory(BaseModel):
 
     FIRST_GRADE = 1
     CACHE_TIME = 24 * 60 * 60
-    CACHE_KEY = '%s.%s' % (__name__, 'SaleCategory')
+    CACHE_KEY = 'suppliychain_salesategory_list_key'
+    CATEGORY_ID_FULLNAME_MAP_KEY = 'salecategory_id_fullname_map_key'
     SALEPRODUCT_CATEGORY_CACHE_KEY = 'xlmm_saleproduct_category_cache'
     DELIMITER_CHAR = '-'
     ROOT_ID = '0'
@@ -164,6 +165,24 @@ class SaleCategory(BaseModel):
             cache.set(cls.CACHE_KEY, cache_value, cls.CACHE_TIME)
         return cache_value
 
+    @classmethod
+    def get_salecategory_fullnamemap(cls):
+        cache_value = cache.get(cls.CATEGORY_ID_FULLNAME_MAP_KEY)
+        if not cache_value:
+            cid_fullname_dict = {}
+            cat_cid_names = cls.get_normal_categorys().order_by('grade').values('id', 'cid', 'parent_cid', 'name')
+            cid_id_maps = dict([(item['cid'], item['id'])  for item in cat_cid_names])
+            for cat_item in cat_cid_names:
+                cat_name = cat_item['name']
+                if cat_item['parent_cid'] in cid_fullname_dict:
+                    cat_name = '%s / %s'%(cid_fullname_dict[cat_item['parent_cid']], cat_name)
+
+                cid_fullname_dict[cat_item['cid']] = cat_name
+
+            cache_value = dict([(cid_id_maps[k], v) for k ,v in cid_fullname_dict.iteritems()])
+            cache.set(cls.CATEGORY_ID_FULLNAME_MAP_KEY, cache_value, 24 * 3600)
+        return cache_value
+
     def get_product_category(self):
         """ 产品类别map """
         from shopback.categorys.models import ProductCategory
@@ -189,6 +208,7 @@ def invalid_salecategory_data_cache(sender, instance, created, **kwargs):
     logger.info('salecategory: invalid cachekey %s'% SaleCategory.CACHE_KEY)
     cache.delete(SaleCategory.CACHE_KEY)
     cache.delete(SaleCategory.SALEPRODUCT_CATEGORY_CACHE_KEY)
+    cache.delete(SaleCategory.CATEGORY_ID_FULLNAME_MAP_KEY)
 
 post_save.connect(invalid_salecategory_data_cache,
                   sender=SaleCategory,
