@@ -24,7 +24,8 @@ from core.options import log_action, ADDITION, CHANGE
 from flashsale.clickcount.models import ClickCount
 from flashsale.clickcount.models import Clicks
 from flashsale.clickrebeta.models import StatisticsShopping
-from flashsale.coupon.models import UserCoupon, CouponTemplate
+from flashsale.coupon.models import CouponTemplate
+from flashsale.coupon.apis.v1.usercoupon import create_user_coupon
 from flashsale.pay.mixins import PayInfoMethodMixin
 from flashsale.pay.models import BudgetLog
 from flashsale.pay.models import Customer
@@ -1187,8 +1188,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
                            uni_key=uni_key)
             cash.save()
             log_action(request.user, cash, ADDITION, u'用户现金兑换优惠券添加提现记录')
-            cou, co, ms = UserCoupon.objects.create_cashout_exchange_coupon(customer.id, tpl.id,
-                                                                            cashout_id=cash.id)
+            cou, co, ms = create_user_coupon(customer_id=customer.id, coupon_template_id=tpl.id, cash_out_id=cash.id)
             if co != 0:
                 cash.status = CashOut.CANCEL
                 cash.save(update_fields=['status'])

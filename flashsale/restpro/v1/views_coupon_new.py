@@ -56,10 +56,11 @@ def release_tmp_share_coupon(customer):
                 has_order_share_coupon = UserCoupon.objects.filter(customer_id=customer.id,
                                                                    coupon_type=UserCoupon.TYPE_ORDER_SHARE).exists()
                 template_id = constants.LIMIT_ORDER_SHARE_COUPON_TEMPLATE if st or has_order_share_coupon else tpl.id
-                x = UserCoupon.objects.create_order_share_coupon(customer.id, template_id, share.uniq_id, ufrom=u'tmp',
-                                                                 coupon_value=tmp_coupon.value)
+                create_user_coupon(customer_id=customer.id, coupon_template_id=template_id,
+                                   order_share_id=share.id, coupon_value=tmp_coupon.value, ufrom=u'tmp')
             elif tpl.coupon_type == CouponTemplate.TYPE_ACTIVE_SHARE:
-                UserCoupon.objects.create_active_share_coupon(customer.id, tpl.id, share.uniq_id, ufrom=u'tmp')
+                create_user_coupon(customer_id=customer.id, coupon_template_id=tpl.id,
+                                   order_share_id=share.id, ufrom=u'tmp')
             tmp_coupon.status = True
             tmp_coupon.save(update_fields=['status'])  # 更新状态到已经领取
         except Exception as exc:
@@ -594,8 +595,8 @@ class OrderShareCouponViewSet(viewsets.ModelViewSet):
         st = is_old_customer(customer.id)
         # 如果有订单的用户　再次领取的分享优惠券为指定的其他优惠券
         template_id = constants.LIMIT_ORDER_SHARE_COUPON_TEMPLATE if st else coupon_share.template_id
-
-        coupon, code, msg = UserCoupon.objects.create_order_share_coupon(customer.id, template_id, uniq_id, ufrom)
+        coupon, code, msg = create_user_coupon(customer_id=customer.id, coupon_template_id=template_id,
+                                               order_share_id=coupon_share.id, ufrom=ufrom)
         if code != 0:
             default_return.update({"code": code, "msg": msg})
             return Response(default_return)
@@ -624,7 +625,8 @@ class OrderShareCouponViewSet(viewsets.ModelViewSet):
             logger.warn('customer:{0}, param ufrom is None'.format(customer.id))
 
         template_id = coupon_share.template_id
-        coupon, code, msg = UserCoupon.objects.create_active_share_coupon(customer.id, template_id, uniq_id, ufrom)
+        coupon, code, msg = create_user_coupon(customer_id=customer.id, coupon_template_id=template_id,
+                                               order_share_id=coupon_share.id, ufrom=ufrom)
         if code != 0:
             return Response({"code": code, "msg": msg, "coupon_id": ''})
         else:

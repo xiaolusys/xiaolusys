@@ -68,11 +68,7 @@ class RefundCouponView(APIView):
         trade = self.get_trade(trade_id)
         self.check_trade_status(trade)
         self.memo_trade(user_id, trade, memo)
-        cou, code, msg = UserCoupon.objects.create_refund_post_coupon(trade.buyer_id,
-                                                                      template_id,
-                                                                      trade.id,
-                                                                      ufrom='web')
-
+        create_user_coupon(customer_id=trade.buyer_id, coupon_template_id=int(template_id), trade_id=trade.id)
         return Response({'res': "ok"})
 
 

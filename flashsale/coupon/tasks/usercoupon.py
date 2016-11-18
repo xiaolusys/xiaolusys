@@ -99,7 +99,8 @@ def task_release_coupon_for_order(saletrade):
     """
     - SaleTrade pay confirm single to drive this task.
     """
-    from flashsale.coupon.models import CouponTemplate, UserCoupon
+    from flashsale.coupon.models import CouponTemplate
+    from ..apis.v1.usercoupon import create_user_coupon
 
     extras_info = saletrade.extras_info
     ufrom = extras_info.get('ufrom')
@@ -107,13 +108,8 @@ def task_release_coupon_for_order(saletrade):
                                         coupon_type=CouponTemplate.TYPE_ORDER_BENEFIT).first()
     if not tpl:
         return
-    UserCoupon.objects.create_mama_invite_coupon(
-        buyer_id=saletrade.buyer_id,
-        template_id=tpl.id,
-        trade_id=saletrade.id,
-        ufrom=ufrom,
-    )
-    return
+    create_user_coupon(customer_id=saletrade.buyer_id, coupon_template_id=tpl.id, trade_id=saletrade.id,
+                       ufrom=str(ufrom))
 
 
 @app.task()
@@ -152,19 +148,14 @@ def task_release_mama_link_coupon(saletrade):
     customer = mama.get_mama_customer()
     if not customer:
         return
-    from flashsale.coupon.models import CouponTemplate, UserCoupon
+    from flashsale.coupon.models import CouponTemplate
+    from ..apis.v1.usercoupon import create_user_coupon
 
     tpl = CouponTemplate.objects.filter(status=CouponTemplate.SENDING,
                                         coupon_type=CouponTemplate.TYPE_MAMA_INVITE).first()
     if not tpl:
         return
-    UserCoupon.objects.create_mama_invite_coupon(
-        buyer_id=customer.id,
-        template_id=tpl.id,
-        trade_id=saletrade.id,
-        ufrom=ufrom,
-    )
-    return
+    create_user_coupon(customer_id=customer.id, coupon_template_id=tpl.id, trade_id=saletrade.id, ufrom=str(ufrom))
 
 
 @app.task()

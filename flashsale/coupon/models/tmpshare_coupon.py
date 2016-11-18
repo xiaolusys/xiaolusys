@@ -24,7 +24,7 @@ class TmpShareCoupon(BaseModel):
 
 def update_mobile_download_record(sender, instance, created, **kwargs):
     # type: (Any, TmpShareCoupon, bool, **Any) -> None
-    from flashsale.coupon.tasks import task_update_mobile_download_record
+    from flashsale.coupon.tasks.usercoupon import task_update_mobile_download_record
 
     task_update_mobile_download_record.delay(instance)
 
