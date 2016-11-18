@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 import os
+import sys
 import urllib2
 
 def is_staging_environment():
@@ -56,10 +57,17 @@ def cancel_pingpp_charge_ssl_verify():
     except Exception, exc:
         print 'cancel pingpp verify error:%s'% exc
 
-def patch_django1_10_core_get_cache():
-    try:
-        from django.core import cache
-        cache.get_cache = lambda name: None
-    except Exception, exc:
-        print 'patch django core get_cache error:%s'% exc
+def patch_redis_compat_nativestr():
+    if sys.version_info[0] < 3:
+        def _nativestr(x):
+            if isinstance(x, str):
+                return x
+            if isinstance(x, (list, tuple)):
+                return '%s' % x
+            return x.encode('utf-8', 'replace')
+
+        from redis import _compat
+        _compat.nativestr = _nativestr
+
+
 

@@ -9,7 +9,7 @@ import posixpath
 import global_setup
 global_setup.install_pymysqldb()
 global_setup.cancel_pingpp_charge_ssl_verify()
-# global_setup.patch_django1_10_core_get_cache()
+global_setup.patch_redis_compat_nativestr()
 
 
 DEBUG = False
