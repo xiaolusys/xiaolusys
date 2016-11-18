@@ -489,7 +489,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             # 只有indirect才是下属精英，direct表示独立成团了，不属于本团队了；其它字段的表明根本还未加入精英妈妈
             if mama.referal_from == XiaoluMama.INDIRECT:
                 item = {
-                    'mama': mama.id,
+                    'mama_id': mama.id,
                     'thumbnail': mama.thumbnail,
                     'nick': mama.nick,
                     'mobile': mama.mobile,
