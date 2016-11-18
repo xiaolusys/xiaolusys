@@ -757,31 +757,24 @@ def tongji_trade_pay_channel(sender, obj, **kwargs):
 signal_saletrade_pay_confirm.connect(tongji_trade_pay_channel, sender=SaleTrade)
 
 
-def trade_payment_used_coupon(sender, obj, **kwargs):
-    """ 交易支付后修改优惠券状态为使用 """
-    from flashsale.coupon.tasks import task_change_coupon_status_used
-    task_change_coupon_status_used(obj)  # execute immediately not delay
-
-
 def release_mamalink_coupon(sender, obj, **kwargs):
     """用户下单成功后给专属链接代理 发放优惠券"""
-    from flashsale.coupon.tasks import task_release_mama_link_coupon
+    from flashsale.coupon.tasks.usercoupon import task_release_mama_link_coupon
     task_release_mama_link_coupon.delay(obj)
 
 
 def release_coupon_buy_way(sender, obj, **kwargs):
     """购买成功触发购买成功发放的优惠券"""
-    from flashsale.coupon.tasks import task_release_coupon_for_order
+    from flashsale.coupon.tasks.usercoupon import task_release_coupon_for_order
     task_release_coupon_for_order.delay(obj)
 
 
 def freeze_coupon_by_refund(sender, obj, **kwargs):
     """用户退款冻结绑定的优惠券"""
-    from flashsale.coupon.tasks import task_freeze_coupon_by_refund
+    from flashsale.coupon.tasks.usercoupon import task_freeze_coupon_by_refund
     task_freeze_coupon_by_refund.delay(obj)
 
 
-signal_saletrade_pay_confirm.connect(trade_payment_used_coupon, sender=SaleTrade)
 signal_saletrade_pay_confirm.connect(release_coupon_buy_way, sender=SaleTrade)
 signal_saletrade_pay_confirm.connect(release_mamalink_coupon, sender=SaleTrade)
 signal_saletrade_refund_post.connect(freeze_coupon_by_refund, sender=SaleRefund)

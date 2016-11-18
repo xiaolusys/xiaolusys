@@ -45,6 +45,7 @@ from flashsale.restpro import constants as CONS
 from flashsale.xiaolumm.models import XiaoluMama,CarryLog
 from flashsale.pay.tasks import confirmTradeChargeTask, tasks_set_address_priority_logistics_code
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
+from flashsale.coupon.apis.v1.usercoupon import use_coupon_by_ids
 import logging
 logger = logging.getLogger(__name__)
 
@@ -192,7 +193,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         for coupon_id in coupon_ids:
             user_coupon = UserCoupon.objects.get(id=coupon_id, customer_id=sale_trade.buyer_id)
             user_coupon.coupon_basic_check()  # 优惠券基础检查
-            user_coupon.use_coupon(sale_trade.tid)  # 使用优惠券
+            use_coupon_by_ids([user_coupon.id], sale_trade.tid)
             template_id = user_coupon.template_id
             if user_coupon.is_transfer_coupon():
                 is_transfer_coupon = True

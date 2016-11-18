@@ -5,6 +5,7 @@ from shopmanager import celery_app as app
 from django.db import IntegrityError
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -51,45 +52,25 @@ def task_update_share_coupon_release_count(share_coupon):
 
 
 @app.task()
-def task_update_coupon_use_count(coupon, trade_tid):
+def task_update_coupon_use_count(coupon_template_id, share_coupon_record_id):
     """
     1. count the CouponTemplate 'has_used_count' field when use coupon
     2. count the OrderShareCoupon 'has_used_count' field when use coupon
     """
-    from flashsale.coupon.models import UserCoupon
+    from ..models import UserCoupon
+    from ..apis.v1.coupontemplate import get_coupon_template_by_id
+    from ..apis.v1.ordersharecoupon import get_order_share_coupon_by_id
 
-    coupon.finished_time = datetime.datetime.now()  # save the finished time
-    coupon.trade_tid = trade_tid  # save the trade tid with trade be binding
-    coupon.save(update_fields=['finished_time', 'trade_tid'])
-    tpl = coupon.self_template()
-
-    coupons = UserCoupon.objects.all()
-    tpl_used_count = coupons.filter(template_id=tpl.id, status=UserCoupon.USED).count()
+    tpl = get_coupon_template_by_id(coupon_template_id)
+    tpl_used_count = UserCoupon.objects.get_template_coupons(coupon_template_id).filter(status=UserCoupon.USED).count()
     tpl.has_used_count = tpl_used_count
     tpl.save(update_fields=['has_used_count'])
 
-    share = coupon.share_record()
+    share = get_order_share_coupon_by_id(share_coupon_record_id)
     if share:
-        share_used_count = coupons.filter(order_coupon_id=share.id, status=UserCoupon.USED).count()
+        share_used_count = UserCoupon.objects.get_order_share_coupons(share.id).filter(status=UserCoupon.USED).count()
         share.has_used_count = share_used_count
         share.save(update_fields=['has_used_count'])
-
-    from django_statsd.clients import statsd
-    from django.utils.timezone import now, timedelta
-
-    start = now().date()
-    end = start + timedelta(days=1)
-
-    if coupon.template_id == 55:
-        statsd.timing('coupon.new_customer_used_count', coupons.filter(template_id=tpl.id, status=UserCoupon.USED,
-                                                                       finished_time__range=(start, end)).count())
-    elif coupon.template_id == 67:
-        statsd.timing('coupon.share_used_count', coupons.filter(template_id=tpl.id, status=UserCoupon.USED,
-                                                                finished_time__range=(start, end)).count())
-    elif coupon.template_id == 86:
-        statsd.timing('coupon.old_customer_share_used_count', coupons.filter(template_id=tpl.id, status=UserCoupon.USED,
-                                                                             finished_time__range=(start, end)).count())
-    return
 
 
 @app.task()
@@ -158,22 +139,6 @@ def task_release_mama_link_coupon(saletrade):
 
 
 @app.task()
-def task_change_coupon_status_used(saletrade):
-    coupon_ids = saletrade.extras_info.get('coupon') or []
-    from flashsale.coupon.models import UserCoupon
-
-    for coupon_id in coupon_ids:
-        usercoupon = UserCoupon.objects.filter(
-            id=coupon_id,
-            customer_id=saletrade.buyer_id,
-            status=UserCoupon.UNUSED
-        ).first()
-        if not usercoupon:
-            continue
-        usercoupon.use_coupon(saletrade.tid)
-
-
-@app.task()
 def task_update_user_coupon_status_2_past():
     """
     - timing to update the user coupon to past.
@@ -215,6 +180,7 @@ def task_roll_back_usercoupon_by_refund(trade_tid, num):
     from ..models.usercoupon import UserCoupon
     from ..models.transfer_coupon import CouponTransferRecord
     from ..apis.v1.usercoupon import rollback_user_coupon_status_2_unused_by_ids
+
     transfer_coupon_num = 0
     template_id = 0
     customer_id = 0

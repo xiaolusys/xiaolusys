@@ -1,12 +1,19 @@
 # coding=utf-8
 from __future__ import unicode_literals, absolute_import
+import datetime
 from flashsale.pay.apis.v1.customer import get_customer_by_id
 from ...models.usercoupon import UserCoupon
 from .coupontemplate import get_coupon_template_by_id
 from .ordersharecoupon import get_order_share_coupon_by_id
+import logging
+
+logger = logging.getLogger(__name__)
 
 __ALL__ = [
-    'release_coupon_for_mama_deposit'
+    'release_coupon_for_mama_deposit',
+    'use_coupon_by_ids',
+    'get_user_coupon_by_id',
+    'get_user_coupons_by_ids',
 ]
 
 
@@ -52,6 +59,16 @@ def _check_saletrade(trade_id):
     if trade is None:  # 没有该订单存在
         return None, 8, u'绑定订单不存在'
     return trade, 0, u"订单id正确"
+
+
+def get_user_coupon_by_id(id):
+    # type: (int) -> UserCoupon
+    return UserCoupon.objects.get(id=id)
+
+
+def get_user_coupons_by_ids(ids):
+    # type: (int) -> Optional[List[UserCoupon]]
+    return UserCoupon.objects.get_coupons(ids)
 
 
 def release_coupon_for_deposit(customer_id, deposit_type):
@@ -118,3 +135,22 @@ def create_user_coupon(customer_id, coupon_template_id,
 def rollback_user_coupon_status_2_unused_by_ids(ids):
     # type: (List[int]) -> None
     UserCoupon.objects.filter(id__in=ids).update(status=UserCoupon.UNUSED)
+
+
+def use_coupon_by_ids(ids, tid):
+    # type: (List[int], text_type) -> bool
+    """使用掉优惠券
+    """
+    from ...tasks.usercoupon import task_update_coupon_use_count
+
+    coupons = get_user_coupons_by_ids(ids)
+
+    for coupon in coupons:
+        coupon.coupon_basic_check()  # 检查所有优惠券
+    for coupon in coupons:
+        coupon.status = UserCoupon.USED
+        coupon.finished_time = datetime.datetime.now()  # save the finished time
+        coupon.trade_tid = tid  # save the trade tid with trade be binding
+        coupon.save(update_fields=['finished_time', 'trade_tid'])
+        task_update_coupon_use_count.delay(coupon.template_id, coupon.order_coupon_id)
+    return True

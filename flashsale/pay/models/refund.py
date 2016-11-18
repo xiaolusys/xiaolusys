@@ -369,7 +369,7 @@ class SaleRefund(PayBaseModel):
         """
         if self.status != SaleRefund.REFUND_SUCCESS:  # 不是退款成功不处理
             return False
-        from flashsale.coupon.tasks import task_roll_back_usercoupon_by_refund
+        from flashsale.coupon.tasks.usercoupon import task_roll_back_usercoupon_by_refund
 
         sale_trade = self.sale_trade
         refund_fees = SaleRefund.objects.filter(trade_id=self.trade_id,

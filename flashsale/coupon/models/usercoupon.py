@@ -194,17 +194,6 @@ class UserCoupon(BaseModel):
         self.coupon_basic_check()  # 基础检查
         return
 
-    def use_coupon(self, trade_tid):
-        # type: (text_type) -> None
-        """ 使用优惠券 """
-        from ..tasks.usercoupon import task_update_coupon_use_count
-
-        coupon = self.__class__.objects.get(id=self.id)
-        coupon.coupon_basic_check()  # 基础检查
-        coupon.status = self.USED
-        coupon.save()
-        task_update_coupon_use_count.delay(coupon, trade_tid)
-
     def freeze_coupon(self):
         # type: () -> None
         """ 冻结优惠券 """

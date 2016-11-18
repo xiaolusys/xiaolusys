@@ -297,32 +297,6 @@ class Customer(BaseModel):
         queryset = UserAddress.objects.filter(cus_uid=self.id, status=UserAddress.NORMAL).order_by('-default')
         return queryset.first()
 
-# 2016-4-9 有登陆检查后注释不执行
-# def triger_record_xlmm_fans(sender, instance, created, **kwargs):
-#     """ 记录粉丝妈妈粉丝信息 """
-#     from flashsale.pay.tasks import task_Record_Mama_Fans
-#     task_Record_Mama_Fans.delay(instance, created)
-#
-# post_save.connect(triger_record_xlmm_fans, dispatch_uid='triger_record_xlmm_fans', sender=Customer)
-
-
-# def release_coupon_for_register(sender, instance, created, **kwargs):
-#     if created:
-#         from flashsale.coupon.tasks import task_release_coupon_for_register
-#         task_release_coupon_for_register.delay(instance)
-#
-# post_save.connect(release_coupon_for_register, dispatch_uid='release_coupon_for_register', sender=Customer)
-
-
-#def update_weixinuserinfo(sender, instance, created, **kwargs):
-#    if not instance.unionid:
-#        return
-#    from flashsale.pay.tasks import task_customer_update_weixinuserinfo
-#    task_customer_update_weixinuserinfo.delay(instance)
-#
-#post_save.connect(update_weixinuserinfo, sender=Customer,
-#                  dispatch_uid='post_save_update_weixinuserinfo')
-
 
 def sync_xlmm_fans_nick_thumbnail(sender, instance, created, **kwargs):
     if not created:

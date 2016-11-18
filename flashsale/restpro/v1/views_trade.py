@@ -40,6 +40,7 @@ from common.utils import update_model_fields
 from flashsale.restpro import constants as CONS
 import logging
 import decimal
+from flashsale.coupon.apis.v1.usercoupon import use_coupon_by_ids
 
 from shopback.logistics.models import LogisticsCompany
 
@@ -979,7 +980,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
         try:
             if coupon_id and user_coupon:   # 使用优惠券，并修改状态
-                user_coupon.use_coupon(sale_trade.tid)
+                use_coupon_by_ids([user_coupon.id], sale_trade.tid)
 
             if channel == SaleTrade.WALLET:
                 # 妈妈钱包支付
@@ -1066,8 +1067,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             Product.objects.releaseLockQuantity(product_sku, sku_num)
             raise exceptions.APIException(u'订单生成异常')
 
-        if coupon_id and user_coupon: # 使用优惠券，并修改状态
-            user_coupon.use_coupon(sale_trade.tid)
+        if coupon_id and user_coupon:  # 使用优惠券，并修改状态
+            use_coupon_by_ids([user_coupon.id], sale_trade.tid)
 
         if channel == SaleTrade.WALLET:
             # 妈妈钱包支付
