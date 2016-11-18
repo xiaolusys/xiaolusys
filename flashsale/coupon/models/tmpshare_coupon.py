@@ -1,4 +1,5 @@
 # coding=utf-8
+from __future__ import absolute_import, unicode_literals
 from core.models import BaseModel
 from django.db import models
 from django.db.models.signals import post_save
@@ -23,11 +24,14 @@ class TmpShareCoupon(BaseModel):
 
 
 def update_mobile_download_record(sender, instance, created, **kwargs):
-    # type: (Any, TmpShareCoupon, bool, **Any) -> None
-    from flashsale.coupon.tasks.usercoupon import task_update_mobile_download_record
-
-    task_update_mobile_download_record.delay(instance)
-
+    try:
+        from ..tasks.usercoupon import task_update_mobile_download_record
+        task_update_mobile_download_record.delay(instance.id)
+    except Exception as e:
+        import logging
+        logger = logging.getLogger('django.request')
+        logger.error(str(e), exc_info=True)
+        print '%s'%e
 
 post_save.connect(update_mobile_download_record, sender=TmpShareCoupon,
                   dispatch_uid='post_save_update_mobile_download_record')

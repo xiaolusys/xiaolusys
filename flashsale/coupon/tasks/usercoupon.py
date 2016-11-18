@@ -235,9 +235,12 @@ def task_roll_back_usercoupon_by_refund(trade_tid, num):
 
 
 @app.task()
-def task_update_mobile_download_record(tempcoupon):
-    from flashsale.coupon.models import OrderShareCoupon
+def task_update_mobile_download_record(tempcoupon_id):
+    from ..models.ordershare_coupon import OrderShareCoupon
+    from ..models.tmpshare_coupon import TmpShareCoupon
 
+    tempcoupon = TmpShareCoupon.objects.filter(id=tempcoupon_id).first()
+    if not tempcoupon: return
     share = OrderShareCoupon.objects.filter(uniq_id=tempcoupon.share_coupon_id).first()
     if not share:
         return

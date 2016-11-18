@@ -19,7 +19,7 @@ def create_share_coupon(coupon_template_id, customer_id, uniq_id, ufrom, custome
     """ create order share coupon record
     """
     template = get_coupon_template_by_id(coupon_template_id)
-    ocs = OrderShareCoupon.filter(share_customer=customer_id, template_id=template.id, uniq_id=uniq_id).first()
+    ocs = OrderShareCoupon.objects.filter(share_customer=customer_id, template_id=template.id, uniq_id=uniq_id).first()
     if ocs:
         return ocs
     extras = {
