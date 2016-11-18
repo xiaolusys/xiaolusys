@@ -17,7 +17,6 @@ django-http-proxy==0.4.3
 django-jsonfield==1.0.1
 django-mathfilters==0.3.0
 django-oauth-toolkit==0.10.0
-django-prometheus==1.0.8
 django-qiniu-storage==2.3.0
 django-redis-cache==1.7.1
 django-statsd-mozilla==0.3.16
@@ -79,4 +78,4 @@ django-debug-toolbar==1.6
 # sudo apt-get install libtiff4-dev  libjpeg8-dev zlib1g-dev libfreetype6-dev liblcms1-dev libwebp-dev libjpeg-dev
 # pip install -i http://pypi.oneapm.com/simple --upgrade blueware
 # pip install -i http://pypi.oneapm.com/simple --upgrade oneapm-ci-sdk
-git+git://github.com/xmeron/django-prometheus.git
+# pip install git+git://github.com/xmeron/django-prometheus.git
