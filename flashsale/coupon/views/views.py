@@ -1,15 +1,21 @@
 # coding=utf-8
-from django.db.models import Sum, Q
-from flashsale.coupon.models import UserCoupon, CouponTemplate
+from __future__ import absolute_import, unicode_literals
+from django.db.models import Q
+from django.forms import model_to_dict
+from rest_framework.exceptions import APIException
 from rest_framework.views import APIView
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework import permissions
 from rest_framework.response import Response
-from django.forms import model_to_dict
-from flashsale.pay.models import SaleTrade, SaleOrder, SaleRefund, Customer
-from rest_framework.exceptions import APIException
 from common.modelutils import update_model_fields
 from core.options import log_action, CHANGE, ADDITION
+from flashsale.coupon.models import UserCoupon, CouponTemplate
+from flashsale.pay.models import SaleTrade, Customer
+from ..apis.v1.usercoupon import create_user_coupon
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class RefundCouponView(APIView):
@@ -138,44 +144,11 @@ class ReleaseOmissive(APIView):
             if CouponTransferRecord.objects.filter(uni_key__contains='gift', coupon_to_mama_id=to_mama.id).exists():
                 return Response({'code': 0, "message": u'已经发送'})
             template = CouponTemplate.objects.get(id=template_id)
-            uni_key = template.gen_usercoupon_unikey('gift_transfer_%s' % cus.id, 1)
-            cou = UserCoupon.send_coupon(cus, template, uniq_id=uni_key)
+            unique_key = template.gen_usercoupon_unikey('gift_transfer_%s' % cus.id, 1)
+            cou = create_user_coupon(cus.id, template.id, unique_key=unique_key)
             transf_record = create_present_coupon_transfer_record(cus, template, cou.id)
             log_action(request.user, cou, ADDITION, u'添加优惠券记录,对应精品券id为%s' % transf_record.id)
             log_action(request.user, transf_record, ADDITION, u'添加精品流通记录,对应优惠券id为%s' % cou.id)
         except Exception as e:
             message = e.message
         return Response({'code': 0, "message": message})
-
-        # from flashsale.pay.models import ModelProduct
-        # from shopback.items.models import Product
-        # modelids = ModelProduct.objects.filter(product_type=1, status=ModelProduct.NORMAL).values('id')
-        # modelids = [m['id'] for m in modelids]
-        # item_ids = [i['id'] for i in Product.objects.filter(model_id__in=modelids).values('id')]  # 找出虚拟产品
-        # # 交易成功订单
-        # sale_orders = SaleOrder.objects.filter(item_id__in=item_ids, buyer_id=cus.id, status=SaleOrder.TRADE_FINISHED)
-        # if time_from:
-        # sale_orders = sale_orders.filter(pay_time__gte=time_from)
-        # if time_to:
-        # sale_orders = sale_orders.filter(pay_time__lte=time_to)
-        # order_ids = []  # 用户的订单(一个数量为一个id)
-        # for order in sale_orders:
-        #     for i in range(order.num):
-        #         order_ids.append({'order_id': order.id, 'num': order.num})
-        # template = CouponTemplate.objects.get(id=template_id)
-        # yy = len(order_ids)
-        # message = u''
-        # for i, v in enumerate(order_ids):
-        #     message = u'发送成功'
-        #     x = i + 1  # 第几个订单 print '%s这是用户的第%s个订单' % (v['order_id'], x)
-        #     y = x % 5
-        #     if y == 0:
-        #         yy += 1
-        #         uni_key = template.gen_usercoupon_unikey(v['order_id'], yy)  # print '满5送1: unikey:%s' % uni_key
-        #         try:
-        #             cou = UserCoupon.send_coupon(cus, template, uniq_id=uni_key)
-        #             create_present_coupon_transfer_record(cus, template, cou.id, v['order_id'])
-        #         except Exception as e:
-        #             message = e.message
-        #             continue
-        # return Response({'code': 0, "message": message})

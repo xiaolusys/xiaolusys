@@ -80,12 +80,11 @@ def refund_coupon(sale_refund):
     # type : (SaleRefund) -> bool
     """补邮费优惠券给用户
     """
-    from flashsale.coupon.models import UserCoupon
+    from flashsale.coupon.apis.v1.usercoupon import create_user_coupon
 
     if sale_refund.coupon_num > 0:
         try:
-            UserCoupon.create_salerefund_post_coupon(sale_refund.buyer_id, sale_refund.trade_id,
-                                                     money=(sale_refund.coupon_num / 100))
+            create_user_coupon(sale_refund.buyer_id, sale_refund.coupon_template_id, trade_id=sale_refund.trade_id)
             return True
         except Exception as e:
             logger.info({'action': u'return_fee_by_refund_product', 'message': e.message})

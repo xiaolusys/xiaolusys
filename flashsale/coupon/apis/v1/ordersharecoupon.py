@@ -4,6 +4,7 @@ from ...models import OrderShareCoupon
 from .coupontemplate import get_coupon_template_by_id
 
 __ALL__ = [
+    'get_order_share_coupon_by_id',
     'create_share_coupon',
 ]
 

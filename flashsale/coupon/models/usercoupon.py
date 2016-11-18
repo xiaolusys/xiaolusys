@@ -5,7 +5,6 @@ from django.db import models
 from flashsale.pay.options import uniqid
 from core.fields import JSONCharMyField
 from .managers.usercoupon import UserCouponManager
-from flashsale.coupon import tasks
 
 
 def default_coupon_no():
@@ -115,6 +114,7 @@ class UserCoupon(BaseModel):
 
     def is_transfer_coupon(self):
         from .coupon_template import CouponTemplate
+
         ct = CouponTemplate.objects.filter(id=self.template_id).first()
         return ct and ct.coupon_type == CouponTemplate.TYPE_TRANSFER
 
@@ -238,39 +238,3 @@ class UserCoupon(BaseModel):
             self.save(update_fields=['status'])
             return True
         return False
-
-    @staticmethod
-    def send_coupon(customer, tpl, ufrom='wap', uniq_id=None):
-        # type: (Customer, CouponTemplate, text_type) -> UserCoupon
-        if not tpl.can_send():
-            raise Exception(u'优惠券已发送完毕')
-        uniq_id = tpl.make_uniq_id(customer.id) if uniq_id is None else uniq_id
-        value, start_use_time, expires_time = tpl.calculate_value_and_time()
-        extras = {'user_info': {'id': customer.id, 'nick': customer.nick, 'thumbnail': customer.thumbnail}}
-        cou = UserCoupon.objects.filter(uniq_id=uniq_id).first()
-        if cou:
-            raise Exception(u'优惠券已发送过')
-        cou = UserCoupon.objects.create(template_id=tpl.id,
-                                        title=tpl.title,
-                                        coupon_type=tpl.coupon_type,
-                                        customer_id=customer.id,
-                                        value=value,
-                                        start_use_time=start_use_time,
-                                        expires_time=expires_time,
-                                        ufrom=ufrom,
-                                        uniq_id=uniq_id,
-                                        extras=extras)
-        # update the release num
-        tasks.task_update_tpl_released_coupon_nums.delay(tpl)
-        return cou
-
-    @classmethod
-    def create_salerefund_post_coupon(cls, buyer_id, trade_id, money):
-        # type: (int, int, float) -> UserCoupon
-        from flashsale.coupon.models import CouponTemplate
-
-        tpl = CouponTemplate.objects.filter(coupon_type=CouponTemplate.TYPE_COMPENSATE,
-                                            value=money, status=CouponTemplate.SENDING).first()
-        template_id = tpl.id if tpl else 0
-        return cls.objects.create_refund_post_coupon(buyer_id, template_id, trade_id)
-

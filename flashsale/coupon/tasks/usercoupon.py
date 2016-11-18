@@ -349,7 +349,8 @@ def task_create_transfer_coupon(sale_order):
     This function temporarily creates UserCoupon. In the future, we should
     create transfer coupon instead.
     """
-    from flashsale.coupon.models import UserCoupon, CouponTemplate, CouponTransferRecord
+    from flashsale.coupon.models import CouponTemplate, CouponTransferRecord
+    from ..apis.v1.usercoupon import create_user_coupon
 
     coupon_num = sale_order.num
     customer = sale_order.sale_trade.order_buyer
@@ -367,9 +368,9 @@ def task_create_transfer_coupon(sale_order):
 
     index = 0
     while index < coupon_num:
-        uni_key = template.gen_usercoupon_unikey(order_id, index)
+        unique_key = template.gen_usercoupon_unikey(order_id, index)
         try:
-            UserCoupon.send_coupon(customer, template, uniq_id=uni_key)
+            create_user_coupon(customer.id, template.id, unique_key=unique_key)
         except IntegrityError as exc:
             pass
         index += 1

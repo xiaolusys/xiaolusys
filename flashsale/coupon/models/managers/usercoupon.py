@@ -14,3 +14,9 @@ class UserCouponManager(BaseManager):
         return _super.get_queryset()
 
     get_queryset = get_query_set
+
+    def get_template_coupons(self, coupon_template_id):
+        # type: (int) -> Optional[List[UserCoupon]]
+        """指定模板的优惠券
+        """
+        return self.get_queryset().filter(template_id=coupon_template_id).exclude(status=self.model.CANCEL)
