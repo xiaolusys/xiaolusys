@@ -317,7 +317,7 @@ def task_push_msg_pasting_coupon():
         user_coupons.update(is_pushed=True)
 
 
-@app.tasks()
+@app.task()
 def task_release_coupon_for_deposit(customer_id, deposit_type):
     from ..apis.v1.usercoupon import create_user_coupon
     from flashsale.xiaolumm.models import XiaoluMama
