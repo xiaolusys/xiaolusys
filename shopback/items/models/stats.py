@@ -196,7 +196,6 @@ class SkuStock(models.Model):
         from shopback.trades.models import PackageSkuItem
         from flashsale.dinghuo.models import OrderDetail
         from shopback.refunds.models import RefundProduct
-        stat = SkuStock.get_by_sku(self.sku_id)
         if not need_stat:
             sum_res = PackageSkuItem.objects.filter(sku_id=self.sku_id,
                                                     pay_time__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME). \
@@ -427,6 +426,8 @@ class SkuStock(models.Model):
 
     @staticmethod
     def set_psi_cancel(sku_id, num, status, stat=STAT_SIGN, warning=WARNING):
+        if status == PSI_STATUS.CANCEL:
+            return 
         attr = 'psi_%s_num' % status
         change_fields = []
         if hasattr(stat, attr):
