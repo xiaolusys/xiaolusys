@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 from __future__ import unicode_literals
 
+import re
 import json
 import datetime
 import urlparse
@@ -14,7 +15,6 @@ from tagging.fields import TagField
 from common.utils import update_model_fields
 from core.fields import JSONCharMyField
 from core.models import BaseTagModel
-from core import managers
 from core.options import get_systemoa_user, log_action, CHANGE
 from .base import PayBaseModel, BaseModel
 
@@ -313,6 +313,8 @@ class ModelProduct(BaseTagModel):
         new_properties = self.extras.get('new_properties')
         if new_properties :
             new_properties.insert(0,{'name': u'商品编码', 'value':self.model_code})
+            for props in new_properties:
+                props['value'] = re.sub('^\[.*\]','', props['value'])
             return new_properties
 
         product = self.item_product

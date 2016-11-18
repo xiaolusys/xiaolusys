@@ -455,9 +455,7 @@ class SaleTrade(BaseModel):
         new_sale_order.refund_fee = 0
         new_sale_order.refund_status = SaleRefund.NO_REFUND
         new_sale_order.save()
-        if new_sale_order.is_teambuy():
-            from flashsale.pay.tasks import task_saleorder_update_package_sku_item
-            task_saleorder_update_package_sku_item(new_sale_order)
+        new_sale_order.set_psi_paid()
 
     def change_sku_item(self, old_sale_order, sku_id, num=1):
         """
@@ -493,6 +491,7 @@ class SaleTrade(BaseModel):
         new_sale_order.refund_fee = 0
         new_sale_order.refund_status = SaleRefund.NO_REFUND
         new_sale_order.save()
+        new_sale_order.set_psi_paid()
 
     @transaction.atomic
     def close_trade(self):
@@ -900,6 +899,8 @@ class SaleOrder(PayBaseModel):
 
     def set_psi_paid(self):
         from shopback.trades.models import PackageSkuItem
+        if self.order_type in [SaleTrade.RESERVE_ORDER, SaleTrade.DEPOSITE_ORDER, SaleTrade.ELECTRONIC_GOODS_ORDER]:
+            return
         if self.is_teambuy() and not self.teambuy_can_send():
             return
         psi = PackageSkuItem.create(self)

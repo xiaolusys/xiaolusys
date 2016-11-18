@@ -110,6 +110,10 @@ class PurchaseOrder(BaseModel):
                     po.save(update_fields=['book_num', 'need_num', 'arrival_num', 'modified'])
         po.sync_order_list()
 
+    def restatall(self):
+        for pd in self.details.all():
+            pd.restat()
+
     def sync_order_list(self):
         from flashsale.dinghuo.models import OrderList
         ol = OrderList.objects.filter(purchase_order_unikey=self.uni_key).first()
@@ -217,12 +221,13 @@ class PurchaseDetail(BaseModel):
                                                  sku_id=self.sku_id, status=PurchaseArrangement.EFFECT).aggregate(total=Sum('num'))
         total = res['total'] or 0
         unit_price = int(self.sku.cost * 100)
-        if self.book_num != total or self.unit_price != unit_price:
+        total_price = unit_price * total
+        if self.book_num != total or self.total_price != total_price:
             self.book_num = total
             self.need_num = total
             self.unit_price = unit_price
             self.total_price = unit_price * total
-            self.save(update_fields=['book_num', 'need_num', 'unit_price', 'modified'])
+            self.save(update_fields=['book_num', 'need_num', 'unit_price', 'total_price', 'modified'])
         self.sync_order_detail()
         PurchaseOrder.restat(self.purchase_order_unikey)
 
