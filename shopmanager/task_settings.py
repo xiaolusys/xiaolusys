@@ -20,11 +20,11 @@ from celery.schedules import crontab
 
 ############################# BASE SETUP ################################
 
-CELERY_BROKER_POOL_LIMIT = 10
+CELERY_BROKER_POOL_LIMIT = 0
 CELERY_BROKER_CONNECTION_TIMEOUT = 10
 CELERY_WORDER_PREFETCH_MULTIPLIER = 4
 if os.environ.get('INSTANCE') == 'celery-gevent':
-    CELERY_BROKER_POOL_LIMIT = 0
+    # CELERY_BROKER_POOL_LIMIT = 0
     CELERY_WORDER_PREFETCH_MULTIPLIER = 0
 
 # 某个程序中出现的队列，在broker中不存在，则立刻创建它
