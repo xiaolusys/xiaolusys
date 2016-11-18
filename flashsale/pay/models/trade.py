@@ -404,7 +404,6 @@ class SaleTrade(BaseModel):
                 logger.error(exc.message, exc_info=True)
         self.confirm_payment()
         self.set_order_paid()
-        self.update_teambuy()
 
     def pay_confirm(self):
         # 暂时用此方法替代charge_confirm进行测试
@@ -421,9 +420,10 @@ class SaleTrade(BaseModel):
                 so.set_psi_paid()
 
     def set_order_paid(self):
-        if self.trade_type == SaleTrade.SALE_ORDER:
+        if self.order_type == SaleTrade.SALE_ORDER:
             for so in self.sale_orders.all():
                 so.set_psi_paid()
+        self.update_teambuy()
 
     def redeliver_sku_item(self, old_sale_order):
         sku = ProductSku.objects.get(id=old_sale_order.sku_id)
@@ -899,7 +899,7 @@ class SaleOrder(PayBaseModel):
 
     def set_psi_paid(self):
         from shopback.trades.models import PackageSkuItem
-        if self.order_type in [SaleTrade.RESERVE_ORDER, SaleTrade.DEPOSITE_ORDER, SaleTrade.ELECTRONIC_GOODS_ORDER]:
+        if self.sale_trade.order_type in [SaleTrade.RESERVE_ORDER, SaleTrade.DEPOSITE_ORDER, SaleTrade.ELECTRONIC_GOODS_ORDER]:
             return
         if self.is_teambuy() and not self.teambuy_can_send():
             return
