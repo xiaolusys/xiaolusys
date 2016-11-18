@@ -2,6 +2,7 @@
 import datetime
 from django.test import TestCase
 from flashsale.coupon.models import CouponTemplate, OrderShareCoupon, UserCoupon
+from .apis.v1.usercoupon import create_user_coupon
 
 
 class CouponTemplateTestCase(TestCase):
@@ -9,6 +10,7 @@ class CouponTemplateTestCase(TestCase):
         'test.flashsale.coupon.customer.json',
         ''
     ]
+
     def setUp(self):
         release_start_time = datetime.date.today()
         release_end_time = datetime.date.today() + datetime.timedelta(days=5)
@@ -182,14 +184,14 @@ class CouponTemplateTestCase(TestCase):
 
     def test_pick_user_coupon(self):
         tid = 'xd160425571d7dee948ab'
-        OrderShareCoupon.objects.create(
+        order_share = OrderShareCoupon.objects.create(
             template_id=3, share_customer=1, uniq_id=tid, release_count=3, has_used_count=2,
             limit_share_count=7, share_start_time=datetime.datetime.now(),
             share_end_time=datetime.datetime.now() + datetime.timedelta(days=4)
         )
-        UserCoupon.objects.create_order_share_coupon(buyer_id=15937, template_id=3, share_uniq_id=tid, ufrom='wx')
-        UserCoupon.objects.create_mama_invite_coupon(buyer_id=9, template_id=4, trade_id=333451, ufrom='wx')
-        UserCoupon.objects.create_normal_coupon(buyer_id=15937, template_id=1, ufrom='wx')
-        UserCoupon.objects.create_order_finish_coupon(buyer_id=15937, template_id=2, trade_id=333451, ufrom='wx')
-        UserCoupon.objects.create_refund_post_coupon(buyer_id=10822, template_id=5, refund_id=42886)
+        create_user_coupon(15937, 1)
+        create_user_coupon(15937, 3, order_share_id=order_share.id)
+        create_user_coupon(9, 4, trade_id=333451)
+        create_user_coupon(15937, 2, trade_id=333451)
+        create_user_coupon(10822, 5, trade_id=42886)
 

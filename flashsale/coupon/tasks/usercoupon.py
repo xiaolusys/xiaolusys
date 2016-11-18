@@ -207,15 +207,12 @@ def task_release_coupon_for_register(instance):
 
     if not isinstance(instance, Customer):
         return
-    from flashsale.coupon.models import UserCoupon
+    from ..apis.v1.usercoupon import create_user_coupon
 
     tpl_ids = [54, 55, 56, 57, 58, 59, 60]
     for tpl_id in tpl_ids:
         try:
-            UserCoupon.objects.create_normal_coupon(
-                buyer_id=instance.id,
-                template_id=tpl_id,
-            )
+            create_user_coupon(customer_id=instance.id, coupon_template_id=tpl_id)
         except:
             logger.error(u'task_release_coupon_for_register for customer id %s' % instance.id)
             continue
@@ -227,7 +224,7 @@ def task_roll_back_usercoupon_by_refund(trade_tid, num):
     from flashsale.coupon.models import UserCoupon
     from flashsale.pay.models import Customer
     from flashsale.coupon.models import CouponTransferRecord
-    
+
     transfer_coupon_num = 0
     template_id = 0
     customer_id = 0
@@ -243,7 +240,7 @@ def task_roll_back_usercoupon_by_refund(trade_tid, num):
     if transfer_coupon_num > 0:
         customer = Customer.objects.filter(id=customer_id).first()
         CouponTransferRecord.gen_return_record(customer, transfer_coupon_num, template_id, trade_tid)
-    
+
     return
 
 
@@ -330,7 +327,8 @@ def task_push_msg_pasting_coupon():
 
 @app.tasks()
 def task_release_coupon_for_deposit(customer_id, deposit_type):
-    from flashsale.coupon.models import UserCoupon
+    from ..apis.v1.usercoupon import create_user_coupon
+
     deposit_type_tplids_map = {
         XiaoluMama.HALF: [117, 118, 79],  # [121, 124]99+99
         XiaoluMama.FULL: [117, 118, 121, 39]
@@ -339,7 +337,7 @@ def task_release_coupon_for_deposit(customer_id, deposit_type):
         return
     tpl_ids = deposit_type_tplids_map[deposit_type]
     for template_id in tpl_ids:
-        UserCoupon.objects.create_normal_coupon(buyer_id=customer_id, template_id=template_id)
+        create_user_coupon(customer_id=customer_id, coupon_template_id=template_id)
 
 
 @app.task()
@@ -358,11 +356,11 @@ def task_create_transfer_coupon(sale_order):
 
     from shopback.items.models import Product
     from flashsale.pay.models import ModelProduct
-    
+
     product = Product.objects.filter(id=product_item_id).first()
     model_product = ModelProduct.objects.filter(id=product.model_id).first()
     template_id = model_product.extras.get("template_id")
-    
+
     template = CouponTemplate.objects.get(id=template_id)
     order_id = sale_order.id
 
@@ -385,7 +383,7 @@ def task_create_transfer_coupon(sale_order):
     coupon_from_mama_id = 0
     from_mama_thumbnail = 'http://7xogkj.com2.z0.glb.qiniucdn.com/222-ohmydeer.png?imageMogr2/thumbnail/60/format/png'
     from_mama_nick = 'SYSTEM'
-    
+
     transfer_type = CouponTransferRecord.IN_BUY_COUPON
     date_field = datetime.date.today()
     transfer_status = CouponTransferRecord.DELIVERED
@@ -395,14 +393,15 @@ def task_create_transfer_coupon(sale_order):
     product_img = template.extras.get("product_img") or ''
 
     try:
-        coupon = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id,from_mama_thumbnail=from_mama_thumbnail,
-                                      from_mama_nick=from_mama_nick,coupon_to_mama_id=coupon_to_mama_id,
-                                      to_mama_thumbnail=to_mama_thumbnail,to_mama_nick=to_mama_nick,coupon_value=coupon_value,
-                                      init_from_mama_id=init_from_mama_id,order_no=order_no,template_id=template_id,
-                                      product_img=product_img,coupon_num=coupon_num,transfer_type=transfer_type,
-                                      uni_key=uni_key,date_field=date_field,transfer_status=transfer_status)
+        coupon = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id, from_mama_thumbnail=from_mama_thumbnail,
+                                      from_mama_nick=from_mama_nick, coupon_to_mama_id=coupon_to_mama_id,
+                                      to_mama_thumbnail=to_mama_thumbnail, to_mama_nick=to_mama_nick,
+                                      coupon_value=coupon_value,
+                                      init_from_mama_id=init_from_mama_id, order_no=order_no, template_id=template_id,
+                                      product_img=product_img, coupon_num=coupon_num, transfer_type=transfer_type,
+                                      uni_key=uni_key, date_field=date_field, transfer_status=transfer_status)
         coupon.save()
     except IntegrityError as exc:
         pass
-        
+
     task_update_tpl_released_coupon_nums(template)  # 统计发放数量

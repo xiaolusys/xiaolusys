@@ -22,6 +22,8 @@ from flashsale.promotion.models import XLSampleOrder
 from flashsale.coupon import constants
 from flashsale.pay.models import SaleTrade
 from flashsale.coupon.apis.v1.ordersharecoupon import create_share_coupon
+from flashsale.coupon.apis.v1.usercoupon import create_user_coupon
+
 
 logger = logging.getLogger(__name__)
 
@@ -204,8 +206,9 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
                 coupon_ids = []
                 for template_id in template_ids:
                     try:
-                        coupon, code, msg = UserCoupon.objects.create_normal_coupon(buyer_id=customer.id,
-                                                                                    template_id=template_id, ufrom='wx')
+                        coupon, code, msg = create_user_coupon(customer_id=customer.id,
+                                                               coupon_template_id=template_id,
+                                                               ufrom='wx')
                         if coupon:  # 添加返回的coupon
                             coupon_ids.append(coupon.id)
                     except:
@@ -364,8 +367,7 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         except_msgs = set()
         for tplid in tplids:
             try:
-                coupon, c_code, msg = UserCoupon.objects.create_normal_coupon(buyer_id=customer.id,
-                                                                              template_id=tplid)
+                coupon, c_code, msg = create_user_coupon(customer_id=customer.id, coupon_template_id=tplid)
                 if c_code in [0, 9]:  # 0　是创建　9　是已经存在的
                     codes.append(c_code)
                     success_id.append(coupon.id)

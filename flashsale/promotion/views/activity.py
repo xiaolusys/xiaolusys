@@ -541,16 +541,11 @@ class GetAwardView(APIView):
 
     def post(self, request, event_id, *args, **kwargs):
         content = request.POST
-        template_id = content.get("template_id", None)
-
+        template_id = content.get("template_id", 0)
         customer = Customer.objects.get(user=request.user)
         customer_id = customer.id
-        buyer_id = str(customer_id)
-
-        # coups = UserCoupon.objects.filter(customer=buyer_id, cp_id__template__id=template_id)
-        code, msg = 0, ""
-        # if coups.count() <= 0:
-        cou, code, msg = UserCoupon.objects.create_normal_coupon(buyer_id=customer, template_id=template_id)
+        from flashsale.coupon.apis.v1.usercoupon import create_user_coupon
+        cou, code, msg = create_user_coupon(customer_id=customer.id, coupon_template_id=int(template_id))
 
         if code == 0:
             winner = AwardWinner.objects.get(customer_id=customer_id, event_id=event_id)

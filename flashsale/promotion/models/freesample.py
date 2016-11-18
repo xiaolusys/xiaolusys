@@ -425,10 +425,9 @@ class XLSampleOrder(BaseModel):
         self.award_status = True
         self.save()
 
-        from flashsale.coupon.models import UserCoupon
+        from flashsale.coupon.apis.v1.usercoupon import create_user_coupon
         from flashsale.pay import constants
-        UserCoupon.objects.create_normal_coupon(buyer_id=self.customer_id,
-                                                template_id=constants.COUPON_ID_FOR_20160223_AWARD)
+        create_user_coupon(customer_id=int(self.customer_id), coupon_template_id=constants.COUPON_ID_FOR_20160223_AWARD)
 
 
 class ReadPacket(BaseModel):

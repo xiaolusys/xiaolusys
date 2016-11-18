@@ -9,9 +9,9 @@ from rest_framework import permissions
 from rest_framework.response import Response
 from common.modelutils import update_model_fields
 from core.options import log_action, CHANGE, ADDITION
-from flashsale.coupon.models import UserCoupon, CouponTemplate
 from flashsale.pay.models import SaleTrade, Customer
 from ..apis.v1.usercoupon import create_user_coupon
+from ..models import UserCoupon, CouponTemplate
 
 import logging
 
