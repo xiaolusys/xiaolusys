@@ -473,6 +473,35 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         return Response(res)
 
     @list_route(methods=['get'])
+    def get_elite_team_members(self, request):
+        """
+        活动精英妈妈团队人员
+        """
+        try:
+            xlmm = request.user.customer.get_xiaolumm()
+        except Exception, e:
+            raise exceptions.ValidationError(u'用户不是小鹿妈妈或者未登录')
+        from flashsale.xiaolumm.models.rank import WeekMamaCarryTotal, WEEK_RANK_REDIS
+        res = []
+        mm_ids = xlmm.get_team_member_ids()
+        for mama in XiaoluMama.objects.filter(id__in=mm_ids):
+            fortune = MamaFortune.get_by_mamaid(mama.id)
+            # 只有indirect才是下属精英，direct表示独立成团了，不属于本团队了；其它字段的表明根本还未加入精英妈妈
+            if mama.referal_from == XiaoluMama.INDIRECT:
+                item = {
+                    'mama_id': mama.id,
+                    'thumbnail': mama.thumbnail,
+                    'nick': mama.nick,
+                    'mobile': mama.mobile,
+                    'num': fortune.order_num,
+                    'rank': WEEK_RANK_REDIS.get_rank(WeekMamaCarryTotal, 'total', mama.id),
+                    'total': fortune.cash_total,
+                    'total_display': '%.2f' % fortune.cash_total,
+                }
+                res.append(item)
+        return Response(res)
+
+    @list_route(methods=['get'])
     def get_my_leader_mama_baseinfo(self, request):
         """
         获得妈妈的上级妈妈
@@ -488,7 +517,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
                 mama = XiaoluMama.objects.filter(id=r.referal_from_mama_id).first()
         if mama:
             item = {
-                'mama': mama.id,
+                'mama_id': mama.id,
                 'thumbnail': mama.thumbnail,
                 'nick': mama.nick,
                 'mobile': mama.mobile,
