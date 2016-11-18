@@ -838,6 +838,9 @@ class PackageSkuItem(BaseModel):
         if save:
             self.save()
             SkuStock.set_psi_assigned(self.sku_id, self.num)
+        pa = self.get_purchase_arrangement()
+        if pa:
+            pa.cancel()
 
     def set_status_not_assigned(self, save=True):
         self.status = PSI_STATUS.PAID
@@ -1058,8 +1061,8 @@ def update_productskustats(sender, instance, created, **kwargs):
     # task_packageskuitem_update_productskustats.delay(instance.sku_id)
 
 
-if not settings.CLOSE_CELERY:
-    post_save.connect(update_productskustats, sender=PackageSkuItem, dispatch_uid='post_save_update_productskustats')
+# if not settings.CLOSE_CELERY:
+#     post_save.connect(update_productskustats, sender=PackageSkuItem, dispatch_uid='post_save_update_productskustats')
 
 
 def update_productsku_salestats_num(sender, instance, created, **kwargs):
