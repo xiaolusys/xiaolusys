@@ -153,7 +153,7 @@ class PurchaseDetail(BaseModel):
     status = models.IntegerField(choices=PurchaseOrder.STATUS, default=PurchaseOrder.OPEN, db_index=True,
                                  verbose_name=u'状态')
 
-    unit_price = models.IntegerField(default=0, verbose_name=u'买入价格')
+    unit_price = models.IntegerField(default=0, verbose_name=u'买入单价')
     total_price = models.IntegerField(default=0, verbose_name=u'单项总价')
 
     class Meta:
@@ -221,6 +221,7 @@ class PurchaseDetail(BaseModel):
             self.book_num = total
             self.need_num = total
             self.unit_price = unit_price
+            self.total_price = unit_price * total
             self.save(update_fields=['book_num', 'need_num', 'unit_price', 'modified'])
         self.sync_order_detail()
         PurchaseOrder.restat(self.purchase_order_unikey)
