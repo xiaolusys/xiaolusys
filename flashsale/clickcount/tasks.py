@@ -196,10 +196,12 @@ def task_Record_User_Click(pre_day=1):
     if pre_date < SWITCH_CLICKREBETA_DATE:
         # update xlmm click rebeta
         task_Push_ClickCount_To_MamaCash(pre_date)
-        # delete ximm click some days ago
-        pre_delete_date = (datetime.datetime.today() -
-                           datetime.timedelta(days=constants.CLICK_RECORDS_REMAIN_DAYS))
-        task_Delete_Mamalink_Clicks(pre_delete_date)
+
+    # delete ximm click some days ago
+    pre_delete_date = (datetime.datetime.today() -
+                       datetime.timedelta(days=constants.CLICK_RECORDS_REMAIN_DAYS))
+    task_Delete_Mamalink_Clicks(pre_delete_date)
+
 
 
 from flashsale.clickrebeta.models import StatisticsShoppingByDay
