@@ -101,8 +101,8 @@ def task_sync_order_to_erp():
                 'Sku_Code': sku_code,
                 'Sku_Name': sale_order.title,
                 'Sku_Price': supplier_sku_sale_price,
-                'Qty': item.num * sku_num,
-                'Total': supplier_sku_sale_price * item.num,
+                'Qty': int(item.num) * int(sku_num),
+                'Total': supplier_sku_sale_price * int(item.num),
                 'Item_Remark': '',
             })
         wdt_orders.append({
