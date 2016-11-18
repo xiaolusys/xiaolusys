@@ -86,6 +86,7 @@ class SkuStock(models.Model):
     # 发货库存数
     psi_paid_num = models.IntegerField(default=0, verbose_name=u'待处理数')
     psi_prepare_book_num = models.IntegerField(default=0, verbose_name=u'待订货数')
+    psi_booked_num = models.IntegerField(default=0, verbose_name=u'已订货数')
     psi_ready_num = models.IntegerField(default=0, verbose_name=u'待分配数')
     psi_third_send_num = models.IntegerField(default=0, verbose_name=u'待供应商发货数')
     psi_assigned_num = models.IntegerField(default=0, verbose_name=u'待合单数')
