@@ -197,7 +197,7 @@ class UserCoupon(BaseModel):
     def use_coupon(self, trade_tid):
         # type: (text_type) -> None
         """ 使用优惠券 """
-        from flashsale.coupon.tasks import task_update_coupon_use_count
+        from ..tasks.usercoupon import task_update_coupon_use_count
 
         coupon = self.__class__.objects.get(id=self.id)
         coupon.coupon_basic_check()  # 基础检查
@@ -229,12 +229,3 @@ class UserCoupon(BaseModel):
         if self.status == UserCoupon.UNUSED:
             return 1
         return 2
-
-    def release_usercoupon(self):
-        # type: () -> bool
-        """ 优惠券状态从使用状态改为未使用 """
-        if self.status == UserCoupon.USED:
-            self.status = UserCoupon.UNUSED
-            self.save(update_fields=['status'])
-            return True
-        return False

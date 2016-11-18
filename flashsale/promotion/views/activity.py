@@ -16,7 +16,6 @@ from rest_framework import renderers
 from rest_framework.response import Response
 
 from core.weixin.mixins import WeixinAuthMixin
-from flashsale.coupon.models import UserCoupon
 from flashsale.pay.models import Customer
 from flashsale.promotion.models import ActivityEntry
 

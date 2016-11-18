@@ -259,14 +259,6 @@ class CouponTemplate(BaseModel):
         # 检查产品后检查分类(检查设置了绑定产品并且绑定了类目的情况)
         self.check_category(product_ids)
 
-    def can_send(self):
-        # type: () -> bool
-        from flashsale.coupon.models import UserCoupon
-
-        coupons = UserCoupon.objects.filter(template_id=self.id)
-        tpl_release_count = coupons.count()  # 当前模板的优惠券条数
-        return tpl_release_count < self.prepare_release_num and self.status == CouponTemplate.SENDING
-
     def make_uniq_id(self, customer_id, trade_id=None, share_id=None, cashout_id=None):
         # type: (CouponTemplate, int, Any, Any, Any, Any) -> text_type
         uniqs = [str(self.id), str(self.coupon_type), str(customer_id)]

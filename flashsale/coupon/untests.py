@@ -1,7 +1,7 @@
 # coding=utf-8
 import datetime
 from django.test import TestCase
-from flashsale.coupon.models import CouponTemplate, OrderShareCoupon, UserCoupon
+from flashsale.coupon.models import CouponTemplate, OrderShareCoupon
 from .apis.v1.usercoupon import create_user_coupon
 
 

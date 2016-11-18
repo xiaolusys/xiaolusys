@@ -16,7 +16,7 @@ from rest_framework.exceptions import APIException
 
 from shopback.items.models import Product
 from flashsale.coupon.models import UserCoupon, OrderShareCoupon, CouponTemplate, TmpShareCoupon
-from flashsale.pay.models import Customer, ShoppingCart, SaleTrade
+from flashsale.pay.models import Customer, ShoppingCart
 from flashsale.pay.tasks import task_release_coupon_push
 from flashsale.promotion.models import XLSampleOrder
 from flashsale.coupon import constants

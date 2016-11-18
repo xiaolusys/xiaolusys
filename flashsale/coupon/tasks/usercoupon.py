@@ -1,11 +1,10 @@
 # coding=utf-8
 from __future__ import absolute_import, unicode_literals
-from shopmanager import celery_app as app
-
-import logging
 import datetime
+from shopmanager import celery_app as app
 from django.db import IntegrityError
 
+import logging
 logger = logging.getLogger(__name__)
 
 
@@ -212,17 +211,17 @@ def task_release_coupon_for_register(instance):
 
 @app.task()
 def task_roll_back_usercoupon_by_refund(trade_tid, num):
-    from flashsale.coupon.models import UserCoupon
     from flashsale.pay.models import Customer
-    from flashsale.coupon.models import CouponTransferRecord
-
+    from ..models.usercoupon import UserCoupon
+    from ..models.transfer_coupon import CouponTransferRecord
+    from ..apis.v1.usercoupon import rollback_user_coupon_status_2_unused_by_ids
     transfer_coupon_num = 0
     template_id = 0
     customer_id = 0
     for i in range(num):
         cou = UserCoupon.objects.filter(trade_tid=trade_tid, status=UserCoupon.USED).first()
         if cou:
-            cou.release_usercoupon()
+            rollback_user_coupon_status_2_unused_by_ids([cou.id])
         if cou and cou.is_transfer_coupon():
             transfer_coupon_num += 1
             template_id = cou.template_id

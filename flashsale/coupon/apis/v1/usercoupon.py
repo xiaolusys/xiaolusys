@@ -113,3 +113,8 @@ def create_user_coupon(customer_id, coupon_template_id,
 
     task_update_tpl_released_coupon_nums.delay(tpl)
     return cou, 0, u"领取成功"
+
+
+def rollback_user_coupon_status_2_unused_by_ids(ids):
+    # type: (List[int]) -> None
+    UserCoupon.objects.filter(id__in=ids).update(status=UserCoupon.UNUSED)
