@@ -403,6 +403,9 @@ class PurchaseArrangement(BaseModel):
             pa.save()
 
     def cancel(self):
+        """
+            仅在未订货情况下可以取消
+        """
         if self.initial_book:
             return
             # raise Exception(u'此订单已订货:%s' % self.oid)
