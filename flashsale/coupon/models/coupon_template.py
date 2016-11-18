@@ -267,31 +267,28 @@ class CouponTemplate(BaseModel):
         tpl_release_count = coupons.count()  # 当前模板的优惠券条数
         return tpl_release_count < self.prepare_release_num and self.status == CouponTemplate.SENDING
 
-    def make_uniq_id(tpl, customer_id, trade_id=None, share_id=None, refund_trade_id=None, cashout_id=None):
+    def make_uniq_id(self, customer_id, trade_id=None, share_id=None, cashout_id=None):
         # type: (CouponTemplate, int, Any, Any, Any, Any) -> text_type
-        uniqs = [str(tpl.id), str(tpl.coupon_type), str(customer_id)]
-        if tpl.coupon_type == CouponTemplate.TYPE_NORMAL:  # 普通类型 1
+        uniqs = [str(self.id), str(self.coupon_type), str(customer_id)]
+        if self.coupon_type == CouponTemplate.TYPE_NORMAL:  # 普通类型 1
             uniqs = uniqs
 
-        elif tpl.coupon_type == CouponTemplate.TYPE_ORDER_BENEFIT and trade_id:  # 下单红包 2
+        elif self.coupon_type == CouponTemplate.TYPE_ORDER_BENEFIT and trade_id:  # 下单红包 2
             uniqs.append(str(trade_id))
 
-        elif tpl.coupon_type == CouponTemplate.TYPE_ORDER_SHARE and share_id:  # 订单分享 3
-            uniqs.append(str(share_id))
-
-        elif tpl.coupon_type == CouponTemplate.TYPE_MAMA_INVITE and trade_id:  # 推荐专享 4
+        elif self.coupon_type == CouponTemplate.TYPE_MAMA_INVITE and trade_id:  # 推荐专享 4
             uniqs.append(str(trade_id))  # 一个专属链接可以有多个订单
 
-        elif tpl.coupon_type == CouponTemplate.TYPE_COMPENSATE and refund_trade_id:  # 售后补偿 5
-            uniqs.append(str(refund_trade_id))
+        elif self.coupon_type == CouponTemplate.TYPE_COMPENSATE and trade_id:  # 售后补偿 5
+            uniqs.append(str(trade_id))
 
-        elif tpl.coupon_type == CouponTemplate.TYPE_ACTIVE_SHARE and share_id:  # 活动分享 6
+        elif self.coupon_type == CouponTemplate.TYPE_ORDER_SHARE and share_id:  # 订单分享 3
+            uniqs.append(str(share_id))
+        elif self.coupon_type == CouponTemplate.TYPE_ACTIVE_SHARE and share_id:  # 活动分享 6
             uniqs.append(str(share_id))
 
-        elif tpl.coupon_type == CouponTemplate.TYPE_CASHOUT_EXCHANGE and cashout_id:  # 优惠券兑换　7
+        elif self.coupon_type == CouponTemplate.TYPE_CASHOUT_EXCHANGE and cashout_id:  # 优惠券兑换　7
             uniqs.append(str(cashout_id))
-        else:
-            raise Exception('Template type is tpl.coupon_type : %s !' % tpl.coupon_type)
         return '_'.join(uniqs)
 
     def gen_usercoupon_unikey(self, order_id, index=0):

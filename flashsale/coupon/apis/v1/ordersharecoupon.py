@@ -8,6 +8,11 @@ __ALL__ = [
 ]
 
 
+def get_order_share_coupon_by_id(id):
+    # type: (int) -> OrderShareCoupon
+    return OrderShareCoupon.objects.get(id=id)
+
+
 def create_share_coupon(coupon_template_id, customer_id, uniq_id, ufrom, customer_nick='', customer_thumbnail=''):
     # type: (int, int, text_type, text_type, text_type, text_type) -> OrderShareCoupon
     """ create order share coupon record
