@@ -2,60 +2,16 @@
 from __future__ import absolute_import, unicode_literals
 import datetime
 from shopmanager import celery_app as app
-from django.db import IntegrityError
 
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-@app.task(serializer='pickle')
-def task_update_tpl_released_coupon_nums(template):
-    """
-    template : CouponTemplate instance
-    has_released_count ++ when the CouponTemplate release success.
-    """
-    from flashsale.coupon.models import UserCoupon
-
-    count = UserCoupon.objects.filter(template_id=template.id).count()
-    template.has_released_count = count
-    template.save(update_fields=['has_released_count'])
-    from django_statsd.clients import statsd
-    from django.utils.timezone import now, timedelta
-
-    start = now().date()
-    end = start + timedelta(days=1)
-    if template.id == 55:
-        statsd.timing('coupon.new_customer_released_count',
-                      UserCoupon.objects.filter(template_id=template.id, start_use_time__range=(start, end)).count())
-    elif template.id == 67:
-        statsd.timing('coupon.share_released_count',
-                      UserCoupon.objects.filter(template_id=template.id, start_use_time__range=(start, end)).count())
-    elif template.id == 86:
-        statsd.timing('coupon.old_customer_share_released_count',
-                      UserCoupon.objects.filter(template_id=template.id, start_use_time__range=(start, end)).count())
-    return
-
-
-@app.task()
-def task_update_share_coupon_release_count(share_coupon):
-    """
-    share_coupon : OrderShareCoupon instance
-    release_count ++ when the OrderShareCoupon release success
-    """
-    from flashsale.coupon.models import UserCoupon
-
-    count = UserCoupon.objects.filter(order_coupon_id=share_coupon.id).count()
-    share_coupon.release_count = count
-    share_coupon.save(update_fields=['release_count'])
-    return
-
-
 @app.task()
 def task_update_coupon_use_count(coupon_template_id, share_coupon_record_id):
-    """
-    1. count the CouponTemplate 'has_used_count' field when use coupon
-    2. count the OrderShareCoupon 'has_used_count' field when use coupon
+    # type: (int, int) -> None
+    """更新模板和分享记录　的使用数量字段
     """
     from ..models import UserCoupon
     from ..apis.v1.coupontemplate import get_coupon_template_by_id
@@ -75,8 +31,7 @@ def task_update_coupon_use_count(coupon_template_id, share_coupon_record_id):
 
 @app.task()
 def task_release_coupon_for_order(saletrade):
-    """
-    - SaleTrade pay confirm single to drive this task.
+    """用户下单给用户发送优惠券(暂时未使用)
     """
     from flashsale.coupon.models import CouponTemplate
     from ..apis.v1.usercoupon import create_user_coupon
@@ -93,8 +48,7 @@ def task_release_coupon_for_order(saletrade):
 
 @app.task()
 def task_freeze_coupon_by_refund(salerefund):
-    """
-    - SaleRefund refund signal to drive this task.
+    """冻结　因退款（订单购买发放的）优惠券　（暂时未使用）
     """
     from flashsale.coupon.models import UserCoupon
 
@@ -107,9 +61,7 @@ def task_freeze_coupon_by_refund(salerefund):
 
 @app.task()
 def task_release_mama_link_coupon(saletrade):
-    """
-    - SaleTrade pay confirm single to drive this task
-    - when a customer buy a trade with the mama link url then release a coupon for that mama.
+    """代理链接购买给代理发送优惠券(暂时未使用)
     """
     from flashsale.xiaolumm.models import XiaoluMama
     from flashsale.coupon.models import CouponTemplate
@@ -140,8 +92,8 @@ def task_release_mama_link_coupon(saletrade):
 
 @app.task()
 def task_update_user_coupon_status_2_past():
-    """
-    - timing to update the user coupon to past.
+    # type: () -> None
+    """更新过期的优惠券状态到过期状态
     """
     from flashsale.coupon.models import UserCoupon
 
@@ -154,28 +106,7 @@ def task_update_user_coupon_status_2_past():
 
 
 @app.task()
-def task_release_coupon_for_register(instance):
-    """
-     - release coupon for register a new Customer instance ( when post save created a Customer instance run this task)
-    """
-    from flashsale.pay.models import Customer
-
-    if not isinstance(instance, Customer):
-        return
-    from ..apis.v1.usercoupon import create_user_coupon
-
-    tpl_ids = [54, 55, 56, 57, 58, 59, 60]
-    for tpl_id in tpl_ids:
-        try:
-            create_user_coupon(customer_id=instance.id, coupon_template_id=tpl_id)
-        except:
-            logger.error(u'task_release_coupon_for_register for customer id %s' % instance.id)
-            continue
-    return
-
-
-@app.task()
-def task_roll_back_usercoupon_by_refund(trade_tid, num):
+def task_return_user_coupon_by_trade(trade_tid, num):
     from flashsale.pay.models import Customer
     from ..models.usercoupon import UserCoupon
     from ..models.transfer_coupon import CouponTransferRecord
@@ -202,6 +133,9 @@ def task_roll_back_usercoupon_by_refund(trade_tid, num):
 
 @app.task()
 def task_update_mobile_download_record(tempcoupon_id):
+    # type: (int) -> None
+    """更新手机下载记录表(准备弃用)
+    """
     from ..models.ordershare_coupon import OrderShareCoupon
     from ..models.tmpshare_coupon import TmpShareCoupon
 
@@ -225,43 +159,9 @@ def task_update_mobile_download_record(tempcoupon_id):
 
 
 @app.task()
-def task_update_unionid_download_record(usercoupon):
-    from flashsale.promotion.models import DownloadUnionidRecord, DownloadMobileRecord
-
-    customer = usercoupon.customer
-    if not customer:
-        return
-    if not customer.unionid.strip():  # 没有unionid  写mobilde 记录
-        uni_key = '/'.join([str(usercoupon.share_user_id), str(customer.mobile)])
-        dl_record = DownloadMobileRecord.objects.filter(uni_key=uni_key).first()
-        if dl_record:  # 记录存在不做处理
-            return
-        dl_record = DownloadMobileRecord(
-            from_customer=usercoupon.share_user_id,
-            mobile=customer.mobile,
-            ufrom=DownloadMobileRecord.REDENVELOPE,
-            uni_key=uni_key)
-        dl_record.save()
-    else:
-        uni_key = '/'.join([str(usercoupon.share_user_id), str(customer.unionid)])
-        dl_record = DownloadUnionidRecord.objects.filter(uni_key=uni_key).first()
-        if dl_record:  # 记录存在不做处理
-            return
-        dl_record = DownloadUnionidRecord(
-            from_customer=usercoupon.share_user_id,
-            ufrom=DownloadMobileRecord.REDENVELOPE,
-            unionid=customer.unionid,
-            uni_key=uni_key,
-            headimgurl=customer.thumbnail,
-            nick=customer.nick
-        )
-        dl_record.save()
-
-
-@app.task()
 def task_push_msg_pasting_coupon():
-    """
-    推送：　明天过期的没有推送过的优惠券将推送用户告知
+    # type: () -> None
+    """明天过期的没有推送过的优惠券将推送用户告知
     """
     from flashsale.coupon.models import UserCoupon
     from flashsale.push.push_usercoupon import user_coupon_release_push
@@ -285,6 +185,9 @@ def task_push_msg_pasting_coupon():
 
 @app.task()
 def task_release_coupon_for_deposit(customer_id, deposit_type):
+    # type:(int, int) -> None
+    """发送押金优惠券
+    """
     from ..apis.v1.usercoupon import create_user_coupon
     from flashsale.xiaolumm.models import XiaoluMama
 
@@ -297,68 +200,3 @@ def task_release_coupon_for_deposit(customer_id, deposit_type):
     tpl_ids = deposit_type_tplids_map[deposit_type]
     for template_id in tpl_ids:
         create_user_coupon(customer_id=customer_id, coupon_template_id=template_id)
-
-
-@app.task()
-def task_create_transfer_coupon(sale_order):
-    # type: (SaleOrder) -> None
-    """
-    This function temporarily creates UserCoupon. In the future, we should
-    create transfer coupon instead.
-    """
-    from flashsale.coupon.models import CouponTemplate, CouponTransferRecord
-    from ..apis.v1.usercoupon import create_user_coupon
-    from shopback.items.models import Product
-    from flashsale.pay.models import ModelProduct
-
-    coupon_num = sale_order.num
-    customer = sale_order.sale_trade.order_buyer
-    product_item_id = sale_order.item_id
-
-    product = Product.objects.filter(id=product_item_id).first()
-    model_product = ModelProduct.objects.filter(id=product.model_id).first()
-    template_id = model_product.extras.get("template_id")
-
-    template = CouponTemplate.objects.get(id=template_id)
-    order_id = sale_order.id
-
-    index = 0
-    while index < coupon_num:
-        unique_key = template.gen_usercoupon_unikey(order_id, index)
-        try:
-            create_user_coupon(customer.id, template.id, unique_key=unique_key)
-        except IntegrityError as e:
-            logging.error(e)
-        index += 1
-
-    to_mama = customer.get_charged_mama()
-    to_mama_nick = customer.nick
-    to_mama_thumbnail = customer.thumbnail
-
-    coupon_to_mama_id = to_mama.id
-    init_from_mama_id = to_mama.id
-
-    coupon_from_mama_id = 0
-    from_mama_thumbnail = 'http://7xogkj.com2.z0.glb.qiniucdn.com/222-ohmydeer.png?imageMogr2/thumbnail/60/format/png'
-    from_mama_nick = 'SYSTEM'
-
-    transfer_type = CouponTransferRecord.IN_BUY_COUPON
-    date_field = datetime.date.today()
-    transfer_status = CouponTransferRecord.DELIVERED
-    uni_key = "%s-%s" % (to_mama.id, order_id)
-    order_no = sale_order.oid
-    coupon_value = int(template.value)
-    product_img = template.extras.get("product_img") or ''
-
-    try:
-        coupon = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id, from_mama_thumbnail=from_mama_thumbnail,
-                                      from_mama_nick=from_mama_nick, coupon_to_mama_id=coupon_to_mama_id,
-                                      to_mama_thumbnail=to_mama_thumbnail, to_mama_nick=to_mama_nick,
-                                      coupon_value=coupon_value,
-                                      init_from_mama_id=init_from_mama_id, order_no=order_no, template_id=template_id,
-                                      product_img=product_img, coupon_num=coupon_num, transfer_type=transfer_type,
-                                      uni_key=uni_key, date_field=date_field, transfer_status=transfer_status)
-        coupon.save()
-    except IntegrityError as e:
-        logging.error(e)
-    task_update_tpl_released_coupon_nums(template)  # 统计发放数量

@@ -1238,9 +1238,9 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             default_return.update({"code": 2, "info": "余额不足"})
             return Response(default_return)
         try:
-            from flashsale.coupon.apis.v1.usercoupon import task_release_coupon_for_deposit
+            from flashsale.coupon.apis.v1.usercoupon import release_coupon_for_deposit
 
-            task_release_coupon_for_deposit.delay(customer.id, days_map[exchange_type])
+            release_coupon_for_deposit(customer.id, days_map[exchange_type])
         except Exception as exc:
             logger.warn({'action': 'mama_exchange_deposit', 'mama_id': xlmm.id,
                          'exchange_type': exchange_type, 'message': exc.message})

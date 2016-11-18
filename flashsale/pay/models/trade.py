@@ -757,29 +757,6 @@ def tongji_trade_pay_channel(sender, obj, **kwargs):
 signal_saletrade_pay_confirm.connect(tongji_trade_pay_channel, sender=SaleTrade)
 
 
-def release_mamalink_coupon(sender, obj, **kwargs):
-    """用户下单成功后给专属链接代理 发放优惠券"""
-    from flashsale.coupon.tasks.usercoupon import task_release_mama_link_coupon
-    task_release_mama_link_coupon.delay(obj)
-
-
-def release_coupon_buy_way(sender, obj, **kwargs):
-    """购买成功触发购买成功发放的优惠券"""
-    from flashsale.coupon.tasks.usercoupon import task_release_coupon_for_order
-    task_release_coupon_for_order.delay(obj)
-
-
-def freeze_coupon_by_refund(sender, obj, **kwargs):
-    """用户退款冻结绑定的优惠券"""
-    from flashsale.coupon.tasks.usercoupon import task_freeze_coupon_by_refund
-    task_freeze_coupon_by_refund.delay(obj)
-
-
-signal_saletrade_pay_confirm.connect(release_coupon_buy_way, sender=SaleTrade)
-signal_saletrade_pay_confirm.connect(release_mamalink_coupon, sender=SaleTrade)
-signal_saletrade_refund_post.connect(freeze_coupon_by_refund, sender=SaleRefund)
-
-
 def update_teambuy(sender, instance, created, **kwargs):
     instance.update_teambuy()
 
@@ -1190,8 +1167,10 @@ def order_trigger(sender, instance, created, raw, **kwargs):
             if instance.is_1_deposit():  # 一元开店 不记录推荐关系
                 return
             if instance.is_transfer_coupon():
-                from flashsale.coupon.tasks import task_create_transfer_coupon
-                task_create_transfer_coupon.delay(instance)
+                from flashsale.coupon.apis.v1.transfer import send_order_transfer_coupons
+
+                send_order_transfer_coupons(instance.sale_trade.buyer_id, instance.id,
+                                           instance.oid, instance.num, instance.item_id)
                 return
 
             from flashsale.xiaolumm.tasks import task_update_referal_relationship
