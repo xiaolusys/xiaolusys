@@ -157,7 +157,7 @@ deploy:
     commands:
       - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
       - docker rm -f celery
-      - docker run --net host --name=celery --restart=always --log-opt max-file=1 --log-opt max-size=1m
+      - docker run --name=celery --restart=always --log-opt max-file=1 --log-opt max-size=1m
         -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
         -v /var/data:/data -d -e C_FORCE_ROOT=1
         registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
@@ -205,7 +205,7 @@ deploy:
     commands:
       - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
       - docker rm -f celery
-      - docker run --net host --name=celery --restart=always -d --log-opt max-file=1 --log-opt max-size=1m
+      - docker run --name=celery --restart=always -d --log-opt max-file=1 --log-opt max-size=1m
         -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
         -v /var/data:/data -e C_FORCE_ROOT=1 registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
         celery worker -A shopmanager --loglevel=ERROR -c 48 --time-limit=5400
