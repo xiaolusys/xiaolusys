@@ -477,7 +477,11 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             raise exceptions.ValidationError(u'用户不是小鹿妈妈或者未登录')
 
         res = []
-        mama = XiaoluMama.objects.filter(id=xlmm.referal_from)
+
+        r = ReferalRelationship.objects.filter(referal_to_mama_id=xlmm.id).first()
+        if r:
+            if r.referal_from_mama_id:
+                mama = XiaoluMama.objects.filter(id=r.referal_from_mama_id)
         if mama:
             item = {
                 'mama': mama.id,
