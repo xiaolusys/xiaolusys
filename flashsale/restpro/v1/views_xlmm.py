@@ -482,8 +482,6 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         except Exception, e:
             raise exceptions.ValidationError(u'用户不是小鹿妈妈或者未登录')
 
-        res = []
-
         r = ReferalRelationship.objects.filter(referal_to_mama_id=xlmm.id).first()
         if r:
             if r.referal_from_mama_id:
@@ -495,8 +493,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
                 'nick': mama.nick,
                 'mobile': mama.mobile,
             }
-        res.append(item)
-        return Response(res)
+        return Response(item)
 
 
 class CarryLogViewSet(viewsets.ModelViewSet):
