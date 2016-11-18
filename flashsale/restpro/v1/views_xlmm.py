@@ -447,6 +447,9 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
 
     @list_route(methods=['get'])
     def get_team_members(self, request):
+        """
+        活动妈妈团队人员
+        """
         try:
             xlmm = request.user.customer.get_xiaolumm()
         except Exception, e:
@@ -471,6 +474,9 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
 
     @list_route(methods=['get'])
     def get_my_leader_mama_baseinfo(self, request):
+        """
+        获得妈妈的上级妈妈
+        """
         try:
             xlmm = request.user.customer.get_xiaolumm()
         except Exception, e:
@@ -481,7 +487,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         r = ReferalRelationship.objects.filter(referal_to_mama_id=xlmm.id).first()
         if r:
             if r.referal_from_mama_id:
-                mama = XiaoluMama.objects.filter(id=r.referal_from_mama_id)
+                mama = XiaoluMama.objects.filter(id=r.referal_from_mama_id).first()
         if mama:
             item = {
                 'mama': mama.id,
