@@ -4,7 +4,6 @@ from shopmanager import celery_app as app
 
 import logging
 import datetime
-from flashsale.xiaolumm.models import XiaoluMama
 from django.db import IntegrityError
 
 logger = logging.getLogger(__name__)
@@ -132,6 +131,10 @@ def task_release_mama_link_coupon(saletrade):
     - SaleTrade pay confirm single to drive this task
     - when a customer buy a trade with the mama link url then release a coupon for that mama.
     """
+    from flashsale.xiaolumm.models import XiaoluMama
+    from flashsale.coupon.models import CouponTemplate
+    from ..apis.v1.usercoupon import create_user_coupon
+
     extras_info = saletrade.extras_info
     mama_id = extras_info.get('mm_linkid') or None
     ufrom = extras_info.get('ufrom')
@@ -148,9 +151,6 @@ def task_release_mama_link_coupon(saletrade):
     customer = mama.get_mama_customer()
     if not customer:
         return
-    from flashsale.coupon.models import CouponTemplate
-    from ..apis.v1.usercoupon import create_user_coupon
-
     tpl = CouponTemplate.objects.filter(status=CouponTemplate.SENDING,
                                         coupon_type=CouponTemplate.TYPE_MAMA_INVITE).first()
     if not tpl:
@@ -302,10 +302,9 @@ def task_push_msg_pasting_coupon():
     tomorow = today + datetime.timedelta(days=1)
     t_left = datetime.datetime(tomorow.year, tomorow.month, tomorow.day, 0, 0, 0)
     t_right = t_left + datetime.timedelta(days=1)
-    coupons = UserCoupon.objects.filter(is_pushed=False,
-                                        status=UserCoupon.UNUSED,
-                                        expires_time__gte=t_left,
-                                        expires_time__lt=t_right)
+    coupons = UserCoupon.objects.get_unused_coupons().filter(is_pushed=False,
+                                                             expires_time__gte=t_left,
+                                                             expires_time__lt=t_right)
     customers = coupons.values('customer_id')
     for customer in customers:
         user_coupons = coupons.filter(is_pushed=False, customer_id=customer['customer_id'])
@@ -319,6 +318,7 @@ def task_push_msg_pasting_coupon():
 @app.tasks()
 def task_release_coupon_for_deposit(customer_id, deposit_type):
     from ..apis.v1.usercoupon import create_user_coupon
+    from flashsale.xiaolumm.models import XiaoluMama
 
     deposit_type_tplids_map = {
         XiaoluMama.HALF: [117, 118, 79],  # [121, 124]99+99
@@ -340,13 +340,12 @@ def task_create_transfer_coupon(sale_order):
     """
     from flashsale.coupon.models import CouponTemplate, CouponTransferRecord
     from ..apis.v1.usercoupon import create_user_coupon
+    from shopback.items.models import Product
+    from flashsale.pay.models import ModelProduct
 
     coupon_num = sale_order.num
     customer = sale_order.sale_trade.order_buyer
     product_item_id = sale_order.item_id
-
-    from shopback.items.models import Product
-    from flashsale.pay.models import ModelProduct
 
     product = Product.objects.filter(id=product_item_id).first()
     model_product = ModelProduct.objects.filter(id=product.model_id).first()
@@ -360,8 +359,8 @@ def task_create_transfer_coupon(sale_order):
         unique_key = template.gen_usercoupon_unikey(order_id, index)
         try:
             create_user_coupon(customer.id, template.id, unique_key=unique_key)
-        except IntegrityError as exc:
-            pass
+        except IntegrityError as e:
+            logging.error(e)
         index += 1
 
     to_mama = customer.get_charged_mama()
@@ -392,7 +391,6 @@ def task_create_transfer_coupon(sale_order):
                                       product_img=product_img, coupon_num=coupon_num, transfer_type=transfer_type,
                                       uni_key=uni_key, date_field=date_field, transfer_status=transfer_status)
         coupon.save()
-    except IntegrityError as exc:
-        pass
-
+    except IntegrityError as e:
+        logging.error(e)
     task_update_tpl_released_coupon_nums(template)  # 统计发放数量

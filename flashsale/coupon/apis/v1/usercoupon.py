@@ -1,8 +1,6 @@
 # coding=utf-8
 from __future__ import unicode_literals, absolute_import
 from flashsale.pay.apis.v1.customer import get_customer_by_id
-from ...tasks.usercoupon import task_release_coupon_for_deposit, task_update_tpl_released_coupon_nums, \
-    task_update_share_coupon_release_count
 from ...models.usercoupon import UserCoupon
 from .coupontemplate import get_coupon_template_by_id
 from .ordersharecoupon import get_order_share_coupon_by_id
@@ -60,6 +58,8 @@ def release_coupon_for_deposit(customer_id, deposit_type):
     # type: (int, int) -> None
     """release coupon for deposit
     """
+    from ...tasks.usercoupon import task_release_coupon_for_deposit
+
     task_release_coupon_for_deposit.delay(customer_id, deposit_type)
 
 
@@ -93,6 +93,8 @@ def create_user_coupon(customer_id, coupon_template_id,
             return None, 5, u'该分享券已经领完了'
         unique_key = tpl.make_uniq_id(customer.id, share_id=share_coupon_record.id)
         value = coupon_value if coupon_value else value  # 订单分享的时候（生成临时券value）
+        from ...tasks.usercoupon import task_update_share_coupon_release_count
+
         task_update_share_coupon_release_count.delay(share_coupon_record)  # 更新分享券领取数量
     cou = UserCoupon.objects.filter(uniq_id=unique_key).first()
     if cou:
@@ -107,5 +109,7 @@ def create_user_coupon(customer_id, coupon_template_id,
                                     ufrom=ufrom,
                                     uniq_id=unique_key,
                                     extras=extras)
+    from ...tasks.usercoupon import task_update_tpl_released_coupon_nums
+
     task_update_tpl_released_coupon_nums.delay(tpl)
     return cou, 0, u"领取成功"

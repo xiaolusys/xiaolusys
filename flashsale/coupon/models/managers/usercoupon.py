@@ -20,3 +20,9 @@ class UserCouponManager(BaseManager):
         """指定模板的优惠券
         """
         return self.get_queryset().filter(template_id=coupon_template_id).exclude(status=self.model.CANCEL)
+
+    def get_unused_coupons(self):
+        # type: () -> Optional[List[UserCoupon]]
+        """获取没有使用的用户优惠券
+        """
+        return self.get_queryset().filter(status=self.model.UNUSED)

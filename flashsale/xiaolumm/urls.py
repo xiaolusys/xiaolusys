@@ -2,7 +2,6 @@ from django.conf.urls import url
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.cache import cache_page
 from django.views.generic import TemplateView
-from rest_framework import routers
 
 from core.weixin.decorators import weixin_authlogin_required
 from flashsale.pay import constants
@@ -12,7 +11,6 @@ from . import top_view_api
 from views import views, views_duokefu, views_xlmminfo, views_order_percent
 from views import views_register
 from views import views_xlmm_active, views_cashout
-from flashsale.xiaolumm.views.views_advertis import NinePicAdverViewSet
 
 urlpatterns = [
     url(r'^$', views.landing),
@@ -57,8 +55,6 @@ urlpatterns = [
     url(r'^cashmodify/(?P<data>\w+)/$', staff_member_required(views.cash_modify)),  #
     url(r'^cashreject/(?P<data>\w+)/$', staff_member_required(views.cash_reject)),  #
     url(r'^stats_summary/$', staff_member_required(views.stats_summary), name="stats_summary"),
-    url(r'^mama_verify_action/$', staff_member_required(views.mama_Verify_Action),
-       name="mama_verify_action"),
 
     url(r'^duokefu_customer/$', views_duokefu.kf_Customer, name="kf_Customer"),
     url(r'^duokefu_search/$', views_duokefu.kf_Search_Page, name="kf_Search_Page"),
