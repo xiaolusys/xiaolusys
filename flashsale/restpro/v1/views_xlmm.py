@@ -518,23 +518,34 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             else:
                 mama = None
         if mama:
-            item = {
-                'code': 0,
-                'info': '成功',
-                'mama_id': mama.id,
-                'thumbnail': mama.thumbnail,
-                'nick': mama.nick,
-                'mobile': mama.mobile,
-            }
-        else:
-            if xlmm.id == 1:
+            if mama.referal_from == XiaoluMama.INDIRECT:
+                item = {
+                    'code': 0,
+                    'info': '成功',
+                    'mama_id': mama.id,
+                    'thumbnail': mama.thumbnail,
+                    'nick': mama.nick,
+                    'mobile': mama.mobile,
+                }
+            elif mama.referal_from == XiaoluMama.DIRECT:
                 item = {
                     'code': 1,
-                    'info': '我是第一个妈妈，没有上级妈妈',
+                    'info': '我负责管理团队，直接购券，没有上级妈妈',
                 }
             else:
                 item = {
                     'code': 2,
+                    'info': '您还不是精英妈妈，请联系管理员或客服加入',
+                }
+        else:
+            if xlmm.id == 1:
+                item = {
+                    'code': 3,
+                    'info': '我是第一个妈妈，没有上级妈妈',
+                }
+            else:
+                item = {
+                    'code': 4,
                     'info': '没有找到上级妈妈',
                 }
         return Response(item)
