@@ -515,13 +515,28 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         if r:
             if r.referal_from_mama_id:
                 mama = XiaoluMama.objects.filter(id=r.referal_from_mama_id).first()
+            else:
+                mama = None
         if mama:
             item = {
+                'code': 0,
+                'info': '成功',
                 'mama_id': mama.id,
                 'thumbnail': mama.thumbnail,
                 'nick': mama.nick,
                 'mobile': mama.mobile,
             }
+        else:
+            if xlmm.id == 1:
+                item = {
+                    'code': 1,
+                    'info': '我是第一个妈妈，没有上级妈妈',
+                }
+            else:
+                item = {
+                    'code': 2,
+                    'info': '没有找到上级妈妈',
+                }
         return Response(item)
 
 
