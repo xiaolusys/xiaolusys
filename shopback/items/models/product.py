@@ -160,6 +160,7 @@ class Product(models.Model):
                                        default=DOWN_SHELF, verbose_name=u'上架状态')
     ware_by = models.IntegerField(default=WARE_SH, choices=WARE_CHOICES,
                                   db_index=True, verbose_name=u'所属仓库')
+    elite_score = models.IntegerField(default=0, verbose_name=u'精品商品积分')
 
     def __unicode__(self):
         return '%s' % self.id
