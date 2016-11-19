@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 import datetime
 from django.db import models, transaction
-from django.db.models import Q, Sum, F
+from django.db.models import Q, Sum, F, Manager
 from django.db.models.signals import post_save
 from django.conf import settings
 
@@ -161,6 +161,7 @@ class PackageOrder(models.Model):
             sku_item.logistics_company_code = self.logistics_company.code
             # sku_item.set_status_sent()
             sku_item.assign_status = PackageSkuItem.FINISHED
+            sku_item.status = PSI_STATUS.SENT
             sku_item.set_assign_status_time()
             sku_item.save()
             sale_order = sku_item.sale_order
@@ -581,6 +582,7 @@ class PackageSkuItem(BaseModel):
     ready_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'分配时间')
     assign_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'分配SKU时间')
     merge_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'合单时间')
+    merge_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'合单时间')
     scan_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'扫描时间')
     weight_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'称重时间')
     finish_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'完成时间')
@@ -619,7 +621,8 @@ class PackageSkuItem(BaseModel):
         (pcfg.ITEM_GIFT_TYPE, u'买就送'),
     )
     gift_type = models.IntegerField(choices=GIFT_TYPE, default=REAL_ORDER_GIT_TYPE, verbose_name=u'类型')
-
+    _objects = Manager()
+    objects = Manager()
     class Meta:
         db_table = 'flashsale_package_sku_item'
         app_label = 'trades'
@@ -643,6 +646,14 @@ class PackageSkuItem(BaseModel):
     def get_failed_oneday():
         expire_time = datetime.datetime.now() - datetime.timedelta(days=1)
         return [i for i in PackageSkuItem.get_failed_express() if i.failed_retrieve_time < expire_time]
+
+    @staticmethod
+    def get_by_oid(oid):
+        return PackageSkuItem.objects.filter(oid=oid).first()
+
+    @staticmethod
+    def get_by_tid(tid):
+        return PackageSkuItem.objects.filter(sale_trade_id=tid)
 
     def get_supplier_product_info(self):
         """
@@ -856,7 +867,6 @@ class PackageSkuItem(BaseModel):
         package_order_id = PackageOrder.gen_new_package_id(self)
         po = PackageOrder.objects.filter(id=package_order_id).first()
         if po:
-
             self.package_order_id = po.id
             self.package_order_pid = po.pid
             po.add_package_sku_item(po)
@@ -867,12 +877,14 @@ class PackageSkuItem(BaseModel):
 
     def set_status_waitscan(self):
         self.status = PSI_STATUS.WAITSCAN
+        self.scan_time = datetime.datetime.now()
         self.save()
         SkuStock.set_psi_waitscan(self.sku_id, self.num)
 
     def set_status_waitpost(self):
         self.status = PSI_STATUS.WAITPOST
         self.assign_status = 1
+        self.scan_time = datetime.datetime.now()
         self.save()
         SkuStock.set_psi_waitpost(self.sku_id, self.num)
 
@@ -952,6 +964,7 @@ class PackageSkuItem(BaseModel):
         """
         if self.assign_status in [PackageSkuItem.VIRTUAL_ASSIGNED, PackageSkuItem.ASSIGNED]:
             PackageSkuItem.objects.filter(id=self.id).update(assign_status=PackageSkuItem.FINISHED,
+                                                             status=PSI_STATUS.SENT,
                                                              out_sid=out_sid,
                                                              logistics_company_name=logistics_company.name,
                                                              logistics_company_code=logistics_company.code,
@@ -1040,6 +1053,15 @@ class PackageSkuItem(BaseModel):
     def get_not_assign_num(sku_id):
         return PackageSkuItem.objects.filter(sku_id=sku_id, assign_status=PackageSkuItem.NOT_ASSIGNED).aggregate(
             total=Sum('num')).get('total') or 0
+
+    @staticmethod
+    def get_need_purchase(condition_add={}):
+        condition = {
+            'purchase_order_unikey':'',
+            'assign_status':PackageSkuItem.NOT_ASSIGNED
+        }
+        condition.update(condition_add)
+        return PackageSkuItem.objects.filter(**condition).order_by('created')
 
     def is_finished(self):
         return self.assign_status == PackageSkuItem.FINISHED
