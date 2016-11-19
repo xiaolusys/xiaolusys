@@ -184,7 +184,7 @@ def task_push_msg_pasting_coupon():
 
 
 @app.task()
-def task_release_coupon_for_deposit(customer_id, deposit_type, trade_id):
+def task_release_coupon_for_deposit(customer_id, deposit_type, trade_id=None, cash_out_id=None):
     # type:(int, int, int) -> None
     """发送押金优惠券
     """
@@ -198,4 +198,5 @@ def task_release_coupon_for_deposit(customer_id, deposit_type, trade_id):
         return
     tpl_ids = deposit_type_tplids_map[deposit_type]
     for template_id in tpl_ids:
-        create_user_coupon(customer_id=customer_id, coupon_template_id=template_id, trade_id=trade_id)
+        create_user_coupon(customer_id=customer_id, coupon_template_id=template_id,
+                           trade_id=trade_id, cash_out_id=cash_out_id)

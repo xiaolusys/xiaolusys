@@ -39,6 +39,6 @@ def mama_pay_deposit(customer_id, deposit_type, referrer, trade_id, oid=None):
     xlmm.update_renew_day(renew_days)  # 修改下次续费时间
     xlmm.deposit_pay()  # 支付押金
     log_action(sys_oa, xlmm, CHANGE, u'支付押金')
-    release_coupon_for_deposit(customer_id, deposit_type, trade_id)  # 发送押金优惠券给用户
+    release_coupon_for_deposit(customer_id, deposit_type, trade_id=trade_id)  # 发送押金优惠券给用户
     update_potential_by_deposit(xlmm.id, renew_days, referrer_mama_id=referrer, oid=oid)  # 更新潜在关系记录
     signal_xiaolumama_register_success.send_robust(sender=XiaoluMama, xiaolumama=xlmm, renew=True)  # 发送信号

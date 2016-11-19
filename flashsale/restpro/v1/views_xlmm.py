@@ -1237,20 +1237,20 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         if deposit > could_cash_out:
             default_return.update({"code": 2, "info": "余额不足"})
             return Response(default_return)
-        try:
-            from flashsale.coupon.apis.v1.usercoupon import release_coupon_for_deposit
-
-            release_coupon_for_deposit(customer.id, days_map[exchange_type])
-        except Exception as exc:
-            logger.warn({'action': 'mama_exchange_deposit', 'mama_id': xlmm.id,
-                         'exchange_type': exchange_type, 'message': exc.message})
-            # 这里是续费　如果是第一次成为正式的话(发送优惠券)　否则异常打入log 后继续续费动作
         cash = CashOut(xlmm=xlmm.id,
                        value=deposit * 100,
                        cash_out_type=CashOut.MAMA_RENEW,
                        approve_time=datetime.datetime.now(),
                        status=CashOut.APPROVED)
         cash.save()
+        try:
+            from flashsale.coupon.apis.v1.usercoupon import release_coupon_for_deposit
+
+            release_coupon_for_deposit(customer.id, days_map[exchange_type], cash_out_id=cash.id)
+        except Exception as exc:
+            logger.warn({'action': 'mama_exchange_deposit', 'mama_id': xlmm.id,
+                         'exchange_type': exchange_type, 'message': exc.message})
+            # 这里是续费　如果是第一次成为正式的话(发送优惠券)　否则异常打入log 后继续续费动作
         log_action(request.user, cash, ADDITION, u'用户妈妈钱包兑换代理续费')
         # 延迟 XiaoluMama instance 的续费时间　如果续费时间大于当前时间并且　当前instance 是冻结的则解冻
         days = days_map[exchange_type]
