@@ -615,16 +615,18 @@ class SkuStock(models.Model):
                     psi.set_status_assigned(save=True)
         elif orderlist:
             psis = []
+            new_assign_num = 0
             for psi in PackageSkuItem.objects.filter(sku_id=self.sku_id,
                                                      purchase_order_unikey=orderlist.purchase_order_unikey,
                                                      assign_status=PackageSkuItem.NOT_ASSIGNED):
                 if now_num >= psi.num:
                     now_num -= psi.num
+                    new_assign_num += psi.num
                     psi.set_status_assigned(save=False)
                     psis.append(psi)
                 else:
                     continue
-            self.assign_num += self.realtime_quantity - now_num
+            self.assign_num += new_assign_num
             for psi in psis:
                 psi.save()
             self.save()
@@ -633,15 +635,17 @@ class SkuStock(models.Model):
         else:
             # if self.realtime_quantity > PackageSkuItem.objects.filter(sku_id=self.sku_id, assign_status=PackageSkuItem.NOT_ASSIGNED).aggregate(Sum('num')):
             psis = []
+            new_assign_num = 0
             for psi in PackageSkuItem.objects.filter(sku_id=self.sku_id,
                                                      assign_status=PackageSkuItem.NOT_ASSIGNED).order_by('pay_time'):
                 if now_num >= psi.num:
                     now_num -= psi.num
+                    new_assign_num += psi.num
                     psi.set_status_assigned(save=False)
                     psis.append(psi)
                 else:
                     break
-            self.assign_num = self.realtime_quantity - now_num
+            self.assign_num += new_assign_num
             self.save()
             for psi in psis:
                 psi.save()
