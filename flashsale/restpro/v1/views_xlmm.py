@@ -511,12 +511,12 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         except Exception, e:
             raise exceptions.ValidationError(u'用户不是小鹿妈妈或者未登录')
 
+        mama = None
         r = ReferalRelationship.objects.filter(referal_to_mama_id=xlmm.id).first()
         if r:
             if r.referal_from_mama_id:
                 mama = XiaoluMama.objects.filter(id=r.referal_from_mama_id).first()
-            else:
-                mama = None
+
         if mama:
             if mama.referal_from == XiaoluMama.INDIRECT:
                 item = {
