@@ -958,10 +958,12 @@ class RedirectActivityEntryView(APIView):
     def get(self, request, *args, **kwargs):
         content = request.GET
         activity_id = content.get("activity_id", "")
+        import re
+        id_array = re.findall("\d+", activity_id)
         redirect_link = settings.M_SITE_URL
 
-        if activity_id:
-            ae = ActivityEntry.objects.filter(id=activity_id).first()
+        if activity_id and id_array and len(id_array) > 0:
+            ae = ActivityEntry.objects.filter(id=int(id_array[0])).first()
             if ae:
                 redirect_link = ae.act_link
         mama = None
