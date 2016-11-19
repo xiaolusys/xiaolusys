@@ -3,6 +3,7 @@ from django.contrib import admin
 from django.db.models import Sum
 
 from core.filters import DateFieldListFilter
+from flashsale.xiaolumm.models import MamaDailyAppVisit
 from flashsale.coupon.models import CouponTemplate, OrderShareCoupon, UserCoupon, TmpShareCoupon, CouponTransferRecord
 
 
@@ -120,7 +121,7 @@ class CouponTransferRecordAdmin(admin.ModelAdmin):
 
     def is_new(self, obj):
         c = CouponTransferRecord.objects.filter(
-            date_field__lt=obj.date_field,coupon_to_mama_id=self.coupon_to_mama_id,
+            date_field__lt=obj.date_field,coupon_to_mama_id=obj.coupon_to_mama_id,
             transfer_status=CouponTransferRecord.DELIVERED).first()
         if not c:
             return 'NEW'
