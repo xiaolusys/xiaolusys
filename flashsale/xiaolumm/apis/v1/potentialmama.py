@@ -23,7 +23,7 @@ def create_potential_mama(mama, referrer_mama_id):
     customer = mama.get_customer()
     nick = customer.nick if customer else ''
     thumbnail = customer.thumbnail if customer else ""
-    potential_mama = PotentialMama.objects.filter(potential_mama=mama.id)
+    potential_mama = PotentialMama.objects.filter(potential_mama=mama.id).first()
     if not potential_mama:
         uni_key = PotentialMama.gen_uni_key(mama.id, referrer_mama_id)
         potential_mama = PotentialMama(
@@ -41,15 +41,15 @@ def update_potential_by_deposit(mama_id, last_renew_type, referrer_mama_id=None,
     """由押金订单更新潜在妈妈记录信息
     """
     potential_mama = get_potential_mama_by_mama_id(mama_id)
-    if potential_mama:
+    if not potential_mama:
         return
-    extra = {} if not isinstance(potential_mama.extra, dict) else potential_mama.extra
+    extras = {} if not isinstance(potential_mama.extras, dict) else potential_mama.extras
     if oid:
-        extra.update({"oid": oid})
+        extras.update({"oid": oid})
     if cashout_id:
-        extra.update({"cashout_id": cashout_id})
-    potential_mama.extras = extra
-    update_fields = [extra]
+        extras.update({"cashout_id": cashout_id})
+    potential_mama.extras = extras
+    update_fields = [extras]
     if potential_mama.last_renew_type != last_renew_type:
         potential_mama.last_renew_type = last_renew_type
         update_fields.append('last_renew_type')
@@ -61,4 +61,3 @@ def update_potential_by_deposit(mama_id, last_renew_type, referrer_mama_id=None,
         update_fields.append('referal_mama')
     if update_fields:
         potential_mama.save(update_fields=update_fields)
-    return

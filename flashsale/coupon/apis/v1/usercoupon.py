@@ -71,13 +71,13 @@ def get_user_coupons_by_ids(ids):
     return UserCoupon.objects.get_coupons(ids)
 
 
-def release_coupon_for_deposit(customer_id, deposit_type):
-    # type: (int, int) -> None
+def release_coupon_for_deposit(customer_id, deposit_type, trade_id):
+    # type: (int, int, int) -> None
     """release coupon for deposit
     """
     from ...tasks.usercoupon import task_release_coupon_for_deposit
 
-    task_release_coupon_for_deposit.delay(customer_id, deposit_type)
+    task_release_coupon_for_deposit.delay(customer_id, deposit_type, trade_id)
 
 
 def create_user_coupon(customer_id, coupon_template_id,

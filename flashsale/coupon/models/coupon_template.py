@@ -261,29 +261,20 @@ class CouponTemplate(BaseModel):
         # 检查产品后检查分类(检查设置了绑定产品并且绑定了类目的情况)
         self.check_category(product_ids)
 
-    def make_uniq_id(self, customer_id, trade_id=None, share_id=None, cashout_id=None):
-        # type: (CouponTemplate, int, Any, Any, Any, Any) -> text_type
-        uniqs = [str(self.id), str(self.coupon_type), str(customer_id)]
-        if self.coupon_type == CouponTemplate.TYPE_NORMAL:  # 普通类型 1
-            uniqs = uniqs
-
-        elif self.coupon_type == CouponTemplate.TYPE_ORDER_BENEFIT and trade_id:  # 下单红包 2
-            uniqs.append(str(trade_id))
-
-        elif self.coupon_type == CouponTemplate.TYPE_MAMA_INVITE and trade_id:  # 推荐专享 4
-            uniqs.append(str(trade_id))  # 一个专属链接可以有多个订单
-
-        elif self.coupon_type == CouponTemplate.TYPE_COMPENSATE and trade_id:  # 售后补偿 5
-            uniqs.append(str(trade_id))
-
-        elif self.coupon_type == CouponTemplate.TYPE_ORDER_SHARE and share_id:  # 订单分享 3
-            uniqs.append(str(share_id))
-        elif self.coupon_type == CouponTemplate.TYPE_ACTIVE_SHARE and share_id:  # 活动分享 6
-            uniqs.append(str(share_id))
-
+    def make_uniq_id(self, customer_id, trade_id=None, share_id=None, cashout_id=None, count=0):
+        # type: (int, Optional[int], Optional[int], Optional[int], Optional[int]) -> text_type
+        """生成uni_key
+        """
+        uniqs = [self.id, self.coupon_type, customer_id]
+        if trade_id:
+            uniqs.append(trade_id)
+        elif share_id:
+            uniqs.append(share_id)
         elif self.coupon_type == CouponTemplate.TYPE_CASHOUT_EXCHANGE and cashout_id:  # 优惠券兑换　7
-            uniqs.append(str(cashout_id))
-        return '_'.join(uniqs)
+            uniqs.append(cashout_id)
+        elif count:
+            uniqs.append(count)
+        return '_'.join([str(i) for i in uniqs])
 
     def gen_usercoupon_unikey(self, order_id, index=0):
         # type: (int, int) -> text_type

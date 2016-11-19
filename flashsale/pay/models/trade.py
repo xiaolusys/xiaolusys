@@ -677,17 +677,18 @@ def trigger_mama_deposit_action(sender, obj, *args, **kwargs):
     try:
         from flashsale.xiaolumm.apis.v1.xiaolumama import mama_pay_deposit
         order = obj.sale_orders.first()
-        deposit_type = 0
         if order.is_1_deposit():
             deposit_type = 1
         elif order.is_99_deposit():
             deposit_type = 99
         elif order.is_188_deposit():
             deposit_type = 188
+        else:
+            return
         referrer = int(str(obj.extras_info.get('mm_linkid', '')).strip() or '0' if obj.extras_info else '0')  # 推荐人id
-        mama_pay_deposit(obj.buyer_id, deposit_type, referrer, oid=None)
         order.status = SaleTrade.TRADE_FINISHED
         order.save(update_fields=['status'])
+        mama_pay_deposit(obj.buyer_id, deposit_type, referrer, obj.id, oid=order.oid)
     except Exception as e:
         logging.error(e)
 

@@ -184,19 +184,18 @@ def task_push_msg_pasting_coupon():
 
 
 @app.task()
-def task_release_coupon_for_deposit(customer_id, deposit_type):
-    # type:(int, int) -> None
+def task_release_coupon_for_deposit(customer_id, deposit_type, trade_id):
+    # type:(int, int, int) -> None
     """发送押金优惠券
     """
     from ..apis.v1.usercoupon import create_user_coupon
-    from flashsale.xiaolumm.models import XiaoluMama
 
     deposit_type_tplids_map = {
-        XiaoluMama.HALF: [117, 118, 79],  # [121, 124]99+99
-        XiaoluMama.FULL: [117, 118, 121, 39]
+        99: [117, 118, 79],  # [121, 124]99+99
+        188: [117, 118, 121, 39]
     }
     if deposit_type not in deposit_type_tplids_map:
         return
     tpl_ids = deposit_type_tplids_map[deposit_type]
     for template_id in tpl_ids:
-        create_user_coupon(customer_id=customer_id, coupon_template_id=template_id)
+        create_user_coupon(customer_id=customer_id, coupon_template_id=template_id, trade_id=trade_id)
