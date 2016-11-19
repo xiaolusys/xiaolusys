@@ -981,9 +981,25 @@ class OrderDetail(models.Model):
             num = self.buy_quantity
         SkuStock.add_inbound_quantity(self.chichu_id, num)
 
+    def reset_sku_stock(self):
+        sku_id = self.chichu_id
+        sum_res = OrderDetail.objects.filter(chichu_id=sku_id,
+                                         arrival_time__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME) \
+            .aggregate(total=Sum('arrival_quantity'))
+        total = sum_res["total"] or 0
+        stat = SkuStock.get_by_sku(sku_id)
+        if stat.inbound_quantity < total:
+            stat.inbound_quantity = total
+            stat.save(update_fields=['inbound_quantity', 'modified'])
+            stat.assign(orderlist=self.orderlist)
+        elif stat.inbound_quantity > total:
+            stat.inbound_quantity = total
+            stat.save(update_fields=['inbound_quantity', 'modified'])
+            stat.relase_assign(orderlist=self.orderlist)
 
 def update_productskustats_inbound_quantity(sender, instance, created,
                                             **kwargs):
+    # instance.reset_sku_stock()
     # Note: chichu_id is actually the id of related ProductSku record.
     from shopback.items.tasks_stats import task_orderdetail_update_productskustats_inbound_quantity
     task_orderdetail_update_productskustats_inbound_quantity(instance)

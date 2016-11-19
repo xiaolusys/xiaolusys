@@ -1089,7 +1089,7 @@ def update_productskustats(sender, instance, created, **kwargs):
 
 def update_productsku_salestats_num(sender, instance, created, **kwargs):
     from shopback.trades.tasks import task_packageskuitem_update_productskusalestats_num
-    task_packageskuitem_update_productskusalestats_num.delay(instance.sku_id, instance.pay_time)
+    transaction.on_commit(lambda: task_packageskuitem_update_productskusalestats_num(instance.sku_id, instance.pay_time))
 
 
 post_save.connect(update_productsku_salestats_num, sender=PackageSkuItem,
@@ -1098,8 +1098,7 @@ post_save.connect(update_productsku_salestats_num, sender=PackageSkuItem,
 
 def update_package_order(sender, instance, created, **kwargs):
     from shopback.trades.tasks import task_update_package_order
-    # task_update_package_order.delay(instance)
-    task_update_package_order.apply_async(args=[instance.id], countdown=3)
+    transaction.on_commit(lambda: task_update_package_order.delay(instance.id))
 
 
 post_save.connect(update_package_order, sender=PackageSkuItem,
