@@ -4,6 +4,7 @@ import datetime
 from core.models import BaseModel
 from django.db import models
 from core.fields import JSONCharMyField
+from .managers.coupon_template import UserCouponTemplateManager
 
 
 def default_template_extras():
@@ -94,6 +95,7 @@ class CouponTemplate(BaseModel):
     status = models.IntegerField(default=CREATE, choices=STATUS_CHOICES, verbose_name=u"状态")  # type: int
     extras = JSONCharMyField(max_length=512, blank=True, null=True, default=default_template_extras,
                              verbose_name=u"附加信息")  # type: text_type
+    objects = UserCouponTemplateManager()
 
     class Meta:
         db_table = "flashsale_coupon_template"
