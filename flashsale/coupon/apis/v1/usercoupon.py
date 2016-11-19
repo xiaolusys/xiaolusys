@@ -36,8 +36,8 @@ def _check_target_user(customer, template):
         if xlmm:
             user_level = xlmm.agencylevel  # 用户的是代理身份 内1 　VIP 2  A 3
     if user_level != template.target_user:  # 如果用户领取的优惠券和用户身份不一致则不予领取
-        return True
-    return False
+        return False
+    return True
 
 
 def _check_template_release_num(template):
