@@ -518,7 +518,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
                 mama = XiaoluMama.objects.filter(id=r.referal_from_mama_id).first()
 
         if mama:
-            if mama.referal_from == XiaoluMama.INDIRECT:
+            if xlmm.referal_from == XiaoluMama.INDIRECT:
                 item = {
                     'code': 0,
                     'info': '成功',
@@ -527,7 +527,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
                     'nick': mama.nick,
                     'mobile': mama.mobile,
                 }
-            elif mama.referal_from == XiaoluMama.DIRECT:
+            elif xlmm.referal_from == XiaoluMama.DIRECT:
                 item = {
                     'code': 1,
                     'info': '我负责管理团队，直接购券，没有上级妈妈',
