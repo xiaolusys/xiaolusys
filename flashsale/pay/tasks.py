@@ -16,9 +16,11 @@ from flashsale.pay.models import CustomerShops, CuShopPros
 from flashsale.pay.models import TradeCharge, SaleTrade, SaleOrder, SaleRefund, Customer,UserAddress, TeamBuy
 from flashsale.pay.models.score import IntegralLog, Integral
 from shopapp.weixin.models import WeiXinUser
-from shopback.items.models import ProductSku
 from .options import get_user_unionid
 from .services import FlashSaleService
+
+from shopapp.smsmgr.apis import send_sms_message, SMS_TYPE
+from django.contrib.admin.models import CHANGE
 
 import pingpp
 pingpp.api_key = settings.PINGPP_APPKEY
@@ -491,50 +493,34 @@ def task_budgetlog_update_userbudget(budget_log):
         raise task_budgetlog_update_userbudget.retry(exc=exc)
 
 
-from games.renewremind.tasks import send_message
-from shopapp.smsmgr.models import SMSActivity
-from django.contrib.admin.models import CHANGE
-
-
-def make_refund_message(refund):
-    """ 根据短信模板生成要发送或者推送的文本信息 """
-    refund_status = refund.status
-    active_sms = SMSActivity.objects.filter(id__gte=5, id__lte=8)
-    status_tpl_map = {
-        SaleRefund.REFUND_WAIT_RETURN_GOODS: 5,  # 同意申请退货
-        SaleRefund.REFUND_REFUSE_BUYER: 6,  # 拒绝申请退款
-        SaleRefund.REFUND_APPROVE: 7,  # 等待返款
-        SaleRefund.REFUND_SUCCESS: 8  # 退款成功
-    }
-    try:
-        tpl_id = status_tpl_map[refund_status]
-    except KeyError as e:
-        return
-    sms_activity = active_sms.filter(id=tpl_id, status=True).first()
-
-    status_display = refund.get_status_display()
-    if tpl_id == 5:  # 同意退货的时候添加地址信息
-        address = refund.get_return_address()
-        status_display = ' '.join([status_display, u'退回地址:', address])
-    message = sms_activity.text_tmpl.format(refund.title,  # 标题
-                                            refund.refund_fee,  # 退款费用
-                                            status_display)  # 退款状态
-    return message
-
+MSG_REFUND_TPL_MAP = {
+    SaleRefund.REFUND_WAIT_RETURN_GOODS: SMS_TYPE.SMS_NOTIFY_REFUND_RETURN,  # 同意申请退货
+    SaleRefund.REFUND_REFUSE_BUYER: SMS_TYPE.SMS_NOTIFY_REFUND_DENY,  # 拒绝申请退款
+    SaleRefund.REFUND_APPROVE: SMS_TYPE.SMS_NOTIFY_REFUN_APPROVE,  # 等待返款
+    SaleRefund.REFUND_SUCCESS: SMS_TYPE.SMS_NOTIFY_REFUND_OK  # 退款成功
+}
 
 def send_refund_msg(refund):
     """ 发送同意退款信息 """
+    msg_type = MSG_REFUND_TPL_MAP.get(refund.status)
+    if not msg_type:
+        return
+
     customer = refund.customer
     # 优先使用购买用户的手机号
     if customer.mobile:
         mobile = customer.mobile
     else:
         mobile = refund.mobile
-    message = make_refund_message(refund)
-    if message:
-        send_message(mobile=mobile,
-                     message=message,
-                     taskName=refund.get_status_display())
+
+    params = {
+        'sms_title': refund.title,
+        'sms_refund_fee': '%.1f'%refund.refund_fee,
+        'sms_status': refund.get_status_display(),
+        'sms_refund_address': refund.get_return_address()
+    }
+
+    send_sms_message(mobile, msg_type=msg_type, SMS_PLATFORM_CODE='alidayu', **params)
 
 
 from flashsale.push.push_refund import push_refund_app_msg

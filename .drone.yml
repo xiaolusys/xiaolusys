@@ -5,8 +5,8 @@ build:
     - REDIS_AUTH=$$REDIS_AUTH
   commands:
     - mkdir -p /data/log/django
-    - python manage.py migrate --noinput
     - python manage.py test -t . --keepdb --parallel 2
+    - python manage.py migrate --noinput
   when:
     branch: [staging, alpha, warden]
 publish:

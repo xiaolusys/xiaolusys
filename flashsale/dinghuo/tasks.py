@@ -1546,60 +1546,6 @@ def task_packageskuitem_update_purchase_arrangement(psi):
     else:
         PurchaseArrangement.create(psi)
 
-
-from shopapp.smsmgr.models import SMSPlatform, SMS_NOTIFY_VERIFY_CODE
-from shopapp.smsmgr.service import SMS_CODE_MANAGER_TUPLE
-
-
-def send_msg(mobile, content):
-    platform = SMSPlatform.objects.filter(is_default=True).order_by('-id').first()
-    if not platform:
-        logger.error(u"send_msg: SMSPlatform object not found !")
-        return
-    try:
-        params = {
-            'content': content,
-            'userid': platform.user_id,
-            'account': platform.account,
-            'password': platform.password,
-            'mobile': mobile,
-            'taskName': "小鹿美美验证码",
-            'mobilenumber': 1,
-            'countnumber': 1,
-            'telephonenumber': 0,
-            'action': 'send',
-            'checkcontent': '0'
-        }
-
-        sms_manager = dict(SMS_CODE_MANAGER_TUPLE).get(platform.code, None)
-        if not sms_manager:
-            raise Exception('未找到短信服务商接口实现')
-
-        manager = sms_manager()
-        success = False
-
-        # 创建一条短信发送记录
-        sms_record = manager.create_record(params['mobile'], params['taskName'], SMS_NOTIFY_VERIFY_CODE,
-                                           params['content'])
-        # 发送短信接口
-        try:
-            success, task_id, succnums, response = manager.batch_send(**params)
-        except Exception, exc:
-            sms_record.status = pcfg.SMS_ERROR
-            sms_record.memo = exc.message
-            logger.error(exc.message, exc_info=True)
-        else:
-            sms_record.task_id = task_id
-            sms_record.succnums = succnums
-            sms_record.retmsg = response
-            sms_record.status = success and pcfg.SMS_COMMIT or pcfg.SMS_ERROR
-        sms_record.save()
-        if success:
-            SMSPlatform.objects.filter(code=platform.code).update(sendnums=F('sendnums') + int(succnums))
-    except Exception, exc:
-        logger.error(exc.message or 'empty error', exc_info=True)
-
-
 @app.task()
 def task_update_purchasedetail_status(po):
     """
@@ -1637,24 +1583,19 @@ def task_check_with_purchase_order(ol):
     res = OrderDetail.objects.filter(orderlist=ol).aggregate(total=Sum('buy_quantity'))
     total = res['total'] or 0
 
-    mobile = '18616787808'
-
     if not ol.supplier:
-        content = 'no supplier, order_list id: %s' % ol.id
-        send_msg(mobile, content)
+        logging.error('no supplier, order_list id: %s' % ol.id)
         return
 
     supplier_id = ol.supplier.id
     po = PurchaseOrder.objects.filter(supplier_id=supplier_id).order_by('-created').first()
 
     if not po:
-        content = 'supplier_id:%s, no book_num, %s' % (supplier_id, total)
-        send_msg(mobile, content)
+        logging.error('supplier_id:%s, no book_num, %s' % (supplier_id, total))
         return
 
     if po.book_num != total:
-        content = 'supplier_id:%s, book_num:%s-%s' % (supplier_id, po.book_num, total)
-        send_msg(mobile, content)
+        logging.error('supplier_id:%s, book_num:%s-%s' % (supplier_id, po.book_num, total))
 
     po.status = PurchaseOrder.BOOKED
     po.save()

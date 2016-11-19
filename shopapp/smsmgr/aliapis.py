@@ -58,6 +58,7 @@ class RestApi(object):
         sign_params = sys_params.copy()
         sign_params.update(params)
         sys_params['sign'] = self.sign(sign_params)
+        print 'debug signparams:', sign_params
         headers = {
                  'Content-type': 'application/x-www-form-urlencoded;charset=UTF-8',
                  "Cache-Control": "no-cache",

@@ -2,6 +2,7 @@
 import datetime
 import logging
 import os
+import re
 import time
 import urlparse
 
@@ -998,7 +999,7 @@ class RedirectStatsLinkView(APIView):
     def get(self, request, *args, **kwargs):
         content = request.GET
         link_id = content.get("link_id", "") #re.compile('').match(
-        import re
+
         id_array = re.findall("\d+", link_id)
         url = content.get('url') or ''
 

@@ -1,4 +1,6 @@
 # coding=utf-8
+from __future__ import unicode_literals
+
 from rest_framework import generics
 from shopback.categorys.models import ProductCategory
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
@@ -32,11 +34,10 @@ class KefuRecordView(generics.ListCreateAPIView):
              "all_type": all_type})
 
 
-from shopback.trades.models import MergeTrade, MergeOrder
 from flashsale.pay.models import SaleOrder,SaleTrade
 
 from shopback.items.models import Product
-from .tasks import task_send_message
+from shopapp.smsmgr.apis import send_sms_message, SMS_TYPE
 from shopapp.smsmgr.models import SMSActivity, SMS_NOTIFY_GOODS_LACK
 
 # SEND_TEMPLATE = "您好，我是小鹿美美的客服Amy。您订购{0}{1}码 因销量火爆，厂家缺货。我们已经帮您自动退款并且补偿10元优惠券。给您带来不便非常抱歉！么么哒～"
@@ -84,7 +85,9 @@ class SendMessageView(generics.ListCreateAPIView):
             if not content and not mobile or len(mobile) != 11:
                 return Response({"send_result": "error"})
             log_action(request.user.id, s_trade, CHANGE, u'{0}缺货短信{1}'.format(s_order.id, mobile))
-            task_send_message.delay(content, mobile)
+
+            # 此处需要创建缺货短信模板 @meron
+            # send_sms_message(mobile)
         except:
             return Response({"send_result": "error"})
         return Response({"send_result": "OK"})

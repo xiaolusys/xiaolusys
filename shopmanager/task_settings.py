@@ -936,10 +936,6 @@ CELERY_ROUTES = {
         'queue': 'async',
         'routing_key': 'async.task_Record_Mama_Fans',
     },  # 特卖商品退款数统计
-    'flashsale.kefu.tasks.task_send_message': {
-        'queue': 'async',
-        'routing_key': 'async.task_send_message',
-    },  # 缺货短信任务
 }
 
 CELERY_ROUTES.update(WEIXIN_ROUTES)
@@ -1248,12 +1244,6 @@ SHOP_APP_SCHEDULE = {
     u'定时更新购物车和订单状态': {
         'task': 'flashsale.restpro.tasks.task_off_the_shelf',
         'schedule': crontab(minute="20", hour="2"),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
-    u'定时发送发货超过五天订单': {
-        'task': 'shopapp.smsmgr.tasks.task_deliver_goods_later',
-        'schedule': crontab(minute="30", hour="13"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },

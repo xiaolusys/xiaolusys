@@ -9,7 +9,7 @@ from shopapp.smsmgr.models import SMSPlatform, SMSRecord, SMSActivity
 
 
 class SMSPlatformAdmin(admin.ModelAdmin):
-    list_display = ('code', 'name', 'user_id', 'account', 'remainums', 'sendnums', 'is_default')
+    list_display = ('code', 'name', 'user_id', 'account', 'remainums', 'sendnums', 'sign_name', 'is_force_sign', 'is_default', 'modified', 'created')
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_display_links = ('code', 'name',)
@@ -41,7 +41,7 @@ admin.site.register(SMSRecord, SMSRecordAdmin)
 
 
 class SMSActivityAdmin(admin.ModelAdmin):
-    list_display = ('id', 'sms_type', 'text_tmpl', 'status')
+    list_display = ('id', 'sms_type', 'text_tmpl', 'sms_template_code','status', 'modified', 'created')
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('sms_type', 'status',)
