@@ -396,13 +396,8 @@ class WeixinUserService():
                 'Content': text}
 
     def sendValidCode(self, mobile, validCode, title=u'微信手机验证'):
-
-        from shopapp.smsmgr.services import sendMessage
-
-        wx_resp = WeiXinAutoResponse.objects.get_or_create(message='SJYZM')[0]
-        msgTemplate = wx_resp.content
-
-        return sendMessage(mobile, title, msgTemplate % validCode)
+        # deprecated
+        return False
 
     def formatJsonToPrettyString(self, jsonContent):
         assert type(jsonContent) in (list, tuple)

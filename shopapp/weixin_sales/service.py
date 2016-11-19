@@ -71,15 +71,8 @@ class WeixinSaleService():
 
         referal_ships = WeiXinUser.objects.VALID_USER.filter(referal_from_openid=user_openid)
 
-        from shopapp.smsmgr.services import sendMessage
-        wx_resp = WeiXinAutoResponse.objects.get_or_create(message='YQJLTZ')[0]
-        msgTemplate = wx_resp.content
+        # 短信通知 deprecated
 
-        for user in referal_ships:
-            if not user.mobile:
-                continue
-
-            sendMessage(user.mobile, title, msgTemplate % ("%s.." % user_nick[0:4]), SMS_PLATFORM_CODE='cshx')
 
     def notifyAward(self, title=u"微信邀请奖励"):
 
@@ -91,11 +84,5 @@ class WeixinSaleService():
         referal_names = [u.nickname[0:2] for u in referal_users if len(u.nickname) > 1]
         friend_nicks = referal_names and '..,'.join(referal_names[0:2]) or u'无名'
 
-        from shopapp.smsmgr.services import sendMessage
-        wx_resp = WeiXinAutoResponse.objects.get_or_create(message='FBTZ')[0]
-        msgTemplate = wx_resp.content
+        # deprecated
 
-        if not user_mobile:
-            return
-
-        sendMessage(user_mobile, title, msgTemplate % ("%s.." % user_nick[0:3], friend_nicks), SMS_PLATFORM_CODE='cshx')

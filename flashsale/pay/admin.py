@@ -413,31 +413,34 @@ class SaleRefundAdmin(BaseModelAdmin):
     order_status.short_description = "订单状态"
 
     # -------------- 页面布局 --------------
-    fieldsets = (('基本信息:', {
-        'classes': ('expand',),
-        'fields': (('refund_no', 'trade_id', 'order_id')
-                   , ('buyer_id', 'title', 'sku_name',)
-                   , ('payment', 'total_fee',)
-                   , ('company_name', 'sid')
-                   , ('reason', 'desc', 'proof_pic')
-                   )
-    }),
-                 ('内部信息:', {
-                     'classes': ('collapse',),
-                     'fields': (('buyer_nick', 'mobile', 'phone',),
-                                ('item_id', 'sku_id', 'refund_id', 'charge',),
-                                ('amount_flow'),
-                                ('postage_num', 'coupon_num')
-                                )
-
-                 }),
-                 ('审核信息:', {
-                     'classes': ('expand',),
-                     'fields': (('has_good_return', 'has_good_change',)
-                                , ('refund_num', 'refund_fee')
-                                , ('feedback')
-                                , ('good_status', 'status'))
-                 }),)
+    fieldsets = (
+        ('基本信息:', {
+            'classes': ('expand',),
+            'fields': (
+                ('refund_no', 'trade_id', 'order_id')
+                , ('buyer_id', 'title', 'sku_name',)
+                , ('payment', 'total_fee',)
+                , ('company_name', 'sid')
+                , ('reason', 'desc', 'proof_pic')
+            )
+        }),
+        ('内部信息:', {
+             'classes': ('collapse',),
+             'fields': (
+                ('buyer_nick', 'mobile', 'phone',),
+                ('item_id', 'sku_id', 'refund_id', 'charge',),
+                ('amount_flow'),
+                ('postage_num', 'coupon_num')
+            )
+        }),
+        ('审核信息:', {
+         'classes': ('expand',),
+         'fields': (('has_good_return', 'has_good_change',)
+                    , ('refund_num', 'refund_fee')
+                    , ('feedback')
+                    , ('good_status', 'status'))
+        }),
+    )
 
     # --------定制控件属性----------------
     formfield_overrides = {

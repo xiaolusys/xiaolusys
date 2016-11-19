@@ -12,7 +12,6 @@ from shopapp.weixin.weixin_apis import WeiXinAPI, WeiXinRequestException, WeiXin
 from shopback.items.models import Product, ItemNumTaskLog
 
 import logging
-
 logger = logging.getLogger(__name__)
 
 
