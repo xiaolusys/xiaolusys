@@ -24,6 +24,7 @@ from .filters import OrderListStatusFilter2, BuyerNameFilter, \
     InBoundCreatorFilter
 import datetime
 
+
 class orderdetailInline(admin.TabularInline):
     model = OrderDetail
     fields = ('product_id', 'chichu_id', 'product_name', 'outer_id', 'product_chicun', 'buy_quantity', 'buy_unitprice',
@@ -171,14 +172,14 @@ class OrderListAdmin(BaseModelAdmin):
             return obj.purchase_order_unikey
 
         return u'<a href="/admin/trades/packageskuitem/?o=11.-10&q=%s" target="_blank" style="display: block;" >%s</a>' % (
-        obj.purchase_order_unikey, obj.purchase_order_unikey)
+            obj.purchase_order_unikey, obj.purchase_order_unikey)
 
     purchase_order_unikey_link.allow_tags = True
     purchase_order_unikey_link.short_description = "订单列表"
 
     def remind_link(self, obj):
         t = datetime.datetime.now() - datetime.timedelta(days=30)
-        psi = PackageSkuItem.objects.filter(purchase_order_unikey='', pay_time__gt=t,assign_status=PackageSkuItem.NOT_ASSIGNED).order_by('created').first()
+        psi = PackageSkuItem.get_need_purchase({'pay_time__gt': t}).first()
         if psi:
             t1 = datetime.datetime.now() - psi.pay_time
             hours = int(t1.total_seconds() / 3600)
@@ -188,7 +189,7 @@ class OrderListAdmin(BaseModelAdmin):
 
     remind_link.allow_tags = True
     remind_link.short_description = '未订货警告'
-    
+
     def changedetail(self, obj):
         symbol_link = u'【详情页】'
         return u'<a href="/sale/dinghuo/changedetail/{0}/" target="_blank" style="display: block;" >{1}</a>'.format(
@@ -270,8 +271,7 @@ class OrderListAdmin(BaseModelAdmin):
             # r2= {int(o['sku_id']):o['total'] for o in PackageSkuItem.objects.filter(sku_id__in=sku_ids, assign_status=PackageSkuItem.NOT_ASSIGNED, purchase_order_unikey='').values('sku_id').annotate(total=Sum('num'))}
             # [(sku_id,r1[sku_id],r2.get(sku_id,0)) for sku_id in r1 if r1[sku_id]!=r2.get(sku_id,0)]
             sku_ids = [pd.sku_id for pd in pds]
-            psis = PackageSkuItem.objects.filter(sku_id__in=sku_ids, assign_status=PackageSkuItem.NOT_ASSIGNED,
-                                                       purchase_order_unikey='')
+            psis = PackageSkuItem.get_need_purchase({'sku_id__in': sku_ids})
             psis_total = psis.aggregate(total=Sum('num')).get('total') or 0
             ods_res = OrderDetail.objects.filter(purchase_order_unikey=orderlist.purchase_order_unikey).aggregate(
                 total=Sum('buy_quantity'))
@@ -369,7 +369,8 @@ class orderdetailAdmin(BaseModelAdmin):
     }),)
 
     list_display = (
-        'id', 'link_order', 'orderlist_status', 'product_id', 'outer_id', 'product_name', 'chichu_id', 'product_chicun', 'buy_quantity',
+        'id', 'link_order', 'orderlist_status', 'product_id', 'outer_id', 'product_name', 'chichu_id', 'product_chicun',
+        'buy_quantity',
         'arrival_quantity', 'inferior_quantity', 'non_arrival_quantity', 'created', 'updated', 'purchase_order_unikey',
         'purchase_detail_unikey',
     )
@@ -921,7 +922,7 @@ class PurchaseDetailAdmin(BaseModelAdmin):
     list_display = (
         'id', 'outer_id', 'purchase_order_unikey', 'outer_sku_id', 'sku_id', 'title', 'sku_properties_name', 'book_num',
         'need_num', 'status', 'unit_price_display', 'modified', 'created')
-    list_filter = ('status', )
+    list_filter = ('status',)
     search_fields = ('=outer_id', '^title', '=sku_id', '=purchase_order_unikey')
 
 
@@ -977,7 +978,7 @@ admin.site.register(LackGoodOrder, LackGoodOrderAdmin)
 
 class PackageBackOrderStatsAdmin(BaseModelAdmin):
     list_display = (
-    'id', 'day_date', 'purchaser', 'three_backorder_num', 'five_backorder_num', 'fifteen_backorder_num', 'created')
+        'id', 'day_date', 'purchaser', 'three_backorder_num', 'five_backorder_num', 'fifteen_backorder_num', 'created')
     search_fields = ('=id', '^purchaser__username')
     list_filter = [("created", DateFieldListFilter)]
 

@@ -7,6 +7,7 @@ from django.conf import settings
 
 from core.models import BaseModel
 from flashsale.dinghuo import utils
+from shopback.trades.constants import PSI_STATUS
 import logging
 
 logger = logging.getLogger(__name__)
@@ -51,7 +52,7 @@ class PurchaseOrder(BaseModel):
         oids = [p.oid for p in pas]
         pas.update(purchase_order_status=self.status, initial_book=True)
         ps = PackageSkuItem.objects.filter(oid__in=oids)
-        ps.update(purchase_order_unikey=self.uni_key, assign_status=PackageSkuItem.VIRTUAL_ASSIGNED, book_time=datetime.datetime.now())
+        ps.update(purchase_order_unikey=self.uni_key, assign_status=PackageSkuItem.VIRTUAL_ASSIGNED, status=PSI_STATUS.BOOKED, book_time=datetime.datetime.now())
         for p in ps:
             p.gen_package()
 

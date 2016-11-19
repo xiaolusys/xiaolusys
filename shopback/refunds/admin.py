@@ -121,7 +121,7 @@ class RefundProductAdmin(admin.ModelAdmin):
     def trade_id_display(self, obj):
 
         # mt = MergeTrade.objects.filter(tid=obj.trade_id).first()
-        po = PackageSkuItem.objects.filter(sale_trade_id=obj.trade_id).first()
+        po = PackageSkuItem.get_by_tid(obj.trade_id).first()
         if po:
             st = SaleTrade.objects.filter(tid=obj.trade_id).first()
             color = 'red'
