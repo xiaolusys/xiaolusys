@@ -1008,7 +1008,7 @@ class RedirectStatsLinkView(APIView):
             redirect_link = url
             tab_id = MamaTabVisitStats.TAB_WX_PUSH_AD
         else:
-            return
+            return redirect(settings.M_SITE_URL)
 
         mama = None
         try:
