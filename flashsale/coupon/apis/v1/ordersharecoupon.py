@@ -14,6 +14,11 @@ def get_order_share_coupon_by_id(id):
     return OrderShareCoupon.objects.get(id=id)
 
 
+def get_share_coupon_by_tid(tid):
+    # type: (text_type) -> OrderShareCoupon
+    return OrderShareCoupon.objects.filter(uniq_id=tid).first()
+
+
 def create_share_coupon(coupon_template_id, customer_id, uniq_id, ufrom, customer_nick='', customer_thumbnail=''):
     # type: (int, int, text_type, text_type, text_type, text_type) -> OrderShareCoupon
     """ 创建分享优惠券记录
