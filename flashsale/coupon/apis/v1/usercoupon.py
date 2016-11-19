@@ -110,22 +110,26 @@ def create_user_coupon(customer_id, coupon_template_id,
             return None, 5, u'该分享券已经领完了'
         unique_key = tpl.make_uniq_id(customer.id, share_id=share_coupon_record.id)
         value = coupon_value if coupon_value else value  # 订单分享的时候（生成临时券value）
-        from ...tasks.ordershare_coupon import task_update_share_coupon_release_count
-
-        task_update_share_coupon_release_count.delay(share_coupon_record)  # 更新分享券领取数量
     cou = UserCoupon.objects.filter(uniq_id=unique_key).first()
     if cou:
         return cou, 6, u'已经领取'
-    cou = UserCoupon.objects.create(template_id=coupon_template_id,
-                                    title=tpl.title,
-                                    coupon_type=tpl.coupon_type,
-                                    customer_id=customer_id,
-                                    value=value,
-                                    start_use_time=start_use_time,
-                                    expires_time=expires_time,
-                                    ufrom=ufrom,
-                                    uniq_id=unique_key,
-                                    extras=extras)
+    cou = UserCoupon(template_id=coupon_template_id,
+                     title=tpl.title,
+                     coupon_type=tpl.coupon_type,
+                     customer_id=customer_id,
+                     value=value,
+                     start_use_time=start_use_time,
+                     expires_time=expires_time,
+                     ufrom=ufrom,
+                     uniq_id=unique_key,
+                     extras=extras)
+    cou.save()
+    if order_share_id:
+        from ...tasks.ordershare_coupon import task_update_share_coupon_release_count
+
+        cou.order_coupon_id = share_coupon_record.id
+        cou.save(update_fields=['order_coupon_id'])
+        task_update_share_coupon_release_count.delay(share_coupon_record.id)  # 更新分享券领取数量
     from ...tasks.coupontemplate import task_update_tpl_released_coupon_nums
 
     task_update_tpl_released_coupon_nums.delay(tpl.id)
@@ -161,5 +165,6 @@ def return_user_coupon_by_order_refund(trade_tid, num):
     """交易退款了　退还该交易使用的优惠券
     """
     from ...tasks.usercoupon import task_return_user_coupon_by_trade
+
     task_return_user_coupon_by_trade.delay(trade_tid, num)
 

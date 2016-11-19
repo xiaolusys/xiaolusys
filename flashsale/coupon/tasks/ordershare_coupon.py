@@ -13,9 +13,9 @@ def task_update_share_coupon_release_count(share_coupon_id):
     """当有分享类型优惠券发放的时候更新分享记录的优惠券数量
     """
     from flashsale.coupon.models import UserCoupon
-    from ..apis.v1.ordersharecoupon import get_coupon_template_by_id
+    from ..apis.v1.ordersharecoupon import get_order_share_coupon_by_id
 
-    share_coupon = get_coupon_template_by_id(share_coupon_id)
+    share_coupon = get_order_share_coupon_by_id(share_coupon_id)
     count = UserCoupon.objects.get_order_share_coupons(share_coupon_id).count()
     share_coupon.release_count = count
     share_coupon.save(update_fields=['release_count'])
