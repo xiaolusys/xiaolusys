@@ -81,14 +81,29 @@ def refund_coupon(sale_refund):
     """补邮费优惠券给用户
     """
     from flashsale.coupon.apis.v1.usercoupon import create_user_coupon
-
-    if sale_refund.coupon_num > 0:
-        try:
-            create_user_coupon(sale_refund.buyer_id, sale_refund.coupon_template_id, trade_id=sale_refund.trade_id)
-            return True
-        except Exception as e:
-            logger.info({'action': u'return_fee_by_refund_product', 'message': e.message})
-            return False
+    try:
+        if isinstance(sale_refund.amount_flow, dict):
+            refund_coupon_info = sale_refund.amount_flow.get('refund_coupon')
+            if refund_coupon_info:
+                coupon_template_id = refund_coupon_info.get('template_id')
+                send_status = refund_coupon_info.get('send_status')
+                if coupon_template_id and not send_status:
+                    cou, code, msg = create_user_coupon(sale_refund.buyer_id, coupon_template_id,
+                                                        trade_id=sale_refund.trade_id)
+                    if code == 0:
+                        refund_coupon_info.update({
+                            'send_status': True,
+                            'coupon_id': cou.id,
+                            'coupon_value': cou.value}
+                        )
+                        sale_refund.amount_flow.update({
+                            'refund_coupon': refund_coupon_info
+                        })
+                        sale_refund.save(update_fields=['amount_flow'])
+                        return True
+    except Exception as e:
+        logger.error({'action': u'refund_coupon %s' % sale_refund.id, 'message': e.message})
+        return False
     return False
 
 
