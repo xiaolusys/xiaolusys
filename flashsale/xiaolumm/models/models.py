@@ -142,6 +142,7 @@ class XiaoluMama(BaseModel):
     progress = models.CharField(max_length=8, blank=True, db_index=True,
                                 choices=PROGRESS_CHOICES,
                                 default=NONE, verbose_name=u'申请进度')
+    elite_score = models.IntegerField(default=0, verbose_name=u"精英汇积分")
 
     objects = XiaoluMamaManager()
 

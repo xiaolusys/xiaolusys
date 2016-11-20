@@ -818,7 +818,7 @@ class ScheduleDetailAPIView(APIView):
                 skus_dict2[s_key]['buy_num'] = s['buy_quantity'] - \
                   min(s['buy_quantity'], s['arrival_quantity']) - s['inferior_quantity']
             else:
-                skus_dict2[s_key]['buy_num'] = 0
+                skus_dict2[s_key] = {'buy_num': 0}
 
 
         items = []

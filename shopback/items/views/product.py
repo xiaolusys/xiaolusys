@@ -514,7 +514,7 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
             extras = self.get_request_extras(request, instance)
             request.data.update({'extras': extras})
 
-        # request.data.update({'name': saleproduct.title})
+        request.data.update({'name': instance and instance.name or saleproduct.title})
         request.data.update({'salecategory': instance.salecategory.id})  # 类别不予更新（使用原来的类别）
         request.data.update({'lowest_agent_price': instance.lowest_agent_price})  # 最低售价（价格由sku决定）
         request.data.update({'lowest_std_sale_price': instance.lowest_std_sale_price})  # 最低吊牌价（价格由sku决定）

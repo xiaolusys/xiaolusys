@@ -27,7 +27,7 @@ class ForecastInboundDetailInline(admin.TabularInline):
     def formfield_for_dbfield(self, db_field, request=None, **kwargs):
         if db_field.name == 'product_img':
             kwargs['widget'] = AdminTextThumbnailWidget(attrs={'width:':80,'height':80})
-        return super(ForecastInboundDetailInline, self).formfield_for_dbfield(db_field, **kwargs)
+        return super(ForecastInboundDetailInline, self).formfield_for_dbfield(db_field, request=None, **kwargs)
 
 class RealInboundDetailInline(admin.TabularInline):
     model = RealInboundDetail
@@ -43,7 +43,7 @@ class RealInboundDetailInline(admin.TabularInline):
     def formfield_for_dbfield(self, db_field, request=None, **kwargs):
         if db_field.name == 'product_img':
             kwargs['widget'] = AdminTextThumbnailWidget(attrs={'width:':80,'height':80})
-        return super(RealInboundDetailInline, self).formfield_for_dbfield(db_field, **kwargs)
+        return super(RealInboundDetailInline, self).formfield_for_dbfield(db_field, request=None, **kwargs)
 
 
 STATUS_LABEL_DICT = dict((
