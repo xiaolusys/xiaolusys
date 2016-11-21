@@ -77,7 +77,7 @@ def release_coupon_for_deposit(customer_id, deposit_type, trade_id=None, cash_ou
     """
     from ...tasks.usercoupon import task_release_coupon_for_deposit
 
-    task_release_coupon_for_deposit.delay(customer_id, deposit_type, trade_id=trade_id, cash_out_id=cash_out_id)
+    task_release_coupon_for_deposit(customer_id, deposit_type, trade_id=trade_id, cash_out_id=cash_out_id)
 
 
 def create_user_coupon(customer_id, coupon_template_id,
@@ -130,7 +130,7 @@ def create_user_coupon(customer_id, coupon_template_id,
 
         cou.order_coupon_id = share_coupon_record.id
         cou.save(update_fields=['order_coupon_id'])
-        task_update_share_coupon_release_count.delay(share_coupon_record.id)  # 更新分享券领取数量
+        task_update_share_coupon_release_count(share_coupon_record.id)  # 更新分享券领取数量
     from ...tasks.coupontemplate import task_update_tpl_released_coupon_nums
 
     task_update_tpl_released_coupon_nums.delay(tpl.id)
@@ -157,7 +157,7 @@ def use_coupon_by_ids(ids, tid):
         coupon.finished_time = datetime.datetime.now()  # save the finished time
         coupon.trade_tid = tid  # save the trade tid with trade be binding
         coupon.save(update_fields=['finished_time', 'trade_tid'])
-        task_update_coupon_use_count.delay(coupon.template_id, coupon.order_coupon_id)
+        task_update_coupon_use_count(coupon.template_id, coupon.order_coupon_id)
     return True
 
 
@@ -167,5 +167,5 @@ def return_user_coupon_by_order_refund(trade_tid, num):
     """
     from ...tasks.usercoupon import task_return_user_coupon_by_trade
 
-    task_return_user_coupon_by_trade.delay(trade_tid, num)
+    task_return_user_coupon_by_trade(trade_tid, num)
 

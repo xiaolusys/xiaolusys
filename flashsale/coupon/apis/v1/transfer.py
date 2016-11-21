@@ -49,4 +49,4 @@ def send_order_transfer_coupons(customer_id, order_id, order_oid, order_num, pro
     # type: (int, int, text_type, int, int) -> None
     from ...tasks.transfer_coupon import task_send_transfer_coupons
 
-    task_send_transfer_coupons.delay(customer_id, order_id, order_oid, order_num, product_id)
+    task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, product_id)
