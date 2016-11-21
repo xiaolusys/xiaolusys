@@ -438,10 +438,10 @@ class SaleTrade(BaseModel):
 
         new_sale_order = old_sale_order
         new_sale_order.id = None
-        cnt = self.sale_orders.count()
+        cnt = 1
         old_sale_order_oid = old_sale_order.oid
         if '-' in old_sale_order.oid:
-            cnt = int(old_sale_order.oid.split('-')[1]) + 1
+            cnt = self.sale_orders.filter(oid__startswith=old_sale_order.oid).count()
             old_sale_order_oid = old_sale_order.oid.split('-')[0]
         new_sale_order.oid = '%s-%s' % (old_sale_order_oid, str(cnt))
         new_sale_order.status = SaleOrder.WAIT_SELLER_SEND_GOODS

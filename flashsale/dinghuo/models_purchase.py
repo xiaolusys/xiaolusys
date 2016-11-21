@@ -210,8 +210,10 @@ class PurchaseDetail(BaseModel):
             total=Sum('num'))
         total = res['total'] or 0
         unit_price = int(pa.sku.cost * 100)
+        total_price = int(pa.sku.cost * 100 * total)
         pd = PurchaseDetail(uni_key=uni_key, purchase_order_unikey=pa.purchase_order_unikey,
-                            unit_price=unit_price, book_num=total, need_num=total)
+                            unit_price=unit_price, book_num=total, need_num=total,
+                            total_price=total_price)
         fields = ['outer_id', 'outer_sku_id', 'sku_id', 'title', 'sku_properties_name']
         utils.copy_fields(pd, pa, fields)
         pd.save()
@@ -225,7 +227,7 @@ class PurchaseDetail(BaseModel):
             total=Sum('num'))
         total = res['total'] or 0
         unit_price = int(self.sku.cost * 100)
-        total_price = unit_price * total
+        total_price = int(self.sku.cost * 100 * total)
         if self.book_num != total or self.total_price != total_price:
             self.book_num = total
             self.need_num = total
