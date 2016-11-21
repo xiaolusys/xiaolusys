@@ -541,7 +541,7 @@ MAMA_CARRYTOTAL_ROUTES = {
 }
 
 FLASHSALE_COUPON_ROUTES = {
-    'flashsale.coupon.transfer_coupon.tasks.task_send_transfer_coupons': {
+    'flashsale.coupon.tasks.transfer_coupon.task_send_transfer_coupons': {
         'queue': 'coupon',
         'routing_key': 'coupon.task_send_transfer_coupons',
     },
