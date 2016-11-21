@@ -166,7 +166,7 @@ class ProductAdmin(ApproxAdmin):
              ('lock_num', 'inferior_num', 'std_purchase_price', 'staff_price'),
              ('sale_time', 'upshelf_time', 'offshelf_time'),
              ('cost', 'std_sale_price', 'agent_price'),
-             ('status', 'shelf_status', 'model_id', 'sale_product', 'ware_by'))
+             ('status', 'shelf_status', 'model_id', 'sale_product', 'ware_by', 'elite_score'))
     }),
                  ('商品系统设置:', {
                      'classes': ('collapse',),

@@ -87,7 +87,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
             #res["Access-Control-Allow-Origin"] = "*"
             return res
             
-        res = CouponTransferRecord.init_transfer_record(request.user, coupon_num, template_id)
+        res = CouponTransferRecord.init_transfer_record(request.user, coupon_num, template_id, product_id)
         res = Response(res)
         #res["Access-Control-Allow-Origin"] = "*"
         
