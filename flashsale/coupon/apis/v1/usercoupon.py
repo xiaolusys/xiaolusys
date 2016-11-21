@@ -97,7 +97,7 @@ def create_user_coupon(customer_id, coupon_template_id,
         return None, 3, u'优惠券已经发完了'
     value, start_use_time, expires_time = tpl.calculate_value_and_time()
     extras = {'user_info': {'id': customer.id, 'nick': customer.nick, 'thumbnail': customer.thumbnail}}
-    unique_key = tpl.make_uniq_id(tpl, customer.id) if not unique_key else unique_key
+    unique_key = tpl.make_uniq_id(customer.id) if not unique_key else unique_key
     unique_key = tpl.make_uniq_id(customer.id, trade_id=trade_id) if trade_id else unique_key
     unique_key = tpl.make_uniq_id(customer.id, cashout_id=cash_out_id) if cash_out_id else unique_key
 
