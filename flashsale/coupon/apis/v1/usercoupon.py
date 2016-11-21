@@ -83,7 +83,8 @@ def release_coupon_for_deposit(customer_id, deposit_type, trade_id=None, cash_ou
 def create_user_coupon(customer_id, coupon_template_id,
                        unique_key=None, trade_id=None, cash_out_id=None, order_share_id=None, coupon_value=None,
                        ufrom='wap', **kwargs):
-    # type: (int, int, text_type, **Any) ->Tuple[Optional[UserCoupon], int, text_type]
+    # type: (int, int, Optional[text_type], Optional[int], Optional[int],
+    #  Optional[int], Optional[float], Optional[text_type], **Any) ->Tuple[Optional[UserCoupon], int, text_type]
     """创建普通类型优惠券, 这里不计算领取数量(默认只能领取一张 不填写 uniq_id的张数内容)
     """
     tpl = get_coupon_template_by_id(coupon_template_id)

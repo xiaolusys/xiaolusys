@@ -366,9 +366,9 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         success_id = []
         codes = []
         except_msgs = set()
-        for tplid in tplids:
+        for tpl_id in tplids:
             try:
-                coupon, c_code, msg = create_user_coupon(customer_id=customer.id, coupon_template_id=tplid)
+                coupon, c_code, msg = create_user_coupon(customer_id=customer.id, coupon_template_id=tpl_id)
                 if c_code in [0, 9]:  # 0　是创建　9　是已经存在的
                     codes.append(c_code)
                     success_id.append(coupon.id)
