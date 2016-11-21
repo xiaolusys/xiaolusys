@@ -12,7 +12,7 @@ from rest_framework import exceptions
 
 from flashsale.protocol import serializers
 from flashsale.protocol.models import APPFullPushMessge
-from apis.v1.fullpush import create_app_push_msg, delete_app_push_msg_by_id, update_app_push_msg_by_id, \
+from .apis.v1.fullpush import create_app_push_msg, delete_app_push_msg_by_id, update_app_push_msg_by_id, \
     push_msg_right_now_by_id
 
 

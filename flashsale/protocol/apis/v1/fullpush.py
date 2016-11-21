@@ -70,7 +70,6 @@ def push_app_push_msg_2_client_by_id(id):
     from flashsale.xiaolumm import util_emoji
     from flashsale.push.app_push import AppPush
     from flashsale.protocol.models import APPFullPushMessge
-
     now = datetime.datetime.now()
     push_msg = get_app_push_msg_by_id(id)
     if now < push_msg.push_time or push_msg.status == APPFullPushMessge.SUCCESS:  # 定义的推送时间　没有到　推送状态是已经成功　都不推送
