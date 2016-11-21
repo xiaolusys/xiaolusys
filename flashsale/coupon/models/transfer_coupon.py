@@ -197,7 +197,7 @@ class CouponTransferRecord(BaseModel):
             product_id = sale_orders[0].item_id
             from shopback.items.models import Product
             product = Product.objects.filter(id=product_id).first()
-            elite_score = product.elite_score * coupon_num
+            elite_score = product.elite_score * (int(coupon_num))
 
         transfer_status = cls.DELIVERED
         coupon = cls(coupon_from_mama_id=coupon_from_mama_id, from_mama_thumbnail=from_mama_thumbnail,
@@ -248,7 +248,7 @@ class CouponTransferRecord(BaseModel):
 
         from shopback.items.models import Product
         product = Product.objects.filter(id=product_id).first()
-        elite_score = product.elite_score * coupon_num
+        elite_score = product.elite_score * (int(coupon_num))
 
         if not uni_key:
             res = {"code": 2, "info": u"记录已生成或申请已达当日上限！"}
@@ -305,7 +305,7 @@ class CouponTransferRecord(BaseModel):
         product_img = reference_record.product_img
         coupon_value = reference_record.coupon_value
         product_id = reference_record.product_id
-        elite_score = reference_record.elite_score * coupon_num
+        elite_score = reference_record.elite_score
 
         if not uni_key:
             res = {"code": 2, "info": u"记录已生成或申请已达当日上限！"}
@@ -358,7 +358,7 @@ class CouponTransferRecord(BaseModel):
             product_id = sale_orders[0].item_id
             from shopback.items.models import Product
             product = Product.objects.filter(id=product_id).first()
-            elite_score = product.elite_score * coupon_num
+            elite_score = product.elite_score * (int(coupon_num))
     
         coupon = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id, from_mama_thumbnail=from_mama_thumbnail,
                                       from_mama_nick=from_mama_nick, coupon_to_mama_id=coupon_to_mama_id,
