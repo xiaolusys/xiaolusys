@@ -274,10 +274,10 @@ class SaleTrade(BaseModel):
         """
         if self.status in [SaleTrade.WAIT_SELLER_SEND_GOODS]:
             if self.order_type == SaleTrade.TEAMBUY_ORDER:
-            for so in self.sale_orders.all():
-                if so.package_sku.is_booked():
-                # if so.product.ware_by == WARE_THIRD and so.package_sku.purchase_order_unikey:
-                    return False
+                for so in self.sale_orders.all():
+                    if so.package_sku.is_booked():
+                        # if so.product.ware_by == WARE_THIRD and so.package_sku.purchase_order_unikey:
+                        return False
             return True
         return False
 
@@ -917,7 +917,8 @@ class SaleOrder(PayBaseModel):
 
     def teambuy_can_send(self):
         from flashsale.pay.models import TeamBuyDetail
-        return TeamBuyDetail.objects.get(oid=self.oid).teambuy.status == 1
+        oid = self.oid.split('-')[0] # 应对重新发货
+        return TeamBuyDetail.objects.get(oid=oid).teambuy.status == 1
 
     def get_refundable(self):
         # return self.sale_trade.status in SaleTrade.REFUNDABLE_STATUS?
