@@ -1,4 +1,10 @@
 # coding=utf-8
+from __future__ import unicode_literals, absolute_import
+import datetime
+import logging
+
+logger = logging.getLogger(__name__)
+
 __ALL__ = [
     'get_app_push_msg_by_id',
     'get_minutes_failed_msgs',
@@ -6,10 +12,6 @@ __ALL__ = [
     'push_msg_right_now_by_id',
     'delete_app_push_msg',
 ]
-import datetime
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 def _validate_record(k, v):
@@ -159,7 +161,7 @@ def update_app_push_msg_by_id(id, **kwargs):
     return app_push
 
 
-class AppPushMessge(object):
+class AppPushMessage(object):
     def __init__(self, **kwargs):
         self.id = kwargs['id']
         self.desc = kwargs['desc']
