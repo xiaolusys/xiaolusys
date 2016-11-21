@@ -47,6 +47,6 @@ def create_present_coupon_transfer_record(customer, template, coupon_id):
 
 def send_order_transfer_coupons(customer_id, order_id, order_oid, order_num, product_id):
     # type: (int, int, text_type, int, int) -> None
-    from ...tasks.transfer_coupon import task_send_transfer_coupons
+    from ...tasks import task_send_transfer_coupons
 
-    task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, product_id)
+    task_send_transfer_coupons.delay(customer_id, order_id, order_oid, order_num, product_id)
