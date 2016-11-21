@@ -1486,6 +1486,7 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
+
 }
 
 WDT_SCHEDULE = {
@@ -1501,6 +1502,7 @@ WDT_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_sync_erp_deliver'}
     }
+
 }
 
 # nihao = {
