@@ -22,7 +22,7 @@ def task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, prod
     from ..apis.v1.coupontemplate import get_coupon_template_by_id
     from .coupontemplate import task_update_tpl_released_coupon_nums
 
-    customer = get_coupon_template_by_id(customer_id)
+    customer = get_customer_by_id(customer_id)
     product = Product.objects.filter(id=product_id).first()
     model_product = ModelProduct.objects.filter(id=product.model_id).first()
     template_id = model_product.extras.get("template_id")
