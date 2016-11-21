@@ -9,7 +9,6 @@ import posixpath
 import global_setup
 global_setup.install_pymysqldb()
 global_setup.cancel_pingpp_charge_ssl_verify()
-global_setup.patch_redis_compat_nativestr()
 
 
 DEBUG = False
