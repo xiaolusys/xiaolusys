@@ -2,7 +2,7 @@
 import simplejson
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from flashsale.daystats.mylib.wangdiantong import WangDianTong
+from common.wdt import WangDianTong
 
 
 @login_required
