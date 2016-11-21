@@ -186,7 +186,7 @@ class PackageScanCheckView(APIView):
     @staticmethod
     def check_address_right(package_order):
         from flashsale.pay.models import SaleTrade
-        from shopback.trades.models.package import get_sale_trade_address_dict, get_package_address_dict
+        from shopback.trades.models.packet import get_sale_trade_address_dict, get_package_address_dict
         try:
             for item in package_order.package_sku_items.all():
                 tid = item.sale_trade_id

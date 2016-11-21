@@ -52,7 +52,8 @@ class PurchaseOrder(BaseModel):
         oids = [p.oid for p in pas]
         pas.update(purchase_order_status=self.status, initial_book=True)
         ps = PackageSkuItem.objects.filter(oid__in=oids)
-        ps.update(purchase_order_unikey=self.uni_key, assign_status=PackageSkuItem.VIRTUAL_ASSIGNED, status=PSI_STATUS.BOOKED, book_time=datetime.datetime.now())
+        ps.update(purchase_order_unikey=self.uni_key, assign_status=PackageSkuItem.VIRTUAL_ASSIGNED,
+                  status=PSI_STATUS.BOOKED, book_time=datetime.datetime.now())
         for p in ps:
             p.gen_package()
 
@@ -61,7 +62,7 @@ class PurchaseOrder(BaseModel):
         from shopback.trades.models import ProductSku
         supplier = ProductSku.objects.get(id=psi.sku_id).product.get_supplier()
         if not supplier:
-            return 's0' # TODO@hy
+            return 's0'  # TODO@hy
         cnt = PurchaseOrder.objects.filter(supplier_id=supplier.id).exclude(status=PurchaseOrder.OPEN).count()
         return '%s-%s' % (supplier.id, cnt + 1)
 
@@ -205,11 +206,12 @@ class PurchaseDetail(BaseModel):
     def create(pa):
         uni_key = '%s-%s' % (pa.sku_id, pa.purchase_order_unikey)
         res = PurchaseArrangement.objects.filter(purchase_order_unikey=pa.purchase_order_unikey,
-                                                 sku_id=pa.sku_id, status=PurchaseArrangement.EFFECT).aggregate(total=Sum('num'))
+                                                 sku_id=pa.sku_id, status=PurchaseArrangement.EFFECT).aggregate(
+            total=Sum('num'))
         total = res['total'] or 0
         unit_price = int(pa.sku.cost * 100)
         pd = PurchaseDetail(uni_key=uni_key, purchase_order_unikey=pa.purchase_order_unikey,
-                                unit_price=unit_price, book_num=total, need_num=total)
+                            unit_price=unit_price, book_num=total, need_num=total)
         fields = ['outer_id', 'outer_sku_id', 'sku_id', 'title', 'sku_properties_name']
         utils.copy_fields(pd, pa, fields)
         pd.save()
@@ -219,7 +221,8 @@ class PurchaseDetail(BaseModel):
 
     def restat(self):
         res = PurchaseArrangement.objects.filter(purchase_order_unikey=self.purchase_order_unikey,
-                                                 sku_id=self.sku_id, status=PurchaseArrangement.EFFECT).aggregate(total=Sum('num'))
+                                                 sku_id=self.sku_id, status=PurchaseArrangement.EFFECT).aggregate(
+            total=Sum('num'))
         total = res['total'] or 0
         unit_price = int(self.sku.cost * 100)
         total_price = unit_price * total
@@ -266,6 +269,7 @@ class PurchaseDetail(BaseModel):
                 num -= pa.num
                 pa.save()
 
+
 # def update_purchase_order(sender, instance, created, **kwargs):
 #     from flashsale.dinghuo.tasks import task_purchase_detail_update_purchase_order
 #     task_purchase_detail_update_purchase_order.delay(instance)
@@ -310,6 +314,7 @@ class PurchaseArrangement(BaseModel):
     initial_book = models.BooleanField(default=False, db_index=True, verbose_name=u'是否已订货')
     gen_order = models.BooleanField(default=False)
     inbound_in = models.BooleanField(default=False, db_index=True, verbose_name=u'是否已入仓')
+
     class Meta:
         db_table = 'flashsale_dinghuo_purchase_arrangement'
         app_label = 'dinghuo'
@@ -357,22 +362,24 @@ class PurchaseArrangement(BaseModel):
             psi = self.skuitem
             pa_new_uni_key = PurchaseOrder.gen_purchase_order_unikey(psi)
             self.purchase_order_unikey = pa_new_uni_key
-            self.uni_key = PurchaseArrangement.gen_purchase_arrangement_unikey(pa_new_uni_key, psi.get_purchase_uni_key())
+            self.uni_key = PurchaseArrangement.gen_purchase_arrangement_unikey(pa_new_uni_key,
+                                                                               psi.get_purchase_uni_key())
             self.status = PurchaseArrangement.EFFECT
 
     @staticmethod
     def gen_purchase_arrangement_unikey(po_unikey, pr_unikey):
         return '%s-%s' % (po_unikey, pr_unikey)
 
-
     def generate_order(pa):
         # 已执行过本方法的再次执行没有问题 应该注意 initial_book为True和status为１正常不该执行此方法
-        #if pa.gen_order:
+        # if pa.gen_order:
         #    return
+        if pa.purchase_order_unikey == 's0':
+            return
         uni_key = utils.gen_purchase_detail_unikey(pa)
         pd = PurchaseDetail.objects.filter(uni_key=uni_key).first()
         if not pd:
-            PurchaseDetail.create(pa)#, uni_key)
+            PurchaseDetail.create(pa)  # , uni_key)
         else:
             if pd.is_open():
                 pd.restat()
@@ -384,24 +391,24 @@ class PurchaseArrangement(BaseModel):
         sku_id = sku_id.strip()
         return "%s-%s" % (sku_id, pa.purchase_order_unikey)
 
-    def generate_order(pa, retry=True):
-        if not pa.gen_order:
-            uni_key = utils.gen_purchase_detail_unikey(pa)
-            pd = PurchaseDetail.objects.filter(uni_key=uni_key).first()
-            if not pd:
-                PurchaseDetail.create(pa)
-            else:
-                if pd.is_open():
-                    pd.restat()
-                else:
-                    if retry:
-                        pa.reset_purchase_order()
-                        pa.save()
-                        pa.generate_order(retry=False)
-                    else:
-                        raise Exception(u'PA(%s)对应的订货单()已订货无法再订' % (pa.oid, pa.purchase_order_unikey))
-            pa.gen_order = True
-            pa.save()
+    # def generate_order(pa, retry=True):
+    #     if not pa.gen_order:
+    #         uni_key = utils.gen_purchase_detail_unikey(pa)
+    #         pd = PurchaseDetail.objects.filter(uni_key=uni_key).first()
+    #         if not pd:
+    #             PurchaseDetail.create(pa)
+    #         else:
+    #             if pd.is_open():
+    #                 pd.restat()
+    #             else:
+    #                 if retry:
+    #                     pa.reset_purchase_order()
+    #                     pa.save()
+    #                     pa.generate_order(retry=False)
+    #                 else:
+    #                     raise Exception(u'PA(%s)对应的订货单()已订货无法再订' % (pa.oid, pa.purchase_order_unikey))
+    #         pa.gen_order = True
+    #         pa.save()
 
     def cancel(self):
         """
@@ -418,6 +425,7 @@ class PurchaseArrangement(BaseModel):
             pd.restat()
             pd.save()
 
+
 def update_purchase_detail(sender, instance, created, **kwargs):
     if instance.gen_order:
         return
@@ -426,4 +434,5 @@ def update_purchase_detail(sender, instance, created, **kwargs):
 
 
 if not settings.CLOSE_CELERY:
-    post_save.connect(update_purchase_detail, sender=PurchaseArrangement, dispatch_uid='post_save_update_purchase_detail')
+    post_save.connect(update_purchase_detail, sender=PurchaseArrangement,
+                      dispatch_uid='post_save_update_purchase_detail')

@@ -1,4 +1,5 @@
 # -*- coding:utf-8 -*-
+# @hy 原本命名为package.py不能被ide正确识别
 import datetime
 from django.db import models, transaction
 from django.db.models import Q, Sum, F, Manager
@@ -624,6 +625,7 @@ class PackageSkuItem(BaseModel):
     gift_type = models.IntegerField(choices=GIFT_TYPE, default=REAL_ORDER_GIT_TYPE, verbose_name=u'类型')
     _objects = Manager()
     objects = Manager()
+    #    bobjects = PackageSkuItemManager()
     class Meta:
         db_table = 'flashsale_package_sku_item'
         app_label = 'trades'
