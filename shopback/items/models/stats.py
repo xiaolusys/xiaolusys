@@ -653,7 +653,7 @@ class SkuStock(models.Model):
     def can_assign(self, sku_item):
         from shopback.trades.models import PackageSkuItem
         if PackageSkuItem.objects.filter(# status=PSI_STATUS.READY,
-                                         assign_status=PackageSkuItem.NOT_ASSIGNED).exists():
+                                         sku_id=self.sku_id, assign_status=PackageSkuItem.NOT_ASSIGNED).exists():
             self.assign()
         now_num = self.realtime_quantity - self.assign_num
         return now_num > sku_item.num

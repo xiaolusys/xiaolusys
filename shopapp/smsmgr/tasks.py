@@ -7,40 +7,10 @@ import datetime
 from django.db.models import F
 from common.utils import update_model_fields
 from flashsale.pay.models import Register
-from shopback import paramconfig as pcfg
 from shopapp.smsmgr.apis import send_sms_message, SMS_TYPE
 
 import logging
 logger = logging.getLogger(__name__)
-
-
-def call_send_a_sms(manager, params, sms_notify_type):
-    """ 调用短信发送
-    :param sms_notify_type: sms_notify_type
-    :param params: params
-    :param manager: manager
-    """
-    success = False
-    succnums = 0
-    sms_record = manager.create_record(  # 创建一条短信发送记录
-        params['mobile'],
-        params['taskName'],
-        sms_notify_type,
-        params['content']
-    )
-    try:  # 调用发送短信接口
-        success, task_id, succnums, response = manager.batch_send(**params)
-    except Exception, exc:
-        sms_record.status = pcfg.SMS_ERROR
-        sms_record.memo = exc.message
-        logger.error(exc.message, exc_info=True)
-    else:
-        sms_record.task_id = task_id
-        sms_record.succnums = succnums
-        sms_record.retmsg = response
-        sms_record.status = success and pcfg.SMS_COMMIT or pcfg.SMS_ERROR
-    sms_record.save()
-    return succnums, success
 
 @app.task()
 def task_notify_package_post(package_order):
@@ -66,7 +36,8 @@ def task_notify_package_post(package_order):
         'sms_title': package_sku_item.title.split("/")[0],
         'sms_delay': '%d'%delay_days,
         'sms_logistic': package_order.logistics_company.name,
-        'sms_logistic_no': package_order.out_sid
+        'sms_logistic_no': package_order.out_sid,
+        'sms_tips': '',
     }
     success = send_sms_message(mobiles, msg_type=sms_notify_type, **params)
     if success:
@@ -108,7 +79,6 @@ def task_register_code(mobile, send_type="1"):
             msg_type = SMS_TYPE.SMS_NOTIFY_REGISTER_CODE
         else:
             return
-
 
         params = {
             'sms_code': reg.verify_code,
