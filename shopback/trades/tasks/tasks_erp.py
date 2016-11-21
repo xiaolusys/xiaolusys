@@ -26,6 +26,7 @@ def parse_sku_code(supplier_sku_code):
     return [filter(None, re.split(',|，', x)) for x in re.split(';|；', supplier_sku_code) if x]
 
 
+@app.task()
 def task_sync_order_to_erp():
     # 获取订货单
     order_list = OrderList.objects.filter(
@@ -41,12 +42,6 @@ def task_sync_order_to_erp():
 
     # 获取优禾订单 PackageSkuItem
     package_sku_items = order_list.package_sku_items
-    # now = datetime.now()
-    # today = datetime(now.year, now.month, now.day)
-    # package_sku_items = PackageSkuItem.objects.filter(
-    #     assign_status__in=[PackageSkuItem.NOT_ASSIGNED, PackageSkuItem.ASSIGNED],
-    #     created__gte=today
-    # )
 
     wdt_orders = []
     for item in package_sku_items:
@@ -126,7 +121,6 @@ def task_sync_order_to_erp():
             continue
 
         erp_order = ErpOrder()
-        # wdt_order['Remark'] = '小鹿美美测试不要发货'
         try:
             result = wdt.create_order(wdt_order)
             if result['ResultCode'] == 0:
@@ -153,6 +147,7 @@ def task_sync_order_to_erp():
         erp_order.save()
 
 
+@app.task()
 def task_sync_erp_deliver():
     """
     定时查询旺店通是否发货
