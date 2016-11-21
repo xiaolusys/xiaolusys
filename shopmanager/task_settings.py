@@ -1480,6 +1480,13 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_check_schedule_is_lock'}
     },
+    u'定时统计小鹿妈妈精品积分': {
+        'task': 'flashsale.xiaolumm.tasks.tasks_mama_dailystats.task_calc_all_xlmm_elite_score',
+        'schedule': crontab(minute="00", hour='23'),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
+
 }
 
 WDT_SCHEDULE = {
@@ -1495,6 +1502,7 @@ WDT_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_sync_erp_deliver'}
     }
+
 }
 
 # nihao = {

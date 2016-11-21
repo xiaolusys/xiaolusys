@@ -77,6 +77,8 @@ class CouponTransferRecord(BaseModel):
     uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')
     date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
     elite_level = models.CharField(max_length=16, blank=True, null=True, verbose_name=u'等级')
+    elite_score = models.IntegerField(default=0, verbose_name=u"精英汇积分")
+    product_id = models.BigIntegerField(default=0, verbose_name=u'商品ID')
 
     class Meta:
         db_table = "flashsale_coupon_transfer_record"
@@ -188,19 +190,28 @@ class CouponTransferRecord(BaseModel):
         coupon_value = int(ct.value)
         product_img = ct.extras.get("product_img") or ''
 
+        product_id = 0
+        elite_score = 0
+        sale_orders = sale_trade.normal_orders
+        if sale_orders:
+            product_id = sale_orders[0].item_id
+            from shopback.items.models import Product
+            product = Product.objects.filter(id=product_id).first()
+            elite_score = product.elite_score
+
         transfer_status = cls.DELIVERED
         coupon = cls(coupon_from_mama_id=coupon_from_mama_id, from_mama_thumbnail=from_mama_thumbnail,
                      from_mama_nick=from_mama_nick, coupon_to_mama_id=coupon_to_mama_id,
                      to_mama_thumbnail=to_mama_thumbnail, to_mama_nick=to_mama_nick,coupon_value=coupon_value,
                      init_from_mama_id=init_from_mama_id, order_no=order_no, template_id=template_id,
-                     product_img=product_img, coupon_num=coupon_num, transfer_type=transfer_type,
+                     product_img=product_img, coupon_num=coupon_num, transfer_type=transfer_type, product_id=product_id, elite_score=elite_score,
                      uni_key=uni_key, date_field=date_field, transfer_status=transfer_status)
         coupon.save()
         res = {"code": 0, "info": u"成功!"}
         return res
 
     @classmethod
-    def init_transfer_record(cls, request_user, coupon_num, template_id):
+    def init_transfer_record(cls, request_user, coupon_num, template_id, product_id):
         from flashsale.xiaolumm.models import XiaoluMama
         from flashsale.pay.models import Customer
         from flashsale.coupon.models import CouponTemplate
@@ -235,6 +246,10 @@ class CouponTransferRecord(BaseModel):
         coupon_value = int(ct.value)
         product_img = ct.extras.get("product_img") or ''
 
+        from shopback.items.models import Product
+        product = Product.objects.filter(id=product_id).first()
+        elite_score = product.elite_score
+
         if not uni_key:
             res = {"code": 2, "info": u"记录已生成或申请已达当日上限！"}
             return res
@@ -247,7 +262,7 @@ class CouponTransferRecord(BaseModel):
                                       from_mama_nick=from_mama_nick, coupon_to_mama_id=coupon_to_mama_id,
                                       to_mama_thumbnail=to_mama_thumbnail, to_mama_nick=to_mama_nick,coupon_value=coupon_value,
                                       init_from_mama_id=init_from_mama_id, order_no=order_no, template_id=template_id,
-                                      product_img=product_img, coupon_num=coupon_num, elite_level=elite_level,
+                                      product_img=product_img, coupon_num=coupon_num, elite_level=elite_level, product_id=product_id, elite_score=elite_score,
                                       transfer_type=transfer_type, uni_key=uni_key, date_field=date_field)
         coupon.save()
         res = {"code": 0, "info": u"成功!"}
@@ -289,6 +304,8 @@ class CouponTransferRecord(BaseModel):
 
         product_img = reference_record.product_img
         coupon_value = reference_record.coupon_value
+        product_id = reference_record.product_id
+        elite_score = reference_record.elite_score
 
         if not uni_key:
             res = {"code": 2, "info": u"记录已生成或申请已达当日上限！"}
@@ -303,7 +320,7 @@ class CouponTransferRecord(BaseModel):
                                       from_mama_nick=from_mama_nick, coupon_to_mama_id=coupon_to_mama_id,
                                       to_mama_thumbnail=to_mama_thumbnail, to_mama_nick=to_mama_nick,coupon_value=coupon_value,
                                       init_from_mama_id=init_from_mama_id, order_no=order_no, template_id=template_id,
-                                      product_img=product_img, coupon_num=coupon_num, elite_level=elite_level,
+                                      product_img=product_img, coupon_num=coupon_num, elite_level=elite_level, product_id=product_id, elite_score=elite_score,
                                       transfer_type=transfer_type, uni_key=uni_key, date_field=date_field)
         coupon.save()
         res = {"code": 0, "info": u"成功!"}
@@ -332,12 +349,22 @@ class CouponTransferRecord(BaseModel):
         template = CouponTemplate.objects.get(id=template_id)
         coupon_value = int(template.value)
         product_img = template.extras.get("product_img") or ''
+
+        product_id = 0
+        elite_score = 0
+        from flashsale.pay.models.trade import SaleOrder
+        sale_orders = SaleOrder.filter(status__in=SaleOrder.NORMAL_ORDER_STATUS)
+        if sale_orders:
+            product_id = sale_orders[0].item_id
+            from shopback.items.models import Product
+            product = Product.objects.filter(id=product_id).first()
+            elite_score = product.elite_score
     
         coupon = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id, from_mama_thumbnail=from_mama_thumbnail,
                                       from_mama_nick=from_mama_nick, coupon_to_mama_id=coupon_to_mama_id,
                                       to_mama_thumbnail=to_mama_thumbnail, to_mama_nick=to_mama_nick,coupon_value=coupon_value,
                                       init_from_mama_id=init_from_mama_id, order_no=order_no, template_id=template_id,
-                                      product_img=product_img, coupon_num=coupon_num, transfer_type=transfer_type,
+                                      product_img=product_img, coupon_num=coupon_num, transfer_type=transfer_type, product_id=product_id, elite_score=elite_score,
                                       uni_key=uni_key, date_field=date_field, transfer_status=transfer_status)
         coupon.save()
         

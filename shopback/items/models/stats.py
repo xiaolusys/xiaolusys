@@ -401,13 +401,14 @@ class SkuStock(models.Model):
 
     @staticmethod
     def set_psi_sent(sku_id, num, stat=STAT_SIGN, warning=WARNING):
-        change_fields = ['psi_waitpost_num', 'psi_sent_num', 'post_num']
+        change_fields = ['psi_waitpost_num', 'psi_sent_num', 'post_num', 'assign_num']
         if stat:
             SkuStock.stat_warning(sku_id, change_fields, warning, stat)
         else:
             SkuStock._objects.filter(sku_id=sku_id).update(psi_waitscan_num=F('psi_waitscan_num') - num,
                                                            psi_sent_num=F('psi_sent_num') + num,
-                                                           post_num=F('post_num') + num
+                                                           post_num=F('post_num') + num,
+                                                           assign_num=F('assign_num ') - num,
                                                            )
             if warning:
                 SkuStock.stat_warning(sku_id, change_fields, warning, stat)

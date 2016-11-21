@@ -539,15 +539,20 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
                     'info': '您还不是精英妈妈，请联系管理员或客服加入',
                 }
         else:
-            if xlmm.id == 1:
+            if xlmm.referal_from == XiaoluMama.DIRECT:
                 item = {
                     'code': 3,
                     'info': '我是第一个妈妈，没有上级妈妈',
                 }
-            else:
+            elif xlmm.referal_from == XiaoluMama.INDIRECT:
                 item = {
                     'code': 4,
                     'info': '没有找到上级妈妈',
+                }
+            else:
+                item = {
+                    'code': 2,
+                    'info': '您还不是精英妈妈，请联系管理员或客服加入',
                 }
         return Response(item)
 
