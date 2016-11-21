@@ -179,8 +179,40 @@ class WangDianTong(object):
 
 def main():
     wdt = WangDianTong()
-    # resp = wdt.create_order()
-    resp = wdt.query_logistics('JY201611160045')
+    content = {
+        'OutInFlag': 3,
+        'IF_OrderCode': 'testwdt002',  # 外部单据编号
+        'WarehouseNO': '001',  # 优禾主仓库
+        'Remark': '测试合并订单',  # 备注
+        'GoodsTotal': 10.0,  # 货款合计(销售出库时非空)
+        'OrderPay': 10.0,  # 订单付款金额（含运费）
+        'LogisticsPay': 0,  # 运费
+        'ShopName': '优禾生活小鹿美美店',  # 订单所属店铺名称（出库时非空）
+        'BuyerName': '测试合并订单',  # 收货人姓名
+        'BuyerPostCode': '000000',  # 收货人邮编
+        'BuyerTel': '18888888888',
+        'BuyerProvince': '上海',
+        'BuyerCity': '上海',
+        'BuyerDistrict': '杨浦区',
+        'BuyerAdr': '小鹿美美',
+        'PayTime': '2016-11-21 00:00:01',
+        'TradeTime': '2016-11-21 00:00:00',
+        'ItemList': {
+            'Item': [
+                {
+                    'Sku_Code': '52004',
+                    'Sku_Name': '测试商品',
+                    'Sku_Price': 0.1,
+                    'Qty': 1,
+                    'Total': 0.1,
+                    'Item_Remark': '',
+                }
+            ]
+        }
+
+    }
+    resp = wdt.create_order(content)
+    # resp = wdt.query_logistics('JY201611160045')
     # resp = wdt.query_order('JY201611160046')
     # print simplejson.dumps(resp, indent=2)
     for k, v in resp.items():

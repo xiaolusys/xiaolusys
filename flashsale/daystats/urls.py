@@ -12,7 +12,15 @@ import views_operate
 import views_input_stat
 import views_stats_fahuo
 
-from flashsale.daystats.views import yunying, customer, product, mama, sql, database
+from flashsale.daystats.views import (
+    yunying,
+    customer,
+    product,
+    mama,
+    sql,
+    database,
+    wdt,
+)
 from .view import popularize_Cost, DailyStatsViewSet
 
 router = routers.DefaultRouter(trailing_slash=False)
@@ -69,6 +77,7 @@ urlpatterns += [
     url(r'^yunying/sql/create$', sql.create, name='yy-sql-create'),
     url(r'^yunying/sql/query$', sql.query, name='yy-sql-query'),
 
+    url(r'^yunying/wdt/$', wdt.index, name='yy-wdt-index'),
 
     url(r'^yunying/databse/index$', database.index, name='yy-database-index'),
     url(r'^yunying/databse/table/(?P<name>.*)$', database.table, name='yy-database-table'),
