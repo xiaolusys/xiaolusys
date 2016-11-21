@@ -400,7 +400,7 @@ class MergeTrade(models.Model):
         return None
 
     def get_package(self):
-        from .package import PackageOrder
+        from .packet import PackageOrder
         if self.status == pcfg.ON_THE_FLY_STATUS:
             return None
         else:
@@ -602,8 +602,7 @@ class MergeTrade(models.Model):
 def update_package_sku_item(sender, instance, created, **kwargs):
     """ 更新PackageSkuItem状态 """
     if instance.type == pcfg.SALE_TYPE and instance.sys_status == MergeTrade.FINISHED_STATUS:
-        from shopback.trades.tasks import task_merge_trade_update_package_sku_item, task_merge_trade_update_sale_order
-        task_merge_trade_update_package_sku_item.delay(instance)
+        from shopback.trades.tasks import task_merge_trade_update_sale_order
         task_merge_trade_update_sale_order.delay(instance)
 
 

@@ -27,6 +27,10 @@ class BaseModel(models.Model):
             update_fields.append('modified')
         return super(BaseModel, self).save(*args, **kwargs)
 
+    @classmethod
+    def get_by_pk(cls, pk):
+        return cls.objects.filter(pk=pk).first()
+
 
 class AdminModel(BaseModel):
     creator = models.CharField(max_length=30,
