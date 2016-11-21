@@ -31,11 +31,6 @@ class BaseModel(models.Model):
     def get_by_pk(cls, pk):
         return cls.objects.filter(pk=pk).first()
 
-    @classmethod
-    def get_apimodel_by_pk(cls, pk):
-        model = cls.get_by_pk(pk)
-        return cls.apimodelclass.init_by_model(model)
-
 
 class AdminModel(BaseModel):
     creator = models.CharField(max_length=30,

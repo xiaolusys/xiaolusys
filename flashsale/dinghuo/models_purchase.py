@@ -370,7 +370,7 @@ class PurchaseArrangement(BaseModel):
     def gen_purchase_arrangement_unikey(po_unikey, pr_unikey):
         return '%s-%s' % (po_unikey, pr_unikey)
 
-    def generate_order(pa):
+    def generate_order(pa, retry=False):
         # 已执行过本方法的再次执行没有问题 应该注意 initial_book为True和status为１正常不该执行此方法
         # if pa.gen_order:
         #    return
@@ -383,6 +383,13 @@ class PurchaseArrangement(BaseModel):
         else:
             if pd.is_open():
                 pd.restat()
+            else:
+                if retry:
+                    pa.reset_purchase_order()
+                    pa.save()
+                    pa.generate_order(retry=False)
+                else:
+                    raise Exception(u'PA(%s)对应的订货单()已订货无法再订' % (pa.oid, pa.purchase_order_unikey))
         pa.gen_order = True
         pa.save()
 
