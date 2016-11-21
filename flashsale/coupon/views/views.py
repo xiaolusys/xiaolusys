@@ -141,7 +141,7 @@ class ReleaseOmissive(APIView):
                 return Response({'code': 0, "message": u'已经发送'})
             template = CouponTemplate.objects.get(id=template_id)
             unique_key = template.gen_usercoupon_unikey('gift_transfer_%s' % cus.id, 1)
-            cou = create_user_coupon(cus.id, template.id, unique_key=unique_key)
+            cou, code, msg = create_user_coupon(cus.id, template.id, unique_key=unique_key)
             transf_record = create_present_coupon_transfer_record(cus, template, cou.id)
             log_action(request.user, cou, ADDITION, u'添加优惠券记录,对应精品券id为%s' % transf_record.id)
             log_action(request.user, transf_record, ADDITION, u'添加精品流通记录,对应优惠券id为%s' % cou.id)
