@@ -834,24 +834,24 @@ class PackageSkuItem(BaseModel):
             self.save()
             SkuStock.set_psi_paid_prepare_book(self.sku_id, self.num)
 
-    def set_status_ready(self):
+    def set_status_ready(self,stat=True):
         ori_status = self.status
         self.status = PSI_STATUS.READY
         self.assign_status = 1
         self.ready_time = datetime.datetime.now()
         self.save()
         if not ori_status:
-            SkuStock.set_psi_init_ready(self.sku_id, self.num)
+            SkuStock.set_psi_init_ready(self.sku_id, self.num,stat=stat)
         else:
-            SkuStock.set_psi_booked_to_ready(self.sku_id, self.num)
+            SkuStock.set_psi_booked_to_ready(self.sku_id, self.num,stat=stat)
 
-    def set_status_assigned(self, save=False):
+    def set_status_assigned(self, save=False, stat=True):
         self.status = PSI_STATUS.ASSIGNED
         self.assign_status = 1
         self.assign_time = datetime.datetime.now()
         if save:
             self.save()
-            SkuStock.set_psi_assigned(self.sku_id, self.num)
+            SkuStock.set_psi_assigned(self.sku_id, self.num, stat=True)
         pa = self.get_purchase_arrangement()
         if pa:
             pa.cancel()
@@ -878,32 +878,32 @@ class PackageSkuItem(BaseModel):
         self.save()
         SkuStock.set_psi_merged(self.sku_id, self.num)
 
-    def set_status_waitscan(self):
+    def set_status_waitscan(self,stat=True):
         self.status = PSI_STATUS.WAITSCAN
         self.scan_time = datetime.datetime.now()
         self.save()
-        SkuStock.set_psi_waitscan(self.sku_id, self.num)
+        SkuStock.set_psi_waitscan(self.sku_id, self.num,stat=stat)
 
-    def set_status_waitpost(self):
+    def set_status_waitpost(self,stat=True):
         self.status = PSI_STATUS.WAITPOST
         self.assign_status = 1
         self.scan_time = datetime.datetime.now()
         self.save()
-        SkuStock.set_psi_waitpost(self.sku_id, self.num)
+        SkuStock.set_psi_waitpost(self.sku_id, self.num, stat=stat)
 
-    def set_status_sent(self):
+    def set_status_sent(self,stat=True):
         self.status = PSI_STATUS.SENT
         self.assign_status = 2
         self.save()
-        SkuStock.set_psi_sent(self.sku_id, self.num)
+        SkuStock.set_psi_sent(self.sku_id, self.num, stat=stat)
 
-    def set_status_finish(self):
+    def set_status_finish(self,stat=True):
         self.status = PSI_STATUS.FINISH
         self.assign_status = 2
         self.save()
-        SkuStock.set_psi_finish(self.sku_id, self.num)
+        SkuStock.set_psi_finish(self.sku_id, self.num,stat=stat)
 
-    def set_status_cancel(self):
+    def set_status_cancel(self,stat=True):
         """
             已产生Pa但未审核　直接取消并关pa
         """
@@ -916,7 +916,7 @@ class PackageSkuItem(BaseModel):
         self.status = PSI_STATUS.CANCEL
         self.assign_status = 3
         self.save()
-        SkuStock.set_psi_cancel(self.sku_id, self.num, ori_status)
+        SkuStock.set_psi_cancel(self.sku_id, self.num, ori_status,stat=stat)
     # -----------------------------------
 
     def reset_status(self):
