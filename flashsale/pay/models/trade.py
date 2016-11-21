@@ -274,10 +274,10 @@ class SaleTrade(BaseModel):
         """
         if self.status in [SaleTrade.WAIT_SELLER_SEND_GOODS]:
             if self.order_type == SaleTrade.TEAMBUY_ORDER:
-            for so in self.sale_orders.all():
-                if so.package_sku.is_booked():
-                # if so.product.ware_by == WARE_THIRD and so.package_sku.purchase_order_unikey:
-                    return False
+                for so in self.sale_orders.all():
+                    if so.package_sku.is_booked():
+                        # if so.product.ware_by == WARE_THIRD and so.package_sku.purchase_order_unikey:
+                        return False
             return True
         return False
 
