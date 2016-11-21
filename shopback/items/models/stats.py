@@ -15,7 +15,7 @@ from django.db.models import Manager
 import logging
 
 logger = logging.getLogger(__name__)
-STAT_SIGN = True
+STAT_SIGN = False
 WARNING = True
 
 

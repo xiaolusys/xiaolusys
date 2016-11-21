@@ -856,12 +856,12 @@ class PackageSkuItem(BaseModel):
         if pa:
             pa.cancel()
 
-    def set_status_not_assigned(self, save=True):
+    def set_status_not_assigned(self, stat=True, save=True):
         self.status = PSI_STATUS.PAID
         self.assign_status = 0
         self.assign_time = datetime.datetime.now()
         if save:
-            SkuStock.set_psi_not_assigned(self.sku_id, self.num ,stat=True)
+            SkuStock.set_psi_not_assigned(self.sku_id, self.num ,stat=stat)
             self.save()
 
     def merge(self):

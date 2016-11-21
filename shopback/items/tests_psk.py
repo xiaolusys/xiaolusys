@@ -120,42 +120,46 @@ class TestPSK(TestCase):
         self.package_sku_item = PackageSkuItem.create(self.sale_order)
         self.package_sku_item.set_status_booked()
         self.assertEqual(self.package_sku_item.status,"booked")
-    #
+
     def test_set_status_ready(self):
         print "123"
         self.package_sku_item = PackageSkuItem.create(self.sale_order)
         self.sku_stock = SkuStock.objects.get(id=self.sku_stock.id)
         ['psi_booked_num', 'psi_ready_num']
+        print self.package_sku_item.status
         pre = [self.sku_stock.psi_booked_num,self.sku_stock.psi_ready_num]
         self.package_sku_item.set_status_ready()
+        self.sku_stock = SkuStock.objects.get(id=self.sku_stock.id)
         next = [self.sku_stock.psi_booked_num,self.sku_stock.psi_ready_num]
         self.assertEqual(self.package_sku_item.status,"ready")
         self.assertEqual(self.package_sku_item.assign_status,1)
         self.assertEqual(pre[0] - self.package_sku_item.num, next[0])
         self.assertEqual(pre[1] + self.package_sku_item.num, next[1])
-    #
+    # #
     def test_set_status_assigned(self):
         self.package_sku_item = PackageSkuItem.create(self.sale_order)
         self.sku_stock = SkuStock.objects.get(id=self.sku_stock.id)
         ['psi_booked_num', 'psi_ready_num']
         pre = [self.sku_stock.psi_booked_num,self.sku_stock.psi_ready_num]
         self.package_sku_item.set_status_assigned()
+        self.sku_stock = SkuStock.objects.get(id=self.sku_stock.id)
         next = [self.sku_stock.psi_booked_num,self.sku_stock.psi_ready_num]
         self.assertEqual(self.package_sku_item.status,"assigned")
         self.assertEqual(self.package_sku_item.assign_status,1)
-    #
+    # #
     def test_set_status_not_assigned(self):
         self.package_sku_item = PackageSkuItem.create(self.sale_order)
         self.sku_stock = SkuStock.objects.get(id=self.sku_stock.id)
         ['assign_num', 'psi_paid_num', 'psi_assigned_num']
         pre = [self.sku_stock.assign_num,self.sku_stock.psi_paid_num,self.sku_stock.psi_assigned_num]
-        self.package_sku_item.set_status_not_assigned()
+        self.package_sku_item.set_status_not_assigned(stat=False, save=True)
+        self.sku_stock = SkuStock.objects.get(id=self.sku_stock.id)
         next = [self.sku_stock.assign_num,self.sku_stock.psi_paid_num,self.sku_stock.psi_assigned_num]
         self.assertEqual(self.package_sku_item.status,"paid")
         self.assertEqual(self.package_sku_item.assign_status,0)
         self.assertEqual(pre[0] - self.package_sku_item.num, next[0])
         self.assertEqual(pre[1] + self.package_sku_item.num, next[1])
-        self.assertEqual(pre[12] - self.package_sku_item.num, next[2])
+        self.assertEqual(pre[2] - self.package_sku_item.num, next[2])
     #
     # def test_merge(self):
     #     pass
@@ -166,48 +170,52 @@ class TestPSK(TestCase):
         ['psi_merged_num', 'psi_waitscan_num']
         pre = [self.sku_stock.psi_merged_num,self.sku_stock.psi_waitscan_num]
         self.package_sku_item.set_status_waitscan()
+        self.sku_stock = SkuStock.objects.get(id=self.sku_stock.id)
         next = [self.sku_stock.psi_merged_num,self.sku_stock.psi_waitscan_num]
         self.assertEqual(self.package_sku_item.status,"waitscan")
         self.assertEqual(pre[0] - self.package_sku_item.num, next[0])
         self.assertEqual(pre[1] + self.package_sku_item.num, next[1])
-    #
+    # #
     def test_set_status_waitpost(self):
         self.package_sku_item = PackageSkuItem.create(self.sale_order)
         self.sku_stock = SkuStock.objects.get(id=self.sku_stock.id)
         ['psi_waitpost_num', 'psi_waitscan_num']
         pre = [self.sku_stock.psi_waitpost_num,self.sku_stock.psi_waitscan_num]
         self.package_sku_item.set_status_waitpost()
+        self.sku_stock = SkuStock.objects.get(id=self.sku_stock.id)
         next = [self.sku_stock.psi_waitpost_num,self.sku_stock.psi_waitscan_num]
         self.assertEqual(self.package_sku_item.status,"waitpost")
         self.assertEqual(self.package_sku_item.assign_status, 1)
-        self.assertEqual(pre[0] - self.package_sku_item.num, next[0])
-        self.assertEqual(pre[1] + self.package_sku_item.num, next[1])
-    #
+        self.assertEqual(pre[0] + self.package_sku_item.num, next[0])
+        self.assertEqual(pre[1] - self.package_sku_item.num, next[1])
+    # #
     def test_set_status_sent(self):
         self.package_sku_item = PackageSkuItem.create(self.sale_order)
         self.sku_stock = SkuStock.objects.get(id=self.sku_stock.id)
-        ['psi_waitpost_num', 'psi_sent_num', 'post_num']
+        ['psi_waitscan_num', 'psi_sent_num', 'post_num']
         pre = [self.sku_stock.psi_waitpost_num,self.sku_stock.psi_sent_num,self.sku_stock.post_num]
         self.package_sku_item.set_status_sent()
-        next = [self.sku_stock.psi_waitpost_num,self.sku_stock.psi_sent_num,self.sku_stock.post_num]
+        self.sku_stock = SkuStock.objects.get(id=self.sku_stock.id)
+        next = [self.sku_stock.psi_waitscan_num,self.sku_stock.psi_sent_num,self.sku_stock.post_num]
         self.assertEqual(self.package_sku_item.status,"sent")
         self.assertEqual(self.package_sku_item.assign_status, 2)
         self.assertEqual(pre[0] - self.package_sku_item.num, next[0])
         self.assertEqual(pre[1] + self.package_sku_item.num, next[1])
-        self.assertEqual(pre[12] + self.package_sku_item.num, next[2])
-    #
+        self.assertEqual(pre[2] + self.package_sku_item.num, next[2])
+    # #
     def test_set_status_finish(self):
         self.package_sku_item = PackageSkuItem.create(self.sale_order)
         self.sku_stock = SkuStock.objects.get(id=self.sku_stock.id)
         ['psi_finish_num', 'psi_sent_num']
         pre = [self.sku_stock.psi_finish_num,self.sku_stock.psi_sent_num]
         self.package_sku_item.set_status_finish()
+        self.sku_stock = SkuStock.objects.get(id=self.sku_stock.id)
         next = [self.sku_stock.psi_finish_num,self.sku_stock.psi_sent_num]
-        self.assertEqual(self.package_sku_item.status,"sent")
-        self.assertEqual(self.package_sku_item.assign_status, 1)
+        self.assertEqual(self.package_sku_item.status,"finish")
+        self.assertEqual(self.package_sku_item.assign_status, 2)
         self.assertEqual(pre[0] + self.package_sku_item.num, next[0])
         self.assertEqual(pre[1] - self.package_sku_item.num, next[1])
-    #
+    # #
     def test_set_status_cancel(self):
         self.package_sku_item = PackageSkuItem.create(self.sale_order)
         self.sku_stock = SkuStock.objects.get(id=self.sku_stock.id)
