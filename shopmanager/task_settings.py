@@ -85,6 +85,7 @@ CELERY_QUEUES = (
     Queue('dinghuo', routing_key='dinghuo.#'),
     Queue('carrytotal', routing_key='carrytotal.#'),
     Queue('qrcode', routing_key='qrcode.#'),
+    Queue('wdt', routing_key='wdt.#'),
 )
 
 CELERY_TASK_QUEUES = CELERY_QUEUES
@@ -1501,6 +1502,21 @@ SHOP_APP_SCHEDULE = {
     },
 }
 
+WDT_SCHEDULE = {
+    u'每小时同步优禾订单到旺店通': {
+        'task': 'shopback.trades.tasks.tasks_erp.task_sync_order_to_erp',
+        'schedule': crontab(minute="0"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_sync_order_to_erp'}
+    },
+    u'每小时同步旺店通订单物流信息': {
+        'task': 'shopback.trades.tasks.tasks_erp.task_sync_erp_deliver',
+        'schedule': crontab(minute="15"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_sync_erp_deliver'}
+    }
+}
+
 # nihao = {
 #     u'定时更新订阅客户退货的物流信息通过快递鸟': {  # by huazi
 #         'task': 'flashsale.restpro.tasks.update_all_return_logistics_bykdn',
@@ -1514,7 +1530,8 @@ SHOP_APP_SCHEDULE = {
 CELERYBEAT_SCHEDULE = {}
 
 CELERYBEAT_SCHEDULE.update(SYNC_MODEL_SCHEDULE)
-
 CELERYBEAT_SCHEDULE.update(SHOP_APP_SCHEDULE)
+CELERYBEAT_SCHEDULE.update(WDT_SCHEDULE)
+
 
 CELERY_BEAT_SCHEDULE = CELERYBEAT_SCHEDULE
