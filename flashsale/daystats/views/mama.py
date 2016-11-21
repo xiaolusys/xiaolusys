@@ -453,11 +453,7 @@ def tab(req):
     query = req.GET.get('sql', '')
     query_name = req.GET.get('query_name', 'xx')
     func_groupby = req.GET.get('func_groupby', '')
-    date_field = req.GET.get('date_field', 'created')
     p_key_desc = req.GET.get('key_desc', '')
-
-    if not date_field:
-        date_field = 'created'
 
     if func_groupby.strip() == '':
         func_groupby = ''
@@ -470,17 +466,7 @@ def tab(req):
     else:
         key_desc = None
 
-    tokens = sqlparse.parse(query)[0].tokens
-    has_where, where_pos = get_where_clause_pos(tokens)
-
-    if not has_where:
-        where = " where {0} > '{1}' and {0} < '{2}' ".format(date_field, start_date, end_date)
-        tokens = insert_where_clause(tokens, where_pos, where)
-    else:
-        where = " and {0} > '{1}' and {0} < '{2}' ".format(date_field, start_date, end_date)
-        tokens = update_where_clause(tokens, where)
-
-    sql = generate_sql_from_tokens(tokens)
+    sql = query.format(**{'start_date': '"%s"' % p_start_date, 'end_date': '"%s"' % p_end_date})
 
     items = execute_sql(get_cursor(), sql)
 
