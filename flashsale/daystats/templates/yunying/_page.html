@@ -1,0 +1,21 @@
+{% load mytags %}
+
+<div class="row">
+  <nav>
+    <ul class="pagination">
+      {% if cur_page.has_previous %}
+      <li><a href="?{% replace_url_params 'page' cur_page.previous_page_number %}">上一页</a></li>
+      {% endif %}
+      {% for i in p.show_page_range %}
+      {% if i == cur_page.number %}
+      <li class="active"><a href="?{% replace_url_params 'page' i %}">{{ i }}</a></li>
+      {% else %}
+      <li><a href="?{% replace_url_params 'page' i %}">{{ i }}</a></li>
+      {% endif %}
+      {% endfor %}
+      {% if cur_page.has_next %}
+      <li><a href="?{% replace_url_params 'page' cur_page.next_page_number %}">下一页</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+</div>
