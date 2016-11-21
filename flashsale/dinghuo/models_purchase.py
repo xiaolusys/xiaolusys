@@ -391,24 +391,24 @@ class PurchaseArrangement(BaseModel):
         sku_id = sku_id.strip()
         return "%s-%s" % (sku_id, pa.purchase_order_unikey)
 
-    def generate_order(pa, retry=True):
-        if not pa.gen_order:
-            uni_key = utils.gen_purchase_detail_unikey(pa)
-            pd = PurchaseDetail.objects.filter(uni_key=uni_key).first()
-            if not pd:
-                PurchaseDetail.create(pa)
-            else:
-                if pd.is_open():
-                    pd.restat()
-                else:
-                    if retry:
-                        pa.reset_purchase_order()
-                        pa.save()
-                        pa.generate_order(retry=False)
-                    else:
-                        raise Exception(u'PA(%s)对应的订货单()已订货无法再订' % (pa.oid, pa.purchase_order_unikey))
-            pa.gen_order = True
-            pa.save()
+    # def generate_order(pa, retry=True):
+    #     if not pa.gen_order:
+    #         uni_key = utils.gen_purchase_detail_unikey(pa)
+    #         pd = PurchaseDetail.objects.filter(uni_key=uni_key).first()
+    #         if not pd:
+    #             PurchaseDetail.create(pa)
+    #         else:
+    #             if pd.is_open():
+    #                 pd.restat()
+    #             else:
+    #                 if retry:
+    #                     pa.reset_purchase_order()
+    #                     pa.save()
+    #                     pa.generate_order(retry=False)
+    #                 else:
+    #                     raise Exception(u'PA(%s)对应的订货单()已订货无法再订' % (pa.oid, pa.purchase_order_unikey))
+    #         pa.gen_order = True
+    #         pa.save()
 
     def cancel(self):
         """
