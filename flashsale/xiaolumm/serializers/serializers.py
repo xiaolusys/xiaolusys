@@ -1,10 +1,10 @@
-# -*- coding:utf-8 -*-
-from flashsale.xiaolumm.models.message import XlmmMessage
+# coding=utf-8
+from __future__ import unicode_literals, absolute_import
+from rest_framework import serializers
+from ..models.message import XlmmMessage
 from ..models.models import CashOut, CarryLog, XiaoluMama
 from ..models.carry_total import MamaCarryTotal, MamaTeamCarryTotal, ActivityMamaCarryTotal
-from ..models.rank import WeekMamaTeamCarryTotal, WeekMamaCarryTotal
 from ..models.models_advertis import NinePicAdver
-from rest_framework import serializers
 from apis.v1.dailypush.ninepic import get_nine_pic_descriptions_by_modelids
 
 

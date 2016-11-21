@@ -22,7 +22,7 @@ from rest_framework.views import APIView
 from core.utils.modelutils import update_model_fields
 from core.weixin.mixins import WeixinAuthMixin
 from core.weixin.signals import signal_weixin_snsauth_response
-from flashsale.coupon.models import UserCoupon
+from flashsale.coupon.apis.v1.usercoupon import create_user_coupon
 from flashsale.pay.models import Customer
 from flashsale.promotion.models import XLInviteCode, XLReferalRelationship
 from flashsale.promotion.models import XLSampleApply, XLFreeSample, XLSampleOrder, ReadPacket
@@ -611,7 +611,6 @@ class ExchangeRedToCoupon(APIView):
         return ids
 
     def exchange_redpackets(self, ids=None, customer=None):
-        code = 0
         reds = ReadPacket.objects.filter(id__in=ids, customer=customer, status=ReadPacket.NOT_EXCHANGE)
         sum_value = reds.aggregate(s_v=Sum('value')).get('s_v') or 0
         reds_count = reds.count()  # 红包条数
@@ -625,9 +624,9 @@ class ExchangeRedToCoupon(APIView):
             coupon_5_count = 0
         code = ''
         for i in range(coupon_10_count):
-            cou, code, msg = UserCoupon.objects.create_normal_coupon(buyer_id=customer, template_id=21)
+            cou, code, msg = create_user_coupon(customer_id=int(customer), coupon_template_id=21)
         for j in range(coupon_5_count):
-            cou, code, msg = UserCoupon.objects.create_normal_coupon(buyer_id=customer, template_id=20)
+            cou, code, msg = create_user_coupon(customer_id=int(customer), coupon_template_id=20)
         if code == 0 or code == 0:
             reds.update(status=ReadPacket.EXCHANGE)  # 更新红包到兑换状态
         coupon_value = coupon_10_count * 10 + coupon_5_count * 5

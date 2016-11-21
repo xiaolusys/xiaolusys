@@ -241,16 +241,6 @@ class MamaDressResult(BaseModel):
         self.share_from += ',' + share_to
         self.save()
 
-    def send_envelop(self):
-        from flashsale.pay.models import Customer
-        from flashsale.pay.models import UserCoupon
-
-        customers = Customer.objects.filter(unionid=self.user_unionid, status=Customer.NORMAL)
-        if customers.exists():
-            customer = customers[0]
-            user_coupon = UserCoupon()
-            user_coupon.release_by_template(buyer_id=customer.id, template_id=34)
-
 
 class DressProduct(BaseModel):
     """ 穿衣测试推荐商品 """

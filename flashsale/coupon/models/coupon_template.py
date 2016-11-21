@@ -4,6 +4,7 @@ import datetime
 from core.models import BaseModel
 from django.db import models
 from core.fields import JSONCharMyField
+from .managers.coupon_template import UserCouponTemplateManager
 
 
 def default_template_extras():
@@ -94,6 +95,7 @@ class CouponTemplate(BaseModel):
     status = models.IntegerField(default=CREATE, choices=STATUS_CHOICES, verbose_name=u"状态")  # type: int
     extras = JSONCharMyField(max_length=512, blank=True, null=True, default=default_template_extras,
                              verbose_name=u"附加信息")  # type: text_type
+    objects = UserCouponTemplateManager()
 
     class Meta:
         db_table = "flashsale_coupon_template"
@@ -259,40 +261,20 @@ class CouponTemplate(BaseModel):
         # 检查产品后检查分类(检查设置了绑定产品并且绑定了类目的情况)
         self.check_category(product_ids)
 
-    def can_send(self):
-        # type: () -> bool
-        from flashsale.coupon.models import UserCoupon
-
-        coupons = UserCoupon.objects.filter(template_id=self.id)
-        tpl_release_count = coupons.count()  # 当前模板的优惠券条数
-        return tpl_release_count < self.prepare_release_num and self.status == CouponTemplate.SENDING
-
-    def make_uniq_id(tpl, customer_id, trade_id=None, share_id=None, refund_trade_id=None, cashout_id=None):
-        # type: (CouponTemplate, int, Any, Any, Any, Any) -> text_type
-        uniqs = [str(tpl.id), str(tpl.coupon_type), str(customer_id)]
-        if tpl.coupon_type == CouponTemplate.TYPE_NORMAL:  # 普通类型 1
-            uniqs = uniqs
-
-        elif tpl.coupon_type == CouponTemplate.TYPE_ORDER_BENEFIT and trade_id:  # 下单红包 2
-            uniqs.append(str(trade_id))
-
-        elif tpl.coupon_type == CouponTemplate.TYPE_ORDER_SHARE and share_id:  # 订单分享 3
-            uniqs.append(str(share_id))
-
-        elif tpl.coupon_type == CouponTemplate.TYPE_MAMA_INVITE and trade_id:  # 推荐专享 4
-            uniqs.append(str(trade_id))  # 一个专属链接可以有多个订单
-
-        elif tpl.coupon_type == CouponTemplate.TYPE_COMPENSATE and refund_trade_id:  # 售后补偿 5
-            uniqs.append(str(refund_trade_id))
-
-        elif tpl.coupon_type == CouponTemplate.TYPE_ACTIVE_SHARE and share_id:  # 活动分享 6
-            uniqs.append(str(share_id))
-
-        elif tpl.coupon_type == CouponTemplate.TYPE_CASHOUT_EXCHANGE and cashout_id:  # 优惠券兑换　7
-            uniqs.append(str(cashout_id))
-        else:
-            raise Exception('Template type is tpl.coupon_type : %s !' % tpl.coupon_type)
-        return '_'.join(uniqs)
+    def make_uniq_id(self, customer_id, trade_id=None, share_id=None, cashout_id=None, count=0):
+        # type: (int, Optional[int], Optional[int], Optional[int], Optional[int]) -> text_type
+        """生成uni_key
+        """
+        uniqs = [self.id, self.coupon_type, customer_id]
+        if trade_id:
+            uniqs.append(trade_id)
+        elif share_id:
+            uniqs.append(share_id)
+        elif self.coupon_type == CouponTemplate.TYPE_CASHOUT_EXCHANGE and cashout_id:  # 优惠券兑换　7
+            uniqs.append(cashout_id)
+        elif count:
+            uniqs.append(count)
+        return '_'.join([str(i) for i in uniqs])
 
     def gen_usercoupon_unikey(self, order_id, index=0):
         # type: (int, int) -> text_type

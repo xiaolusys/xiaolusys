@@ -1,7 +1,11 @@
 # coding=utf-8
+from __future__ import absolute_import, unicode_literals
 from core.models import BaseModel
 from django.db import models
 from django.db.models.signals import post_save
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class TmpShareCoupon(BaseModel):
@@ -23,10 +27,9 @@ class TmpShareCoupon(BaseModel):
 
 
 def update_mobile_download_record(sender, instance, created, **kwargs):
-    # type: (Any, TmpShareCoupon, bool, **Any) -> None
-    from flashsale.coupon.tasks import task_update_mobile_download_record
+    from ..tasks.usercoupon import task_update_mobile_download_record
 
-    task_update_mobile_download_record.delay(instance)
+    task_update_mobile_download_record.delay(instance.id)
 
 
 post_save.connect(update_mobile_download_record, sender=TmpShareCoupon,

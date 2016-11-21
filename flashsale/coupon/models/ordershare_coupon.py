@@ -3,7 +3,6 @@ from core.models import BaseModel
 from django.db import models
 from core.fields import JSONCharMyField
 from django.db.models.signals import pre_save
-from ..managers import OrderShareCouponManager
 
 
 def default_share_extras():
@@ -47,7 +46,6 @@ class OrderShareCoupon(BaseModel):
                                  verbose_name=u"状态")  # type: int
     extras = JSONCharMyField(max_length=1024, default=default_share_extras, blank=True, null=True,
                              verbose_name=u"附加信息")  # type: Optional[text_type]
-    objects = OrderShareCouponManager()
 
     class Meta:
         db_table = "flashsale_coupon_share_batch"

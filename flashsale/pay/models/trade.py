@@ -517,16 +517,14 @@ class SaleTrade(BaseModel):
 
     def release_coupon(self):
         """ 释放订单对应的优惠券 """
-        from flashsale.coupon.models import UserCoupon
+        from flashsale.coupon.apis.v1.usercoupon import rollback_user_coupon_status_2_unused_by_ids
         coupon_ids = self.extras_info.get("coupon") or []
         if isinstance(coupon_ids, str):
-            coupon_ids = [coupon_ids]
-
-        for coupon_id in coupon_ids:
-            usercoupon = UserCoupon.objects.filter(id=coupon_id).first()
-            if usercoupon is None:
-                return
-            usercoupon.release_usercoupon()  # 修改该优惠券的状态到未使用
+            coupon_ids = coupon_ids.strip()
+            coupon_ids = [int(coupon_ids)] if coupon_ids.isdigit() else []
+        coupon_ids = [int(i) for i in coupon_ids]
+        if coupon_ids:
+            rollback_user_coupon_status_2_unused_by_ids(coupon_ids) # 修改该优惠券的状态到未使用
 
     @property
     def unsign_orders(self):
@@ -671,6 +669,34 @@ def category_trade_stat(sender, obj, **kwargs):
 signal_saletrade_pay_confirm.connect(category_trade_stat, sender=SaleTrade)
 
 
+def trigger_mama_deposit_action(sender, obj, *args, **kwargs):
+    """根据押金订单处理妈妈记录:
+    """
+    if not (obj.status == SaleTrade.WAIT_SELLER_SEND_GOODS and obj.is_Deposite_Order()):
+        return
+    try:
+        from flashsale.xiaolumm.apis.v1.xiaolumama import mama_pay_deposit
+        order = obj.sale_orders.first()
+        if order.is_1_deposit():
+            deposit_type = 1
+        elif order.is_99_deposit():
+            deposit_type = 99
+        elif order.is_188_deposit():
+            deposit_type = 188
+        else:
+            return
+        referrer = int(str(obj.extras_info.get('mm_linkid', '')).strip() or '0' if obj.extras_info else '0')  # 推荐人id
+        order.status = SaleTrade.TRADE_FINISHED
+        order.save(update_fields=['status'])
+        mama_pay_deposit(obj.buyer_id, deposit_type, referrer, obj.id, oid=order.oid)
+    except Exception as e:
+        logging.error(e)
+
+signal_saletrade_pay_confirm.connect(trigger_mama_deposit_action,
+                                     sender=SaleTrade,
+                                     dispatch_uid="signal_trigger_mama_deposit_action")
+
+
 def update_customer_first_paytime(sender, obj, **kwargs):
     """
     订单支付后，检测用户是否第一次购买，如果是，更新用户第一次购买时间
@@ -730,36 +756,6 @@ def tongji_trade_pay_channel(sender, obj, **kwargs):
 
 
 signal_saletrade_pay_confirm.connect(tongji_trade_pay_channel, sender=SaleTrade)
-
-
-def trade_payment_used_coupon(sender, obj, **kwargs):
-    """ 交易支付后修改优惠券状态为使用 """
-    from flashsale.coupon.tasks import task_change_coupon_status_used
-    task_change_coupon_status_used(obj)  # execute immediately not delay
-
-
-def release_mamalink_coupon(sender, obj, **kwargs):
-    """用户下单成功后给专属链接代理 发放优惠券"""
-    from flashsale.coupon.tasks import task_release_mama_link_coupon
-    task_release_mama_link_coupon.delay(obj)
-
-
-def release_coupon_buy_way(sender, obj, **kwargs):
-    """购买成功触发购买成功发放的优惠券"""
-    from flashsale.coupon.tasks import task_release_coupon_for_order
-    task_release_coupon_for_order.delay(obj)
-
-
-def freeze_coupon_by_refund(sender, obj, **kwargs):
-    """用户退款冻结绑定的优惠券"""
-    from flashsale.coupon.tasks import task_freeze_coupon_by_refund
-    task_freeze_coupon_by_refund.delay(obj)
-
-
-signal_saletrade_pay_confirm.connect(trade_payment_used_coupon, sender=SaleTrade)
-signal_saletrade_pay_confirm.connect(release_coupon_buy_way, sender=SaleTrade)
-signal_saletrade_pay_confirm.connect(release_mamalink_coupon, sender=SaleTrade)
-signal_saletrade_refund_post.connect(freeze_coupon_by_refund, sender=SaleRefund)
 
 
 def update_teambuy(sender, instance, created, **kwargs):
@@ -1172,8 +1168,10 @@ def order_trigger(sender, instance, created, raw, **kwargs):
             if instance.is_1_deposit():  # 一元开店 不记录推荐关系
                 return
             if instance.is_transfer_coupon():
-                from flashsale.coupon.tasks import task_create_transfer_coupon
-                task_create_transfer_coupon.delay(instance)
+                from flashsale.coupon.apis.v1.transfer import send_order_transfer_coupons
+
+                send_order_transfer_coupons(instance.sale_trade.buyer_id, instance.id,
+                                           instance.oid, instance.num, instance.item_id)
                 return
 
             from flashsale.xiaolumm.tasks import task_update_referal_relationship

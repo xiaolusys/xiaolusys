@@ -369,14 +369,14 @@ class SaleRefund(PayBaseModel):
         """
         if self.status != SaleRefund.REFUND_SUCCESS:  # 不是退款成功不处理
             return False
-        from flashsale.coupon.tasks import task_roll_back_usercoupon_by_refund
+        from flashsale.coupon.apis.v1.usercoupon import return_user_coupon_by_order_refund
 
         sale_trade = self.sale_trade
         refund_fees = SaleRefund.objects.filter(trade_id=self.trade_id,
                                                 status=SaleRefund.REFUND_SUCCESS).values('refund_fee')
         total_refund_fee = sum([i['refund_fee'] for i in refund_fees])  # 该交易相关的退款单总退款成功费用
         if sale_trade.payment == total_refund_fee:  # 退款成功的费用和交易费用相等则退还优惠券给用户
-            task_roll_back_usercoupon_by_refund.delay(sale_trade.tid, self.refund_num)
+            return_user_coupon_by_order_refund(sale_trade.tid, self.refund_num)
         return True
 
     def refund_confirm(self):
