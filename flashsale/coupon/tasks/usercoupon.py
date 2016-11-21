@@ -22,6 +22,8 @@ def task_update_coupon_use_count(coupon_template_id, share_coupon_record_id):
     tpl.has_used_count = tpl_used_count
     tpl.save(update_fields=['has_used_count'])
 
+    if not share_coupon_record_id:  # 不是分享类型优惠券则不统计
+        return
     share = get_order_share_coupon_by_id(share_coupon_record_id)
     if share:
         share_used_count = UserCoupon.objects.get_order_share_coupons(share.id).filter(status=UserCoupon.USED).count()
