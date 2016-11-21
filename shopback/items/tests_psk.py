@@ -99,7 +99,7 @@ def create_sale_trade():
 
 def create_sale_order():
     SaleOrder.objects.filter(id=248281).delete()
-    sale_order = {"id":248281,"oid":"xo123123","item_id":10270,"title":"衬衫","price":29.9,"sku_id":248181,"num":1,"outer_id":'80205508201',"outer_sku_id":4,"total_fee":29.9,
+    sale_order = {"id":248281,"oid":"xo123123","item_id":10270,"title":"衬衫","price":29.9,"sku_id":'248181',"num":1,"outer_id":'80205508201',"outer_sku_id":'4',"total_fee":29.9,
                       "payment":29.9,"sku_name":"XL","status":5,"sale_trade_id":468462,"pay_time":datetime.datetime.now()}
     sale_order = SaleOrder.objects.create(**sale_order)
     return sale_order
