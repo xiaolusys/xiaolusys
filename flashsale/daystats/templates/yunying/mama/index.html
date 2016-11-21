@@ -8,11 +8,8 @@
 
 <div class="row">
   <form action="{{ req.path }}" method="GET" name="query_form">
-    <div class="col-xs-6">
+    <div class="col-xs-8">
       <input type="text" class="form-control" name="sql" value="{{ query }}" placeholder="输入SQL语句">
-    </div>
-    <div class="col-xs-2">
-      <input type="text" class="form-control" name="date_field" value="{{ date_field }}">
     </div>
     <div class="col-xs-2">
       <input type="text" class="form-control" name="start_date" value="{{ p_start_date }}">
