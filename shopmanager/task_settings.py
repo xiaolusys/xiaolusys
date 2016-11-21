@@ -541,61 +541,41 @@ MAMA_CARRYTOTAL_ROUTES = {
 }
 
 FLASHSALE_COUPON_ROUTES = {
-    'flashsale.coupon.tasks.task_create_transfer_coupon': {
+    'flashsale.coupon.transfer_coupon.tasks.task_send_transfer_coupons': {
         'queue': 'coupon',
-        'routing_key': 'coupon.task_create_transfer_coupon',
+        'routing_key': 'coupon.task_send_transfer_coupons',
     },
-    'flashsale.coupon.tasks.task_update_tpl_released_coupon_nums': {
+    'flashsale.coupon.tasks.coupontemplate.task_update_tpl_released_coupon_nums': {
         'queue': 'coupon',
         'routing_key': 'coupon.task_update_tpl_released_coupon_nums',
     },
-    'flashsale.coupon.tasks.task_update_share_coupon_release_count': {
+    'flashsale.coupon.tasks.ordershare_coupon.task_update_share_coupon_release_count': {
         'queue': 'coupon',
         'routing_key': 'coupon.task_update_share_coupon_release_count',
     },
-    'flashsale.coupon.tasks.task_update_coupon_use_count': {
+    'flashsale.coupon.tasks.usercoupon.task_update_coupon_use_count': {
         'queue': 'coupon',
         'routing_key': 'coupon.task_update_coupon_use_count',
     },
-    'flashsale.coupon.tasks.task_release_coupon_for_order': {
+    'flashsale.coupon.tasks.usercoupon.task_release_coupon_for_order': {
         'queue': 'coupon',
         'routing_key': 'coupon.task_release_coupon_for_order',
     },
-    'flashsale.coupon.tasks.task_freeze_coupon_by_refund': {
+    'flashsale.coupon.tasks.usercoupon.task_freeze_coupon_by_refund': {
         'queue': 'coupon',
         'routing_key': 'coupon.task_freeze_coupon_by_refund',
     },
-    'flashsale.coupon.tasks.task_release_mama_link_coupon': {
+    'flashsale.coupon.tasks.usercoupon.task_release_mama_link_coupon': {
         'queue': 'coupon',
         'routing_key': 'coupon.task_release_mama_link_coupon',
     },
-    'flashsale.coupon.tasks.task_release_coupon_for_register': {
+    'flashsale.coupon.tasks.usercoupon.task_return_user_coupon_by_trade': {
         'queue': 'coupon',
-        'routing_key': 'coupon.task_release_coupon_for_register',
+        'routing_key': 'coupon.task_return_user_coupon_by_trade',
     },
-    'flashsale.coupon.tasks.task_roll_back_usercoupon_by_refund': {
-        'queue': 'coupon',
-        'routing_key': 'coupon.task_roll_back_usercoupon_by_refund',
-    },
-    'flashsale.coupon.tasks.task_update_mobile_download_record': {
+    'flashsale.coupon.tasks.usercoupon.task_update_mobile_download_record': {
         'queue': 'coupon',
         'routing_key': 'coupon.task_update_mobile_download_record',
-    },
-    'flashsale.coupon.tasks.task_update_unionid_download_record': {
-        'queue': 'coupon',
-        'routing_key': 'coupon.task_update_unionid_download_record',
-    },
-    'flashsale.coupon.tasks.task_release_coupon_for_mama_deposit': {
-        'queue': 'coupon',
-        'routing_key': 'coupon.task_release_coupon_for_mama_deposit',
-    },
-    'flashsale.coupon.tasks.task_release_coupon_for_mama_deposit_double_99': {
-        'queue': 'coupon',
-        'routing_key': 'coupon.task_release_coupon_for_mama_deposit_double_99',
-    },
-    'flashsale.coupon.tasks.task_release_coupon_for_mama_renew': {
-        'queue': 'coupon',
-        'routing_key': 'coupon.task_release_coupon_for_mama_renew',
     },
 }
 
@@ -1237,7 +1217,7 @@ SHOP_APP_SCHEDULE = {
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
     u'定时更新用户优惠券状态': {
-        'task': 'flashsale.coupon.tasks.task_update_user_coupon_status_2_past',
+        'task': 'flashsale.coupon.tasks.usercoupon.task_update_user_coupon_status_2_past',
         'schedule': crontab(minute="15", hour="2"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
@@ -1429,7 +1409,7 @@ SHOP_APP_SCHEDULE = {
     },
 
     u'定时用户优惠券优惠券过期推送消息': {
-        'task': 'flashsale.coupon.tasks.task_push_msg_pasting_coupon',
+        'task': 'flashsale.coupon.tasks.usercoupon.task_push_msg_pasting_coupon',
         'schedule': crontab(minute="30", hour="12"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}

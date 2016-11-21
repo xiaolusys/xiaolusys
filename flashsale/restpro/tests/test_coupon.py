@@ -2,7 +2,6 @@
 import json
 from django.test import TestCase
 from flashsale.coupon.models import UserCoupon, OrderShareCoupon
-from flashsale.promotion.models import XLSampleApply
 
 
 class UserCouponTestCase(TestCase):
@@ -56,7 +55,7 @@ class UserCouponTestCase(TestCase):
         response = self.client.post(self.url_user_coupons, post_data, ACCPET='application/json')
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
-        assert (data['code'] in [0, 7, 9])
+        assert (data['code'] in [0, 6, 7, 9])
 
     def testChooseCouponByProduct(self, pk=15):
         post_item = {"pro_num": 1, "item_id": 41385}

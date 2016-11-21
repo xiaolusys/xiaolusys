@@ -85,16 +85,23 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         manual_refund = request.data.get('manual_refund')
         status = int(request.data.get('status'))
-        # if not instance.is_modifiable:
-        # raise exceptions.APIException(u'退款单当前状态不予更新退款单!')
-        if instance.status == SaleRefund.REFUND_WAIT_RETURN_GOODS and \
-                        status not in (SaleRefund.REFUND_WAIT_RETURN_GOODS,
-                                       SaleRefund.REFUND_APPROVE,
-                                       SaleRefund.REFUND_SUCCESS):
+        data = request.data.copy()
+        if data.has_key('coupon_template_id'):
+            coupon_template_id = int(data.get('coupon_template_id'))
+            if coupon_template_id:
+                data.pop('coupon_template_id')
+                amount_flow = instance.amount_flow
+                amount_flow.update({'refund_coupon': {
+                    'template_id': coupon_template_id,
+                    'send_status': False}})
+                data.update({'amount_flow': amount_flow})
+        if instance.status == SaleRefund.REFUND_WAIT_RETURN_GOODS \
+                and status not in (SaleRefund.REFUND_WAIT_RETURN_GOODS, SaleRefund.REFUND_APPROVE,
+                                   SaleRefund.REFUND_SUCCESS):
             raise exceptions.APIException(u'同意状态,不予修改状态!')
         if instance.status == SaleRefund.REFUND_WAIT_SELLER_AGREE and status == SaleRefund.REFUND_WAIT_RETURN_GOODS:
             instance.agree_return_goods()  # 如果是从退款待审　到　同意退货　则发送　退回信息
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer = self.get_serializer(instance, data=data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         instance = self.queryset.filter(id=serializer.data.get('id')).first()

@@ -14,7 +14,7 @@ from rest_framework.decorators import parser_classes
 
 from ..models import LackGoodOrder, OrderList
 from flashsale.pay.models import SaleOrder, SaleRefund
-from flashsale.coupon.models import UserCoupon
+from flashsale.coupon.apis.v1.usercoupon import create_user_coupon
 from flashsale.coupon.constants import LACK_REFUND_COUPON_TEMPLATE_ID
 from .. import serializers
 
@@ -153,10 +153,9 @@ class LackGoodOrderViewSet(viewsets.ModelViewSet):
                 )
             if not refund.is_refundapproved:
                 # 发优惠券
-                UserCoupon.objects.create_refund_post_coupon(sale_trade.buyer_id,
-                                                             LACK_REFUND_COUPON_TEMPLATE_ID,
-                                                             trade_id=sale_trade.id,
-                                                             ufrom=None)
+                create_user_coupon(customer_id=sale_trade.buyer_id,
+                                   coupon_template_id=LACK_REFUND_COUPON_TEMPLATE_ID,
+                                   trade_id=sale_trade.id)
                 # 退款
                 refund.refund_approve()
                 lack_order.refund_num += refund_num

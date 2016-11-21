@@ -24,7 +24,8 @@ from core.options import log_action, ADDITION, CHANGE
 from flashsale.clickcount.models import ClickCount
 from flashsale.clickcount.models import Clicks
 from flashsale.clickrebeta.models import StatisticsShopping
-from flashsale.coupon.models import UserCoupon, CouponTemplate
+from flashsale.coupon.models import CouponTemplate
+from flashsale.coupon.apis.v1.usercoupon import create_user_coupon
 from flashsale.pay.mixins import PayInfoMethodMixin
 from flashsale.pay.models import BudgetLog
 from flashsale.pay.models import Customer
@@ -34,7 +35,7 @@ from flashsale.xiaolumm.models.models_fans import XlmmFans, FansNumberRecord
 from flashsale.xiaolumm.models.models_fortune import MamaFortune
 from flashsale.pay.models import Envelop
 from shopapp.weixin.models import WeixinUnionID
-
+from flashsale.xiaolumm.apis.v1.potentialmama import update_potential_by_deposit
 
 from shopback.items.models import Product, ProductSku
 from . import serializers
@@ -1187,8 +1188,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
                            uni_key=uni_key)
             cash.save()
             log_action(request.user, cash, ADDITION, u'用户现金兑换优惠券添加提现记录')
-            cou, co, ms = UserCoupon.objects.create_cashout_exchange_coupon(customer.id, tpl.id,
-                                                                            cashout_id=cash.id)
+            cou, co, ms = create_user_coupon(customer_id=customer.id, coupon_template_id=tpl.id, cash_out_id=cash.id)
             if co != 0:
                 cash.status = CashOut.CANCEL
                 cash.save(update_fields=['status'])
@@ -1237,36 +1237,26 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         if deposit > could_cash_out:
             default_return.update({"code": 2, "info": "余额不足"})
             return Response(default_return)
-        try:
-            from flashsale.coupon.tasks import task_release_coupon_for_mama_deposit, \
-                task_release_coupon_for_mama_deposit_double_99
-
-            if xlmm.last_renew_type == XiaoluMama.HALF:
-                task_release_coupon_for_mama_deposit_double_99.delay(customer.id)
-            else:
-                task_release_coupon_for_mama_deposit.delay(customer.id, days_map[exchange_type])
-
-        except Exception as exc:
-            logger.warn({'action': 'mama_exchange_deposit', 'mama_id': xlmm.id,
-                         'exchange_type': exchange_type, 'message': exc.message})
-            # 这里是续费　如果是第一次成为正式的话(发送优惠券)　否则异常打入log 后继续续费动作
         cash = CashOut(xlmm=xlmm.id,
                        value=deposit * 100,
                        cash_out_type=CashOut.MAMA_RENEW,
                        approve_time=datetime.datetime.now(),
                        status=CashOut.APPROVED)
         cash.save()
+        try:
+            from flashsale.coupon.apis.v1.usercoupon import release_coupon_for_deposit
+
+            release_coupon_for_deposit(customer.id, days_map[exchange_type], cash_out_id=cash.id)
+        except Exception as exc:
+            logger.warn({'action': 'mama_exchange_deposit', 'mama_id': xlmm.id,
+                         'exchange_type': exchange_type, 'message': exc.message})
+            # 这里是续费　如果是第一次成为正式的话(发送优惠券)　否则异常打入log 后继续续费动作
         log_action(request.user, cash, ADDITION, u'用户妈妈钱包兑换代理续费')
         # 延迟 XiaoluMama instance 的续费时间　如果续费时间大于当前时间并且　当前instance 是冻结的则解冻
         days = days_map[exchange_type]
         xlmm.update_renew_day(days)
         log_action(request.user, xlmm, CHANGE, u'用户妈妈钱包兑换代理续费修改字段')
-        potential = PotentialMama.objects.filter(potential_mama=xlmm.id).first()  # 续费的潜在妈妈
-        if potential:
-            extra = {"cashout_id": cash.id}
-            state = potential.update_full_member(last_renew_type=xlmm.last_renew_type, extra=extra)  # 续费转正
-            if state:
-                log_action(request.user, potential, CHANGE, u'用户钱包兑换妈妈续费')
+        update_potential_by_deposit(xlmm.id, xlmm.last_renew_type, cashout_id=cash.id)
         return Response(default_return)
 
 

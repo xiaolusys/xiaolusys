@@ -909,30 +909,6 @@ def get_Deposit_Trade(openid, mobile):
         return None
 
 
-from flashsale.coupon.models import UserCoupon
-
-
-def create_coupon(sale_orders):
-    # 创建优惠券
-    buyer_id = sale_orders[0].sale_trade.buyer_id
-    cou, code, msg = UserCoupon.objects.create_normal_coupon(buyer_id=buyer_id, template_id=1)
-    return cou
-
-
-from flashsale.xiaolumm.tasks import task_mama_Verify_Action
-
-
-@csrf_exempt
-@transaction.atomic
-def mama_Verify_Action(request):
-    mama_id = request.GET.get('id')
-    referal_mobile = request.GET.get('tuijianren', '').strip()
-    weikefu = request.GET.get('weikefu')
-    user_id = request.user.id
-    res = task_mama_Verify_Action.delay(user_id, mama_id, referal_mobile, weikefu)
-    return HttpResponse(res)
-
-
 from flashsale.xiaolumm.models.models_fans import XlmmFans
 
 
