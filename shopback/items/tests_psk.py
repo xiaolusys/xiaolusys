@@ -15,8 +15,9 @@ import shopback.items.models.stats
 from shopback.items.models.stats import SkuStock
 from shopback.trades.models import PackageSkuItem
 import shopback.items.models.stats
-from flashsale.pay.models import SaleOrder,SaleTrade
+from flashsale.pay.models import SaleOrder,SaleTrade,Customer
 from django.db.models import Q, Sum
+from django.contrib.auth.models import User
 from flashsale.dinghuo.models_purchase import PurchaseArrangement
 import datetime
 
@@ -49,9 +50,47 @@ def create_product_sku():
 
 # print create_product_sku()
 
+def create_user():
+    user = {
+        "id":1,
+        "username": "xiaolu",
+        "first_name": "",
+        "last_name": "",
+        "is_active": True,
+        "is_superuser": True,
+        "is_staff": False,
+        "last_login": "2016-04-26T15:06:11",
+        "groups": [],
+        "user_permissions": [],
+        "password": "pbkdf2_sha256$20000$agkhgYSPE93h$DbzdKuI2FHE+Ya0macEsKOqxRaioQrEb/gdSmQXl0ks=",
+        "email": "",
+        "date_joined": "2016-04-24T21:55:14"
+    }
+    user = User.objects.create(**user)
+    return user
+
+def create_customer():
+    user = create_user()
+    customer = {
+        "id":1,
+        "status": 1,
+        "openid": "our5huIOSuFF5FdojFMFNP5HNOmA",
+        "created": "2015-04-09T11:08:12",
+        "mobile": "18621623915",
+        "unionid": "o29cQs4zgDoYxmSO3pH-x4A7O8Sk",
+        "modified": "2016-04-20T11:49:55",
+        "phone": "",
+        "email": "",
+        "nick": "meron@\u5c0f\u9e7f\u7f8e\u7f8e",
+        "user": user,
+        "thumbnail": "http://wx.qlogo.cn/mmopen/n24ek7Oc1iaXyxqzHobN7BicG5W1ljszSRWSdzaFeRkGGVwqjmQKTmicTylm8IkclpgDiaamWqZtiaTlcvLJ5z6x35wCKMWVbcYPU/0"
+    }
+    return  Customer.objects.create(**customer)
+
 def create_sale_trade():
+    customer = create_customer()
     SaleTrade.objects.filter(id=468462).delete()
-    sale_trade = {"id":468462,"tid":"xd123123","buyer_id":1,"buyer_nick":"疾风剑豪","payment":27.9,"receiver_name":"剑圣","receiver_address":"德玛西亚",
+    sale_trade = {"id":468462,"tid":"xd123123","buyer_id":customer.id,"buyer_nick":"疾风剑豪","payment":27.9,"receiver_name":"剑圣","receiver_address":"德玛西亚",
                   "receiver_mobile":123123,"status":2}
     sale_trade = SaleTrade.objects.create(**sale_trade)
     return sale_trade
