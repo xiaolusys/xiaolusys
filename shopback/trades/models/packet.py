@@ -926,7 +926,7 @@ class PackageSkuItem(BaseModel):
         from flashsale.pay.models import SaleOrder
         if self.assign_status == PackageSkuItem.CANCELED:
             self.status = PSI_STATUS.CANCEL
-        elif self.sale_order.status == SaleOrder.TRADE_BUYER_SIGNED:
+        elif self.sale_order.status in [SaleOrder.TRADE_BUYER_SIGNED, SaleTrade.TRADE_FINISHED]:
             self.status = PSI_STATUS.FINISH
         elif self.assign_status == PackageSkuItem.FINISHED:
             self.status = PSI_STATUS.SENT
