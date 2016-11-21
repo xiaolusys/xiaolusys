@@ -29,7 +29,7 @@ class TmpShareCoupon(BaseModel):
 def update_mobile_download_record(sender, instance, created, **kwargs):
     from ..tasks.usercoupon import task_update_mobile_download_record
 
-    task_update_mobile_download_record.delay(instance.id)
+    task_update_mobile_download_record(instance.id)
 
 
 post_save.connect(update_mobile_download_record, sender=TmpShareCoupon,
