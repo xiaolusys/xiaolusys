@@ -100,8 +100,9 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
         queryset = self.filter_queryset(queryset)
         serializer = self.get_serializer(queryset, many=True)
         # 统计代码
-        statsd.incr('xiaolumm.ninepic_count')
-        task_mama_daily_tab_visit_stats.delay(xlmm.id, MamaTabVisitStats.TAB_DAILY_NINEPIC)
+        if xlmm:
+            statsd.incr('xiaolumm.ninepic_count')
+            task_mama_daily_tab_visit_stats.delay(xlmm.id, MamaTabVisitStats.TAB_DAILY_NINEPIC)
         return Response(serializer.data)
 
     @transaction.atomic()
