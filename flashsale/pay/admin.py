@@ -117,7 +117,7 @@ class SaleTradeAdmin(BaseModelAdmin):
         'status', 'channel', 'has_budget_paid', 'order_type', ('pay_time', DateFieldListFilter),
         ('created', DateFieldListFilter))
     search_fields = ['=tid', '=id', '=receiver_mobile', '=buyer_id']
-    list_per_page = 25
+    list_per_page = 20
     inlines = [SaleOrderInline]
 
     # -------------- 页面布局 --------------
@@ -172,7 +172,7 @@ class SaleTradeAdmin(BaseModelAdmin):
         # type : () -> SaleTrade
         mama_id = obj.order_buyer.mama_id
         customer_i = u'<a target="_blank" href="/admin/pay/customer/?id=%s">C: %s</a>' % (obj.buyer_id, obj.buyer_id)
-        mama_i = u'<a target="_blank" href="/admin/pay/customer/?id=%s">M: %s</a>' % (mama_id, mama_id)
+        mama_i = u'<a target="_blank" href="/admin/xiaolumm/xiaolumama/?id=%s">M: %s</a>' % (mama_id, mama_id)
         return u' | '.join([customer_i, mama_i])
     buyer_info.allow_tags = True
     buyer_info.short_description = u"用户id | 妈妈id"
