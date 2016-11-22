@@ -757,7 +757,6 @@ class CashOutVerify(APIView):
 
     @transaction.atomic
     def post(self, request):
-        print request.POST
         action = request.POST.get('action')
         cash_out_id = request.POST.get('cash_out_id')
         if not cash_out_id and action:
