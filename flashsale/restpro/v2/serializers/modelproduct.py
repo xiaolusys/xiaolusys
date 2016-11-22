@@ -109,7 +109,6 @@ class ModelProductSerializer(serializers.ModelSerializer):
                 product = obj.products.filter(id=product_id).first()
                 content['name'] = product.name
                 content['head_imgs'] = [product.pic_path]
-                content['elite_score'] = product.elite_score
         return content
 
     def get_extras(self, obj):

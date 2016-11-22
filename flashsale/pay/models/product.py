@@ -372,7 +372,8 @@ class ModelProduct(BaseTagModel):
             'std_sale_price':product.std_sale_price,
             'agent_price':product.agent_price,
             'lowest_price': product.lowest_price(),
-            'sku_items': sku_list
+            'sku_items': sku_list,
+            'elite_score': product.elite_score
         }
 
     @property
