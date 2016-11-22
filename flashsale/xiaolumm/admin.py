@@ -204,7 +204,9 @@ class CashOutAdmin(ApproxAdmin):
         if obj.status == CashOut.PENDING:
             return u'<a style="display:block;"href="/m/cashoutverify/%d/%d">提现审核</a>' % (obj.xlmm, obj.id)
         elif obj.status == CashOut.APPROVED:
-            return u'<a style="display:block;"href="/admin/xiaolumm/envelop/?receiver=%s">查看红包</a>' % obj.xlmm
+            a = u'<a target="_blank" href="/admin/xiaolumm/envelop/?receiver=%s">总</a>' % obj.xlmm
+            s = u'<a target="_blank" href="/admin/xiaolumm/envelop/?referal_id=%s&subject=cashout">单</a>' % obj.id
+            return u'查看红包:' + ' | '.join([a, s])
         return ''
 
     cash_out_verify.allow_tags = True
@@ -219,7 +221,7 @@ class CashOutAdmin(ApproxAdmin):
         return sum_click
 
     total_click.allow_tags = True
-    total_click.short_description = u"历史有效点击数"
+    total_click.short_description = u"点击数"
 
     def total_order(self, obj):
         # type: (CashOut) -> int
@@ -230,7 +232,7 @@ class CashOutAdmin(ApproxAdmin):
         return sum_order
 
     total_order.allow_tags = True
-    total_order.short_description = u"历史订单数"
+    total_order.short_description = u"订单数"
 
     def history_cash_out(self, obj):
         # type: (CashOut) -> float
