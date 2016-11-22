@@ -23,6 +23,7 @@ class Product(object):
         self.agent_price = kwargs['agent_price']
         self.lowest_price = kwargs['lowest_price']
         self.std_sale_price = kwargs['std_sale_price']
+        self.elite_score = kwargs['elite_score']
 
     def sku_items(self):
         if not hasattr(self, '_sku_items_'):
