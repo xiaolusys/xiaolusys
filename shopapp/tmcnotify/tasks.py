@@ -16,7 +16,7 @@ import logging
 logger = logging.getLogger('notifyserver.handler')
 
 
-class ProcessMessageTask(Task):
+class ProcessMessageTask(object):
     """ 处理消息 """
 
     def getMessageType(self, message):
