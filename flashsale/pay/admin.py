@@ -108,15 +108,16 @@ admin.site.register(SaleOrder, SaleOrderAdmin)
 
 class SaleTradeAdmin(BaseModelAdmin):
     list_display = (
-        'id_link', 'tid', 'buyer_nick', 'channel', 'order_type', 'payment', 'pay_time', 'created', 'status', 'buyer_id')
-    list_display_links = ('tid', 'buyer_id')
+        'id_link', 'tid', 'buyer_nick', 'channel', 'order_type', 'payment', 'pay_time', 'created', 'status',
+        'buyer_info')
+    list_display_links = ('tid', 'buyer_info')
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = (
         'status', 'channel', 'has_budget_paid', 'order_type', ('pay_time', DateFieldListFilter),
         ('created', DateFieldListFilter))
     search_fields = ['=tid', '=id', '=receiver_mobile', '=buyer_id']
-
+    list_per_page = 25
     inlines = [SaleOrderInline]
 
     # -------------- 页面布局 --------------
@@ -166,6 +167,15 @@ class SaleTradeAdmin(BaseModelAdmin):
 
     id_link.allow_tags = True
     id_link.short_description = u"ID"
+
+    def buyer_info(self, obj):
+        # type : () -> SaleTrade
+        mama_id = obj.order_buyer.mama_id
+        customer_i = u'<a target="_blank" href="/admin/pay/customer/?id=%s">C: %s</a>' % (obj.buyer_id, obj.buyer_id)
+        mama_i = u'<a target="_blank" href="/admin/pay/customer/?id=%s">M: %s</a>' % (mama_id, mama_id)
+        return u' | '.join([customer_i, mama_i])
+    buyer_info.allow_tags = True
+    buyer_info.short_description = u"用户id | 妈妈id"
 
     def get_readonly_fields(self, request, obj=None):
 
