@@ -39,11 +39,12 @@ class APIProductSerializer(serializers.Serializer):
     std_sale_price = serializers.SerializerMethodField()
     agent_price = serializers.SerializerMethodField()
     lowest_price = serializers.SerializerMethodField()
+    elite_score = serializers.SerializerMethodField()
 
     class Meta:
         fields = (
             'type', 'product_id', 'name', 'product_img', 'outer_id', 'is_saleout'
-            'std_sale_price', 'agent_price', 'lowest_price', 'sku_items'
+            'std_sale_price', 'agent_price', 'lowest_price', 'sku_items', 'elite_score'
         )
 
     def get_product_id(self, obj):
@@ -72,6 +73,9 @@ class APIProductSerializer(serializers.Serializer):
 
     def get_lowest_price(self, obj):
         return obj.lowest_price
+
+    def get_elite_score(self, obj):
+        return obj.elite_score
 
 
 class APIModelProductSerializer(serializers.Serializer):
