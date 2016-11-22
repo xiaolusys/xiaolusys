@@ -5,7 +5,6 @@ from shopmanager import celery_app as app
 from django.db import IntegrityError
 
 import logging
-
 logger = logging.getLogger(__name__)
 
 

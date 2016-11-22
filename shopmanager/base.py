@@ -122,10 +122,10 @@ TEMPLATES = [
 
 INSTALLED_APPS =[
 
-    'django.contrib.admin.apps.AdminConfig',
+    'django.contrib.admin',
     # 'django.contrib.admindocs',
-    'django.contrib.auth.apps.AuthConfig',
-    'django.contrib.contenttypes.apps.ContentTypesConfig',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.sites',
@@ -170,7 +170,7 @@ INSTALLED_APPS =[
     'shopapp.yunda',
     'shopapp.comments',
     'shopapp.weixin',
-    'shopapp.tmcnotify',
+    # 'shopapp.tmcnotify',
 
     'shopapp.jingdong',
     'shopapp.intercept',
