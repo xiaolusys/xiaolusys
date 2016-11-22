@@ -701,6 +701,7 @@ class SkuStock(models.Model):
             if psi:
                 # psi.set_status_not_assigned()
                 psi.reset_assign_status()
+                SkuStock.set_psi_not_assigned(self.sku_id, 0, stat=True, warning=True)
             else:
                 check_if_err = True
                 SkuStock.set_psi_not_assigned(self.sku_id, 0, stat=True, warning=True)

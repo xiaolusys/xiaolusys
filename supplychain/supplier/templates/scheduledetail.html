@@ -314,7 +314,7 @@
                          if(type != 'display')
                              return data;
                          if(!full.model_id)
-                             return '-'
+                             return '-';
                          if(full.is_sync_stock)
                              return '是';
                          return template('sync-stock-tpl', {sale_product_id: full.sale_product_id, value: '否'});
