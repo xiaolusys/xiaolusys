@@ -69,6 +69,8 @@ class ActivityViewSet(viewsets.ModelViewSet):
         if request.data.has_key('schedule_id'):
             schedule_id = request.data.pop('schedule_id')
             request.data.update({'extras': {'schedule_id': schedule_id}})
+        else:
+            request.data.update({'extras': {}})
         start_time = datetime.datetime.strptime(request.data.pop('start_time'), '%Y-%m-%d %H:%M:%S')
         end_time = datetime.datetime.strptime(request.data.pop('end_time'), '%Y-%m-%d %H:%M:%S')
         activity = create_activity(
