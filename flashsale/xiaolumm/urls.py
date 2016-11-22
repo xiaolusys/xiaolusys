@@ -1,7 +1,9 @@
-from django.conf.urls import url
+from django.conf.urls import url, include
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.cache import cache_page
 from django.views.generic import TemplateView
+from rest_framework import routers
+from flashsale.xiaolumm.views import views_advertis
 
 from core.weixin.decorators import weixin_authlogin_required
 from flashsale.pay import constants
@@ -11,6 +13,12 @@ from . import top_view_api
 from views import views, views_duokefu, views_xlmminfo, views_order_percent
 from views import views_register
 from views import views_xlmm_active, views_cashout
+
+router = routers.DefaultRouter(trailing_slash=False)
+router.register(r'ninepic', views_advertis.NinePicAdverViewSet)
+router_urls = router.urls
+router_urls += ([])
+
 
 urlpatterns = [
     url(r'^$', views.landing),
@@ -87,4 +95,8 @@ urlpatterns = [
        name="xlmm_active"),
     url(r'^cashout_bathandler/', staff_member_required(views_cashout.CashoutBatView.as_view()),
        name="cashout_bat"),
+]
+
+urlpatterns += [
+    url(r'^v1/', include(router_urls, namespace='xiaolumm-v1')),
 ]
