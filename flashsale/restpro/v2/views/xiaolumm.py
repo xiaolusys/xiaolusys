@@ -1147,7 +1147,8 @@ class EnableEliteCouponView(APIView):
         # 3. Dealing with coupon_product
         coupon_products = Product.objects.filter(model_id=coupon_product_model_id)
         for p in coupon_products:
-            p.outer_id = 'RMB%d%s' % (int(p.agent_price), code)
+            if not p.outer_id.startswith('RMB'):
+                p.outer_id = 'RMB%d%s' % (int(p.agent_price), code)
             p.shelf_status = Product.UP_SHELF
             p.elite_score = elite_score
             p.save()
