@@ -37,7 +37,7 @@ class APPFullPushMessgeAdmin(admin.ModelAdmin):
     def push_action(self, request, queryset):
         if queryset.count() == 1:
             obj = queryset[0]
-            from apis.v1.dailypush.apppushmsg import push_msg_right_now_by_id
+            from .apis.v1.fullpush import push_msg_right_now_by_id
 
             is_push = push_msg_right_now_by_id(obj.id)
             if is_push:

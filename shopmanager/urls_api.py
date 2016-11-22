@@ -12,6 +12,6 @@ urlpatterns = [
     url(r'^auth/', include('shopback.users.urls_api')),
     url(r'^finance/', include('flashsale.finance.urls')),
     url(r'^pay/', include('flashsale.pay.urls')),
-    url(r'^xiaolumm/', include('flashsale.xiaolumm.urls_api')),
-    url(r'^protocol/', include('flashsale.protocol.urls_api')),
+    url(r'^xiaolumm/', include('flashsale.xiaolumm.urls')),
+    url(r'^protocol/', include('flashsale.protocol.urls')),
 ]

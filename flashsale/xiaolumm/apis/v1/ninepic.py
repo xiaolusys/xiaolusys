@@ -10,7 +10,6 @@ __ALL__ = [
     'get_nine_pic_descriptions_by_modelids',
     'NinePicAdvertisement',
 ]
-import re
 import datetime
 import logging
 

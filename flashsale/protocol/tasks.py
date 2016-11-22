@@ -11,7 +11,7 @@ def task_site_push(id=None):
     # type: (Optional[int]) -> None
     """如果有半个小时内的推送设置记录（未推送状态的）　则　执行推送该消息给客户端程序
     """
-    from apis.v1.dailypush.apppushmsg import push_app_push_msg_2_client_by_id, get_minutes_failed_msgs
+    from .apis.v1.fullpush import push_app_push_msg_2_client_by_id, get_minutes_failed_msgs
     if id:
         push_app_push_msg_2_client_by_id(id)
     else:
