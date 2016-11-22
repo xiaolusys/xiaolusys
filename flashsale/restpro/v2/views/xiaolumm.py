@@ -1118,6 +1118,7 @@ class EnableEliteCouponView(APIView):
         template_id = content.get("template_id")
         coupon_product_model_id = content.get("coupon_product_model_id")
         product_model_id = content.get("product_model_id")
+        code = content.get("code")
 
         # 1. Dealing with model_product
         from flashsale.pay.models import ModelProduct
@@ -1145,6 +1146,7 @@ class EnableEliteCouponView(APIView):
         # 3. Dealing with coupon_product
         coupon_products = Product.objects.filter(model_id=coupon_product_model_id)
         for p in coupon_products:
+            p.outer_id = 'RMB%d%s' % (int(agent_price), code)
             p.shelf_status = Product.UP_SHELF
             p.save()
 
