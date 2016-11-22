@@ -86,7 +86,7 @@ def task_update_referal_relationship(sale_order):
     record = ReferalRelationship.objects.filter(referal_to_mama_id=to_mama_id).first()
     if record:
         update_fields = []
-        if record.referal_type < referal_type:
+        if record.referal_type <= referal_type:
             record.referal_type = referal_type
             update_fields.append('referal_type')
             
