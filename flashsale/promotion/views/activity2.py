@@ -61,8 +61,6 @@ class ActivityViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         # type: (HttpRequest, *Any, **Any) -> Response
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
         title = request.data.pop('title')
         act_type = request.data.pop('act_type')
         schedule_id = None
