@@ -143,8 +143,12 @@ def update_activity(id, **kwargs):
     activity = get_activity_by_id(id=id)
     start_time, end_time = kwargs.get('start_time'), kwargs.get('end_time')
     act_type = kwargs.get('act_type')
-    if act_type == ActivityEntry.ACT_TOPIC and kwargs.has_key('act_link'):
-        kwargs.pop('act_link')  # 在创建的时候已经填写过act_link了不需要重新填写
+    if act_type == ActivityEntry.ACT_TOPIC:
+        if kwargs.has_key('act_link'):
+            kwargs.pop('act_link')  # 在创建的时候已经填写过act_link了不需要重新填写
+    else:
+        if kwargs.has_key('act_link'):
+            kwargs['share_link'] = 'http://m.xiaolumeimei.com/m/{mama_id}?next=' + kwargs['act_link']
     for k, v in kwargs.iteritems():
         if hasattr(activity, k) and getattr(activity, k) != v:
             setattr(activity, k, v)
