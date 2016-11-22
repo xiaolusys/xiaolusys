@@ -1,15 +1,22 @@
 # encoding:utf-8
-import datetime
-
-from django.contrib import admin
-from django.contrib.auth.models import User
-from django.db.models import Sum
-
-from core.admin import ApproxAdmin, BaseAdmin
+from __future__ import absolute_import, unicode_literals
+from django.db.models import F, Sum
+from django.contrib import admin, messages
+from core.admin import OrderModelAdmin, ApproxAdmin, BaseAdmin
 from core.filters import DateFieldListFilter
+from core.options import log_action, CHANGE
 from flashsale.clickcount.models import ClickCount
-from flashsale.clickrebeta.models import StatisticsShoppingByDay
-from flashsale.xiaolumm.models import (
+from flashsale.clickrebeta.models import StatisticsShoppingByDay, StatisticsShopping
+
+from .models.message import XlmmMessage, XlmmMessageRel
+from .models.models_advertis import MamaVebViewConf
+from .models.score import XlmmEffectScore, XlmmTeamEffScore
+from .models.models_fortune import MamaFortune, CarryRecord, OrderCarry, AwardCarry, ClickCarry, ActiveValue, ReferalRelationship, GroupRelationship, ClickPlan, UniqueVisitor, DailyStats
+from .models.carry_total import MamaCarryTotal, MamaTeamCarryTotal, TeamCarryTotalRecord, CarryTotalRecord
+from .models.models_lesson import LessonTopic, Instructor, Lesson, LessonAttendRecord, TopicAttendRecord
+from .models.models_fans import FansNumberRecord, XlmmFans
+from .models.models_advertis import XlmmAdvertis, NinePicAdver
+from .models import (
     XiaoluMama,
     AgencyLevel,
     CashOut,
@@ -28,14 +35,11 @@ from flashsale.xiaolumm.models import (
     MamaAdministrator,
     WeixinPushEvent
 )
-from flashsale.xiaolumm.models.message import XlmmMessage, XlmmMessageRel
-from flashsale.xiaolumm.models.models_advertis import MamaVebViewConf
-from . import forms
-from .filters import UserNameFilter
 from .models.models_rebeta import AgencyOrderRebetaScheme
-from flashsale.xiaolumm.models.carry_total import MamaCarryTotal, MamaTeamCarryTotal, TeamCarryTotalRecord, \
-    CarryTotalRecord
-from flashsale.xiaolumm.models.score import XlmmEffectScore, XlmmTeamEffScore
+from .filters import UserNameFilter
+from . import forms
+from .apis.v1.mamafortune import get_mama_fortune_by_mama_id
+from .apis.v1.xiaolumama import get_mama_by_id
 
 
 class XiaoluMamaAdmin(ApproxAdmin):
@@ -151,9 +155,7 @@ class XiaoluMamaAdmin(ApproxAdmin):
         css = {"all": ("admin/css/forms.css", "css/admin/dialog.css"
                        , "css/admin/common.css", "jquery/jquery-ui-1.10.1.css", "bootstrap/css/bootstrap3.2.0.min.css",
                        "css/mama_profile.css")}
-        js = (
-            "js/admin/adminpopup.js", "js/xlmm_change_list.js", "bootstrap/js/bootstrap-3.2.0.min.js",
-            "js/mama_vrify.js")
+        js = ("js/admin/adminpopup.js", "js/xlmm_change_list.js")
 
 
 admin.site.register(XiaoluMama, XiaoluMamaAdmin)
@@ -170,122 +172,114 @@ admin.site.register(AgencyLevel, AgencyLevelAdmin)
 
 class CashOutAdmin(ApproxAdmin):
     form = forms.CashOutForm
-    list_display = ('id', 'xlmm', 'get_cashout_verify', 'get_value_display', 'get_xlmm_history_cashin',
-                    'get_xlmm_history_cashout', 'get_xlmm_history_cashout_record', 'fortune_cash_num_display',
-                    'get_xlmm_total_click', 'cash_out_type', 'date_field', 'uni_key',
-                    'get_xlmm_total_order', 'status', 'approve_time', 'created', 'get_cash_out_xlmm_manager')
-    list_filter = ('cash_out_type',
-                   'status',
-                   ('approve_time', DateFieldListFilter), ('created', DateFieldListFilter), UserNameFilter)
+    list_display = ('id', 'xlmm', 'cash_out_type', 'get_value_display', 'fortune_cash',
+                    'fortune_carry', 'cash_out_verify', 'total_click', 'total_order', 'date_field',   'status',
+                    'approve_time', 'created', 'uni_key')
+    list_filter = ('cash_out_type', 'status', ('approve_time', DateFieldListFilter),
+                   ('created', DateFieldListFilter), UserNameFilter)
     search_fields = ['=id', '=xlmm']
-    list_per_page = 15
+    list_per_page = 10
 
-    def fortune_cash_num_display(self, obj):
-        """妈妈财富表的余额"""
+    def fortune_cash(self, obj):
+        # type: (CashOut)-> float
+        """妈妈财富表的余额
+        """
         try:
-            fortune = MamaFortune.objects.get(mama_id=obj.xlmm)
-        except Exception, exc:
-            return '暂无财富记录'
+            fortune = get_mama_fortune_by_mama_id(obj.xlmm)
+        except MamaFortune.DoesNotExist:
+            return u'暂无财富记录'
         if obj.status == CashOut.PENDING:  # 如果是待审核状态
             return fortune.cash_num_display() + (obj.value * 0.01)  # 未出账余额 = 财富余额(是扣除待提现金额) + 待提现金额
         else:  # 其他状态
             return fortune.cash_num_display()  # 未出账余额 = 财富余额
 
-    fortune_cash_num_display.allow_tags = True
-    fortune_cash_num_display.short_description = u"未出账余额"
+    fortune_cash.allow_tags = True
+    fortune_cash.short_description = u"未出账余额"
 
-    def get_cashout_verify(self, obj):
-        # return obj.xlmm  # 返回id号码
+    def cash_out_verify(self, obj):
+        # type: (CashOut) -> text_type
+        """进入提现审核页面
+        """
         if obj.status == CashOut.PENDING:
-            return (u'<a style="display:block;"href="/m/cashoutverify/%d/%d">提现审核</a>' % (obj.xlmm, obj.id))
+            try:
+                fortune = get_mama_fortune_by_mama_id(obj.xlmm)
+            except MamaFortune.DoesNotExist:
+                return u'暂无财富记录'
+            pre_cash = fortune.cash_num_display() + (obj.value * 0.01)
+            mama = get_mama_by_id(obj.xlmm)
+            if mama.is_cashoutable() and pre_cash * 100 >= obj.value:
+                a = '<input class="cashOut%s"style="padding: 0px 6px" type="button" onclick="approveCashOut(%s)" value="通过"/>' % (obj.id, obj.id)
+                r = '<input class="cashOut%s"style="padding: 0px 6px" type="button" onclick="rejectCashOut(%s)" value="拒绝"/>' % (obj.id, obj.id)
+                return '可提%.1f' % pre_cash + a + r
         elif obj.status == CashOut.APPROVED:
-            return (u'<a style="display:block;"href="/admin/xiaolumm/envelop/?receiver=%s">查看红包</a>' % (obj.xlmm))
+            a = u'<a target="_blank" href="/admin/xiaolumm/envelop/?receiver=%s">总</a>' % obj.xlmm
+            s = u'<a target="_blank" href="/admin/xiaolumm/envelop/?referal_id=%s&subject=cashout">单</a>' % obj.id
+            return u'红包:' + ' | '.join([a, s])
         return ''
 
-    get_cashout_verify.allow_tags = True
-    get_cashout_verify.short_description = u"提现审核"
+    cash_out_verify.allow_tags = True
+    cash_out_verify.short_description = u"审核/查看红包"
 
-    # 计算该小鹿妈妈的点击数量并显示
-    def get_xlmm_total_click(self, obj):
-        clickcounts = ClickCount.objects.filter(linkid=obj.xlmm, date__lt=obj.created)
-        sum_click = clickcounts.aggregate(total_click=Sum('valid_num')).get('total_click') or 0
+    def fortune_carry(self, obj):
+        # type: (CashOut) -> float
+        """计算小鹿妈妈的历史审核通过的提现记录（在当次提现记录创建日期之前的总提现金额 求和）
+        """
+        try:
+            fortune = get_mama_fortune_by_mama_id(obj.xlmm)
+        except MamaFortune.DoesNotExist:
+            return u'暂无财富记录'
+        carry_in = float(fortune.carry_confirmed + fortune.history_confirmed) / 100.0
+        carry_out = float(fortune.carry_cashout) / 100.0
+        cash = carry_in - carry_out
+        return '%.1f-%.1f=%.1f' % (carry_in, carry_out, cash)
+
+    fortune_carry.allow_tags = True
+    fortune_carry.short_description = u'财富收支'
+
+    def total_click(self, obj):
+        # type: (CashOut) -> int
+        """点击数
+        """
+        clicks = ClickCount.objects.filter(linkid=obj.xlmm, date__lt=obj.created)
+        sum_click = clicks.aggregate(total_click=Sum('valid_num')).get('total_click') or 0
         return sum_click
 
-    get_xlmm_total_click.allow_tags = True
-    get_xlmm_total_click.short_description = u"历史有效点击数"
+    total_click.allow_tags = True
+    total_click.short_description = u"点击数"
 
-    # 计算该小鹿妈妈的订单数量并显示  tongjidate
-    def get_xlmm_total_order(self, obj):
+    def total_order(self, obj):
+        # type: (CashOut) -> text_type
+        """订单数量: 截止提现前订单件数/截止提现前订单笔数/总订单笔数
+        """
         orders = StatisticsShoppingByDay.objects.filter(linkid=obj.xlmm, tongjidate__lt=obj.created)
-        sum_order = orders.aggregate(total_order=Sum('ordernumcount')).get('total_order') or 0
-        return sum_order
+        l_num = orders.aggregate(total_order=Sum('ordernumcount')).get('total_order') or 0
+        t_count = StatisticsShopping.objects.filter(linkid=obj.xlmm).count()
+        return '/'.join([str(l_num), str(orders.count()), str(t_count)])
 
-    get_xlmm_total_order.allow_tags = True
-    get_xlmm_total_order.short_description = u"历史订单数"
+    total_order.allow_tags = True
+    total_order.short_description = u"订单tN,tC,T"
 
-    # 计算该小鹿妈妈的历史金额  这里修改 属于 提现记录创建的时刻以前的历史总收入  CashOut created   CarryLog created
-    def get_xlmm_history_cashin(self, obj):
-        # CARRY_TYPE_CHOICES  CARRY_IN
-        carrylogs = CarryLog.objects.filter(xlmm=obj.xlmm, carry_type=CarryLog.CARRY_IN, status=CarryLog.CONFIRMED,
-                                            created__lt=obj.created)
-        sum_carry_in = carrylogs.aggregate(total_carry_in=Sum('value')).get('total_carry_in') or 0
-        sum_carry_in = sum_carry_in / 100.0
-        return sum_carry_in
-
-    get_xlmm_history_cashin.allow_tags = True
-    get_xlmm_history_cashin.short_description = u'历史收入'
-
-    # 计算小鹿妈妈的历史支出（在当次提现记录创建日期之前的总支出）
-    def get_xlmm_history_cashout(self, obj):
-        # CARRY_TYPE_CHOICES  CARRY_OUT
-        carrylogs = CarryLog.objects.filter(xlmm=obj.xlmm, carry_type=CarryLog.CARRY_OUT, status=CarryLog.CONFIRMED,
-                                            created__lt=obj.created)
-        sum_carry_out = carrylogs.aggregate(total_carry_out=Sum('value')).get('total_carry_out') or 0
-        sum_carry_out = sum_carry_out / 100.0
-        return sum_carry_out
-
-    get_xlmm_history_cashout.allow_tags = True
-    get_xlmm_history_cashout.short_description = u'历史支出'
-
-    # 计算小鹿妈妈的历史审核通过的提现记录（在当次提现记录创建日期之前的总提现金额 求和）
-    def get_xlmm_history_cashout_record(self, obj):
-        # CARRY_TYPE_CHOICES  CASHOUT
-        caskouts = CashOut.objects.filter(xlmm=obj.xlmm, status=CashOut.APPROVED, created__lt=obj.created)
-        caskout = caskouts.aggregate(total_carry_out=Sum('value')).get('total_carry_out') or 0
-        caskout = caskout / 100.0
-        return caskout
-
-    get_xlmm_history_cashout_record.allow_tags = True
-    get_xlmm_history_cashout_record.short_description = u'历史提现'
-
-    # 添加妈妈所属管理员字段
-    # ----------------------------------------------------------------------
-    def get_cash_out_xlmm_manager(self, obj):
-        """获取小鹿妈妈的管理员，显示到提现记录列表中"""
-        xlmm = XiaoluMama.objects.get(id=obj.xlmm)
-        username = User.objects.get(id=xlmm.manager)
-        return username
-
-    get_cash_out_xlmm_manager.allow_tags = True
-    get_cash_out_xlmm_manager.short_description = u'所属管理员'
-
-    def reject_cashout_bat(self, request, queryset):
-        """ 批量处理拒绝提现记录 """
-        from core.options import log_action, CHANGE
-
-        pendings = queryset.filter(status=CashOut.PENDING)
+    def reject_cash_out(self, request, queryset):
+        # type: (HttpRequest, List[CashOut])
+        """批量处理拒绝提现记录
+        """
         count = 0
-        for pending in pendings:
+        for pending in queryset.filter(status=CashOut.PENDING):
             pending.status = CashOut.REJECTED
             pending.save()
             count += 1
             log_action(request.user, pending, CHANGE, u'批量处理待审核状态到拒绝提现状态')
         return self.message_user(request, '共拒绝%s条记录' % count)
 
-    reject_cashout_bat.short_description = '批量拒绝用户提现'
+    reject_cash_out.short_description = '批量拒绝用户提现'
+    actions = ['reject_cash_out']
 
-    actions = ['reject_cashout_bat']
-
+    class Media:
+        css = {"all": ()}
+        js = ("/static/js/cashOutVerify.js",
+              '/static/jquery/jquery-2.1.1.min.js',
+              "/static/layer-v1.9.2/layer/layer.js",
+              "/static/layer-v1.9.2/layer/extend/layer.ext.js",)
 
 admin.site.register(CashOut, CashOutAdmin)
 
@@ -308,8 +302,6 @@ class OrderRedPacketAdmin(ApproxAdmin):
 
 admin.site.register(OrderRedPacket, OrderRedPacketAdmin)
 
-from .forms import MamaDayStatsForm
-
 
 class MamaDayStatsAdmin(ApproxAdmin):
     list_display = ('xlmm', 'day_date', 'get_base_click_price_display', 'get_lweek_roi_display',
@@ -318,12 +310,10 @@ class MamaDayStatsAdmin(ApproxAdmin):
 
     search_fields = ['=xlmm']
     list_filter = (('day_date', DateFieldListFilter),)
-    form = MamaDayStatsForm
+    form = forms.MamaDayStatsForm
 
 
 admin.site.register(MamaDayStats, MamaDayStatsAdmin)
-
-from flashsale.xiaolumm.models.models_advertis import XlmmAdvertis, NinePicAdver
 
 
 class XlmmAdvertisAdmin(admin.ModelAdmin):
@@ -333,8 +323,6 @@ class XlmmAdvertisAdmin(admin.ModelAdmin):
 
 
 admin.site.register(XlmmAdvertis, XlmmAdvertisAdmin)
-
-from django.contrib import messages
 
 
 class NinePicAdverAdmin(admin.ModelAdmin):
@@ -372,8 +360,6 @@ class AgencyOrderRebetaSchemeAdmin(admin.ModelAdmin):
 
 admin.site.register(AgencyOrderRebetaScheme, AgencyOrderRebetaSchemeAdmin)
 
-from flashsale.xiaolumm.models.models_fans import FansNumberRecord, XlmmFans
-
 
 class XlmmFansAdmin(admin.ModelAdmin):
     list_display = (
@@ -399,16 +385,10 @@ class FansNumberRecordAdmin(admin.ModelAdmin):
 
 admin.site.register(FansNumberRecord, FansNumberRecordAdmin)
 
-from flashsale.xiaolumm.models.models_fortune import MamaFortune, CarryRecord, OrderCarry, AwardCarry, \
-    ClickCarry, ActiveValue, ReferalRelationship, GroupRelationship, ClickPlan, \
-    UniqueVisitor, DailyStats
-from django.db.models import F
-from core.admin import OrderModelAdmin
-
 
 class MamaFortuneAdmin(OrderModelAdmin):
-    list_display = ('mama_id', 'customer_id', 'mama_level', 'mama_agency_level', 'mama_mobile', 'cash_num_display', 'cash_total_display',
-                    'carry_pending_display', 'carry_confirmed_display', 'order_num',
+    list_display = ('mama_id', 'customer_id', 'mama_level', 'mama_agency_level', 'mama_mobile', 'cash_num_display',
+                    'cash_total_display', 'carry_pending_display', 'carry_confirmed_display', 'order_num',
                     'fans_num', 'invite_num', 'invite_trial_num', 'invite_all_num', 'active_normal_num',
                     'active_trial_num', 'active_all_num', 'hasale_normal_num', 'hasale_trial_num', 'modified',
                     'created')
@@ -432,8 +412,10 @@ class MamaFortuneAdmin(OrderModelAdmin):
 
     def mama_mobile(self, obj):
         from flashsale.pay.models.user import Customer
+
         if obj.xlmm.customer_id:
             return Customer.objects.filter(id=obj.xlmm.customer_id).first().mobile
+
 
 admin.site.register(MamaFortune, MamaFortuneAdmin)
 
@@ -478,7 +460,6 @@ class AwardCarryAdmin(admin.ModelAdmin):
     contributor_img_html.short_description = u'头像'
     contributor_img_html.allow_tags = True
 
-
     def is_full_member(self, obj):
         mama = XiaoluMama.objects.filter(id=obj.mama_id, last_renew_type__gte=XiaoluMama.HALF, charge_status=XiaoluMama.CHARGED).first()
         if not mama:
@@ -487,8 +468,8 @@ class AwardCarryAdmin(admin.ModelAdmin):
 
     is_full_member.short_description = u'续费状态'
     is_full_member.allow_tags = True
-    
-        
+
+
 admin.site.register(AwardCarry, AwardCarryAdmin)
 
 
@@ -560,9 +541,6 @@ class DailyStatsAdmin(admin.ModelAdmin):
 
 
 admin.site.register(DailyStats, DailyStatsAdmin)
-
-from flashsale.xiaolumm.models.models_lesson import LessonTopic, Instructor, Lesson, LessonAttendRecord, \
-    TopicAttendRecord
 
 
 class LessonTopicAdmin(admin.ModelAdmin):
@@ -828,7 +806,6 @@ class MamaAdministratorAdmin(ApproxAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         return self.readonly_fields + ('mama', 'administrator')
-
 
     def get_mama_openid(self, obj):
         return obj.mama.openid

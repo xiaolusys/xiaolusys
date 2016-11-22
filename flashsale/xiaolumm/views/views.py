@@ -115,7 +115,7 @@ class CashoutView(WeixinAuthMixin, View):
         referal_list = XiaoluMama.objects.filter(referal_from=xlmm.mobile, status=XiaoluMama.EFFECT)
         cashout_objs = CashOut.objects.filter(xlmm=xlmm.pk)
 
-        #         day_to   = datetime.datetime.now()
+        # day_to   = datetime.datetime.now()
         #         day_from = day_to - datetime.timedelta(days=30)
         # 点击数
         clickcounts = ClickCount.objects.filter(linkid=xlmm.id)
@@ -278,7 +278,7 @@ class MamaStatsView(WeixinAuthMixin, View):
                 click_num = min(max_click_count, click_num)
 
             referal_mm = 0
-            #             if xlmm.progress != XiaoluMama.PASS :
+            # if xlmm.progress != XiaoluMama.PASS :
             #                 if xlmm.referal_from:
             #                     referal_mamas = XiaoluMama.objects.filter(mobile=xlmm.referal_from)
             #                     if referal_mamas.count() > 0:
@@ -365,7 +365,7 @@ class MamaIncomeDetailView(WeixinAuthMixin, View):
             order_list = StatisticsShopping.normal_objects.filter(linkid=xlmm.pk, shoptime__range=(time_from, time_to))
             order_stat = StatisticsShoppingByDay.objects.filter(linkid=xlmm.pk, tongjidate=target_date)
             carry_confirm = False
-            #             if target_date >= ORDER_RATEUP_START:
+            # if target_date >= ORDER_RATEUP_START:
             #                 rebeta_swift = True
 
             if order_stat.count() > 0:
@@ -509,9 +509,10 @@ class StatsView(View):
         return render(
             request,
             "stats.html",
-              {'pk': int(pk), "data": data, "managers": managers, "prev_day": prev_day,
-               "target_date": target_date, "next_day": next_day},
+            {'pk': int(pk), "data": data, "managers": managers, "prev_day": prev_day,
+             "target_date": target_date, "next_day": next_day},
         )
+
 
 def get_share_url(next_page=None, mm_linkid=None, ufrom=None):
     """ 获取分享链接 """
@@ -526,21 +527,23 @@ def get_share_url(next_page=None, mm_linkid=None, ufrom=None):
         query_string = urllib.urlencode(query_dict)
         fragment = url_ps.fragment
         share_url = urlparse.urljoin(settings.M_SITE_URL,
-                    '{path}?{query}#{fragement}'.format(
-                        path=url_ps.path,
-                        query=query_string,
-                        fragement=fragment
-                    ))
+                                     '{path}?{query}#{fragement}'.format(
+                                         path=url_ps.path,
+                                         query=query_string,
+                                         fragement=fragment
+                                     ))
     else:
         share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL,
-                                     mm_linkid=mm_linkid, ufrom=ufrom)
+                                         mm_linkid=mm_linkid, ufrom=ufrom)
     return share_url
+
 
 class ClickLogView(WeixinAuthMixin, View):
     """ 微信授权参数检查 """
 
     def get(self, request, linkid):
         from django_statsd.clients import statsd
+
         statsd.incr('xiaolumm.weixin_click')
         content = request.GET
         next_page = content.get('next', None)
@@ -566,7 +569,7 @@ class ClickLogView(WeixinAuthMixin, View):
 
         json_logger.info({
             'stype': 'auth_click', 'mm_linkid': linkid, 'click_time': click_time,
-            'openid':openid, 'unionid':unionid,
+            'openid': openid, 'unionid': unionid,
             'http_referal': request.META.get('HTTP_REFERER'),
             'http_agent': request.META.get('HTTP_USER_AGENT')
         })
@@ -656,145 +659,10 @@ class XiaoluMamaModelView(View):
 
 from django.views.decorators.csrf import csrf_exempt
 
-
-@csrf_exempt
-def cash_Out_Verify(request, id, xlmm):
-    '''提现审核方法'''
-    '''buyer_id 手机 可用现金  体现金额  小鹿钱包消费额
-    提现审核界面加上总收入总支出两项数据
-    '''
-    data = []
-    #     cashouts_status_is_pending = CashOut.objects.filter(status='pending').order_by('-created')
-    #     today = datetime.datetime.today()
-    #     day_from = today-datetime.timedelta(days=30)
-    #     day_to = today
-
-    cashout = CashOut.objects.get(pk=id)
-    mama_id = cashout.xlmm
-    if cashout.status != CashOut.PENDING:
-        raise Exception(u'审核订单不在待审状态')
-    fortune = MamaFortune.objects.get(mama_id=mama_id)
-    pre_cash = fortune.cash_num_display() + (cashout.value * 0.01)  # 未出账余额 = 财富余额(是扣除待提现金额) + 待提现金额
-    xiaolumama = XiaoluMama.objects.get(id=mama_id)  # object.get(id=mama_id)
-
-    value = cashout.value
-    status = cashout.status
-
-    clickcounts = ClickCount.objects.filter(linkid=xlmm)
-    click_nums = clickcounts.aggregate(total_count=Sum('valid_num')).get('total_count') or 0
-
-    # 订单数
-    shoppings = StatisticsShopping.objects.filter(linkid=xlmm)
-    shoppings_count = shoppings.count()
-
-    mobile = xiaolumama.mobile
-    cash_outable = True
-
-    # cash, payment, could_cash_out = get_xlmm_cash_iters(xiaolumama, cash_outable=cash_outable)
-    cash = pre_cash
-    could_cash_out = 0
-    if xiaolumama.is_cashoutable() and pre_cash * 100 >= cashout.value and cashout.status == 'pending':
-        could_cash_out = pre_cash
-
-    # 提现审核界面加上总收入总支出两项数据
-    # carrylogs_in = CarryLog.objects.filter(xlmm=xlmm, carry_type=CarryLog.CARRY_IN, status=CarryLog.CONFIRMED)
-    # sum_carry_in = carrylogs_in.aggregate(total_carry_in=Sum('value')).get('total_carry_in') or 0
-    # sum_carry_in = sum_carry_in / 100.0
-    #
-    # 总支出
-    # carrylogs_out = CarryLog.objects.filter(xlmm=xlmm, carry_type=CarryLog.CARRY_OUT, status=CarryLog.CONFIRMED)
-    # sum_carry_out = carrylogs_out.aggregate(total_carry_out=Sum('value')).get('total_carry_out') or 0
-    # sum_carry_out = sum_carry_out / 100.0
-
-    sum_carry_in = fortune.carry_confirmed + fortune.history_confirmed
-    sum_carry_out = fortune.carry_cashout
-
-    # 差值
-    carry_in_minus_out = sum_carry_in - sum_carry_out  
-    data=[]
-
-    data_entry = {'id': id, 'xlmm': xlmm, 'value': float(value)/100, 'status': status, 'mobile': mobile, 'cash': cash,
-                  'shoppings_count': shoppings_count, 'click_nums': click_nums, 'could_cash_out': could_cash_out,
-                  'sum_carry_in': float(sum_carry_in)/100, 'sum_carry_out': float(sum_carry_out)/100,
-                  'carry_in_minus_out': float(carry_in_minus_out)/100}
-    data.append(data_entry)
-    return render(
-        request,
-        "mama_cashout_verify.html",
-          {"data": data},
-    )
-
-
 from django.db import transaction
 from django.conf import settings
 from shopapp.weixin.models import WeixinUnionID
 from flashsale.xiaolumm.models.models_fortune import MamaFortune
-
-
-@transaction.atomic
-def cash_modify(request, data):
-    cash_id = int(data)
-
-    print "in modify", cash_id
-    if cash_id:
-        cashout = CashOut.objects.get(pk=cash_id)
-        if cashout.status != CashOut.PENDING:
-            raise Exception(u'提现记录不是待审核状态')
-        mama_id = cashout.xlmm
-
-        fortune = MamaFortune.objects.get(mama_id=mama_id)
-        pre_cash = fortune.cash_num_display() + (cashout.value * 0.01)
-        xiaolumama = XiaoluMama.objects.get(id=mama_id)  # object.get(id=mama_id)
-
-        if xiaolumama.is_cashoutable() and pre_cash * 100 >= cashout.value and cashout.status == 'pending':
-            cashout.status = 'approved'
-            cashout.approve_time = datetime.datetime.now()
-            cashout.save()
-            logger.warn('cashout save approved: cash_d:%s mama_id:%s pre_cash:%s cashout_value:%s' % (cash_id,
-                                                                                                      mama_id,
-                                                                                                      pre_cash,
-                                                                                                      cashout.value))
-
-            today_dt = datetime.date.today()
-            CarryLog.objects.get_or_create(xlmm=mama_id,
-                                           order_num=cash_id,
-                                           log_type=CarryLog.CASH_OUT,
-                                           value=cashout.value,
-                                           carry_date=today_dt,
-                                           carry_type=CarryLog.CARRY_OUT,
-                                           status=CarryLog.CONFIRMED)
-
-            wx_union = WeixinUnionID.objects.get(app_key=settings.WXPAY_APPID, unionid=xiaolumama.openid)
-
-            mama_memo = u"小鹿妈妈编号:{0},提现前:{1}"
-            Envelop.objects.get_or_create(referal_id=cashout.id,
-                                          amount=cashout.value,
-                                          recipient=wx_union.openid,
-                                          platform=Envelop.WXPUB,
-                                          subject=Envelop.CASHOUT,
-                                          status=Envelop.WAIT_SEND,
-                                          receiver=mama_id,
-                                          body=u'一份耕耘，一份收获，谢谢你的努力！',
-                                          description=mama_memo.format(str(mama_id), pre_cash))
-
-            log_action(request.user.id, cashout, CHANGE, u'提现审核通过')
-            return HttpResponse('ok')
-        else:
-            return HttpResponse('reject')  # 拒绝操作数据库
-    return HttpResponse('server error')
-
-
-def cash_reject(request, data):
-    cash_id = int(data)
-    if cash_id:
-        cashout = CashOut.objects.get(pk=cash_id)
-        cashout.status = 'rejected'
-        cashout.save()
-        return HttpResponse('ok')
-    else:
-        return HttpResponse('reject')  # 拒绝操作数据库
-    return HttpResponse('server error')
-
 
 from django.db.models import Sum
 
@@ -844,7 +712,7 @@ def manage_Summar(date_time):
 
 @csrf_exempt
 def stats_summary(request):
-    #  根据日期查看每个管理人员 所管理的所有代理的点击情况和转化情况
+    # 根据日期查看每个管理人员 所管理的所有代理的点击情况和转化情况
     content = request.GET
     daystr = content.get("day", None)
     today = datetime.date.today()
@@ -869,56 +737,72 @@ def stats_summary(request):
     )
 
 
-###################### 妈妈审核功能
+from rest_framework.views import APIView
+from rest_framework import permissions
+from rest_framework.response import Response
 
 
-def get_Deposit_Trade(openid, mobile):
-    try:
-        # 2015-08-21 二期代理招募修改
-        payment = 118
-        outer_id = 'RMB118'
-
-        customer = Customer.objects.normal_customer.filter(unionid=openid)  # 找到对应的unionid 等于小鹿妈妈openid的顾客
-        if customer.exists():
-            sale_orders = SaleOrder.objects.filter(outer_id=outer_id, payment=payment,
-                                                   refund_status=SaleRefund.NO_REFUND,
-                                                   status=SaleOrder.WAIT_SELLER_SEND_GOODS,
-                                                   sale_trade__buyer_id=customer[0].id,
-                                                   sale_trade__status=SaleTrade.WAIT_SELLER_SEND_GOODS)
-
-            if sale_orders.exists():
-                return sale_orders  # 返回订单
-
-        # 按照手机号码来匹配代理缴费情况
-
-        sale_trades = SaleTrade.objects.filter(receiver_mobile=mobile, payment=payment,
-                                               status=SaleTrade.WAIT_SELLER_SEND_GOODS)
-        if sale_trades.count() == 0:  # 没有交易记录返回空
-            return None
-        else:
-            # 有TRDE记录， 则查看订单
-            for trade in sale_trades:  # 寻找RMB100的Order
-                orders = SaleOrder.objects.filter(sale_trade=trade.id, outer_id=outer_id, payment=payment,
-                                                  refund_status=SaleRefund.NO_REFUND,
-                                                  status=SaleOrder.WAIT_SELLER_SEND_GOODS)
-                if orders.count() == 0:
-                    return None
-                else:
-                    return orders
-    except:
-        return None
-
-
-from flashsale.xiaolumm.models.models_fans import XlmmFans
-
-
-def handler_fans_nick():
+class CashOutVerify(APIView):
     """
-    保存活动中没有保存的头像和昵称，　只运行一次
+    补发遗漏的优惠券
+    参数：优惠券模板
+    用户：客户信息(用户手机号，或者用户id)
     """
-    fanss = XlmmFans.objects.all()
-    for fans in fanss:
-        cus = Customer.objects.get(pk=fans.fans_cusid)
-        fans.fans_nick = cus.nick
-        fans.fans_thumbnail = cus.thumbnail
-        fans.save()
+    queryset = CashOut.objects.all()
+    renderer_classes = (JSONRenderer,)
+    permission_classes = (permissions.IsAuthenticated, permissions.DjangoModelPermissions, permissions.IsAdminUser)
+
+    def get(self, request):
+        return Response({})
+
+    @transaction.atomic
+    def post(self, request):
+        action = request.POST.get('action')
+        cash_out_id = request.POST.get('cash_out_id')
+        if not cash_out_id and action:
+            return Response({'code': 1, 'info': '参数错误!'})
+        cashout = self.queryset.filter(id=cash_out_id).first()
+        if cashout.status != CashOut.PENDING:
+            return Response({'code': 2, 'info': '审核状态错误！'})
+
+        if action == CashOut.REJECTED:
+            cashout.status = CashOut.REJECTED
+            cashout.save()
+            return Response({'code': 0, 'info': '拒绝成功'})
+        if action == CashOut.APPROVED:
+            mama_id = cashout.xlmm
+            fortune = MamaFortune.objects.get(mama_id=mama_id)
+            pre_cash = fortune.cash_num_display() + (cashout.value * 0.01)
+            xiaolumama = XiaoluMama.objects.get(id=mama_id)  # object.get(id=mama_id)
+
+            if not xiaolumama.is_cashoutable():
+                return Response({'code': 3, 'info': '该妈妈不予提现!'})
+            if pre_cash * 100 >= cashout.value:
+                cashout.status = CashOut.APPROVED
+                cashout.approve_time = datetime.datetime.now()
+                cashout.save()
+                logger.warn('cashout save approved: cash_d:%s mama_id:'
+                            '%s pre_cash:%s cashout_value:%s' % (cash_out_id, mama_id, pre_cash, cashout.value))
+                today_dt = datetime.date.today()
+                CarryLog.objects.get_or_create(xlmm=mama_id,
+                                               order_num=cash_out_id,
+                                               log_type=CarryLog.CASH_OUT,
+                                               value=cashout.value,
+                                               carry_date=today_dt,
+                                               carry_type=CarryLog.CARRY_OUT,
+                                               status=CarryLog.CONFIRMED)
+                wx_union = WeixinUnionID.objects.get(app_key=settings.WXPAY_APPID, unionid=xiaolumama.openid)
+                mama_memo = u"小鹿妈妈编号:{0},提现前:{1}"
+                Envelop.objects.get_or_create(referal_id=cashout.id,
+                                              amount=cashout.value,
+                                              recipient=wx_union.openid,
+                                              platform=Envelop.WXPUB,
+                                              subject=Envelop.CASHOUT,
+                                              status=Envelop.WAIT_SEND,
+                                              receiver=mama_id,
+                                              body=u'一份耕耘，一份收获，谢谢你的努力！',
+                                              description=mama_memo.format(str(mama_id), pre_cash))
+                log_action(request.user.id, cashout, CHANGE, u'提现审核通过')
+                return Response({'code': 0, 'info': '审核成功'})
+            return Response({'code': 4, 'info': '金额不足'})
+        return Response({'code': 5, "info": '操作错误!'})
