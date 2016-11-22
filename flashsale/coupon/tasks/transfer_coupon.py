@@ -54,6 +54,7 @@ def task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, prod
     uni_key = "%s-%s" % (to_mama.id, order_id)
     coupon_value = int(template.value)
     product_img = template.extras.get("product_img") or ''
+    elite_score = product.elite_score * (int(order_num))
 
     try:
         coupon = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id, from_mama_thumbnail=from_mama_thumbnail,
@@ -61,7 +62,7 @@ def task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, prod
                                       to_mama_thumbnail=to_mama_thumbnail, to_mama_nick=to_mama_nick,
                                       coupon_value=coupon_value,
                                       init_from_mama_id=init_from_mama_id, order_no=order_oid, template_id=template_id,
-                                      product_img=product_img, coupon_num=order_num, transfer_type=transfer_type,
+                                      product_img=product_img, coupon_num=order_num, transfer_type=transfer_type, product_id=product_id, elite_score=elite_score,
                                       uni_key=uni_key, date_field=date_field, transfer_status=transfer_status)
         coupon.save()
     except IntegrityError as e:
