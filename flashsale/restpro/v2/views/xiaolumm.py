@@ -1119,6 +1119,7 @@ class EnableEliteCouponView(APIView):
         coupon_product_model_id = content.get("coupon_product_model_id")
         product_model_id = content.get("product_model_id")
         code = content.get("code")
+        elite_score = content.get("score")
 
         # 1. Dealing with model_product
         from flashsale.pay.models import ModelProduct
@@ -1148,6 +1149,7 @@ class EnableEliteCouponView(APIView):
         for p in coupon_products:
             p.outer_id = 'RMB%d%s' % (int(p.agent_price), code)
             p.shelf_status = Product.UP_SHELF
+            p.elite_score = elite_score
             p.save()
 
             sku_name = p.name.split('/')[1]
