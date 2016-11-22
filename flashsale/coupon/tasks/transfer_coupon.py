@@ -68,3 +68,5 @@ def task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, prod
         logging.error(e)
 
     task_update_tpl_released_coupon_nums(template.id)  # 统计发放数量
+    from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
+    task_calc_xlmm_elite_score.delay(coupon_to_mama_id) #计算妈妈积分
