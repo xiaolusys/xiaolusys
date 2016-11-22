@@ -58,10 +58,8 @@ urlpatterns = [
     url(r'^channel/(?P<linkid>\d+)/$', views.ClickChannelLogView.as_view(), name="xiaolumm_channel"),
     url(r'^charge/(?P<pk>\d+)/$', staff_member_required(views.chargeWXUser)),
     url(r'^xlmm/(?P<pk>\d+)/$', staff_member_required(views.XiaoluMamaModelView.as_view())),
-    url(r'^cashoutverify/(?P<xlmm>\d+)/(?P<id>\d+)/$', staff_member_required(views.cash_Out_Verify),
-       name="cashout_verify"),
-    url(r'^cashmodify/(?P<data>\w+)/$', staff_member_required(views.cash_modify)),  #
-    url(r'^cashreject/(?P<data>\w+)/$', staff_member_required(views.cash_reject)),  #
+
+    url(r'^cash_out_verify$', staff_member_required(views.CashOutVerify.as_view())),  #
     url(r'^stats_summary/$', staff_member_required(views.stats_summary), name="stats_summary"),
 
     url(r'^duokefu_customer/$', views_duokefu.kf_Customer, name="kf_Customer"),
@@ -73,7 +71,6 @@ urlpatterns = [
        name="kf_Search_Order_Detail"),
     url(r'^duokefu_find_more/$', views_duokefu.ke_Find_More_Weixin_Order,
        name="ke_Find_More_Weixin_Order"),
-    # url(r'^duokefu_logistics/$',views_duokefu.kf_Logistics,name="kf_Logistics"),
 
     # ITER TOP100
     url(r'^top100/click/month/$', views_top100_iter.Top100_Click, name="Top100_Click"),

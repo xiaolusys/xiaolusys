@@ -9,8 +9,14 @@ from ...signals import signal_xiaolumama_register_success
 from .potentialmama import update_potential_by_deposit, create_potential_mama
 
 __ALL__ = [
+    'get_mama_by_id',
     'mama_pay_deposit',
 ]
+
+
+def get_mama_by_id(id):
+    # type: (int) -> XiaoluMama
+    return XiaoluMama.objects.get(id=id)
 
 
 def mama_pay_deposit(customer_id, deposit_type, referrer, trade_id, oid=None):
