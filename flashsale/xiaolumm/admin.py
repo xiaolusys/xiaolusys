@@ -155,9 +155,7 @@ class XiaoluMamaAdmin(ApproxAdmin):
         css = {"all": ("admin/css/forms.css", "css/admin/dialog.css"
                        , "css/admin/common.css", "jquery/jquery-ui-1.10.1.css", "bootstrap/css/bootstrap3.2.0.min.css",
                        "css/mama_profile.css")}
-        js = (
-            "js/admin/adminpopup.js", "js/xlmm_change_list.js", "bootstrap/js/bootstrap-3.2.0.min.js",
-            "js/mama_vrify.js")
+        js = ("js/admin/adminpopup.js", "js/xlmm_change_list.js")
 
 
 admin.site.register(XiaoluMama, XiaoluMamaAdmin)
@@ -180,7 +178,7 @@ class CashOutAdmin(ApproxAdmin):
     list_filter = ('cash_out_type', 'status', ('approve_time', DateFieldListFilter),
                    ('created', DateFieldListFilter), UserNameFilter)
     search_fields = ['=id', '=xlmm']
-    list_per_page = 15
+    list_per_page = 10
 
     def fortune_cash(self, obj):
         # type: (CashOut)-> float
@@ -210,15 +208,17 @@ class CashOutAdmin(ApproxAdmin):
             pre_cash = fortune.cash_num_display() + (obj.value * 0.01)
             mama = get_mama_by_id(obj.xlmm)
             if mama.is_cashoutable() and pre_cash * 100 >= obj.value:
-                return '可提%.1f<button>通过</button>' % pre_cash
+                a = '<input class="cashOut%s"style="padding: 0px 6px" type="button" onclick="approveCashOut(%s)" value="通过"/>' % (obj.id, obj.id)
+                r = '<input class="cashOut%s"style="padding: 0px 6px" type="button" onclick="rejectCashOut(%s)" value="拒绝"/>' % (obj.id, obj.id)
+                return '可提%.1f' % pre_cash + a + r
         elif obj.status == CashOut.APPROVED:
             a = u'<a target="_blank" href="/admin/xiaolumm/envelop/?receiver=%s">总</a>' % obj.xlmm
             s = u'<a target="_blank" href="/admin/xiaolumm/envelop/?referal_id=%s&subject=cashout">单</a>' % obj.id
-            return u'查看红包:' + ' | '.join([a, s])
+            return u'红包:' + ' | '.join([a, s])
         return ''
 
     cash_out_verify.allow_tags = True
-    cash_out_verify.short_description = u"审核/红包"
+    cash_out_verify.short_description = u"审核/查看红包"
 
     def fortune_carry(self, obj):
         # type: (CashOut) -> float
@@ -274,6 +274,12 @@ class CashOutAdmin(ApproxAdmin):
     reject_cash_out.short_description = '批量拒绝用户提现'
     actions = ['reject_cash_out']
 
+    class Media:
+        css = {"all": ()}
+        js = ("/static/js/cashOutVerify.js",
+              '/static/jquery/jquery-2.1.1.min.js',
+              "/static/layer-v1.9.2/layer/layer.js",
+              "/static/layer-v1.9.2/layer/extend/layer.ext.js",)
 
 admin.site.register(CashOut, CashOutAdmin)
 
@@ -462,8 +468,8 @@ class AwardCarryAdmin(admin.ModelAdmin):
 
     is_full_member.short_description = u'续费状态'
     is_full_member.allow_tags = True
-    
-        
+
+
 admin.site.register(AwardCarry, AwardCarryAdmin)
 
 
