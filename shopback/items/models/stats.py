@@ -346,9 +346,21 @@ class SkuStock(models.Model):
                 SkuStock.stat_warning(sku_id, change_fields, warning, stat)
 
     @staticmethod
+    def set_psi_init_assigned(sku_id, num, stat=STAT_SIGN, warning=WARNING):
+        change_fields = ['sold_num', 'paid_num', 'psi_assign_num', 'assign_num']
+        if stat:
+            SkuStock.stat_warning(sku_id, change_fields, warning, stat)
+        else:
+            SkuStock._objects.filter(sku_id=sku_id).update(sold_num=F('sold_num') + num,
+                                                           psi_ready_num=F('psi_assign_num') + num,
+                                                           paid_num=F('paid_num') + num,
+                                                           assign_num=F('assign_num') + num
+                                                           )
+            if warning:
+                SkuStock.stat_warning(sku_id, change_fields, warning, stat)
+
+    @staticmethod
     def set_psi_assigned(sku_id, num, stat=STAT_SIGN, warning=WARNING):
-        '''
-        '''
         pass
 
     @staticmethod
