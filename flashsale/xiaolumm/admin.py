@@ -6,7 +6,7 @@ from core.admin import OrderModelAdmin, ApproxAdmin, BaseAdmin
 from core.filters import DateFieldListFilter
 from core.options import log_action, CHANGE
 from flashsale.clickcount.models import ClickCount
-from flashsale.clickrebeta.models import StatisticsShoppingByDay
+from flashsale.clickrebeta.models import StatisticsShoppingByDay, StatisticsShopping
 
 from .models.message import XlmmMessage, XlmmMessageRel
 from .models.models_advertis import MamaVebViewConf
@@ -39,6 +39,7 @@ from .models.models_rebeta import AgencyOrderRebetaScheme
 from .filters import UserNameFilter
 from . import forms
 from .apis.v1.mamafortune import get_mama_fortune_by_mama_id
+from .apis.v1.xiaolumama import get_mama_by_id
 
 
 class XiaoluMamaAdmin(ApproxAdmin):
@@ -174,7 +175,7 @@ admin.site.register(AgencyLevel, AgencyLevelAdmin)
 class CashOutAdmin(ApproxAdmin):
     form = forms.CashOutForm
     list_display = ('id', 'xlmm', 'cash_out_type', 'get_value_display', 'fortune_cash',
-                    'history_cash_out', 'total_click', 'total_order', 'cash_out_verify', 'date_field',   'status',
+                    'fortune_carry', 'cash_out_verify', 'total_click', 'total_order', 'date_field',   'status',
                     'approve_time', 'created', 'uni_key')
     list_filter = ('cash_out_type', 'status', ('approve_time', DateFieldListFilter),
                    ('created', DateFieldListFilter), UserNameFilter)
@@ -202,7 +203,14 @@ class CashOutAdmin(ApproxAdmin):
         """进入提现审核页面
         """
         if obj.status == CashOut.PENDING:
-            return u'<a style="display:block;"href="/m/cashoutverify/%d/%d">提现审核</a>' % (obj.xlmm, obj.id)
+            try:
+                fortune = get_mama_fortune_by_mama_id(obj.xlmm)
+            except MamaFortune.DoesNotExist:
+                return u'暂无财富记录'
+            pre_cash = fortune.cash_num_display() + (obj.value * 0.01)
+            mama = get_mama_by_id(obj.xlmm)
+            if mama.is_cashoutable() and pre_cash * 100 >= obj.value:
+                return '可提%.1f<button>通过</button>' % pre_cash
         elif obj.status == CashOut.APPROVED:
             a = u'<a target="_blank" href="/admin/xiaolumm/envelop/?receiver=%s">总</a>' % obj.xlmm
             s = u'<a target="_blank" href="/admin/xiaolumm/envelop/?referal_id=%s&subject=cashout">单</a>' % obj.id
@@ -210,7 +218,23 @@ class CashOutAdmin(ApproxAdmin):
         return ''
 
     cash_out_verify.allow_tags = True
-    cash_out_verify.short_description = u"提现审核"
+    cash_out_verify.short_description = u"审核/红包"
+
+    def fortune_carry(self, obj):
+        # type: (CashOut) -> float
+        """计算小鹿妈妈的历史审核通过的提现记录（在当次提现记录创建日期之前的总提现金额 求和）
+        """
+        try:
+            fortune = get_mama_fortune_by_mama_id(obj.xlmm)
+        except MamaFortune.DoesNotExist:
+            return u'暂无财富记录'
+        carry_in = float(fortune.carry_confirmed + fortune.history_confirmed) / 100.0
+        carry_out = float(fortune.carry_cashout) / 100.0
+        cash = carry_in - carry_out
+        return '%.1f-%.1f=%.1f' % (carry_in, carry_out, cash)
+
+    fortune_carry.allow_tags = True
+    fortune_carry.short_description = u'财富收支'
 
     def total_click(self, obj):
         # type: (CashOut) -> int
@@ -224,26 +248,16 @@ class CashOutAdmin(ApproxAdmin):
     total_click.short_description = u"点击数"
 
     def total_order(self, obj):
-        # type: (CashOut) -> int
-        """订单数量
+        # type: (CashOut) -> text_type
+        """订单数量: 截止提现前订单件数/截止提现前订单笔数/总订单笔数
         """
         orders = StatisticsShoppingByDay.objects.filter(linkid=obj.xlmm, tongjidate__lt=obj.created)
-        sum_order = orders.aggregate(total_order=Sum('ordernumcount')).get('total_order') or 0
-        return sum_order
+        l_num = orders.aggregate(total_order=Sum('ordernumcount')).get('total_order') or 0
+        t_count = StatisticsShopping.objects.filter(linkid=obj.xlmm).count()
+        return '/'.join([str(l_num), str(orders.count()), str(t_count)])
 
     total_order.allow_tags = True
-    total_order.short_description = u"订单数"
-
-    def history_cash_out(self, obj):
-        # type: (CashOut) -> float
-        """计算小鹿妈妈的历史审核通过的提现记录（在当次提现记录创建日期之前的总提现金额 求和）
-        """
-        cash_outs = CashOut.objects.filter(xlmm=obj.xlmm, status=CashOut.APPROVED, created__lt=obj.created)
-        cash = cash_outs.aggregate(total_carry_out=Sum('value')).get('total_carry_out') or 0
-        return cash / 100.0
-
-    history_cash_out.allow_tags = True
-    history_cash_out.short_description = u'历史提现'
+    total_order.short_description = u"订单tN,tC,T"
 
     def reject_cash_out(self, request, queryset):
         # type: (HttpRequest, List[CashOut])

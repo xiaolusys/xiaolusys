@@ -58,8 +58,7 @@ urlpatterns = [
     url(r'^channel/(?P<linkid>\d+)/$', views.ClickChannelLogView.as_view(), name="xiaolumm_channel"),
     url(r'^charge/(?P<pk>\d+)/$', staff_member_required(views.chargeWXUser)),
     url(r'^xlmm/(?P<pk>\d+)/$', staff_member_required(views.XiaoluMamaModelView.as_view())),
-    url(r'^cashoutverify/(?P<xlmm>\d+)/(?P<id>\d+)/$', staff_member_required(views.cash_Out_Verify),
-       name="cashout_verify"),
+
     url(r'^cashmodify/(?P<data>\w+)/$', staff_member_required(views.cash_modify)),  #
     url(r'^cashreject/(?P<data>\w+)/$', staff_member_required(views.cash_reject)),  #
     url(r'^stats_summary/$', staff_member_required(views.stats_summary), name="stats_summary"),
