@@ -798,7 +798,7 @@ class PackageSkuItem(BaseModel):
         sku_stock = SkuStock.get_by_sku(sale_order.sku_id)
         assigned = sku_stock.can_assign(sku_item)
         if assigned:
-            sku_item.set_status_assigned()
+            sku_item.set_status_init_assigned()
         else:
             sku_item.set_status_paid()
         sku_item.save()
@@ -855,12 +855,20 @@ class PackageSkuItem(BaseModel):
         if pa:
             pa.cancel()
 
+    def set_status_init_assigned(self, save=True):
+        self.status = PSI_STATUS.ASSIGNED
+        self.assign_status = 1
+        self.assign_time = datetime.datetime.now()
+        if save:
+            self.save()
+            SkuStock.set_psi_init_assigned(self.sku_id, self.num)
+
     def set_status_not_assigned(self, stat=True, save=True):
         self.status = PSI_STATUS.PAID
         self.assign_status = 0
         self.assign_time = datetime.datetime.now()
         if save:
-            SkuStock.set_psi_not_assigned(self.sku_id, self.num ,stat=stat)
+            SkuStock.set_psi_not_assigned(self.sku_id, self.num, stat=stat)
             self.save()
 
     def merge(self):
