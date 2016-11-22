@@ -19,8 +19,12 @@ from flashsale.xiaolumm import serializers
 from flashsale.xiaolumm.models.models_advertis import NinePicAdver
 from shopback.items.models import Product
 from supplychain.supplier.models import SaleProductManageDetail
-from apis.v1.dailypush.ninepic import create_nine_pic_advertisement, \
+from ..apis.v1.ninepic import create_nine_pic_advertisement, \
     update_nine_pic_advertisement_by_id, delete_nine_pic_advertisement_by_id, get_nine_pic_descriptions_by_modelids
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class NinepicFilter(filters.FilterSet):
@@ -75,7 +79,7 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
         a = sorted(pms, key=lambda k: k['sale_product_id'], reverse=True)  # 按照选品id　排序
         a.sort(key=itemgetter('sale_category'))  # 为分类提前排序
         group_category_name = []
-        for sale_category, items in groupby(a, key=itemgetter('sale_category')):    # 分类分组处理
+        for sale_category, items in groupby(a, key=itemgetter('sale_category')):  # 分类分组处理
             cate = {
                 'name': sale_category,
                 'values': []
