@@ -246,7 +246,7 @@ class PurchaseDetail(BaseModel):
                              product_chicun=pd.sku_properties_name,
                              buy_quantity=pd.book_num,
                              buy_unitprice=pd.unit_price_display,
-                             total_price=pd.total_price,
+                             total_price=pd.total_price_display,
                              purchase_detail_unikey=pd.uni_key,
                              purchase_order_unikey=pd.purchase_order_unikey)
             ol = OrderList.objects.filter(purchase_order_unikey=pd.purchase_order_unikey).first()
@@ -259,7 +259,7 @@ class PurchaseDetail(BaseModel):
             if od.total_price != pd.total_price or od.buy_quantity != pd.book_num:
                 od.buy_quantity = pd.book_num
                 od.buy_unitprice = pd.unit_price_display
-                od.total_price = pd.total_price
+                od.total_price = pd.total_price_display
                 od.save(update_fields=['buy_quantity', 'buy_unitprice', 'total_price', 'updated'])
 
     def set_pa_inbound(self):
