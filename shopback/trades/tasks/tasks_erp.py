@@ -158,7 +158,7 @@ def task_sync_erp_deliver():
         order_status=ErpOrder.CHECK_TRADE,
         sync_status=ErpOrder.SUCCESS
     )
-
+    purchase_order_unikeys = []
     wdt = WangDianTong()
     for erp_order in erp_orders:
         try:
@@ -183,7 +183,11 @@ def task_sync_erp_deliver():
                 continue
 
             package_sku_item = PackageSkuItem.objects.get(id=eo.package_sku_item_id)
+            purchase_order_unikeys.add(package_sku_item.purchase_order_unikey)
             package_order = PackageOrder.objects.get(id=package_sku_item.package_order_id)
             package_order.finish_third_package(post_id, logistics_company)
 
             eo.update_logistics(logistics_code, logistics_name, post_id, delivery_time)
+    purchase_order_unikeys = list(purchase_order_unikeys)
+    for ol in OrderList.objects.filter(purchase_order_unikey__in=purchase_order_unikeys):
+        ol.set_by_package_sku_item()

@@ -476,6 +476,7 @@ class SaleTrade(BaseModel):
         #     raise Exception(u'换货数必须小于实时库存')
         old_sale_order.status = SaleOrder.TRADE_CLOSED_BY_SYS
         old_sale_order.save()
+        old_sale_order.set_psi_cancel()
         new_sale_order = old_sale_order
         new_sale_order.id = None
         cnt = self.sale_orders.count()
