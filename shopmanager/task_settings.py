@@ -99,7 +99,6 @@ CELERY_IMPORTS = (
     'flashsale.promotion.tasks_activity',
     'shopback.items.tasks_stats',
     'flashsale.forecast.apis',
-    'flashsale.protocol.tasks',
 )
 
 APIS_ROUTES = {
