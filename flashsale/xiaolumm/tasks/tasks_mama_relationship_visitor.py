@@ -29,6 +29,7 @@ def task_update_referal_relationship(sale_order):
     customer_id = sale_trade.buyer_id
     customer = Customer.objects.get(pk=customer_id)
 
+    logger.warn("id=%s, oid=%s" % (sale_order.id, sale_order.oid))
     referal_type = XiaoluMama.SCAN
     if sale_order.is_1_deposit():
         referal_type = XiaoluMama.TRIAL
@@ -37,10 +38,12 @@ def task_update_referal_relationship(sale_order):
     elif sale_order.is_188_deposit():
         referal_type = XiaoluMama.FULL
     else:
+        logger.warn("id=%s, oid=%s, is not deposit,return" % (sale_order.id, sale_order.oid))
         return
     
     mama = XiaoluMama.objects.filter(openid=customer.unionid).first()
     if not mama:  # 当前订单用户不是代理　则不做处理
+        logger.warn("id=%s, oid=%s, order user is not mama, return" % (sale_order.id, sale_order.oid))
         return
 
     # mama status is taken care of by some other logic, so we ignore.
@@ -59,10 +62,13 @@ def task_update_referal_relationship(sale_order):
     referal_mm = XiaoluMama.objects.filter(id=mm_linkid).first()
 
     if not referal_mm:  # 没有推荐人　
+        logger.warn("to_mama_id=%s, referal_mm none,return" % to_mama_id)
         return
     if not referal_mm.is_relationshipable():  # 可以记录
+        logger.warn("mm_linkid=%s, to_mama_id=%s, referal mm is not relationshipable" % ( mm_linkid, to_mama_id))
         return
     if referal_mm.id == mama.id:  # 如果推荐人 是自己 则 return
+        logger.warn("mm_linkid=%s, to_mama_id=%s, mama and referal mm is same" % ( mm_linkid, to_mama_id))
         return
 
     referal_type = 0
@@ -71,6 +77,7 @@ def task_update_referal_relationship(sale_order):
     elif sale_order.is_188_deposit():
         referal_type = XiaoluMama.FULL
     else:
+        logger.warn(" mm_linkid=%s, to_mama_id=%s, saleorder is not 99/188 deposit" % (mm_linkid, to_mama_id))
         return
         
     mm_linkid = referal_mm.id
