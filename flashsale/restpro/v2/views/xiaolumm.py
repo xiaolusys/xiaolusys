@@ -1104,3 +1104,62 @@ class RecruitEliteMamaView(APIView):
         info = u"精英妈妈帐户开启成功，请立即转入5张精品券！"
         res = {"code": 0, "info":info}
         return Response(res)
+
+class EnableEliteCouponView(APIView):
+    """
+    POST /rest/v2/mama/enable_elite_coupon
+    """
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated,)
+    
+    def post(self, request, *args, **kwargs):
+        content = request.POST
+
+        template_id = content.get("template_id")
+        coupon_product_model_id = content.get("coupon_product_model_id")
+        product_model_id = content.get("product_model_id")
+
+        # 1. Dealing with model_product
+        from flashsale.pay.models import ModelProduct
+        mp = ModelProduct.objects.filter(id=coupon_product_model_id).first()
+        mp.extras.update({"payinfo":{"use_coupon_only": True, "coupon_template_ids":[int(template_id)]}})
+        mp.save()
+
+        from shopback.items.models import Product
+        product_img = mp.head_imgs.split('\n')[0]
+        products = Product.objects.filter(model_id=product_model_id)
+        product_ids = ','.join([str(p.id) for p in products])
+
+        # 2. Dealing with coupon_template
+        from flashsale.coupon.models import CouponTemplate
+        ct = CouponTemplate.objects.filter(id=template_id).first()
+        ct.status = CouponTemplate.SENDING
+        ct.scope_type = CouponTemplate.SCOPE_PRODUCT
+        if ct.prepare_release_num < 1000:
+            ct.prepare_release_num = 1000
+        ct.extras["release"].update({"use_min_payment":0, "limit_after_release_days":365})
+        ct.extras["scopes"].update({"product_ids":product_ids})
+        ct.extras.update({"product_model_id":int(product_model_id),"product_img":product_img})
+        ct.save()
+        
+        # 3. Dealing with coupon_product
+        coupon_products = Product.objects.filter(model_id=coupon_product_model_id)
+        for p in coupon_products:
+            p.shelf_status = Product.UP_SHELF
+            p.save()
+
+            sku_name = p.name.split('/')[1]
+            skus = p.prod_skus.all()
+            for sku in skus:
+                sku.properties_name = sku_name
+                sku.properties_alias = sku_name
+                sku.save()
+
+        # 4. Dealing with coupon_model_product
+        mp = ModelProduct.objects.filter(id=coupon_product_model_id).first()
+        mp.extras["saleinfos"].update({"is_coupon_deny":True, "per_limit_buy_num":1000})
+        mp.extras.update({"template_id":int(template_id)})
+        mp.shelf_status = ModelProduct.OFF_SHELF
+        mp.save()
+        
+        return Response({"code":0, "info":u"完成！"})
