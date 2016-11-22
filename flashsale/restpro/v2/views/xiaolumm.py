@@ -1121,7 +1121,7 @@ class EnableEliteCouponView(APIView):
 
         # 1. Dealing with model_product
         from flashsale.pay.models import ModelProduct
-        mp = ModelProduct.objects.filter(id=coupon_product_model_id).first()
+        mp = ModelProduct.objects.filter(id=product_model_id).first()
         mp.extras.update({"payinfo":{"use_coupon_only": True, "coupon_template_ids":[int(template_id)]}})
         mp.save()
 
@@ -1160,6 +1160,7 @@ class EnableEliteCouponView(APIView):
         mp.extras["saleinfos"].update({"is_coupon_deny":True, "per_limit_buy_num":1000})
         mp.extras.update({"template_id":int(template_id)})
         mp.shelf_status = ModelProduct.OFF_SHELF
+        mp.product_type = 1
         mp.save()
         
         return Response({"code":0, "info":u"完成！"})
