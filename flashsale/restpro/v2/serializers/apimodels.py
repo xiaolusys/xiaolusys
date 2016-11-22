@@ -75,7 +75,9 @@ class APIProductSerializer(serializers.Serializer):
         return obj.lowest_price
 
     def get_elite_score(self, obj):
-        return obj.elite_score
+        if hasattr(obj, 'elite_score'):
+            return obj.elite_score
+        return 0
 
 
 class APIModelProductSerializer(serializers.Serializer):
