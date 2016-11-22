@@ -5,7 +5,7 @@ from ..models.message import XlmmMessage
 from ..models.models import CashOut, CarryLog, XiaoluMama
 from ..models.carry_total import MamaCarryTotal, MamaTeamCarryTotal, ActivityMamaCarryTotal
 from ..models.models_advertis import NinePicAdver
-from apis.v1.dailypush.ninepic import get_nine_pic_descriptions_by_modelids
+from ..apis.v1.ninepic import get_nine_pic_descriptions_by_modelids
 
 
 class CashOutStatusField(serializers.Field):

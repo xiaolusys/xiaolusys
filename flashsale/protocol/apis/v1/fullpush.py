@@ -1,4 +1,10 @@
 # coding=utf-8
+from __future__ import unicode_literals, absolute_import
+import datetime
+import logging
+
+logger = logging.getLogger(__name__)
+
 __ALL__ = [
     'get_app_push_msg_by_id',
     'get_minutes_failed_msgs',
@@ -6,10 +12,6 @@ __ALL__ = [
     'push_msg_right_now_by_id',
     'delete_app_push_msg',
 ]
-import datetime
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 def _validate_record(k, v):
@@ -68,7 +70,6 @@ def push_app_push_msg_2_client_by_id(id):
     from flashsale.xiaolumm import util_emoji
     from flashsale.push.app_push import AppPush
     from flashsale.protocol.models import APPFullPushMessge
-
     now = datetime.datetime.now()
     push_msg = get_app_push_msg_by_id(id)
     if now < push_msg.push_time or push_msg.status == APPFullPushMessge.SUCCESS:  # 定义的推送时间　没有到　推送状态是已经成功　都不推送
@@ -159,7 +160,7 @@ def update_app_push_msg_by_id(id, **kwargs):
     return app_push
 
 
-class AppPushMessge(object):
+class AppPushMessage(object):
     def __init__(self, **kwargs):
         self.id = kwargs['id']
         self.desc = kwargs['desc']
