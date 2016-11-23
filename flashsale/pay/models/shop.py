@@ -5,9 +5,9 @@ import random
 from django.db import models
 
 from .base import PayBaseModel
-from ..managers import ShopProductCategoryManager
-
+from ..managers import cushoppro
 from .user import Customer
+
 
 class CustomerShops(PayBaseModel):
     """
@@ -68,7 +68,7 @@ class CuShopPros(PayBaseModel):
 
     pro_category = models.IntegerField(db_index=True, default=0, verbose_name=u'产品类别')
     offshelf_time = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name=u'下架时间')
-    objects = ShopProductCategoryManager()
+    objects = cushoppro.ShopProductCategoryManager()
 
     class Meta:
         db_table = 'flashsale_cushops_detail'

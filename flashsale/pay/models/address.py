@@ -1,13 +1,14 @@
-# -*- coding:utf-8 -*-
+# coding=utf-8
 from __future__ import unicode_literals
 
 from django.db import models
-from django.db.models.signals import post_save
 import logging
 from .base import PayBaseModel, BaseModel
-from .. import managers
+from ..managers import useraddress
 
 logger = logging.getLogger('django.request')
+
+
 class District(PayBaseModel):
     FIRST_STAGE = 1
     SECOND_STAGE = 2
@@ -115,7 +116,7 @@ class UserAddress(BaseModel):
                               choices=STATUS_CHOICES, verbose_name=u'状态')
 
     objects = models.Manager()
-    normal_objects = managers.NormalUserAddressManager()
+    normal_objects = useraddress.NormalUserAddressManager()
 
     class Meta:
         db_table = 'flashsale_address'

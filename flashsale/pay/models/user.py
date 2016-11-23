@@ -1,6 +1,4 @@
-# -*- coding:utf-8 -*-
-from __future__ import unicode_literals
-
+# coding=utf-8
 from __future__ import unicode_literals
 
 import datetime
@@ -14,13 +12,13 @@ from django.db.models.signals import post_save
 from django.db.models import Sum
 
 from core.models import BaseModel
-from core.options import log_action, CHANGE
 from .base import PayBaseModel
 from .envelope import Envelop
 from .. import constants
-from .. import managers
+from ..managers import budget, customer
 
 logger = logging.getLogger(__name__)
+
 
 class Register(PayBaseModel):
     MAX_VALID_COUNT = 6
@@ -143,7 +141,7 @@ class Customer(BaseModel):
     first_paytime = models.DateTimeField(null=True,blank=True,verbose_name=u'首次购买日期')
     #     latest_paytime  = models.DateTimeField(null=True,blank=True,verbose_name=u'最近购买日期')
 
-    objects = managers.CustomerManager()
+    objects = customer.CustomerManager()
 
     def __unicode__(self):
         return '%s(%s)' % (self.nick, self.id)
@@ -551,7 +549,7 @@ class BudgetLog(PayBaseModel):
     referal_id = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'引用id')
     status = models.IntegerField(choices=STATUS_CHOICES, db_index=True, default=CONFIRMED, verbose_name=u'状态')
     uni_key = models.CharField(max_length=128, unique=True, null=True, verbose_name=u'唯一ID')
-    objects = managers.BudgetLogManager()
+    objects = budget.BudgetLogManager()
 
     def __unicode__(self):
         return u'<%s,%s>' % (self.customer_id, self.flow_amount)

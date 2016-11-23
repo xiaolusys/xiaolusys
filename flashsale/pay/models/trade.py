@@ -15,7 +15,6 @@ from .base import PayBaseModel, BaseModel
 from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import Product, ProductSku
 from shopback.users.models import User
-from flashsale.pay import managers
 from flashsale.pay import constants as CONST
 
 from ..signals import signal_saletrade_pay_confirm, signal_saletrade_refund_post
@@ -23,10 +22,11 @@ from core.utils.unikey import uniqid
 from core.fields import JSONCharMyField
 from core.utils.modelutils import update_model_fields
 
+from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES, WARE_THIRD
 from .address import UserAddress
 from .refund import SaleRefund
 from .user import Customer, UserBudget
-from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES, WARE_THIRD
+from ..managers import saletrade
 import logging
 
 logger = logging.getLogger(__name__)
@@ -179,7 +179,7 @@ class SaleTrade(BaseModel):
     #     is_part_consign  = models.BooleanField(db_index=True,default=False,verbose_name=u'分单发货')
     #     consign_parmas   = JSONCharMyField(max_length=512, blank=True, default='[]', verbose_name=u'发货信息')
     objects = models.Manager()
-    normal_objects = managers.NormalSaleTradeManager()
+    normal_objects = saletrade.NormalSaleTradeManager()
 
     class Meta:
         db_table = 'flashsale_trade'
