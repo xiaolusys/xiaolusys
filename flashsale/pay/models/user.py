@@ -173,7 +173,7 @@ class Customer(BaseModel):
         if not mama:
             return None
         return mama.id
-        
+
     def get_xiaolumm(self):
         if not self.unionid:
             return None
@@ -342,7 +342,7 @@ class UserBudget(PayBaseModel):
             return mama.id
         return ''
 
-            
+
     @property
     def budget_cash(self):
         return float('%.2f' % (self.amount * 0.01))
@@ -413,7 +413,7 @@ class UserBudget(PayBaseModel):
         """
         from flashsale.restpro.v2.views.xiaolumm import CashOutPolicyView
         min_cashout_amount = CashOutPolicyView.MIN_CASHOUT_AMOUNT
-        max_cashout_amount = CashOutPolicyView.MAX_CASHOUT_AMOUNT        
+        max_cashout_amount = CashOutPolicyView.MAX_CASHOUT_AMOUNT
         audit_cashout_amount = CashOutPolicyView.AUDIT_CASHOUT_AMOUNT
 
         mobile = self.user.mobile
@@ -424,7 +424,7 @@ class UserBudget(PayBaseModel):
         if not validate_code(mobile, verify_code):
             return 9, '验证码不对或已过期，请重新发送验证码！'
             #return 9, '提现功能休整中，请等待粉丝活动开始！'
-        
+
 
         if not isinstance(cash_out_amount, int):  # 参数类型错误(如果不是整型)
             return 3, '参数错误'
@@ -440,7 +440,7 @@ class UserBudget(PayBaseModel):
 
         from shopback.monitor.models import XiaoluSwitch
         if XiaoluSwitch.is_switch_open(4):
-            return 11, '系统维护中，提现功能暂时关闭!'            
+            return 11, '系统维护中，提现功能暂时关闭!'
 
         try:
             if not self.user.unionid:
@@ -489,7 +489,7 @@ class UserBudget(PayBaseModel):
         # 通过微信公众号小额提现，直接发红包，无需审核，一天限制2次
         if cash_out_amount <= audit_cashout_amount and cash_out_amount >= min_cashout_amount:
             envelop.send_envelop()
-                
+
         return 0, '提交成功'
 
 
@@ -569,7 +569,7 @@ class BudgetLog(PayBaseModel):
         if cnt < CASHOUT_NUM_LIMIT and cnt >= 0:
             return False
         return True
-        
+
     @property
     def mama_id(self):
         from flashsale.xiaolumm.models import XiaoluMama

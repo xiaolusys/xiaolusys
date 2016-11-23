@@ -152,6 +152,10 @@ def create(order_no, amount, subject, body, recipient, remark):
     """
     from mall.xiaolupay.tasks.tasks_envelope import task_sent_weixin_red_envelope
 
+    envelope = WeixinRedEnvelope.objects.filter(mch_billno=order_no).first()
+    if envelope:
+        return envelope
+
     envelope = WeixinRedEnvelope()
     envelope.mch_billno = order_no
     envelope.mch_id = settings.WX_PAY_MCH_ID
@@ -166,8 +170,11 @@ def create(order_no, amount, subject, body, recipient, remark):
     envelope.remark = remark
     envelope.save()
 
-    # task_sent_weixin_red_envelope.delay(envelope.id)
-    task_sent_weixin_red_envelope(envelope.id)
+    try:
+        # task_sent_weixin_red_envelope.delay(envelope.id)
+        task_sent_weixin_red_envelope(envelope.id)
+    except Exception:
+        pass
 
     return envelope
 
