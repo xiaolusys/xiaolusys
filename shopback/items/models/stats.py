@@ -445,8 +445,10 @@ class SkuStock(models.Model):
         change_fields = []
         if hasattr(stat, attr):
             change_fields.append(attr)
-            if status in [PSI_STATUS.ASSIGNED, PSI_STATUS.MERGED, PSI_STATUS.WAITPOST, PSI_STATUS.WAITSCAN]:
-                change_fields.append('assign_num')
+            #if status in [PSI_STATUS.ASSIGNED, PSI_STATUS.MERGED, PSI_STATUS.WAITPOST, PSI_STATUS.WAITSCAN] or stat:
+            # 统计的话把assign_num都统计一下了
+            #    change_fields.append('assign_num', 'sold_num')
+            change_fields.extend(['assign_num', 'sold_num'])
             SkuStock.stat_warning(sku_id, change_fields, warning, stat)
         else:
             updation = {
