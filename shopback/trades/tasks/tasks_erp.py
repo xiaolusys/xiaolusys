@@ -188,6 +188,24 @@ def task_sync_erp_deliver():
             package_order.finish_third_package(post_id, logistics_company)
 
             eo.update_logistics(logistics_code, logistics_name, post_id, delivery_time)
+
     purchase_order_unikeys = list(purchase_order_unikeys)
     for ol in OrderList.objects.filter(purchase_order_unikey__in=purchase_order_unikeys):
         ol.set_by_package_sku_item()
+
+
+def fahuo(sale_order_oid, post_id, logistics_code, logistics_name):
+    delivery_time = datetime.strptime('2016-11-22 00:00:01', '%Y-%m-%d %H:%M:%S')
+    logistics_company = LogisticsCompany.objects.filter(code=logistics_code).first()
+
+    eo = ErpOrder.objects.filter(sale_order_oid=sale_order_oid).first()
+    package_sku_item = PackageSkuItem.objects.get(id=eo.package_sku_item_id)
+    package_order = PackageOrder.objects.get(id=package_sku_item.package_order_id)
+    package_order.finish_third_package(post_id, logistics_company)
+
+    eo.update_logistics(logistics_code, logistics_name, post_id, delivery_time)
+
+
+def cancel_sale_order(sale_order_oid):
+    eo = ErpOrder.objects.filter(sale_order_oid=sale_order_oid).first()
+    eo.cancel_trade()

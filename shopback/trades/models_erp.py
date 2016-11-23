@@ -54,3 +54,7 @@ class ErpOrder(BaseModel):
         self.post_id = post_id
         self.delivery_time = delivery_time
         self.save()
+
+    def cancel_trade(self):
+        self.order_status = self.CANCEL_TRADE
+        self.save()
