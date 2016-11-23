@@ -243,3 +243,32 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         res = self.get_paginated_response(serializer.data)
         #res["Access-Control-Allow-Origin"] = "*"
         return res
+
+    @list_route(methods=['GET'])
+    def list_mama_left_coupons(self, request, *args, **kwargs):
+        content = request.GET
+
+        mama = get_charged_mama(request.user)
+        mama_id = mama.id
+
+        from django.db.models import Q
+        coupons = CouponTransferRecord.objects.filter(Q(transfer_type=CouponTransferRecord.OUT_CASHOUT) | Q(transfer_type=CouponTransferRecord.IN_BUY_COUPON),
+                                       coupon_to_mama_id=mama_id, transfer_status=CouponTransferRecord.DELIVERED).order_by('-created')
+
+        from django.db.models import Sum
+        for one_coupon in coupons:
+            res = CouponTransferRecord.objects.filter(template_id=one_coupon.template_id, coupon_from_mama_id=mama_id, transfer_status=CouponTransferRecord.DELIVERED).aggregate(
+                n=Sum('coupon_num'))
+            out_num = res['n'] or 0
+
+            res = CouponTransferRecord.objects.filter(template_id=one_coupon.template_id, coupon_to_mama_id=mama_id, transfer_status=CouponTransferRecord.DELIVERED).aggregate(
+                n=Sum('coupon_num'))
+            in_num = res['n'] or 0
+
+            stock_num = in_num - out_num
+            one_coupon.coupon_num = stock_num
+
+        coupons = self.paginate_queryset(coupons)
+        serializer = CouponTransferRecordSerializer(coupons, many=True)
+        res = self.get_paginated_response(serializer.data)
+        return res
