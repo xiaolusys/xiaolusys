@@ -1,34 +1,28 @@
 # -*- coding:utf-8 -*-
-import os
 import json
 import datetime
 import hashlib
-import urlparse
 import random
-from django.conf import settings
 from django.shortcuts import get_object_or_404, Http404
 from django.db.models import Q
 from django.core.urlresolvers import reverse
-from django.forms import model_to_dict
 
 from rest_framework import filters
-from rest_framework import generics
 from rest_framework import viewsets
-from rest_framework.decorators import detail_route, list_route
 from rest_framework import permissions
-from rest_framework import exceptions
+from rest_framework.decorators import list_route
 from rest_framework.response import Response
 from rest_framework_extensions.cache.decorators import cache_response
 
-from shopback.items.models import Product
 from core import pagination
 from flashsale.pay.models import ModelProduct, Customer, CuShopPros
 
 from flashsale.restpro.v2 import serializers as serializers_v2
+from flashsale.pay.apis.v1.product import get_virtual_modelproducts
 from apis.v1.products import ModelProductCtl, SkustatCtl
 
 import logging
-logger = logging.getLogger('service.restpro')
+logger = logging.getLogger(__name__)
 
 CACHE_VIEW_TIMEOUT = 30
 
@@ -287,3 +281,16 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         object_list = serializers_v2.ModelProductSerializer(queryset, context={'request': request}, many=True).data
         response = Response(object_list)
         return response
+
+    @list_route(methods=['get'])
+    def boutique(self, request, *args, **kwargs):
+        # type : (HttpRequest, *Any, **Any) -> HttpResponse
+        """精品券接口(虚拟商品)
+        """
+        queryset = get_virtual_modelproducts()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = serializers_v2.BoutiqueModelProductSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)

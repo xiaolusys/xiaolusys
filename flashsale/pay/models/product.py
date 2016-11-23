@@ -1,4 +1,4 @@
-# -*- coding:utf-8 -*-
+# coding=utf-8
 from __future__ import unicode_literals
 
 import re
@@ -11,24 +11,25 @@ from django.conf import settings
 from django.db.models.signals import post_save
 from django.core.cache import cache
 
-from tagging.fields import TagField
 from common.utils import update_model_fields
 from core.fields import JSONCharMyField
 from core.models import BaseTagModel
 from core.options import get_systemoa_user, log_action, CHANGE
-from .base import PayBaseModel, BaseModel
 
-from shopback.items.models import Product, ProductSku, ProductSkuContrast, ContrastContent
-from ..signals import signal_record_supplier_models
 from shopback import paramconfig as pcfg
+from shopback.items.models import Product, ProductSku, ProductSkuContrast, ContrastContent
 from shopback.items.constants import SKU_CONSTANTS_SORT_MAP as SM, PROPERTY_NAMES, PROPERTY_KEYMAP
 from shopback.items.tasks_stats import task_product_upshelf_notify_favorited_customer
+from .base import PayBaseModel, BaseModel
+from ..signals import signal_record_supplier_models
+from ..managers import modelproduct
 
 import logging
 logger = logging.getLogger(__name__)
 
 WASH_INSTRUCTION ='''洗涤时请深色、浅色衣物分开洗涤。最高洗涤温度不要超过40度，不可漂白。
 有涂层、印花表面不能进行熨烫，会导致表面剥落。不可干洗，悬挂晾干。'''.replace('\n','')
+
 
 class Productdetail(PayBaseModel):
     OUT_PERCENT = 0  # 未设置代理返利比例
@@ -145,16 +146,19 @@ class ModelProduct(BaseTagModel):
 
     ON_SHELF = 'on'
     OFF_SHELF = 'off'
-    WILL_SHELF = 'will' # 即将上新
+    WILL_SHELF = 'will'  # 即将上新
     SHELF_CHOICES = (
-        (ON_SHELF,u'已上架'),
-        (OFF_SHELF,u'未上架')
+        (ON_SHELF, u'已上架'),
+        (OFF_SHELF, u'未上架')
     )
 
+    USUAL_TYPE = 0
+    VIRTUAL_TYPE = 1
+    NOT_SALE_TYPE = 2
     TYPE_CHOICES = (
-        (0, u'商品'),
-        (1, u'虚拟商品'),
-        (2, u'非卖品'),
+        (USUAL_TYPE, u'商品'),
+        (VIRTUAL_TYPE, u'虚拟商品'),
+        (NOT_SALE_TYPE, u'非卖品'),
     )
 
     name = models.CharField(max_length=64, db_index=True, verbose_name=u'款式名称')
@@ -193,6 +197,7 @@ class ModelProduct(BaseTagModel):
     status = models.CharField(max_length=16, db_index=True, choices=STATUS_CHOICES,
                               default=NORMAL, verbose_name=u'状态')
     product_type = models.IntegerField(choices=TYPE_CHOICES, default=0, verbose_name=u'商品类型')
+    objects = modelproduct.ModelProductManager()
 
     class Meta:
         db_table = 'flashsale_modelproduct'
@@ -692,7 +697,6 @@ class ModelProduct(BaseTagModel):
         判断： 没有ProductSku或者只有一个则is_fatten = True
         设置： 款式以及款式下的产品is_flatten字段
         """
-        from shopback.items.models import ProductSku
         products = self.products
         flatten_count = ProductSku.objects.filter(product__in=products).count()
         is_flatten = flatten_count in [0, 1]

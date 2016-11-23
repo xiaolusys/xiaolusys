@@ -3,17 +3,20 @@ import datetime
 import django_filters
 from django.shortcuts import get_object_or_404
 from django.db import transaction
+from django_statsd.clients import statsd
+
 from rest_framework import exceptions
 from rest_framework import filters
 from rest_framework import viewsets, permissions, authentication, renderers
 from rest_framework.response import Response
+from rest_framework.decorators import list_route
 
 from flashsale.pay.models import Customer
 from flashsale.xiaolumm.models import XiaoluMama, MamaTabVisitStats
 from flashsale.xiaolumm.models.models_advertis import XlmmAdvertis, NinePicAdver, MamaVebViewConf
-from . import serializers
-from django_statsd.clients import statsd
 from flashsale.xiaolumm.tasks import task_mama_daily_tab_visit_stats
+from flashsale.xiaolumm.apis.v1.ninepic import get_nine_pic_by_modelids
+from . import serializers
 
 
 class XlmmAdvertisViewSet(viewsets.ModelViewSet):
@@ -91,6 +94,15 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
             'view': self,
             "mama_id": xlmm.id
         }
+
+    @list_route(methods=['get'])
+    def get_nine_pic_by_modelid(self, request, *args, **kwargs):
+        # type: (HttpRequest, *Any, **Any) -> HttpResponse
+        model_id = request.GET.get('model_id')
+        model_ids = [i.strip() for i in model_id.split(',') if i.isdigit()]
+        ns = get_nine_pic_by_modelids(model_ids)
+        serializer = self.get_serializer(ns, many=True)
+        return Response(serializer.data)
 
     def list(self, request, *args, **kwargs):
         xlmm = self.get_xlmm()
