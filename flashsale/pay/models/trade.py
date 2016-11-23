@@ -964,9 +964,6 @@ class SaleOrder(PayBaseModel):
         refund_fee = refund_fee if refund_fee else self.payment
         salerefund = SaleRefund.create_salerefund(self, refund_num, refund_fee, reason, good_status,
                                                   desc=desc, refund_channel=refund_channel, proof_pic=proof_pic)
-        if good_status == SaleRefund.BUYER_NOT_RECEIVED:
-            if self.package_sku:
-                self.package_sku.set_status_cancel()
         return salerefund
 
     def is_finishable(self):

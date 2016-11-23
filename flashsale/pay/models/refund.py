@@ -397,13 +397,13 @@ class SaleRefund(PayBaseModel):
                              SaleTrade.TRADE_BUYER_SIGNED):
             sorder.status = SaleTrade.TRADE_CLOSED
         sorder.save(update_fields=['status', 'modified'])
-
         strade = sorder.sale_trade
         if strade.normal_orders.count() == 0:
             strade.status = SaleTrade.TRADE_CLOSED
             strade.save(update_fields=['status', 'modified'])
         signal_saletrade_refund_confirm.send(sender=SaleRefund, obj=self)
         self.roll_back_usercoupon()
+        sorder.set_psi_cancel()
 
     def pic_path(self):
         # type: () -> text_type
