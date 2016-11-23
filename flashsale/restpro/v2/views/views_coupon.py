@@ -47,6 +47,8 @@ def process_transfer_coupon(customer_id, init_from_customer_id, record):
         coupon.customer_id = init_from_customer_id
         coupon.extras.update({"transfer_coupon_pk":record.id})
         coupon.save()
+    from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
+    task_calc_xlmm_elite_score.delay(record.coupon_to_mama_id)  # 计算妈妈积分
     return {"code": 0, "info": u"发放成功"}
 
     
@@ -196,6 +198,9 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
                 coupon.extras.update({"transfer_coupon_pk":pk})
                 coupon.save()
             info = u"发放成功"
+
+            from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
+            task_calc_xlmm_elite_score.delay(record.coupon_to_mama_id)  # 计算妈妈积分
         res = Response({"code": 0, "info": info})
         #res["Access-Control-Allow-Origin"] = "*"
         return res
@@ -252,7 +257,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         mama_id = mama.id
 
         from django.db.models import Q
-        coupons = CouponTransferRecord.objects.filter(Q(transfer_type=CouponTransferRecord.OUT_CASHOUT) | Q(transfer_type=CouponTransferRecord.IN_BUY_COUPON),
+        coupons = CouponTransferRecord.objects.filter(Q(transfer_type=CouponTransferRecord.OUT_TRANSFER) | Q(transfer_type=CouponTransferRecord.IN_BUY_COUPON),
                                        coupon_to_mama_id=mama_id, transfer_status=CouponTransferRecord.DELIVERED).order_by('-created')
 
         from django.db.models import Sum
