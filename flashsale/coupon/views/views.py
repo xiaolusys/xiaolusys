@@ -126,6 +126,8 @@ class ReleaseOmissive(APIView):
         content = request.POST
         customer = content.get('buyer_id', None)
         template_id = content.get('template_id', None)
+        activity_id = content.get('activity_id', 0)
+        activity_id = int(activity_id)
         try:
             cus = Customer.objects.get(Q(mobile=customer) | Q(pk=customer), status=Customer.NORMAL)
         except:
@@ -134,15 +136,14 @@ class ReleaseOmissive(APIView):
 
         message = u'发送成功'
         try:
-            from ..models.transfer_coupon import CouponTransferRecord
+            from ..models.usercoupon import UserCoupon
 
-            to_mama = cus.get_charged_mama()
-            if CouponTransferRecord.objects.filter(uni_key__contains='gift', coupon_to_mama_id=to_mama.id).exists():
-                return Response({'code': 0, "message": u'已经发送'})
             template = CouponTemplate.objects.get(id=template_id)
-            unique_key = template.gen_usercoupon_unikey('gift_transfer_%s' % cus.id, 1)
+            unique_key = template.gen_usercoupon_unikey('gift_transfer_%s_%s' % (cus.id, activity_id), 1)
+            if UserCoupon.objects.filter(uniq_id=unique_key).exists():
+                return Response({'code': 0, "message": u'已经发送'})
             cou, code, msg = create_user_coupon(cus.id, template.id, unique_key=unique_key)
-            transf_record = create_present_coupon_transfer_record(cus, template, cou.id)
+            transf_record = create_present_coupon_transfer_record(cus, template, cou.id, uni_key_prefix=activity_id)
             log_action(request.user, cou, ADDITION, u'添加优惠券记录,对应精品券id为%s' % transf_record.id)
             log_action(request.user, transf_record, ADDITION, u'添加精品流通记录,对应优惠券id为%s' % cou.id)
         except Exception as e:
