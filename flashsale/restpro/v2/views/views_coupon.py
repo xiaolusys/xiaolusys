@@ -114,10 +114,13 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         is_elite_mama = mama.is_elite_mama
         direct_buy = mama.can_buy_transfer_coupon() #可否直接购买精品券
         direct_buy_link = "http://m.xiaolumeimei.com/mall/buycoupon"
+        upgrade_score = mama.get_upgrade_score()
+        elite_level = mama.elite_level
         
         res = Response({"mama_id": mama_id, "stock_num": stock_num, "waiting_in_num": waiting_in_num,
                         "waiting_out_num": waiting_out_num, "bought_num": in_num,"is_elite_mama":is_elite_mama,
-                        "direct_buy": direct_buy, "direct_buy_link": direct_buy_link})
+                        "direct_buy": direct_buy, "direct_buy_link": direct_buy_link, "elite_score": mama.elite_score,
+                        "elite_level": elite_level, "upgrade_score": upgrade_score})
         #res["Access-Control-Allow-Origin"] = "*"
 
         return res
