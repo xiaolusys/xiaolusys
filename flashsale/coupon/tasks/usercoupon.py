@@ -192,9 +192,13 @@ def task_release_coupon_for_deposit(customer_id, deposit_type, trade_id=None, ca
     """
     from ..apis.v1.usercoupon import create_user_coupon
 
+    # deposit_type_tplids_map = {
+    #     99: [117, 118, 79],  # [121, 124]99+99
+    #     188: [117, 118, 121, 39]
+    # }
     deposit_type_tplids_map = {
         99: [117, 118, 79],  # [121, 124]99+99
-        188: [117, 118, 121, 39]
+        188: [117, 118, 167, 168, 39]
     }
     if deposit_type not in deposit_type_tplids_map:
         return
