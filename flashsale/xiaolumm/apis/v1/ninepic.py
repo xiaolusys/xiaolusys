@@ -7,6 +7,7 @@ __ALL__ = [
     'create_nine_pic_advertisement',
     'delete_nine_pic_advertisement_by_id',
     'update_nine_pic_advertisement_by_id',
+    'get_nine_pic_by_modelids',
     'get_nine_pic_descriptions_by_modelids',
     'NinePicAdvertisement',
 ]
@@ -132,19 +133,29 @@ def update_nine_pic_advertisement_by_id(id, **kwargs):
     return ninepic
 
 
-def get_nine_pic_descriptions_by_modelids(modelids):
+def get_nine_pic_by_modelids(modelids):
     # type: (List[int]) -> List[Dict[str, Any]]
-    from flashsale.xiaolumm.models.models_advertis import NinePicAdver
+    from ...models.models_advertis import NinePicAdver
 
-    descriptions = []
+    ns = []
     for modelid in modelids:
         x = r'(,|^)\s*' + str(modelid) + r'\s*(,|$)'
-        descriptions.extend(
-            NinePicAdver.objects.filter(detail_modelids__regex=x).values('id',
-                                                                         'save_times',
-                                                                         'share_times',
-                                                                         'detail_modelids',
-                                                                         'description'))
+        ns.extend(NinePicAdver.objects.filter(detail_modelids__regex=x))
+    return ns
+
+
+def get_nine_pic_descriptions_by_modelids(modelids):
+    # type: (List[int]) -> List[Dict[str, Any]]
+    descriptions = []
+    ns = get_nine_pic_by_modelids(modelids)
+    for n in ns:
+        descriptions.append({
+            'id': n.id,
+            'save_times': n.save_times,
+            'share_times': n.share_times,
+            'detail_modelids': n.detail_modelids,
+            'description': n.description,
+        })
     return descriptions
 
 
