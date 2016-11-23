@@ -854,6 +854,20 @@ class XiaoluMama(BaseModel):
 
         return 'Associate'
 
+    def get_upgrade_score(self):
+        if self.elite_score >= 10000:
+            return 0
+        if self.elite_score >= 3000:
+            return 10000 - self.elite_score
+        if self.elite_score >= 1000:
+            return 3000 - self.elite_score
+        if self.elite_score >= 300:
+            return 1000 - self.elite_score
+        if self.elite_score >= 50:
+            return 300 - self.elite_score
+        else:
+            return 50 - self.elite_score
+
     def fill_info(self, mobile, referal_from):
         update_fields = []
         if self.mobile is None or (not self.mobile.strip()):
