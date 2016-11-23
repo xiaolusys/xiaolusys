@@ -207,7 +207,18 @@ def task_activate_xiaolumama(openid, wx_pubid):
     if referal_from_mama_id < 1:
         return
 
-    potential_mama_id = mama.id
+    #自己扫自己的二维码加入，不需要增加自己潜在妈妈和推荐关系,此时可以从粉丝关系表中找出来上级妈妈
+    if referal_from_mama_id == mama.id:
+        customer = Customer.objects.filter(openid=openid).first()
+        if not customer:
+            raise Customer.DoesNotExist()
+        fan = XlmmFans.objects.filter(fans_cusid=customer.id).first()
+        if not fan:
+            return
+        potential_mama_id = fan.xlmm
+    else:
+        potential_mama_id = mama.id
+
     potential_mama_unionid = unionid
     task_create_scan_potential_mama.delay(referal_from_mama_id, potential_mama_id, potential_mama_unionid)
     
