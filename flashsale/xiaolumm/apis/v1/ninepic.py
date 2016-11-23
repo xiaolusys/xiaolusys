@@ -93,7 +93,7 @@ def create_nine_pic_advertisement(author, title, start_time, **kwargs):
                      memo=memo)
     n.save()
     if turns_num != verify_turns_num:  # 轮数不想等则重新排序
-        _resort_turns_num(start_time.date)
+        _resort_turns_num(start_time.date())
     return n
 
 
@@ -120,18 +120,15 @@ def update_nine_pic_advertisement_by_id(id, **kwargs):
         kwargs.pop('turns_num')
     if kwargs.has_key('sale_category'):
         kwargs.update({'sale_category_id': kwargs.pop('sale_category')})
-    if not kwargs.has_key('start_time'):  # 没有重新设置时间则不去更新时间和　turns_num
-        kwargs.update({'turns_num': ninepic.turns_num})
-    else:
-        start_time = datetime.datetime.strptime(kwargs.get('start_time'), '%Y-%m-%d %H:%M:%S')
-        old_start_time_date = ninepic.start_time.date()
-        if old_start_time_date != start_time.date():  # 不相等则都重新排序修改　轮数
-            _resort_turns_num(old_start_time_date)
-        _resort_turns_num(start_time.date())
     for k, v in kwargs.iteritems():
         if hasattr(ninepic, k) and getattr(ninepic, k) != v:
             setattr(ninepic, k, v)
     ninepic.save()
+    start_time = datetime.datetime.strptime(kwargs.get('start_time'), '%Y-%m-%d %H:%M:%S')
+    old_start_time_date = datetime.datetime.strptime(ninepic.start_time, '%Y-%m-%d %H:%M:%S').date()
+    if old_start_time_date != start_time.date():  # 不相等则都重新排序修改　轮数
+        _resort_turns_num(old_start_time_date)
+    _resort_turns_num(start_time.date())
     return ninepic
 
 
