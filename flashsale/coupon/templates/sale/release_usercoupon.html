@@ -83,6 +83,13 @@
         </ul>
     </div>
     <h2>点击按钮发放</h2>
+
+    <div class="col-xs-3">
+        <div class="form-group">
+            <label for="exampleInputPassword2">活动id</label>
+            <input type="text" class="form-control" id="activity_id" value="1">
+        </div>
+    </div>
     {% for template in templates %}
         <button type="button" class="btn btn-info releaseCoupon" style="margin-top: 30px; margin-bottom: 30px"
                 onclick="release_coupon_action({{ template.id }})">{{ template.title }}　
@@ -122,11 +129,14 @@
         var buyer_id = $("#buyer_id").val();
         var time_from = $("#time_from").val();
         var time_to = $("#time_to").val();
+        var activity_id = $("#activity_id").val();
+
         var data = {
             "buyer_id": buyer_id,
             "template_id": template_id,
             "time_from": time_from,
-            "time_to": time_to
+            "time_to": time_to,
+            "activity_id": activity_id
         };
         console.log('data:', data);
         $.ajax({
