@@ -588,6 +588,10 @@ FLASHSALE_INTEGRAL_ROUTES = {
         'queue': 'integral',
         'routing_key': 'integral.task_calculate_total_order_integral',
     },
+    'flashsale.xiaolumm.tasks.tasks_mama_dailystats.task_calc_xlmm_elite_score': {
+        'queue': 'integral',
+        'routing_key': 'integral.task_calc_xlmm_elite_score',
+    },
 }
 
 STATISTICS_ROUTES = {
