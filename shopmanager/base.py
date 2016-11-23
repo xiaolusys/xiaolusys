@@ -214,6 +214,8 @@ INSTALLED_APPS =[
     'shopapp.notify',
     # 'shopapp.zhongtong'
     'statistics',
+
+    'mall.xiaolupay.apps.XiaoluPayConfig'
 ]
 
 AUTH_PROFILE_MODULE = 'users.user'
