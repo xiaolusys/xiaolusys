@@ -828,19 +828,30 @@ class XiaoluMama(BaseModel):
 
     @property
     def elite_level(self):
-        from flashsale.coupon.models import CouponTransferRecord
-
-        stock_num, in_num, out_num = CouponTransferRecord.get_stock_num(self.id)
-        if in_num >= 1000:
+        # from flashsale.coupon.models import CouponTransferRecord
+        #
+        # stock_num, in_num, out_num = CouponTransferRecord.get_stock_num(self.id)
+        # if in_num >= 1000:
+        #     return 'SP'
+        # if in_num >= 300:
+        #     return 'Partner'
+        # if in_num >= 100:
+        #     return 'VP'
+        # if in_num >= 30:
+        #     return 'Director'
+        # if in_num >= 5:
+        #     return 'Associate'
+        if self.elite_score >= 10000:
             return 'SP'
-        if in_num >= 300:
+        if self.elite_score >= 3000:
             return 'Partner'
-        if in_num >= 100:
+        if self.elite_score >= 1000:
             return 'VP'
-        if in_num >= 30:
+        if self.elite_score >= 300:
             return 'Director'
-        if in_num >= 5:
+        if self.elite_score >= 50:
             return 'Associate'
+
         return 'Associate'
 
     def fill_info(self, mobile, referal_from):
