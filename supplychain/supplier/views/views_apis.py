@@ -501,7 +501,7 @@ class SaleScheduleViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-
+        queryset = queryset.order_by('-id')
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = serializers.SaleProductManageSerializer(page, many=True)
@@ -610,6 +610,7 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
         if schedule_id:
             queryset = queryset.filter(schedule_manage_id=schedule_id)
+        queryset = queryset.order_by('-id')
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
