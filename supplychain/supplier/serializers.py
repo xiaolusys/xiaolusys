@@ -445,7 +445,7 @@ class SaleProductManageSerializer(serializers.ModelSerializer):
         category_product_nums = {}
         details = []
         for d in obj.manage_schedule.all().only('sale_product_id'):
-            if d:
+            if d.sale_product:
                 details.append(d.sale_product)
 
         schedule_product_ids = list(obj.manage_schedule.values_list('sale_product_id',flat=True))
