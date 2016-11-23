@@ -8,8 +8,8 @@ __ALL__ = [
 ]
 
 
-def create_present_coupon_transfer_record(customer, template, coupon_id):
-    # type: (Customer, CouponTemplate, int) -> CouponTransferRecord
+def create_present_coupon_transfer_record(customer, template, coupon_id, uni_key_prefix=None):
+    # type: (Customer, CouponTemplate, int, Optional[int]) -> CouponTransferRecord
     """创建赠送优惠券流通记录
     """
     to_mama = customer.get_charged_mama()
@@ -26,7 +26,8 @@ def create_present_coupon_transfer_record(customer, template, coupon_id):
     transfer_type = CouponTransferRecord.IN_GIFT_COUPON
     date_field = datetime.date.today()
     transfer_status = CouponTransferRecord.DELIVERED
-    uni_key = "%s-%s-%s" % ('gift', to_mama.id, coupon_id)
+    uni_key_prefix = 'gift-%s' % uni_key_prefix if uni_key_prefix else 'gift'
+    uni_key = "%s-%s-%s" % (uni_key_prefix, to_mama.id, coupon_id)
     order_no = 'gift-%s' % coupon_id
     coupon_value = int(template.value)
     product_img = template.extras.get("product_img") or ''
