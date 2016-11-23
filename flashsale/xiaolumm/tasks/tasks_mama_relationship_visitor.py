@@ -51,11 +51,11 @@ def task_update_referal_relationship(sale_order):
     to_mama_id = mama.id  # 被推荐的妈妈id
 
     mm_linkid = utils.get_sale_order_mama_id(sale_order)
-    if not mm_linkid:  # 从订单没有找到推荐记录则先找潜在妈妈  如果潜在妈妈 没有 则 找粉丝记录
+    if (not mm_linkid) or (mm_linkid == mama.id):  # 从订单没有找到推荐记录或者点击自己链接支付的则先找潜在妈妈  如果潜在妈妈 没有 则 找粉丝记录
         potential = PotentialMama.objects.filter(potential_mama=mama.id).first()
-        if potential:
+        if potential and (potential.referal_mama != mama.id):
             mm_linkid = potential.referal_mama  # 推荐人妈妈id
-        if not mm_linkid:
+        if (not mm_linkid) or (mm_linkid == mama.id):
             fans = XlmmFans.objects.filter(fans_cusid=customer.id).first()
             mm_linkid = fans.xlmm if fans else 0
 
