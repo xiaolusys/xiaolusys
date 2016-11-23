@@ -584,7 +584,7 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated, permissions.DjangoModelPermissions, permissions.IsAdminUser)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter)
-    ordering_fields = ('order_weight', 'is_promotion', 'sale_category')
+    ordering_fields = ('order_weight', 'is_promotion', 'sale_category','id')
     filter_class = SaleScheduleDetailFilter
 
     @list_route(methods=['get'])
@@ -610,7 +610,7 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
         if schedule_id:
             queryset = queryset.filter(schedule_manage_id=schedule_id)
-        queryset = queryset.order_by('-id')
+
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
