@@ -73,6 +73,12 @@ class InBoundViewSet(viewsets.GenericViewSet):
             inbound_skus_dict[sku.id]['product_id'] = sku.product_id
         orderlist_id = form.cleaned_data.get('orderlist_id')
 
+        if not orderlist_id:
+            return Response({'orderlists': [], "error_message": u'必须填写订货单号'})
+        orderlist = OrderList.objects.filter(id=orderlist_id,stage__in=[OrderList.STAGE_RECEIVE,
+                                                                        OrderList.STAGE_STATE, OrderList.STAGE_COMPLETED]).first()
+        if not orderlist:
+            return Response({'orderlists': [], "error_message": u'订货单必须审核付款通过才能入库，请确认订货单状态'})
         optimize_forecast_id = self.get_optimize_forecast_id(inbound_skus)
         forecast_inbound_data = services.get_forecastinbound_data(optimize_forecast_id)
         express_no = form.cleaned_data['express_no']

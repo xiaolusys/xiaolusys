@@ -300,10 +300,11 @@ class OrderList(models.Model):
                                  self.last_pay_date and self.last_pay_date.strftime('%Y-%m-%d') or '------------',
                                  self.buyer_name)
 
-    def add_note(self, msg):
+    def add_note(self, msg, save=True):
         now = datetime.datetime.now()
         self.note += '\n-->%s: %s' % (now.strftime('%m月%d %H:%M'), msg)
-        self.save()
+        if save:
+            self.save()
 
     @property
     def normal_details(self):
@@ -421,6 +422,8 @@ class OrderList(models.Model):
         self.is_postpay = True
         self.purchase_order.book()
         self.ware_by = self.supplier.ware_by
+        _now = datetime.datetime.now()
+        self.add_note(u'-->%s:审核第三方发货订货单' % _now.strftime('%m月%d %H:%M'), save=False)
         self.set_stage_state()
         # for od in self.order_list.all():
         #     od.arrival_quantity = od.buy_quantity
@@ -496,7 +499,9 @@ class OrderList(models.Model):
         self.ware_by = self.supplier.ware_by
         if is_postpay:
             self.is_postpay = True
-        self.save(update_fields=['stage', 'status', 'is_postpay', 'checked_time', 'ware_by'])
+        _now = datetime.datetime.now()
+        self.add_note(u'-->%s:审核订货单' % _now.strftime('%m月%d %H:%M'), save=False)
+        self.save(update_fields=['stage', 'status', 'is_postpay', 'checked_time', 'ware_by', 'note'])
 
     def set_stage_pay(self, pay_way=13):
         # 付款提货 进入付款状态
