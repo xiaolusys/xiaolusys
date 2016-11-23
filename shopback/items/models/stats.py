@@ -176,14 +176,8 @@ class SkuStock(models.Model):
         if salestat:
             return salestat.init_waitassign_num + salestat.num + self.waitingpay_num
         else:
-            return self.sold_num - self.return_quantity - self.post_num + self.waitingpay_num
-            # um + self.waitingpay_num
-            # try:
-            #     return salestat.init_waitassign_num + salestat.num + self.waitingpay_num
-            # except Exception, e0:
-            #     exstr = traceback.format_exc()
-            #     logger.error('can not get sku sale stats:' + str(self.sku_id) + ':' + exstr)
-            #     return self.sold_num - self.return_quantity - self.post_num + self.waitingpay_num
+            # 没有取得salestat，就把过往卖出的全部当做锁定的。
+            return self.sold_num - self.return_quantity + self.waitingpay_num
 
     @property
     def realtime_lock_num(self):

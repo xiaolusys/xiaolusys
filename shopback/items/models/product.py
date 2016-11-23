@@ -622,7 +622,7 @@ class Product(models.Model):
         #     return False
         if self.shelf_status != Product.UP_SHELF:
             self.shelf_status = Product.UP_SHELF
-            # self.begin_sale_stat()
+            self.begin_sale_stat()
             self.save(update_fields=['shelf_status'])
             return True
         return False
