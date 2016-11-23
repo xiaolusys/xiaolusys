@@ -278,5 +278,5 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
             #one_coupon.coupon_num = stock_num
             if stock_num > 0:
                 left_coupons["results"].append({"product_img": one_coupon.product_img, "coupon_num": stock_num})
-
-        return left_coupons
+        res = Response(left_coupons)
+        return res
