@@ -95,6 +95,7 @@ class ActivityViewSet(viewsets.ModelViewSet):
         if request.data.has_key('end_time'):
             end_time = datetime.datetime.strptime(request.data.pop('end_time'), '%Y-%m-%d %H:%M:%S')
             request.data.update({'end_time': end_time})
+        request.data.update({'act_link': activity.act_link})
         serializer = self.get_serializer(activity, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         update_activity(instance_id, **request.data)
