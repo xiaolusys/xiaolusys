@@ -30,6 +30,13 @@ class SimpleModelProductSerializer(serializers.HyperlinkedModelSerializer):
         return image_watermark_cache.latest_qs or ''
 
 
+class BoutiqueModelProductSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ModelProduct
+        fields = ('id', 'name', 'head_img_url')
+
+
 class MamaChoiceProductSerializer(serializers.ModelSerializer):
     pic_path = serializers.SerializerMethodField()
     level_info = serializers.SerializerMethodField()
