@@ -263,6 +263,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         coupons = CouponTransferRecord.objects.filter(Q(transfer_type=CouponTransferRecord.OUT_TRANSFER) | Q(transfer_type=CouponTransferRecord.IN_BUY_COUPON),
                                        coupon_to_mama_id=mama_id, transfer_status=CouponTransferRecord.DELIVERED).order_by('-created')
 
+        left_coupons = {"code": 0, "info": "成功", "results": []}
         from django.db.models import Sum
         for one_coupon in coupons:
             res = CouponTransferRecord.objects.filter(template_id=one_coupon.template_id, coupon_from_mama_id=mama_id, transfer_status=CouponTransferRecord.DELIVERED).aggregate(
@@ -274,9 +275,8 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
             in_num = res['n'] or 0
 
             stock_num = in_num - out_num
-            one_coupon.coupon_num = stock_num
+            #one_coupon.coupon_num = stock_num
+            if stock_num > 0:
+                left_coupons["results"].append({"product_img": one_coupon.product_img, "coupon_num": stock_num})
 
-        coupons = self.paginate_queryset(coupons)
-        serializer = CouponTransferRecordSerializer(coupons, many=True)
-        res = self.get_paginated_response(serializer.data)
-        return res
+        return left_coupons
