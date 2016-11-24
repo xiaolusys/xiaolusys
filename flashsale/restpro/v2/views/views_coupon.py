@@ -267,7 +267,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         from django.db.models import Sum
         for one_coupon in coupons:
             has_calc = False
-            for one_left_coupon in left_coupons.results:
+            for one_left_coupon in left_coupons["results"]:
                 if one_left_coupon["template_id"] == one_coupon.template_id:
                     has_calc = True
                     break
