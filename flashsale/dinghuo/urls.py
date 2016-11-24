@@ -7,6 +7,7 @@ from rest_framework import routers, viewsets
 
 from django.views.decorators.csrf import csrf_exempt
 from . import views
+from .views import view_supplier_sku
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'pending_dinghuo', views.PendingDingHuoViewSet)
@@ -215,6 +216,12 @@ urlpatterns = [
     # 生成退货单
     url(r'^generate_return_goods/$', views.generate_return_goods, name="generate_return_goods"),
     url(r'^tuihuo/set_return_goods_failed/$', views.set_return_goods_failed, name="set_return_goods_failed"),
+    url(r'^supplier_sku/(?P<salesupplier_id>\d+)$',
+        view_supplier_sku.get_supplier_sku,
+        name="get_supplier_sku"),
+    url(r'^supplier_sku/(?P<salesupplier_id>\d+)/excel/$',
+        view_supplier_sku.get_supplier_sku_excel,
+        name="get_supplier_sku_excel"),
 
 ]
 
