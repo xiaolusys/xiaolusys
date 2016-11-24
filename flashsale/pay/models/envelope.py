@@ -8,7 +8,7 @@ from django.db import models
 from django.db.models.signals import post_save
 from .base import PayBaseModel
 
-from mall import xiaolupay
+from mall.xiaolupay.apis.v1 import envelope
 from mall.xiaolupay.models.weixin_red_envelope import WeixinRedEnvelope
 import pingpp
 pingpp.api_key = settings.PINGPP_APPKEY
@@ -146,8 +146,8 @@ class Envelop(PayBaseModel):
         from flashsale.xiaolumm.models import CashOut
 
         now = datetime.datetime.now()
-        status = envelopd['status']
-        self.envelop_id = envelopd['mch_billno']
+        status = envelopd.status
+        self.envelop_id = envelopd.mch_billno
         self.send_status = status.lower()
 
         if status in (WeixinRedEnvelope.SENDING, WeixinRedEnvelope.SENT, WeixinRedEnvelope.RECEIVED):
@@ -158,7 +158,7 @@ class Envelop(PayBaseModel):
                 BudgetLog.objects.filter(id=self.referal_id).update(status=BudgetLog.CONFIRMED, modified=now)
             elif self.subject == Envelop.CASHOUT:
                 CashOut.objects.filter(id=self.referal_id).update(status=CashOut.APPROVED, modified=now)
-        elif status in (WeixinRedEnvelope.SEND_FAILED, WeixinRedEnvelope.REFUND):
+        elif status in (WeixinRedEnvelope.FAILED, WeixinRedEnvelope.REFUND):
             self.status = Envelop.FAIL
             self.refund_envelop()
             logger.info({
@@ -172,29 +172,17 @@ class Envelop(PayBaseModel):
     def send_envelop(self):
         if self.envelop_id:
             return
-            # redenvelope = pingpp.RedEnvelope.retrieve(self.envelop_id)
-            # self.handle_envelop(redenvelope)
+
         try:
-            redenvelope = xiaolupay.apis.v1.envelope.create(
-                order_no=str(self.id),
+            envelope_unikey = 'xlmm%s' % (self.id)
+            redenvelope = envelope.create(
+                order_no=envelope_unikey,
                 amount=self.amount,
                 subject=self.get_subject_display(),
                 body=self.body,
                 recipient=self.recipient,
                 remark=self.description
             )
-            # redenvelope = pingpp.RedEnvelope.create(
-            #     order_no=str(self.id),
-            #     channel=self.platform,
-            #     amount=self.amount,
-            #     subject=self.get_subject_display(),
-            #     body=self.body,
-            #     currency='cny',
-            #     app=dict(id=settings.PINGPP_APPID),
-            #     extra=dict(nick_name=u'上海己美网络科技', send_name=u'小鹿美美'),
-            #     recipient=self.recipient,
-            #     description=self.description
-            # )
         except Exception, exc:
             self.status = Envelop.FAIL
             self.save()

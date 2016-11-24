@@ -97,3 +97,12 @@ class WeixinRedEnvelope(BaseModel):
                     self.rcv_time = datetime.strptime(rcv_time, '%Y-%m-%d %H:%M:%S')
         self.save()
         return self
+
+    def set_status_fail(self):
+        from flashsale.pay.models.envelope import Envelop
+
+        self.status = WeixinRedEnvelope.FAILED
+        self.save()
+
+        item = Envelop.objects.filter(envelop_id=self.mch_billno).first()
+        item.handle_envelop(self)

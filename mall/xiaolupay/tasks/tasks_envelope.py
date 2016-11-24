@@ -2,6 +2,7 @@
 from shopmanager import celery_app as app
 from mall.xiaolupay.apis.v1.envelope import WeixinRedEnvelopAPI
 from mall.xiaolupay.models.weixin_red_envelope import WeixinRedEnvelope
+from flashsale.pay.models.envelope import Envelop
 
 
 @app.task()
@@ -24,4 +25,7 @@ def task_sync_weixin_red_envelope(envelope_id):
         return
 
     api = WeixinRedEnvelopAPI()
-    api.queryEnvelope(envelope)
+    envelope = api.queryEnvelope(envelope)
+
+    item = Envelop.objects.filter(envelop_id=envelope.mch_billno).first()
+    item.handle_envelop(envelope)

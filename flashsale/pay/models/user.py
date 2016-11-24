@@ -474,7 +474,6 @@ class UserBudget(PayBaseModel):
                               uni_key=uni_key)
         budgetlog.save()
 
-
         envelop = Envelop.objects.create(
             amount=cash_out_amount,
             platform=Envelop.WXPUB,
