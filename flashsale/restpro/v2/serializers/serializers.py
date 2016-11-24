@@ -728,19 +728,28 @@ class SaleOrderSerializer(serializers.HyperlinkedModelSerializer):
     package_order_id = serializers.SerializerMethodField('gen_package_order_id', read_only=True)
     model_id = serializers.IntegerField(source='item_product.model_id', read_only=True)
     can_refund = serializers.BooleanField(source='get_refundable', read_only=True)
+    is_bonded_goods = serializers.SerializerMethodField('gen_is_bonded_goods', read_only=True)
 
     class Meta:
         model = SaleOrder
         fields = ('id', 'oid', 'item_id', 'title', 'sku_id', 'num', 'outer_id', 'total_fee',
                   'payment', 'discount_fee', 'sku_name', 'pic_path', 'status', 'status_display',
                   'refund_status', 'refund_status_display', "refund_id", 'kill_title', 'model_id',
-                  'is_seckill', 'package_order_id', 'can_refund')
+                  'is_seckill', 'package_order_id', 'can_refund', 'is_bonded_goods')
 
     def gen_package_order_id(self, obj):
         if obj.package_sku:
             return obj.package_sku.package_order_id or ''
         else:
             return ''
+
+    def gen_is_bonded_goods(self, obj):
+        from flashsale.pay.models.product import ModelProduct
+        model_product = ModelProduct.objects.filter(id=obj.item_product.model_id).first()
+        if model_product:
+            if model_product.extras['saleinfos'].has_key('is_bonded_goods'):
+                return model_product.extras['saleinfos']['is_bonded_goods']
+        return False
 
 
 def generate_refund_choices(obj):

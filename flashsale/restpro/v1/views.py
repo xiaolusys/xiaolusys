@@ -215,7 +215,8 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         receiver_name = content.get('receiver_name', '').strip()
         receiver_mobile = content.get('receiver_mobile', '').strip()
         receiver_phone = content.get('receiver_phone', '').strip()
-        referal_trade_id = content.get('referal_trade_id','').strip()
+        referal_trade_id = content.get('referal_trade_id', '').strip()
+        identification_no = content.get('identification_no', '').strip()
         # logistic_company_code = content.get('logistic_company_code', '').strip()
         if not receiver_state or not receiver_city or not receiver_district or not receiver_name \
                 or not re.compile(regex.REGEX_MOBILE).match(receiver_mobile):
@@ -237,6 +238,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
                 receiver_mobile=receiver_mobile,
                 receiver_phone=receiver_phone,
                 status=UserAddress.NORMAL,
+                identification_no=identification_no,
             )
             if state:  # 创建成功在将原来的地址改为删除状态 (保留地址)
                 new_address.default = UserAddress.objects.get(pk=pk).default  # 赋值原来的默认地址选择
