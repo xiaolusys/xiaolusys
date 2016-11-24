@@ -747,7 +747,7 @@ class SaleOrderSerializer(serializers.HyperlinkedModelSerializer):
         from flashsale.pay.models.product import ModelProduct
         model_product = ModelProduct.objects.filter(id=obj.item_product.model_id).first()
         if model_product:
-            if model_product.extras['saleinfos'].has_key('is_bonded_goods'):
+            if model_product.extras.has_key('saleinfos') and model_product.extras['saleinfos'].has_key('is_bonded_goods'):
                 return model_product.extras['saleinfos']['is_bonded_goods']
         return False
 
