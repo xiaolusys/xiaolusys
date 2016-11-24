@@ -266,6 +266,14 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         left_coupons = {"code": 0, "info": "成功", "results": []}
         from django.db.models import Sum
         for one_coupon in coupons:
+            has_calc = False
+            for one_left_coupon in left_coupons.results:
+                if one_left_coupon["template_id"] == one_coupon.template_id:
+                    has_calc = True
+                    break
+            if has_calc:
+                break
+
             res = CouponTransferRecord.objects.filter(template_id=one_coupon.template_id, coupon_from_mama_id=mama_id, transfer_status=CouponTransferRecord.DELIVERED).aggregate(
                 n=Sum('coupon_num'))
             out_num = res['n'] or 0
@@ -277,6 +285,6 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
             stock_num = in_num - out_num
             #one_coupon.coupon_num = stock_num
             if stock_num > 0:
-                left_coupons["results"].append({"product_img": one_coupon.product_img, "coupon_num": stock_num})
+                left_coupons["results"].append({"product_img": one_coupon.product_img, "coupon_num": stock_num, "template_id": one_coupon.template_id,})
         res = Response(left_coupons)
         return res
