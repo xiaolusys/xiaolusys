@@ -114,6 +114,7 @@ class UserAddress(BaseModel):
 
     status = models.CharField(max_length=8, blank=True, db_index=True, default=NORMAL,
                               choices=STATUS_CHOICES, verbose_name=u'状态')
+    identification_no = models.CharField(max_length=32, blank=True, verbose_name=u'身份证号码')  # type : text_type
 
     objects = models.Manager()
     normal_objects = useraddress.NormalUserAddressManager()
