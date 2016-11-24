@@ -218,7 +218,10 @@ urlpatterns = [
     url(r'^tuihuo/set_return_goods_failed/$', views.set_return_goods_failed, name="set_return_goods_failed"),
     url(r'^supplier_sku/(?P<salesupplier_id>\d+)$',
         view_supplier_sku.get_supplier_sku,
-        name="supplier_sku"),
+        name="get_supplier_sku"),
+    url(r'^supplier_sku/(?P<salesupplier_id>\d+)/excel/$',
+        view_supplier_sku.get_supplier_sku_excel,
+        name="get_supplier_sku_excel"),
 
 ]
 
