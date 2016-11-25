@@ -664,6 +664,26 @@ class OrderList(models.Model):
                      p.sale_trade.pay_time.strftime('%Y-%m-%D %H:%M:%S'),
                      p.sale_trade.logistics_company.name if p.sale_trade.logistics_company else '', '', u'小鹿美美，时尚健康美丽',
                      '', '', saleproduct.product_link if saleproduct else ''])
+        elif format == 'with_card':
+            columns = [u'订单号', u'产品条码', u'订单状态', u'买家id', u'子订单编号', u'供应商编码', u'买家昵称', u'商品名称', u'产品规格', u'商品单价',
+                       u'商品数量',
+                       u'商品总价', u'运费', u'购买优惠信息', u'总金额', u'买家购买附言', u'收货人姓名', '身份证号码', u'收货地址', u'邮编',
+                       u'收货人手机', u'收货人电话', u'买家选择运送方式', u'卖家备忘内容', u'订单创建时间', u'付款时间', u'物流公司', u'物流单号', u'发货附言',
+                       u'发票抬头', u'电子邮件', u'商品链接']
+            for p in need_send:
+                o = p.package_order
+                saleproduct = p.product_sku.product.get_sale_product()
+                items.append(
+                    [str(o.pid) if o else '', '', p.get_assign_status_display(), str(p.sale_trade.buyer_id), str(p.id),
+                     saleproduct.supplier_sku if saleproduct else '', str(p.sale_trade.buyer_nick),
+                     str(p.product_sku.product.name), str(p.product_sku.properties_name),
+                     str(p.product_sku.cost), str(p.num), '0', '0', '0', '0', '', str(p.sale_trade.receiver_name),
+                     str(o.user_address.identification_no) if o and o.user_address else '',
+                     str(p.sale_trade.receiver_address_detail), '', p.sale_trade.receiver_mobile, '', '', '', '',
+                     p.sale_trade.created.strftime('%Y-%m-%D %H:%M:%S'),
+                     p.sale_trade.pay_time.strftime('%Y-%m-%D %H:%M:%S'),
+                     p.sale_trade.logistics_company.name if p.sale_trade.logistics_company else '', '', u'小鹿美美，时尚健康美丽',
+                     '', '', saleproduct.product_link if saleproduct else ''])
         elif format == 'third_package1':
             columns = [u'订单号', u'产品条码', u'订单状态', u'买家id', u'子订单编号', u'供应商编码', u'买家昵称', u'商品名称', u'产品规格', u'商品单价',
                        u'商品数量',

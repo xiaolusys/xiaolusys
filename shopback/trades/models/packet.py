@@ -133,6 +133,11 @@ class PackageOrder(models.Model):
         return str(self.receiver_state) + ' ' + str(self.receiver_city) + ' ' \
                + str(self.receiver_district) + ' ' + str(self.receiver_address)
 
+    @property
+    def user_address(self):
+        from flashsale.pay.models.address import UserAddress
+        return UserAddress.objects.get(id=self.user_address_id)
+
     def copy_order_info(self, sale_trade):
         """从package_order或者sale_trade复制信息"""
         attrs = ['tid', 'receiver_name', 'receiver_state', 'receiver_city', 'receiver_district',
