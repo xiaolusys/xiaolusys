@@ -441,11 +441,21 @@ class ProductCategorySerializer(serializers.ModelSerializer):
 
 class ProductSkuSerializer(serializers.ModelSerializer):
     is_saleout = serializers.BooleanField(source='sale_out', read_only=True)
+    is_bonded_goods = serializers.SerializerMethodField('gen_is_bonded_goods', read_only=True)
 
     class Meta:
         model = ProductSku
-        fields = ('id', 'outer_id', 'name', 'remain_num', 'size_of_sku', 'is_saleout', 'std_sale_price', 'agent_price')
+        fields = ('id', 'outer_id', 'name', 'remain_num', 'size_of_sku', 'is_saleout', 'std_sale_price', 'agent_price', 'is_bonded_goods')
 
+    def gen_is_bonded_goods(self, obj):
+        from flashsale.pay.models.product import ModelProduct, Product
+        product = Product.objects.filter(id=obj.id).first()
+        model_product = ModelProduct.objects.filter(id=product.model_id).first()
+        if model_product:
+            if model_product.extras.has_key('saleinfos') and model_product.extras['saleinfos'].has_key(
+                    'is_bonded_goods'):
+                return model_product.extras['saleinfos']['is_bonded_goods']
+        return False
 
 class JSONParseField(serializers.Field):
     def to_representation(self, obj):
@@ -710,12 +720,22 @@ class ShoppingCartSerializer(serializers.HyperlinkedModelSerializer):
     status = serializers.ChoiceField(choices=ShoppingCart.STATUS_CHOICE)
     item_weburl = serializers.CharField(source='get_item_weburl', read_only=True)
     model_id = serializers.IntegerField(source='product.model_id', read_only=True)
+    is_bonded_goods = serializers.SerializerMethodField('gen_is_bonded_goods', read_only=True)
 
     class Meta:
         model = ShoppingCart
         fields = ('id', 'url', 'buyer_id', 'buyer_nick', 'item_id', 'title', 'price',
                   'std_sale_price', 'sku_id', 'num', 'total_fee', 'sku_name', 'model_id',
-                  'pic_path', 'created', 'is_repayable', 'status', 'item_weburl', 'type')
+                  'pic_path', 'created', 'is_repayable', 'status', 'item_weburl', 'type', 'is_bonded_goods')
+
+    def gen_is_bonded_goods(self, obj):
+        from flashsale.pay.models.product import ModelProduct
+        model_product = ModelProduct.objects.filter(id=obj.product.model_id).first()
+        if model_product:
+            if model_product.extras.has_key('saleinfos') and model_product.extras['saleinfos'].has_key(
+                    'is_bonded_goods'):
+                return model_product.extras['saleinfos']['is_bonded_goods']
+        return False
 
 
 class SaleOrderSerializer(serializers.HyperlinkedModelSerializer):

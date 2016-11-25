@@ -253,24 +253,7 @@ class OrderListAdmin(BaseModelAdmin):
     def verify_order_action(self, request, queryset):
         print 'verify_order_action', request
         for orderlist in queryset:
-            pds = PurchaseDetail.objects.filter(purchase_order_unikey=orderlist.purchase_order_unikey)
-            # from flashsale.dinghuo.models_purchase import PurchaseRecord, PurchaseArrangement, PurchaseDetail, PurchaseOrder
-            # from shopback.trades.models import *
-            # pds = PurchaseDetail.objects.filter(purchase_order_unikey=orderlist.purchase_order_unikey)
-            # sku_ids = [pd.sku_id for pd in pds]
-            # PackageSkuItem.objects.filter(sku_id__in=sku_ids,assign_status=PackageSkuItem.NOT_ASSIGNED,purchase_order_unikey='').aggregate(total=Sum('num'))
-            # orderlist.purchase_order_unikey
-            # PurchaseArrangement.objects.filter(purchase_order_unikey=orderlist.purchase_order_unikey).aggregate(Sum('num'))
-            # for p in PackageSkuItem.objects.filter(sku_id__in=sku_ids,assign_status=PackageSkuItem.NOT_ASSIGNED,purchase_order_unikey=''):
-            #    if not PurchaseArrangement.objects.filter(oid=p.oid).first():
-            #       print p.oid
-            # PurchaseRecord.objects.get(oid='xo16082657c021b1b8913').save()
-            # PurchaseArrangement.objects.get(oid='xo16082657c021b1b8913').save()
-            #
-            # r1= {int(o['chichu_id']):o['total'] for o in OrderDetail.objects.filter(purchase_order_unikey=orderlist.purchase_order_unikey).values('chichu_id').annotate(total=Sum('buy_quantity'))}
-            # r2= {int(o['sku_id']):o['total'] for o in PackageSkuItem.objects.filter(sku_id__in=sku_ids, assign_status=PackageSkuItem.NOT_ASSIGNED, purchase_order_unikey='').values('sku_id').annotate(total=Sum('num'))}
-            # [(sku_id,r1[sku_id],r2.get(sku_id,0)) for sku_id in r1 if r1[sku_id]!=r2.get(sku_id,0)]
-            sku_ids = [pd.sku_id for pd in pds]
+            sku_ids = list(self.purchase_order.arrangements.values_list('sku_id', flat=True))
             psis = PackageSkuItem.get_need_purchase({'sku_id__in': sku_ids})
             psis_total = psis.aggregate(total=Sum('num')).get('total') or 0
             ods_res = OrderDetail.objects.filter(purchase_order_unikey=orderlist.purchase_order_unikey).aggregate(
