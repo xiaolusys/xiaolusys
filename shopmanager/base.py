@@ -295,8 +295,8 @@ SECURE_REQUIRED_PATHS = (
 )
 
 # ================ 微信支付 ======================
-WEIXIN_PAY_SSL_KEY = '/data/xiaolupay/weixin-pay-wap/apiclient_key.pem'
-WEIXIN_PAY_SSL_CERT = '/data/xiaolupay/weixin-pay-wap/apiclient_cert.pem'
+WEIXIN_PAY_SSL_KEY = '/data/certs/wx_pub/apiclient_key.pem'
+WEIXIN_PAY_SSL_CERT = '/data/certs/wx_pub/apiclient_cert.pem'
 
 
 ################### WEIXIN SETTINGS ##################
