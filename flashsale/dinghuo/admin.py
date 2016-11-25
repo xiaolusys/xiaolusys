@@ -253,7 +253,7 @@ class OrderListAdmin(BaseModelAdmin):
     def verify_order_action(self, request, queryset):
         print 'verify_order_action', request
         for orderlist in queryset:
-            sku_ids = list(self.purchase_order.arrangements.values_list('sku_id', flat=True))
+            sku_ids = list(orderlist.purchase_order.arrangements.values_list('sku_id', flat=True))
             psis = PackageSkuItem.get_need_purchase({'sku_id__in': sku_ids})
             psis_total = psis.aggregate(total=Sum('num')).get('total') or 0
             ods_res = OrderDetail.objects.filter(purchase_order_unikey=orderlist.purchase_order_unikey).aggregate(
