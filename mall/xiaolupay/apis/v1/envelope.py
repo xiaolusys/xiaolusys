@@ -171,8 +171,7 @@ def create(order_no, amount, subject, body, recipient, remark):
     envelope.save()
 
     try:
-        # task_sent_weixin_red_envelope.delay(envelope.id)
-        task_sent_weixin_red_envelope(envelope.id)
+        task_sent_weixin_red_envelope.delay(envelope.id)
     except Exception:
         pass
 
