@@ -133,6 +133,11 @@ class PackageOrder(models.Model):
         return str(self.receiver_state) + ' ' + str(self.receiver_city) + ' ' \
                + str(self.receiver_district) + ' ' + str(self.receiver_address)
 
+    @property
+    def user_address(self):
+        from flashsale.pay.models.address import UserAddress
+        return UserAddress.objects.get(id=self.user_address_id)
+
     def copy_order_info(self, sale_trade):
         """从package_order或者sale_trade复制信息"""
         attrs = ['tid', 'receiver_name', 'receiver_state', 'receiver_city', 'receiver_district',
@@ -694,7 +699,10 @@ class PackageSkuItem(BaseModel):
     def order_list(self):
         from flashsale.dinghuo.models import OrderList
         if not hasattr(self, '_order_list_'):
-            self._order_list_ = OrderList.objects.filter(purchase_order_unikey=self.purchase_order_unikey).first()
+            if self.purchase_order_unikey:
+                self._order_list_ = OrderList.objects.filter(purchase_order_unikey=self.purchase_order_unikey).first()
+            else:
+                self._order_list_ = None
         return self._order_list_
 
     @property
