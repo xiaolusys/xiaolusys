@@ -7,6 +7,8 @@
 <link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css"/>
 <link href="{{ STATIC_URL }}css/base.less" rel="stylesheet/less" type="text/css"/>
 <link href="{{ STATIC_URL }}admin/css/forms.css" rel="stylesheet" type="text/css"/>
+<script src="{{ STATIC_URL }}layer-v1.9.2/layer/layer.js"></script>
+<script src="{{ STATIC_URL }}layer-v1.9.2/layer/extend/layer.ext.js"></script>
 {% endblock %}
 
 {% block bodyclass %}change-form{% endblock %}
@@ -168,7 +170,8 @@
                         <label>     </label>
                         {%endif%}
                         {%if sale_order.status >= 2 and sale_order.status < 5 and sale_order.refund_status == 0%}
-                        <button class="refund" id="refund_{{sale_order.id}}_{{sale_order.payment}}">退款</button>
+                        <input type="button" class="refundOrder" style="padding: 4px 7px" onclick="doRefund({{sale_order.id}}, 0)" value="非缺货退款"/>
+                        <input type="button" class="refundOrder" style="padding: 4px 7px" onclick="doRefund({{sale_order.id}}, 3)" value="缺货退款"/>
                         {%endif%}
                         {%if sale_order.status == 3%}
                         {%if sale_order.refund_status == 0 or sale_order.refund_status == 2%}
@@ -214,30 +217,51 @@
         </div>
     </div>
 </div>
-<script>
-    function refund_fee(evt){
-        var dom = evt.target;
-        var feeid = dom.id.split("_")
-        var url = "/mm/refund_fee/";
-        var data = {"sale_order_id": feeid[1],"refund_fee":feeid[2]};
-        $.ajax({
-            url: url,
-            data: data,
-            "type": "post",
-            success: function(res){
-                if (res == "True") {
-                    window.location.reload();
-                    alert("退款成功");
-                }else{
-                    alert(res);
+
+    <script>
+        function serverData(data, func, url, type) {
+            $.ajax({
+                type: type,
+                url: url,
+                data: data,
+                dataType: 'json',
+                success: func,
+                error: function (data) {
+                    if (data.status == 403) {
+                        layer.msg('您还没有登陆哦!');
+                    }
+                    else {
+                        layer.msg(data.responseText);
+                    }
                 }
-            },
-            error: function(){
+            });
+        }
 
-            }
-        });
-    }
+        var doRefund = function (orderId, goodStatus) {
+            var url = "/mm/refund_fee/";
+            var data = {'order_id': orderId, 'good_status': goodStatus};
+            var btn = $('.refundOrder');
+            var func = function (res) {
+                btn.removeClass('loading');
+                console.log('refund res:', res);
+                layer.msg(res.info);
+                location.reload();
+            };
 
+            layer.confirm('确定生成退款单？', {
+                btn: ['确定', '取消'] //按钮
+            }, function () {
+                if (btn.hasClass('loading')) {
+                    return
+                }
+                btn.addClass('loading');
+                serverData(data, func, url, 'post');
+            }, function () {
+            });
+        }
+    </script>
+
+<script>
     var edit_seller_memo = function(evt){
         var dom = $('#btn_edit_seller_memo');
         if (dom.hasClass("loading")) {
@@ -309,7 +333,6 @@
     }
 
     function change_sku_item( sale_order_id, SKU, num){
-    　　alert('test');
         var url = "/mm/change_sku_item/";
         var data = {"sale_order_id": sale_order_id, "SKU":SKU ,"num": num
         };
@@ -355,7 +378,6 @@ $(function(){
     });
 
     $("#btn-change-sku-save").click(change_sku_save);
-    $(".refund").click(refund_fee);
 });
 
 </script>
