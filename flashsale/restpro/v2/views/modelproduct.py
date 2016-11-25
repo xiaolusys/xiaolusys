@@ -287,10 +287,11 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         # type : (HttpRequest, *Any, **Any) -> HttpResponse
         """精品券接口(虚拟商品)
         """
-        queryset = get_virtual_modelproducts()
+        ids = [i['id'] for i in get_virtual_modelproducts().values('id')]
+        queryset = ModelProductCtl.multiple(ids=ids)
         page = self.paginate_queryset(queryset)
         if page is not None:
-            serializer = serializers_v2.BoutiqueModelProductSerializer(page, many=True)
+            serializer = serializers_v2.APIModelProductListSerializer(page, many=True)
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)

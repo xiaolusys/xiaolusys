@@ -1134,7 +1134,9 @@ def task_auto_shelf_prods():
     try:
         from supplychain.supplier.models import SaleProductManage, SaleProductManageDetail
         today = datetime.date.today()
-        schedules = SaleProductManage.objects.filter(sale_time=today)
+        t1 = datetime.datetime(today.year, today.month, today.day, 0, 0, 0)
+        t2 = datetime.datetime(today.year, today.month, today.day, 23, 59, 59)
+        schedules = SaleProductManage.objects.filter(upshelf_time__gte=t1, upshelf_time__lte=t2)
         sale_product_ids = []  # 要上架的排期管理选品id
         for schedule in schedules:
             sale_product_ids += [d.sale_product_id for d in
