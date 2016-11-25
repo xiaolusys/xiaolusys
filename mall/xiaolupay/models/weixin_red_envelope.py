@@ -66,10 +66,18 @@ class WeixinRedEnvelope(BaseModel):
             self.err_code = result.get('err_code', '')
             self.err_code_des = result.get('err_code_des', '')
 
+            if self.result_code == 'FAIL':
+                # 微信拦截
+                if self.err_code == 'NO_AUTH':
+                    self.status = WeixinRedEnvelope.FAILED
+                # 微信处理中
+                if self.err_code == 'PROCESSING':
+                    self.status = WeixinRedEnvelope.SENDING
+
             if self.result_code == 'SUCCESS':
                 # 红包发送成功
                 self.send_listid = result['send_listid']
-                self.status = self.SENDING
+                self.status = WeixinRedEnvelope.SENDING
         self.save()
         return self
 

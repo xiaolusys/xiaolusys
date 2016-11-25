@@ -50,8 +50,8 @@ deploy:
     when:
       branch: admin
     commands:
-      - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:latest      
-      - docker rm -f gunicorn 
+      - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
+      - docker rm -f gunicorn
       - docker run --name=gunicorn --restart=always --log-opt max-file=1 --log-opt max-size=1m
         -e TARGET=production -e INSTANCE=admin -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
         -v /var/data:/data -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9000:9000
@@ -77,7 +77,7 @@ deploy:
         --cpu-period=100000 --cpu-quota=100000 -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
         -v /var/data:/data -d  -e C_FORCE_ROOT=1 registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
         celery worker -c 4 -A shopmanager --time-limit=5400
-        --loglevel=ERROR -Q apis,default,peroid,async,notify,logistics,dinghuo
+        --loglevel=ERROR -Q apis,default,peroid,async,notify,logistics,dinghuo,xiaolupay
   ssh:
     host: staging.xiaolumm.com
     user: root
@@ -162,7 +162,7 @@ deploy:
         -v /var/data:/data -d -e C_FORCE_ROOT=1
         registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
         celery worker -c 4 -A shopmanager --loglevel=ERROR --time-limit=5400
-        -Q notify,default,frency,coupon,activevalue,mama,mamafortune,relationship,carryrecord,skustats,statistics,logistics,carrytotal,integral,dinghuo
+        -Q notify,default,frency,coupon,activevalue,mama,mamafortune,relationship,carryrecord,skustats,statistics,logistics,carrytotal,integral,dinghuo,xiaolupay
   ssh:
     host:
       - sale2.xiaolumm.com
