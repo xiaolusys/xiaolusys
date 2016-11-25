@@ -694,7 +694,10 @@ class PackageSkuItem(BaseModel):
     def order_list(self):
         from flashsale.dinghuo.models import OrderList
         if not hasattr(self, '_order_list_'):
-            self._order_list_ = OrderList.objects.filter(purchase_order_unikey=self.purchase_order_unikey).first()
+            if self.purchase_order_unikey:
+                self._order_list_ = OrderList.objects.filter(purchase_order_unikey=self.purchase_order_unikey).first()
+            else:
+                self._order_list_ = None
         return self._order_list_
 
     @property
