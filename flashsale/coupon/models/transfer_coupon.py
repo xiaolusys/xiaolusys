@@ -362,7 +362,7 @@ class CouponTransferRecord(BaseModel):
         elite_score = 0
         from flashsale.pay.models.trade import SaleOrder, SaleTrade
         sale_trade = SaleTrade.objects.filter(tid=trade_tid).first()
-        sale_orders = sale_trade.sale_orders
+        sale_orders = sale_trade.sale_orders.all()
         if sale_orders:
             product_id = sale_orders[0].item_id
             from shopback.items.models import Product
