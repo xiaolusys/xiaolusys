@@ -368,11 +368,8 @@ class OrderList(models.Model):
 
         """
         from shopback.trades.models import PackageSkuItem
-        from flashsale.dinghuo.models_purchase import PurchaseDetail
-
         if self.stage == OrderList.STAGE_DRAFT:
-            pds = PurchaseDetail.objects.filter(purchase_order_unikey=self.purchase_order_unikey, book_num__gt=0)
-            sku_ids = [pd.sku_id for pd in pds]
+            sku_ids = list(self.purchase_order.arrangements.values_list('sku_id', flat=True))
             psis = PackageSkuItem.objects.filter(
                 sku_id__in=sku_ids,
                 assign_status__in=[PackageSkuItem.NOT_ASSIGNED],

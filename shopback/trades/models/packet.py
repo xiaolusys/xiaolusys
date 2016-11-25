@@ -1068,7 +1068,7 @@ class PackageSkuItem(BaseModel):
     def get_need_purchase(condition_add={}):
         condition = {
             'purchase_order_unikey':'',
-            'assign_status':PackageSkuItem.NOT_ASSIGNED
+            'assign_status': PackageSkuItem.NOT_ASSIGNED
         }
         condition.update(condition_add)
         return PackageSkuItem.objects.filter(**condition).order_by('created')
