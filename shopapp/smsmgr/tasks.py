@@ -19,7 +19,7 @@ def task_notify_package_post(package_order):
     功能: 用户的订单发货了, 发送发货的短信通知 , package_order 称重的时候触发此任务执行.
     """
 
-    package_sku_item = package_order.package_sku_items.first()
+    package_sku_item = package_order.package_sku_items.filter(assign_status=2).first()
     if not package_sku_item:
         return
 
