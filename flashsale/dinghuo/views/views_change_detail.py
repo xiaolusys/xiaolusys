@@ -273,8 +273,8 @@ def update_dinghuo_part_information(request):
 
 
 def generate_return_goods(request):
-    supplier = request.GET.get("supplier", None)
-    stype = request.GET.get("type", 0)
+    supplier = request.POST.get("supplier", None)
+    stype = request.POST.get("type", 0)
     try:
         ss = SaleSupplier.objects.get(Q(supplier_name=supplier) | Q(id=supplier))
     except Exception, msg:
