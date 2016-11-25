@@ -8,6 +8,8 @@ from django.db import models
 from django.db.models.signals import post_save
 from .base import PayBaseModel
 
+from mall.xiaolupay.apis.v1 import envelope
+from mall.xiaolupay.models.weixin_red_envelope import WeixinRedEnvelope
 import pingpp
 pingpp.api_key = settings.PINGPP_APPKEY
 
@@ -33,7 +35,7 @@ class Envelop(PayBaseModel):
     XLAPP_CASHOUT = 'xlapp'
     SUBJECT_CHOICES = ((CASHOUT, u'妈妈余额提现'), (ORDER_RED_PAC, u'订单红包'), (XLAPP_CASHOUT, u'个人零钱提现'))
 
-    UNSEND = ''
+    UNSEND = 'unsend'
     SENDING = 'sending'
     SENT = 'sent'
     SEND_FAILED = 'failed'
@@ -93,7 +95,11 @@ class Envelop(PayBaseModel):
     get_amount_display.admin_order_field = 'amount'
     get_amount_display.short_description = u"红包金额"
 
-    def handle_envelop(self, envelopd):
+    def handle_envelop_by_pingpp(self, envelopd):
+        """
+        envelopd为pingpp的返回结果
+        用于新微信红包接口替换ping++接口时处理旧的ping++红包时使用
+        """
         from flashsale.pay.models import BudgetLog
         from flashsale.xiaolumm.models import CashOut
 
@@ -132,10 +138,41 @@ class Envelop(PayBaseModel):
             })
         self.save()
 
-    def send_envelop(self):
+    def handle_envelop(self, envelopd):
+        """
+        envelopd => mall.xiaolupay.models.weixin_red_envelope.WeixinRedEnvelope
+        """
+        from flashsale.pay.models import BudgetLog
+        from flashsale.xiaolumm.models import CashOut
+
+        now = datetime.datetime.now()
+        status = envelopd.status
+        self.envelop_id = envelopd.mch_billno
+        self.send_status = status.lower()
+
+        if status in (WeixinRedEnvelope.SENDING, WeixinRedEnvelope.SENT, WeixinRedEnvelope.RECEIVED):
+            self.send_time = self.send_time or now
+            self.status = Envelop.CONFIRM_SEND
+
+            if self.subject == Envelop.XLAPP_CASHOUT:
+                BudgetLog.objects.filter(id=self.referal_id).update(status=BudgetLog.CONFIRMED, modified=now)
+            elif self.subject == Envelop.CASHOUT:
+                CashOut.objects.filter(id=self.referal_id).update(status=CashOut.APPROVED, modified=now)
+        elif status in (WeixinRedEnvelope.FAILED, WeixinRedEnvelope.REFUND):
+            self.status = Envelop.FAIL
+            self.refund_envelop()
+            logger.info({
+                'action': 'envelop',
+                'status': self.status,
+                'enveop_id': self.envelop_id,
+                'mama_id': self.receiver
+            })
+        self.save()
+
+    def send_envelop_by_pingpp(self):
         if self.envelop_id:
             redenvelope = pingpp.RedEnvelope.retrieve(self.envelop_id)
-            self.handle_envelop(redenvelope)
+            self.handle_envelop_by_pingpp(redenvelope)
         else:
             try:
                 redenvelope = pingpp.RedEnvelope.create(
@@ -156,7 +193,31 @@ class Envelop(PayBaseModel):
                 self.refund_envelop()
                 raise exc
             else:
-                self.handle_envelop(redenvelope)
+                self.handle_envelop_by_pingpp(redenvelope)
+
+    def send_envelop(self):
+        if self.envelop_id or self.status != Envelop.WAIT_SEND:
+            raise Exception(u'不能重复发送')
+
+        try:
+            envelope_unikey = 'xlmm%s' % (self.id)
+            redenvelope = envelope.create(
+                order_no=envelope_unikey,
+                amount=self.amount,
+                subject=self.get_subject_display(),
+                body=self.body,
+                recipient=self.recipient,
+                remark=self.description
+            )
+            self.status = Envelop.CONFIRM_SEND
+            self.save()
+        except Exception, exc:
+            self.status = Envelop.FAIL
+            self.save()
+            self.refund_envelop()
+            raise exc
+        else:
+            self.handle_envelop(redenvelope)
 
     def refund_envelop(self):
         from flashsale.pay.models import BudgetLog

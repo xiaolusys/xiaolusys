@@ -343,7 +343,7 @@ from flashsale.pay.models import Envelop
 def task_handle_envelope_notify(notify):
     try:
         envelop = Envelop.objects.get(id=notify['order_no'])
-        envelop.handle_envelop(notify)
+        envelop.handle_envelop_by_pingpp(notify)
     except Exception, exc:
         raise task_handle_envelope_notify.retry(exc=exc)
 
