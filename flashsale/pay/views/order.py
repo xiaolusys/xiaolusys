@@ -2,18 +2,26 @@
 import json
 import datetime
 from django.shortcuts import render, render
-
-from shopback.items.models import Product, ProductSku
-from flashsale.pay.models import SaleTrade, SaleOrder, SaleRefund
-
-from  django.db.models import Q
-from shopback.logistics import getLogisticTrace
-
+from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-import logging
-from core.options import log_action, ADDITION, CHANGE
 
+from rest_framework.views import APIView
+from rest_framework import permissions
+from rest_framework.response import Response
+from rest_framework.renderers import JSONRenderer
+
+from core.options import log_action, ADDITION, CHANGE
+from shopback.logistics import getLogisticTrace
+
+from shopback.items.models import Product, ProductSku
+from flashsale.pay.models import SaleTrade, SaleOrder
+from flashsale.pay.models import TeamBuyDetail
+
+from flashsale.pay.constants import BUDGET
+from flashsale.pay.tasks import pushTradeRefundTask
+
+import logging
 logger = logging.getLogger(__name__)
 
 ISOTIMEFORMAT = '%Y-%m-%d '
@@ -543,25 +551,27 @@ def update_memo(request):
     return HttpResponse(json.dumps({"res": True, "data": [memo], "desc": ""}))
 
 
-def refund_fee(request):
-    content = request.POST
-    sale_order = int(content.get("sale_order_id", None))
-    sale_order = get_object_or_404(SaleOrder, id=sale_order)  # 退款sale_order对象
-    from flashsale.pay.models import TeamBuyDetail
-    if sale_order.is_teambuy() and TeamBuyDetail.objects.get(oid=sale_order.oid).teambuy.status == 0:
-        return HttpResponse(u"团购到超时失败以后才可退款")
-    if not (SaleOrder.WAIT_SELLER_SEND_GOODS <= sale_order.status < SaleOrder.TRADE_FINISHED):  # 状态为已付款
-        logger.error(u"交易状态不是已付款状态")
-        return HttpResponse(u"交易状态不是已付款状态")
+class SaleOrderDoRefund(APIView):
+    queryset = SaleOrder.objects.all()
+    renderer_classes = (JSONRenderer,)
+    permission_classes = (permissions.IsAuthenticated, permissions.DjangoModelPermissions, permissions.IsAdminUser)
 
-    try:
-        from flashsale.pay.constants import BUDGET
-        from flashsale.pay.tasks import pushTradeRefundTask
-        refund = sale_order.do_refund(reason=2, refund_channel=BUDGET)  # reason=2表示缺货
+    def post(self, request):
+        # type: (HttpRequest) -> Response
+        """客服操作退款给用户
+        """
+        order_id = request.POST.get('order_id') or None
+        good_status = request.POST.get('good_status') or None
+        order = self.queryset.filter(id=order_id).first()
+        if not order:
+            return Response({'code': 1, 'info': u'参数错误'})
+        if order.is_teambuy() and TeamBuyDetail.objects.get(oid=order.oid).teambuy.status == 0:
+            return Response({'code': 2, 'info': u"团购到超时失败以后才可退款"})
+        if not (SaleOrder.WAIT_SELLER_SEND_GOODS <= order.status < SaleOrder.TRADE_FINISHED):  # 状态为已付款
+            return Response({'code': 3, 'info': u"交易状态不是已付款状态"})
+
+        refund = order.do_refund(reason=2, refund_channel=BUDGET, good_status=good_status)  # reason=2表示缺货
         pushTradeRefundTask.delay(refund.id)
-        log_action(request.user, refund, CHANGE, 'SaleRefund退款单创建')
-        log_action(request.user, sale_order, CHANGE, 'SaleOrder订单退款')
-        return HttpResponse(True)
-    except Exception, exc:
-        logger.error('gen_out_stock_refund: %s.' % exc.message)
-        return HttpResponse("生成退款单出错！")
+        log_action(request.user, refund, CHANGE, u'SaleRefund退款单创建: good_status=%s' % good_status)
+        log_action(request.user, order, CHANGE, u'SaleOrder订单退款')
+        return Response({'code': 0, 'info': u'操作成功'})

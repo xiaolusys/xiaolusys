@@ -70,6 +70,6 @@ urlpatterns = [
     url(r'^sent_sku_item_again/$', csrf_exempt(views.sent_sku_item_again), name="sent_sku_item_again"),
     url(r'^get_mrgid/$', csrf_exempt(views.get_mrgid), name="get_mrgid"),
 
-    url(r'^refund_fee/$', csrf_exempt(views.refund_fee), name = "refund_fee"),
+    url(r'^refund_fee/$', csrf_exempt(views.SaleOrderDoRefund.as_view()), name = "refund_fee"),
     url(r'^update_memo/$', csrf_exempt(views.update_memo), name = "update_memo"),
 ]
