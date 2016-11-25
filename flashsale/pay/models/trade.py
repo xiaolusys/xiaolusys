@@ -262,7 +262,8 @@ class SaleTrade(BaseModel):
             'receiver_address': self.receiver_address,
             'receiver_mobile': self.receiver_mobile,
             'receiver_phone': self.receiver_phone,
-            'default': user_addr and user_addr.default or ''
+            'default': user_addr and user_addr.default or '',
+            'identification_no': user_addr and user_addr.identification_no or ''
         }
 
     def can_refund(self):
