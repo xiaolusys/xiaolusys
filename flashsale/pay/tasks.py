@@ -252,7 +252,6 @@ def pushTradeRefundTask(refund_id):
     """ 发货前申请,　检查是否极速退款 """
     try:
         from shopback.refunds.models import Refund
-        from shopback.warehouse.constants import WARE_THIRD
         from shopback.trades.models import PackageSkuItem
 
         salerefund = SaleRefund.objects.get(id=refund_id)
@@ -278,8 +277,8 @@ def pushTradeRefundTask(refund_id):
         else:
             refund.status = Refund.REFUND_WAIT_SELLER_AGREE
         refund.save()
-        # 不是发货后退款
-        if not salerefund.is_postrefund:  # and not salerefund.saleorder.product.ware_by == WARE_THIRD: # 第三方仓库
+
+        if not salerefund.is_postrefund:  # 不是发货后退款
             psi = PackageSkuItem.objects.filter(oid=sorder.oid).first()
             if psi and psi.is_booked():  # 已经订货 不做退款操作
                 return
