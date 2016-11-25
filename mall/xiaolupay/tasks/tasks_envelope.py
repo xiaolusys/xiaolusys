@@ -13,12 +13,13 @@ def task_sent_weixin_red_envelope(envelope_id):
 
     api = WeixinRedEnvelopAPI()
     api.createEnvelop(envelope)
+    task_sync_weixin_red_envelope_by_id.delay(envelope_id)
 
 
 @app.task()
-def task_sync_weixin_red_envelope(envelope_id):
+def task_sync_weixin_red_envelope_by_id(envelope_id):
     """
-    定时同步微信红包信息
+    同步微信红包信息
     """
     envelope = WeixinRedEnvelope.objects.filter(id=envelope_id).first()
     if not envelope or envelope.status == WeixinRedEnvelope.UNSEND:
@@ -29,3 +30,21 @@ def task_sync_weixin_red_envelope(envelope_id):
 
     item = Envelop.objects.filter(envelop_id=envelope.mch_billno).first()
     item.handle_envelop(envelope)
+
+
+@app.task()
+def task_sync_weixin_red_envelopes():
+    """
+    定时同步已发送微信红包信息
+    """
+    envelopes = WeixinRedEnvelope.objects.filter(status__in=[
+        WeixinRedEnvelope.SENDING,
+        WeixinRedEnvelope.SENT,
+        WeixinRedEnvelope.RFUND_ING,
+    ])
+
+    for envelope in envelopes:
+        try:
+            task_sync_weixin_red_envelope_by_id(envelope.id)
+        except Exception:
+            pass

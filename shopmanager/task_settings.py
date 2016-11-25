@@ -86,6 +86,7 @@ CELERY_QUEUES = (
     Queue('carrytotal', routing_key='carrytotal.#'),
     Queue('qrcode', routing_key='qrcode.#'),
     Queue('wdt', routing_key='wdt.#'),
+    Queue('xiaolupay', routing_key='xiaolupay.#'),
 )
 
 CELERY_TASK_QUEUES = CELERY_QUEUES
@@ -109,6 +110,21 @@ APIS_ROUTES = {
     'flashsale.forecast.apis.api_create_or_update_realinbound_by_inbound': {
         'queue': 'apis',
         'routing_key': 'apis.api_create_or_update_realinbound_by_inbound',
+    },
+}
+
+XIAOLUPAY_ROUTES = {
+    'mall.xiaolupay.tasks.tasks_envelope.task_sent_weixin_red_envelope': {
+        'queue': 'xiaolupay',
+        'routing_key': 'xiaolupay.task_sent_weixin_red_envelope'
+    },
+    'mall.xiaolupay.tasks.tasks_envelope.task_sync_weixin_red_envelope_by_id': {
+        'queue': 'xiaolupay',
+        'routing_key': 'xiaolupay.task_sync_weixin_red_envelope_by_id'
+    },
+    'mall.xiaolupay.tasks.tasks_envelope.task_sync_weixin_red_envelopes': {
+        'queue': 'xiaolupay',
+        'routing_key': 'xiaolupay.task_sync_weixin_red_envelopes'
     },
 }
 
@@ -940,6 +956,7 @@ CELERY_ROUTES.update(LOGISTICS_ROUTES)
 CELERY_ROUTES.update(APIS_ROUTES)
 CELERY_ROUTES.update(DINGHUO_ROUTES)
 CELERY_ROUTES.update(QRCODE_ROUTES)
+CELERY_ROUTES.update(XIAOLUPAY_ROUTES)
 
 CELERY_TASK_ROUTES = CELERY_ROUTES
 

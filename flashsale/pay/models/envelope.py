@@ -169,9 +169,35 @@ class Envelop(PayBaseModel):
             })
         self.save()
 
-    def send_envelop(self):
+    def send_envelop_by_pingpp(self):
         if self.envelop_id:
-            return
+            redenvelope = pingpp.RedEnvelope.retrieve(self.envelop_id)
+            self.handle_envelop_by_pingpp(redenvelope)
+        else:
+            try:
+                redenvelope = pingpp.RedEnvelope.create(
+                    order_no=str(self.id),
+                    channel=self.platform,
+                    amount=self.amount,
+                    subject=self.get_subject_display(),
+                    body=self.body,
+                    currency='cny',
+                    app=dict(id=settings.PINGPP_APPID),
+                    extra=dict(nick_name=u'上海己美网络科技', send_name=u'小鹿美美'),
+                    recipient=self.recipient,
+                    description=self.description
+                )
+            except Exception, exc:
+                self.status = Envelop.FAIL
+                self.save()
+                self.refund_envelop()
+                raise exc
+            else:
+                self.handle_envelop_by_pingpp(redenvelope)
+
+    def send_envelop(self):
+        if self.envelop_id or self.status != Envelop.WAIT_SEND:
+            raise Exception(u'不能重复发送')
 
         try:
             envelope_unikey = 'xlmm%s' % (self.id)
@@ -183,6 +209,8 @@ class Envelop(PayBaseModel):
                 recipient=self.recipient,
                 remark=self.description
             )
+            self.status = Envelop.CONFIRM_SEND
+            self.save()
         except Exception, exc:
             self.status = Envelop.FAIL
             self.save()

@@ -215,7 +215,7 @@ INSTALLED_APPS =[
     # 'shopapp.zhongtong'
     'statistics',
 
-    'mall.xiaolupay.apps.XiaoluPayConfig'
+    'mall.xiaolupay'
 ]
 
 AUTH_PROFILE_MODULE = 'users.user'
@@ -293,6 +293,11 @@ HTTPS_SUPPORT = False
 SECURE_REQUIRED_PATHS = (
     '/admin/',
 )
+
+# ================ 微信支付 ======================
+WEIXIN_PAY_SSL_KEY = '/data/xiaolupay/weixin-pay-wap/apiclient_key.pem'
+WEIXIN_PAY_SSL_CERT = '/data/xiaolupay/weixin-pay-wap/apiclient_cert.pem'
+
 
 ################### WEIXIN SETTINGS ##################
 WEIXIN_API_HOST = "https://api.weixin.qq.com"
