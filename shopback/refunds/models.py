@@ -242,7 +242,7 @@ class RefundProduct(models.Model):
     reason = models.IntegerField(choices=REFUND_REASON, default=0, verbose_name='退货原因')
     created = models.DateTimeField(null=True, blank=True, auto_now_add=True, verbose_name='创建时间')
     modified = models.DateTimeField(null=True, blank=True, auto_now=True, verbose_name='修改时间')
-
+    in_stock = models.BooleanField(default=False, verbose_name=u'是否计入库存')
     memo = models.TextField(max_length=1000, blank=True, verbose_name='备注')
 
     class Meta:
@@ -328,6 +328,22 @@ class RefundProduct(models.Model):
             return True
         return False
 
+    def add_into_stock(self):
+        if not self.sku_id:
+            return
+        if not self.can_reuse:
+            return
+        from shopback.items.models import SkuStock
+        sum_res = RefundProduct.objects.filter(sku_id=self.sku_id, created__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME,
+                                           can_reuse=True) \
+            .aggregate(total=Sum('num'))
+        total = sum_res["total"] or 0
+        stat = SkuStock.get_by_sku(self.sku_id)
+        if stat.return_quantity != total:
+            stat.return_quantity = total
+            stat.save(update_fields=['return_quantity'])
+            stat.assign()
+
 
 def update_warehouse_receipt_status(sender, instance, created, **kwargs):
     """ 仓库接收客户退货拆包更新 warehouse APP 中的 ReceiptGoods 相同快递单记录的拆包状态到 拆包状态 """
@@ -341,10 +357,9 @@ post_save.connect(update_warehouse_receipt_status, sender=RefundProduct,
 
 
 def update_productskustats_refund_quantity(sender, instance, created, **kwargs):
-    from shopback.items.models import ProductSku, SkuStock
+    from shopback.items.models import SkuStock
     if instance.created < SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME:
         return
-    from shopback.items.tasks_stats import task_refundproduct_update_productskustats_return_quantity
     from shopback.items.tasks import task_update_inferiorsku_return_quantity
 
     from shopback.items.models import ProductSku
@@ -352,7 +367,10 @@ def update_productskustats_refund_quantity(sender, instance, created, **kwargs):
 
     if sku_id:
         RefundProduct.objects.filter(id=instance.id).update(sku_id=sku_id)
-        task_refundproduct_update_productskustats_return_quantity.delay(sku_id)
+        if not instance.in_stock:
+            instance.add_into_stock()
+            instance.in_stock = True
+            instance.save()
         task_update_inferiorsku_return_quantity.delay(sku_id)
     else:
         logger.warn({"action": "buy_rf", "info": "RefundProduct update_productskustats_refund_quantity error :" + str(RefundProduct.id)})
