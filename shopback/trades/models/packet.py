@@ -885,8 +885,7 @@ class PackageSkuItem(BaseModel):
             if not pa.initial_book and pa.status == 2:
                 pa.status = 1
                 pa.save()
-                pa.generate_order()
-
+                pa.generate_order(retry=True)
 
     def merge(self):
         self.status = PSI_STATUS.MERGED
