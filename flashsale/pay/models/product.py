@@ -790,10 +790,14 @@ post_save.connect(update_product_details_info, sender=ModelProduct,
 def update_product_onshelf_status(sender, instance, created, **kwargs):
     if instance.shelf_status == ModelProduct.OFF_SHELF:
         instance.offshelf_model()
+    for product in instance.products:
+        if product.type != instance.product_type:
+            product.type = instance.product_type
+            product.save()
 
 
 post_save.connect(update_product_onshelf_status, sender=ModelProduct,
-                  dispatch_uid=u'post_save_update_product_details_info')
+                  dispatch_uid=u'post_save_update_product_onshelf_status')
 
 
 def modelproduct_update_supplier_info(sender, obj, **kwargs):
