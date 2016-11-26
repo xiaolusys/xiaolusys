@@ -207,10 +207,11 @@ class CashOutAdmin(ApproxAdmin):
                 return u'暂无财富记录'
             pre_cash = fortune.cash_num_display() + (obj.value * 0.01)
             mama = get_mama_by_id(obj.xlmm)
+            r = '<input class="cashOut%s"style="padding: 0px 6px" type="button" onclick="rejectCashOut(%s)" value="拒绝"/>' % (obj.id, obj.id)
             if mama.is_cashoutable() and pre_cash * 100 >= obj.value:
                 a = '<input class="cashOut%s"style="padding: 0px 6px" type="button" onclick="approveCashOut(%s)" value="通过"/>' % (obj.id, obj.id)
-                r = '<input class="cashOut%s"style="padding: 0px 6px" type="button" onclick="rejectCashOut(%s)" value="拒绝"/>' % (obj.id, obj.id)
                 return '可提%.1f' % pre_cash + a + r
+            return '可提%.1f' % pre_cash + r
         elif obj.status == CashOut.APPROVED:
             a = u'<a target="_blank" href="/admin/xiaolumm/envelop/?receiver=%s">总</a>' % obj.xlmm
             s = u'<a target="_blank" href="/admin/xiaolumm/envelop/?referal_id=%s&subject=cashout">单</a>' % obj.id
