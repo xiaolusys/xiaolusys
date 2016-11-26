@@ -797,7 +797,7 @@ def update_product_onshelf_status(sender, instance, created, **kwargs):
 
 
 post_save.connect(update_product_onshelf_status, sender=ModelProduct,
-                  dispatch_uid=u'post_save_update_product_details_info')
+                  dispatch_uid=u'post_save_update_product_onshelf_status')
 
 
 def modelproduct_update_supplier_info(sender, obj, **kwargs):
