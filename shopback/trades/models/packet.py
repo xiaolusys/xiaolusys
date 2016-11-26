@@ -876,8 +876,8 @@ class PackageSkuItem(BaseModel):
         self.assign_status = 0
         self.assign_time = datetime.datetime.now()
         if save:
-            SkuStock.set_psi_not_assigned(self.sku_id, self.num, stat=stat)
             self.save()
+            SkuStock.set_psi_not_assigned(self.sku_id, self.num, stat=stat)
         if rebook:
             pa = self.get_purchase_arrangement()
             if not pa:
