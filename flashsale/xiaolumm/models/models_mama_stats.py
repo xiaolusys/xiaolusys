@@ -46,6 +46,7 @@ class MamaTabVisitStats(BaseModel):
     TAB_APP_ELITE_MAMA = 27
     TAB_WX_GREETINGS_MAMA = 28
     TAB_WX_PUSH_AD = 29
+    TAB_MAMA_BOUTIQUE = 30
 
     STATS_TABS = ((TAB_UNKNOWN, 'Unknown'), (TAB_MAMA_FORTUNE, u'妈妈主页'), (TAB_DAILY_NINEPIC, u'每日推送'),
                   (TAB_NOTIFICATION, u'消息通知'), (TAB_MAMA_SHOP, u'店铺精选'), (TAB_INVITE_MAMA, u'邀请妈妈'),
@@ -61,6 +62,7 @@ class MamaTabVisitStats(BaseModel):
                   (TAB_APP_ELITE_MAMA, u'APP/精英妈妈'),
                   (TAB_WX_GREETINGS_MAMA, u'WX/新妈妈推送'),
                   (TAB_WX_PUSH_AD, u'WX/广告'),
+                  (TAB_MAMA_BOUTIQUE, u'精品汇'),
     )
 
     stats_tab = models.IntegerField(default=0, choices=STATS_TABS, db_index=True, verbose_name=u'功能TAB')

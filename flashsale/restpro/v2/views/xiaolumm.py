@@ -994,6 +994,7 @@ class RedirectStatsLinkView(APIView):
         ['https://m.xiaolumeimei.com/rest/v1/users/weixin_login/?next=https://m.xiaolumeimei.com/mama_shop/html/clickcarry.html', MamaTabVisitStats.TAB_WX_CLICK_CARRY_HTML],
         ['https://m.xiaolumeimei.com/rest/v1/users/weixin_login/?next=https://m.xiaolumeimei.com/mama_shop/html/elite_mama.html', MamaTabVisitStats.TAB_APP_ELITE_MAMA],
         ['https://m.xiaolumeimei.com/rest/v1/users/weixin_login/?next=https://m.xiaolumeimei.com/mama_shop/html/greetings_mama.html', MamaTabVisitStats.TAB_WX_GREETINGS_MAMA],
+        ['https://m.xiaolumeimei.com/rest/v1/users/weixin_login/?next=https://m.xiaolumeimei.com/mall/mama/boutique', MamaTabVisitStats.TAB_MAMA_BOUTIQUE],
     ]
 
     def get(self, request, *args, **kwargs):
