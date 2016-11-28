@@ -19,7 +19,7 @@ class SupplierSkuTest(TestCase):
         # "test.supplier_sku.salecategory.json"
         "test.supplier_sku.salesupplier.json",
         "test.supplier_sku.orderlist.json",
-        "test.supplier_sku.orderdetail.json"
+        # "test.supplier_sku.orderdetail.json"
     ]
 
     def setUp(self):
@@ -29,6 +29,7 @@ class SupplierSkuTest(TestCase):
 
     def test_get_supplier_sku(self):
         # SaleSupplier.objects.get(id=29463)
-        print "nimb"
+        # print "nimb"
+        pass
 
 
