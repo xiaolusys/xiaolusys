@@ -604,8 +604,12 @@ class ProductAdmin(ApproxAdmin):
         #         downshelfs = queryset.filter(shelf_status=Product.DOWN_SHELF)
         #         upshelfs   = queryset.filter(shelf_status=Product.UP_SHELF)
         p_count = queryset.count()
+        product_ids = [product.id for product in queryset]
+        stock_dict = {stock.sku_id: stock.realtime_quantity for stock in SkuStock.objects.filter(product_id__in=product_ids)}
         for product in queryset:
-            product.normal_skus.update(remain_num=models.F('quantity'))
+            for sku in product.normal_skus.all():
+                sku.remain_num = product_ids.get(sku.id, 0)
+            # product.normal_skus.update(remain_num=stock_dict.get())
             log_sign = self.get_product_logsign(product)
             log_action(request.user.id, product, CHANGE,
                        u'库存更新预留数:%s' % log_sign)
