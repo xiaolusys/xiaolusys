@@ -6,6 +6,7 @@ from rest_framework import exceptions
 from common.modelutils import update_model_fields
 from flashsale.pay.models import SaleOrder
 from flashsale.pay.models import SaleRefund, Customer
+from flashsale.pay.constants import BUDGET
 from flashsale.pay import tasks
 from shopback.trades.models import PackageSkuItem
 
@@ -148,6 +149,8 @@ def refund_Handler(request):
             raise exceptions.APIException(u'退货金额大于实付款')
         refund = order.refund
         if not refund:
+            if not refund_channel:
+                refund_channel = BUDGET
             refund = order.do_refund(reason=reason, refund_num=num, refund_fee=refund_fee,
                                      good_status=good_status,
                                      desc=desc, refund_channel=refund_channel, proof_pic=proof_p)
