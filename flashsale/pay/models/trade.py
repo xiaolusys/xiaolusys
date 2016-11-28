@@ -874,7 +874,7 @@ class SaleOrder(PayBaseModel):
         """是否发货
         """
         from shopback.trades.models import PackageSkuItem
-        return self.package_sku and self.package_sku.assign_status == PackageSkuItem.FINISHE
+        return self.package_sku and self.package_sku.assign_status == PackageSkuItem.FINISHED
 
     @property
     def refundable(self):
