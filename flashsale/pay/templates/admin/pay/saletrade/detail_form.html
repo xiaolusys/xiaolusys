@@ -296,8 +296,14 @@
         }
     function sent_sku_item_again(sale_order_id){
     var url = "/mm/sent_sku_item_again/";
+    var url_is_not_assign_sku = "/mm/is_not_assign_sku/";
     var data = {"sale_order_id": sale_order_id};
+    $.ajax({"url": url_is_not_assign_sku, "data": data, "type": "post", dataType: "json","success": callback_change_sku_item});
 
+        function callback_change_sku_item(res){
+        if(res.res==false){
+        var truthBeTold=window.confirm(SKU+"的库存数不足!仍旧确认吗?");
+        if(truthBeTold){
         $.ajax({"url": url, "data": data, "type": "post", dataType:"json", "success": callback});
         function callback(res) {
             if (res.res) {
@@ -309,6 +315,35 @@
 
             }
         }
+
+        }
+        }
+        else{
+        $.ajax({"url": url, "data": data, "type": "post", dataType:"json", "success": callback});
+        function callback(res) {
+            if (res.res) {
+                alert("重新发货成功");
+                window.location.reload();
+            }
+            else{
+            alert("重新发货失败");
+
+            }
+        }
+
+        }
+        }
+        <!--$.ajax({"url": url, "data": data, "type": "post", dataType:"json", "success": callback});-->
+        <!--function callback(res) {-->
+            <!--if (res.res) {-->
+                <!--alert("重新发货成功");-->
+                <!--window.location.reload();-->
+            <!--}-->
+            <!--else{-->
+            <!--alert("重新发货失败");-->
+
+            <!--}-->
+        <!--}-->
 
     }
 
@@ -334,8 +369,14 @@
 
     function change_sku_item( sale_order_id, SKU, num){
         var url = "/mm/change_sku_item/";
+        var url_is_not_assign_sku = "/mm/is_not_assign_sku/";
         var data = {"sale_order_id": sale_order_id, "SKU":SKU ,"num": num
         };
+        $.ajax({"url": url_is_not_assign_sku, "data": data, "type": "post", dataType: "json","success": callback_change_sku_item});
+        function callback_change_sku_item(res){
+        if(res.res==false){
+        var truthBeTold=window.confirm(SKU+"的库存数不足!仍旧确认吗?");
+        if(truthBeTold){
         $.ajax({"url": url, "data": data, "type": "post", "success": callback});
         function callback(res) {
             if (res == "True") {
@@ -343,6 +384,27 @@
                 window.location.reload();
             }
         }
+
+        }
+        }
+        else{
+        $.ajax({"url": url, "data": data, "type": "post", "success": callback});
+        function callback(res) {
+            if (res == "True") {
+                alert("换货成功");
+                window.location.reload();
+            }
+        }
+
+        }
+        }
+        <!--$.ajax({"url": url, "data": data, "type": "post", "success": callback});-->
+        <!--function callback(res) {-->
+            <!--if (res == "True") {-->
+                <!--alert("换货成功");-->
+                <!--window.location.reload();-->
+            <!--}-->
+        <!--}-->
     }
 
     var change_sku_save = function(evt){
