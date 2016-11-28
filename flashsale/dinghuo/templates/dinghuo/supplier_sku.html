@@ -32,11 +32,12 @@
         </legend>
     </div>
 <label>开始时间</label>
-<input type="text" id="start_time" size="20" />
+<input type="text" id="start_time" size="20" value={{start_time}}></input>
 <label>结束时间</label>
-<input type="text" id="end_time" size="20" onchange="get_time(this)"/>
+<input type="text" id="end_time" size="20"  value={{end_time}}></input>
+<button onclick="get_time(this)">确认查询</button>
 
-<button><a href="/sale/dinghuo/supplier_sku/{{ supplier_sku.0.salesupplier_id }}/excel">下载excel</a></button>
+<button><a href="/sale/dinghuo/supplier_sku/{{ supplier_sku.0.salesupplier_id }}/excel?start_time={{start_time}}&&end_time={{end_time}}">下载excel</a></button>
 <div>
         <table id="orderdetailtable" border="1" class="table table-striped table-bordered table-hover">
             <thead>
@@ -45,6 +46,7 @@
             <th style="min-width:80px">产品规格</th>
             <th>产品外部编码</th>
             <th style="min-width:100px">SKU</th>
+            <th>订货数量</th>
             <th>到仓数量</th>
             <th>最早一件采购到仓时间</th>
             <th>最晚一件采购到仓时间</th>
@@ -57,8 +59,9 @@
                 <td><a>{{sku.product_name }}</a></td>
                 <td><a>{{sku.product_chicun }}</a></td>
                 <td><a>{{sku.outer_id }}</a></td>
-                <td><a>{{sku.chichu_id }}</a></td>
-                <td><a>{{sku.arrival_quantity__sum }}</a></td>
+                <td><a href="/admin/items/skustock/?q={{sku.chichu_id }}">{{sku.chichu_id }}</a></td>
+                <td><a href="/admin/dinghuo/orderdetail/?q={{sku.product_name }}">{{sku.buy_quantity__sum }}</a></td>
+                <td><a href="/admin/dinghuo/orderdetail/?q={{sku.product_name }}">{{sku.arrival_quantity__sum }}</a></td>
                 <td><a>{{sku.arrival_time__min }}</a></td>
                 <td><a>{{sku.arrival_time__max }}</a></td>
 

@@ -8,6 +8,7 @@ from rest_framework import routers, viewsets
 from django.views.decorators.csrf import csrf_exempt
 from . import views
 from .views import view_supplier_sku
+from .views import views_tuihuo
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'pending_dinghuo', views.PendingDingHuoViewSet)
@@ -222,6 +223,9 @@ urlpatterns = [
     url(r'^supplier_sku/(?P<salesupplier_id>\d+)/excel/$',
         view_supplier_sku.get_supplier_sku_excel,
         name="get_supplier_sku_excel"),
+    url(r'^add_tuihuo/$',
+        views_tuihuo.return_tuihuo_html,
+        name="return_tuihuo_html"),
 
 ]
 

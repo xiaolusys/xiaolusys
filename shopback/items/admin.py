@@ -1495,12 +1495,25 @@ class SkuStockAdmin(admin.ModelAdmin):
         '<a href="%(product_url)s" target="_blank">'
         '%(product_title)s</a>')
 
+    # def supplier(self, obj):
+    #     supplier = obj.product.get_supplier()
+    #     if supplier:
+    #         return supplier.supplier_name
+    #     return ''
+    #
+    # supplier.short_description = u'供应商'
+
+
     def supplier(self, obj):
         supplier = obj.product.get_supplier()
         if supplier:
-            return supplier.supplier_name
+            return ('<a href="%(product_url)s" target="_blank">'
+                    '%(supplier)s</a>') % {
+                       'product_url': 'http://admin.xiaolumm.com/sale/dinghuo/supplier_sku/%d' % supplier.id,
+                       'supplier': supplier.supplier_name
+                   }
         return ''
-
+    supplier.allow_tags = True
     supplier.short_description = u'供应商'
 
     def product_id_link(self, obj):

@@ -1,0 +1,65 @@
+[
+  {
+    "fields": {
+      "arrival_process": 3,
+      "bill_method": 13,
+      "buyer_id": 783585,
+      "buyer_name": "",
+      "checked_time": null,
+      "completed_time": "2015-09-19T11:08:12",
+      "created": "2015-09-19",
+      "costofems": 0,
+      "created_by": 2,
+      "express_company": "",
+      "express_no": "",
+      "inferior": 0,
+      "is_postpay": 0,
+      "lack": 0,
+      "last_pay_date": null,
+      "note": "-->08\u670801 14:01:\u52a8\u6001\u751f\u6210\u8ba2\u8d27\u5355",
+      "order_amount": 40.0,
+      "order_group_key": "-20005-",
+      "p_district": "1",
+      "paid_time": null,
+      "pay_status": "",
+      "pay_time": "2015-09-19T11:08:12",
+      "press_num": 0,
+      "purchase_order_unikey": "29463-4",
+      "purchase_total_num": 5,
+      "reach_standard": 0,
+      "receive_time": "2015-09-19T11:08:12",
+      "received_time": "2015-09-19T11:08:12",
+      "receiver": "",
+      "stage": 5,
+      "status": "\u5b8c\u6210",
+      "supplier_id": 29463,
+      "supplier_name": "",
+      "supplier_shop": "",
+      "sys_status": "draft",
+      "third_package": 0,
+      "updated": "2015-09-19T11:08:12",
+      "ware_by": 0
+    },
+    "model":"dinghuo.orderlist",
+    "pk":20005
+  },
+  {
+    "fields": {
+      "username": "13739234188",
+      "first_name": "",
+      "last_name": "",
+      "is_active": true,
+      "is_superuser": false,
+      "is_staff": false,
+      "last_login": "2016-05-03T21:54:51",
+      "groups": [],
+      "user_permissions": [],
+      "password": "pbkdf2_sha256$20000$qSnHc7ExkpcI$UkwipKYhJ/iNT1BxZOzG0rj0NWc7x7uiTzEMI2td6NI=",
+      "email": "",
+      "date_joined": "2016-02-22T00:59:30"
+    },
+    "model": "auth.user",
+    "pk": 783585
+  }
+
+]
