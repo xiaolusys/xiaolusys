@@ -124,6 +124,10 @@ def refund_Handler(request):
                         "info":
                             "您的订单已发送至厂家订货，工厂正在发货中。若要取消订单，请在收货后选择七天无理由退货。若有其他问题，请联系客服400-8235-355。",
                         "apply_fee": 0}
+            if order.package_sku and order.package_sku.assign_status == PackageSkuItem.FINISHED:
+                return {'code': 10,
+                        "info": '您的订单已经发货,不能执行退款操作',
+                        "apply_fee": 0}
 
         # 创建退款单
         if refund:
