@@ -1,0 +1,41 @@
+{% extends 'layout.html' %}
+
+{% block main %}
+
+<div class="row">
+  <h3>妈妈精品券数量统计</h3>
+  <form action="{{ req.path }}" method="GET">
+    <div class="col-xs-2">
+      <input size="16" type="text" class="form-control datepicker" value="{{ date_field }}" name="day_date">
+    </div>
+    <button type="submit" class="btn btn-default">QUERY</button>
+  </form>
+</div>
+
+<div class="row">
+
+  <table class="table table-bordered">
+    <tr>
+      <th>日期</th>
+      <th>出券张数</th>
+      <th>出券面额总计</th>
+      <th>买货使用券数 </th>
+      <th>买货券面额总计</th>
+      <th>有收益妈妈总数</th>
+    </tr>
+    <tr>
+      <td>{{ date_field }}</td>
+      <td>{{ stats_list.0 }}</td>
+      <td>{{ stats_list.1  }}</td>
+      <td>{{ stats_list.2  }}</td>
+      <td>{{ stats_list.3  }}</td>
+      <td>{{ stats_list.4 }}</td>
+    </tr>
+  </table>
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+
+{% endblock %}

@@ -746,3 +746,21 @@ def rank(req):
     items = [x[1] for x in items]
 
     return render(req, 'yunying/mama/rank.html', locals())
+
+
+def transfer_coupon(req):
+
+    date_field = req.GET.get('day_date', datetime.now().strftime('%Y-%m-%d'))
+
+    from flashsale.coupon.models import CouponTransferRecord
+    from flashsale.xiaolumm.models import OrderCarry
+    values = CouponTransferRecord.objects.filter(status=1, transfer_status=3, date_field=date_field, transfer_type=4).values_list('coupon_num', 'coupon_value')
+    coupon_sale_num = sum([v for v, n in values])
+    coupon_sale_amount = sum([v * n for v, n in values])
+    values = CouponTransferRecord.objects.filter(status=1, transfer_status=3, date_field=date_field, transfer_type=3).values_list('coupon_num', 'coupon_value')
+    coupon_used_num = sum([v for v, n in values])
+    coupon_used_amount = sum([v * n for v, n in values])
+    order_mama_count = OrderCarry.objects.filter(date_field=date_field, status__in=(1, 2, 3), carry_type__in=(1, 2), mama_id__gt=0).values_list('mama_id', flat=True).distinct().count()
+    stats_list = [coupon_sale_num, coupon_sale_amount, coupon_used_num, coupon_used_amount, order_mama_count]
+
+    return render(req, 'yunying/mama/coupon.html', locals())
