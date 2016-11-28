@@ -14,7 +14,7 @@ from rest_framework.renderers import JSONRenderer
 from core.options import log_action, ADDITION, CHANGE
 from shopback.logistics import getLogisticTrace
 
-from shopback.items.models import Product, ProductSku
+from shopback.items.models import Product, ProductSku,SkuStock
 from flashsale.pay.models import SaleTrade, SaleOrder
 from flashsale.pay.models import TeamBuyDetail
 
@@ -500,6 +500,23 @@ def get_mrgid(request):
             json.dumps({"res": True, "data": [{"trade_id": sale_trade, "order_id": sale_order}], "desc": ""}))
     except Exception, msg:
         return HttpResponse(json.dumps({"res": False, "data": [], "desc": str(msg)}))
+
+
+def is_not_assign_sku(request):
+    content = request.POST
+    sku_id = content.get("SKU", None)
+    if not sku_id:
+        sale_order_id = content.get("sale_order_id",None)
+        sale_order = SaleOrder.objects.filter(id = sale_order_id).first()
+        if sale_order:
+            sku_id = sale_order.sku_id
+    sku_stock = SkuStock.objects.filter(sku_id = sku_id).first()
+    if sku_stock and sku_stock.not_assign_num:
+        return HttpResponse(json.dumps({"res": True, "data": [], "desc": "存在尚未分配的库存"}))
+    else:
+        return HttpResponse(json.dumps({"res": False, "data": [], "desc": "不存在尚未分配的库存"}))
+
+
 
 
 def sent_sku_item_again(request):
