@@ -10,7 +10,7 @@ TARGET_TYPE_HOME_TAB_3 = 3
 TARGET_TYPE_HOME_TAB_4 = 4
 
 TARGET_TYPE_MODELIST = 5  # 聚合商品列表
-# TARGET_TYPE_PRODUCT = 6 弃用 # 商品详情
+TARGET_TYPE_PRODUCT = 6  # 商品详情
 TARGET_TYPE_ORDER_DETAIL = 7  # 订单详情
 TARGET_TYPE_AVAILABLE_COUPONS = 8  # 可用优惠券列表
 TARGET_TYPE_WEBVIEW = 9  # Webview
@@ -27,7 +27,7 @@ TARGET_PATHS = {
     TARGET_TYPE_HOME_TAB_2: 'app/v1/products/promote_previous',
     TARGET_TYPE_HOME_TAB_3: 'app/v1/products/childlist',
     TARGET_TYPE_HOME_TAB_4: 'app/v1/products/ladylist',
-
+    TARGET_TYPE_PRODUCT: 'app/v1/products',
     TARGET_TYPE_MODELIST: 'app/v1/products/modelist',
     TARGET_TYPE_ORDER_DETAIL: 'app/v1/trades/details',
     TARGET_TYPE_AVAILABLE_COUPONS: 'app/v1/usercoupons/method',
