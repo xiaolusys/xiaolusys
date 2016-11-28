@@ -19,7 +19,7 @@ def get_supplier_sku(salesupplier_id):   #返回给定供应商的所有历史�
     if sale_supplier:
         order_list = OrderList.objects.filter(supplier=sale_supplier)
         order_detail = OrderDetail.objects.filter(orderlist__in=order_list)
-        sku_count = order_detail.values("chichu_id","outer_id","product_name","product_chicun").annotate(Sum("arrival_quantity"),Min("arrival_time"),Max('arrival_time'))
+        sku_count = order_detail.values("chichu_id","outer_id","product_name","product_chicun").annotate(Sum("buy_quantity"),Sum("arrival_quantity"),Min("arrival_time"),Max('arrival_time'))
         for i in sku_count:
             i['arrival_time__max'] = str(i['arrival_time__max'])
             i['arrival_time__min'] = str(i['arrival_time__min'])

@@ -1,0 +1,108 @@
+[
+  {
+    "fields": {
+      "username": "13739234188",
+      "first_name": "",
+      "last_name": "",
+      "is_active": true,
+      "is_superuser": false,
+      "is_staff": false,
+      "last_login": "2016-05-03T21:54:51",
+      "groups": [],
+      "user_permissions": [],
+      "password": "pbkdf2_sha256$20000$qSnHc7ExkpcI$UkwipKYhJ/iNT1BxZOzG0rj0NWc7x7uiTzEMI2td6NI=",
+      "email": "",
+      "date_joined": "2016-02-22T00:59:30"
+    },
+    "model": "auth.user",
+    "pk": 783585
+  },
+  {
+    "fields": {
+      "status": 1,
+      "openid": "",
+      "created": "2015-04-09T11:08:12",
+      "mobile": "13739234188",
+      "unionid": "",
+      "modified": "2016-04-20T11:49:55",
+      "phone": "",
+      "email": "",
+      "nick": "VcsKI5",
+      "user": 783585,
+      "thumbnail": ""
+    },
+    "model": "pay.customer",
+    "pk": 783437
+  },
+  {
+    "fields": {
+      "username": "xiaolu",
+      "first_name": "",
+      "last_name": "",
+      "is_active": true,
+      "is_superuser": true,
+      "is_staff": false,
+      "last_login": "2016-04-26T15:06:11",
+      "groups": [],
+      "user_permissions": [],
+      "password": "pbkdf2_sha256$20000$agkhgYSPE93h$DbzdKuI2FHE+Ya0macEsKOqxRaioQrEb/gdSmQXl0ks=",
+      "email": "",
+      "date_joined": "2016-04-24T21:55:14"
+    },
+    "model": "auth.user",
+    "pk": 1
+  },
+  {
+    "fields": {
+      "status": 1,
+      "openid": "our5huIOSuFF5FdojFMFNP5HNOmA",
+      "created": "2015-04-09T11:08:12",
+      "mobile": "18621623915",
+      "unionid": "o29cQs4zgDoYxmSO3pH-x4A7O8Sk",
+      "modified": "2016-04-20T11:49:55",
+      "phone": "",
+      "email": "",
+      "nick": "meron@\u5c0f\u9e7f\u7f8e\u7f8e",
+      "user": 1,
+      "thumbnail": "http://wx.qlogo.cn/mmopen/n24ek7Oc1iaXyxqzHobN7BicG5W1ljszSRWSdzaFeRkGGVwqjmQKTmicTylm8IkclpgDiaamWqZtiaTlcvLJ5z6x35wCKMWVbcYPU/0"
+    },
+    "model": "pay.customer",
+    "pk": 1
+  },
+{
+  "fields": {
+    "username": "o29cQs-ONn2PxIYYducFkQcmkpGc",
+    "first_name": "",
+    "last_name": "",
+    "is_active": true,
+    "is_superuser": false,
+    "is_staff": false,
+    "last_login": "2016-04-26T14:53:50",
+    "groups": [],
+    "user_permissions": [],
+    "password": "pbkdf2_sha256$20000$OAnNgSVeChST$qaruWLp+8pIG0KAHMIH43aSIP21tbhgYfSKFipiTTLg=",
+    "email": "",
+    "date_joined": "2015-04-26T00:17:20"
+  },
+  "model": "auth.user",
+  "pk": 125
+},
+{
+  "fields": {
+    "status": 1,
+    "openid": "our5huPpwbdmUz4pFHKL0DW5Hm34",
+    "created": "2015-04-26T00:17:20",
+    "mobile": "13739234188",
+    "unionid": "o29cQs-ONn2PxIYYducFkQcmkpGc",
+    "modified": "2016-04-25T11:16:43",
+    "phone": "",
+    "email": "",
+    "nick": "\u98ce\u4e91@\u5c0f\u9e7f\u7f8e\u7f8e",
+    "user": 125,
+    "thumbnail": "http://wx.qlogo.cn/mmopen/yYI4pIsF7XHHA4HE1mEHecuTDPD7xpQ97RydwlujTHqUic4mahHrvysxnky7J1ic1gbswKrH5eF9ttwIYrf4P9FjdAib5HzSVZH/0"
+  },
+  "model": "pay.customer",
+  "pk": 9
+}
+]
+

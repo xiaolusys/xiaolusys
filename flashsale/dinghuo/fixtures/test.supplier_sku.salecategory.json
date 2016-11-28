@@ -1,0 +1,18 @@
+[
+  {
+    "fields": {
+      "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/meishi1013.png ",
+      "cid": "3 ",
+      "created": "2016-07-22T11:16:43",
+      "grade": 1,
+      "is_parent": 1,
+      "modified": "2016-10-13T11:16:43",
+      "name": "\u7f8e\u98df ",
+      "parent_cid": "0 ",
+      "sort_order": 0,
+      "status": "normal "
+    },
+    "model": "supplier.salecategory",
+    "pk":3}
+
+]
