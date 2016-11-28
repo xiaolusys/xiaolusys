@@ -102,6 +102,7 @@ class Bill(BaseModel):
 
     @staticmethod
     def merge(bills, creater):
+        receive_account = bills[0].receive_account
         plan_amount = sum([b.plan_amount*b.type for b in bills])
         type_ = plan_amount / abs(plan_amount) if plan_amount else 0
         status_set = {b.status for b in bills}
@@ -110,6 +111,7 @@ class Bill(BaseModel):
         else:
             status = Bill.STATUS_DEALED
         merged_bill = Bill(
+            receive_account=receive_account,
             type=type_,
             pay_method=Bill.TRANSFER_PAY,
             plan_amount=abs(plan_amount),
