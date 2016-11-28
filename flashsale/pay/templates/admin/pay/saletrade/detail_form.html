@@ -78,6 +78,15 @@
                 <label class="col-md-1" for="seller_memo">卖家备注:</label>
                 <textarea class="col-md-5" id="seller_memo">{{original.seller_memo}}</textarea>
                 <button id="btn_edit_seller_memo">修改</button>
+                {% if original.status > 2 %}
+                    <select style="padding: 0px 0px" class="refund-coupon-for-trade" onchange="refundCouponByTrade({{ original.id }})">
+                        <option value="0" selected="selected">补偿优惠券</option>
+                        <option value="7">￥5</option>
+                        <option value="2">￥10</option>
+                        <option value="8">￥15</option>
+                        <option value="10">￥20</option>
+                    </select>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -258,7 +267,25 @@
                 serverData(data, func, url, 'post');
             }, function () {
             });
-        }
+        };
+        var refundCouponByTrade = function (saleTradeId) {
+            console.log('发补偿优惠券', saleTradeId);
+            var url = "/mm/refund_coupon_by_trade/";
+            var coupon_template_id = $('.refund-coupon-for-trade').val();
+            var func = function (res) {
+                console.log('refund res:', res);
+                layer.msg(res.info);
+            };
+            layer.confirm('确定 发放补偿优惠券？', {
+                btn: ['确定', '取消'] //按钮
+            }, function () {
+                serverData({
+                    'coupon_template_id': coupon_template_id,
+                    'trade_id': saleTradeId
+                }, func, url, 'post');
+            }, function () {
+            });
+        };
     </script>
 
 <script>

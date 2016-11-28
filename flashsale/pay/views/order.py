@@ -20,6 +20,7 @@ from flashsale.pay.models import TeamBuyDetail
 
 from flashsale.pay.constants import BUDGET
 from flashsale.pay.tasks import pushTradeRefundTask
+from flashsale.coupon.apis.v1.usercoupon import create_user_coupon, UserCoupon
 
 import logging
 logger = logging.getLogger(__name__)
@@ -596,4 +597,33 @@ class SaleOrderDoRefund(APIView):
         pushTradeRefundTask.delay(refund.id)
         log_action(request.user, refund, CHANGE, u'SaleRefund退款单创建: good_status=%s' % good_status)
         log_action(request.user, order, CHANGE, u'SaleOrder订单退款')
+        return Response({'code': 0, 'info': u'操作成功'})
+
+
+class RefundCouponForTradeView(APIView):
+    queryset = SaleTrade.objects.all()
+    renderer_classes = (JSONRenderer,)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request):
+        # type: (HttpRequest) -> Response
+        content = request.POST
+        trade_id = content.get("trade_id") or 0
+        coupon_template_id = content.get("coupon_template_id") or 0
+        coupon_template_id = int(coupon_template_id)
+        trade_id = int(trade_id)
+        if not (coupon_template_id and trade_id):
+            return Response({'code': 2, 'info': u'参数错误'})
+        saletrade = self.queryset.filter(id=trade_id).first()
+        if UserCoupon.objects.filter(coupon_type=UserCoupon.TYPE_COMPENSATE,
+                                     customer_id=saletrade.buyer_id,
+                                     uniq_id__contains=saletrade.id).exists():
+            return Response({'code': 3, 'info': u'已经发放过了'})
+        cou, code, msg = create_user_coupon(customer_id=saletrade.buyer_id,
+                                            coupon_template_id=coupon_template_id,
+                                            trade_id=saletrade.id)
+        if cou and code == 0:
+            log_action(request.user, cou, CHANGE, u'发放订单补偿优惠券')
+        else:
+            return Response({'code': 1, 'info': msg})
         return Response({'code': 0, 'info': u'操作成功'})

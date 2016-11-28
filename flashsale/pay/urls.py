@@ -71,6 +71,7 @@ urlpatterns = [
     url(r'^is_not_assign_sku/$', csrf_exempt(views.is_not_assign_sku), name="is_not_assign_sku"),
     url(r'^get_mrgid/$', csrf_exempt(views.get_mrgid), name="get_mrgid"),
 
-    url(r'^refund_fee/$', csrf_exempt(views.SaleOrderDoRefund.as_view()), name = "refund_fee"),
+    url(r'^refund_fee/$', csrf_exempt(views.SaleOrderDoRefund.as_view()), name="refund_fee"),
+    url(r'^refund_coupon_by_trade/$', csrf_exempt(views.RefundCouponForTradeView.as_view()), name="refund_coupon"),
     url(r'^update_memo/$', csrf_exempt(views.update_memo), name = "update_memo"),
 ]
