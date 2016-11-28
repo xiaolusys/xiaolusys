@@ -26,7 +26,7 @@ from core.options import log_action, ADDITION, CHANGE
 
 from shopback import paramconfig as pcfg
 from shopback.categorys.models import ProductCategory
-from shopback.items.models import Product, ProductSku
+from shopback.items.models import Product, ProductSku, SkuStock
 from shopback.trades.models import (MergeOrder, TRADE_TYPE, SYS_TRADE_STATUS)
 
 from supplychain.supplier import constants, forms
@@ -1159,7 +1159,7 @@ class RemainNumAPIView(APIView):
                 'remain_num': sku.remain_num,
                 'sale_num': 0,
                 'buy_num': 0,
-                'num': sku.quantity
+                'num': SkuStock.get_by_sku(sku).realtime_quantity#sku.quantity
             }
             skus_dict['%s-%s' % (product['outer_id'], sku.outer_id)] = sku_dict
             skus_dict2['%d-%d' % (product['product_id'], sku.id)] = sku_dict
