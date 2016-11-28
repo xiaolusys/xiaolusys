@@ -71,6 +71,7 @@ urlpatterns += [
     url(r'^yunying/mama/click$', mama.click, name='yy-mama-click'),
     url(r'^yunying/mama/score$', mama.score, name='yy-mama-score'),
     url(r'^yunying/mama/rank$', mama.rank, name='yy-mama-rank'),
+    url(r'^yunying/mama/coupon', mama.transfer_coupon, name='yy-mama-coupon'),
 
     url(r'^yunying/sql/$', sql.index, name='yy-sql-index'),
     url(r'^yunying/sql/(?P<id>.*)/destroy$', sql.destroy, name='yy-sql-destroy'),
