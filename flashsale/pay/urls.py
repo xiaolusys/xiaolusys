@@ -68,6 +68,7 @@ urlpatterns = [
     url(r'^post_poster/$', csrf_exempt(views.PostGoodShelf.as_view())),
     url(r'^change_sku_item/$', csrf_exempt(views.change_sku_item), name="change_sku_item"),
     url(r'^sent_sku_item_again/$', csrf_exempt(views.sent_sku_item_again), name="sent_sku_item_again"),
+    url(r'^is_not_assign_sku/$', csrf_exempt(views.is_not_assign_sku), name="is_not_assign_sku"),
     url(r'^get_mrgid/$', csrf_exempt(views.get_mrgid), name="get_mrgid"),
 
     url(r'^refund_fee/$', csrf_exempt(views.SaleOrderDoRefund.as_view()), name = "refund_fee"),
