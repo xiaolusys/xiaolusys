@@ -352,14 +352,14 @@ class orderdetailAdmin(BaseModelAdmin):
     }),)
 
     list_display = (
-        'id', 'link_order', 'orderlist_status', 'product_id', 'outer_id', 'product_name', 'chichu_id', 'product_chicun',
+        'id','link_order', 'orderlist_status', 'product_id', 'outer_id', 'product_name', 'chichu_id', 'product_chicun',
         'buy_quantity',
         'arrival_quantity', 'inferior_quantity', 'non_arrival_quantity', 'created', 'updated', 'purchase_order_unikey',
-        'purchase_detail_unikey',
+        'purchase_detail_unikey','buyer'
     )
     list_filter = (('created', DateFieldListFilter), OrderListStatusFilter2)
     search_fields = ['id', 'orderlist__id', 'product_id', 'outer_id', 'chichu_id', 'purchase_order_unikey',
-                     'purchase_detail_unikey']
+                     'purchase_detail_unikey','product_name']
     date_hierarchy = 'created'
 
     def link_order(self, obj):
@@ -379,6 +379,9 @@ class orderdetailAdmin(BaseModelAdmin):
         return order_list.get_stage_display()
 
     orderlist_status.short_description = u"订货状态"
+
+    def buyer(self, obj):
+        return obj.orderlist.buyer
 
     def queryset(self, request):
         qs = super(orderdetailAdmin, self).queryset(request)

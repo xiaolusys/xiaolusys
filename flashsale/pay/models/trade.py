@@ -870,6 +870,12 @@ class SaleOrder(PayBaseModel):
             return True
         return False
 
+    def is_post(self):
+        """是否发货
+        """
+        from shopback.trades.models import PackageSkuItem
+        return self.package_sku and self.package_sku.assign_status == PackageSkuItem.FINISHE
+
     @property
     def refundable(self):
         return self.get_refundable()

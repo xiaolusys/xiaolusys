@@ -24,7 +24,7 @@ def get_supplier_sku(request,salesupplier_id):
         end_time = datetime.datetime.strptime(end_time, "%Y-%m-%d").date()
         supplier_sku_data = supplier_sku.get_supplier_sku_by_time(salesupplier_id,start_time,end_time)
         print supplier_sku_data
-        return render(request,"dinghuo/supplier_sku.html",{'supplier_sku': supplier_sku_data})
+        return render(request,"dinghuo/supplier_sku.html",{'supplier_sku': supplier_sku_data,"start_time":start_time,"end_time":end_time})
 
     return render(request,"dinghuo/supplier_sku.html",{'supplier_sku': supplier_sku_data})
 
@@ -32,7 +32,14 @@ def get_supplier_sku(request,salesupplier_id):
 
 def get_supplier_sku_excel(request,salesupplier_id):
     excel_format = request.GET.get('fo', '')
-    supplier_sku_data = supplier_sku.get_supplier_sku(salesupplier_id)
+    start_time = request.GET.get("start_time",None)
+    end_time = request.GET.get("end_time",None)
+    if start_time and end_time:
+        start_time = datetime.datetime.strptime(start_time, "%Y-%m-%d").date()
+        end_time = datetime.datetime.strptime(end_time, "%Y-%m-%d").date()
+        supplier_sku_data = supplier_sku.get_supplier_sku_by_time(salesupplier_id,start_time,end_time)
+    else:
+        supplier_sku_data = supplier_sku.get_supplier_sku(salesupplier_id)
     columns = ["ID",'供应商名字','产品名称','产品规格','产品外部编码','SKU','到仓数量','最早一件采购到仓时间','最晚一件采购到仓时间']
     items = list()
     for sku in supplier_sku_data:

@@ -320,6 +320,16 @@ class SaleRefund(PayBaseModel):
         salerefund.save()
         return salerefund
 
+    def update_good_status(self, is_post):
+        # type: (bool) -> None
+        """更新good_status字段状态
+        """
+        if is_post and not self.sid:  # 已经发货
+            self.good_status = SaleRefund.BUYER_RECEIVED    # 已经收到货
+        if is_post and self.sid:  # 发货了并且有填写物流
+            self.good_status = SaleRefund.BUYER_RETURNED_GOODS  # 买家已经退货
+        self.save(update_fields=['good_status'])
+
     @transaction.atomic
     def refund_fast_approve(self):
         # type: () -> None
@@ -327,6 +337,9 @@ class SaleRefund(PayBaseModel):
         from .user import BudgetLog
 
         sorder = self.saleorder
+        self.update_good_status(sorder.is_post())  # 更新退货状态字段
+        if sorder.is_post() and not self.refundproduct:  # 订单已经发货了　申请退款　但是没有退回仓库则不能退款
+            raise Exception(u'退货商品还没有到达仓库,不予退款')
         payment = round(self.refund_fee * 100, 0)
         blog = BudgetLog.objects.filter(customer_id=self.buyer_id,
                                         referal_id=self.id,  # 以退款单
@@ -403,7 +416,8 @@ class SaleRefund(PayBaseModel):
             strade.save(update_fields=['status', 'modified'])
         signal_saletrade_refund_confirm.send(sender=SaleRefund, obj=self)
         self.roll_back_usercoupon()
-        sorder.set_psi_cancel()
+        if self.good_status == SaleRefund.BUYER_NOT_RECEIVED:  # 买家没有收到货
+            sorder.set_psi_cancel()
 
     def pic_path(self):
         # type: () -> text_type
