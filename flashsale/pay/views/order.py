@@ -503,7 +503,7 @@ def get_mrgid(request):
         return HttpResponse(json.dumps({"res": False, "data": [], "desc": str(msg)}))
 
 
-def is_not_assign_sku(request):
+def is_sku_enough(request):
     sku_id = None
     sku_stock = None
     content = request.POST
@@ -517,7 +517,7 @@ def is_not_assign_sku(request):
         new_sku_id = content.get("SKU",None)
         sku_stock = SkuStock.objects.filter(sku_id=new_sku_id).first()
 
-    if sku_stock and sku_stock.not_assign_num >= sale_order.num:
+    if sku_stock and sku_stock.free_num >= sale_order.num:
         return HttpResponse(json.dumps({"res": True, "data": [], "desc": "存在尚未分配的库存"}))
     else:
         return HttpResponse(json.dumps({"res": False, "data": [], "desc": "不存在尚未分配的库存"}))

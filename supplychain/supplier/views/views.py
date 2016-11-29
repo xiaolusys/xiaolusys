@@ -1338,7 +1338,7 @@ class SyncStockAPIView(APIView):
                 sku_dict = skus_dict2['%d-%d' % (product.id, sku.id)]
                 left_num = sku.quantity + sku_dict['buy_num'] - sku_dict['sale_num']
                 collect_num += left_num
-                sku.remain_num = left_num
+                sku.remain_num = SkuStock.get_by_sku(sku.id).realtime_quantity
                 sku.save()
                 log_action(request.user.id, sku, CHANGE, u'修改预留数: %d' % sku.remain_num)
             product.collect_num = collect_num
