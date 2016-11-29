@@ -125,6 +125,12 @@ class SkuStock(models.Model):
 
     @staticmethod
     @transaction.atomic
+    def add_return_quantity(sku_id,num):
+        SkuStock.objects.filter(sku_id=sku_id).update(return_quantity = F('return_quantity')+num)
+
+
+    @staticmethod
+    @transaction.atomic
     def get_by_sku(sku_id):
         stat = SkuStock._objects.filter(sku_id=sku_id).first()
         if stat:

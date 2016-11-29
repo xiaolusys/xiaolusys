@@ -10,7 +10,7 @@ from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required
 # from djangorestframework.views import ModelView
-from shopback.trades.models import MergeTrade, MergeOrder
+from shopback.trades.models import MergeTrade, MergeOrder,PackageSkuItem
 from shopback.items.models import Product, ProductSku, Item
 from shopback.refunds.models import RefundProduct, Refund, REFUND_STATUS, CS_STATUS_CHOICES
 from common.utils import parse_datetime, parse_date, format_time, map_int2str
@@ -26,12 +26,15 @@ from rest_framework.views import APIView
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
+
+
 from renderers import *
 from . import serializers
 from unrelate_product_handler import update_Unrelate_Prods_Product, update_Product_Collect_Num
 
 import logging
-logger = logging.getLogger('django.request')
+import buyer_return_good
+logger = logging.getLogger(__name__)
 __author__ = 'meixqhi'
 
 
@@ -253,11 +256,19 @@ class RefundView(APIView):
     def post(self, request, *args, **kwargs):
         content = request.POST
         rf = RefundProduct()
+        pksi = None
         refundproduct = RefundProduct.objects.filter(trade_id=content['trade_id'],
                                                      outer_sku_id=content['outer_sku_id'],
                                                      buyer_phone=content['buyer_phone'],
                                                      title=content['title'],
                                                      outer_id=content['outer_id']).first()
+        if content['outer_id'] and content['outer_sku_id']:
+            pksi = PackageSkuItem.objects.filter(outer_id=content['outer_id'],outer_sku_id=content['outer_sku_id']).first()
+            if not pksi:
+                logger.warn({'action': "RefundView_post", 'info': 'PackageSkuItem is not exist'})
+        else:
+            logger.warn({'action': "RefundView_post", 'info': 'outer_id or outer_sku_id is not exist'})
+            return
         if refundproduct:
             rf = refundproduct
             rf.num = rf.num + 1
@@ -271,7 +282,7 @@ class RefundView(APIView):
                 if k == 'can_reuse':
                     v = v == "true" and True or False
                 hasattr(rf, k) and setattr(rf, k, v)
-        logger = logging.getLogger(__name__)
+        rf.sku_id = pksi.sku_id
         rf.save()
         logger.warn({"action": "buy_rf", "info": rf.id})
         # 创建一条退货款单记录
@@ -282,6 +293,7 @@ class RefundView(APIView):
         refund_product = RefundProduct.objects.get(id=rf.id)  # 重新获取(避免缓存问题)
         refund_product.send_goods_backed_message()
 
+        buyer_return_good.return_good_into_stock(rf.id,content['outer_id'],content['outer_sku_id'],rf.num)
         update_Product_Collect_Num(pro=rf, req=request)  # 更新产品库存
         if refund_product.check_salerefund_conformably() and refund_product.can_reuse:  # 退货和退款单信息一致 并且可以二次销售　则执行退款步骤
             sale_refund = refund_product.get_sale_refund()

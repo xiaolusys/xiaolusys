@@ -17,7 +17,7 @@ import logging
 from models_refund_rate import PayRefundRate, PayRefNumRcord
 from signals_refund_rate import triger_refund_record
 
-logger = logging.getLogger('django.request')
+logger = logging.getLogger(__name__)
 
 REFUND_STATUS = (
     (pcfg.NO_REFUND, '没有退款'),
@@ -328,8 +328,9 @@ class RefundProduct(models.Model):
             return True
         return False
 
-    def add_into_stock(self):
+    def add_into_stock(self,return_num):
         if not self.sku_id:
+            logger.warn({'action': "add_into_stock", 'info': 'Sku_id is not exist'})
             return
         if not self.can_reuse:
             return
@@ -339,9 +340,11 @@ class RefundProduct(models.Model):
             .aggregate(total=Sum('num'))
         total = sum_res["total"] or 0
         stat = SkuStock.get_by_sku(self.sku_id)
+        print stat.add_return_quantity,total
         if stat.return_quantity != total:
             stat.return_quantity = total
-            stat.save(update_fields=['return_quantity'])
+            stat.add_return_quantity(self.sku_id,return_num)
+            # stat.save(update_fields=['return_quantity'])
             stat.assign()
 
 
@@ -376,5 +379,5 @@ def update_productskustats_refund_quantity(sender, instance, created, **kwargs):
         logger.warn({"action": "buy_rf", "info": "RefundProduct update_productskustats_refund_quantity error :" + str(RefundProduct.id)})
 
 
-post_save.connect(update_productskustats_refund_quantity, sender=RefundProduct, dispatch_uid='post_save_update_productskustats_refund_quantity')
+# post_save.connect(update_productskustats_refund_quantity, sender=RefundProduct, dispatch_uid='post_save_update_productskustats_refund_quantity')
 
