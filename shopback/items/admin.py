@@ -670,8 +670,7 @@ class ProductAdmin(ApproxAdmin):
                 sku_dict = model_to_dict(guige)
                 sku_dict['name'] = guige.name
                 sku_dict[
-                    'wait_post_num'] = functions2view.get_lack_num_by_product(
-                    p, guige)
+                    'wait_post_num'] = 0
                 product_dict['prod_skus'].append(sku_dict)
             productres.append(product_dict)
         return render(

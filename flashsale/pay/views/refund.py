@@ -116,7 +116,7 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
             default_return.update({'code': 2, 'info': '已经补发过了'})
             return Response(default_return)
         if coupon_template_id:
-            amount_flow = sale_refund.amount_flow
+            amount_flow = sale_refund.amount_flow.copy()
             amount_flow.update({'refund_coupon': {
                 'template_id': coupon_template_id,
                 'send_status': False}})

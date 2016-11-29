@@ -19,6 +19,7 @@ from supplychain.supplier.models import SaleProduct, SaleSupplier
 from .. import forms, functions, functions2view, models
 from django.shortcuts import get_object_or_404
 from django.shortcuts import HttpResponseRedirect
+from flashsale.forecast.models.forecast import ForecastInbound
 from flashsale.dinghuo.serializers import InBoundSerializer
 from .. import services
 
@@ -163,9 +164,12 @@ class InBoundViewSet(viewsets.GenericViewSet):
         forecast_inbounds = ForecastInbound.objects.filter(
             Q(relate_order_set=orderlist_id) | Q(express_no=express_no),
             status__in=(ForecastInbound.ST_APPROVED,ForecastInbound.ST_DRAFT))
+        res = []
+        excludes = []
         if forecast_inbounds.exists():
-            return forecast_inbounds.distinct()
-
+            for item in forecast_inbounds:
+                res.append(item)
+                excludes.append(item.id)
         forecast_inbounds = []
         if order_list:
             supplier = order_list.supplier
@@ -177,7 +181,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
 
         if supplier:
             forecast_qs = ForecastInbound.objects.filter(supplier=supplier,
-                status__in=(ForecastInbound.ST_APPROVED,ForecastInbound.ST_DRAFT,ForecastInbound.ST_ARRIVED)
+                status__in=(ForecastInbound.ST_APPROVED, ForecastInbound.ST_DRAFT, ForecastInbound.ST_ARRIVED)
             ).exclude(status=ForecastInbound.ST_ARRIVED,has_lack=False,has_defact=False).order_by('-status','created')
             for fi in forecast_qs:
                 if fi.express_no == express_no or fi.id == orderlist_id:
@@ -203,7 +207,8 @@ class InBoundViewSet(viewsets.GenericViewSet):
         orderlist_id = form.cleaned_data['orderlist_id']
         if not orderlist_id or not form.cleaned_data['express_no']:
             return Response({"error_message": form.errors.as_text()}, template_name='dinghuo/inbound_add.html')
-        forecast_inbounds = InBoundViewSet.get_forecast_inbounds(form.cleaned_data['express_no'], orderlist_id)
+        # forecast_inbounds = InBoundViewSet.get_forecast_inbounds(form.cleaned_data['express_no'], orderlist_id)
+        forecast_inbounds = ForecastInbound.get_by_express_no_order_list(form.cleaned_data['express_no'], orderlist_id)
         if not forecast_inbounds:
             return Response({"error_message": form.errors.as_text()}, template_name='dinghuo/inbound_add.html')
         supplier = forecast_inbounds[0].supplier
