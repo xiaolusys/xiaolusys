@@ -685,7 +685,7 @@ class Product(models.Model):
         total_remain_num = sum([i['remain_num'] for i in remain_nums])
         if self.remain_num != total_remain_num:
             self.remain_num = total_remain_num
-            self.save(update_fields=['remain_num'])
+            self.save(update_fields=['remain_num', 'modified'])
             return True
         return False
 

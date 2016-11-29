@@ -881,24 +881,24 @@ class ScheduleDetailAPIView(APIView):
                     ModelProduct.objects.filter(pk=model_id).update(
                         name=typed_value)
 
-        elif field == 'remain_num':
-            try:
-                typed_value = int(value)
-                SaleProduct.objects.filter(pk=_id).update(
-                    remain_num=typed_value)
-                for product in Product.objects.filter(sale_product=_id,
-                                                      status='normal'):
-                    product.remain_num = typed_value
-                    product.save()
-                    log_action(request.user.id, product, CHANGE, u'修改预留数: %d' % product.remain_num)
-                    ProductSku.objects.filter(product_id=product.id,
-                                              status='normal').update(
-                                                  remain_num=typed_value)
-                    for sku in product.prod_skus.filter(status='normal'):
-                        log_action(request.user.id, sku, CHANGE, u'修改预留数: %d' % sku.remain_num)
-
-            except:
-                typed_value = None
+        # elif field == 'remain_num':
+        #     try:
+        #         typed_value = int(value)
+        #         SaleProduct.objects.filter(pk=_id).update(
+        #             remain_num=typed_value)
+        #         for product in Product.objects.filter(sale_product=_id,
+        #                                               status='normal'):
+        #             product.remain_num = typed_value
+        #             product.save()
+        #             log_action(request.user.id, product, CHANGE, u'修改预留数: %d' % product.remain_num)
+        #             ProductSku.objects.filter(product_id=product.id,
+        #                                       status='normal').update(
+        #                                           remain_num=typed_value)
+        #             for sku in product.prod_skus.filter(status='normal'):
+        #                 log_action(request.user.id, sku, CHANGE, u'修改预留数: %d' % sku.remain_num)
+        #
+        #     except:
+        #         typed_value = None
         elif field == 'order_weight':
             try:
                 typed_value = int(value)
@@ -1334,15 +1334,17 @@ class SyncStockAPIView(APIView):
         for product in Product.objects.filter(sale_product=sale_product_id,
                                               status='normal'):
             collect_num = 0
+            pro_remain_num = 0
             for sku in product.prod_skus.filter(status='normal'):
                 sku_dict = skus_dict2['%d-%d' % (product.id, sku.id)]
                 left_num = sku.quantity + sku_dict['buy_num'] - sku_dict['sale_num']
                 collect_num += left_num
                 sku.remain_num = SkuStock.get_by_sku(sku.id).realtime_quantity
                 sku.save()
+                pro_remain_num += sku.remain_num
                 log_action(request.user.id, sku, CHANGE, u'修改预留数: %d' % sku.remain_num)
             product.collect_num = collect_num
-            product.remain_num = collect_num
+            product.remain_num = pro_remain_num
             product.save()
             log_action(request.user.id, product, CHANGE, u'修改预留数: %d' % product.remain_num)
             log_action(request.user.id, product, CHANGE, u'修改库存: %d' % product.collect_num)

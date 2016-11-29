@@ -178,6 +178,7 @@ class SaleProduct(BaseTagModel):
             self.sale_price = min(costs)
             update_fields.append('sale_price')
         if update_fields:
+            update_fields.append('modified')
             self.save(update_fields=update_fields)
         return
 
