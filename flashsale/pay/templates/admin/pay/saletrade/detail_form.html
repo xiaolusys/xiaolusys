@@ -184,7 +184,7 @@
                         {%endif%}
                         {%if sale_order.status == 3%}
                         {%if sale_order.refund_status == 0 or sale_order.refund_status == 2%}
-                        <button type="button" data-toggle="modal" id="resent_sku_{{sale_order.id}}"
+                        <button type="button" data-toggle="modal" id="resent_sku_{{sale_order.id}}" data-sku-id="{{sale_order.sku_id}}"
                                 class="resent">重新发货
                         </button>
                         {%endif%}
@@ -321,56 +321,56 @@
                 }
             }
         }
-    function sent_sku_item_again(sale_order_id){
-    var url = "/mm/sent_sku_item_again/";
-    var url_is_not_assign_sku = "/mm/is_sku_enough/";
-    var data = {"sale_order_id": sale_order_id};
-    $.ajax({"url": url_is_not_assign_sku, "data": data, "type": "post", dataType: "json","success": callback_change_sku_item});
+    function sent_sku_item_again(sale_order_id, sku_id){
+        var url = "/mm/sent_sku_item_again/";
+        var url_is_not_assign_sku = "/mm/is_sku_enough/";
+        var data = {"sale_order_id": sale_order_id};
+        $.ajax({"url": url_is_not_assign_sku, "data": data, "type": "post", dataType: "json","success": callback_change_sku_item});
 
-        function callback_change_sku_item(res){
-        if(res.res==false){
-        var truthBeTold=window.confirm(SKU+"的库存数不足!仍旧确认吗?");
-        if(truthBeTold){
-        $.ajax({"url": url, "data": data, "type": "post", dataType:"json", "success": callback});
-        function callback(res) {
-            if (res.res) {
-                alert("重新发货成功");
-                window.location.reload();
+            function callback_change_sku_item(res){
+            if(res.res==false){
+            var truthBeTold=window.confirm(sku_id+"的库存数不足!仍旧确认吗?");
+            if(truthBeTold){
+            $.ajax({"url": url, "data": data, "type": "post", dataType:"json", "success": callback});
+            function callback(res) {
+                if (res.res) {
+                    alert("重新发货成功");
+                    window.location.reload();
+                }
+                else{
+                alert("重新发货失败");
+
+                }
+            }
+
+            }
             }
             else{
-            alert("重新发货失败");
+            $.ajax({"url": url, "data": data, "type": "post", dataType:"json", "success": callback});
+            function callback(res) {
+                if (res.res) {
+                    alert("重新发货成功");
+                    window.location.reload();
+                }
+                else{
+                alert("重新发货失败");
+
+                }
+            }
 
             }
-        }
-
-        }
-        }
-        else{
-        $.ajax({"url": url, "data": data, "type": "post", dataType:"json", "success": callback});
-        function callback(res) {
-            if (res.res) {
-                alert("重新发货成功");
-                window.location.reload();
             }
-            else{
-            alert("重新发货失败");
+            <!--$.ajax({"url": url, "data": data, "type": "post", dataType:"json", "success": callback});-->
+            <!--function callback(res) {-->
+                <!--if (res.res) {-->
+                    <!--alert("重新发货成功");-->
+                    <!--window.location.reload();-->
+                <!--}-->
+                <!--else{-->
+                <!--alert("重新发货失败");-->
 
-            }
-        }
-
-        }
-        }
-        <!--$.ajax({"url": url, "data": data, "type": "post", dataType:"json", "success": callback});-->
-        <!--function callback(res) {-->
-            <!--if (res.res) {-->
-                <!--alert("重新发货成功");-->
-                <!--window.location.reload();-->
+                <!--}-->
             <!--}-->
-            <!--else{-->
-            <!--alert("重新发货失败");-->
-
-            <!--}-->
-        <!--}-->
 
     }
 
@@ -457,7 +457,8 @@ $(function(){
     $(".resent").click(function(evt){
         var dom = evt.target;
         sale_order_id = dom.id.substring("resent_sku_".length,dom.id.length);
-         sent_sku_item_again(sale_order_id);
+        var sku_id = $('#'+dom.id).data("sku-id");
+         sent_sku_item_again(sale_order_id, sku_id);
     });
 
     $(".tellcstm").click(function(evt){
