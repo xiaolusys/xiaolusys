@@ -17,7 +17,7 @@ import logging
 from models_refund_rate import PayRefundRate, PayRefNumRcord
 from signals_refund_rate import triger_refund_record
 
-logger = logging.getLogger('django.request')
+logger = logging.getLogger(__name__)
 
 REFUND_STATUS = (
     (pcfg.NO_REFUND, '没有退款'),
@@ -328,21 +328,23 @@ class RefundProduct(models.Model):
             return True
         return False
 
+    def add_into_stock_save(self):
+        from shopback.items.tasks import task_update_inferiorsku_return_quantity
+        if not self.in_stock:
+            self.add_into_stock()
+            self.in_stock = True
+            self.save()
+        task_update_inferiorsku_return_quantity.delay(self.sku_id)
+
     def add_into_stock(self):
         if not self.sku_id:
+            logger.warn({'action': "add_into_stock", 'info': 'Sku_id is not exist'})
             return
         if not self.can_reuse:
             return
         from shopback.items.models import SkuStock
-        sum_res = RefundProduct.objects.filter(sku_id=self.sku_id, created__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME,
-                                           can_reuse=True) \
-            .aggregate(total=Sum('num'))
-        total = sum_res["total"] or 0
-        stat = SkuStock.get_by_sku(self.sku_id)
-        if stat.return_quantity != total:
-            stat.return_quantity = total
-            stat.save(update_fields=['return_quantity'])
-            stat.assign()
+        SkuStock.add_return_quantity(self.sku_id, self.num)
+        SkuStock.get_by_sku(self.sku_id).assign()
 
 
 def update_warehouse_receipt_status(sender, instance, created, **kwargs):
@@ -376,5 +378,5 @@ def update_productskustats_refund_quantity(sender, instance, created, **kwargs):
         logger.warn({"action": "buy_rf", "info": "RefundProduct update_productskustats_refund_quantity error :" + str(RefundProduct.id)})
 
 
-post_save.connect(update_productskustats_refund_quantity, sender=RefundProduct, dispatch_uid='post_save_update_productskustats_refund_quantity')
+# post_save.connect(update_productskustats_refund_quantity, sender=RefundProduct, dispatch_uid='post_save_update_productskustats_refund_quantity')
 
