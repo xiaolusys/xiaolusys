@@ -323,7 +323,7 @@
         }
     function sent_sku_item_again(sale_order_id){
     var url = "/mm/sent_sku_item_again/";
-    var url_is_not_assign_sku = "/mm/is_not_assign_sku/";
+    var url_is_not_assign_sku = "/mm/is_sku_enough/";
     var data = {"sale_order_id": sale_order_id};
     $.ajax({"url": url_is_not_assign_sku, "data": data, "type": "post", dataType: "json","success": callback_change_sku_item});
 
@@ -396,13 +396,13 @@
 
     function change_sku_item( sale_order_id, SKU, num){
         var url = "/mm/change_sku_item/";
-        var url_is_not_assign_sku = "/mm/is_not_assign_sku/";
+        var url_is_not_assign_sku = "/mm/is_sku_enough/";
         var data = {"sale_order_id": sale_order_id, "SKU":SKU ,"num": num
         };
         $.ajax({"url": url_is_not_assign_sku, "data": data, "type": "post", dataType: "json","success": callback_change_sku_item});
         function callback_change_sku_item(res){
         if(res.res==false){
-        var truthBeTold=window.confirm(SKU+"的库存数不足!仍旧确认吗?");
+        var truthBeTold=window.confirm(SKU+"的可用库存数不足!仍旧确认吗?");
         if(truthBeTold){
         $.ajax({"url": url, "data": data, "type": "post", "success": callback});
         function callback(res) {

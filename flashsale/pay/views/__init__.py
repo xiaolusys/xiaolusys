@@ -8,7 +8,7 @@ from .refund import RefundReason
 from .product import productsku_quantity_view, ProductDetailView
 from .order import order_flashsale, time_rank, sale_state, refund_state, refunding_state, preorder_flashsale, \
     nextorder_flashsale, search_flashsale, change_sku_item, SaleOrderDoRefund, RefundCouponForTradeView, update_memo, \
-    sent_sku_item_again, get_mrgid, is_not_assign_sku
+    sent_sku_item_again, get_mrgid, is_sku_enough
 from .aggregate import AggregateProductView, ModelProductView, CheckModelExistView, \
     AggregateProductCheckView, ChuanTuAPIView, ModelChangeAPIView
 from .poster import PostGoodShelf
