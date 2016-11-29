@@ -182,7 +182,7 @@
                         <input type="button" class="refundOrder" style="padding: 4px 7px" onclick="doRefund({{sale_order.id}}, 0)" value="非缺货退款"/>
                         <input type="button" class="refundOrder" style="padding: 4px 7px" onclick="doRefund({{sale_order.id}}, 3)" value="缺货退款"/>
                         {%endif%}
-                        {%if sale_order.status == 3%}
+                        {%if sale_order.status >= 3 and sale_order.status <= 5 %}
                         {%if sale_order.refund_status == 0 or sale_order.refund_status == 2%}
                         <button type="button" data-toggle="modal" id="resent_sku_{{sale_order.id}}" data-sku-id="{{sale_order.sku_id}}"
                                 class="resent">重新发货

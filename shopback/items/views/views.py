@@ -111,7 +111,7 @@ def update_product_stock(request):
                 prod_sku.remain_num = int(remain_num)
             else:
                 prod.remain_num = int(remain_num)
-            update_model_fields(prod_sku or prod, update_fields=['remain_num'])
+            update_model_fields(prod_sku or prod, update_fields=['remain_num', 'modified'])
     except Product.DoesNotExist:
         response = {'code': 1, 'response_error': u'商品未找到'}
         return HttpResponse(json.dumps(response), content_type='application/json')
