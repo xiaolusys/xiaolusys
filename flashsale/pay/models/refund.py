@@ -426,7 +426,7 @@ class SaleRefund(PayBaseModel):
             strade.save(update_fields=['status', 'modified'])
         signal_saletrade_refund_confirm.send(sender=SaleRefund, obj=self)
         self.roll_back_usercoupon()
-        if self.good_status == SaleRefund.BUYER_NOT_RECEIVED:  # 买家没有收到货
+        if self.good_status in [SaleRefund.BUYER_NOT_RECEIVED, SaleRefund.SELLER_OUT_STOCK]:  # 买家没有收到货 或者卖家缺货　需要给发货单取消掉
             sorder.set_psi_cancel()
 
     def pic_path(self):
