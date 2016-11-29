@@ -123,11 +123,6 @@ class SkuStock(models.Model):
     def __unicode__(self):
         return '<%s,%s:%s>' % (self.id, self.product_id, self.sku_id)
 
-    @staticmethod
-    @transaction.atomic
-    def add_return_quantity(sku_id,num):
-        SkuStock.objects.filter(sku_id=sku_id).update(return_quantity = F('return_quantity')+num)
-
 
     @staticmethod
     @transaction.atomic
@@ -490,6 +485,17 @@ class SkuStock(models.Model):
             SkuStock._objects.filter(sku_id=sku_id).update(inbund_quantity=F('inbund_quantity') + num)
             if warning:
                 SkuStock.stat_warning(sku_id, change_fields, warning, stat)
+
+    @staticmethod
+    def add_return_quantity(sku_id, num, stat=STAT_SIGN, warning=WARNING):
+        change_fields = ['return_quantity']
+        if stat:
+            SkuStock.stat_warning(sku_id, change_fields, warning, stat)
+        else:
+            SkuStock._objects.filter(sku_id=sku_id).update(return_quantity=F('return_quantity') + num)
+            if warning:
+                SkuStock.stat_warning(sku_id, change_fields, warning, stat)
+        # SkuStock.objects.filter(sku_id=sku_id).update(return_quantity=F('return_quantity')+num)
 
     @staticmethod
     def add_shoppingcart_num(sku_id, num, stat=STAT_SIGN, warning=WARNING):

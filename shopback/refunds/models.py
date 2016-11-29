@@ -328,24 +328,23 @@ class RefundProduct(models.Model):
             return True
         return False
 
-    def add_into_stock(self,return_num):
+    def add_into_stock_save(self):
+        from shopback.items.tasks import task_update_inferiorsku_return_quantity
+        if not self.in_stock:
+            self.add_into_stock()
+            self.in_stock = True
+            self.save()
+        task_update_inferiorsku_return_quantity.delay(self.sku_id)
+
+    def add_into_stock(self):
         if not self.sku_id:
             logger.warn({'action': "add_into_stock", 'info': 'Sku_id is not exist'})
             return
         if not self.can_reuse:
             return
         from shopback.items.models import SkuStock
-        sum_res = RefundProduct.objects.filter(sku_id=self.sku_id, created__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME,
-                                           can_reuse=True) \
-            .aggregate(total=Sum('num'))
-        total = sum_res["total"] or 0
-        stat = SkuStock.get_by_sku(self.sku_id)
-        print stat.add_return_quantity,total
-        if stat.return_quantity != total:
-            stat.return_quantity = total
-            stat.add_return_quantity(self.sku_id,return_num)
-            # stat.save(update_fields=['return_quantity'])
-            stat.assign()
+        SkuStock.add_return_quantity(self.sku_id, self.num)
+        SkuStock.get_by_sku(self.sku_id).assign()
 
 
 def update_warehouse_receipt_status(sender, instance, created, **kwargs):
