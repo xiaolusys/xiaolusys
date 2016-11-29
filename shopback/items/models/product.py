@@ -685,7 +685,7 @@ class Product(models.Model):
         total_remain_num = sum([i['remain_num'] for i in remain_nums])
         if self.remain_num != total_remain_num:
             self.remain_num = total_remain_num
-            self.save(update_fields=['remain_num'])
+            self.save(update_fields=['remain_num', 'modified'])
             return True
         return False
 
@@ -1222,6 +1222,10 @@ class ProductSku(models.Model):
     @property
     def not_assign_num(self):
         return self.stat.not_assign_num
+
+    def set_remain_num(self, remain_num):
+        self.remain_num = remain_num
+        self.save()
 
     def calc_discount_fee(self, xlmm=None):
         """ 优惠折扣 """
