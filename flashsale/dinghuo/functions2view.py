@@ -1,9 +1,11 @@
 # coding=utf-8
 __author__ = 'yann'
+from django.db.models import Sum
+
 from shopback.trades.models import MergeOrder
 from flashsale.dinghuo import paramconfig as pcfg
 from flashsale.dinghuo.models import OrderDetail, ProductSkuDetail
-from django.db.models import Sum
+from flashsale.pay.models import ModelProduct
 from shopback import paramconfig as pcfg
 
 
@@ -23,7 +25,8 @@ def get_sale_num(product, sku):
         .exclude(merge_trade__type=pcfg.REISSUE_TYPE) \
         .exclude(merge_trade__type=pcfg.EXCHANGE_TYPE) \
         .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
-    order_qs = order_qs.filter(pay_time__gte=product.sale_time)
+    model_product = ModelProduct.objects.get(id=product.model_id)
+    order_qs = order_qs.filter(pay_time__gte=model_product.onshelf_time)
     order_qs = order_qs.filter(merge_trade__status__in=pcfg.ORDER_SUCCESS_STATUS) \
         .exclude(merge_trade__sys_status__in=(pcfg.INVALID_STATUS, pcfg.ON_THE_FLY_STATUS)) \
         .exclude(merge_trade__sys_status=pcfg.FINISHED_STATUS, merge_trade__is_express_print=False)
