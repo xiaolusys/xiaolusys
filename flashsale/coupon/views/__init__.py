@@ -1,1 +1,1 @@
-from .views import RefundCouponView, ReleaseOmissive
+from .views import ReleaseOmissive
