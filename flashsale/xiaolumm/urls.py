@@ -10,9 +10,8 @@ from flashsale.pay import constants
 from flashsale.pay.decorators import weixin_xlmm_auth
 from flashsale.xiaolumm.views import views_top100_iter
 from . import top_view_api
-from views import views, views_duokefu, views_xlmminfo, views_order_percent
-from views import views_register
-from views import views_xlmm_active, views_cashout
+from views import views, views_duokefu, views_xlmminfo, views_order_percent, views_register, views_xlmm_active, \
+    views_cashout, xiaolumama
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'ninepic', views_advertis.NinePicAdverViewSet)
@@ -58,6 +57,7 @@ urlpatterns = [
     url(r'^channel/(?P<linkid>\d+)/$', views.ClickChannelLogView.as_view(), name="xiaolumm_channel"),
     url(r'^charge/(?P<pk>\d+)/$', staff_member_required(views.chargeWXUser)),
     url(r'^xlmm/(?P<pk>\d+)/$', staff_member_required(views.XiaoluMamaModelView.as_view())),
+    url(r'^set_mama_manager$', staff_member_required(xiaolumama.SetMamaManager.as_view())),  #
 
     url(r'^cash_out_verify$', staff_member_required(views.CashOutVerify.as_view())),  #
     url(r'^stats_summary/$', staff_member_required(views.stats_summary), name="stats_summary"),

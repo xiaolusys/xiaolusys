@@ -47,7 +47,8 @@ class XiaoluMamaAdmin(ApproxAdmin):
 
     form = forms.XiaoluMamaForm
     list_display = ('id', 'customer_id', 'links_display', 'last_renew_type', 'renew_time', 'agencylevel',
-                    'progress', 'hasale', 'charge_time', 'status', 'refer_to_mama', 'deposit_infos')
+                    'progress', 'hasale', 'charge_time', 'status', 'refer_to_mama', 'deposit_infos',
+                    'weikefu', 'manager_info')
     list_filter = (
         'progress', 'agencylevel', 'last_renew_type', 'manager', 'status', 'charge_status', 'hasale',
         ('charge_time', DateFieldListFilter),)
@@ -151,11 +152,35 @@ class XiaoluMamaAdmin(ApproxAdmin):
     deposit_infos.allow_tags = True
     deposit_infos.short_description = u"押金单"
 
+    def manager_info(self, obj):
+        from django.contrib.auth.models import User
+
+        managers = User.objects.filter(is_staff=True, is_active=True, groups=16)  # 推广组成员
+        current_manager = managers.filter(id=obj.manager).first()
+        ma_name = current_manager.last_name + current_manager.first_name if current_manager else '选择管理员'
+        selected = '<option value="" selected="selected">%s</option>' % ma_name
+        options = []
+        for manager in managers:
+            op = '<option value="%s">%s</option>' % (manager.id, manager.last_name + manager.first_name)
+            options.append(op)
+        selects = '<select id="select-manager-%s" onchange="changeMamaManager(%s)">%s%s</select>' % (obj.id, obj.id,
+                                                                                                     selected,
+                                                                                                     ''.join(options))
+        return selects
+
+    manager_info.allow_tags = True
+    manager_info.short_description = u"归属管理员"
+
     class Media:
         css = {"all": ("admin/css/forms.css", "css/admin/dialog.css"
                        , "css/admin/common.css", "jquery/jquery-ui-1.10.1.css", "bootstrap/css/bootstrap3.2.0.min.css",
                        "css/mama_profile.css")}
-        js = ("js/admin/adminpopup.js", "js/xlmm_change_list.js")
+        js = ("js/admin/adminpopup.js",
+              '/static/xiaolumm/js/mamaChangeList.js',
+              '/static/jquery/jquery-2.1.1.min.js',
+              "/static/layer-v1.9.2/layer/layer.js",
+              "/static/layer-v1.9.2/layer/extend/layer.ext.js",
+              )
 
 
 admin.site.register(XiaoluMama, XiaoluMamaAdmin)

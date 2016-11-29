@@ -189,12 +189,11 @@ class XiaoluMama(BaseModel):
             return UserGroup.objects.get(id=self.user_group_id)
 
     @property
-    def manager_name(self):
-        """ 获取小鹿妈妈管理员 """
-        try:
-            return DjangoUser.objects.get(id=self.manager).username
-        except:
-            return '%s' % self.manager
+    def mama_manager(self):
+        # type: () -> Optional[DjangoUser]
+        """获取小鹿妈妈管理员
+        """
+        return DjangoUser.objects.filter(id=self.manager).first()
 
     def exam_Passed(self):
         """ 妈妈考试是否通过 """

@@ -48,3 +48,15 @@ def mama_pay_deposit(customer_id, deposit_type, referrer, trade_id, oid=None):
     release_coupon_for_deposit(customer_id, deposit_type, trade_id=trade_id)  # 发送押金优惠券给用户
     update_potential_by_deposit(xlmm.id, renew_days, referrer_mama_id=referrer, oid=oid)  # 更新潜在关系记录
     signal_xiaolumama_register_success.send_robust(sender=XiaoluMama, xiaolumama=xlmm, renew=True)  # 发送信号
+
+
+def set_mama_manager_by_mama_id(mama_id, manager_id):
+    # type : (int, int) -> XiaoluMama
+    """修改该妈妈的管理员
+    """
+    mm = get_mama_by_id(mama_id)
+
+    if mm.manager != manager_id:
+        mm.manager = manager_id
+        mm.save(update_fields=['manager'])
+    return mm
