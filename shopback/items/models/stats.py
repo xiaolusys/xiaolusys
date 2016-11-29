@@ -186,6 +186,10 @@ class SkuStock(models.Model):
             return self.sold_num - self.return_quantity + self.waitingpay_num
 
     @property
+    def free_num(self):
+        return self.realtime_quantity - self.lock_num
+
+    @property
     def realtime_lock_num(self):
         return self.shoppingcart_num + self.waitingpay_num + self.sold_num - self.post_num
 
