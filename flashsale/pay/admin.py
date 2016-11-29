@@ -45,7 +45,11 @@ from .models import (
 import cStringIO as StringIO
 from common.utils import gen_cvs_tuple, CSVUnicodeWriter
 from django.http import HttpResponse
-import datetime, time
+import time
+from django.db.models import Sum
+from django.shortcuts import redirect, render
+from .forms import EnvelopForm, CustomShareForm
+from shopapp.weixin.models_base import WeixinUnionID
 
 import logging
 
@@ -338,16 +342,17 @@ from .tasks import notifyTradeRefundTask
 
 
 class SaleRefundAdmin(BaseModelAdmin):
-    list_display = ('id_link', 'refund_no', 'buyer_id', 'order_no', 'package_sku_item_link_to', 'channel', 'refund_channel',
-                    'title', 'sku_id', 'refund_fee', 'has_good_return', 'has_good_change', 'created', 'success_time',
-                    'order_status', 'is_lackrefund', 'status', 'refund_pro_link')
+    list_display = ('id_link', 'buyer_id', 'order_no', 'package_sku_item_link_to', 'channel', 'refund_channel',
+                    'refund_fee_info', 'has_good_return', 'has_good_change', 'created',
+                    'success_time',
+                    'is_lackrefund', 'refund_pro_link')
 
     list_filter = (
         'status', 'good_status', 'channel', 'is_lackrefund', 'has_good_return', 'has_good_change', Filte_By_Reason,
         "created", "modified")
-    list_display_links = ['refund_no']
+    list_display_links = []
     search_fields = ['=refund_no', '=trade_id', '=order_id', '=refund_id', '=mobile']
-    list_per_page = 15
+    list_per_page = 5
 
     def id_link(self, obj):
         return ('<a href="%(url)s" target="_blank">'
@@ -368,59 +373,73 @@ class SaleRefundAdmin(BaseModelAdmin):
         '%(oid)s</a>')
 
     def package_sku_item_link_to(self, obj):
-        return self.PACKAGE_SKU_ITEM_LINK % {
+        return '%s <br>' % obj.sku_id + self.PACKAGE_SKU_ITEM_LINK % {
             'pki_url': '/admin/trades/packageskuitem/?sale_order_id=%s' % obj.order_id,
             'oid': obj.order_id
         }
 
     package_sku_item_link_to.allow_tags = True
-    package_sku_item_link_to.short_description = u'SKU交易单号'
+    package_sku_item_link_to.short_description = u'SKU/包裹Item'
 
-    def order_no(self, obj):
-        # type: () -> text_type
-        strade = SaleTrade.objects.get(id=obj.trade_id)
-        html = '<a onclick="showSaleRefundPage({0})" class="click_row_{0}">{1}</a>'.format(obj.id, strade.tid)
+    def refund_fee_info(self, obj):
+        # type: (SaleRefund) -> text_type
+        html1 = '<br><label>立即执行:<input type="checkbox" id="im-execute-%s" onclick="setCheckBox(%s)"/></label>' % (obj.id, obj.id)
         bls = obj.get_refund_budget_logs().values('id', 'flow_amount')
         bids = [str(i['id'])for i in bls]
         vs = [str(j['flow_amount'] / 100.0) for j in bls]
-        html2 = "<a target='_blank' href='/admin/pay/budgetlog/?id__in=%s'>钱包退款:%s</a>" % (','.join(bids), ' | '.join(vs))
+        html2 = "<a target='_blank' href='/admin/pay/budgetlog/?id__in=%s'>钱包:%s</a>" % (','.join(bids), ' | '.join(vs))
 
         postages = obj.get_refund_postage_budget_logs().values('id', 'flow_amount')
-        pbids = [str(i['id'])for i in postages]
-        pvs = [str(j['flow_amount'] / 100.0) for j in postages]
-        html3 = "<a target='_blank' href='/admin/pay/budgetlog/?id__in=%s'>补邮费:%s</a>" % (','.join(pbids), ' | '.join(pvs))
+        pbids = [str(i['id']) for i in postages]
+        pvs = [(j['flow_amount'] / 100.0) for j in postages]
+
+        postage_input = '<input style="padding: 5px 0px; width: 50px" type="text" id="refundPostage-%s" value="%s" ' \
+                        'onkeydown="return refundPostage(%s)"/>' % (obj.id, str(obj.postage_num / 100.0), obj.id)
+        html3 = "<a target='_blank' href='/admin/pay/budgetlog/?id__in=%s'>邮费　 :%s</a>　%s" % (','.join(pbids),
+                                                                                                str(sum(pvs)),
+                                                                                                postage_input)
 
         coupons = obj.get_refund_coupons().values('id', 'value')
-        cids = [str(i['id'])for i in coupons]
+        cids = [str(i['id']) for i in coupons]
         cs = [str(j['value']) for j in coupons]
-        html4 = "<a target='_blank' href='/admin/coupon/usercoupon/?id__in=%s'>补优惠券:%s</a>" % (','.join(cids), ' | '.join(cs))
-        return '<br>'.join([html, html2, html3, html4])
+        html4 = "<a target='_blank' href='/admin/coupon/usercoupon/?id__in=%s'>优惠券 :%s</a>　" % (','.join(cids), ' | '.join(cs))
+
+        ctpl = obj.refund_coupon_template
+        coupon_selected = ctpl.value if ctpl else u'请选择'
+        select = '<select style="padding: 0px 0px" id="refundCoupon-%s"onChange="refundCoupon(%s)">' \
+                 '<option value="0" selected="selected">%s</option>' \
+                 '<option value="7">￥5</option>' \
+                 '<option value="2">￥10</option>' \
+                 '<option value="8">￥15</option>' \
+                 '<option value="10">￥20</option>' \
+                 '</select>' % (obj.id, obj.id, coupon_selected)
+        return '<br>'.join([str(obj.refund_fee), html2, html1, html3, html4 + select])
+
+    refund_fee_info.allow_tags = True
+    refund_fee_info.short_description = u'退款费用信息'
+
+    def order_no(self, obj):
+        # type: () -> text_type
+        html1 = '订单:<a href="/admin/pay/saletrade/%s/change" target="_blank">%s</a><br>%s<br>%s' % (
+        obj.trade_id, obj.sale_trade.tid, obj.title, obj.saleorder.get_status_display())
+        html2 = '退款单:<a href="/admin/pay/salerefund/%s/change" target="_blank">%s</a><br>%s' % (obj.id, obj.refund_no, obj.get_status_display())
+        return '<br><br>'.join([html1, html2])
 
     order_no.allow_tags = True
-    order_no.short_description = "交易编号"
+    order_no.short_description = "编号信息"
 
     def refund_pro_link(self, obj):
         html = obj.sid
-        if obj.sid:
-            # 如果是退回了(在退回商品中有找到)
-            from shopback.refunds.models import RefundProduct
-            refundpro = RefundProduct.objects.filter(out_sid=obj.sid).first()
-            if refundpro:
+        if obj.sid:  # 如果是退回了(在退回商品中有找到)
+            if obj.refundproduct:
                 html = "<a href='/admin/refunds/refundproduct/?out_sid={0}' style='color:green'>{0}></a>".format(
-                    obj.sid)
+                    obj.refundproduct.out_sid)
             else:
                 html = "<a style='color:red'>{0}</a>".format(obj.sid)
         return html
 
     refund_pro_link.allow_tags = True
     refund_pro_link.short_description = "退回快递单号"
-
-    def order_status(self, obj):
-        sorder = SaleOrder.objects.get(id=obj.order_id)
-        return sorder.get_status_display()
-
-    order_status.allow_tags = True
-    order_status.short_description = "订单状态"
 
     # -------------- 页面布局 --------------
     fieldsets = (
@@ -594,12 +613,6 @@ class SaleRefundAdmin(BaseModelAdmin):
 
 
 admin.site.register(SaleRefund, SaleRefundAdmin)
-
-from django.db.models import Sum
-from django.shortcuts import redirect, render
-from django.template import RequestContext
-from .forms import EnvelopForm, CustomShareForm
-from shopapp.weixin.models_base import WeixinUnionID
 
 
 def get_mama_id(obj):

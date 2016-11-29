@@ -1,13 +1,10 @@
 # coding=utf-8
 from __future__ import absolute_import, unicode_literals
 from django.db.models import Q
-from django.forms import model_to_dict
-from rest_framework.exceptions import APIException
 from rest_framework.views import APIView
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework import permissions
 from rest_framework.response import Response
-from common.modelutils import update_model_fields
 from core.options import log_action, CHANGE, ADDITION
 from flashsale.pay.models import SaleTrade, Customer
 from ..apis.v1.usercoupon import create_user_coupon
@@ -16,60 +13,6 @@ from ..models import UserCoupon, CouponTemplate
 import logging
 
 logger = logging.getLogger(__name__)
-
-
-class RefundCouponView(APIView):
-    queryset = SaleTrade.objects.all()
-    usercoupons = UserCoupon.objects.all()
-    renderer_classes = (JSONRenderer, TemplateHTMLRenderer,)
-    template_name = "sale/release_post_fee.html"
-    permission_classes = (permissions.IsAuthenticated,)
-
-    def get_trade(self, tid):
-        try:
-            trade = SaleTrade.objects.get(tid=tid)
-        except SaleTrade.DoesNotExist:
-            raise APIException(u"订单未找到")
-        return trade
-
-    def memo_trade(self, user_id, trade, memo):
-        """ 备注特卖订单信息　"""
-        trade.seller_memo += memo
-        update_model_fields(trade, update_fields=['seller_memo'])
-        log_action(user_id, trade, CHANGE, u'退货退款问题发放优惠券修改卖家备注')
-
-    def check_trade_status(self, trade):
-        if trade.status in (SaleTrade.TRADE_NO_CREATE_PAY, SaleTrade.WAIT_BUYER_PAY):
-            raise APIException(u'交易状态异常，不予发放')
-
-    def get(self, request):
-        content = request.GET
-        trade_tid = content.get("trade_tid", None)
-        trade = model_to_dict(self.get_trade(trade_tid)) if trade_tid is not None else None
-
-        templates = CouponTemplate.objects.filter(
-            status=CouponTemplate.SENDING,
-            coupon_type=CouponTemplate.TYPE_COMPENSATE
-        ).order_by("value")
-
-        tem_data = []
-        for tem in templates:
-            tem_data.append(model_to_dict(tem))
-
-        return Response({'trade': trade, "templates": tem_data})
-
-    def post(self, request):
-        content = request.POST
-        trade_id = content.get("trade_tid", None)
-        template_id = content.get("template_id", None)
-        memo = content.get("memo", None)
-        user_id = request.user.id
-
-        trade = self.get_trade(trade_id)
-        self.check_trade_status(trade)
-        self.memo_trade(user_id, trade, memo)
-        create_user_coupon(customer_id=trade.buyer_id, coupon_template_id=int(template_id), trade_id=trade.id)
-        return Response({'res': "ok"})
 
 
 class ReleaseOmissive(APIView):

@@ -15,7 +15,7 @@ from core.options import log_action, CHANGE
 from shopback.items.models import Product, ProductDaySale
 from flashsale.pay.models import SaleRefund
 from flashsale.pay import serializers
-from ..apis.v1.refund import get_sale_refund_by_id, return_fee_by_refund_product, refund_postage
+from ..apis.v1.refund import get_sale_refund_by_id, return_fee_by_refund_product, refund_postage, refund_coupon
 from ..models import BudgetLog
 import logging
 
@@ -81,47 +81,44 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        manual_refund = request.data.get('manual_refund')
-        status = int(request.data.get('status'))
-        data = request.data.copy()
-        if data.has_key('coupon_template_id'):
-            coupon_template_id = int(data.get('coupon_template_id'))
-            if coupon_template_id:
-                data.pop('coupon_template_id')
-                amount_flow = instance.amount_flow
-                amount_flow.update({'refund_coupon': {
-                    'template_id': coupon_template_id,
-                    'send_status': False}})
-                data.update({'amount_flow': amount_flow})
-        if instance.status == SaleRefund.REFUND_WAIT_RETURN_GOODS \
-                and status not in (SaleRefund.REFUND_WAIT_RETURN_GOODS, SaleRefund.REFUND_APPROVE,
-                                   SaleRefund.REFUND_SUCCESS):
-            raise exceptions.APIException(u'同意状态,不予修改状态!')
-        if instance.status == SaleRefund.REFUND_WAIT_SELLER_AGREE and status == SaleRefund.REFUND_WAIT_RETURN_GOODS:
-            instance.agree_return_goods()  # 如果是从退款待审　到　同意退货　则发送　退回信息
-        serializer = self.get_serializer(instance, data=data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        instance = self.queryset.filter(id=serializer.data.get('id')).first()
-        message = u'审核退款单'
-        if manual_refund == 'on':  # 开启手动退款
-            return_fee_by_refund_product(instance)
-            message = u'操作手动退款'
-        log_action(request.user.id, instance, CHANGE, message)
-        return Response(serializer.data)
+        raise exceptions.APIException('not allowed')
 
     @detail_route(methods=['post'])
     def refund_postage_manual(self, request, *args, **kwargs):
         # type: (HttpRequest, *Any, **Any) -> HttpResponse
         id = kwargs.get('pk')
+        postage_num = request.POST.get('postage_num') or 0
+        postage_num = int(postage_num) if postage_num.isdigit() else postage_num
+        im_execute = request.POST.get('im_execute')
+        im_execute = True if im_execute == u'true' else False
         default_return = collections.defaultdict(code=0, info='操作成功!')
         if BudgetLog.objects.get_refund_postage_budget_logs().filter(referal_id=id).exists():  # 该退款单的退货补邮费记录
             default_return.update({'code': 2, 'info': '已经有退货补邮费记录了'})
             return Response(default_return)
         sale_refund = get_sale_refund_by_id(id)
-        is_refunded = refund_postage(sale_refund)
-        if not is_refunded:
-            default_return.update({'code': 1, 'info': '操作失败!'})
+        refund_postage(sale_refund, postage_num=postage_num, im_execute=im_execute)
+        return Response(default_return)
+
+    @detail_route(methods=['post'])
+    def refund_coupon_manual(self, request, *args, **kwargs):
+        # type: (HttpRequest, *Any, **Any) -> Response
+        id = kwargs.get('pk')
+        im_execute = request.POST.get('im_execute')
+        im_execute = True if im_execute == u'true' else False
+        coupon_template_id = request.POST.get('coupon_template_id') or 0
+        default_return = collections.defaultdict(code=0, info='操作成功!')
+        if not coupon_template_id:
+            default_return.update({'code': 1, 'info': '参数错误'})
+            return Response(default_return)
+        coupon_template_id = int(coupon_template_id)
+        sale_refund = get_sale_refund_by_id(id)
+        if sale_refund.get_refund_coupons().exists():
+            default_return.update({'code': 2, 'info': '已经补发过了'})
+            return Response(default_return)
+        if coupon_template_id:
+            amount_flow = sale_refund.amount_flow
+            amount_flow.update({'refund_coupon': {
+                'template_id': coupon_template_id,
+                'send_status': False}})
+            refund_coupon(sale_refund, amount_flow=amount_flow, im_execute=im_execute)
         return Response(default_return)

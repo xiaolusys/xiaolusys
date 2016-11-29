@@ -64,11 +64,17 @@ def create_refund_order(user_id, order_id, reason, num, refund_fee, refund_chann
     return refund
 
 
-def refund_postage(sale_refund):
-    # type: (SaleRefund) -> bool
+def refund_postage(sale_refund, postage_num=0, im_execute=True):
+    # type: (SaleRefund, int, bool) -> bool
     """为退款单退邮费
     """
     from flashsale.pay.models import BudgetLog
+
+    if postage_num and postage_num != sale_refund.postage_num:
+        sale_refund.postage_num = postage_num
+        sale_refund.save(update_fields=['postage_num'])
+    if not im_execute:  # 不是立即执行退邮费到用户账户
+        return im_execute
 
     if 0 < sale_refund.postage_num <= 2000:
         BudgetLog.create_salerefund_postage_log(sale_refund, sale_refund.postage_num)
@@ -76,11 +82,17 @@ def refund_postage(sale_refund):
     return False
 
 
-def refund_coupon(sale_refund):
-    # type : (SaleRefund) -> bool
+def refund_coupon(sale_refund, amount_flow=None, im_execute=True):
+    # type : (SaleRefund, Optional[Dict[str, *Ant]], bool) -> bool
     """补邮费优惠券给用户
     """
     from flashsale.coupon.apis.v1.usercoupon import create_user_coupon
+
+    if amount_flow and amount_flow != sale_refund.amount_flow:
+        sale_refund.amount_flow = amount_flow
+        sale_refund.save(update_fields=['amount_flow'])
+    if not im_execute:
+        return im_execute
     try:
         if isinstance(sale_refund.amount_flow, dict):
             refund_coupon_info = sale_refund.amount_flow.get('refund_coupon')

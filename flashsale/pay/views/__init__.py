@@ -4,10 +4,11 @@ from .aggregate import AggregateProductView, ModelProductView, CheckModelExistVi
     AggregateProductCheckView, ChuanTuAPIView, ModelChangeAPIView
 from .login import flashsale_login, productlist_redirect, weixin_login, weixin_test, weixin_auth_and_redirect
 from .address import AddressList, UserAddressDetail, DistrictList
-from .refund import  RefundReason
+from .refund import RefundReason
 from .product import productsku_quantity_view, ProductDetailView
 from .order import order_flashsale, time_rank, sale_state, refund_state, refunding_state, preorder_flashsale, \
-    nextorder_flashsale, search_flashsale, change_sku_item, SaleOrderDoRefund, update_memo, sent_sku_item_again, is_not_assign_sku,get_mrgid
+    nextorder_flashsale, search_flashsale, change_sku_item, SaleOrderDoRefund, RefundCouponForTradeView, update_memo, \
+    sent_sku_item_again, get_mrgid, is_not_assign_sku
 from .aggregate import AggregateProductView, ModelProductView, CheckModelExistView, \
     AggregateProductCheckView, ChuanTuAPIView, ModelChangeAPIView
 from .poster import PostGoodShelf

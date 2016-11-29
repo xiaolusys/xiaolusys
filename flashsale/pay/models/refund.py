@@ -239,6 +239,16 @@ class SaleRefund(PayBaseModel):
                                    SaleRefund.REFUND_SUCCESS,
                                    SaleRefund.REFUND_CLOSED]
 
+    @property
+    def refund_coupon_template(self):
+        # type: () -> Optional[CouponTemplate]
+        refund_coupon = self.amount_flow.get('refund_coupon')
+        if refund_coupon:
+            template_id = refund_coupon.get('template_id')
+            from flashsale.coupon.apis.v1.coupontemplate import get_coupon_template_by_id
+            return get_coupon_template_by_id(template_id)
+        return None
+
     def get_postage_num_display(self):
         # type: () -> float
         return self.postage_num / 100.0
