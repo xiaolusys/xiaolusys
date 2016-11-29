@@ -33,7 +33,6 @@ from . import serializers
 from unrelate_product_handler import update_Unrelate_Prods_Product, update_Product_Collect_Num
 
 import logging
-import buyer_return_good
 logger = logging.getLogger(__name__)
 __author__ = 'meixqhi'
 
@@ -292,8 +291,7 @@ class RefundView(APIView):
         # 创建时候发送消息
         refund_product = RefundProduct.objects.get(id=rf.id)  # 重新获取(避免缓存问题)
         refund_product.send_goods_backed_message()
-
-        buyer_return_good.return_good_into_stock(rf.id,content['outer_id'],content['outer_sku_id'],rf.num)
+        rf.add_into_stock_save()
         update_Product_Collect_Num(pro=rf, req=request)  # 更新产品库存
         if refund_product.check_salerefund_conformably() and refund_product.can_reuse:  # 退货和退款单信息一致 并且可以二次销售　则执行退款步骤
             sale_refund = refund_product.get_sale_refund()
