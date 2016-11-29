@@ -1220,7 +1220,7 @@ class RemainNumAPIView(APIView):
             typed_value = int(value)
             if typed_value < 0:
                 return Response({'error': u'参数错误'})
-            ProductSku.objects.filter(pk=_id).update(remain_num=typed_value)
+            ProductSku.objects.filter(pk=_id).first().set_remain_num(typed_value)
             stat = sku.product.prod_skus.filter(status='normal').aggregate(remain_sum=Sum('remain_num'))
             sku.product.remain_num = stat.get('remain_sum') or 0
             sku.product.save()

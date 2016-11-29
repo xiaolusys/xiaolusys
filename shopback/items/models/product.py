@@ -1223,6 +1223,10 @@ class ProductSku(models.Model):
     def not_assign_num(self):
         return self.stat.not_assign_num
 
+    def set_remain_num(self, remain_num):
+        self.remain_num = remain_num
+        self.save()
+
     def calc_discount_fee(self, xlmm=None):
         """ 优惠折扣 """
         if not xlmm or xlmm.agencylevel < 2:
