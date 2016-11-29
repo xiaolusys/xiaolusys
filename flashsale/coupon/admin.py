@@ -5,7 +5,7 @@ from django.db.models import Sum
 from core.filters import DateFieldListFilter
 from flashsale.xiaolumm.models import MamaDailyAppVisit
 from flashsale.coupon.models import CouponTemplate, OrderShareCoupon, UserCoupon, TmpShareCoupon, CouponTransferRecord
-
+from flashsale.xiaolumm.apis.v1.xiaolumama import get_mama_by_id
 
 class CouponTemplateAdmin(admin.ModelAdmin):
     fieldsets = (
@@ -97,9 +97,10 @@ admin.site.register(TmpShareCoupon, TmpShareCouponAdmin)
 class CouponTransferRecordAdmin(admin.ModelAdmin):
     list_display = ('coupon_from_mama_id', 'last_visit', 'from_mama_nick', 'coupon_to_mama_id', 'is_new', 'to_mama_nick', 'template_id', 'template_name',
                     'coupon_value', 'coupon_num',  'transfer_type', 'transfer_status', 'total_num', 'status', 'uni_key', 'date_field',
-                    'init_from_mama_id','order_no', 'product_id', 'elite_score', 'modified', 'created')
+                    'init_from_mama_id','order_no', 'product_id', 'elite_score', 'to_mama_manager', 'modified', 'created')
     list_filter = ('transfer_type', 'transfer_status', 'status', ('created', DateFieldListFilter))
     search_fields = ['=coupon_from_mama_id', '=coupon_to_mama_id']
+    list_per_page = 20
 
     def template_name(self, obj):
         ct = CouponTemplate.objects.filter(id=obj.template_id).first()
@@ -126,5 +127,16 @@ class CouponTransferRecordAdmin(admin.ModelAdmin):
         if not c:
             return 'NEW'
         return ''
-    
+
+    def to_mama_manager(self, obj):
+        # type : (CouponTransferRecord) -> text_type
+        if not obj.coupon_to_mama_id:
+            return u''
+        mm = get_mama_by_id(obj.coupon_to_mama_id)
+        if not mm.mama_manager:
+            return u''
+        return mm.mama_manager.last_name + mm.mama_manager.first_name
+    to_mama_manager.allow_tags = True
+    to_mama_manager.short_description = u"归属管理员"
+
 admin.site.register(CouponTransferRecord, CouponTransferRecordAdmin)
