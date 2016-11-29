@@ -345,7 +345,7 @@ class PurchaseArrangement(BaseModel):
         if purchase_order_unikey is None:
             purchase_order_unikey = PurchaseOrder.gen_purchase_order_unikey(psi)
         uni_key = PurchaseArrangement.gen_purchase_arrangement_unikey(purchase_order_unikey, psi.get_purchase_uni_key())
-        PurchaseArrangement(package_sku_item_id=psi.id,
+        pa = PurchaseArrangement(package_sku_item_id=psi.id,
                             oid=psi.oid,
                             outer_id=psi.outer_id,
                             outer_sku_id=psi.outer_sku_id,
@@ -357,7 +357,9 @@ class PurchaseArrangement(BaseModel):
                             purchase_record_unikey=psi.get_purchase_uni_key(),
                             num=psi.num,
                             status=PurchaseArrangement.EFFECT if psi.is_booking_needed() else PurchaseArrangement.CANCEL
-                            ).save()
+                            )
+        pa.save()
+        return pa
 
     def reset_purchase_order(self):
         if not self.initial_book:
