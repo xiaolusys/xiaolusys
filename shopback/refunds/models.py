@@ -343,7 +343,7 @@ class RefundProduct(models.Model):
         if not self.can_reuse:
             return
         from shopback.items.models import SkuStock
-        SkuStock.add_return_quantity(self.sku_id, self.num)  
+        SkuStock.add_return_quantity(self.sku_id, self.num)   
         SkuStock.get_by_sku(self.sku_id).assign()
 
 
