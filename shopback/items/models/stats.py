@@ -193,7 +193,7 @@ class SkuStock(models.Model):
             用统计方式重新计算库存
         """
         from shopback.trades.models import PackageSkuItem
-        from flashsale.dinghuo.models import OrderDetail
+        from flashsale.dinghuo.models import OrderDetail, RGDetail
         from shopback.refunds.models import RefundProduct
         if not need_stat:
             sum_res = PackageSkuItem.objects.filter(sku_id=self.sku_id,
@@ -248,12 +248,12 @@ class SkuStock(models.Model):
                                                                  pay_time__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME,
                                                                  assign_status=2).aggregate(total=Sum('num')).get(
                         'total') or 0
-                if attr == 'refund_num':
-                    params[attr] = RefundProduct.objects.filter(sku_id=self.sku_id,
+                if attr == 'rg_quantity':
+                    params[attr] = RGDetail.objects.filter(sku_id=self.sku_id,
                                                                 created__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME,
                                                                 can_reuse=True).exclude(
                         sku_id=None).aggregate(total=Sum('num')).get('total') or 0
-                if attr == 'return_num':
+                if attr == 'return_quantity':
                     params[attr] = RefundProduct.objects.filter(sku_id=self.sku_id,
                                                                 created__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME,
                                                                 can_reuse=True).exclude(
