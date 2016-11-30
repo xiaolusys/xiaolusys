@@ -278,7 +278,7 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
     def electronic_goods(self, request, *args, **kwargs):
         """ electronic商品列表分页接口 """
         queryset = ModelProduct.objects.filter(product_type=1)
-        object_list = serializers_v2.ModelProductSerializer(queryset, context={'request': request}, many=True).data
+        object_list = serializers_v2.ElectronicProductSerializer(queryset, context={'request': request}, many=True).data
         response = Response(object_list)
         return response
 

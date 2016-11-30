@@ -135,3 +135,30 @@ class ModelProductSerializer(serializers.ModelSerializer):
             'teambuy_price': obj.teambuy_price,
             'teambuy_person_num': obj.teambuy_person_num
         }
+
+class ElectronicProductSerializer(serializers.ModelSerializer):
+
+    detail_content = serializers.SerializerMethodField()
+    extras = serializers.SerializerMethodField()
+    sku_info = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ModelProduct
+        fields = ('id', 'detail_content', 'sku_info', 'comparison', 'extras') #
+
+    def get_detail_content(self, obj):
+        content = obj.detail_content
+        if obj.is_flatten:
+            request = self.context.get('request')
+            product_id = request.GET.get('product_id', None)
+            if product_id and product_id.isdigit():
+                product = obj.products.filter(id=product_id).first()
+                content['name'] = product.name
+                content['head_imgs'] = [product.pic_path]
+        return content
+
+    def get_extras(self, obj):
+        return obj.extras.get('saleinfos',{})
+
+    def get_sku_info(self, obj):
+        return obj.sku_info
