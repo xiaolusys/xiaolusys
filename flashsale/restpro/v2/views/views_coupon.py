@@ -308,8 +308,9 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
             mama_id = mama.id
 
             from flashsale.xiaolumm.models.models_fortune import OrderCarry
-            exchg_orders = OrderCarry.objects.filter(mama_id=mama_id, carry_type__in=[OrderCarry.WAP_ORDER, OrderCarry.APP_ORDER],
-                                                    status__in=[OrderCarry.CONFIRM], date_field__gt='2016-11-30').exclude(contributor_id=customer_id)
+            exchg_orders = OrderCarry.objects.filter(mama_id=mama_id,
+                                                     status__in=[OrderCarry.CONFIRM],
+                                                     date_field__gt='2016-11-30').exclude(contributor_id=customer_id)
 
         print exchg_orders.count()
         results = []
