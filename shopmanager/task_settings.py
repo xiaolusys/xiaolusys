@@ -1507,7 +1507,12 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
-
+    u'每小时同步微信红包状态': {
+        'task': 'mall.xiaolupay.tasks.tasks_envelope.task_sync_weixin_red_envelopes',
+        'schedule': crontab(minute="0"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_sync_weixin_red_envelopes'}
+    },
 }
 
 WDT_SCHEDULE = {
