@@ -183,7 +183,7 @@ def task_sync_erp_deliver():
                 continue
 
             package_sku_item = PackageSkuItem.objects.get(id=eo.package_sku_item_id)
-            purchase_order_unikeys.add(package_sku_item.purchase_order_unikey)
+            purchase_order_unikeys.append(package_sku_item.purchase_order_unikey)
             package_order = PackageOrder.objects.get(id=package_sku_item.package_order_id)
             package_order.finish_third_package(post_id, logistics_company)
 
