@@ -288,3 +288,99 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
                 left_coupons["results"].append({"product_img": one_coupon.product_img, "coupon_num": stock_num, "template_id": one_coupon.template_id,})
         res = Response(left_coupons)
         return res
+
+class CouponExchgOrderViewSet(viewsets.ModelViewSet):
+    queryset = CouponTransferRecord.objects.all()
+    serializer_class = CouponTransferRecordSerializer
+
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+
+    @list_route(methods=['GET'])
+    def list_can_exchg_orders(self, request, *args, **kwargs):
+        content = request.GET
+
+        exchg_orders = None
+        customer = Customer.objects.normal_customer.filter(user=request.user).first()
+        if customer:
+            customer_id = customer.id
+            mama = get_charged_mama(request.user)
+            mama_id = mama.id
+
+            from flashsale.xiaolumm.models.models_fortune import OrderCarry
+            exchg_orders = OrderCarry.objects.filter(mama_id=mama_id, carry_type__in=[OrderCarry.WAP_ORDER, OrderCarry.APP_ORDER],
+                                                    status__in=[OrderCarry.CONFIRM]).exclude(contributor_id=customer_id)
+
+        results = []
+        if exchg_orders:
+            for entry in exchg_orders:
+                # find sale trade use coupons
+                from flashsale.pay.models.trade import SaleOrder, SaleTrade
+                sale_order = SaleOrder.objects.filter(oid=entry.order_id).first()
+                if sale_order and sale_order.extras.has_key('exchange') and sale_order.extras['exchange'] == True:
+                    continue
+                user_coupon = UserCoupon.objects.filter(trade_tid=sale_order.sale_trade.tid).first()
+                if user_coupon:
+                    use_template_id = user_coupon.template_id
+
+                #find modelproduct
+                from flashsale.pay.models.product import ModelProduct
+                model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id, is_onsale=True).first()
+                if model_product and model_product.extras.has_key('payinfo') and model_product.extras['payinfo'].has_key('coupon_template_ids'):
+                    if model_product.extras['payinfo']['coupon_template_ids'] and model_product.extras['payinfo']['coupon_template_ids'].count() > 0:
+                        template_id = model_product.extras['payinfo']['coupon_template_ids'][0]
+                        #用的券是精品券那就无法兑换
+                        if template_id:
+                            if use_template_id and template_id == use_template_id:
+                                continue
+                            else:
+                                results.append({'exchg_template_id': template_id, 'num': sale_order.num,
+                                                'order_id': entry.order_id, 'sku_img': entry.sku_img,
+                                                'contributor_nick': entry.contributor_nick, 'status': entry.status,
+                                                'order_value': entry.order_value, 'date_field': entry.date_field})
+
+        res = Response(results)
+        return res
+
+    @list_route(methods=['POST'])
+    def start_exchange(self, request, *args, **kwargs):
+        content = request.data
+
+        coupon_num = content.get("coupon_num") or None
+        order_id = content.get("order_id")
+        exchg_template_id = content.get("exchg_template_id")
+        if not (coupon_num and coupon_num.isdigit() and exchg_template_id and exchg_template_id.isdigit()):
+            res = Response({"code": 1, "info": u"coupon_num或exchg_template_id错误！"})
+            # res["Access-Control-Allow-Origin"] = "*"
+            return res
+
+        customer = Customer.objects.normal_customer.filter(user=request.user).first()
+        if customer:
+            customer_id = customer.id
+        mama = get_charged_mama(request.user)
+        mama_id = mama.id
+        stock_num = CouponTransferRecord.get_coupon_stock_num(mama_id, exchg_template_id)
+        if stock_num < coupon_num:
+            info = u"您的精品券库存不足，请立即购买!"
+            return Response({"code": 2, "info": info})
+
+        from flashsale.pay.models.trade import SaleOrder, SaleTrade
+        sale_order = SaleOrder.objects.filter(id=order_id).first()
+        if sale_order:
+            sale_order.extras['exchange'] = True
+
+        #在user钱包写收入记录
+        from flashsale.pay.models.user import BudgetLog
+        today = datetime.date.today()
+        order_log = BudgetLog(customer_id=customer_id, flow_amount=int(sale_order.payment * 100), budget_type=BudgetLog.BUDGET_IN,
+                              budget_log_type=BudgetLog.BG_EXCHG_ORDER, referal_id=sale_order.id,
+                              uni_key=sale_order.oid, status=BudgetLog.CONFIRMED,
+                              budget_date=today)
+
+        order_log.save()
+
+        res = CouponTransferRecord.create_exchg_order_record(request.user, coupon_num, sale_order, exchg_template_id)
+        res = Response(res)
+        # res["Access-Control-Allow-Origin"] = "*"
+
+        return res

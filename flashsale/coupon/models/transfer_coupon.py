@@ -37,9 +37,10 @@ class CouponTransferRecord(BaseModel):
     IN_RETURN_COUPON = 5  # 下属退券/in
     IN_RETURN_GOODS = 6  # 退货退券/in
     IN_GIFT_COUPON = 7  # 系统赠送/in
+    OUT_EXCHG_SALEORDER = 8  # 兑换订单/out
     TRANSFER_TYPES = ((OUT_CASHOUT, u'退券换钱'), (OUT_TRANSFER, u'转给下属'), (OUT_CONSUMED, u'直接买货'),
                       (IN_BUY_COUPON, u'花钱买券'), (IN_RETURN_COUPON, u'下属退券'), (IN_RETURN_GOODS, u'退货退券'),
-                      (IN_GIFT_COUPON, u'系统赠送'))
+                      (IN_GIFT_COUPON, u'系统赠送'), (OUT_EXCHG_SALEORDER, u'兑换订单'))
 
     PENDING = 1
     PROCESSED = 2
@@ -376,6 +377,57 @@ class CouponTransferRecord(BaseModel):
                                       product_img=product_img, coupon_num=coupon_num, transfer_type=transfer_type, product_id=product_id, elite_score=elite_score,
                                       uni_key=uni_key, date_field=date_field, transfer_status=transfer_status)
         coupon.save()
+
+    @classmethod
+    def create_exchg_order_record(cls, request_user, coupon_num, sale_order, template_id):
+        from flashsale.xiaolumm.models import XiaoluMama
+        from flashsale.pay.models import Customer
+        from flashsale.coupon.models import CouponTemplate
+
+        from_customer = Customer.objects.normal_customer.filter(user=request_user).first()
+        from_mama = from_customer.get_charged_mama()
+
+        from_customer_id = from_customer.id
+        coupon_from_mama_id = from_mama.id
+        from_mama_nick = from_customer.nick
+        from_mama_thumbnail = from_customer.thumbnail
+        init_from_mama_id = from_mama.id
+
+        coupon_to_mama_id = 0
+        to_mama_nick = 'SYSTEM'
+        to_mama_thumbnail = 'http://7xogkj.com2.z0.glb.qiniucdn.com/222-ohmydeer.png?imageMogr2/thumbnail/60/format/png'
+
+        transfer_type = cls.OUT_EXCHG_SALEORDER
+        date_field = datetime.date.today()
+
+        uni_key = sale_order.id
+        order_no = sale_order.id
+
+        coupon = cls.objects.filter(uni_key=uni_key).first()
+        if coupon:
+            res = {"code": 3, "info": u"记录已存在！"}
+            return res
+
+        ct = CouponTemplate.objects.filter(id=template_id).first()
+        coupon_value = int(ct.value)
+        product_img = ct.extras.get("product_img") or ''
+
+        product_id = sale_order.item_id
+        from shopback.items.models import Product
+        product = Product.objects.filter(id=product_id).first()
+        elite_score = product.elite_score * (int(coupon_num))
+
+        transfer_status = cls.DELIVERED
+        coupon = cls(coupon_from_mama_id=coupon_from_mama_id, from_mama_thumbnail=from_mama_thumbnail,
+                     from_mama_nick=from_mama_nick, coupon_to_mama_id=coupon_to_mama_id,
+                     to_mama_thumbnail=to_mama_thumbnail, to_mama_nick=to_mama_nick, coupon_value=coupon_value,
+                     init_from_mama_id=init_from_mama_id, order_no=order_no, template_id=template_id,
+                     product_img=product_img, coupon_num=coupon_num, transfer_type=transfer_type, product_id=product_id,
+                     elite_score=elite_score,
+                     uni_key=uni_key, date_field=date_field, transfer_status=transfer_status)
+        coupon.save()
+        res = {"code": 0, "info": u"成功!"}
+        return res
         
     
     @property

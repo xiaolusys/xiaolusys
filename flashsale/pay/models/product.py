@@ -196,7 +196,7 @@ class ModelProduct(BaseTagModel):
     extras  = JSONCharMyField(max_length=5000, default=default_modelproduct_extras_tpl, verbose_name=u'附加信息')
     status = models.CharField(max_length=16, db_index=True, choices=STATUS_CHOICES,
                               default=NORMAL, verbose_name=u'状态')
-    product_type = models.IntegerField(choices=TYPE_CHOICES, default=0, verbose_name=u'商品类型')
+    product_type = models.IntegerField(choices=TYPE_CHOICES, default=0, db_index=True, verbose_name=u'商品类型')
     objects = modelproduct.ModelProductManager()
 
     class Meta:

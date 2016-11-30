@@ -31,6 +31,7 @@ v2_router.register(r'teambuy', teambuy.TeamBuyViewSet)
 v2_router.register(r'express', views.WuliuViewSet)
 v2_router.register(r'checkin', views.CheckinViewSet)
 v2_router.register(r'qrcode', views.QRcodeViewSet)
+v2_router.register(r'exchgorder', views.CouponExchgOrderViewSet)
 
 from flashsale.restpro.v1 import views_coupon_new
 from flashsale.restpro.v2 import views
