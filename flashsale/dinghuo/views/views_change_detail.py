@@ -25,7 +25,7 @@ from flashsale.dinghuo.models import OrderDetail, OrderList, OrderDraft, OrderDe
     InBound, ReturnGoods
 from .. import functions
 from shopback.items.models import Product, ProductSku, ProductStock
-from shopback.warehouse.constants import WARE_THIRD
+from shopback.warehouse.constants import WARE_THIRD, WARE_GZ
 from supplychain.supplier.models import SaleProduct, SaleSupplier
 from flashsale.finance.models import Bill, BillRelation  # 财务记录model
 from django.contrib.contenttypes.models import ContentType
@@ -403,7 +403,7 @@ class ChangeDetailExportView(View):
         order_details = OrderDetail.objects.filter(orderlist_id=order_detail_id, buy_quantity__gt=0).order_by(
             'outer_id')
 
-        receiver_address = '广州市白云区太和镇永兴村龙归路口悦博大酒店对面龙门公寓3楼' if order_list.p_district == '3' else \
+        receiver_address = '广州市白云区太和镇永兴村龙归路口悦博大酒店对面龙门公寓3楼' if order_list.ware_by == WARE_GZ else \
             '上海市佘山镇吉业路245号5号楼'
         receiver_name = '小鹿美美%d号工作人员' % order_list.id
         receiver_contact = '15023333762' if order_list.p_district == '3' else '021-37698479, 15026869609'

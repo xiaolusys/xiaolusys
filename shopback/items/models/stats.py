@@ -251,7 +251,9 @@ class SkuStock(models.Model):
                 if attr == 'rg_quantity':
                     params[attr] = RGDetail.objects.filter(sku_id=self.sku_id,
                                                                 created__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME,
-                                                                can_reuse=True).exclude(
+                                                                return_goods__status__in=[ReturnGoods.DELIVER_RG,
+                          ReturnGoods.REFUND_RG,
+                          ReturnGoods.SUCCEED_RG],).exclude(
                         sku_id=None).aggregate(total=Sum('num')).get('total') or 0
                 if attr == 'return_quantity':
                     params[attr] = RefundProduct.objects.filter(sku_id=self.sku_id,
