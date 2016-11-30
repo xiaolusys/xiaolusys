@@ -517,6 +517,7 @@ class BudgetLog(PayBaseModel):
     BG_MAMA_CASH = 'mmcash'
     BG_REFERAL_FANS = 'rfan'
     BG_SUBSCRIBE = 'subs'
+    BG_EXCHG_ORDER = 'exchg_order'
 
     BUDGET_LOG_CHOICES = (
         (BG_ENVELOPE, u'红包'),
@@ -527,6 +528,7 @@ class BudgetLog(PayBaseModel):
         (BG_MAMA_CASH, u'代理提现至余额'),
         (BG_REFERAL_FANS, u'推荐粉丝'),
         (BG_SUBSCRIBE, u'关注'),
+        (BG_EXCHG_ORDER, u'兑换订单'),
     )
 
     CONFIRMED = 0
