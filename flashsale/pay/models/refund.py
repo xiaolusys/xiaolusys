@@ -341,15 +341,12 @@ class SaleRefund(PayBaseModel):
         self.save(update_fields=['good_status'])
 
     @transaction.atomic
-    def refund_fast_approve(self):
-        # type: () -> None
-        """　极速退款审核确认 """
+    def refund_payment_2_budget(self):
         from .user import BudgetLog
 
         sorder = self.saleorder
         self.update_good_status(sorder.is_post())  # 更新退货状态字段
-        if sorder.is_post() and not self.refundproduct:  # 订单已经发货了　申请退款　但是没有退回仓库则不能退款
-            raise Exception(u'退货商品还没有到达仓库,不予退款')
+
         payment = round(self.refund_fee * 100, 0)
         blog = BudgetLog.objects.filter(customer_id=self.buyer_id,
                                         referal_id=self.id,  # 以退款单
@@ -370,6 +367,15 @@ class SaleRefund(PayBaseModel):
         self.refund_confirm()
         self.send_refund_success_weixin_message()  # 退款成功推送
 
+    @transaction.atomic
+    def refund_fast_approve(self):
+        # type: () -> None
+        """　极速退款审核确认 """
+        sorder = self.saleorder
+        if sorder.is_post() and not self.refundproduct:  # 订单已经发货了　申请退款　但是没有退回仓库则不能退款
+            raise Exception(u'退货商品还没有到达仓库,不予退款')
+        self.refund_payment_2_budget()  # 退款到钱包
+
     def refund_charge_approve(self):
         # type: () -> None
         ch = pingpp.Charge.retrieve(self.charge)
@@ -378,6 +384,18 @@ class SaleRefund(PayBaseModel):
         self.refund_id = re.id
         self.status = SaleRefund.REFUND_APPROVE
         self.save(update_fields=['refund_id', 'status'])
+
+    def refund_refuse(self):
+        # type: () -> bool
+        """拒绝退款
+        """
+        if self.status in (SaleRefund.REFUND_WAIT_SELLER_AGREE,  # 待审
+                           SaleRefund.REFUND_WAIT_RETURN_GOODS,  # 同意申请
+                           SaleRefund.REFUND_CONFIRM_GOODS):  # 退货待收
+            self.status = SaleRefund.REFUND_REFUSE_BUYER
+            self.save(update_fields=['status'])
+            return True
+        return False
 
     def refund_approve(self):
         # type: () -> None

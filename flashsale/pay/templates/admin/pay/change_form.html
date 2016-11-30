@@ -1,49 +1,26 @@
 {% extends "admin/change_form.html" %}
 {% load i18n admin_urls static admin_list %}
-
 {% block extrahead %}{{ block.super }}
-
-<script src="{{ STATIC_URL }}jquery/jquery.js"></script>
-<script>
-    $(document).ready(function() {
-    	$('input[name="_addanother"]').hide();
-    	$('input[name="_continue"]').hide();
-    	if ($('#refund_refuse_id')!='undifined'){
-    		$('#refund_refuse_id').insertAfter('.submit-row>input:last');
-    	}
-    	
-        if ($('#refund_confirm_id')!='undifined'){
-        	$('#refund_confirm_id').insertBefore('.submit-row>input:first'); 
-        }
-
-        if ($('#refund_complete_id')!='undifined'){
-        	$('#refund_complete_id').insertBefore('.submit-row>input:last');
-        }
-        
-        if ($('#refund_invoke_id')!='undifined'){
-        	$('#refund_invoke_id').insertAfter('.submit-row>input:last');
-        }
-        
-    });
-</script>
+    <script src="{{ STATIC_URL }}jquery/jquery.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('input[name="_addanother"]').remove();
+            $('input[name="_continue"]').remove();
+            if ($('#refund_refuse_id') != 'undifined') {
+                $('#refund_refuse_id').insertAfter('.submit-row>input:first');
+            }
+            if ($('#refund_confirm_id') != 'undifined') {
+                $('#refund_confirm_id').insertBefore('.submit-row>input:first');
+            }
+        });
+    </script>
 {% endblock extrahead %}
 
-
-
-
-
-
-
 {% block after_field_sets %}{{ block.super }}
-
-
-{% if original.refund_no %}
-{% if  original.status == 3 or original.status == 4 or original.status == 5 %}
-<input id="refund_confirm_id" type="submit" value="同意退款" class="default"  name="_refund_confirm" style="margin-right: 20px;margin-left: 20px;" >
-<input id="refund_refuse_id" type="submit" value="驳回重申" class="default"  name="_refund_refuse" style="margin-right: 20px;margin-left: 20px;">
-{% elif original.status == 6 %}
-<input id="refund_complete_id" type="submit" value="确认退款完成" class="default"  name="_refund_complete" style="margin-right: 20px;margin-left: 20px;">
-<input id="refund_invoke_id" type="submit" value="未收到重新退款" class="default"  name="_refund_invoke" style="margin-right: 20px;margin-left: 20px;">
-{% endif %}
-{% endif %}
+    {% if original.refund_no %}
+        {% if  original.status == 3 or original.status == 4 or original.status == 5 %}
+            <input id="refund_confirm_id" type="submit" value="同意退款" name="_refund_confirm">
+            <input id="refund_refuse_id" type="submit" value="驳回重申" name="_refund_refuse">
+        {% endif %}
+    {% endif %}
 {% endblock after_field_sets %}
