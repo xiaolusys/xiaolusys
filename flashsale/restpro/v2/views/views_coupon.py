@@ -309,16 +309,20 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
 
             from flashsale.xiaolumm.models.models_fortune import OrderCarry
             exchg_orders = OrderCarry.objects.filter(mama_id=mama_id, carry_type__in=[OrderCarry.WAP_ORDER, OrderCarry.APP_ORDER],
-                                                    status__in=[OrderCarry.CONFIRM]).exclude(contributor_id=customer_id)
+                                                    status__in=[OrderCarry.CONFIRM], date_field__gt='2016-11-30').exclude(contributor_id=customer_id)
 
+        print exchg_orders.count()
         results = []
         if exchg_orders:
             for entry in exchg_orders:
                 # find sale trade use coupons
                 from flashsale.pay.models.trade import SaleOrder, SaleTrade
                 sale_order = SaleOrder.objects.filter(oid=entry.order_id).first()
+                if not sale_order:
+                    continue
                 if sale_order and sale_order.extras.has_key('exchange') and sale_order.extras['exchange'] == True:
                     continue
+
                 user_coupon = UserCoupon.objects.filter(trade_tid=sale_order.sale_trade.tid).first()
                 if user_coupon:
                     use_template_id = user_coupon.template_id
