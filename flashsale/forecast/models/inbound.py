@@ -117,28 +117,28 @@ class RealInboundDetail(BaseModel):
         return '<%s, %s, %s>' % (self.id, self.product_name, self.arrival_quantity)
 
 
-def update_realinbound_data(sender, instance, created, **kwargs):
-    real_inbound = instance.inbound
-
-    real_inbound.total_inbound_num = \
-        sum(real_inbound.normal_details.values_list('arrival_quantity',flat=True))
-    real_inbound.total_inferior_num = \
-        sum(real_inbound.normal_details.values_list('inferior_quantity', flat=True))
-    real_inbound.save(update_fields=['total_inbound_num', 'total_inferior_num'])
-
-    forecast_inbound = real_inbound.forecast_inbound
-    real_inbounds = RealInbound.objects.filter(forecast_inbound=forecast_inbound)
-    forecast_inbound_details = RealInboundDetail.objects.filter(
-        inbound__in=real_inbounds, status=RealInboundDetail.NORMAL
-    )
-    if forecast_inbound:
-        forecast_inbound.total_arrival_num = \
-            sum(forecast_inbound_details.values_list('arrival_quantity', flat=True))
-        forecast_inbound.save(update_fields=['total_arrival_num'])
-
-
-post_save.connect(
-    update_realinbound_data,
-    sender=RealInboundDetail,
-    dispatch_uid='post_save_update_realinbound_data')
+# def update_realinbound_data(sender, instance, created, **kwargs):
+#     real_inbound = instance.inbound
+#
+#     real_inbound.total_inbound_num = \
+#         sum(real_inbound.normal_details.values_list('arrival_quantity',flat=True))
+#     real_inbound.total_inferior_num = \
+#         sum(real_inbound.normal_details.values_list('inferior_quantity', flat=True))
+#     real_inbound.save(update_fields=['total_inbound_num', 'total_inferior_num'])
+#
+#     forecast_inbound = real_inbound.forecast_inbound
+#     real_inbounds = RealInbound.objects.filter(forecast_inbound=forecast_inbound)
+#     forecast_inbound_details = RealInboundDetail.objects.filter(
+#         inbound__in=real_inbounds, status=RealInboundDetail.NORMAL
+#     )
+#     if forecast_inbound:
+#         forecast_inbound.total_arrival_num = \
+#             sum(forecast_inbound_details.values_list('arrival_quantity', flat=True))
+#         forecast_inbound.save(update_fields=['total_arrival_num'])
+#
+#
+# post_save.connect(
+#     update_realinbound_data,
+#     sender=RealInboundDetail,
+#     dispatch_uid='post_save_update_realinbound_data')
 

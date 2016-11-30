@@ -2,14 +2,14 @@
 import re
 import datetime
 import random
-from django.db import models
-from django.db.models import Q
+from django.db import models, transaction
+from django.db.models import Q, F
 from django.db.models.signals import post_save, pre_save
 
 from core.models import BaseModel
 from core.utils.unikey import uniqid
 from core.utils import update_model_fields
-from flashsale.dinghuo.models import OrderList
+from flashsale.dinghuo.models import OrderList, OrderDetail, InBound, OrderDetailInBoundDetail
 from .. import constants
 import logging
 
@@ -179,18 +179,117 @@ class ForecastInbound(BaseModel):
     def get_by_express_no_order_list(express_no, orderlist_id):
         order_list = OrderList.objects.filter(Q(id=orderlist_id) | Q(express_no=express_no)).first()
         forecast_inbounds = ForecastInbound.objects.filter(
-            Q(relate_order_set=orderlist_id) | Q(express_no=express_no),
-            status__in=(ForecastInbound.ST_APPROVED,ForecastInbound.ST_DRAFT))
+            Q(relate_order_set__id=orderlist_id) | Q(express_no=express_no),
+            status__in=(ForecastInbound.ST_APPROVED, ForecastInbound.ST_ARRIVED,ForecastInbound.ST_DRAFT))
         if not order_list:
             return forecast_inbounds
         res = list(forecast_inbounds)
         excludes = [i.id for i in forecast_inbounds]
         res2 = ForecastInbound.objects.filter(supplier_id=order_list.supplier_id,
-                                       status__in=(ForecastInbound.ST_APPROVED,ForecastInbound.ST_DRAFT)).\
+                                       status__in=(ForecastInbound.ST_APPROVED, ForecastInbound.ST_DRAFT)).\
             exclude(id__in=excludes)
         res2 = list(res2)
         return res + res2
 
+    @staticmethod
+    @transaction.atomic
+    def reset_forcast(order_list_id):
+        """
+            重设预测：从以前的预测单中删除本订货单的关联，利用此订货单
+        """
+        forcasts = ForecastInbound.objects.filter(relate_order_set__id=order_list_id)
+        order_list_ids = []
+        for forcast in forcasts:
+            for ol in forcast.relate_order_set.all():
+                order_list_ids.append(ol.id)
+        order_list_ids = list(set(order_list_ids))
+        res = []
+        forcasts.update(status=ForecastInbound.ST_CANCELED)
+        for order_list_id in order_list_ids:
+            if OrderList.objects.get(id=order_list_id).stage == OrderList.STAGE_RECEIVE:
+                res.append(ForecastInbound._generate([order_list_id]))
+        return res
+
+    @staticmethod
+    def update_forcast(inbound):
+        """
+            入库分配时更新预测单：
+            如预测单不包含入仓单分配到的所有订货单，则合并相关预测单
+            否则，剥离出未完成的预测单，生成新一轮预测单，将老预测单打上入仓标记并关闭
+            当订货单进入结算时，从预测单剔除已完成的订货单
+        :param inbound:
+        :return:
+        """
+        forecasts = ForecastInbound.objects.filter(relate_order_set__id__in=inbound.orderlist_ids,
+                                       status__in=[ForecastInbound.ST_DRAFT, ForecastInbound.ST_APPROVED])
+        if forecasts.count() > 1:
+            order_list_ids = []
+            for forecast in forecasts:
+                for ol in forecast.relate_order_set.all():
+                    order_list_ids.append(ol.id)
+            forecast = ForecastInbound.merge(order_list_ids)
+        else:
+            forecast = forecasts.first()
+        forecast.forecast_no = 'inbound-%s' % (inbound.id, )
+        forecast.status = ForecastInbound.ST_ARRIVED
+        forecast.save()
+        return ForecastInbound._generate(order_list_ids)
+
+    @staticmethod
+    def merge(orderlist_ids):
+        """
+            合并预测单（依据预测单关联的orderlist进行预测单重算，而非直接预测单相加，以减少错误）
+        :param orderlist_ids:
+        :param forecast_arrive_time:
+        :return:
+        """
+        order_lists = OrderList.objects.filter(id__in=orderlist_ids, stage=OrderList.STAGE_RECEIVE)
+        if order_lists.count() == 0:
+            return
+        orderlist_ids = [ol.id for ol in order_lists]
+        forcasts = ForecastInbound.objects.filter(relate_order_set__in=orderlist_ids,
+                                                  status__in=['draft', 'approved'])
+        forcasts.update(status=ForecastInbound.ST_ARRIVED)
+        olids = [ol.id for ol in forcasts.relate_order_set.filter(stage=OrderList.STAGE_RECEIVE)]
+        return ForecastInbound._generate(olids)
+
+    @staticmethod
+    def _generate(orderlist_ids):
+        order_lists = OrderList.objects.filter(id__in=orderlist_ids)
+        order_list = order_lists.first()
+        supplier = order_list.supplier
+        # orderlist_ids = [ol.id for ol in order_lists]
+        forecast_ib = ForecastInbound(supplier=supplier)
+        forecast_ib.ware_house = supplier.ware_by
+        forecast_ib.purchaser = order_list.buyer and order_list.buyer.username or order_list.buyer_name
+        forecast_ib.forecast_arrive_time = datetime.datetime.now() + datetime.timedelta(days=supplier.get_delta_arrive_days())
+        forecast_ib.save()
+        for order_list in order_lists:
+            forecast_ib.relate_order_set.add(order_list)
+        details = {}
+        sku_buy_nums = {}
+        sku_got_nums = {}
+        for od in OrderDetail.objects.filter(orderlist_id__in=orderlist_ids):
+            sku_buy_nums[od.chichu_id] = sku_buy_nums.get(od.chichu_id, 0) + od.buy_quantity
+            if not details.get(od.chichu_id):
+                forecast_detail = ForecastInboundDetail(forecast_inbound=forecast_ib,
+                                                        sku_id=od.chichu_id,
+                                                        product_id=od.product.id)
+                forecast_detail.forecast_inbound = forecast_ib
+                forecast_detail.product_name = '%s:%s' % (od.product.name, od.sku.name)
+                forecast_detail.product_img = od.product.pic_path
+                details[od.chichu_id] = forecast_detail
+        for odd in OrderDetailInBoundDetail.objects.filter(orderdetail__orderlist_id__in=orderlist_ids,
+                                                    inbounddetail__inbound__status__in=[InBound.PENDING, InBound.WAIT_CHECK, InBound.COMPLETED,
+                                                                                        InBound.COMPLETE_RETURN]):
+            sku_got_nums[od.chichu_id] = sku_got_nums.get(od.chichu_id, 0) + odd.arrival_quantity
+        sku_need_nums = {key:sku_buy_nums[key] - sku_got_nums.get(key, 0) for key in sku_buy_nums}
+        for sku in sku_need_nums:
+            forecast_detail = details[sku]
+            forecast_detail.forecast_arrive_num = sku_need_nums[sku]
+        for forecast_detail in details.values():
+            forecast_detail.save()
+        return forecast_ib
 
 def pre_save_update_forecastinbound_data(sender, instance, raw, *args, **kwargs):
     logger.info('forecast pre_save:%s, %s' % (raw, instance))

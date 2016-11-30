@@ -422,10 +422,6 @@ class OrderList(models.Model):
         _now = datetime.datetime.now()
         self.add_note(u'-->%s:审核第三方发货订货单' % _now.strftime('%m月%d %H:%M'), save=False)
         self.set_stage_state()
-        # for od in self.order_list.all():
-        #     od.arrival_quantity = od.buy_quantity
-        #     od.arrival_time = datetime.datetime.now()
-        #     od.save()
 
     def get_related_inbounds_out_stock_cnt(self):
         return sum([d.out_stock_num for d in self.related_out_stock_inbound_details])

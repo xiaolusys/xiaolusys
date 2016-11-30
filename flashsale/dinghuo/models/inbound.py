@@ -272,6 +272,8 @@ class InBound(models.Model):
         self.status = InBound.WAIT_CHECK
         self.set_stat()
         self.save()
+        from flashsale.forecast.models.forecast import ForecastInbound
+        ForecastInbound.update_forcast(self)
 
     def finish_check(self, data):
         """
