@@ -1,11 +1,13 @@
 # coding=utf-8
 import datetime
+import logging
 from django.db import models
 from django.db.models import Sum
 from django.db.models.signals import post_save
 from flashsale.xiaolumm.models import ReferalRelationship
 from core.models import BaseModel
 
+logger = logging.getLogger(__name__)
 
 def get_referal_from_mama_id(to_mama_id):
     rr = ReferalRelationship.objects.filter(referal_to_mama_id=to_mama_id).first()
@@ -405,6 +407,11 @@ class CouponTransferRecord(BaseModel):
 
         coupon = cls.objects.filter(uni_key=uni_key).first()
         if coupon:
+            logger.warn({
+                'message': u'create exchange order record:record already exist, order_id=%s ' % (
+                    sale_order.oid),
+                'code': 3
+            })
             res = {"code": 3, "info": u"记录已存在！"}
             return res
 
