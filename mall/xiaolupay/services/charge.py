@@ -30,11 +30,11 @@ def create_credential(
         order_amount = amount / AlipayConf.AMOUNT_SETTER
         if channel == UnionPayConf.ALIPAY:
             pay_info = alipay.create_trade_app_pay_url(order_no, order_amount, subject, body)
+            credential = {
+                "orderInfo": pay_info,
+            }
         else:
-            pay_info = alipay.trade_wap_pay(order_no, order_amount, subject, body)
-        credential = {
-            "orderInfo": pay_info,
-        }
+            credential = alipay.trade_wap_pay(order_no, order_amount, subject, body)
 
     elif channel in (UnionPayConf.WX, UnionPayConf.WX_PUB):
         credential.update({

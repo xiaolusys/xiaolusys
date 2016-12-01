@@ -39,8 +39,8 @@ class AliPay(object):
             'sign_type': self._sign_type,
         }
 
-    def _build_request_url(self, head_params, biz_params):
-        biz_content = json.dumps(biz_params, ensure_ascii=False) #,separators=(',', ':')
+    def _build_request_params(self, head_params, biz_params):
+        biz_content = json.dumps(biz_params, ensure_ascii=False)  # ,separators=(',', ':')
         params = self._default_params()
         params.update(head_params)
         params.update(biz_content=biz_content)
@@ -48,7 +48,10 @@ class AliPay(object):
 
         sign_content = serial_dict(params)
         params.update(sign=self._create_sign(sign_content))
+        return params
 
+    def _build_request_url(self, head_params, biz_params):
+        params = self._build_request_params(head_params, biz_params)
         serial_content = serial_dict(params, value_quote=True).encode(self._encode_charset)
         return serial_content
 
@@ -102,7 +105,8 @@ class AliPay(object):
             'body': body,
             'product_code': 'QUICK_WAP_PAY',
         }
-        return self._build_request_url(head_params, biz_params)
+        params = self._build_request_params(head_params, biz_params)
+        return params
 
     def trade_query(self, out_trade_no):
         """

@@ -34,7 +34,6 @@ class Charge(DictObject):
             client_ip=client_ip,
         )
         charge_data = ChargeSerializer(instance=charge_order).data
-        print 'charge_data', charge_data
         return Charge().fresh_form_data(charge_data)
 
     @staticmethod
