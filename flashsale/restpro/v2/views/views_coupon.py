@@ -345,6 +345,10 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                                                 'contributor_nick': entry.contributor_nick, 'status': OrderCarry.STATUS_TYPES[entry.status][1],
                                                 'order_value': entry.order_value, 'date_field': entry.date_field})
 
+        logger.info({
+            'message': u'list can exchange order:result len=%s ' % (len(results)),
+            'data': '%s' % content
+        })
         res = Response(results)
         return res
 
@@ -356,6 +360,11 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
         order_id = content.get("order_id")
         exchg_template_id = content.get("exchg_template_id")
         if not (coupon_num and coupon_num.isdigit() and exchg_template_id and exchg_template_id.isdigit()):
+            logger.warn({
+                'message': u'exchange order:coupon_num=%s order_id=%s templateid=%s' % (
+                    coupon_num, order_id, exchg_template_id),
+                'data': '%s' % content
+            })
             res = Response({"code": 1, "info": u"coupon_num或exchg_template_id错误！"})
             # res["Access-Control-Allow-Origin"] = "*"
             return res
@@ -370,6 +379,11 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
             info = u"您的精品券库存不足，请立即购买!"
             return Response({"code": 2, "info": info})
 
+        logger.info({
+            'message': u'exchange order:customer=%s, mama_id=%s coupon_num=%s order_id=%s templateid=%s' % (
+                customer_id, mama_id, coupon_num, order_id, exchg_template_id),
+            'data': '%s' % content
+        })
         # (1)sale order置为已经兑换
         from flashsale.pay.models.trade import SaleOrder, SaleTrade
         sale_order = SaleOrder.objects.filter(oid=order_id).first()
@@ -377,12 +391,20 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
             sale_order.extras['exchange'] = True
             SaleOrder.objects.filter(oid=order_id).update(extras=sale_order.extras)
         else:
+            logger.warn({
+                'message': u'exchange order: order_id=%s not exist' % (order_id),
+            })
             info = u"找不到订单记录，兑换失败!"
             return Response({"code": 3, "info": info})
 
         #(2)用户优惠券需要变成使用状态
         user_coupons = UserCoupon.objects.filter(customer_id=customer_id, template_id=int(exchg_template_id), status=UserCoupon.UNUSED)
         if len(user_coupons) < int(coupon_num):
+            logger.warn({
+                'message': u'exchange order:user_coupon < exchg coupon_num=%s ,user_coupons=%s templateid=%s' % (
+                    coupon_num, order_id, exchg_template_id),
+                'data': '%s' % content
+            })
             info = u"您的精品券数量不足，请联系微信客服!"
             return Response({"code": 4, "info": info})
         use_num = 0
