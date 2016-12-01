@@ -5,17 +5,22 @@ import os
 import sys
 import urllib2
 
+TARGET = os.environ.get('TARGET')
+
 def is_staging_environment():
-    return os.environ.get('TARGET') == 'staging'
+    return TARGET == 'staging'
 
 def setup_djagno_environ():
-    if os.environ.get('TARGET') in ('production', 'django18'):
+    if TARGET in ('production',):
         os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shopmanager.production")
 
-    elif os.environ.get('TARGET') in ('staging',):
+    elif TARGET in ('django18',):
+        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shopmanager.django18")
+
+    elif TARGET in ('staging',):
         os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shopmanager.staging")
 
-    elif os.environ.get('TARGET') in ('prometheus',):
+    elif TARGET in ('prometheus',):
         os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shopmanager.prometheus")
 
     else:
@@ -23,7 +28,7 @@ def setup_djagno_environ():
 
 
 def install_pymysqldb():
-    if not os.environ.get('TARGET') in ('production', 'django18', 'staging', 'prometheus'):
+    if not TARGET in ('production', 'django18', 'staging', 'prometheus'):
         return
     try:
         import pymysql
@@ -33,7 +38,7 @@ def install_pymysqldb():
 
 
 def install_redis_with_gevent_socket():
-    if not os.environ.get('TARGET') in ('production', 'django18', 'staging', 'prometheus'):
+    if not TARGET in ('production', 'django18', 'staging', 'prometheus'):
         return
     try:
         from gevent import socket
