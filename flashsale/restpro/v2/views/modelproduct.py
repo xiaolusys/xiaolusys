@@ -18,7 +18,7 @@ from core import pagination
 from flashsale.pay.models import ModelProduct, Customer, CuShopPros
 
 from flashsale.restpro.v2 import serializers as serializers_v2
-from flashsale.pay.apis.v1.product import get_virtual_modelproducts
+from flashsale.pay.apis.v1.product import get_is_onsale_modelproducts
 from apis.v1.products import ModelProductCtl, SkustatCtl
 
 import logging
@@ -285,9 +285,9 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
     @list_route(methods=['get'])
     def boutique(self, request, *args, **kwargs):
         # type : (HttpRequest, *Any, **Any) -> HttpResponse
-        """精品券接口(虚拟商品)
+        """特价秒杀商品
         """
-        ids = [i['id'] for i in get_virtual_modelproducts().values('id')]
+        ids = [i['id'] for i in get_is_onsale_modelproducts().values('id')]
         queryset = ModelProductCtl.multiple(ids=ids)
         page = self.paginate_queryset(queryset)
         if page is not None:
