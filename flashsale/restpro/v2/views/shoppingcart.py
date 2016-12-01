@@ -28,6 +28,7 @@ from flashsale.pay.models import (
     UserAddress,
     gen_uuid_trade_tid,
 )
+from flashsale.pay.models.product import ModelProduct
 from flashsale.pay.apis.v1.order import get_user_skunum_by_last24hours
 from flashsale.coupon.models import UserCoupon
 from flashsale.restpro import permissions as perms
@@ -220,10 +221,26 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         """显示该用户28个小时内购物清单历史 """
         before = datetime.datetime.now() - datetime.timedelta(hours=28)
         customer = get_object_or_404(Customer, user=request.user)
-        queryset = ShoppingCart.objects.filter(buyer_id=customer.id,
-                                               status=ShoppingCart.CANCEL,
-                                               modified__gt=before, type=0).order_by('-modified')
-        serializers = self.get_serializer(queryset, many=True)
+        queryset = ShoppingCart.objects.filter(
+            buyer_id=customer.id,
+            status=ShoppingCart.CANCEL,
+            modified__gt=before,
+            type=0
+        ).order_by('-modified')
+
+        items = list(queryset)
+        for item in items:
+            if item.title.startswith('RMB'):
+                items.remove(item)
+                continue
+            product = Product.objects.filter(id=item.id).first()
+            if not product:
+                continue
+            model_product = product.product_model
+            if model_product.product_type == ModelProduct.VIRTUAL_TYPE:
+                items.remove(item)
+
+        serializers = self.get_serializer(items, many=True)
         return Response(serializers.data)
 
     @detail_route(methods=['post', 'delete'])
