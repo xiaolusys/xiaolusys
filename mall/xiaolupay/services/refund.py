@@ -112,7 +112,7 @@ def retrieve_or_update_refund(refund_no, notify_refund_info=None):
         refund_success = resp['return_code'] == 'SUCCESS' and resp['result_code'] == 'SUCCESS'
         transaction_no = resp.get('transaction_id', '')
         if refund_success:
-            for i in range(resp['refund_fee']):
+            for i in range(int(resp['refund_count'])):
                 refund_amount += int(resp['refund_fee_%s'%i])
 
     if refund_success:
