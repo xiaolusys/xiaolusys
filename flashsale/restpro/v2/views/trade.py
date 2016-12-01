@@ -150,7 +150,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         instance   = self.get_object()
         if instance.is_payable() and instance.charge:
             try:
-                charge = xiaolupay.Charge.retrieve(instance.charge)
+                charge = xiaolupay.Charge.retrieve(instance.order_no)
                 notifyTradePayTask(charge)
                 instance = SaleTrade.objects.get(id=instance.id)
             except Exception,exc:

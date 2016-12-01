@@ -195,6 +195,7 @@ class SaletradeTestCase(TestCase):
         if not data.get('channel'):
             logger.info('testWaitPayOrderCharge_V1 resp: %s' % data)
         self.assertEqual(data['channel'], 'alipay')
+        self.assertIn('alipay', data['credential'])
 
     def testWaitPayOrderCharge_V2(self):
         """ origin charge channel is alipay """
@@ -206,7 +207,8 @@ class SaletradeTestCase(TestCase):
         data = json.loads(response.content)
         if not data.get('channel'):
             logger.info('testWaitPayOrderCharge_V2 resp: %s' % data)
-        self.assertEqual(data['channel'], channel)
+        self.assertEqual(channel, data['channel'])
+        self.assertIn(channel, data['credential'])
 
 
 
