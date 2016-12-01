@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 def alipay_notify(request):
 
-    content = dict(request.POST.iterlists())
+    content = request.POST.dict()
     logger.info({
         'action': 'notify',
         'channel': 'alipay',
