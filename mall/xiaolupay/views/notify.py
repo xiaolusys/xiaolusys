@@ -21,10 +21,8 @@ def alipay_notify(request):
     if not content:
         return HttpResponse('no params')
 
-    alipay = AliPay()
-    params = alipay.process_alipay_response(content)
-    order_no = params['out_trade_no']
-    retrieve_or_update_order(order_no, notify_order_info=params)
+    order_no = content['out_trade_no']
+    retrieve_or_update_order(order_no, notify_order_info=content)
 
     return HttpResponse('success')
 

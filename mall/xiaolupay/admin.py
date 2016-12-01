@@ -1,3 +1,6 @@
+# coding: utf8
+from __future__ import absolute_import, unicode_literals
+
 from django.contrib import admin
 from .models.charge import ChargeOrder, Credential
 from .models.refund import RefundOrder
@@ -6,7 +9,7 @@ from .models.refund import RefundOrder
 class ChargeOrderAdmin(admin.ModelAdmin):
     list_display = ('id', 'order_no', 'channel', 'amount', 'paid', 'refunded', 'failure_code', 'failure_msg',  'modified', 'created')
     ordering = ['id']
-    list_filter = ['paid', 'channel', 'created']
+    list_filter = ['paid', 'channel', 'time_paid', 'created']
     search_fields = ['=id', '=order_no']
 
 
@@ -22,7 +25,7 @@ class CredentialAdmin(admin.ModelAdmin):
 class RefundOrderAdmin(admin.ModelAdmin):
     list_display = ('id', 'refund_no', 'amount', 'status', 'time_succeed', 'failure_code', 'failure_msg', 'charge_order_no', 'funding_source', 'modified','created')
     ordering = ['id']
-    list_filter = ['succeed', 'status', 'created']
+    list_filter = ['succeed', 'status', 'created', 'time_succeed']
     search_fields = ['refund_no', '=order_no']
 
     readonly_fields = ['charge']
