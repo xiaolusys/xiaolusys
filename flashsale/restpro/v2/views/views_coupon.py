@@ -2,6 +2,7 @@
 import datetime
 import logging
 
+from django.db import IntegrityError
 from rest_framework import viewsets
 from rest_framework import authentication
 from rest_framework import permissions
@@ -309,9 +310,8 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
 
             from flashsale.xiaolumm.models.models_fortune import OrderCarry
             exchg_orders = OrderCarry.objects.filter(mama_id=mama_id, carry_type__in=[OrderCarry.WAP_ORDER, OrderCarry.APP_ORDER],
-                                                    status__in=[OrderCarry.CONFIRM], date_field__gt='2016-11-30').exclude(contributor_id=customer_id)
+                                                    status__in=[OrderCarry.CONFIRM], date_field__gt='2016-9-30').exclude(contributor_id=customer_id)
 
-        print exchg_orders.count()
         results = []
         if exchg_orders:
             for entry in exchg_orders:
@@ -326,12 +326,14 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                 user_coupon = UserCoupon.objects.filter(trade_tid=sale_order.sale_trade.tid).first()
                 if user_coupon:
                     use_template_id = user_coupon.template_id
+                else:
+                    use_template_id = None
 
                 #find modelproduct
                 from flashsale.pay.models.product import ModelProduct
                 model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id, is_onsale=True).first()
                 if model_product and model_product.extras.has_key('payinfo') and model_product.extras['payinfo'].has_key('coupon_template_ids'):
-                    if model_product.extras['payinfo']['coupon_template_ids'] and model_product.extras['payinfo']['coupon_template_ids'].count() > 0:
+                    if model_product.extras['payinfo']['coupon_template_ids'] and len(model_product.extras['payinfo']['coupon_template_ids']) > 0:
                         template_id = model_product.extras['payinfo']['coupon_template_ids'][0]
                         #用的券是精品券那就无法兑换
                         if template_id:
@@ -340,7 +342,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                             else:
                                 results.append({'exchg_template_id': template_id, 'num': sale_order.num,
                                                 'order_id': entry.order_id, 'sku_img': entry.sku_img,
-                                                'contributor_nick': entry.contributor_nick, 'status': entry.status,
+                                                'contributor_nick': entry.contributor_nick, 'status': OrderCarry.STATUS_TYPES[entry.status][1],
                                                 'order_value': entry.order_value, 'date_field': entry.date_field})
 
         res = Response(results)
@@ -348,7 +350,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['POST'])
     def start_exchange(self, request, *args, **kwargs):
-        content = request.data
+        content = request.POST
 
         coupon_num = content.get("coupon_num") or None
         order_id = content.get("order_id")
@@ -364,26 +366,48 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
         mama = get_charged_mama(request.user)
         mama_id = mama.id
         stock_num = CouponTransferRecord.get_coupon_stock_num(mama_id, exchg_template_id)
-        if stock_num < coupon_num:
+        if stock_num < int(coupon_num):
             info = u"您的精品券库存不足，请立即购买!"
             return Response({"code": 2, "info": info})
 
+        # (1)sale order置为已经兑换
         from flashsale.pay.models.trade import SaleOrder, SaleTrade
-        sale_order = SaleOrder.objects.filter(id=order_id).first()
+        sale_order = SaleOrder.objects.filter(oid=order_id).first()
         if sale_order:
             sale_order.extras['exchange'] = True
+            SaleOrder.objects.filter(oid=order_id).update(extras=sale_order.extras)
+        else:
+            info = u"找不到订单记录，兑换失败!"
+            return Response({"code": 3, "info": info})
 
-        #在user钱包写收入记录
-        from flashsale.pay.models.user import BudgetLog
-        today = datetime.date.today()
-        order_log = BudgetLog(customer_id=customer_id, flow_amount=int(sale_order.payment * 100), budget_type=BudgetLog.BUDGET_IN,
-                              budget_log_type=BudgetLog.BG_EXCHG_ORDER, referal_id=sale_order.id,
-                              uni_key=sale_order.oid, status=BudgetLog.CONFIRMED,
-                              budget_date=today)
+        #(2)用户优惠券需要变成使用状态
+        user_coupons = UserCoupon.objects.filter(customer_id=customer_id, template_id=int(exchg_template_id), status=UserCoupon.UNUSED)
+        if len(user_coupons) < int(coupon_num):
+            info = u"您的精品券数量不足，请联系微信客服!"
+            return Response({"code": 4, "info": info})
+        use_num = 0
+        for coupon in user_coupons:
+            if use_num < int(coupon_num):
+                UserCoupon.objects.filter(uniq_id=coupon.uniq_id).update(status=UserCoupon.USED, trade_tid=sale_order.oid, finished_time=datetime.datetime.now())
+                use_num += 1
+            else:
+                break
 
-        order_log.save()
+        #(3)在user钱包写收入记录
+        try:
+            from flashsale.pay.models.user import BudgetLog
+            today = datetime.date.today()
+            order_log = BudgetLog(customer_id=customer_id, flow_amount=int(sale_order.payment * 100), budget_type=BudgetLog.BUDGET_IN,
+                                  budget_log_type=BudgetLog.BG_EXCHG_ORDER, referal_id=sale_order.id,
+                                  uni_key=sale_order.oid, status=BudgetLog.CONFIRMED,
+                                  budget_date=today)
 
-        res = CouponTransferRecord.create_exchg_order_record(request.user, coupon_num, sale_order, exchg_template_id)
+            order_log.save()
+        except IntegrityError:
+            pass
+
+        # (4)在精品券流通记录增加兑换记录
+        res = CouponTransferRecord.create_exchg_order_record(request.user, int(coupon_num), sale_order, int(exchg_template_id))
         res = Response(res)
         # res["Access-Control-Allow-Origin"] = "*"
 

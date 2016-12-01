@@ -400,8 +400,8 @@ class CouponTransferRecord(BaseModel):
         transfer_type = cls.OUT_EXCHG_SALEORDER
         date_field = datetime.date.today()
 
-        uni_key = sale_order.id
-        order_no = sale_order.id
+        uni_key = sale_order.oid
+        order_no = sale_order.oid
 
         coupon = cls.objects.filter(uni_key=uni_key).first()
         if coupon:
