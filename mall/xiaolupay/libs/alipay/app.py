@@ -59,9 +59,7 @@ class AliPay(object):
         return sign
 
 
-    def process_alipay_response(self, resp_text):
-
-        resp_json = json.loads(resp_text)
+    def process_alipay_response(self, resp_json):
         for k, v in resp_json.iteritems():
             if k.endswith('_response'):
                 if 'sub_code' in v and 'sub_msg' in v:
@@ -69,12 +67,12 @@ class AliPay(object):
                 return v
 
         #TODO 参数进行签名校验
-
-        raise AliPayAPIResponseError(resp_text)
+        raise AliPayAPIResponseError('%s'%resp_json)
 
     def _send_request(self, request_url):
         resp = requests.get('%s?%s'%(self._getway_url, request_url), verify=AlipayConf.VERIFY_CERTIFICATE)
-        return self.process_alipay_response(resp.text)
+        resp_json = json.loads(resp.text)
+        return self.process_alipay_response(resp_json)
 
     def create_trade_app_pay_url(self, out_trade_no, total_amount, subject, body=''):
         head_params = {

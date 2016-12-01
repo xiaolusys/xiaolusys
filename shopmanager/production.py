@@ -79,10 +79,6 @@ CACHES = {
 
 ##########################CELERY TASK##########################
 CLOSE_CELERY = False
-if os.environ.get('TARGET') == 'django18':
-    CELERY_TASK_ALWAYS_EAGER = True
-    CELERY_TASK_EAGER_PROPAGATES = True
-
 CELERY_BROKER_URL = 'redis://:{0}@{1}:6379/29'.format(REDIS_AUTH, REDIS_HOST)
 CELERY_RESULT_BACKEND = 'redis://:{0}@{1}:6379/28'.format(REDIS_AUTH, REDIS_HOST)
 
