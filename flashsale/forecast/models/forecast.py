@@ -180,7 +180,7 @@ class ForecastInbound(BaseModel):
         order_list = OrderList.objects.filter(Q(id=orderlist_id) | Q(express_no=express_no)).first()
         forecast_inbounds = ForecastInbound.objects.filter(
             Q(relate_order_set__id=orderlist_id) | Q(express_no=express_no),
-            status__in=(ForecastInbound.ST_APPROVED, ForecastInbound.ST_ARRIVED,ForecastInbound.ST_DRAFT))
+            status__in=(ForecastInbound.ST_APPROVED, ForecastInbound.ST_DRAFT))
         if not order_list:
             return forecast_inbounds
         res = list(forecast_inbounds)
@@ -193,7 +193,7 @@ class ForecastInbound(BaseModel):
 
     @staticmethod
     @transaction.atomic
-    def reset_forcast(order_list_id):
+    def reset_forecast(order_list_id):
         """
             重设预测：从以前的预测单中删除本订货单的关联，利用此订货单
         """
@@ -206,12 +206,13 @@ class ForecastInbound(BaseModel):
         res = []
         forcasts.update(status=ForecastInbound.ST_CANCELED)
         for order_list_id in order_list_ids:
-            if OrderList.objects.get(id=order_list_id).stage == OrderList.STAGE_RECEIVE:
+            ol = OrderList.objects.get(id=order_list_id)
+            if ol.stage == OrderList.STAGE_RECEIVE and not ol.third_package:
                 res.append(ForecastInbound._generate([order_list_id]))
         return res
 
     @staticmethod
-    def update_forcast(inbound):
+    def update_forecast(inbound_id):
         """
             入库分配时更新预测单：
             如预测单不包含入仓单分配到的所有订货单，则合并相关预测单
@@ -220,6 +221,7 @@ class ForecastInbound(BaseModel):
         :param inbound:
         :return:
         """
+        inbound = InBound.objects.get(id=inbound_id)
         forecasts = ForecastInbound.objects.filter(relate_order_set__id__in=inbound.orderlist_ids,
                                        status__in=[ForecastInbound.ST_DRAFT, ForecastInbound.ST_APPROVED])
         if forecasts.count() > 1:
@@ -282,60 +284,62 @@ class ForecastInbound(BaseModel):
         for odd in OrderDetailInBoundDetail.objects.filter(orderdetail__orderlist_id__in=orderlist_ids,
                                                     inbounddetail__inbound__status__in=[InBound.PENDING, InBound.WAIT_CHECK, InBound.COMPLETED,
                                                                                         InBound.COMPLETE_RETURN]):
+            od = odd.orderdetail
             sku_got_nums[od.chichu_id] = sku_got_nums.get(od.chichu_id, 0) + odd.arrival_quantity
         sku_need_nums = {key:sku_buy_nums[key] - sku_got_nums.get(key, 0) for key in sku_buy_nums}
         for sku in sku_need_nums:
             forecast_detail = details[sku]
             forecast_detail.forecast_arrive_num = sku_need_nums[sku]
         for forecast_detail in details.values():
-            forecast_detail.save()
+            if forecast_detail.forecast_arrive_num > 0:
+                forecast_detail.save()
         return forecast_ib
 
-def pre_save_update_forecastinbound_data(sender, instance, raw, *args, **kwargs):
-    logger.info('forecast pre_save:%s, %s' % (raw, instance))
-    from .inbound import RealInbound
-    detail_list_num = instance.normal_details.values_list('forecast_arrive_num', flat=True)
-    arrival_list_num = instance.real_inbound_manager.exclude(status=RealInbound.CANCELED) \
-        .values_list('total_inbound_num', flat=True)
-    instance.total_forecast_num = sum(detail_list_num)
-    instance.total_arrival_num = sum(arrival_list_num)
-    instance.express_no = re.sub(r'\W', '', instance.express_no)
+# def pre_save_update_forecastinbound_data(sender, instance, raw, *args, **kwargs):
+#     logger.info('forecast pre_save:%s, %s' % (raw, instance))
+#     from .inbound import RealInbound
+#     detail_list_num = instance.normal_details.values_list('forecast_arrive_num', flat=True)
+#     arrival_list_num = instance.real_inbound_manager.exclude(status=RealInbound.CANCELED) \
+#         .values_list('total_inbound_num', flat=True)
+#     instance.total_forecast_num = sum(detail_list_num)
+#     instance.total_arrival_num = sum(arrival_list_num)
+#     instance.express_no = re.sub(r'\W', '', instance.express_no)
+#
+#
+# pre_save.connect(
+#     pre_save_update_forecastinbound_data,
+#     sender=ForecastInbound,
+#     dispatch_uid='pre_save_update_forecastinbound_data')
 
 
-pre_save.connect(
-    pre_save_update_forecastinbound_data,
-    sender=ForecastInbound,
-    dispatch_uid='pre_save_update_forecastinbound_data')
-
-
-def modify_forecastinbound_data(sender, instance, created, *args, **kwargs):
-    logger.info('forecast post_save:%s, %s' % (created, instance))
-    if (instance.express_no and
-            not instance.delivery_time and
-                instance.status == ForecastInbound.ST_APPROVED):
-        instance.delivery_time = datetime.datetime.now()
-        ForecastInbound.objects.filter(id=instance.id).update(delivery_time=instance.delivery_time)
-
-    if instance.express_no:
-        for order in instance.relate_order_set.filter(Q(express_no='/') | Q(express_no='')):
-            order.express_company = instance.express_code
-            order.express_no = instance.express_no
-            update_model_fields(order, update_fields=['express_company', 'express_no'])
-
-    # refresh forecast stats
-    from .. import tasks
-    tasks.task_forecast_update_stats_data.delay(instance.id)
-
-    # 更新orderlist order_group_key
-    inbound_order_set = list(instance.relate_order_set.values_list('id', flat=True))
-    from flashsale.dinghuo.tasks import task_update_order_group_key
-    task_update_order_group_key.delay(inbound_order_set)
-
-
-post_save.connect(
-    modify_forecastinbound_data,
-    sender=ForecastInbound,
-    dispatch_uid='post_save_modify_forecastinbound_data')
+# def modify_forecastinbound_data(sender, instance, created, *args, **kwargs):
+#     logger.info('forecast post_save:%s, %s' % (created, instance))
+#     if (instance.express_no and
+#             not instance.delivery_time and
+#                 instance.status == ForecastInbound.ST_APPROVED):
+#         instance.delivery_time = datetime.datetime.now()
+#         ForecastInbound.objects.filter(id=instance.id).update(delivery_time=instance.delivery_time)
+#
+#     if instance.express_no:
+#         for order in instance.relate_order_set.filter(Q(express_no='/') | Q(express_no='')):
+#             order.express_company = instance.express_code
+#             order.express_no = instance.express_no
+#             update_model_fields(order, update_fields=['express_company', 'express_no'])
+#
+#     # refresh forecast stats
+#     from .. import tasks
+#     tasks.task_forecast_update_stats_data.delay(instance.id)
+#
+#     # 更新orderlist order_group_key
+#     inbound_order_set = list(instance.relate_order_set.values_list('id', flat=True))
+#     from flashsale.dinghuo.tasks import task_update_order_group_key
+#     task_update_order_group_key.delay(inbound_order_set)
+#
+#
+# post_save.connect(
+#     modify_forecastinbound_data,
+#     sender=ForecastInbound,
+#     dispatch_uid='post_save_modify_forecastinbound_data')
 
 
 class ForecastInboundDetail(BaseModel):
@@ -390,11 +394,11 @@ class ForecastInboundDetail(BaseModel):
         return self.product.pic_path + '?imageMogr2/strip/format/jpg/quality/90/interlace/1/thumbnail/80/'
 
 
-def update_forecastinbound_data(sender, instance, created, **kwargs):
-    pass
-
-
-post_save.connect(
-    update_forecastinbound_data,
-    sender=ForecastInboundDetail,
-    dispatch_uid='post_save_update_forecastinbound_data')
+# def update_forecastinbound_data(sender, instance, created, **kwargs):
+#     pass
+#
+#
+# post_save.connect(
+#     update_forecastinbound_data,
+#     sender=ForecastInboundDetail,
+#     dispatch_uid='post_save_update_forecastinbound_data')

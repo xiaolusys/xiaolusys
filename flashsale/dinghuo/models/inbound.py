@@ -273,7 +273,10 @@ class InBound(models.Model):
         self.set_stat()
         self.save()
         from flashsale.forecast.models.forecast import ForecastInbound
-        ForecastInbound.update_forcast(self)
+        try:
+            ForecastInbound.update_forecast(self.id)
+        except Exception, e0:
+            logger.error(u'更新入仓单%s预测单错误' % (self.id,) + e0.message, exc_info=True)
 
     def finish_check(self, data):
         """

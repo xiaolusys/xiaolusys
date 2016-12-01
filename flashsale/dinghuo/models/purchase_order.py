@@ -495,6 +495,13 @@ class OrderList(models.Model):
         _now = datetime.datetime.now()
         self.add_note(u'-->%s:审核订货单' % _now.strftime('%m月%d %H:%M'), save=False)
         self.save(update_fields=['stage', 'status', 'is_postpay', 'checked_time', 'ware_by', 'note'])
+        try:
+            from flashsale.forecast.models.forecast import ForecastInbound
+            ForecastInbound.reset_forecast(self.id)
+        except Exception, e0:
+            logger.error("begin forecast error ol: %s, info:%s" % (self.id, e0.message))
+
+
 
     def set_stage_pay(self, pay_way=13):
         # 付款提货 进入付款状态
