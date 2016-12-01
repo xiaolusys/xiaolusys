@@ -19,3 +19,10 @@ def get_virtual_modelproducts():
     """获取虚拟款式列表记录
     """
     return ModelProduct.objects.get_virtual_modelproducts()
+
+
+def get_is_onsale_modelproducts():
+    # type: () -> Optional[List[ModelProduct]]
+    """获取特卖秒杀商品
+    """
+    return ModelProduct.objects.get_is_onsale_modelproducts()
