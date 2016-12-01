@@ -851,7 +851,7 @@ def get_mama_link(mama_id, ninepic):
 
     preffix = 'm/{{mm_linkid}}/'
     detail_l = ''
-    redirect_url = ninepic.redirect_url.strip()
+    redirect_url = ninepic.redirect_url and ninepic.redirect_url.strip() or ''
     if ninepic and redirect_url:
         next_suffix = Template(''.join([preffix, '?next=', redirect_url]))
         c = Context({'mm_linkid': mama_id})
