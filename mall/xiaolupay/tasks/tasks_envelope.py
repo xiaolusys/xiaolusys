@@ -22,7 +22,7 @@ def task_sync_weixin_red_envelope_by_id(envelope_id):
     同步微信红包信息
     """
     envelope = WeixinRedEnvelope.objects.filter(id=envelope_id).first()
-    if not envelope or envelope.status == WeixinRedEnvelope.UNSEND:
+    if not envelope or envelope.status in (WeixinRedEnvelope.UNSEND, WeixinRedEnvelope.FAILED):
         return
 
     api = WeixinRedEnvelopAPI()

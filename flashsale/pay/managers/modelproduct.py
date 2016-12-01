@@ -12,6 +12,7 @@ class ModelProductManager(BaseManager):
         if hasattr(_super, 'get_query_set'):
             return _super.get_query_set()
         return _super.get_queryset()
+
     get_queryset = get_query_set
 
     def get_virtual_modelproducts(self):
@@ -19,3 +20,9 @@ class ModelProductManager(BaseManager):
         """获取虚拟商品记录
         """
         return self.get_queryset().filter(product_type=self.model.VIRTUAL_TYPE, status=self.model.NORMAL)
+
+    def get_is_onsale_modelproducts(self):
+        # type: () -> Optional[List[ModelProduct]]
+        """获取特卖秒杀商品记录
+        """
+        return self.get_queryset().filter(is_onsale=True, status=self.model.NORMAL)
