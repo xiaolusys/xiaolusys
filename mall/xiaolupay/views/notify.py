@@ -12,11 +12,11 @@ logger = logging.getLogger(__name__)
 
 def alipay_notify(request):
 
-    content = request.POST
+    content = dict(request.POST.iterlists())
     logger.info({
         'action': 'notify',
         'channel': 'alipay',
-        'data': dict(content.iterlists()),
+        'data': content,
     })
     if not content:
         return HttpResponse('no params')
