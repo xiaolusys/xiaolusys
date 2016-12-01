@@ -640,8 +640,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             if coupon_template_id not in coupon_template_ids:  # 商品和优惠券相对应
                 return Response({'code': 22, 'info': u'该商品属于特价精品汇商品，请使用精品汇优惠券。如需购券，请查看精品汇商品说明和咨询客服。'})
 
-            if cart_discount < cart_total_fee:  # 优惠券价格 < 购物车需支付价格
-                return Response({'code': 23, 'info': u'精品汇优惠券不足，请购买优惠券或减少商品购买数量'})
+            #if cart_discount < cart_total_fee:  # 优惠券价格 < 购物车需支付价格
+            #    return Response({'code': 23, 'info': u'精品汇优惠券不足，请购买优惠券或减少商品购买数量'})
 
         return False
 
@@ -659,15 +659,15 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
         if use_coupon_only:
             if cart_qs.count() > 1:  # 商品种类大于一种
-                return Response({'code': 21, 'info': u'该商品只能使用精品汇优惠券购买'})
+                return Response({'code': 21, 'info': u'该精品汇商品只能单独购买'})
 
             cart = cart_qs[0]
             coupon_template_ids = cart.get_modelproduct().extras.get('payinfo', {}).get('coupon_template_ids', [])
             if coupon_template_id not in coupon_template_ids:  # 商品和优惠券相对应
                 return Response({'code': 22, 'info': u'该商品属于特价精品汇商品，请使用精品汇优惠券。如需购券，请查看精品汇商品说明和咨询客服。'})
 
-            if cart_discount < cart_total_fee:  # 优惠券价格 < 购物车需支付价格
-                return Response({'code': 23, 'info': u'精品汇优惠券不足，请购买优惠券或减少商品购买数量'})
+            #if cart_discount < cart_total_fee:  # 优惠券价格 < 购物车需支付价格
+            #    return Response({'code': 23, 'info': u'精品汇优惠券不足，请购买优惠券或减少商品购买数量'})
 
         return False
 
