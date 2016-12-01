@@ -172,7 +172,7 @@ def retrieve_or_update_order(order_no, notify_order_info=None):
             'out_trade_no': charge_order.order_no
         })
 
-        paid_success = resp['return_code'] == 'SUCCESS' and resp['trade_state'] == 'SUCCESS'
+        paid_success = resp['return_code'] == 'SUCCESS' and resp['return_code'] == 'SUCCESS'
         fail_code    = not paid_success and resp['return_code'] or ''
         fail_msg     = not paid_success and resp['return_msg'] or ''
         transaction_no = resp.get('transaction_id', '')
