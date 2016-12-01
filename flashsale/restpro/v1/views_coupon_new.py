@@ -17,13 +17,14 @@ from rest_framework.exceptions import APIException
 from shopback.items.models import Product
 from flashsale.coupon.models import UserCoupon, OrderShareCoupon, CouponTemplate, TmpShareCoupon
 from flashsale.pay.models import Customer, ShoppingCart
-from flashsale.pay.tasks import task_release_coupon_push
+from flashsale.pay.tasks import task_release_coupon_push, notifyTradePayTask
 from flashsale.promotion.models import XLSampleOrder
 from flashsale.coupon import constants
 from flashsale.pay.models import SaleTrade
 from flashsale.coupon.apis.v1.ordersharecoupon import get_share_coupon_by_tid, create_share_coupon
 from flashsale.coupon.apis.v1.usercoupon import create_user_coupon
 
+from mall.xiaolupay import apis as xiaolupay
 
 logger = logging.getLogger(__name__)
 
@@ -515,9 +516,18 @@ class OrderShareCouponViewSet(viewsets.ModelViewSet):
         if not uniq_id:
             default_return.update({"code": 1, "msg": "参数有误"})
             return Response(default_return)
-        if self.check_order_valid(uniq_id, customer.id) is None:
+
+        sale_trade = SaleTrade.objects.filter(tid=uniq_id, buyer_id=customer.id).first()
+        if not sale_trade:
             default_return.update({"code": 4, "msg": "订单不存在"})
             return Response(default_return)
+
+        if sale_trade.is_payable() and sale_trade.charge:
+            try:
+                charge = xiaolupay.Charge.retrieve(sale_trade.tid)
+                notifyTradePayTask.delay(charge)
+            except Exception, exc:
+                logger.error('%s' % exc, exc_info=True)
 
         tpl = get_order_or_active_share_template(CouponTemplate.TYPE_ORDER_SHARE,
                                                  template_id=constants.ORDER_SHARE_COUPON_TEMPLATE)  # 获取有效的分享模板
