@@ -38,7 +38,7 @@ def create_credential(
 
     elif channel in (UnionPayConf.WX, UnionPayConf.WX_PUB):
         credential.update({
-            "timeStamp": get_time_number(),
+            "timeStamp": '%s'%get_time_number(),
             "nonceStr": WXPayUtil.generate_nonce_str(),
         })
         if channel == UnionPayConf.WX:
