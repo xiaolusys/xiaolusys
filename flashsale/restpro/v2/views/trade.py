@@ -637,7 +637,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
         if use_coupon_only:
             coupon_template_ids = product.get_product_model().extras.get('payinfo', {}).get('coupon_template_ids', [])
-            if coupon_template_id not in coupon_template_ids:  # 商品和优惠券相对应
+            if coupon_template_id and (coupon_template_id not in coupon_template_ids):  # 商品和优惠券相对应
                 return Response({'code': 22, 'info': u'该商品属于特价精品汇商品，请使用精品汇优惠券。如需购券，请查看精品汇商品说明和咨询客服。'})
 
             #if cart_discount < cart_total_fee:  # 优惠券价格 < 购物车需支付价格
@@ -663,7 +663,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
             cart = cart_qs[0]
             coupon_template_ids = cart.get_modelproduct().extras.get('payinfo', {}).get('coupon_template_ids', [])
-            if coupon_template_id not in coupon_template_ids:  # 商品和优惠券相对应
+            if coupon_template_id and (coupon_template_id not in coupon_template_ids):  # 商品和优惠券相对应
                 return Response({'code': 22, 'info': u'该商品属于特价精品汇商品，请使用精品汇优惠券。如需购券，请查看精品汇商品说明和咨询客服。'})
 
             #if cart_discount < cart_total_fee:  # 优惠券价格 < 购物车需支付价格
