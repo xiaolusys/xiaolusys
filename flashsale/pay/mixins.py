@@ -3,7 +3,7 @@ import re
 import urlparse
 
 from django.conf import settings
-import pingpp
+from mall.xiaolupay import apis as xiaolupay
 
 from rest_framework import exceptions
 
@@ -135,7 +135,7 @@ class PayInfoMethodMixin(object):
                   'body': u'订单ID(%s),订单金额(%.2f)' % (sale_trade.id, sale_trade.payment),
                   'metadata': dict(color='red'),
                   'extra': extra}
-        charge = pingpp.Charge.create(api_key=settings.PINGPP_APPKEY, **params)
+        charge = xiaolupay.Charge.create(**params)
         sale_trade.charge = charge.id
         update_model_fields(sale_trade, update_fields=['charge'])
         return charge
@@ -164,7 +164,7 @@ class PayInfoMethodMixin(object):
             })
         if state:
             from shopapp.weixin.options import get_openid_by_unionid
-            openid = get_openid_by_unionid(customer.unionid, settings.WXPAY_APPID)
+            openid = get_openid_by_unionid(customer.unionid, settings.WX_PUB_APPID)
             params.update({
                 'order_type': order_type,
                 'buyer_nick': customer.nick,

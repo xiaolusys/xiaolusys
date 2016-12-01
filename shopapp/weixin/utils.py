@@ -48,7 +48,7 @@ def gen_mama_custom_qrcode_url(mama_id):
         qrcode_link, content = cache_value.get('qrcode_link', ''), cache_value.get('content', '')
     else:
         wx_api = WeiXinAPI()
-        wx_api.setAccountId(appKey=settings.WXPAY_APPID)
+        wx_api.setAccountId(appKey=settings.WX_PUB_APPID)
         resp = wx_api.createQRcode('QR_SCENE', mama_id)
 
         qrcode_link = ''

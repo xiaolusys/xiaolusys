@@ -366,7 +366,7 @@ class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
     renderer_classes = (renderers.JSONRenderer,)
 
     def get(self, request, *args, **kwargs):
-        self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
+        self.set_appid_and_secret(settings.WX_PUB_APPID, settings.WX_PUB_APPSECRET)
 
         # get openid from cookie
         openid, unionid = self.get_cookie_openid_and_unoinid(request)

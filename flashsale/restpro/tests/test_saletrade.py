@@ -4,6 +4,7 @@ import datetime
 from django.test import TestCase
 
 from flashsale.pay.models import SaleTrade, ShoppingCart
+from core.utils.unikey import uniqid
 
 import logging
 logger = logging.getLogger(__name__)
@@ -186,6 +187,7 @@ class SaletradeTestCase(TestCase):
 
     def testWaitPayOrderCharge_V1(self):
         """ origin charge channel is alipay """
+        SaleTrade.objects.filter(id=372487).update(tid=uniqid('xt%s'%datetime.date.today().strftime('%y%m%d')))
         response = self.client.post('/rest/v1/trades/372487/charge', {},
                                     ACCEPT='application/json; q=0.01')
         self.assertEqual(response.status_code, 200)
@@ -196,6 +198,7 @@ class SaletradeTestCase(TestCase):
 
     def testWaitPayOrderCharge_V2(self):
         """ origin charge channel is alipay """
+        SaleTrade.objects.filter(id=372487).update(tid=uniqid('xt%s' % datetime.date.today().strftime('%y%m%d')))
         channel = 'wx'
         response = self.client.post('/rest/v2/trades/372487/charge', {'channel':channel},
                                     ACCEPT='application/json; q=0.01')

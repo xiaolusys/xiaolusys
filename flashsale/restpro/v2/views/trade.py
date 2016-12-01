@@ -2,7 +2,6 @@
 import re
 import time
 import datetime
-import pingpp
 import urlparse
 import decimal
 
@@ -43,9 +42,12 @@ from common.utils import update_model_fields
 from flashsale.restpro import constants as CONS
 
 from flashsale.xiaolumm.models import XiaoluMama,CarryLog
-from flashsale.pay.tasks import confirmTradeChargeTask, tasks_set_address_priority_logistics_code
+from flashsale.pay.tasks import confirmTradeChargeTask, notifyTradePayTask, tasks_set_address_priority_logistics_code
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 from flashsale.coupon.apis.v1.usercoupon import use_coupon_by_ids
+
+from mall.xiaolupay import apis as xiaolupay
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -146,6 +148,14 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         """ 获取用户订单及订单明细列表 """
         instance   = self.get_object()
+        if instance.is_payable() and instance.charge:
+            try:
+                charge = xiaolupay.Charge.retrieve(instance.charge)
+                notifyTradePayTask(charge)
+                instance = SaleTrade.objects.get(id=instance.id)
+            except Exception,exc:
+                logger.error('%s'%exc, exc_info=True)
+
         data = serializers.SaleTradeDetailSerializer(instance,context={'request': request}).data
         data['extras'].update(channels=get_channel_list(request, self.get_customer(request)))
         return Response(data)
@@ -334,7 +344,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             'metadata': dict(color='red'),
             'extra': extra
         }
-        charge = pingpp.Charge.create(api_key=settings.PINGPP_APPKEY, **params)
+        charge = xiaolupay.Charge.create(api_key=settings.PINGPP_APPKEY, **params)
         sale_trade.charge = charge.id
         update_model_fields(sale_trade, update_fields=['charge'])
         return charge
@@ -393,7 +403,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             except:
                 teambuy = None
 
-        buyer_openid = options.get_openid_by_unionid(customer.unionid, settings.WXPAY_APPID)
+        buyer_openid = options.get_openid_by_unionid(customer.unionid, settings.WX_PUB_APPID)
         buyer_openid = buyer_openid or customer.openid
         payment = round(float(form.get('payment')), 2)
         pay_extras = form.get('pay_extras', '')
@@ -1268,7 +1278,6 @@ class SaleOrderViewSet(viewsets.ModelViewSet):
     def apply_refund(self, request, pk=None, *args, **kwargs):
         """ 申请退款 """
         instance = self.get_object()
-
         # 如果Order已经付款 refund_type = BUYER_NOT_RECEIVED
         # 如果Order 仅仅签收状态才可以退货  refund_type = BUYER_RECEIVED
         second_kill = instance.second_kill_title()

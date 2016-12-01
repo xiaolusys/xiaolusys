@@ -151,6 +151,7 @@ urlpatterns = [
     url(r'^lesson/', include(lesson_router.urls, namespace='lesson')),
     url(r'^lesson/snsauth/', views_v2.WeixinSNSAuthJoinView.as_view()),
     url(r'^packageskuitem', views_v2.PackageSkuItemView.as_view()),
+    url(r'^notify/', include('mall.xiaolupay.urls')),
 
     url(r'^v1/', include('flashsale.restpro.v1.urls')),
     url(r'^v2/', include('flashsale.restpro.v2.urls')),

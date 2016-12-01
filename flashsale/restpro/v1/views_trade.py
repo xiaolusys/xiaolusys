@@ -528,12 +528,12 @@ class SaleOrderViewSet(viewsets.ModelViewSet):
         log_action(request.user.id, instance, CHANGE, u'通过接口程序－确认签收')
         return Response({"ok": True})
 
-
-import pingpp
 import urlparse
 from django.db import models
 from flashsale.xiaolumm.models import XiaoluMama, CarryLog
 from flashsale.pay.tasks import confirmTradeChargeTask
+
+from mall.xiaolupay import apis as xiaolupay
 
 
 class SaleTradeViewSet(viewsets.ModelViewSet):
@@ -731,7 +731,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                       sale_trade.payment),
                   'metadata': dict(color='red'),
                   'extra': extra}
-        charge = pingpp.Charge.create(api_key=settings.PINGPP_APPKEY, **params)
+        charge = xiaolupay.Charge.create(api_key=settings.PINGPP_APPKEY, **params)
         sale_trade.charge = charge.id
         update_model_fields(sale_trade, update_fields=['charge'])
         return charge
@@ -764,7 +764,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             'user_address_id': address.id
         }
 
-        buyer_openid = options.get_openid_by_unionid(customer.unionid, settings.WXPAY_APPID)
+        buyer_openid = options.get_openid_by_unionid(customer.unionid, settings.WX_PUB_APPID)
         buyer_openid = buyer_openid or customer.openid
         payment = float(form.get('payment'))
         pay_extras = form.get('pay_extras', '')

@@ -340,7 +340,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             if customers.count() == 0 or customers[0].is_wxauth():
                 return Response({"code": 0, "result": "login", "next": next_url})  # 如果是系统帐号登录，或已经微信授权过，则直接返回登录成功
 
-            params = {'appid': settings.WXPAY_APPID,
+            params = {'appid': settings.WX_PUB_APPID,
                       'redirect_uri': ('{0}{1}?next={2}').format(settings.M_SITE_URL, reverse('rest_v1:xlmm-wxauth'),
                                                                  next_url),
                       'response_type': 'code',
@@ -367,7 +367,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             logger.error('wxapp sign timeout: %s' % params)
             return False
         origin_sign = params.pop('sign')
-        new_sign = gen_wxlogin_sha1_sign(params, settings.WXAPP_SECRET)
+        new_sign = gen_wxlogin_sha1_sign(params, settings.WX_APPSECRET)
         if origin_sign and origin_sign == new_sign:
             return True
         params.update({'sign': origin_sign})
@@ -935,7 +935,7 @@ class UserBugetBangView(WeixinAuthMixin, APIView):
 
     def get(self, request, pk, format=None, *args, **kwargs):
 
-        self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
+        self.set_appid_and_secret(settings.WX_PUB_APPID, settings.WX_PUB_APPSECRET)
         user_infos = self.get_auth_userinfo(request)
         unionid = user_infos.get('unionid')
         openid = user_infos.get('openid')

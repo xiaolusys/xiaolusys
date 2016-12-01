@@ -57,7 +57,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         appkeys = [
-            # settings.WXPAY_APPID,  # 小鹿美美公众号
+            # settings.WX_PUB_APPID,  # 小鹿美美公众号
             settings.WEIXIN_APPID,  # 小鹿特卖
         ]
 

@@ -64,7 +64,7 @@ def check_sign(request):
     if not timestamp or time.time() - int(timestamp) > 6 * 60 * 60:
         return False
     origin_sign = params.pop('sign')
-    new_sign = gen_wxlogin_sha1_sign(params, settings.WXAPP_SECRET)
+    new_sign = gen_wxlogin_sha1_sign(params, settings.WX_APPSECRET)
     if origin_sign and origin_sign == new_sign:
         return True
     params.update({'sign': origin_sign})
@@ -99,7 +99,7 @@ class LoginViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.Gene
             return HttpResponseRedirect(next_url)
 
         if not code:
-            params = {'appid': settings.WXPAY_APPID,
+            params = {'appid': settings.WX_PUB_APPID,
                       'redirect_uri': request.build_absolute_uri().split('#')[0],
                       'response_type': 'code',
                       'scope': 'snsapi_base',
@@ -129,7 +129,7 @@ class LoginViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.Gene
 
         if in_weixin(request) and customers.count() == 1 and not customers[0].is_wxauth():
             params = {
-                'appid': settings.WXPAY_APPID,
+                'appid': settings.WX_PUB_APPID,
                 'response_type': 'code',
                 'scope': 'snsapi_base',
                 'state': '135',

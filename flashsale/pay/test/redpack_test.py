@@ -1,9 +1,9 @@
-import pingpp
+# coding:utf8
+from __future__ import absolute_import, unicode_literals
 
 from django.conf import settings
 
-pingpp.api_key = settings.PINGPP_APPKEY
-
+from mall.xiaolupay import apis as xiaolupay
 
 def redpack(order_no):
     """ 
@@ -28,7 +28,7 @@ def redpack(order_no):
       "subject": "Your Subject"
     }
     """
-    redenvelope = pingpp.RedEnvelope.create(
+    redenvelope = xiaolupay.RedEnvelope.create(
         order_no=order_no,
         channel='wx_pub',
         amount=100,

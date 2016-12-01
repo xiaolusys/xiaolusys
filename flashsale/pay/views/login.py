@@ -56,9 +56,9 @@ def weixin_login(request):
     response = HttpResponseRedirect(next_url)
 
     customer = Customer.objects.get(user=request.user.id)
-    openid, unionid = customer.get_openid_and_unoinid_by_appkey(settings.WXPAY_APPID)
+    openid, unionid = customer.get_openid_and_unoinid_by_appkey(settings.WX_PUB_APPID)
 
-    options.set_cookie_openid(response, settings.WXPAY_APPID, openid, unionid)
+    options.set_cookie_openid(response, settings.WX_PUB_APPID, openid, unionid)
     return response
 
 
@@ -85,7 +85,7 @@ def weixin_auth_and_redirect(request):
         return HttpResponseRedirect(next_url)
 
     if not code:
-        params = {'appid': settings.WXPAY_APPID,
+        params = {'appid': settings.WX_PUB_APPID,
                   'redirect_uri': request.build_absolute_uri().split('#')[0],
                   'response_type': 'code',
                   'scope': 'snsapi_base',

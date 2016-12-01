@@ -115,11 +115,10 @@ def update_address(addr_dict):
     address.save()
     return address
 
-import pingpp
-pingpp.api_key = settings.PINGPP_APPKEY
+from mall.xiaolupay import apis as xiaolupay
 
 def update_charge(charge_id):
-    resp = pingpp.Charge.retrieve(charge_id)
+    resp = xiaolupay.Charge.retrieve(charge_id)
     notifyTradePayTask(resp)
 
 class Command(BaseCommand):

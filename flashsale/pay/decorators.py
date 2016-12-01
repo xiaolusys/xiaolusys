@@ -31,7 +31,7 @@ def sale_buyer_required(view_func):
         user_agent = request.META.get('HTTP_USER_AGENT')
         if user_agent and user_agent.find('MicroMessenger') >= 0:
             if not code:
-                params = {'appid': settings.WXPAY_APPID,
+                params = {'appid': settings.WX_PUB_APPID,
                           'redirect_uri': request.build_absolute_uri().split('#')[0],
                           'response_type': 'code',
                           'scope': 'snsapi_base',
@@ -89,9 +89,9 @@ def weixin_xlmm_auth(redirecto=None):
                 return HttpResponseRedirect(redirect_url)
 
             if not code:
-                openid, unionid = options.get_cookie_openid(request.COOKIES, settings.WXPAY_APPID)
+                openid, unionid = options.get_cookie_openid(request.COOKIES, settings.WX_PUB_APPID)
                 if not options.valid_openid(unionid):
-                    params = {'appid': settings.WXPAY_APPID,
+                    params = {'appid': settings.WX_PUB_APPID,
                               'redirect_uri': request.build_absolute_uri().split('#')[0],
                               'response_type': 'code',
                               'scope': 'snsapi_userinfo',
@@ -138,7 +138,7 @@ def weixin_test_auth(redirecto=None):
                 return HttpResponseRedirect(redirecto)
 
             if not code:
-                params = {'appid': settings.WXPAY_APPID,
+                params = {'appid': settings.WX_PUB_APPID,
                           'redirect_uri': request.build_absolute_uri().split('#')[0],
                           'response_type': 'code',
                           'scope': 'snsapi_base',

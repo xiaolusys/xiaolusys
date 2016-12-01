@@ -49,7 +49,7 @@ class WeixinAuthCheckView(WeixinAuthMixin, View):
     """ 微信授权参数检查 """
 
     def get(self, request):
-        self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
+        self.set_appid_and_secret(settings.WX_PUB_APPID, settings.WX_PUB_APPSECRET)
         openid, unionid = self.get_openid_and_unionid(request)
         if not valid_openid(openid):
             redirect_url = self.get_snsuserinfo_redirct_url(request)
@@ -561,7 +561,7 @@ class ClickLogView(WeixinAuthMixin, View):
             response.set_cookie('mm_linkid', linkid, max_age=86400)
             return response
 
-        self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
+        self.set_appid_and_secret(settings.WX_PUB_APPID, settings.WX_PUB_APPSECRET)
         openid, unionid = self.get_openid_and_unionid(request)
         if not valid_openid(openid):
             redirect_url = self.get_wxauth_redirct_url(request)
@@ -573,11 +573,11 @@ class ClickLogView(WeixinAuthMixin, View):
             'http_referal': request.META.get('HTTP_REFERER'),
             'http_agent': request.META.get('HTTP_USER_AGENT')
         })
-        chain(ctasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time, settings.WXPAY_APPID),
+        chain(ctasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time, settings.WX_PUB_APPID),
               ctasks.task_Update_User_Click.s())()
 
         if not valid_openid(unionid):
-            unionid = get_unionid_by_openid(openid, settings.WXPAY_APPID)
+            unionid = get_unionid_by_openid(openid, settings.WX_PUB_APPID)
         xlmms = XiaoluMama.objects.filter(openid=unionid, status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED)
         mm_linkid = xlmms.exists() and xlmms[0].id or linkid
 
@@ -596,16 +596,16 @@ class ClickChannelLogView(WeixinAuthMixin, View):
         if not self.is_from_weixin(request):
             share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=linkid, ufrom='web')
             return redirect(share_url)
-        self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
+        self.set_appid_and_secret(settings.WX_PUB_APPID, settings.WX_PUB_APPSECRET)
         openid, unionid = self.get_openid_and_unionid(request)
         if not valid_openid(openid):
             redirect_url = self.get_wxauth_redirct_url(request)
             return redirect(redirect_url)
         click_time = datetime.datetime.now()
-        chain(ctasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time, settings.WXPAY_APPID),
+        chain(ctasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time, settings.WX_PUB_APPID),
               ctasks.task_Update_User_Click.s())()
         if not valid_openid(unionid):
-            unionid = get_unionid_by_openid(openid, settings.WXPAY_APPID)
+            unionid = get_unionid_by_openid(openid, settings.WX_PUB_APPID)
         xlmms = XiaoluMama.objects.filter(openid=unionid)
         if xlmms.exists():
             share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=xlmms[0].id, ufrom='wx')
@@ -791,7 +791,7 @@ class CashOutVerify(APIView):
                                                carry_date=today_dt,
                                                carry_type=CarryLog.CARRY_OUT,
                                                status=CarryLog.CONFIRMED)
-                wx_union = WeixinUnionID.objects.get(app_key=settings.WXPAY_APPID, unionid=xiaolumama.openid)
+                wx_union = WeixinUnionID.objects.get(app_key=settings.WX_PUB_APPID, unionid=xiaolumama.openid)
                 mama_memo = u"小鹿妈妈编号:{0},提现前:{1}"
                 Envelop.objects.get_or_create(referal_id=cashout.id,
                                               amount=cashout.value,

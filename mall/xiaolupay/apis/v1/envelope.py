@@ -129,7 +129,7 @@ def create(order_no, amount, subject, body, recipient, remark):
     if envelope:
         return envelope
 
-    wx_account = WeiXinAccount.objects.get(app_id=settings.WXPAY_APPID)
+    wx_account = WeiXinAccount.objects.get(app_id=settings.WX_PUB_APPID)
 
     envelope = WeixinRedEnvelope()
     envelope.mch_billno = order_no

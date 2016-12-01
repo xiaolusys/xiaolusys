@@ -115,7 +115,7 @@ def weixinfans_create_awardcarry(sender, instance, created, **kwargs):
     if not created:
         return
 
-    if instance.app_key != settings.WXPAY_APPID: # 关注小鹿美美有奖励，否则没有
+    if instance.app_key != settings.WX_PUB_APPID: # 关注小鹿美美有奖励，否则没有
         return
     
     if XiaoluSwitch.is_switch_open(2):
@@ -154,7 +154,7 @@ post_save.connect(weixinfans_create_awardcarry,
 #    if not fans.subscribe:
 #        return
 #
-#    if fans.app_key != settings.WXPAY_APPID:
+#    if fans.app_key != settings.WX_PUB_APPID:
 #        return
 #
 #    customer = Customer.objects.filter(unionid=fans.unionid).first()
@@ -169,7 +169,7 @@ post_save.connect(weixinfans_create_awardcarry,
 #
 #    # 取消关注，然后重新关注，不计入
 #    fans_record = WeixinFans.objects.filter(
-#        unionid=fans.unionid, app_key=settings.WXPAY_APPID).exists()
+#        unionid=fans.unionid, app_key=settings.WX_PUB_APPID).exists()
 #
 #    if not fans_record:
 #        # 发５元奖励

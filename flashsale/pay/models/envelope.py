@@ -8,10 +8,9 @@ from django.db import models
 from django.db.models.signals import post_save
 from .base import PayBaseModel
 
+from mall.xiaolupay import apis as xiaolupay
 from mall.xiaolupay.apis.v1 import envelope
 from mall.xiaolupay.models.weixin_red_envelope import WeixinRedEnvelope
-import pingpp
-pingpp.api_key = settings.PINGPP_APPKEY
 
 logger = logging.getLogger(__name__)
 
@@ -171,11 +170,11 @@ class Envelop(PayBaseModel):
 
     def send_envelop_by_pingpp(self):
         if self.envelop_id:
-            redenvelope = pingpp.RedEnvelope.retrieve(self.envelop_id)
+            redenvelope = xiaolupay.RedEnvelope.retrieve(self.envelop_id)
             self.handle_envelop_by_pingpp(redenvelope)
         else:
             try:
-                redenvelope = pingpp.RedEnvelope.create(
+                redenvelope = xiaolupay.RedEnvelope.create(
                     order_no=str(self.id),
                     channel=self.platform,
                     amount=self.amount,

@@ -24,7 +24,7 @@ class WeixinPush(object):
     def __init__(self):
         self.mm_api = WeiXinAPI()
         if settings.WEIXIN_PUSH_SWITCH:
-            self.mm_api.setAccountId(appKey=settings.WXPAY_APPID)
+            self.mm_api.setAccountId(appKey=settings.WX_PUB_APPID)
             self.temai_api = WeiXinAPI()
             self.temai_api.setAccountId(appKey=settings.WEIXIN_APPID)
 
@@ -36,7 +36,7 @@ class WeixinPush(object):
             return False
 
         temai_openid = WeixinFans.get_openid_by_unionid(customer.unionid, settings.WEIXIN_APPID)
-        mm_openid = WeixinFans.get_openid_by_unionid(customer.unionid, settings.WXPAY_APPID)
+        mm_openid = WeixinFans.get_openid_by_unionid(customer.unionid, settings.WX_PUB_APPID)
 
         if not temai_openid and not mm_openid:
             return True
@@ -49,7 +49,7 @@ class WeixinPush(object):
             return
 
         temai_openid = WeixinFans.get_openid_by_unionid(customer.unionid, settings.WEIXIN_APPID)
-        mm_openid = WeixinFans.get_openid_by_unionid(customer.unionid, settings.WXPAY_APPID)
+        mm_openid = WeixinFans.get_openid_by_unionid(customer.unionid, settings.WX_PUB_APPID)
 
         # mm_openid = 'our5huD8xO6QY-lJc1DTrqRut3us'  # bo.zhang
         # mm_openid = 'our5huPpwbdmUz4pFHKL0DW5Hm34'  # jie.lin

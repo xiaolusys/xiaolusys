@@ -375,15 +375,7 @@ class ALIDAYUSMSManager(SMSManager):
     _support_sms_template_code = True
 
     def _batch_send(self, mobiles, msg_type, **kwargs):
-        """
-        批量发送短信接口实现
-        - account
-        - pswd
-        - mobile
-        - msg
-        - needstatus:true
-        - extno:3106
-        """
+
         mobiles = self.check_and_return_mobiles(mobiles)
         sms_tpl = self.get_sms_template(msg_type)
         tpl_params = self.filter_template_params(kwargs)

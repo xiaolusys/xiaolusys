@@ -24,15 +24,14 @@ from ..options import uniqid
 from .base import PayBaseModel
 from .. import constants
 
-import pingpp
-import logging
+from mall.xiaolupay import apis as xiaolupay
 
-pingpp.api_key = settings.PINGPP_APPKEY
+import logging
 logger = logging.getLogger(__name__)
 
 
 def default_refund_no():
-    return uniqid('RF%s' % (datetime.datetime.now().strftime('%y%m%d')))
+    return uniqid('rf%s' % (datetime.datetime.now().strftime('%y%m%d')))
 
 
 class SaleRefund(PayBaseModel):
@@ -378,7 +377,7 @@ class SaleRefund(PayBaseModel):
 
     def refund_charge_approve(self):
         # type: () -> None
-        ch = pingpp.Charge.retrieve(self.charge)
+        ch = xiaolupay.Charge.retrieve(self.charge)
         re = ch.refunds.create(description=self.get_refund_desc(),
                                amount=round(self.refund_fee * 100, 0))
         self.refund_id = re.id

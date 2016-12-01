@@ -30,9 +30,9 @@ def weixin_authlogin_required(redirecto=None):
                 return HttpResponseRedirect(redirecto)
             
             if not code:
-                openid, unionid = options.get_cookie_openid(request.COOKIES, settings.WXPAY_APPID)
+                openid, unionid = options.get_cookie_openid(request.COOKIES, settings.WX_PUB_APPID)
                 if not options.valid_openid(unionid):
-                    params = {'appid':settings.WXPAY_APPID,
+                    params = {'appid':settings.WX_PUB_APPID,
                       'redirect_uri':request.build_absolute_uri().split('#')[0],
                       'response_type':'code',
                       'scope':'snsapi_userinfo',

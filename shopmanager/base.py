@@ -12,6 +12,7 @@ global_setup.cancel_pingpp_charge_ssl_verify()
 
 
 DEBUG = False
+XIAOLU_UNIONPAY_SWITH = True #切换小鹿支付开关
 
 ADMINS = ()
 
@@ -252,6 +253,15 @@ TRADE_HANDLERS_PATH = (
     #    'shopback.trades.handlers.FlashSaleHandler',
 )
 
+################### ALIPAY SETTINGS ##################
+ALIPAY_MCHID     = '2088911223385116'
+ALIAPY_APPID     = '2016012701123211'
+
+ALIPAY_GATEWAY_URL = 'https://openapi.alipay.com/gateway.do'
+ALIPAY_NOTIFY_URL = 'http://i.xiaolumm.com/rest/notify/alipay/'
+
+ALIPAY_RSA_PRIVATE_KEY_PATH = '/data/certs/alipay/rsa_private_key.pem'
+ALIPAY_RSA_PUBLIC_KEY_PATH = '/data/certs/alipay/rsa_public_key_ali.pem'
 
 #################### TAOBAO SETTINGS ###################
 APPKEY = '21532915'   #app name super ERP test ,younixiaoxiao
@@ -297,7 +307,6 @@ SECURE_REQUIRED_PATHS = (
 # ================ 微信支付 ======================
 WEIXIN_PAY_SSL_KEY = '/data/certs/wx_pub/apiclient_key.pem'
 WEIXIN_PAY_SSL_CERT = '/data/certs/wx_pub/apiclient_cert.pem'
-
 
 ################### WEIXIN SETTINGS ##################
 WEIXIN_API_HOST = "https://api.weixin.qq.com"

@@ -144,11 +144,11 @@ STATSD_CLIENT = 'django_statsd.clients.normal'
 WEIXIN_APPID  = 'wx91b20565c83072f6'
 WEIXIN_SECRET = '38e6b5f94c0f4966460913b5c11284a9'
 #for weixin pub xiaolumm,just for pay
-WXPAY_APPID    = "wx3f91056a2928ad2d"
-WXPAY_SECRET   = "e8e1f648a5e02492e1584e5413cef158"
+WX_PUB_APPID    = "wx3f91056a2928ad2d"
+WX_PUB_APPSECRET   = "e8e1f648a5e02492e1584e5413cef158"
 #for weixin app
-WXAPP_ID       = "wx25fcb32689872499"
-WXAPP_SECRET   = "3c7b4e3eb5ae4cmeixqhisok060a872ee"
+WX_APPID       = "wx25fcb32689872499"
+WX_APPSECRET   = "3c7b4e3eb5ae4cmeixqhisok060a872ee"
 
 ################### PING++ SETTINGS ##################
 

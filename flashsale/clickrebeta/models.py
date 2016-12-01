@@ -363,7 +363,7 @@ from flashsale.pay.signals import signal_saletrade_pay_confirm
 
 def get_wxopenid(sale_trade, customer):
     wx_unionid = customer.unionid
-    xd_openid = get_openid_by_unionid(wx_unionid, settings.WXPAY_APPID)
+    xd_openid = get_openid_by_unionid(wx_unionid, settings.WX_PUB_APPID)
     return xd_openid, wx_unionid
 
 
@@ -475,7 +475,7 @@ def get_strade_wxid_iter(strade):
     """ 获取特卖订单微信openid,unionid """
     buyer_openid = strade.get_buyer_openid()
     ordertime = strade.pay_time
-    wx_unionid = get_unionid_by_openid(buyer_openid, settings.WXPAY_APPID)
+    wx_unionid = get_unionid_by_openid(buyer_openid, settings.WX_PUB_APPID)
     if not wx_unionid:
         wx_unionid = strade.receiver_mobile or str(strade.buyer_id)
     xd_unoins = WeixinUnionID.objects.filter(unionid=wx_unionid, app_key=settings.WEIXIN_APPID)  # 小店openid

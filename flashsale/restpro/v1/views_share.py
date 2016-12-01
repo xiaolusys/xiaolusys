@@ -102,7 +102,7 @@ class CustomShareViewSet(viewsets.ReadOnlyModelViewSet):
         http_referer = request.META.get('HTTP_REFERER', settings.M_SITE_URL)
         referer_url = request.GET.get('referer', http_referer).split('#')[0]
 
-        wx_api = WeiXinAPI(appKey=settings.WXPAY_APPID)
+        wx_api = WeiXinAPI(appKey=settings.WX_PUB_APPID)
         signparams = wx_api.getShareSignParams(referer_url)
 
         return {'openid': self.get_xlmm_share_openid(xlmm),
@@ -114,7 +114,7 @@ class CustomShareViewSet(viewsets.ReadOnlyModelViewSet):
         http_referer = request.META.get('HTTP_REFERER', settings.M_SITE_URL)
         referer_url = request.GET.get('referer', http_referer).split('#')[0]
 
-        wx_api = WeiXinAPI(appKey=settings.WXPAY_APPID)
+        wx_api = WeiXinAPI(appKey=settings.WX_PUB_APPID)
         cache_signs = wx_api.getShareSignParams(referer_url)
 
         return Response(cache_signs)

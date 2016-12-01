@@ -5,10 +5,10 @@
 
 from django.dispatch import Signal
 
-signal_charge_success = Signal(providing_args=['data'])
+signal_charge_success = Signal(providing_args=['message'])
 
-signal_refund_success = Signal(providing_args=['data'])
+signal_refund_success = Signal(providing_args=['message'])
 
-signal_red_envelop_sent = Signal(providing_args=['data'])
+signal_red_envelop_sent = Signal(providing_args=['message'])
 
-signal_red_envelope_received = Signal(providing_args=['data'])
+signal_red_envelope_received = Signal(providing_args=['message'])

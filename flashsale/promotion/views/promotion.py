@@ -123,7 +123,7 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         customer = get_customer(request)
         if not customer:
             return '', ''
-        openid = get_openid_by_unionid(customer.unionid, settings.WXPAY_APPID)
+        openid = get_openid_by_unionid(customer.unionid, settings.WX_PUB_APPID)
         return openid, customer.unionid
 
     def get(self, request):
@@ -291,7 +291,7 @@ class APPDownloadView(WeixinAuthMixin, View):
             task_create_appdownloadrecord_with_mobile
         if from_customer.isdigit():
             if self.is_from_weixin(request):
-                self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
+                self.set_appid_and_secret(settings.WX_PUB_APPID, settings.WX_PUB_APPSECRET)
 
                 # get openid from cookie
                 openid, unionid = self.get_cookie_openid_and_unoinid(request)

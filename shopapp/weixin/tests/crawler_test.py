@@ -20,7 +20,7 @@ def main():
     t1 = datetime.now()
     add_count = 0
     while 1:
-        appkey = settings.WXPAY_APPID
+        appkey = settings.WX_PUB_APPID
         wxapi = WeiXinAPI()
         wxapi.setAccountId(appKey=appkey)
         json = wxapi.getFollowersID(next_openid=next_openid)

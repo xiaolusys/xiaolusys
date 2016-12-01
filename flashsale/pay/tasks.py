@@ -22,8 +22,7 @@ from .services import FlashSaleService
 from shopapp.smsmgr.apis import send_sms_message, SMS_TYPE
 from django.contrib.admin.models import CHANGE
 
-import pingpp
-pingpp.api_key = settings.PINGPP_APPKEY
+from mall.xiaolupay import apis as xiaolupay
 
 __author__ = 'meixqhi'
 logger = logging.getLogger(__name__)
@@ -90,8 +89,8 @@ def task_Refresh_Sale_Customer(user_params, app_key=None):
 def task_Merge_Sale_Customer(user, code):
     """ 根据当前登录用户，更新微信授权信息 """
 
-    app_key = settings.WXPAY_APPID
-    app_secret = settings.WXPAY_SECRET
+    app_key = settings.WX_PUB_APPID
+    app_secret = settings.WX_PUB_APPSECRET
 
     openid, unionid = get_user_unionid(code, appid=app_key, secret=app_secret)
     if not openid or not unionid:
@@ -237,6 +236,7 @@ def notifyTradeRefundTask(notify):
             srefund.save()
             logger.warn('refund fail:%s' % notify)
             return
+
         srefund.refund_confirm()
         strade = SaleTrade.objects.get(id=srefund.trade_id)
         if strade.is_Deposite_Order():
@@ -288,37 +288,22 @@ def pushTradeRefundTask(refund_id):
 
 
 @app.task
-def pull_Paid_SaleTrade(pre_day=1, interval=1):
+def pull_Paid_SaleTrade(pre_day=1, interval=2):
     """ pre_day:表示从几天前开始；interval:表示从pre_day开始更新多少天的数据 """
     target = datetime.datetime.now() - datetime.timedelta(days=pre_day)
     pre_date = datetime.datetime(target.year, target.month, target.day)
     post_date = pre_date + datetime.timedelta(days=interval)
-    page_size = 50
-    has_next = True
-    starting_after = None
-    while has_next:
-        if starting_after:
-            resp = pingpp.Charge.all(limit=page_size,
-                                     created={'gte': pre_date,
-                                              'lte': post_date},
-                                     starting_after=starting_after)
-        else:
-            resp = pingpp.Charge.all(limit=page_size,
-                                     created={'gte': pre_date,
-                                              'lte': post_date})
-        logger.info('pingpp-charge-resp: starting_after=%s, count=%s' %(starting_after, len(resp['data'])))
-        e = None
-        for e in resp['data']:
-            # notifyTradePayTask.s(e)()
+
+    unfinish_orderqs = SaleTrade.objects.filter(created__range=(pre_date,post_date),
+                                                pay_time__isnull=True,
+                                                channel__in=['wx','wx_pub','alipay','apipay_wap'])
+    for order_no in unfinish_orderqs.values_list('tid', flat=True):
+        charge_notify = xiaolupay.Charge.retrieve(order_no)
+        if charge_notify:
             try:
-                notifyTradePayTask(e)
-            except Exception,exc:
-                logger.error(exc.message,exc_info=True)
-        if e:
-            starting_after = e['id']
-        has_next = resp['has_more']
-        if not has_next:
-            break
+                notifyTradePayTask(charge_notify)
+            except Exception, exc:
+                logger.error(exc.message, exc_info=True)
 
 
 @app.task
@@ -382,12 +367,12 @@ def task_Pull_Red_Envelope(pre_day=7):
     starting_after = None
     while has_next:
         if starting_after:
-            resp = pingpp.RedEnvelope.all(limit=page_size,
+            resp = xiaolupay.RedEnvelope.all(limit=page_size,
                                           created={'gte': pre_date,
                                                    'lte': today},
                                           starting_after=starting_after)
         else:
-            resp = pingpp.RedEnvelope.all(limit=page_size,
+            resp = xiaolupay.RedEnvelope.all(limit=page_size,
                                           created={'gte': pre_date,
                                                    'lte': today})
         e = None
@@ -424,8 +409,8 @@ def task_Record_Mama_Fans(instance, created):
     if not instance.unionid:
         return
     # 获取对应openid
-    WXPAY_APPID = settings.WXPAY_APPID
-    weixin_user = WeixinUnionID.objects.filter(app_key=WXPAY_APPID,
+    WX_PUB_APPID = settings.WX_PUB_APPID
+    weixin_user = WeixinUnionID.objects.filter(app_key=WX_PUB_APPID,
                                                unionid=instance.unionid)
     openid = ''
     if weixin_user.exists():

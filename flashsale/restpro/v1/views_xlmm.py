@@ -1053,7 +1053,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         cash_out_time = datetime.datetime.now()
         uni_key = CashOut.gen_uni_key(mama_id, cash_out_type)
         date_field = datetime.date.today()
-        wx_union = WeixinUnionID.objects.get(app_key=settings.WXPAY_APPID, unionid=mama.openid)
+        wx_union = WeixinUnionID.objects.get(app_key=settings.WX_PUB_APPID, unionid=mama.openid)
         mama_memo = u"小鹿妈妈编号:{mama_id},提现前:{pre_cash}".format(mama_id=mama_id, pre_cash=pre_cash)
         body = u'一份耕耘，一份收获，谢谢你的努力！'
 

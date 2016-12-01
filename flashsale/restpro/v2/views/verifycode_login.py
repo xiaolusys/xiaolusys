@@ -461,7 +461,7 @@ def check_sign(request):
         logger.error('wxapp sign timeout: %s' % params)
         return False
     origin_sign = params.pop('sign')
-    new_sign = gen_wxlogin_sha1_sign(params, settings.WXAPP_SECRET)
+    new_sign = gen_wxlogin_sha1_sign(params, settings.WX_APPSECRET)
     if origin_sign and origin_sign == new_sign:
         return True
     params.update({'sign': origin_sign})

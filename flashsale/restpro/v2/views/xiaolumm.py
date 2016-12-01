@@ -190,7 +190,7 @@ class MamaFortuneViewSet(viewsets.ModelViewSet):
         mama_fortune = None
         if mama_id and int(mama_id) > 0:  # 如果有代理妈妈
             # wx_api = WeiXinAPI()
-            # wx_api.setAccountId(appKey=settings.WXPAY_APPID)
+            # wx_api.setAccountId(appKey=settings.WX_PUB_APPID)
             # resp = wx_api.createQRcode('QR_SCENE', mama_id)
             # qrcode_url = wx_api.genQRcodeAccesssUrl(resp.get('ticket',''))
             mama_fortune = self.queryset.filter(mama_id=mama_id).first()
@@ -1068,7 +1068,7 @@ class RecruitEliteMamaView(APIView):
 
         mama = XiaoluMama.objects.filter(id=mama_id).first()
         if not mama:
-            info = u"妈妈ID %d不存在!" % mama_id
+            info = u"妈妈ID %s不存在!" % mama_id
             res = {"code": 2, "info": info}
             return Response(res)
             

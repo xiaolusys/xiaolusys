@@ -394,7 +394,7 @@ class SaleProductViewSet(viewsets.ModelViewSet):
             'status': SaleProduct.PASSED
         })
         if product_link and str(product_link).strip() and self.queryset.filter(outer_id=outer_id).exists():
-            raise exceptions.APIException(u'该款已经录入了!')
+            raise exceptions.APIException(u'该款已经录入了[如果要录入多份，请在图片链接尾部加上标注如："#标注1"]!')
         salesupplier_id = request.data.get('sale_supplier')
         salesupplier  = SaleSupplier.objects.get(id=salesupplier_id)
         if not salesupplier.ware_by:

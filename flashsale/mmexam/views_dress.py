@@ -41,7 +41,7 @@ class DressShareMixin(object):
             from shopapp.weixin.weixin_apis import WeiXinAPI
             wx_api = WeiXinAPI()
             referal_url = self.get_referal_url(request)
-            wx_api.setAccountId(appKey=settings.WXPAY_APPID)
+            wx_api.setAccountId(appKey=settings.WX_PUB_APPID)
             return wx_api.getShareSignParams(referal_url)
         except Exception, exc:
             logger.error(exc.message, exc_info=True)
@@ -148,7 +148,7 @@ class DressQuestionView(WeixinAuthMixin, DressShareMixin, APIView):
         customer = get_object_or_404(Customer, user=request.user.id)
         unionid = customer.unionid
 
-        self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
+        self.set_appid_and_secret(settings.WX_PUB_APPID, settings.WX_PUB_APPSECRET)
         if not unionid:
             user_infos = self.get_auth_userinfo(request)
             unionid = user_infos.get('unionid')
@@ -157,7 +157,7 @@ class DressQuestionView(WeixinAuthMixin, DressShareMixin, APIView):
                 redirect_url = self.get_snsuserinfo_redirct_url(request)
                 return redirect(redirect_url)
         else:
-            openid = get_openid_by_unionid(unionid, settings.WXPAY_APPID)
+            openid = get_openid_by_unionid(unionid, settings.WX_PUB_APPID)
             user_infos = {
                 'openid': openid,
                 'unionid': customer.unionid,
@@ -266,7 +266,7 @@ class DressResultView(WeixinAuthMixin, DressShareMixin, APIView):
 
     def get(self, request, *args, **kwargs):
 
-        self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
+        self.set_appid_and_secret(settings.WX_PUB_APPID, settings.WX_PUB_APPSECRET)
         openid, unionid = self.get_openid_and_unionid(request)
         if not self.valid_openid(unionid):
             redirect_url = self.get_snsuserinfo_redirct_url(request)
@@ -317,7 +317,7 @@ class DressAgeView(WeixinAuthMixin, DressShareMixin, APIView):
 
     def get(self, request, *args, **kwargs):
 
-        self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
+        self.set_appid_and_secret(settings.WX_PUB_APPID, settings.WX_PUB_APPSECRET)
         openid, unionid = self.get_openid_and_unionid(request)
         if not self.valid_openid(unionid):
             redirect_url = self.get_snsuserinfo_redirct_url(request)

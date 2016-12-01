@@ -334,7 +334,7 @@ class SaleRefundChangeList(ChangeList):
         return super(SaleRefundChangeList, self).get_queryset(request)
 
 
-import pingpp
+from mall.xiaolupay import apis as xiaolupay
 
 from flashsale.xiaolumm.models import XiaoluMama, CarryLog
 from .filters import Filte_By_Reason
@@ -515,6 +515,48 @@ class SaleRefundAdmin(BaseModelAdmin):
                 logger.error(exc.message, exc_info=True)
                 self.message_user(request, u'系统出错:%s' % exc.message)
             return HttpResponseRedirect("./")
+
+        # elif request.POST.has_key("_refund_invoke"):
+        #     try:
+        #         strade = SaleTrade.objects.get(id=obj.trade_id)
+        #         if (obj.status == SaleRefund.REFUND_APPROVE and
+        #                     strade.channel != SaleTrade.WALLET and
+        #                 obj.refund_id.strip()):
+        #
+        #             ch = xiaolupay.Charge.retrieve(strade.charge)
+        #             rf = ch.refunds.retrieve(obj.refund_id)
+        #             if rf.status == 'failed':
+        #                 rf = ch.refunds.create(description=obj.get_refund_desc(),
+        #                                        amount=int(obj.refund_fee * 100))
+        #                 obj.refund_id = rf.id
+        #                 obj.save()
+        #             else:
+        #                 notifyTradeRefundTask(rf)
+        #             log_action(request.user.id, obj, CHANGE, '重新退款:refund=%s' % rf.id)
+        #             self.message_user(request, '退款申请成功，等待返款。')
+        #         else:
+        #             self.message_user(request, '订单退款状态异常')
+        #     except Exception, exc:
+        #         logger.error(exc.message, exc_info=True)
+        #         self.message_user(request, '系统出错:%s' % exc.message)
+        #
+        #     return HttpResponseRedirect("./")
+        #
+        # elif request.POST.has_key("_refund_complete"):
+        #     try:
+        #         if obj.status == SaleRefund.REFUND_APPROVE:
+        #             # obj.status = SaleRefund.REFUND_SUCCESS
+        #             # obj.save()
+        #             obj.refund_confirm()
+        #             log_action(request.user.id, obj, CHANGE, '确认退款完成:%s' % obj.refund_id)
+        #             self.message_user(request, '确认退款已完成')
+        #         else:
+        #             self.message_user(request, '退款尚未完成')
+        #     except Exception, exc:
+        #         logger.error(exc.message, exc_info=True)
+        #         self.message_user(request, '系统出错:%s' % exc.message)
+        #     return HttpResponseRedirect("./")
+
         return super(SaleRefundAdmin, self).response_change(request, obj, *args, **kwargs)
 
     # 添加导出退款单功能

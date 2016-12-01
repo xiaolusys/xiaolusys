@@ -15,7 +15,6 @@ SMS_PUSH_SWITCH = True  # 短信推送开关
 WEIXIN_PUSH_SWITCH = True  # 微信推送开关
 MAMA_MISSION_PUSH_SWITCH = True  # 妈妈周激励推送开关
 
-
 STATICFILES_DIRS = (
     os.path.join(PROJECT_ROOT, "site_media", "static"),
 )
@@ -104,30 +103,52 @@ REST_FRAMEWORK.update({
 })
 
 ######################## WEIXIN CONFIG ########################
-# 小鹿美美特卖
+
+WX_NOTIFY_URL = 'http://api.xiaolumeimei.com/rest/notify/wxpay/'
+WX_JS_API_CALL_URL ='http://i.xiaolumm.com/pay/?showwxpaytitle=1'
+
+# ================ 小鹿美美特卖[公众号] ==================
 WEIXIN_SECRET = 'dbd2103bb55c46c7a019ae1c1089f2fa'
 WEIXIN_APPID = 'wx3f91056a2928ad2d'
 
-# 小鹿美美
-WXPAY_APPID = "wx3f91056a2928ad2d"
-WXPAY_SECRET = "dbd2103bb55c46c7a019ae1c1089f2fa"
+# ================ 小鹿美美[公众号] ==================
+WX_PUB_APPID = "wx3f91056a2928ad2d"
+WX_PUB_APPSECRET = "dbd2103bb55c46c7a019ae1c1089f2fa"
 
-# APP客户端
-WXAPP_ID = "wx25fcb32689872499"
-WXAPP_SECRET = "3c7b4e3eb5ae4cfb132b2ac060a872ee"
+WX_PUB_MCHID = "1236482102" #受理商ID，身份标识
+WX_PUB_KEY   = "t5UXHfwR7QEv2jMLFuZm8DdqnAT0ON9a" #支付密钥
 
-# ================ 小米推送　======================
+WX_PUB_CERT_PEM_PATH = '/data/certs/wx_pub/apiclient_cert.pem'
+WX_PUB_KEY_PEM_PATH = '/data/certs/wx_pub/apiclient_key.pem'
 
-# 小米推送
+# ================ 小鹿美美[ APP客户端] ==================
+WX_APPID = "wx25fcb32689872499"
+WX_APPSECRET = "3c7b4e3eb5ae4cfb132b2ac060a872ee"
+
+WX_MCHID = "1268398601" #受理商ID，身份标识
+WX_KEY   = "t5UXHfwR7QEv2jMLFuZm8DdqnAT0ON9a" #支付密钥
+
+WX_CERT_PEM_PATH = '/data/certs/wx/apiclient_cert.pem'
+WX_KEY_PEM_PATH = '/data/certs/wx/apiclient_key.pem'
+
+################### ALIPAY SETTINGS ##################
+ALIPAY_MCHID     = '2088911223385116'
+ALIAPY_APPID     = '2016012701123211'
+
+ALIPAY_GATEWAY_URL = 'https://openapi.alipay.com/gateway.do'
+ALIPAY_NOTIFY_URL = 'http://api.xiaolumeimei.com/rest/notify/alipay/'
+
+######################## 小米推送 CONFIG ########################
 IOS_APP_SECRET = 'UN+ohC2HYHUlDECbvVKefA=='
 ANDROID_APP_SECRET = 'WHdmdNYgnXWokStntg87sg=='
-
-# ================ 小米推送 END ==================
 
 ################### PING++ SETTINGS ##################
 PINGPP_CLENTIP = "180.97.163.149"
 PINGPP_APPID = "app_LOOajDn9u9WDjfHa"
 PINGPP_APPKEY = "sk_live_HOS4OSW10u5CDyrn5Gn9izLC"
+
+################### XIAOLU UNIONPAY SETTINGS ##################
+XIAOLU_CLENTIP = "118.178.116.5"
 
 ########################### ONEAPM Statsd ##############################
 STATSD_HOST = '192.168.0.1'
@@ -172,12 +193,14 @@ LOGGER_HANDLERS = [
     ('auth', 'sentry,file'),
     ('supplychain', 'sentry,file'),
     ('statistics', 'sentry,file'),
+    ('dogslow', 'sentry,file'),
     ('django.request', 'sentry,file'),
     ('sentry.errors', 'sentry,file'),
     ('celery.handler', 'sentry,file'),
     ('notifyserver.handler', 'sentry,file'),
     ('yunda.handler', 'sentry,file'),
     ('mail.handler', 'sentry,file'),
+    ('mall', 'sentry,file'),
     ('xhtml2pdf', 'sentry,file'),
     ('restapi.errors', 'sentry,file'),
     ('weixin.proxy', 'sentry,file'),

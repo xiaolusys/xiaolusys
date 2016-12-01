@@ -139,7 +139,7 @@ class WeiXinAccount(models.Model):
         self.save(update_fields=['refund_updated'])
 
     def isResponseToDRF(self):
-        return self.app_id in (settings.WXPAY_APPID,)
+        return self.app_id in (settings.WX_PUB_APPID,)
 
 
 def invalid_wxaccount_cache_value(sender, instance, created, **kwargs):

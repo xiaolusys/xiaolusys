@@ -523,7 +523,7 @@ def get_mama_new_task(mama_id):
 
     # 新手任务
     subscribe_weixin = WeixinFans.objects.filter(
-        unionid=customer.unionid, subscribe=True, app_key=settings.WXPAY_APPID).exists()
+        unionid=customer.unionid, subscribe=True, app_key=settings.WX_PUB_APPID).exists()
 
     carry_record = CarryRecord.objects \
         .filter(mama_id=mama_id, carry_type=CarryRecord.CR_CLICK).exists()

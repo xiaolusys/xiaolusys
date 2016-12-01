@@ -29,16 +29,16 @@ class WeixinPubBackend(object):
 
         code = content.get('code')
         userinfo = options.get_auth_userinfo(code,
-                                             appid=settings.WXPAY_APPID,
-                                             secret=settings.WXPAY_SECRET,
+                                             appid=settings.WX_PUB_APPID,
+                                             secret=settings.WX_PUB_APPSECRET,
                                              request=request)
         openid, unionid = userinfo.get('openid'), userinfo.get('unionid')
         if not openid or not unionid:
-            openid, unionid = options.get_cookie_openid(request.COOKIES, settings.WXPAY_APPID)
+            openid, unionid = options.get_cookie_openid(request.COOKIES, settings.WX_PUB_APPID)
 
         if openid and not unionid:
             logger.warn('weixin unionid not return:openid=%s'%openid)
-            unionid = self.get_unoinid(openid,settings.WXPAY_APPID)
+            unionid = self.get_unoinid(openid,settings.WX_PUB_APPID)
 
         if not options.valid_openid(unionid):
             return AnonymousUser()
@@ -49,7 +49,7 @@ class WeixinPubBackend(object):
             profile = Customer.objects.get(unionid=unionid,status=Customer.NORMAL)
             #如果openid有误，则重新更新openid
             if unionid :
-                task_Refresh_Sale_Customer.delay(userinfo, app_key=settings.WXPAY_APPID)
+                task_Refresh_Sale_Customer.delay(userinfo, app_key=settings.WX_PUB_APPID)
 
             if profile.user:
                 if not profile.user.is_active:
@@ -67,7 +67,7 @@ class WeixinPubBackend(object):
 
             user,state = User.objects.get_or_create(username=unionid,is_active=True)
             Customer.objects.get_or_create(unionid=unionid,openid=openid,user=user)
-            task_Refresh_Sale_Customer.delay(userinfo, app_key=settings.WXPAY_APPID)
+            task_Refresh_Sale_Customer.delay(userinfo, app_key=settings.WX_PUB_APPID)
 
         return user
 

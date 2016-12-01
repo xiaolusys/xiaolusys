@@ -6,6 +6,8 @@ result=success&trade_no=2015041300001000100061825518&
 sign=e6hSj2gP%2BlxZeClZXq5AuKbXRyytF3EHN1cMYLdFjf1MnfZjpfkAVCEDFVV7Iektk4TbIHZzWlVFEkT2QXXJhsvcH32RuMijkSOadt1K9gQjJQT%2FlJhhIFpVk95N%2FC4bWBI5s2WHBXxWxrl2BMCVjQ5B%2BihZba9mFprshk%2FO6wc%3D&
 sign_type=0001
 """
+default_app_config = 'flashsale.pay.apps.PayConfig'
+
 NO_REFUND = 0
 REFUND_CLOSED = 1
 REFUND_REFUSE_BUYER = 2

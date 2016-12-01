@@ -980,7 +980,7 @@ class XiaoluMama(BaseModel):
         customer = self.get_customer()
 
         subscribe_weixin = WeixinFans.objects.filter(
-            unionid=customer.unionid, subscribe=True, app_key=settings.WXPAY_APPID).exists()
+            unionid=customer.unionid, subscribe=True, app_key=settings.WX_PUB_APPID).exists()
         if not subscribe_weixin:
             return NewMamaTask.TASK_SUBSCRIBE_WEIXIN
 
@@ -1506,7 +1506,7 @@ pre_save.connect(potentialmama_xlmm_newtask,
 #        xlmm = XiaoluMama.objects.filter(id=potentialmama.potential_mama).first()
 #        customer = xlmm.get_customer()
 #        has_subscribe = WeixinFans.objects.filter(
-#            unionid=customer.unionid, app_key=settings.WXPAY_APPID, subscribe=True).first()
+#            unionid=customer.unionid, app_key=settings.WX_PUB_APPID, subscribe=True).first()
 #
 #        if not has_subscribe:  # 没关注
 #            task_sms_push_mama.delay(xlmm)

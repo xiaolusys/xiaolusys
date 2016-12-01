@@ -221,7 +221,7 @@ class Customer(BaseModel):
             return ('', '')
         from shopapp.weixin import options
         openid = options.get_openid_by_unionid(self.unionid, appkey)
-        if not openid and appkey == settings.WXPAY_APPID:
+        if not openid and appkey == settings.WX_PUB_APPID:
             return self.openid, self.unionid
         return openid, self.unionid
 
@@ -237,7 +237,7 @@ class Customer(BaseModel):
         """ 是否关注微信公众号 ,存在关注记录返回1否则返回0 """
         from shopapp.weixin.models import WeixinUnionID
         try:
-            WeixinUnionID.objects.get(app_key=settings.WXPAY_APPID, unionid=self.unionid)
+            WeixinUnionID.objects.get(app_key=settings.WX_PUB_APPID, unionid=self.unionid)
             return 1
         except WeixinUnionID.DoesNotExist:
             return 0
@@ -446,7 +446,7 @@ class UserBudget(PayBaseModel):
             if not self.user.unionid:
                 return 5, '提现请先关注公众号［小鹿美美］'
             from shopapp.weixin.models import WeixinUnionID
-            wx_union = WeixinUnionID.objects.get(app_key=settings.WXPAY_APPID, unionid=self.user.unionid)
+            wx_union = WeixinUnionID.objects.get(app_key=settings.WX_PUB_APPID, unionid=self.user.unionid)
         except WeixinUnionID.DoesNotExist:
             return 4, '提现请先关注公众号［小鹿美美］'  # 用户没有公众号提现账户
 

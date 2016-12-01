@@ -110,7 +110,7 @@ class WeixinBaseAuthJoinView(WeixinAuthMixin, APIView):
 
     def get(self, request, event_id, *args, **kwargs):
         # 1. check whether event_id is valid
-        self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
+        self.set_appid_and_secret(settings.WX_PUB_APPID, settings.WX_PUB_APPSECRET)
         activity_entry = get_activity_entry(event_id)
         if not activity_entry:
             return Response({"error": "wrong event id"})
@@ -151,7 +151,7 @@ class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
 
     def get(self, request, event_id, *args, **kwargs):
         # 1. check whether event_id is valid
-        self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
+        self.set_appid_and_secret(settings.WX_PUB_APPID, settings.WX_PUB_APPSECRET)
         activity_entry = get_activity_entry(event_id)
         if not activity_entry:
             return Response({"error": "wrong event id"})
@@ -205,7 +205,7 @@ class AppJoinView(WeixinAuthMixin, APIView):
             return Response({"bind": False})
 
         unionid = customer.unionid
-        openid = get_openid_by_unionid(unionid, settings.WXPAY_APPID)
+        openid = get_openid_by_unionid(unionid, settings.WX_PUB_APPID)
 
         application = get_application(event_id, unionid, customer.mobile)
         if not application:
@@ -266,7 +266,7 @@ class ApplicationView(WeixinAuthMixin, APIView):
 
         customer = get_customer(request)
         if customer:
-            openid = get_openid_by_unionid(customer.unionid, settings.WXPAY_APPID)
+            openid = get_openid_by_unionid(customer.unionid, settings.WX_PUB_APPID)
             mobile = customer.mobile
 
         applied = False

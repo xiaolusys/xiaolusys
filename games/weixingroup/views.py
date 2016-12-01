@@ -37,7 +37,7 @@ class XiaoluAdministratorViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
             xiaoumama = request.user.customer.getXiaolumm() if request.user.customer else None
         else:
             # 1. check whether event_id is valid
-            self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
+            self.set_appid_and_secret(settings.WX_PUB_APPID, settings.WX_PUB_APPSECRET)
             # 2. get openid from cookie
             openid, unionid = self.get_cookie_openid_and_unoinid(request)
             if not self.valid_openid(unionid):
@@ -71,7 +71,7 @@ class XiaoluAdministratorViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
             xiaoumama = request.user.customer.getXiaolumm() if request.user.customer else None
         else:
             # 1. check whether event_id is valid
-            self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
+            self.set_appid_and_secret(settings.WX_PUB_APPID, settings.WX_PUB_APPSECRET)
             # 2. get openid from cookie
             openid, unionid = self.get_cookie_openid_and_unoinid(request)
             if not self.valid_openid(unionid):
@@ -240,7 +240,7 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
         group = GroupMamaAdministrator.objects.filter(group_uni_key=group_uni_key).first()
         if not group:
             raise exceptions.NotFound(u'此妈妈尚未加入微信群组')
-        self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
+        self.set_appid_and_secret(settings.WX_PUB_APPID, settings.WX_PUB_APPSECRET)
         # get openid from cookie
         openid, unionid = self.get_cookie_openid_and_unoinid(request)
         userinfo = {}

@@ -43,12 +43,12 @@ class MamaRegisterView(WeixinAuthMixin, PayInfoMethodMixin, APIView):
         deposite_url = "/m/register/deposite/?mama_id={0}".format(mama_id)
         # 加上装饰器之后已经登陆并注册状态（customer unionid）
         # 必须注册之后才可以成为小鹿代理　　这里使用特卖公众账号授权
-        self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
+        self.set_appid_and_secret(settings.WX_PUB_APPID, settings.WX_PUB_APPSECRET)
         # 获取 openid 和 unionid
         # openid, unionid = self.get_openid_and_unionid(request)
         customer = Customer.objects.get(user=request.user)
         unionid = customer.unionid
-        openid  = get_openid_by_unionid(unionid, settings.WXPAY_APPID)
+        openid  = get_openid_by_unionid(unionid, settings.WX_PUB_APPID)
 
         logger.info('mama register：%s,%s,%s' % (customer, openid, unionid))
         # if not valid_openid(openid) or not valid_openid(unionid):

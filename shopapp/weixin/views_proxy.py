@@ -112,7 +112,7 @@ class WXMessageHttpProxy(HttpProxy):
             return HttpResponse('success')
 
         # 如果公众号由多客服处理，直接转发
-        if wx_api.getAppKey() == settings.WXPAY_APPID:
+        if wx_api.getAppKey() == settings.WX_PUB_APPID:
             ret_params = {'ToUserName': params['FromUserName'],
                           'FromUserName': params['ToUserName'],
                           'CreateTime': int(time.time())}
