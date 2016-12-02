@@ -381,12 +381,12 @@ class CouponTransferRecord(BaseModel):
         coupon.save()
 
     @classmethod
-    def create_exchg_order_record(cls, request_user, coupon_num, sale_order, template_id):
+    def create_exchg_order_record(cls, customer, coupon_num, sale_order, template_id):
         from flashsale.xiaolumm.models import XiaoluMama
         from flashsale.pay.models import Customer
         from flashsale.coupon.models import CouponTemplate
 
-        from_customer = Customer.objects.normal_customer.filter(user=request_user).first()
+        from_customer = customer
         from_mama = from_customer.get_charged_mama()
 
         from_customer_id = from_customer.id

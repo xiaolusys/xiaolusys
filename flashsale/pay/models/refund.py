@@ -2,31 +2,28 @@
 from __future__ import unicode_literals
 
 import datetime
-from django.db import models
-from django.conf import settings
-from django.db import transaction
-from django.db.models.signals import post_save
-from django.db.models import F
+import logging
 
-from shopback.categorys.models import CategorySaleStat
+from django.db import models
+from django.db import transaction
+from django.db.models import F
+from django.db.models.signals import post_save
+
 from common.modelutils import update_model_fields
 from core.fields import JSONCharMyField
-
-from shopback import paramconfig as pcfg
-from shopback.items.models import Product
-from supplychain.supplier.models import SaleProduct
-from flashsale.pay.signals import signal_saletrade_refund_post
 from flashsale.pay import NO_REFUND, REFUND_CLOSED, REFUND_REFUSE_BUYER, REFUND_WAIT_SELLER_AGREE, \
     REFUND_WAIT_RETURN_GOODS, REFUND_CONFIRM_GOODS, REFUND_APPROVE, REFUND_SUCCESS
+from flashsale.pay.signals import signal_saletrade_refund_post
+from mall.xiaolupay import apis as xiaolupay
+from shopback import paramconfig as pcfg
+from shopback.categorys.models import CategorySaleStat
+from shopback.items.models import Product
 from shopback.warehouse.constants import WARE_THIRD, WARE_SH, WARE_GZ, WARE_COMPANY
-from ..signals import signal_saletrade_refund_confirm
-from ..options import uniqid
+from supplychain.supplier.models import SaleProduct
 from .base import PayBaseModel
 from .. import constants
-
-from mall.xiaolupay import apis as xiaolupay
-
-import logging
+from ..options import uniqid
+from ..signals import signal_saletrade_refund_confirm
 logger = logging.getLogger(__name__)
 
 
@@ -365,6 +362,13 @@ class SaleRefund(PayBaseModel):
                 BudgetLog.create_salerefund_log(self, payment)
         self.refund_confirm()
         self.send_refund_success_weixin_message()  # 退款成功推送
+
+        #对于已经兑换精品券的订单，那么还需要扣除妈妈的零钱、取消订单兑换记录、退回她的券、新增券退货流通记录，如果零钱不足，只扣除
+        #零钱（扣为负数），其它3步不做，写入一条退款欠款记录。待妈妈补足欠款后做后3步
+
+        from flashsale.coupon.apis.v1.transfer import saleorder_return_coupon_exchange
+        saleorder_return_coupon_exchange(self, payment)
+
 
     @transaction.atomic
     def refund_fast_approve(self):

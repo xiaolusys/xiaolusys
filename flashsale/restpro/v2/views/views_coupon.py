@@ -374,62 +374,9 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
             customer_id = customer.id
         mama = get_charged_mama(request.user)
         mama_id = mama.id
-        stock_num = CouponTransferRecord.get_coupon_stock_num(mama_id, exchg_template_id)
-        if stock_num < int(coupon_num):
-            info = u"您的精品券库存不足，请立即购买!"
-            return Response({"code": 2, "info": info})
 
-        logger.info({
-            'message': u'exchange order:customer=%s, mama_id=%s coupon_num=%s order_id=%s templateid=%s' % (
-                customer_id, mama_id, coupon_num, order_id, exchg_template_id),
-            'data': '%s' % content
-        })
-        # (1)sale order置为已经兑换
-        from flashsale.pay.models.trade import SaleOrder, SaleTrade
-        sale_order = SaleOrder.objects.filter(oid=order_id).first()
-        if sale_order:
-            sale_order.extras['exchange'] = True
-            SaleOrder.objects.filter(oid=order_id).update(extras=sale_order.extras)
-        else:
-            logger.warn({
-                'message': u'exchange order: order_id=%s not exist' % (order_id),
-            })
-            info = u"找不到订单记录，兑换失败!"
-            return Response({"code": 3, "info": info})
-
-        #(2)用户优惠券需要变成使用状态
-        user_coupons = UserCoupon.objects.filter(customer_id=customer_id, template_id=int(exchg_template_id), status=UserCoupon.UNUSED)
-        if len(user_coupons) < int(coupon_num):
-            logger.warn({
-                'message': u'exchange order:user_coupon < exchg coupon_num=%s ,user_coupons=%s templateid=%s' % (
-                    coupon_num, order_id, exchg_template_id),
-                'data': '%s' % content
-            })
-            info = u"您的精品券数量不足，请联系微信客服!"
-            return Response({"code": 4, "info": info})
-        use_num = 0
-        for coupon in user_coupons:
-            if use_num < int(coupon_num):
-                UserCoupon.objects.filter(uniq_id=coupon.uniq_id).update(status=UserCoupon.USED, trade_tid=sale_order.oid, finished_time=datetime.datetime.now())
-                use_num += 1
-            else:
-                break
-
-        #(3)在user钱包写收入记录
-        try:
-            from flashsale.pay.models.user import BudgetLog
-            today = datetime.date.today()
-            order_log = BudgetLog(customer_id=customer_id, flow_amount=int(sale_order.payment * 100), budget_type=BudgetLog.BUDGET_IN,
-                                  budget_log_type=BudgetLog.BG_EXCHG_ORDER, referal_id=sale_order.id,
-                                  uni_key=sale_order.oid, status=BudgetLog.CONFIRMED,
-                                  budget_date=today)
-
-            order_log.save()
-        except IntegrityError:
-            pass
-
-        # (4)在精品券流通记录增加兑换记录
-        res = CouponTransferRecord.create_exchg_order_record(request.user, int(coupon_num), sale_order, int(exchg_template_id))
+        from flashsale.coupon.apis.v1.transfer import coupon_exchange_saleorder
+        res = coupon_exchange_saleorder(customer, order_id, mama_id, exchg_template_id, coupon_num)
         res = Response(res)
         # res["Access-Control-Allow-Origin"] = "*"
 
