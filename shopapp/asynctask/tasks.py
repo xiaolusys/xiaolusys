@@ -1,8 +1,8 @@
 # -*- encoding:utf8 -*-
 from __future__ import absolute_import, unicode_literals
 from shopmanager import celery_app as app
-from celery import Celery
-from celery.app.task import Task
+# from celery import Celery
+# from celery.app.task import Task
 
 import sys
 import os
@@ -53,7 +53,7 @@ def full_class_name(ins):
 def taobaoAsyncHandleTask():
     """ 淘宝异步任务处理核心类 """
     asynctasks = TaobaoAsyncTaskModel.objects.filter(status__in=(TASK_ASYNCOK, TASK_ASYNCCOMPLETE, TASK_DOWNLOAD))
-    app = Celery()
+    # app = Celery()
     for asynctask in asynctasks:
         task_name = asynctask.task
 
@@ -76,7 +76,7 @@ def taobaoAsyncHandleTask():
                 TaobaoAsyncTaskModel.objects.filter(task_id=asynctask.task_id).update(status=TASK_SUCCESS)
 
 
-class TaobaoAsyncBaseTask(Task):
+class TaobaoAsyncBaseTask(object):
     """
         {
             "topats_itemcats_get_response": {

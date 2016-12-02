@@ -21,7 +21,7 @@ class XiaoluPayChargeTestCase(TestCase):
             'currency': 'cny',
             'subject': 'test idea',
             'body': '',
-            'extra': { },
+            'extra': {},
         }
 
     def test_wx_pub_charge(self):

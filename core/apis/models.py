@@ -53,12 +53,12 @@ class DictObject(dict):
             raise AttributeError(*err.args)
 
     def __setitem__(self, k, v):
-        if v == "":
-            raise ValueError(
-                "You cannot set %s to an empty string. "
-                "We interpret empty strings as None in requests."
-                "You may set %s.%s = None to delete the property" % (
-                    k, str(self), k))
+        # if v == "":
+        #     raise ValueError(
+        #         "You cannot set %s to an empty string. "
+        #         "We interpret empty strings as None in requests."
+        #         "You may set %s.%s = None to delete the property" % (
+        #             k, str(self), k))
 
         super(DictObject, self).__setitem__(k, v)
 

@@ -1,13 +1,13 @@
 # coding: utf8
 from __future__ import absolute_import, unicode_literals
 
-import time
+import datetime
 import uuid
 
 def create_signal_message(msg_type, data):
     return {
         "id": uuid.uuid4(),
-        "created": time.time(),
+        "created": datetime.datetime.now(),
         "type": msg_type,
         "data": data,
         "object": "signal",

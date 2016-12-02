@@ -1062,12 +1062,6 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
-    u'淘宝异步任务结果自动处理': {  # 淘宝异步任务执行主任务
-        'task': 'shopapp.asynctask.tasks.taobaoAsyncHandleTask',
-        'schedule': crontab(minute="*/30"),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
     u'定时韵达录单任务': {
         'task': 'shopapp.yunda.tasks.task_update_yunda_order_addr',
         'schedule': crontab(minute="0", hour="10,13"),
