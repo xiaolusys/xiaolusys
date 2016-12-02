@@ -310,7 +310,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
 
             from flashsale.xiaolumm.models.models_fortune import OrderCarry
             exchg_orders = OrderCarry.objects.filter(mama_id=mama_id, carry_type__in=[OrderCarry.WAP_ORDER, OrderCarry.APP_ORDER],
-                                                    status__in=[OrderCarry.CONFIRM], date_field__gt='2016-11-30').exclude(contributor_id=customer_id)
+                                                    status__in=[OrderCarry.ESTIMATE, OrderCarry.CONFIRM], date_field__gt='2016-11-30').exclude(contributor_id=customer_id)
 
         results = []
         if exchg_orders:
@@ -342,7 +342,8 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                             else:
                                 results.append({'exchg_template_id': template_id, 'num': sale_order.num,
                                                 'order_id': entry.order_id, 'sku_img': entry.sku_img,
-                                                'contributor_nick': entry.contributor_nick, 'status': OrderCarry.STATUS_TYPES[entry.status][1],
+                                                'contributor_nick': entry.contributor_nick, 'status': entry.status,
+                                                'status_display': OrderCarry.STATUS_TYPES[entry.status][1],
                                                 'order_value': entry.order_value, 'date_field': entry.date_field})
 
         logger.info({
