@@ -1,4 +1,4 @@
-# coding=utf-8
+# coding:utf-8
 __author__ = 'zfz'
 import os
 from .base import *
@@ -17,10 +17,10 @@ SMS_PUSH_SWITCH = False  # 短信推送开关
 WEIXIN_PUSH_SWITCH = False  # 微信推送开关
 MAMA_MISSION_PUSH_SWITCH = False  # 妈妈周激励推送开关
 
+CLOSE_CELERY = True
 ORMCACHE_ENABLE = False
-CELERY_TASK_ALWAYS_EAGER = True
-CLOSE_CELERY = False
-CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
+CELERY_TASK_ALWAYS_EAGER = False
+CELERY_TASK_EAGER_PROPAGATES = True
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
@@ -45,7 +45,7 @@ PROJECT_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 #     }
 # }
 
-# ######################MIGRATE DB SETTINGS#############################
+######################MIGRATE DB SETTINGS#############################
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -92,7 +92,8 @@ CACHES = {
         }
     }
 }
-CELERY_BROKER_URL = 'redis://192.168.1.102:6379/7'
+CELERY_BROKER_URL = 'redis://192.168.1.102:6379/5'
+CELERY_RESULT_BACKEND = 'redis://192.168.1.102:6379/6'
 
 ##################################################################
 INTERNAL_IPS = ('127.0.0.1',)
@@ -120,8 +121,6 @@ INSTALLED_APPS.extend([
 ])
 
 #################################### EXTRA CONFIG ########################################
-
-
 import raven
 RAVEN_CONFIG = {
     'dsn': 'http://7f041a7308f842a682d621f7ae3c81a9:c74fbc9e12f14835bb671a82e1f6dc53@sentry.xiaolumm.com/3',
@@ -140,15 +139,38 @@ STATSD_CLIENT = 'django_statsd.clients.normal'
 #         'django_statsd.middleware.GraphiteMiddleware',
 #         ) + MIDDLEWARE_CLASSES
 
-######################### WEIXIN CONFIG #####################
-WEIXIN_APPID  = 'wx91b20565c83072f6'
-WEIXIN_SECRET = '38e6b5f94c0f4966460913b5c11284a9'
-#for weixin pub xiaolumm,just for pay
-WX_PUB_APPID    = "wx3f91056a2928ad2d"
-WX_PUB_APPSECRET   = "e8e1f648a5e02492e1584e5413cef158"
-#for weixin app
-WX_APPID       = "wx25fcb32689872499"
-WX_APPSECRET   = "3c7b4e3eb5ae4cmeixqhisok060a872ee"
+######################## WEIXIN CONFIG ########################
+
+WX_NOTIFY_URL = 'http://i.xiaolumm.com/rest/notify/wxpay/'
+WX_JS_API_CALL_URL ='http://i.xiaolumm.com/pay/?showwxpaytitle=1'
+
+# ================ 小鹿美美特卖[公众号] ==================
+WEIXIN_SECRET = 'dbd2103bb55c46c7a019ae1c1089f2fa'
+WEIXIN_APPID = 'wx3f91056a2928ad2d'
+
+# ================ 小鹿美美[公众号] ==================
+WX_PUB_APPID = "wx3f91056a2928ad2d"
+WX_PUB_APPSECRET = "dbd2103bb55c46c7a019ae1c1089f2fa"
+
+WX_PUB_MCHID = "1236482102" #受理商ID，身份标识
+WX_PUB_KEY   = "t5UXHfwR7QEv2jMLFuZm8DdqnAT0ON9a" #支付密钥
+
+WX_PUB_CERT_PEM_PATH = '/data/certs/wx_pub/apiclient_cert.pem'
+WX_PUB_KEY_PEM_PATH = '/data/certs/wx_pub/apiclient_key.pem'
+
+WX_PUB_REFUND_USER_ID = 'refundem1@1236482102'
+
+# ================ 小鹿美美[ APP客户端] ==================
+WX_APPID = "wx25fcb32689872499"
+WX_APPSECRET = "3c7b4e3eb5ae4cfb132b2ac060a872ee"
+
+WX_MCHID = "1268398601" #受理商ID，身份标识
+WX_KEY   = "t5UXHfwR7QEv2jMLFuZm8DdqnAT0ON9a" #支付密钥
+
+WX_CERT_PEM_PATH = '/data/certs/wx/apiclient_cert.pem'
+WX_KEY_PEM_PATH = '/data/certs/wx/apiclient_key.pem'
+
+WX_REFUND_USER_ID = 'refundem2'
 
 ################### PING++ SETTINGS ##################
 
