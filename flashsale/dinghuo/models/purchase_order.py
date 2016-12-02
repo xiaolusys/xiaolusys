@@ -602,9 +602,7 @@ class OrderList(models.Model):
 
     def check_by_package_skuitem(self):
         from shopback.trades.models import PackageSkuItem
-        from flashsale.dinghuo.models_purchase import PurchaseDetail
-        pds = PurchaseDetail.objects.filter(purchase_order_unikey=self.purchase_order_unikey)
-        sku_ids = [pd.sku_id for pd in pds]
+        sku_ids = list(self.purchase_order.arrangements.values_list('sku_id', flat=True))
         psis = PackageSkuItem.objects.filter(sku_id__in=sku_ids, assign_status=PackageSkuItem.NOT_ASSIGNED,
                                              purchase_order_unikey='')
         sku_nums = {i['sku_id']: i['total'] for i in psis.values('sku_id').annotate(total=Sum('num'))}
