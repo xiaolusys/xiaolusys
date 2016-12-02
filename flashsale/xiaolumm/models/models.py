@@ -276,7 +276,10 @@ class XiaoluMama(BaseModel):
         #老的代码使用product detail获得返利计划id，最新流程是放到modelproduct里面了，2016-12-1
         from flashsale.pay.models.product import ModelProduct
         mp = ModelProduct.objects.filter(id=product.model_id).first()
-        scheme_id = mp.rebeta_scheme_id
+        if mp:
+            scheme_id = mp.rebeta_scheme_id
+        else:
+            scheme_id = 0
         scheme = AgencyOrderRebetaScheme.get_rebeta_scheme(scheme_id)
         return scheme
 
