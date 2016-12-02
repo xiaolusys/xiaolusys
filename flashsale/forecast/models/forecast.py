@@ -237,6 +237,8 @@ class ForecastInbound(BaseModel):
         forecast.save()
         return ForecastInbound._generate(order_list_ids)
 
+
+
     @staticmethod
     def merge(orderlist_ids):
         """

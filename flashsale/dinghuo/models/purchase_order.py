@@ -501,8 +501,6 @@ class OrderList(models.Model):
         except Exception, e0:
             logger.error("begin forecast error ol: %s, info:%s" % (self.id, e0.message))
 
-
-
     def set_stage_pay(self, pay_way=13):
         # 付款提货 进入付款状态
         self.bill_method = pay_way

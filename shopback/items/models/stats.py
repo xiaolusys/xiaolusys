@@ -682,7 +682,7 @@ class SkuStock(models.Model):
                                          sku_id=self.sku_id, assign_status=PackageSkuItem.NOT_ASSIGNED).exists():
             self.assign()
         now_num = self.realtime_quantity - self.assign_num
-        return now_num > sku_item.num
+        return now_num >= sku_item.num
 
     def relase_assign(self, psi_id=None, orderlist=None, again=True):
         """
