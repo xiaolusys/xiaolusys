@@ -292,7 +292,9 @@ class ForecastInbound(BaseModel):
 
     @staticmethod
     def _generate(orderlist_ids):
-        order_lists = OrderList.objects.filter(id__in=orderlist_ids)
+        order_lists = OrderList.objects.filter(id__in=orderlist_ids, stage=OrderList.STAGE_RECEIVE)
+        if order_lists.count() == 0:
+            return 
         order_list = order_lists.first()
         supplier = order_list.supplier
         # orderlist_ids = [ol.id for ol in order_lists]
