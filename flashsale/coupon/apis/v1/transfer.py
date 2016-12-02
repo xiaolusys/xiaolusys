@@ -147,7 +147,7 @@ def saleorder_return_coupon_exchange(salerefund, payment):
     try:
         from flashsale.pay.models.user import BudgetLog
         today = datetime.date.today()
-        order_log = BudgetLog(customer_id=salerefund.buyer_id, flow_amount=int(payment * 100),
+        order_log = BudgetLog(customer_id=salerefund.buyer_id, flow_amount=int(payment),
                               budget_type=BudgetLog.BUDGET_OUT,
                               budget_log_type=BudgetLog.BG_EXCHG_ORDER, referal_id=salerefund.id,
                               uni_key=salerefund.refund_no, status=BudgetLog.CONFIRMED,
