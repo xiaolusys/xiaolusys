@@ -237,10 +237,42 @@ class ForecastInbound(BaseModel):
         forecast.save()
         return ForecastInbound._generate(order_list_ids)
 
-
-
     @staticmethod
     def merge(orderlist_ids):
+        """
+            合并预测单（依据预测单关联的orderlist进行预测单重算，而非直接预测单相加，以减少错误）
+        :param orderlist_ids:
+        :param forecast_arrive_time:
+        :return:
+        """
+        forcasts = ForecastInbound.objects.filter(relate_order_set__in=orderlist_ids,
+                                                  status__in=['draft', 'approved'])
+        supplier = forcasts.first().supplier
+        forecast_ib = ForecastInbound(supplier=supplier)
+        forecast_ib.ware_house = supplier.ware_by
+        forecast_ib.purchaser = forcasts.first().purchaser
+        forecast_ib.forecast_arrive_time = datetime.datetime.now() + datetime.timedelta(days=supplier.get_delta_arrive_days())
+        forecast_ib.save()
+        details = {}
+        res = {}
+        for forcast in forcasts:
+            for fd in forcast.details_manager.all():
+                if not fd.sku_id in details:
+                    forecast_detail = ForecastInboundDetail(forecast_inbound=forecast_ib,
+                                                                sku_id=fd.chichu_id,
+                                                                product_id=fd.product_id,
+                                                            product_name=fd.product_name,
+                                                            product_img=fd.product_img)
+                    details[forecast_detail.sku_id] = forecast_detail
+                res[forecast_detail.sku_id] += fd.forecast_arrive_num
+        forcasts.update(status=ForecastInbound.ST_CANCELED)
+        for sku_id in res:
+            res[sku_id].forecast_arrive_num = res[sku_id]
+            res[sku_id].save()
+        return forecast_ib
+
+    @staticmethod
+    def merge_bak(orderlist_ids):
         """
             合并预测单（依据预测单关联的orderlist进行预测单重算，而非直接预测单相加，以减少错误）
         :param orderlist_ids:
