@@ -232,9 +232,10 @@ class ForecastInbound(BaseModel):
             forecast = ForecastInbound.merge(order_list_ids)
         else:
             forecast = forecasts.first()
-        forecast.forecast_no = 'inbound-%s' % (inbound.id, )
-        forecast.status = ForecastInbound.ST_ARRIVED
-        forecast.save()
+        if forecast:
+            forecast.forecast_no = 'inbound-%s' % (inbound.id, )
+            forecast.status = ForecastInbound.ST_ARRIVED
+            forecast.save()
         return ForecastInbound._generate(order_list_ids)
 
     @staticmethod
