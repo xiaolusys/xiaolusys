@@ -143,7 +143,7 @@ def saleorder_return_coupon_exchange(salerefund, payment):
         res = Response(res)
         return res
 
-    # (1)在user钱包写支出记录，支出不够需要写妈妈欠款记录
+    # (1)在user钱包写支出记录，支出不够变成负数
     try:
         from flashsale.pay.models.user import BudgetLog
         today = datetime.date.today()
