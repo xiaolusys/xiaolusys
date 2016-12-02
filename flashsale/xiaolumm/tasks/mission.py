@@ -36,7 +36,7 @@ def task_push_mission_state_msg_to_weixin_user(mission_record_id, state):
                 mama_grade_params = {'grade': mama_grade.get_grade_display(), 'combo':mama_grade.combo_count}
 
             params = {
-                'header': u'女王，您本周销售任务奖励等级为{grade}级，连续达标{combo}次，点击查看奖励规则！'.format(**mama_grade_params),
+                'header': u'女王，您本周销售任务奖励等级为{grade}，连续达标{combo}次，点击查看奖励规则！'.format(**mama_grade_params),
                 'footer': u'小鹿妈妈在截止日期前完成任务可获取额外奖励 (本周业绩越好，下周可获取额外奖励越高，点击查看奖励规则).',
                 'task_name': base_mission.name,
                 'award_amount': u'￥%.2f' % mama_mission.get_award_amount(),
