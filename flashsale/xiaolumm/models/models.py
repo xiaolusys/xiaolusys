@@ -271,8 +271,12 @@ class XiaoluMama(BaseModel):
 
     def get_Mama_Order_Rebeta_Scheme(self, product):
         """ 获取妈妈佣金返利计划 """
-        product_detail = product.detail
-        scheme_id = product_detail and product_detail.rebeta_scheme_id or 0
+        #product_detail = product.detail
+        #scheme_id = product_detail and product_detail.rebeta_scheme_id or 0
+        #老的代码使用product detail获得返利计划id，最新流程是放到modelproduct里面了，2016-12-1
+        from flashsale.pay.models.product import ModelProduct
+        mp = ModelProduct.objects.filter(id=product.model_id).first()
+        scheme_id = mp.rebeta_scheme_id
         scheme = AgencyOrderRebetaScheme.get_rebeta_scheme(scheme_id)
         return scheme
 
