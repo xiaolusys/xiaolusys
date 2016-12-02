@@ -573,7 +573,7 @@ class ClickLogView(WeixinAuthMixin, View):
             'http_referal': request.META.get('HTTP_REFERER'),
             'http_agent': request.META.get('HTTP_USER_AGENT')
         })
-        ctasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time, settings.WX_PUB_APPID)
+        ctasks.task_Create_Click_Record.delay(linkid, openid, unionid, click_time, settings.WX_PUB_APPID)
 
         if not valid_openid(unionid):
             unionid = get_unionid_by_openid(openid, settings.WX_PUB_APPID)
@@ -601,7 +601,7 @@ class ClickChannelLogView(WeixinAuthMixin, View):
             redirect_url = self.get_wxauth_redirct_url(request)
             return redirect(redirect_url)
         click_time = datetime.datetime.now()
-        ctasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time, settings.WX_PUB_APPID)
+        ctasks.task_Create_Click_Record.delay(linkid, openid, unionid, click_time, settings.WX_PUB_APPID)
 
         if not valid_openid(unionid):
             unionid = get_unionid_by_openid(openid, settings.WX_PUB_APPID)
