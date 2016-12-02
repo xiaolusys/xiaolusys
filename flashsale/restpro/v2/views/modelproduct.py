@@ -287,7 +287,11 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         # type : (HttpRequest, *Any, **Any) -> HttpResponse
         """特价秒杀商品
         """
-        ids = [i['id'] for i in get_is_onsale_modelproducts().values('id')]
+        order_by = request.GET.get('order_by')
+        queryset = get_is_onsale_modelproducts().filter(shelf_status=ModelProduct.ON_SHELF)
+        if order_by == u'price':
+            queryset = queryset.order_by('lowest_agent_price')
+        ids = [i['id'] for i in queryset.values('id')]
         queryset = ModelProductCtl.multiple(ids=ids)
         page = self.paginate_queryset(queryset)
         if page is not None:
