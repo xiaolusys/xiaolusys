@@ -165,6 +165,11 @@ class UserCoupon(BaseModel):
         """ 用户头像 """
         return self.extras['user_info']['thumbnail']
 
+    @property
+    def transfer_coupon_pk(self):
+        # type: () -> Optional[text_type]
+        return self.extras.get('transfer_coupon_pk')
+
     def coupon_basic_check(self):
         # type: () -> UserCoupon
         """

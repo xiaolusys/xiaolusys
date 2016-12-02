@@ -84,7 +84,7 @@ def create_user_coupon(customer_id, coupon_template_id,
                        unique_key=None, trade_id=None, cash_out_id=None, order_share_id=None, coupon_value=None,
                        ufrom='wap', **kwargs):
     # type: (int, int, Optional[text_type], Optional[int], Optional[int],
-    #  Optional[int], Optional[float], Optional[text_type], **Any) ->Tuple[Optional[UserCoupon], int, text_type]
+    # Optional[int], Optional[float], Optional[text_type], **Any) ->Tuple[Optional[UserCoupon], int, text_type]
     """创建普通类型优惠券, 这里不计算领取数量(默认只能领取一张 不填写 uniq_id的张数内容)
     """
     tpl = get_coupon_template_by_id(coupon_template_id)
@@ -130,7 +130,7 @@ def create_user_coupon(customer_id, coupon_template_id,
 
         cou.order_coupon_id = share_coupon_record.id
         cou.save(update_fields=['order_coupon_id'])
-        task_update_share_coupon_release_count.delay(share_coupon_record.id)  # 更新分享券领取数量
+        task_update_share_coupon_release_count(share_coupon_record.id)  # 更新分享券领取数量
     from ...tasks import task_update_tpl_released_coupon_nums
 
     task_update_tpl_released_coupon_nums.delay(tpl.id)
@@ -169,3 +169,17 @@ def return_user_coupon_by_order_refund(trade_tid, num):
 
     task_return_user_coupon_by_trade.delay(trade_tid, num)
 
+
+def return_transfer_coupon(coupon_ids, customer_id, transfer_id):
+    # type : (List[int], int) -> bool
+    """ 给 流通券退回上级　妈妈
+    """
+    coupons = get_user_coupons_by_ids(coupon_ids)
+    for coupon in coupons:
+        coupon.status = UserCoupon.UNUSED
+        coupon.customer_id = customer_id
+        if coupon.extras.has_key('return_transfer_ids'):
+            coupon.extras['return_transfer_ids'].append(transfer_id)
+        else:
+            coupon.extras['return_transfer_ids'] = [transfer_id]
+        coupon.save(update_fields=['status', 'customer_id', 'extras'])

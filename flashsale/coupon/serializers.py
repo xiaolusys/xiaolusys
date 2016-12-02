@@ -76,7 +76,7 @@ class TmpShareCouponMapSerialize(serializers.ModelSerializer):
         return u''
 
     def nick_name(self, obj):
-        return ''.join([obj.mobile[0:3], "****", obj.mobile[7:12]]) if len(obj.mobile)==11 else ""
+        return ''.join([obj.mobile[0:3], "****", obj.mobile[7:12]]) if len(obj.mobile) == 11 else ""
 
     def head_img(self, obj):
         return ''
@@ -102,3 +102,29 @@ class ShareUserCouponSerialize(serializers.ModelSerializer):
 
     def head_img(self, obj):
         return obj.user_head_img()
+
+
+# v2　用户接口　加　serialize
+
+class BoutiqueUserCouponSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = UserCoupon
+        fields = (
+            'id',
+            'template_id',
+            'title',
+            'coupon_type',
+            'get_coupon_type_display',
+            'customer_id',
+            'share_user_id',
+            'order_coupon_id',
+            'coupon_no',
+            'value',
+            'trade_tid',
+            'finished_time',
+            'start_use_time',
+            'expires_time',
+            'status',
+            'get_status_display'
+        )
+

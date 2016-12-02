@@ -34,3 +34,9 @@ class UserCouponManager(BaseManager):
     def get_order_share_coupons(self, order_coupon_id):
         # type: (int) -> Optional[List[UserCoupon]]
         return self.get_queryset().filter(order_coupon_id=order_coupon_id)
+
+    def get_unused_boutique_coupons(self):
+        # type: () -> Optional[List[UserCoupon]]
+        """获取　没有使用状态的　精品券
+        """
+        return self.get_unused_coupons().filter(coupon_type=self.model.TYPE_TRANSFER)

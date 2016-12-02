@@ -8,6 +8,7 @@ from . import views
 from .views.kdn import KdnView
 from flashsale.xiaolumm.views import views_rank, views_message, award, week_rank
 from flashsale.pay.views import teambuy
+from flashsale.restpro.v2.views import usercoupon
 
 v2_router = routers.DefaultRouter(trailing_slash=False)
 v2_router.register(r'categorys', views.SaleCategoryViewSet)
@@ -37,6 +38,7 @@ from flashsale.restpro.v1 import views_coupon_new
 from flashsale.restpro.v2 import views
 
 v2_router.register(r'usercoupons', views_coupon_new.UserCouponsViewSet)
+v2_router.register(r'usercoupon', usercoupon.UserCouponsViewSet)
 v2_router.register(r'cpntmpl', views_coupon_new.CouponTemplateViewSet)
 v2_router.register(r'sharecoupon', views_coupon_new.OrderShareCouponViewSet)
 v2_router.register(r'tmpsharecoupon', views_coupon_new.TmpShareCouponViewset)

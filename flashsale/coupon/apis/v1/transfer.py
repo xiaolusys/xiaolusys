@@ -9,10 +9,18 @@ from ...models.usercoupon import UserCoupon
 import logging
 
 logger = logging.getLogger(__name__)
+from .usercoupon import get_user_coupons_by_ids, return_transfer_coupon
+from flashsale.xiaolumm.apis.v1.xiaolumama import get_mama_by_id
 
 __ALL__ = [
     'create_coupon_transfer_record',
+    'get_transfer_record_by_id',
 ]
+
+
+def get_transfer_record_by_id(id):
+    # type: (int) -> CouponTransferRecord
+    return CouponTransferRecord.objects.get(id=id)
 
 
 def create_present_coupon_transfer_record(customer, template, coupon_id, uni_key_prefix=None):
@@ -40,13 +48,22 @@ def create_present_coupon_transfer_record(customer, template, coupon_id, uni_key
     product_img = template.extras.get("product_img") or ''
 
     try:
-        coupon = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id, from_mama_thumbnail=from_mama_thumbnail,
-                                      from_mama_nick=from_mama_nick, coupon_to_mama_id=coupon_to_mama_id,
-                                      to_mama_thumbnail=to_mama_thumbnail, to_mama_nick=to_mama_nick,
+        coupon = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id,
+                                      from_mama_thumbnail=from_mama_thumbnail,
+                                      from_mama_nick=from_mama_nick,
+                                      coupon_to_mama_id=coupon_to_mama_id,
+                                      to_mama_thumbnail=to_mama_thumbnail,
+                                      to_mama_nick=to_mama_nick,
                                       coupon_value=coupon_value,
-                                      init_from_mama_id=init_from_mama_id, order_no=order_no, template_id=template.id,
-                                      product_img=product_img, coupon_num=1, transfer_type=transfer_type,
-                                      uni_key=uni_key, date_field=date_field, transfer_status=transfer_status)
+                                      init_from_mama_id=init_from_mama_id,
+                                      order_no=order_no,
+                                      template_id=template.id,
+                                      product_img=product_img,
+                                      coupon_num=1,
+                                      transfer_type=transfer_type,
+                                      uni_key=uni_key,
+                                      date_field=date_field,
+                                      transfer_status=transfer_status)
         coupon.save()
         return coupon
     except Exception as e:
@@ -193,3 +210,49 @@ def saleorder_return_coupon_exchange(salerefund, payment):
                                                          int(user_coupon.template_id), sale_order.sale_trade.tid)
 
     return res
+
+
+@transaction.atomic()
+def return_transfer_coupon_2_up_level_mama(usercoupon_ids):
+    # type: (List[int]) -> bool
+    """下属退精品券　给　上级
+    """
+    usercoupons = get_user_coupons_by_ids(usercoupon_ids)
+    item = {}
+    transfer_records = set()
+    for usercoupon in usercoupons:
+        transfer_coupon_pk = usercoupon.transfer_coupon_pk
+        if not transfer_coupon_pk:
+            continue
+        transfer_record = get_transfer_record_by_id(int(transfer_coupon_pk))
+        if transfer_record.id not in item:
+            item[transfer_record.id] = [usercoupon.id]
+        else:
+            item[transfer_record.id].append(usercoupon.id)
+        transfer_records.add(transfer_record)
+    for origin_record in transfer_records:
+        coupon_ids = item[origin_record.id]
+        num = len(coupon_ids)
+        new_transfer = CouponTransferRecord(
+            coupon_from_mama_id=origin_record.coupon_to_mama_id,
+            from_mama_thumbnail=origin_record.to_mama_thumbnail,
+            from_mama_nick=origin_record.to_mama_nick,
+            coupon_to_mama_id=origin_record.coupon_from_mama_id,
+            to_mama_thumbnail=origin_record.from_mama_thumbnail,
+            to_mama_nick=origin_record.from_mama_nick,
+            coupon_value=origin_record.coupon_value,
+            init_from_mama_id=origin_record.coupon_from_mama_id,
+            order_no='return-upper-%s' % origin_record.id,
+            product_img=origin_record.product_img,
+            coupon_num=num,
+            transfer_type=CouponTransferRecord.IN_RETURN_COUPON,
+            uni_key='return-upper-%s' % origin_record.id,
+            date_field=datetime.date.today(),
+            transfer_status=CouponTransferRecord.DELIVERED
+        )
+        new_transfer.save()
+
+        mm = get_mama_by_id(origin_record.coupon_from_mama_id)
+        customer = mm.get_customer()
+        return_transfer_coupon(coupon_ids, customer.id, new_transfer.id)
+    return True
