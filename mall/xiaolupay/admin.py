@@ -26,7 +26,7 @@ class RefundOrderAdmin(admin.ModelAdmin):
     list_display = ('id', 'refund_no', 'amount', 'status', 'time_succeed', 'failure_code', 'failure_msg', 'charge_order_no', 'funding_source', 'modified','created')
     ordering = ['-id']
     list_filter = ['succeed', 'status', 'created', 'time_succeed']
-    search_fields = ['refund_no', '=order_no']
+    search_fields = ['=refund_no', '=charge_order_no']
 
     readonly_fields = ['charge']
 
