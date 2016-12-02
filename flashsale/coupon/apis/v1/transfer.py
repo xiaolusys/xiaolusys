@@ -72,6 +72,12 @@ def coupon_exchange_saleorder(customer, order_id, mama_id, exchg_template_id, co
     from flashsale.pay.models.trade import SaleOrder, SaleTrade
     sale_order = SaleOrder.objects.filter(oid=order_id).first()
     if sale_order:
+        if sale_order.status < SaleOrder.WAIT_BUYER_CONFIRM_GOODS:
+            logger.warn({
+                'message': u'exchange order: order_id=%s status=%s' % (order_id, sale_order.status),
+            })
+            info = u"订单记录状态不对，兑换失败!"
+            return Response({"code": 3, "info": info})
         sale_order.extras['exchange'] = True
         SaleOrder.objects.filter(oid=order_id).update(extras=sale_order.extras)
     else:
@@ -79,7 +85,7 @@ def coupon_exchange_saleorder(customer, order_id, mama_id, exchg_template_id, co
             'message': u'exchange order: order_id=%s not exist' % (order_id),
         })
         info = u"找不到订单记录，兑换失败!"
-        return Response({"code": 3, "info": info})
+        return Response({"code": 4, "info": info})
 
     # (2)用户优惠券需要变成使用状态
     user_coupons = UserCoupon.objects.filter(customer_id=customer.id, template_id=int(exchg_template_id),
@@ -90,7 +96,7 @@ def coupon_exchange_saleorder(customer, order_id, mama_id, exchg_template_id, co
                 coupon_num, order_id, exchg_template_id),
         })
         info = u"您的精品券数量不足，请联系微信客服!"
-        return Response({"code": 4, "info": info})
+        return Response({"code": 5, "info": info})
     use_num = 0
     for coupon in user_coupons:
         if use_num < int(coupon_num):
@@ -129,7 +135,15 @@ def saleorder_return_coupon_exchange(salerefund, payment):
             salerefund.buyer_id, payment),
     })
 
-    # (3)在user钱包写支出记录，支出不够需要写妈妈欠款记录
+    #判断这个退款单对应的订单是曾经兑换过的
+    from flashsale.pay.models.trade import SaleOrder, SaleTrade
+    sale_order = SaleOrder.objects.filter(oid=salerefund.order_id).first()
+    if not (sale_order and sale_order.extras.has_key('exchange') and sale_order.extras['exchange'] == True):
+        res = {}
+        res = Response(res)
+        return res
+
+    # (1)在user钱包写支出记录，支出不够需要写妈妈欠款记录
     try:
         from flashsale.pay.models.user import BudgetLog
         today = datetime.date.today()
@@ -143,9 +157,7 @@ def saleorder_return_coupon_exchange(salerefund, payment):
     except IntegrityError:
         pass
 
-    # (1)sale order置为已经取消兑换
-    from flashsale.pay.models.trade import SaleOrder, SaleTrade
-    sale_order = SaleOrder.objects.filter(oid=salerefund.order_id).first()
+    # (2)sale order置为已经取消兑换
     if sale_order:
         sale_order.extras['exchange'] = False
         SaleOrder.objects.filter(oid=salerefund.order_id).update(extras=sale_order.extras)
