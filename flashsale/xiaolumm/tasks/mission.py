@@ -32,7 +32,7 @@ def task_push_mission_state_msg_to_weixin_user(mission_record_id, state):
             mission_kpi_unit = base_mission.kpi_type == MamaMission.KPI_COUNT and u'个' or u'元'
 
             mama_grade_params = {'grade': 0, 'combo': 0}
-            if not mama_grade:
+            if mama_grade:
                 mama_grade_params = {'grade': mama_grade.get_grade_display(), 'combo':mama_grade.combo_count}
 
             params = {
