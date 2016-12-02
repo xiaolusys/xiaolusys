@@ -47,7 +47,8 @@ CELERY_WORKER_DISABLE_RATE_LIMITS = False
 # By default we will ignore result
 # If you want to see results and try out tasks interactively, change it to False
 # Or change this setting on tasks level
-CELERY_TASK_IGNORE_RESULT = False
+CELERY_TASK_IGNORE_RESULT = True
+CELERY_TASK_STORE_ERRORS_EVEN_IF_IGNORED = True
 CELERY_SEND_TASK_ERROR_EMAILS = False
 CELERY_CHORD_PROPAGATES = True
 CELERY_TASK_RESULT_EXPIRES = 24 * 60 * 60  # half hour

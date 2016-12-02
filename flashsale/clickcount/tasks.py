@@ -56,6 +56,8 @@ def task_Create_Click_Record(xlmmid, openid, unionid, click_time, app_key):
     click = Clicks(linkid=mama_id, openid=openid, isvalid=True, click_time=click_time, app_key=app_key)
     click.save()
 
+    task_Update_User_Click(click.id)
+
     return click.id
 
 

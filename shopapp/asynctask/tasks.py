@@ -292,7 +292,7 @@ class AsyncOrderTask(TaobaoAsyncBaseTask):
             logger.error('async task result handle fail: %s' % exc, exc_info=True)
             return False
 
-@app.task
+@app.task(ignore_result=False)
 def task_async_order(*args, **kwargs):
     return AsyncOrderTask().run(*args, **kwargs)
 
@@ -434,7 +434,7 @@ class PrintAsyncTask(object):
             express_data = self.genExpressData(trade_list)
         return 0
 
-@app.task
+@app.task(ignore_result=False)
 def task_print_async(*args, **kwargs):
     return PrintAsyncTask().run(*args, **kwargs)
 
@@ -566,6 +566,6 @@ class PrintAsyncTask2(object):
             express_data = self.genExpressData(package_orders)
         return 0
 
-@app.task
+@app.task(ignore_result=False)
 def task_print_async2(*args, **kwargs):
     return PrintAsyncTask2().run(*args, **kwargs)

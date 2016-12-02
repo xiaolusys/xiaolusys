@@ -212,7 +212,7 @@ def get_replay_package_results(replay_trade):
     return reponse_result
 
 
-@app.task()
+@app.task(ignore_result=False)
 def sendTradeCallBack(trade_ids, *args, **kwargs):
     try:
         replay_trade = ReplayPostTrade.objects.get(id=args[0])
@@ -226,7 +226,7 @@ def sendTradeCallBack(trade_ids, *args, **kwargs):
         return None
 
 
-@app.task()
+@app.task(ignore_result=False)
 def send_package_call_Back(trade_ids, *args, **kwargs):
     try:
         replay_trade = ReplayPostTrade.objects.get(id=args[0])
