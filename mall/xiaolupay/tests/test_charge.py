@@ -9,7 +9,7 @@ from ..apis.v1 import Charge
 def random_string():
     return ''.join(random.sample(list('abcdefghijklmnopqrstuvwxyz0123456789'),8))
 
-class XiaoluPayChargeTestCase(object):
+class XiaoluPayChargeTestCase(TestCase):
     fixtures = [ ]
 
     def setUp(self):

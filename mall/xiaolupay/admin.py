@@ -8,7 +8,7 @@ from .models.refund import RefundOrder
 @admin.register(ChargeOrder)
 class ChargeOrderAdmin(admin.ModelAdmin):
     list_display = ('id', 'order_no', 'channel', 'amount', 'paid', 'refunded', 'failure_code', 'failure_msg',  'modified', 'created')
-    ordering = ['id']
+    ordering = ['-id']
     list_filter = ['paid', 'channel', 'time_paid', 'created']
     search_fields = ['=id', '=order_no']
 
@@ -16,7 +16,7 @@ class ChargeOrderAdmin(admin.ModelAdmin):
 @admin.register(Credential)
 class CredentialAdmin(admin.ModelAdmin):
     list_display = ('id', 'order_no', 'channel', 'extra', 'created')
-    ordering = ['id']
+    ordering = ['-id']
     list_filter = ['channel', 'created']
     search_fields = ['=order_no']
 
@@ -24,7 +24,7 @@ class CredentialAdmin(admin.ModelAdmin):
 @admin.register(RefundOrder)
 class RefundOrderAdmin(admin.ModelAdmin):
     list_display = ('id', 'refund_no', 'amount', 'status', 'time_succeed', 'failure_code', 'failure_msg', 'charge_order_no', 'funding_source', 'modified','created')
-    ordering = ['id']
+    ordering = ['-id']
     list_filter = ['succeed', 'status', 'created', 'time_succeed']
     search_fields = ['refund_no', '=order_no']
 

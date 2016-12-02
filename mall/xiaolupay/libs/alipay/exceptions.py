@@ -4,7 +4,7 @@ from __future__ import absolute_import, unicode_literals
 class AliPayException(Exception):
     '''Base AliPay Exception'''
 
-    def __init__(self, message, fail_code='', fail_msg='', *args, **kwargs):
+    def __init__(self, message='', fail_code='', fail_msg='', *args, **kwargs):
         self.fail_code = fail_code
         self.fail_msg  = fail_msg
         self.message   = message
