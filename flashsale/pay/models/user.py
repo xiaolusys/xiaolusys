@@ -517,7 +517,7 @@ class BudgetLog(PayBaseModel):
     BG_MAMA_CASH = 'mmcash'
     BG_REFERAL_FANS = 'rfan'
     BG_SUBSCRIBE = 'subs'
-    BG_EXCHG_ORDER = 'exchg_order'
+    BG_EXCHG_ORDER = 'exchg'
 
     BUDGET_LOG_CHOICES = (
         (BG_ENVELOPE, u'红包'),
