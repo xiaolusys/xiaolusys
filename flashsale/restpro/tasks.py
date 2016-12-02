@@ -419,7 +419,7 @@ def prods_position_handler():
             try:
                 save_pro_info(product=pro.product, user=customer.user)
             except Exception, exc:
-                logger.error(exc.message)
+                logger.error(exc)
     up_pro_ids = Product.objects.filter(status=Product.NORMAL, shelf_status=Product.UP_SHELF).values('id')
     cu_pros = CuShopPros.objects.all().exclude(id__in=up_pro_ids)
     cu_pros.update(pro_status=CuShopPros.DOWN_SHELF)
