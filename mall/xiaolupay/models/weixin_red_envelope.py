@@ -69,7 +69,7 @@ class WeixinRedEnvelope(BaseModel):
             if self.result_code == 'FAIL':
                 # 微信拦截
                 if self.err_code == 'NO_AUTH':
-                    self.status = WeixinRedEnvelope.FAILED
+                    return self.set_status_fail()
                 # 微信处理中
                 if self.err_code == 'PROCESSING':
                     self.status = WeixinRedEnvelope.SENDING
@@ -114,3 +114,4 @@ class WeixinRedEnvelope(BaseModel):
 
         item = Envelop.objects.filter(envelop_id=self.mch_billno).first()
         item.handle_envelop(self)
+        return self
