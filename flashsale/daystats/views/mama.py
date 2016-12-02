@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import sqlparse
 import simplejson
 from django.shortcuts import render
+from django.db import models
 from django.views.decorators.cache import cache_page
 from django.core.cache import cache
 from django.contrib.auth.decorators import login_required
@@ -776,6 +777,22 @@ def calc_transfer_coupon_data(date_field):
         transfer_status=CouponTransferRecord.DELIVERED
     ).values('coupon_to_mama_id').distinct().count()
 
+    elite_mama_ids = CouponTransferRecord.objects.filter(
+        date_field=date_field,
+        transfer_status=CouponTransferRecord.DELIVERED
+    ).values_list('coupon_to_mama_id',flat=True).distinct()
+
+    elite_mamas = CouponTransferRecord.objects.filter(
+        transfer_status=CouponTransferRecord.DELIVERED,
+        coupon_to_mama_id__in=elite_mama_ids
+    ).values('coupon_to_mama_id').annotate(models.Min('date_field'))
+
+    new_elite_mama_set = set()
+    for record in elite_mamas:
+        if record['date_field__min'] == date_field:
+            new_elite_mama_set.add(record['coupon_to_mama_id'])
+    new_active_elite_mama_count = len(new_elite_mama_set)
+
     active_elite_mama_count = CouponTransferRecord.objects.filter(
         date_field=date_field,
         transfer_status=CouponTransferRecord.DELIVERED
@@ -787,6 +804,7 @@ def calc_transfer_coupon_data(date_field):
         'coupon_used_amount':coupon_used_amount,
         'order_mama_count':order_mama_count,
         'elite_mama_count':elite_mama_count,
+        'new_elite_mama_count': new_active_elite_mama_count,
         'active_elite_mama_count':active_elite_mama_count
     }
 
@@ -797,7 +815,7 @@ def transfer_coupon(req):
     stats_list = []
     for day in reversed(range((end_date - start_date).days)):
         cur_date = end_date - timedelta(days=day)
-        stats_list.append(calc_transfer_coupon_data(cur_date))
+        stats_list.append(calc_transfer_coupon_data(cur_date.date()))
         x_axis.append(cur_date.strftime('%Y-%m-%d'))
 
     name_maps = {
@@ -806,8 +824,9 @@ def transfer_coupon(req):
         'coupon_used_num':u'买货用券数',
         'coupon_used_amount': u'买货券面额',
         'order_mama_count': u'有收益妈妈数',
-        'elite_mama_count': u'活跃妈妈数',
-        'active_elite_mama_count': u'新增妈妈'
+        'elite_mama_count': u'累计妈妈数',
+        'new_elite_mama_count': u'新增妈妈',
+        'active_elite_mama_count': u'活跃妈妈数'
     }
     items_dict = {k:[] for k,v in name_maps.iteritems()}
     for stats in stats_list:
@@ -818,5 +837,4 @@ def transfer_coupon(req):
 
     charts = [generate_chart(u'精品流通券趋势', x_axis, items_dict, width='1000px')]
 
-    print charts, items_dict
     return render(req, 'yunying/mama/index.html', locals())
