@@ -29,8 +29,8 @@ def get_cursor():
     cursor = connections['default'].cursor()
     return cursor
 
-
-if os.environ.get('INSTANCE') == 'admin':
+INSTANCE = os.environ.get('INSTANCE')
+if INSTANCE == 'admin' or (not INSTANCE and settings.DEBUG):
     mongo = MongoClient(settings.MONGODB_URI).xlmm
 else:
     # mongo = MongoClient('0.0.0.0:32769').xlmm

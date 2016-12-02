@@ -468,8 +468,8 @@ def tab(req):
 
     sql = query.format(**{'start_date': '"%s"' % p_start_date, 'end_date': '"%s"' % p_end_date})
 
+    key = None
     items = execute_sql(get_cursor(), sql)
-
     if items:
         key = 'k' if 'k' in items[0].keys() else None
         y = 'y' if 'y' in items[0].keys() else None
@@ -510,7 +510,6 @@ def tab(req):
         if key_desc:
             k = key_desc.get(str(k), 'UNKOWN')
         weixin_items[k] = [x[1] for x in v]
-
     charts = []
     charts.append(generate_chart(query_name, x_axis, weixin_items, width='1000px'))
 
@@ -748,19 +747,76 @@ def rank(req):
     return render(req, 'yunying/mama/rank.html', locals())
 
 
-def transfer_coupon(req):
-
-    date_field = req.GET.get('day_date', datetime.now().strftime('%Y-%m-%d'))
-
+def calc_transfer_coupon_data(date_field):
     from flashsale.coupon.models import CouponTransferRecord
     from flashsale.xiaolumm.models import OrderCarry
-    values = CouponTransferRecord.objects.filter(status=1, transfer_status=3, date_field=date_field, transfer_type=4).values_list('coupon_num', 'coupon_value')
+    values = CouponTransferRecord.objects.filter(
+        status=1, transfer_status=3,
+        date_field=date_field, transfer_type=4
+    ).values_list('coupon_num', 'coupon_value')
     coupon_sale_num = sum([v for v, n in values])
     coupon_sale_amount = sum([v * n for v, n in values])
-    values = CouponTransferRecord.objects.filter(status=1, transfer_status=3, date_field=date_field, transfer_type=3).values_list('coupon_num', 'coupon_value')
+
+    values = CouponTransferRecord.objects.filter(
+        status=1, transfer_status=3,
+        date_field=date_field, transfer_type=3
+    ).values_list('coupon_num', 'coupon_value')
     coupon_used_num = sum([v for v, n in values])
     coupon_used_amount = sum([v * n for v, n in values])
-    order_mama_count = OrderCarry.objects.filter(date_field=date_field, status__in=(1, 2, 3), carry_type__in=(1, 2), mama_id__gt=0).values_list('mama_id', flat=True).distinct().count()
-    stats_list = [coupon_sale_num, coupon_sale_amount, coupon_used_num, coupon_used_amount, order_mama_count]
 
-    return render(req, 'yunying/mama/coupon.html', locals())
+    order_mama_count = OrderCarry.objects.filter(
+        date_field=date_field,
+        status__in=(1, 2, 3),
+        carry_type__in=(1, 2),
+        mama_id__gt=0
+    ).values_list('mama_id', flat=True).distinct().count()
+
+    elite_mama_count = CouponTransferRecord.objects.filter(
+        date_field__lt=date_field,
+        transfer_status=CouponTransferRecord.DELIVERED
+    ).values('coupon_to_mama_id').distinct().count()
+
+    active_elite_mama_count = CouponTransferRecord.objects.filter(
+        date_field=date_field,
+        transfer_status=CouponTransferRecord.DELIVERED
+    ).values('coupon_to_mama_id').distinct().count()
+    return {
+        'coupon_sale_num':coupon_sale_num,
+        'coupon_sale_amount':coupon_sale_amount,
+        'coupon_used_num':coupon_used_num,
+        'coupon_used_amount':coupon_used_amount,
+        'order_mama_count':order_mama_count,
+        'elite_mama_count':elite_mama_count,
+        'active_elite_mama_count':active_elite_mama_count
+    }
+
+def transfer_coupon(req):
+    p_start_date, p_end_date, start_date, end_date = get_date_from_req(req)
+
+    x_axis = []
+    stats_list = []
+    for day in reversed(range((end_date - start_date).days)):
+        cur_date = end_date - timedelta(days=day)
+        stats_list.append(calc_transfer_coupon_data(cur_date))
+        x_axis.append(cur_date.strftime('%Y-%m-%d'))
+
+    name_maps = {
+        'coupon_sale_num': u'出券张数',
+        'coupon_sale_amount': u'总出券面额',
+        'coupon_used_num':u'买货用券数',
+        'coupon_used_amount': u'买货券面额',
+        'order_mama_count': u'有收益妈妈数',
+        'elite_mama_count': u'活跃妈妈数',
+        'active_elite_mama_count': u'新增妈妈'
+    }
+    items_dict = {k:[] for k,v in name_maps.iteritems()}
+    for stats in stats_list:
+        for k,v in items_dict.iteritems():
+            v.append(int(stats[k]))
+
+    items_dict = dict([(name_maps[k], v) for k,v in items_dict.iteritems()])
+
+    charts = [generate_chart(u'精品流通券趋势', x_axis, items_dict, width='1000px')]
+
+    print charts, items_dict
+    return render(req, 'yunying/mama/index.html', locals())
