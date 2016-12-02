@@ -76,13 +76,13 @@ class MamaSaleGrade(BaseModel):
     F_LEVEL = 180000
     G_LEVEL = 210000
     GRADE_CHOICES = (
-        (A_LEVEL, u'A级: <300元'),
-        (B_LEVEL, u'B级: <600元'),
-        (C_LEVEL, u'C级: <900元'),
-        (D_LEVEL, u'D级: <1200元'),
-        (E_LEVEL, u'E级: <1500元'),
-        (F_LEVEL, u'F级: <1800元'),
-        (G_LEVEL, u'G级: <2100元'),
+        (A_LEVEL, u'A级'), #: <300元
+        (B_LEVEL, u'B级'), #: <600元
+        (C_LEVEL, u'C级'), #: <900元
+        (D_LEVEL, u'D级'), #: <1200元
+        (E_LEVEL, u'E级'), #: <1500元
+        (F_LEVEL, u'F级'), #: <1800元
+        (G_LEVEL, u'G级'), #: <2100元
     )
 
     mama    = models.OneToOneField('xiaolumm.XiaoluMama',related_name='sale_grade',verbose_name=u'关联妈妈')

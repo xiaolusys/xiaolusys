@@ -9,7 +9,7 @@ from django.conf import settings
 
 from core.utils import week_range
 from flashsale.xiaolumm import constants
-from flashsale.xiaolumm.models import XiaoluMama, AwardCarry, OrderCarry, \
+from flashsale.xiaolumm.models import XiaoluMama, AwardCarry, OrderCarry, MamaSaleGrade,\
     GroupRelationship, MamaMission, MamaMissionRecord, get_mama_week_sale_amount
 
 import logging
@@ -25,12 +25,18 @@ def task_push_mission_state_msg_to_weixin_user(mission_record_id, state):
             return
 
         base_mission = mama_mission.mission
+        mama_grade = MamaSaleGrade.objects.filter(mama_id=mama_mission.mama_id).first()
         wxpush = WeixinPush()
         if state == MamaMissionRecord.STAGING:
             week_end_time = datetime.datetime.strptime('%s-0' % mama_mission.year_week, '%Y-%W-%w')
             mission_kpi_unit = base_mission.kpi_type == MamaMission.KPI_COUNT and u'个' or u'元'
+
+            mama_grade_params = {'grade': 0, 'combo': 0}
+            if not mama_grade:
+                mama_grade_params = {'grade': mama_grade.get_grade_display(), 'combo':mama_grade.combo_count}
+
             params = {
-                'header': u'女王，您还有一个奖励任务未完成，快到小鹿美美app看看吧！',
+                'header': u'女王，您本周销售任务奖励等级为{grade}级，连续达标{combo}次，点击查看奖励规则！'.format(**mama_grade_params),
                 'footer': u'小鹿妈妈在截止日期前完成任务可获取额外奖励 (本周业绩越好，下周可获取额外奖励越高，点击查看奖励规则).',
                 'task_name': base_mission.name,
                 'award_amount': u'￥%.2f' % mama_mission.get_award_amount(),
@@ -40,6 +46,7 @@ def task_push_mission_state_msg_to_weixin_user(mission_record_id, state):
                     mama_mission.get_target_value(), mission_kpi_unit),
                 'description': base_mission.desc,
             }
+
             wxpush.push_mission_state_task(mama_mission.mama_id, header=params.get('header'),
                                            footer=params.get('footer'), to_url=constants.WEEKLY_AWARD_RULES_URL,
                                            params=params)
