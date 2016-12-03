@@ -195,9 +195,10 @@ class ForecastInbound(BaseModel):
     @transaction.atomic
     def reset_forecast(order_list_id):
         """
-            重设预测：从以前的预测单中删除本订货单的关联，利用此订货单
+            重设预测：从以前的预测单中删除本订货单的关联，利用此订货单重新建立预测
         """
-        forcasts = ForecastInbound.objects.filter(relate_order_set__id=order_list_id)
+        forcasts = ForecastInbound.objects.filter(relate_order_set__id=order_list_id,
+                                                  status__in=[ForecastInbound.ST_DRAFT, ForecastInbound.ST_APPROVED])
         order_list_ids = []
         for forcast in forcasts:
             for ol in forcast.relate_order_set.all():
@@ -222,7 +223,8 @@ class ForecastInbound(BaseModel):
         :return:
         """
         inbound = InBound.objects.get(id=inbound_id)
-        forecasts = ForecastInbound.objects.filter(relate_order_set__id__in=inbound.orderlist_ids,
+        order_list_ids = inbound.orderlist_ids
+        forecasts = ForecastInbound.objects.filter(relate_order_set__id__in=order_list_ids,
                                        status__in=[ForecastInbound.ST_DRAFT, ForecastInbound.ST_APPROVED])
         if forecasts.count() > 1:
             order_list_ids = []
@@ -294,7 +296,7 @@ class ForecastInbound(BaseModel):
     def _generate(orderlist_ids):
         order_lists = OrderList.objects.filter(id__in=orderlist_ids, stage=OrderList.STAGE_RECEIVE)
         if order_lists.count() == 0:
-            return 
+            return
         order_list = order_lists.first()
         supplier = order_list.supplier
         # orderlist_ids = [ol.id for ol in order_lists]
