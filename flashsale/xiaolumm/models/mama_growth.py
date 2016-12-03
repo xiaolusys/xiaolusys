@@ -440,7 +440,7 @@ class MamaMissionRecord(BaseModel):
             self.mission.cat_type == MamaMission.CAT_SALE_MAMA and \
             finish_value < (1 - 0.06) * self.target_value:
             return True
-        return False
+        return finish_value < self.target_value
 
     def update_mission_value(self, finish_value):
         cur_year_week = datetime.datetime.now().strftime('%Y-%W')
