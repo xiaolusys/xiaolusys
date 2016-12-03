@@ -229,5 +229,10 @@ exp_map = {'优速':'UC',
 '新邦':'XBWL',
 '华强':'hq568'}
 
+kd100_exp_map = {"韵达":"yunda",'韵达快递':'yunda','韵达速递':'yunda',"申通":"shentong","申通快递":"shentong","申通速递":"shentong"}
+
 def reverse_map():
     return dict(zip(exp_map.values(),exp_map.keys()))
+
+def reverse_100_map():
+    return dict(zip(kd100_exp_map.values(), kd100_exp_map.keys()))

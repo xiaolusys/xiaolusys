@@ -239,8 +239,7 @@ def kdn_search(rid, expName, expNo):
 @app.task()
 def kdn_get_push(*args, **kwargs):
     logger.warn({'action': "kdn", 'info': "kdn_get_push"})
-    tradewuliu = TradeWuliu.objects.filter(logistics_company=kwargs['logistics_company'],
-                                           out_sid=kwargs['out_sid'])
+    tradewuliu = TradeWuliu.objects.filter(out_sid=kwargs['out_sid'])
     if tradewuliu.first() is None:
         logger.warn({'action': "kdn", 'info': "tradewuliu_first_is_None:"+kwargs['out_sid']})
         TradeWuliu.objects.create(**kwargs)

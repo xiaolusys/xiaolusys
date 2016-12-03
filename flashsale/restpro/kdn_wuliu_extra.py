@@ -1,9 +1,10 @@
 # -*- coding:utf-8 -*-
 
 # import os
-# import sys
+# import sys,django
 # sys.path.append("/home/fpcnm/myProjects/xiaoluMM4/xiaolusys/shopmanager/")
 # os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shopmanager.local_settings")
+# django.setup()
 
 from django.conf import settings
 from flashsale.pay.models import Customer, SaleTrade
@@ -350,13 +351,13 @@ def get_logistics_name(company_code):
             return lc
         else:
             return lc.name
-        # assert lc is not None,"提供的物流公司编码有问题 么么哒~~ 物流公司名不存在"
 
 
 def kdn_get_push(*args, **kwargs):
     logger.warn("开始接受推送物流信息了")
     tradewuliu = TradeWuliu.objects.filter(logistics_company=kwargs['logistics_company'],
                                            out_sid=kwargs['out_sid'])
+
     if tradewuliu.first() is None:
         TradeWuliu.objects.create(**kwargs)
         print "写入成功"
@@ -365,13 +366,31 @@ def kdn_get_push(*args, **kwargs):
         print "更新成功"
 
 
+def get_exp_by_kd100(company_name,out_sid):
+    type = str(company_name)
+    postid=str(out_sid)
+    kd100_url = 'http://www.kuaidi100.com/query?type=%s&postid=%s&id=1&valicode='
+    rq_url = kd100_url % (type,postid)
+    res = requests.get(rq_url).text
+    res = json.loads(res)
+    write_info = {
+        "out_sid":res["nu"],
+        "logistics_company":res["com"],
+        "status": res["state"],
+        "time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "content": res['data']
+    }
+    logger.warn({'action': "kdn100", 'info': "get_exp_by_kd100:" + json.dumps(write_info)})
+    return write_info
+
 
 
 if __name__ == '__main__':
     # test_info = {"expName" : '韵达快递',"expNo":"3101131769194"}
     # kdn_subscription_sub(**test_info)
     # format_content()
-    comfirm_get('882655691181230843','3')
+    # comfirm_get('882655691181230843','3')
+    get_exp_by_kd100("yunda","1202412171242")
 
 
 

@@ -114,6 +114,10 @@ class KdnView(APIView):
         #                      "UpdateTime": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Reason": "轨迹为空"})
         logger.info(write_info)
         logger.warn({'action': "kdn", 'info': "get_kdn_return:" + LogisticCode})
+        if not Traces:
+            natural_name = write_info['logistics_company']
+            kd100_type = exp_map.kd100_exp_map[natural_name]
+            write_info = kdn_wuliu_extra.get_exp_by_kd100(company_name=kd100_type,out_sid=LogisticCode)
         try:
             kdn_get_push.delay(**write_info)
         except Exception, e:
