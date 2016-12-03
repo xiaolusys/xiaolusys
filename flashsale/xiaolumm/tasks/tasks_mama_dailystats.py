@@ -216,10 +216,10 @@ def task_check_xlmm_exchg_order():
 
     from flashsale.pay.models.user import BudgetLog
     budget_log = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_IN,
-                                          budget_log_type=BudgetLog.BG_EXCHG_ORDER)
+                                          budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED)
     budget_num = budget_log.count()
     res = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_IN,
-                                   budget_log_type=BudgetLog.BG_EXCHG_ORDER).aggregate(
+                                   budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED).aggregate(
         n=Sum('flow_amount'))
     exchg_budget_sum = res['n'] or 0
 
@@ -261,10 +261,10 @@ def task_check_xlmm_return_exchg_order():
 
     from flashsale.pay.models.user import BudgetLog
     budget_log = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_OUT,
-                                          budget_log_type=BudgetLog.BG_EXCHG_ORDER)
+                                          budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED)
     budget_num = budget_log.count()
     res = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_OUT,
-                                   budget_log_type=BudgetLog.BG_EXCHG_ORDER).aggregate(
+                                   budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED).aggregate(
         n=Sum('flow_amount'))
     exchg_budget_sum = res['n'] or 0
 
