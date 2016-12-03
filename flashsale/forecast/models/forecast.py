@@ -223,7 +223,7 @@ class ForecastInbound(BaseModel):
         :return:
         """
         inbound = InBound.objects.get(id=inbound_id)
-        order_list_ids = inbound.orderlist_ids
+        order_list_ids = inbound.order_list_ids
         forecasts = ForecastInbound.objects.filter(relate_order_set__id__in=order_list_ids,
                                        status__in=[ForecastInbound.ST_DRAFT, ForecastInbound.ST_APPROVED])
         if forecasts.count() > 1:
