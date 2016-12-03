@@ -197,15 +197,14 @@ class ForecastInbound(BaseModel):
         """
             重设预测：从以前的预测单中删除本订货单的关联，利用此订货单重新建立预测
         """
-        forcasts = ForecastInbound.objects.filter(relate_order_set__id=order_list_id,
-                                                  status__in=[ForecastInbound.ST_DRAFT, ForecastInbound.ST_APPROVED])
+        forcasts = ForecastInbound.objects.filter(relate_order_set__id=order_list_id)
         order_list_ids = []
         for forcast in forcasts:
             for ol in forcast.relate_order_set.all():
                 order_list_ids.append(ol.id)
         order_list_ids = list(set(order_list_ids))
         res = []
-        forcasts.update(status=ForecastInbound.ST_CANCELED)
+        forcasts.filter(status__in=[ForecastInbound.ST_DRAFT, ForecastInbound.ST_APPROVED]).update(status=ForecastInbound.ST_CANCELED)
         for order_list_id in order_list_ids:
             ol = OrderList.objects.get(id=order_list_id)
             if ol.stage == OrderList.STAGE_RECEIVE and not ol.third_package:
