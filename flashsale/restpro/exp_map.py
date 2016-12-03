@@ -229,11 +229,17 @@ exp_map = {'优速':'UC',
 '新邦':'XBWL',
 '华强':'hq568'}
 
-kd100_exp_map = {"韵达":"yunda",'韵达快递':'yunda','韵达速递':'yunda',"申通":"shentong","申通快递":"shentong","申通速递":"shentong",
-                 "顺丰":"shunfeng","顺丰快递":"shunfeng","顺丰速递":"shunfeng","EMS":"ems","百世":"huitongkuaidi","百世汇通":"huitongkuaidi",
-                 "中通":"zhongtong","中通快递":"zhongtong","中通速递":"zhongtong","圆通":"yuantong","圆通快递":"yuantong","圆通速递":"yuantong",
-                 "国通":"guotong","国通快递":"guotong","国通速递":"guotong","天天":"tiantian","天天快递":"tiantian","邮政包裹":"youzhengguonei",
-                 "邮政": "youzhengguonei","邮政快递":"youzhengguonei"}
+kd100_exp_map = {"韵达":"yunda",'韵达快递':'yunda','韵达速递':'yunda',
+                 "申通":"shentong","申通快递":"shentong","申通速递":"shentong",
+                 "顺丰":"shunfeng","顺丰快递":"shunfeng","顺丰速递":"shunfeng",
+                 "EMS":"ems",
+                 "百世":"huitongkuaidi","百世汇通":"huitongkuaidi",
+                 "中通":"zhongtong","中通快递":"zhongtong","中通速递":"zhongtong",
+                 "圆通":"yuantong","圆通快递":"yuantong","圆通速递":"yuantong",
+                 "国通":"guotong","国通快递":"guotong","国通速递":"guotong",
+                 "天天":"tiantian","天天快递":"tiantian",
+                 "邮政包裹":"youzhengguonei","邮政": "youzhengguonei","邮政快递":"youzhengguonei",
+                 "安能物流":"annengwuliu","安能":"annengwuliu","安能快递":"annengwuliu","安能速递":"annengwuliu"}
 
 def reverse_map():
     return dict(zip(exp_map.values(),exp_map.keys()))
