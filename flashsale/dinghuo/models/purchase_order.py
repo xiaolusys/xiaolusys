@@ -865,43 +865,43 @@ def update_purchaseorder_status(sender, instance, created, **kwargs):
 post_save.connect(update_purchaseorder_status, sender=OrderList, dispatch_uid='post_save_update_purchaseorder_status')
 
 
-def orderlist_create_forecast_inbound(sender, instance, raw, **kwargs):
-    """ 根据status更新sys_status,审核通过后更新预测到货单  """
-    logger.info('post_save orderlist_create_forecast_inbound: %s' % instance)
-    # if instance.stage == OrderList.STAGE_DRAFT:
-    #     instance.sys_status = OrderList.ST_DRAFT
-    # elif instance.stage == OrderList.STAGE_DELETED:
-    #     instance.sys_status = OrderList.ST_CLOSE
-    # elif instance.stage == OrderList.STAGE_COMPLETED:
-    #     instance.sys_status = OrderList.ST_FINISHED
-    # elif instance.stage == OrderList.STAGE_STATE:
-    #     instance.sys_status = OrderList.ST_BILLING
-    # else:
-    #     instance.sys_status = OrderList.ST_APPROVAL
-    # update_model_fields(instance, update_fields=['sys_status'])
-
-    if instance.stage != OrderList.STAGE_DRAFT and instance.supplier:
-        logger.info('orderlist update forecastinbound: %s' % instance)
-        # if the orderlist purchase confirm, then create forecast inbound
-        from flashsale.forecast.apis import api_create_or_update_forecastinbound_by_orderlist
-        try:
-            with transaction.atomic():
-                api_create_or_update_forecastinbound_by_orderlist(instance)
-        except Exception, exc:
-            logger.error('update forecast inbound:%s' % exc.message, exc_info=True)
-
-    # refresh forecast stats
-    from flashsale.forecast.models import ForecastInbound
-    from flashsale.forecast import tasks
-    forecast_inbounds = ForecastInbound.objects.filter(relate_order_set__in=[instance.id])
-    for forecast in forecast_inbounds:
-        tasks.task_forecast_update_stats_data.delay(forecast.id)
-
-
-post_save.connect(
-    orderlist_create_forecast_inbound,
-    sender=OrderList,
-    dispatch_uid='pre_save_orderlist_create_forecast_inbound')
+# def orderlist_create_forecast_inbound(sender, instance, raw, **kwargs):
+#     """ 根据status更新sys_status,审核通过后更新预测到货单  """
+#     logger.info('post_save orderlist_create_forecast_inbound: %s' % instance)
+#     # if instance.stage == OrderList.STAGE_DRAFT:
+#     #     instance.sys_status = OrderList.ST_DRAFT
+#     # elif instance.stage == OrderList.STAGE_DELETED:
+#     #     instance.sys_status = OrderList.ST_CLOSE
+#     # elif instance.stage == OrderList.STAGE_COMPLETED:
+#     #     instance.sys_status = OrderList.ST_FINISHED
+#     # elif instance.stage == OrderList.STAGE_STATE:
+#     #     instance.sys_status = OrderList.ST_BILLING
+#     # else:
+#     #     instance.sys_status = OrderList.ST_APPROVAL
+#     # update_model_fields(instance, update_fields=['sys_status'])
+#
+#     if instance.stage != OrderList.STAGE_DRAFT and instance.supplier:
+#         logger.info('orderlist update forecastinbound: %s' % instance)
+#         # if the orderlist purchase confirm, then create forecast inbound
+#         from flashsale.forecast.apis import api_create_or_update_forecastinbound_by_orderlist
+#         try:
+#             with transaction.atomic():
+#                 api_create_or_update_forecastinbound_by_orderlist(instance)
+#         except Exception, exc:
+#             logger.error('update forecast inbound:%s' % exc.message, exc_info=True)
+#
+#     # refresh forecast stats
+#     from flashsale.forecast.models import ForecastInbound
+#     from flashsale.forecast import tasks
+#     forecast_inbounds = ForecastInbound.objects.filter(relate_order_set__in=[instance.id])
+#     for forecast in forecast_inbounds:
+#         tasks.task_forecast_update_stats_data.delay(forecast.id)
+#
+#
+# post_save.connect(
+#     orderlist_create_forecast_inbound,
+#     sender=OrderList,
+#     dispatch_uid='pre_save_orderlist_create_forecast_inbound')
 
 
 class OrderDetail(models.Model):
