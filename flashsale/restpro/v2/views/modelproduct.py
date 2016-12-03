@@ -277,8 +277,10 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
     @list_route(methods=['get'])
     def electronic_goods(self, request, *args, **kwargs):
         """ electronic商品列表分页接口 """
-        queryset = ModelProduct.objects.filter(product_type=1)
-        object_list = serializers_v2.ElectronicProductSerializer(queryset, context={'request': request}, many=True).data
+        queryset = ModelProduct.objects.filter(product_type=ModelProduct.VIRTUAL_TYPE)
+        ids = [i['id'] for i in queryset.values('id')]
+        queryset = ModelProductCtl.multiple(ids=ids)
+        object_list = serializers_v2.ElectronicProductSerializer(queryset, context={}, many=True).data
         response = Response(object_list)
         return response
 

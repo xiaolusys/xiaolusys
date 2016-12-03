@@ -148,13 +148,6 @@ class ElectronicProductSerializer(serializers.ModelSerializer):
 
     def get_detail_content(self, obj):
         content = obj.detail_content
-        if obj.is_flatten:
-            request = self.context.get('request')
-            product_id = request.GET.get('product_id', None)
-            if product_id and product_id.isdigit():
-                product = obj.products.filter(id=product_id).first()
-                content['name'] = product.name
-                content['head_imgs'] = [product.pic_path]
         return content
 
     def get_extras(self, obj):
