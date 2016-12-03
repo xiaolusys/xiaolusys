@@ -317,7 +317,20 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             return user_budget.budget_cash >= payment, user_budget.budget_cash
         return False, 0
 
-    def get_payextras(self, request, resp):
+    def has_jingpinquan_product(self, product_ids):
+        """
+        检测购物车是否含有精品券商品
+        """
+        for product_id in product_ids:
+            product = Product.objects.filter(id=product_id).first()
+            if not product:
+                continue
+            model_product = product.product_model
+            if model_product.is_onsale is True:
+                return True
+        return False
+
+    def get_payextras(self, request, resp, product_ids):
 
         content = request.GET
         is_in_wap = content.get('device', 'wap') == 'wap'
@@ -325,11 +338,11 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         # 优惠券
         extras.append(CONS.PAY_EXTRAS.get(CONS.ETS_COUPON))
         # APP减两元
-        if not is_in_wap:
+        if not is_in_wap and not self.has_jingpinquan_product(product_ids):
             extras.append(CONS.PAY_EXTRAS.get(CONS.ETS_APPCUT))
         # 余额
-        total_payment  = resp['total_payment']
-        customer    = self.get_customer(request)
+        total_payment = resp['total_payment']
+        customer = self.get_customer(request)
         budget_payable, budget_cash = self.get_budget_info(customer, total_payment)
         if budget_cash > 0 and resp['total_payment'] > 0:
             budgets = CONS.PAY_EXTRAS.get(CONS.ETS_BUDGET)
@@ -425,13 +438,13 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             'post_fee': round(post_fee, 2),
             'discount_fee': round(discount_fee, 2),
             'total_payment': round(total_payment, 2),
-            'budget_cash':budget_cash,
+            'budget_cash': budget_cash,
             'channels': self.get_charge_channels(request, total_payment),
             'cart_ids': ','.join([str(c) for c in cart_ids]),
             'cart_list': cart_serializers.data,
             'logistics_companys': selectable_logistics
         }
-        response.update({'pay_extras': self.get_payextras(request, response)})
+        response.update({'pay_extras': self.get_payextras(request, response, item_ids)})
         return Response(response)
 
     @list_route(methods=['get', 'post'])
@@ -441,7 +454,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         sku_id = content.get('sku_id', '')
         sku_num = int(content.get('num', '1'))
         product_sku = ProductSku.objects.filter(id=sku_id).first()
-        if not product_sku :
+        if not product_sku:
             raise exceptions.APIException(u'参数错误')
 
         discount_fee = 0
@@ -484,5 +497,5 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             'sku': product_sku_dict,
             'logistics_companys': selectable_logistics
         }
-        response.update({'pay_extras': self.get_payextras(request, response)})
+        response.update({'pay_extras': self.get_payextras(request, response, [product.id])})
         return Response(response)
