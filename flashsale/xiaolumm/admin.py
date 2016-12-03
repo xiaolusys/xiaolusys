@@ -798,9 +798,9 @@ admin.site.register(MamaSaleGrade, MamaSaleGradeAdmin)
 
 
 class MamaMissionAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'target', 'cat_type', 'kpi_type', 'date_type',
-                    'target_value', 'award_amount', 'start_time', 'end_time', 'status')
-    list_filter = ('target', 'status', 'cat_type', 'date_type', 'kpi_type')
+    list_display = ('id', 'name', 'target', 'cat_type', 'kpi_type', 'date_type', 'target_value',
+                     'award_amount', 'start_time', 'end_time', 'is_push_msg', 'status')
+    list_filter = ('target', 'status', 'cat_type', 'date_type', 'kpi_type', 'is_push_msg')
     search_fields = ('=id', 'name')
 
 

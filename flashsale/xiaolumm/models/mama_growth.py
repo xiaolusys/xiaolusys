@@ -284,6 +284,8 @@ class MamaMission(BaseModel):
     status = models.CharField(max_length=8, choices=STATUS_CHOICES,
                               default=DRAFT, verbose_name=u'状态')
 
+    is_push_msg = models.BooleanField(default=True, verbose_name=u'推送消息')
+
     class Meta:
         db_table = 'flashsale_xlmm_mission'
         app_label = 'xiaolumm'

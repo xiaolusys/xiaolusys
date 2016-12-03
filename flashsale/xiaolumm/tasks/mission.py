@@ -21,10 +21,13 @@ def task_push_mission_state_msg_to_weixin_user(mission_record_id, state):
     try:
         from shopapp.weixin.weixin_push import WeixinPush
         mama_mission = MamaMissionRecord.objects.filter(id=mission_record_id).first()
-        if not settings.MAMA_MISSION_PUSH_SWITCH and  mama_mission.mama_id > 135:
+        if not settings.MAMA_MISSION_PUSH_SWITCH and  mama_mission.mama_id > 135 :
             return
 
         base_mission = mama_mission.mission
+        if not base_mission.is_push_msg:
+            return
+
         mama_grade = MamaSaleGrade.objects.filter(mama_id=mama_mission.mama_id).first()
         wxpush = WeixinPush()
         if state == MamaMissionRecord.STAGING:
