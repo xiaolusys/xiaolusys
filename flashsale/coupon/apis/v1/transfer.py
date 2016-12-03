@@ -104,7 +104,7 @@ def coupon_exchange_saleorder(customer, order_id, mama_id, exchg_template_id, co
     # (3)在user钱包写收入记录
     from flashsale.pay.models.user import BudgetLog
     today = datetime.date.today()
-    order_log = BudgetLog(customer_id=customer.id, flow_amount=int(sale_order.payment * 100),
+    order_log = BudgetLog(customer_id=customer.id, flow_amount=round(sale_order.payment * 100),
                           budget_type=BudgetLog.BUDGET_IN,
                           budget_log_type=BudgetLog.BG_EXCHG_ORDER, referal_id=sale_order.id,
                           uni_key=sale_order.oid, status=BudgetLog.CONFIRMED,
@@ -174,7 +174,7 @@ def saleorder_return_coupon_exchange(salerefund, payment):
                                                                       finished_time='')
 
     # (4)在精品券流通记录增加退货退券记录
-    res = CouponTransferRecord.gen_return_record(customer, int(payment/sale_order.price),
+    res = CouponTransferRecord.gen_return_record(customer, round(payment/sale_order.price),
                                                          int(user_coupon.template_id), sale_order.sale_trade.tid)
 
     return res
