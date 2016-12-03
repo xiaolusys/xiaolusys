@@ -226,10 +226,10 @@ class ForecastInbound(BaseModel):
         forecasts = ForecastInbound.objects.filter(relate_order_set__id__in=order_list_ids,
                                        status__in=[ForecastInbound.ST_DRAFT, ForecastInbound.ST_APPROVED])
         if forecasts.count() > 1:
-            order_list_ids = []
             for forecast in forecasts:
                 for ol in forecast.relate_order_set.all():
                     order_list_ids.append(ol.id)
+            order_list_ids = list(set(order_list_ids))
             forecast = ForecastInbound.merge(order_list_ids)
         else:
             forecast = forecasts.first()
@@ -259,18 +259,18 @@ class ForecastInbound(BaseModel):
         res = {}
         for forcast in forcasts:
             for fd in forcast.details_manager.all():
-                if not fd.sku_id in details:
+                if fd.sku_id not in details:
                     forecast_detail = ForecastInboundDetail(forecast_inbound=forecast_ib,
-                                                                sku_id=fd.chichu_id,
+                                                                sku_id=fd.sku_id,
                                                                 product_id=fd.product_id,
                                                             product_name=fd.product_name,
                                                             product_img=fd.product_img)
                     details[forecast_detail.sku_id] = forecast_detail
-                res[forecast_detail.sku_id] += fd.forecast_arrive_num
+                res[forecast_detail.sku_id] = res.get(forecast_detail.sku_id, 0) + fd.forecast_arrive_num
         forcasts.update(status=ForecastInbound.ST_CANCELED)
-        for sku_id in res:
-            res[sku_id].forecast_arrive_num = res[sku_id]
-            res[sku_id].save()
+        for sku_id in details:
+            details[sku_id].forecast_arrive_num = res[sku_id]
+            details[sku_id].save()
         return forecast_ib
 
     @staticmethod
