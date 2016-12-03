@@ -1431,6 +1431,12 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
+    u'定时检查优惠券流通记录': {
+        'task': 'flashsale.coupon.tasks.transfer_coupon.task_check_transfer_coupon_record',
+        'schedule': crontab(minute="0", hour="*/4"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
     u'定时设定APP下载用户是否注册': {
         'task': 'flashsale.promotion.tasks.task_update_appdownload_record',
         'schedule': crontab(minute="30", hour="0"),
