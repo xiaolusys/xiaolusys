@@ -207,6 +207,7 @@ def add_DataSign(f):
     return wrapper
 
 def comfirm_get(out_sid,status):
+    out_sid = str(out_sid)
     logging.warn("comfirm_get")
     logger.warn({'action': "kdn", 'info': "start_comfirm_get:"+ out_sid})
     packageskuitem = PackageSkuItem.objects.filter(out_sid = out_sid).values("oid")
@@ -373,12 +374,19 @@ def get_exp_by_kd100(company_name,out_sid):
     rq_url = kd100_url % (type,postid)
     res = requests.get(rq_url).text
     res = json.loads(res)
+    all_info = list()
+    for i in res['data']:
+        each_info = dict()
+        each_info['AcceptTime'] = i['ftime']
+        each_info['AcceptStation'] = i['context']
+        all_info.append(each_info)
+
     write_info = {
         "out_sid":res["nu"],
         "logistics_company":res["com"],
         "status": res["state"],
         "time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "content": res['data']
+        "content": all_info
     }
     logger.warn({'action': "kdn100", 'info': "get_exp_by_kd100:" + json.dumps(write_info)})
     return write_info
