@@ -74,7 +74,7 @@ class SaleSupplier(models.Model):
                      (WHOLESALER, u'经销批发'),
                      (BRAND_OWNER, u'品牌'),
                      (CLOTHING_FACTORY, u'源头大厂'))
-
+    STOCKING_MODE_CHOICES = ((0, u'未备货'), (1, u'备货'))
     supplier_name = models.CharField(max_length=64, unique=True, db_index=True, blank=False, verbose_name=u'供应商名')
     supplier_code = models.CharField(max_length=64, blank=True, verbose_name=u'品牌缩写')
 
@@ -127,6 +127,7 @@ class SaleSupplier(models.Model):
                                 default=SELECTED, verbose_name=u'进度')
     supplier_type = models.IntegerField(choices=SUPPLIER_TYPE, blank=True, default=0, verbose_name=u"供应商类型")
     supplier_zone = models.IntegerField(default=0, db_index=True, verbose_name=u'供应商所属区域')
+    stocking_mode = models.IntegerField(default=0, choices=STOCKING_MODE_CHOICES, db_index=True, verbose_name=u'存货模式')
     buyer = models.ForeignKey('auth.User', null=True, related_name='buyers', verbose_name=u'买手')
     ware_by = models.SmallIntegerField(default=WARE_SH, choices=WARE_CHOICES, verbose_name=u'所属仓库')
     return_ware_by = models.SmallIntegerField(default=WARE_NONE, choices=WARE_CHOICES, verbose_name=u'退货仓库')

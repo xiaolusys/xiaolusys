@@ -161,7 +161,7 @@ class ProductAdmin(ApproxAdmin):
     fieldsets = (('商品基本信息:', {
         'classes': ('expand',),
         'fields':
-            (('outer_id', 'category'), ('name', 'pic_path'),
+            (('outer_id', 'category', 'type'), ('name', 'pic_path'),
              ('collect_num', 'warn_num', 'remain_num', 'wait_post_num', 'reduce_num'),
              ('lock_num', 'inferior_num', 'std_purchase_price', 'staff_price'),
              ('sale_time', 'upshelf_time', 'offshelf_time'),
