@@ -49,7 +49,7 @@ def process_transfer_coupon(customer_id, init_from_customer_id, record):
         coupon.extras.update({"transfer_coupon_pk":record.id})
         coupon.save()
     from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
-    task_calc_xlmm_elite_score.delay(record.coupon_to_mama_id)  # 计算妈妈积分
+    task_calc_xlmm_elite_score(record.coupon_to_mama_id)  # 计算妈妈积分
     return {"code": 0, "info": u"发放成功"}
 
     
@@ -204,7 +204,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
             info = u"发放成功"
 
             from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
-            task_calc_xlmm_elite_score.delay(record.coupon_to_mama_id)  # 计算妈妈积分
+            task_calc_xlmm_elite_score(record.coupon_to_mama_id)  # 计算妈妈积分
         res = Response({"code": 0, "info": info})
         #res["Access-Control-Allow-Origin"] = "*"
         return res
@@ -375,6 +375,25 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
             customer_id = customer.id
         mama = get_charged_mama(request.user)
         mama_id = mama.id
+
+        stock_num = CouponTransferRecord.get_coupon_stock_num(mama_id, exchg_template_id)
+        if stock_num < int(coupon_num):
+            logger.warn({
+                'message': u'exchange order:stock_num=%s < exchg coupon_num=%s ,order_id=%s templateid=%s' % (
+                    stock_num, coupon_num, order_id, exchg_template_id),
+            })
+            res = Response({"code": 2, "info": u'您的精品券库存不足，请立即购买!'})
+            return res
+
+        user_coupons = UserCoupon.objects.filter(customer_id=customer.id, template_id=int(exchg_template_id),
+                                                 status=UserCoupon.UNUSED)
+        if len(user_coupons) < int(coupon_num):
+            logger.warn({
+                'message': u'exchange order:user_coupon=%s < exchg coupon_num=%s ,order_id=%s templateid=%s' % (
+                    len(user_coupons), coupon_num, order_id, exchg_template_id),
+            })
+            res = Response({"code": 3, "info": u'您的精品券数量不足，请联系微信客服!'})
+            return res
 
         from flashsale.coupon.apis.v1.transfer import coupon_exchange_saleorder
         res = coupon_exchange_saleorder(customer, order_id, mama_id, exchg_template_id, coupon_num)

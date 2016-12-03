@@ -149,12 +149,13 @@ def task_xlmm_score():
 def task_calc_all_xlmm_elite_score():
     from flashsale.xiaolumm.models.models import XiaoluMama
     elite_mamas = XiaoluMama.objects.filter(status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED)
+    mama_count = 0
     for mama in elite_mamas:
-
         is_elite = (mama.referal_from == XiaoluMama.DIRECT) or (mama.referal_from == XiaoluMama.INDIRECT)
-
         if is_elite:
             task_calc_xlmm_elite_score.delay(mama.id)
+            mama_count += 1
+    logger.info({'message': u'cacl elite score | mama count=%s' % (mama_count), })
 
 
 @app.task()
