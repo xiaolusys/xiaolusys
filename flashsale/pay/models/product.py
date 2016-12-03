@@ -173,7 +173,7 @@ class ModelProduct(BaseTagModel):
     lowest_agent_price = models.FloatField(default=0.0, db_index=True, verbose_name=u'最低售价')
     lowest_std_sale_price = models.FloatField(default=0.0, verbose_name=u'最低原价')
 
-    is_onsale    = models.BooleanField(default=False, db_index=True, verbose_name=u'特价/秒杀')
+    is_onsale    = models.BooleanField(default=False, db_index=True, verbose_name=u'特价/秒杀(精品券商品)')
     is_teambuy   = models.BooleanField(default=False, db_index=True, verbose_name=u'团购')
     is_recommend = models.BooleanField(default=False, db_index=True, verbose_name=u'推荐商品')
     is_topic     = models.BooleanField(default=False, db_index=True, verbose_name=u'专题商品')
