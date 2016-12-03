@@ -122,7 +122,7 @@ def coupon_exchange_saleorder(customer, order_id, mama_id, exchg_template_id, co
 @transaction.atomic
 def saleorder_return_coupon_exchange(salerefund, payment):
     logger.info({
-        'message': u'exchange order:customer=%s, payment=%s ' % (
+        'message': u'return exchange order:customer=%s, payment=%s ' % (
             salerefund.buyer_id, payment),
     })
 
@@ -163,18 +163,33 @@ def saleorder_return_coupon_exchange(salerefund, payment):
         })
         raise exceptions.ValidationError(u'找不到订单记录，取消兑换失败!')
 
-    # (3)用户优惠券需要变成未使用状态,如果零钱不够扣则变为冻结
+    # (3)用户优惠券需要变成未使用状态,如果零钱不够扣则变为冻结,优惠券扣除张数等于退款金额除商品价格；有可能买了多件商品，只退部分，那么
+    #只能修改部分优惠券的状态
     user_coupon = UserCoupon.objects.filter(trade_tid=sale_order.oid,
                                              status=UserCoupon.USED)
-    if not not_enough_budget:
-        UserCoupon.objects.filter(uniq_id=user_coupon.uniq_id).update(status=UserCoupon.UNUSED, trade_tid='',
-                                                                 finished_time='')
-    else:
-        UserCoupon.objects.filter(uniq_id=user_coupon.uniq_id).update(status=UserCoupon.FREEZE, trade_tid='',
-                                                                      finished_time='')
+    return_coupon_num = round(payment/sale_order.price)
+    if user_coupon.count() < return_coupon_num:
+        logger.warn({
+            'message': u'return exchange order: user_coupon.count() %s < return_coupon_num %s' % (user_coupon.count(), return_coupon_num),
+        })
+    num = 0
+    for coupon in user_coupon:
+        if num >= return_coupon_num:
+            break
+        else:
+            num += 1
+        if not not_enough_budget:
+            UserCoupon.objects.filter(uniq_id=coupon.uniq_id).update(status=UserCoupon.UNUSED, trade_tid='',
+                                                                     finished_time='')
+        else:
+            UserCoupon.objects.filter(uniq_id=coupon.uniq_id).update(status=UserCoupon.FREEZE, trade_tid='',
+                                                                          finished_time='')
 
     # (4)在精品券流通记录增加退货退券记录
-    res = CouponTransferRecord.gen_return_record(customer, round(payment/sale_order.price),
+    logger.info({
+        'message': u'exchange order:return_coupon_num=%s ' % (return_coupon_num),
+    })
+    res = CouponTransferRecord.gen_return_record(customer, return_coupon_num,
                                                          int(user_coupon.template_id), sale_order.sale_trade.tid)
 
     return res
