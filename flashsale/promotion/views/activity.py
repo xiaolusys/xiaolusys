@@ -340,7 +340,7 @@ class ApplicationView(WeixinAuthMixin, APIView):
             applications = XLSampleApply.objects.filter(user_openid=openid, event_id=event_id)
             application_count = applications.count()
         elif mobile:
-            from flashsale.restpro.v2.views_verifycode_login import validate_mobile
+            from flashsale.restpro.v2.views.verifycode_login import validate_mobile
             if not validate_mobile(mobile):
                 response = Response({"rcode": 2, "msg": "mobile number wrong"})
                 response["Access-Control-Allow-Origin"] = "*"

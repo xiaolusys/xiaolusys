@@ -1,6 +1,7 @@
 # -*- encoding:utf-8 -*-
 
 from django.db import models
+from django.db import transaction
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.models import User, AnonymousUser
@@ -97,20 +98,21 @@ class WeixinPubBackend(object):
             return AnonymousUser()
 
         try:
-            profile = Customer.objects.get(unionid=unionid, status=Customer.NORMAL)
-            # 如果openid有误，则重新更新openid
-            if unionid:
-                task_Refresh_Sale_Customer.delay(userinfo, app_key=settings.WX_PUB_APPID)
+            with transaction.atomic():
+                profile = Customer.objects.get(unionid=unionid, status=Customer.NORMAL)
+                # 如果openid有误，则重新更新openid
+                if unionid:
+                    task_Refresh_Sale_Customer.delay(userinfo, app_key=settings.WX_PUB_APPID)
 
-            if profile.user:
-                if not profile.user.is_active:
-                    profile.user.is_active = True
-                    profile.user.save()
-                return profile.user
-            else:
-                user, state = User.objects.get_or_create(username=unionid, is_active=True)
-                profile.user = user
-                profile.save()
+                if profile.user:
+                    if not profile.user.is_active:
+                        profile.user.is_active = True
+                        profile.user.save()
+                    return profile.user
+                else:
+                    user, state = User.objects.get_or_create(username=unionid, is_active=True)
+                    profile.user = user
+                    profile.save()
 
         except Customer.DoesNotExist:
             if not self.create_unknown_user or not unionid:

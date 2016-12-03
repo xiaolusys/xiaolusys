@@ -38,7 +38,7 @@ def create_credential(
 
     elif channel in (UnionPayConf.WX, UnionPayConf.WX_PUB):
         credential.update({
-            "timeStamp": '%s'%get_time_number(),
+
             "nonceStr": WXPayUtil.generate_nonce_str(),
         })
         if channel == UnionPayConf.WX:
@@ -53,6 +53,7 @@ def create_credential(
                 'nonce_str': credential['nonceStr'],
             })
             credential.update({
+                "timeStamp": get_time_number(),
                 "partnerId": wxpay.mch_id,
                 "appId": wxpay.app_id,
                 "prepayId": resp['prepay_id'],
@@ -79,6 +80,7 @@ def create_credential(
                 'nonce_str': credential['nonceStr'],
             })
             credential.update({
+                "timeStamp": '%s' % get_time_number(),
                 'package': 'prepay_id=%s' % resp['prepay_id']
             })
             sign_dict = {
