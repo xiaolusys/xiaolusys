@@ -364,6 +364,13 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         """
         tuuid = form.get('uuid')
         assert UUID_RE.match(tuuid), u'订单UUID异常'
+        sale_trade = SaleTrade.objects.filter(tid=tuuid).first()
+        if sale_trade and sale_trade.buyer_id != customer.id:
+            raise Exception(u'该订单号被重用: %s'%request.POST.dict())
+
+        if sale_trade:
+            return sale_trade, False
+
         sale_trade = SaleTrade(tid=tuuid, buyer_id=customer.id)
         channel = form.get('channel')
         cart_ids = [i for i in form.get('cart_ids', '').split(',') if i.isdigit()]

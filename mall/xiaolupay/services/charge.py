@@ -105,23 +105,24 @@ def create_charge(
             client_ip='',
         ):
     time_now = datetime.datetime.now()
-    charge = ChargeOrder.objects.filter(order_no=order_no).first()
-    if not charge:
-        charge = ChargeOrder.objects.create(
-            order_no  = order_no,
-            channel   = channel,
-            client_ip = client_ip,
-            amount    = amount,
-            currency  = currency,
-            subject = subject,
-            body    = body,
-            extra   = extra,
-            time_expire = time_now + datetime.timedelta(seconds=UnionPayConf.TIME_EXPIRED)
-        )
-    else:
-        if charge.channel != channel:
-            charge.channel = channel
-            charge.save(update_fields=['channel'])
+    with transaction.atomic():
+        charge = ChargeOrder.objects.filter(order_no=order_no).first()
+        if not charge:
+            charge = ChargeOrder.objects.create(
+                order_no  = order_no,
+                channel   = channel,
+                client_ip = client_ip,
+                amount    = amount,
+                currency  = currency,
+                subject = subject,
+                body    = body,
+                extra   = extra,
+                time_expire = time_now + datetime.timedelta(seconds=UnionPayConf.TIME_EXPIRED)
+            )
+        else:
+            if charge.channel != channel:
+                charge.channel = channel
+                charge.save(update_fields=['channel'])
 
     charge.get_or_create_credential()
     return charge
