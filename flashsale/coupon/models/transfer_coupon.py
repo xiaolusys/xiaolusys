@@ -4,6 +4,7 @@ import logging
 from django.db import models
 from django.db.models import Sum
 from django.db.models.signals import post_save
+from rest_framework import exceptions
 from flashsale.xiaolumm.models import ReferalRelationship
 from core.models import BaseModel
 
@@ -412,8 +413,7 @@ class CouponTransferRecord(BaseModel):
                     sale_order.oid),
                 'code': 3
             })
-            res = {"code": 3, "info": u"记录已存在！"}
-            return res
+            raise exceptions.ValidationError(u'兑换记录已存在')
 
         ct = CouponTemplate.objects.filter(id=template_id).first()
         coupon_value = int(ct.value)
