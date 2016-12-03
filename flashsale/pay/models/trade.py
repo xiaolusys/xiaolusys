@@ -737,8 +737,7 @@ signal_saletrade_pay_confirm.connect(tongji_trade_pay_channel, sender=SaleTrade)
 
 
 def update_teambuy(sender, instance, created, **kwargs):
-    instance.update_teambuy()
-
+    transaction.on_commit(lambda :instance.update_teambuy())
 
 post_save.connect(update_teambuy, sender=SaleTrade, dispatch_uid='post_save_saletrade_update_teambuy')
 
@@ -1139,30 +1138,32 @@ class SaleOrder(PayBaseModel):
         return self.product_sku.product
 
 
-def order_trigger(sender, instance, created, raw, **kwargs):
+def post_save_order_trigger(sender, instance, created, raw, **kwargs):
     """
     SaleOrder save triggers adding carry to OrderCarry.
     """
     if raw: return
-    if instance.is_deposit():
-        if instance.is_confirmed():
-            if instance.is_1_deposit():  # 一元开店 不记录推荐关系
-                return
-            if instance.is_transfer_coupon():
-                from flashsale.coupon.apis.v1.transfer import send_order_transfer_coupons
+    def _order_trigger(instance):
+        if instance.is_deposit():
+            if instance.is_confirmed():
+                if instance.is_1_deposit():  # 一元开店 不记录推荐关系
+                    return
+                if instance.is_transfer_coupon():
+                    from flashsale.coupon.apis.v1.transfer import send_order_transfer_coupons
 
-                send_order_transfer_coupons(instance.sale_trade.buyer_id, instance.id,
-                                           instance.oid, instance.num, instance.item_id)
-                return
+                    send_order_transfer_coupons(instance.sale_trade.buyer_id, instance.id,
+                                               instance.oid, instance.num, instance.item_id)
+                    return
 
-            from flashsale.xiaolumm.tasks import task_update_referal_relationship
-            task_update_referal_relationship.delay(instance)
-    else:
-        from flashsale.xiaolumm.tasks import task_order_trigger
-        task_order_trigger.delay(instance)
+                from flashsale.xiaolumm.tasks import task_update_referal_relationship
+                task_update_referal_relationship.delay(instance)
+        else:
+            from flashsale.xiaolumm.tasks import task_order_trigger
+            task_order_trigger.delay(instance)
 
+    transaction.on_commit(lambda :_order_trigger(instance))
 
-post_save.connect(order_trigger, sender=SaleOrder, dispatch_uid='post_save_order_trigger')
+post_save.connect(post_save_order_trigger, sender=SaleOrder, dispatch_uid='post_save_order_trigger')
 
 
 def update_package_sku_item(sender, instance, created, **kwargs):
@@ -1178,8 +1179,9 @@ def update_package_sku_item(sender, instance, created, **kwargs):
 
 
 def saleorder_update_productskustats_waitingpay_num(sender, instance, *args, **kwargs):
+
     from shopback.items.tasks_stats import task_saleorder_update_productskustats_waitingpay_num
-    task_saleorder_update_productskustats_waitingpay_num(instance.sku_id)
+    transaction.on_commit(lambda :task_saleorder_update_productskustats_waitingpay_num(instance.sku_id))
 
 
 if not settings.CLOSE_CELERY:
@@ -1190,7 +1192,7 @@ if not settings.CLOSE_CELERY:
 def saleorder_update_saletrade_status(sender, instance, *args, **kwargs):
     if instance.status > SaleOrder.WAIT_BUYER_PAY:
         from flashsale.pay.tasks import tasks_update_sale_trade_status
-        tasks_update_sale_trade_status(instance.sale_trade_id)
+        transaction.on_commit(lambda :tasks_update_sale_trade_status(instance.sale_trade_id))
 
 
 post_save.connect(saleorder_update_saletrade_status, sender=SaleOrder,
@@ -1199,8 +1201,7 @@ post_save.connect(saleorder_update_saletrade_status, sender=SaleOrder,
 
 def saleorder_update_stats_record(sender, instance, *args, **kwargs):
     from statistics.tasks import task_update_sale_order_stats_record
-    task_update_sale_order_stats_record.delay(instance)
-
+    transaction.on_commit(lambda :task_update_sale_order_stats_record.delay(instance))
 
 post_save.connect(saleorder_update_stats_record, sender=SaleOrder,
                   dispatch_uid='post_save_saleorder_update_stats_record')
@@ -1248,7 +1249,8 @@ class SaleOrderSyncLog(BaseModel):
         return self.target_num == self.actual_num
 
 
-def gauge_data(sender, instance, created, **kwargs):
+def post_save_gauge_data(sender, instance, created, **kwargs):
+
     from django_statsd.clients import statsd
     key = None
     if instance.is_completed():
@@ -1275,13 +1277,12 @@ def gauge_data(sender, instance, created, **kwargs):
             # logger.warn("gauge_data|key:%s,completed:%s, actual_num:%s" % (key, instance.is_completed(), instance.actual_num))
 
 
-post_save.connect(gauge_data, sender=SaleOrderSyncLog, dispatch_uid='post_save_gauge_data')
+post_save.connect(post_save_gauge_data, sender=SaleOrderSyncLog, dispatch_uid='post_save_gauge_data')
 
 
 def add_order_integral(sender, instance, created, **kwargs):
     from flashsale.pay.tasks import task_add_user_order_integral
-
-    task_add_user_order_integral.delay(instance)
+    transaction.on_commit(lambda :task_add_user_order_integral.delay(instance))
 
 
 post_save.connect(add_order_integral, sender=SaleOrder, dispatch_uid='post_save_add_order_integral')

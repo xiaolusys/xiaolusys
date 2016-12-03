@@ -42,7 +42,7 @@ class WXMessageHttpProxy(HttpProxy):
         return request_url
 
     def get(self, request, pub_id):
-        content = request.GET
+        content = request.GET.dict()
         wx_api = self.get_wx_api(pub_id)
         if wx_api.checkSignature(content.get('signature', ''),
                                  content.get('timestamp', 0),
@@ -50,7 +50,7 @@ class WXMessageHttpProxy(HttpProxy):
             wx_api._wx_account.activeAccount()
             return HttpResponse(content['echostr'])
         logger.error('sign fail:{0}'.format(content))
-        return HttpResponse(u'微信接口验证失败')
+        return HttpResponse('sign failure')
 
     def post(self, request, pub_id, *args, **kwargs):
         content = request.GET
