@@ -10,7 +10,7 @@ from flashsale.pay.apis.v1.customer import get_customer_by_django_user
 
 from flashsale.coupon import serializers
 from flashsale.coupon.models import UserCoupon
-
+from flashsale.coupon.apis.v1.transfer import return_transfer_coupon_2_up_level_mama
 import logging
 
 logger = logging.getLogger(__name__)
@@ -45,3 +45,18 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         serializer = serializers.BoutiqueUserCouponSerialize(queryset, many=True)
         return Response(serializer.data)
+
+    @list_route(methods=['post'])
+    def return_boutique_coupons(self, request, *args, **kwargs):
+        # type: (HttpRequest, *Any, **Any) -> Response
+        """退还　精品券　优惠券　给上级妈妈
+        """
+        customer = get_customer_by_django_user(request.user)
+        coupon_ids = request.POST.get('coupon_ids')
+        user_coupons = UserCoupon.objects.get_unused_boutique_coupons().filter(customer_id=customer.id,
+                                                                               id__in=coupon_ids)
+        coupon_ids = [c['id'] for c in user_coupons.values('id')]
+        state = return_transfer_coupon_2_up_level_mama(coupon_ids)
+        if not state:
+            return Response({'code': 1, 'info': '退券失败'})
+        return Response({'code': 0, 'info': '退券成功'})
