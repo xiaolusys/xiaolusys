@@ -62,19 +62,6 @@ def send_order_transfer_coupons(customer_id, order_id, order_oid, order_num, pro
 
 @transaction.atomic
 def coupon_exchange_saleorder(customer, order_id, mama_id, exchg_template_id, coupon_num):
-    stock_num = CouponTransferRecord.get_coupon_stock_num(mama_id, exchg_template_id)
-    if stock_num < int(coupon_num):
-        raise exceptions.ValidationError(u'您的精品券库存不足，请立即购买!')
-
-    user_coupons = UserCoupon.objects.filter(customer_id=customer.id, template_id=int(exchg_template_id),
-                                                 status=UserCoupon.UNUSED)
-    if len(user_coupons) < int(coupon_num):
-        logger.warn({
-            'message': u'exchange order:user_coupon < exchg coupon_num=%s ,user_coupons=%s templateid=%s' % (
-                coupon_num, order_id, exchg_template_id),
-        })
-        raise exceptions.ValidationError(u'您的精品券数量不足，请联系微信客服!')
-
     logger.info({
         'message': u'exchange order:customer=%s, mama_id=%s coupon_num=%s order_id=%s templateid=%s' % (
             customer.id, mama_id, coupon_num, order_id, exchg_template_id),
@@ -103,6 +90,8 @@ def coupon_exchange_saleorder(customer, order_id, mama_id, exchg_template_id, co
         raise exceptions.ValidationError(u'找不到订单记录，兑换失败!')
 
     # (2)用户优惠券需要变成使用状态
+    user_coupons = UserCoupon.objects.filter(customer_id=customer.id, template_id=int(exchg_template_id),
+                                             status=UserCoupon.UNUSED)
     use_num = 0
     for coupon in user_coupons:
         if use_num < int(coupon_num):

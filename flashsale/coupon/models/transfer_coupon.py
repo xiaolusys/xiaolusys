@@ -271,7 +271,7 @@ class CouponTransferRecord(BaseModel):
         coupon.save()
 
         from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
-        task_calc_xlmm_elite_score.delay(coupon_to_mama_id)  # 计算妈妈积分
+        task_calc_xlmm_elite_score(coupon_to_mama_id)  # 计算妈妈积分
 
         res = {"code": 0, "info": u"成功!"}
         return res
@@ -333,7 +333,7 @@ class CouponTransferRecord(BaseModel):
         coupon.save()
 
         from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
-        task_calc_xlmm_elite_score.delay(coupon_to_mama_id)  # 计算妈妈积分
+        task_calc_xlmm_elite_score(coupon_to_mama_id)  # 计算妈妈积分
 
         res = {"code": 0, "info": u"成功!"}
         return res
