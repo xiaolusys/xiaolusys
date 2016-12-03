@@ -205,7 +205,7 @@ def task_check_xlmm_exchg_order():
             if sale_order and sale_order.extras.has_key('exchange') and sale_order.extras['exchange'] == True:
                 order_num += 1
                 exchg_goods_num += sale_order.payment / sale_order.price
-                exchg_goods_payment += sale_order.payment * 100
+                exchg_goods_payment += round(sale_order.payment * 100)
                 results.append(entry.order_id)
                 from flashsale.coupon.models.usercoupon import UserCoupon
                 user_coupons = UserCoupon.objects.filter(trade_tid=entry.order_id,
@@ -256,7 +256,7 @@ def task_check_xlmm_return_exchg_order():
             if sale_order and sale_order.extras.has_key('exchange') and sale_order.extras['exchange'] == False:
                 order_num += 1
                 exchg_goods_num += sale_order.payment / sale_order.price
-                exchg_goods_payment += sale_order.payment * 100
+                exchg_goods_payment += round(sale_order.payment * 100)
                 results.append(entry.order_id)
 
     from flashsale.pay.models.user import BudgetLog

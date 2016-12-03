@@ -340,7 +340,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                             if use_template_id and template_id == use_template_id:
                                 continue
                             else:
-                                results.append({'exchg_template_id': template_id, 'num': sale_order.num,
+                                results.append({'exchg_template_id': template_id, 'num': round(sale_order.payment / sale_order.price),
                                                 'order_id': entry.order_id, 'sku_img': entry.sku_img,
                                                 'contributor_nick': entry.contributor_nick, 'status': entry.status,
                                                 'status_display': OrderCarry.STATUS_TYPES[entry.status][1],
