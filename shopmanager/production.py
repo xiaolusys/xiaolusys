@@ -191,6 +191,7 @@ LOGGER_HANDLERS = [
     ('statistics', 'sentry,file'),
     ('dogslow', 'sentry,file'),
     ('django.request', 'sentry,file'),
+    ('raven', 'sentry,file'),
     ('sentry.errors', 'sentry,file'),
     ('celery.handler', 'sentry,file'),
     ('notifyserver.handler', 'sentry,file'),

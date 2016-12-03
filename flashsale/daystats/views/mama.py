@@ -760,7 +760,7 @@ def calc_transfer_coupon_data(date_field):
 
     values = CouponTransferRecord.objects.filter(
         status=1, transfer_status=3,
-        date_field=date_field, transfer_type=3
+        date_field=date_field, transfer_type__in=(3, 8)
     ).values_list('coupon_num', 'coupon_value')
     coupon_used_num = sum([v for v, n in values])
     coupon_used_amount = sum([v * n for v, n in values])
@@ -821,7 +821,7 @@ def transfer_coupon(req):
     name_maps = {
         'coupon_sale_num': u'出券张数',
         'coupon_sale_amount': u'总出券面额',
-        'coupon_used_num':u'买货用券数',
+        'coupon_used_num':u'兑换买货用券数',
         'coupon_used_amount': u'买货券面额',
         'order_mama_count': u'有收益妈妈数',
         'elite_mama_count': u'累计妈妈数',
