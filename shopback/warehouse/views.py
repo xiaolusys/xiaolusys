@@ -363,7 +363,6 @@ class PackageClearRedoView(APIView):
         content = request.data.copy()
         for k, v in request.GET.iteritems():
             content[k] = v
-
         package_order_pid = content.get('package_order_pid')
         package_order = PackageOrder.objects.get(pid=package_order_pid)
         package_order.redo_sign = False
