@@ -76,13 +76,13 @@ class MamaSaleGrade(BaseModel):
     F_LEVEL = 180000
     G_LEVEL = 210000
     GRADE_CHOICES = (
-        (A_LEVEL, u'A级'), #: <300元
-        (B_LEVEL, u'B级'), #: <600元
-        (C_LEVEL, u'C级'), #: <900元
-        (D_LEVEL, u'D级'), #: <1200元
-        (E_LEVEL, u'E级'), #: <1500元
-        (F_LEVEL, u'F级'), #: <1800元
-        (G_LEVEL, u'G级'), #: <2100元
+        (A_LEVEL, u'A'), #: <300元
+        (B_LEVEL, u'B'), #: <600元
+        (C_LEVEL, u'C'), #: <900元
+        (D_LEVEL, u'D'), #: <1200元
+        (E_LEVEL, u'E'), #: <1500元
+        (F_LEVEL, u'F'), #: <1800元
+        (G_LEVEL, u'G'), #: <2100元
     )
 
     mama    = models.OneToOneField('xiaolumm.XiaoluMama',related_name='sale_grade',verbose_name=u'关联妈妈')
@@ -394,6 +394,12 @@ class MamaMissionRecord(BaseModel):
             self.uni_key = gen_mama_mission_record_unikey(self.mission.id, self.year_week, self.mama_id)
             logger.debug('generate mission unikey: %s'%self.uni_key)
         super(MamaMissionRecord, self).save(*args, **kwargs)
+
+    def get_mission_name(self):
+        if self.mission.cat_type == MamaMission.CAT_SALE_MAMA:
+            sale_grade = MamaSaleGrade.objects.filter(mama_id=self.mama_id).first()
+            return self.mission.name .replace('A', sale_grade and sale_grade.get_grade_display() or '')
+        return self.mission.name
 
     @staticmethod
     def gen_week_field(self, date_time):

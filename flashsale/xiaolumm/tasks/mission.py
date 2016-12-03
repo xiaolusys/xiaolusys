@@ -34,12 +34,12 @@ def task_push_mission_state_msg_to_weixin_user(mission_record_id, state):
             head_title = u'女王，您本周还有一个任务未完成，点击查看奖励规则！'
             if mama_grade and base_mission.cat_type == MamaMission.CAT_SALE_MAMA:
                 mama_grade_params = {'grade': mama_grade.get_grade_display(), 'combo':mama_grade.combo_count}
-                head_title = u'女王，您本周销售任务奖励等级为{grade}，连续达标{combo}次，点击查看奖励规则！'.format(**mama_grade_params)
+                head_title = u'女王，您本周销售任务奖励等级为{grade}级，连续达标{combo}次，点击查看奖励规则！'.format(**mama_grade_params)
 
             params = {
                 'header': head_title,
                 'footer': u'小鹿妈妈在截止日期前完成任务可获取额外奖励 (本周业绩越好，下周可获取额外奖励越高，点击查看奖励规则).',
-                'task_name': base_mission.name,
+                'task_name': mama_mission.get_mission_name(),
                 'award_amount': u'￥%.2f' % mama_mission.get_award_amount(),
                 'deadline': u'%s' % week_end_time.strftime('%Y-%m-%d'),
                 'target_state': u'已完成 %s %s/(目标数 %s %s)' % (
@@ -56,7 +56,7 @@ def task_push_mission_state_msg_to_weixin_user(mission_record_id, state):
             params  = {
                 'header': u'女王，本周有一任务已完成，奖励已生成，请到小鹿美美app任务列表查看吧！',
                 'footer': u'小鹿妈妈在截止日期前完成任务可获取额外奖励 (妈妈销售奖励预计收益，需７天后变成确认收益，退款会影响收益到账哦).',
-                'task_name': u'%s, 赏￥%.2f元' % (base_mission.name, mama_mission.get_award_amount()),
+                'task_name': u'%s, 赏￥%.2f元' % (mama_mission.get_mission_name(), mama_mission.get_award_amount()),
                 'task_type': base_mission.get_cat_type_display(),
                 'finish_time': mama_mission.finish_time
             }
@@ -67,7 +67,7 @@ def task_push_mission_state_msg_to_weixin_user(mission_record_id, state):
             params = {
                 'header': u'女王，(%s)周任务奖励已到账，请到小鹿美美app任务列表查看吧！' %mama_mission.year_week,
                 'footer': u'小鹿妈妈在截止日期前完成任务可获取额外奖励 (本周业绩越好，下周可获取额外奖励越高，点击查看奖励规则).',
-                'task_name': u'%s, 赏￥%.2f元' % (base_mission.name, mama_mission.get_award_amount()),
+                'task_name': u'%s, 赏￥%.2f元' % (mama_mission.get_mission_name(), mama_mission.get_award_amount()),
                 'task_type': base_mission.get_cat_type_display(),
                 'finish_time': mama_mission.finish_time
             }
@@ -80,7 +80,7 @@ def task_push_mission_state_msg_to_weixin_user(mission_record_id, state):
             params = {
                 'header': u'女王，您有笔交易退款，导致(%s)周销售任务未达预期奖励取消，请到小鹿美美app任务列表查看吧！'%mama_mission.year_week,
                 'footer': u'妈妈销售奖励预计收益，需７天后变成确认收益，退款会影响收益到账哦( 如有疑问请咨询客服热线: 400-823-5355，点击查看奖励规则)',
-                'task_name': base_mission.name,
+                'task_name': mama_mission.get_mission_name(),
                 'award_amount': u'￥%.2f' % mama_mission.get_award_amount(),
                 'deadline': u'%s' % week_end_time.strftime('%Y-%m-%d'),
                 'target_state': u'已完成 %s %s/(目标数 %s %s)' % (
