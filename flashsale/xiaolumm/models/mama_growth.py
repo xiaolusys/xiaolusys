@@ -306,8 +306,8 @@ class MamaMission(BaseModel):
             now_time_min = datetime.datetime.combine(datetime.datetime.today(), datetime.time.min)
             week_day     = int(now_time_max.strftime('%w')) or 7
             last_week_end = now_time_max - datetime.timedelta(days=week_day)
-            two_week_ago = now_time_min - datetime.timedelta(days=week_day + 28)
-            carry_orders = get_mama_week_sale_orders([mama_id], two_week_ago, last_week_end)
+            last_week_start = now_time_min - datetime.timedelta(days=week_day + 7)
+            carry_orders = get_mama_week_sale_orders([mama_id], last_week_start, last_week_end)
             carry_weeks  = set([dt.strftime('%Y-%W') for dt in carry_orders.values_list('date_field', flat=True)])
             return len(carry_weeks) > 0
 
@@ -435,6 +435,13 @@ class MamaMissionRecord(BaseModel):
     def gen_uni_key(self):
         return '{0}-{1}-{2}'.format(self.UNI_NAME ,self.mama_id, self.id)
 
+    def is_finish_status_cancel_need(self, finish_value):
+        if self.status == MamaMissionRecord.FINISHED and \
+            self.mission.cat_type == MamaMission.CAT_SALE_MAMA and \
+            finish_value < (1 - 0.06) * self.target_value:
+            return True
+        return False
+
     def update_mission_value(self, finish_value):
         cur_year_week = datetime.datetime.now().strftime('%Y-%W')
         # 任务奖励确认
@@ -453,11 +460,11 @@ class MamaMissionRecord(BaseModel):
 
         else:
             has_old_finished = self.is_finished()
-            if has_old_finished:
+            if self.is_finish_status_cancel_need(finish_value):
                 self.status = self.STAGING
                 self.finish_value = finish_value
-                self.finish_time = datetime.datetime.now()
-                self.save(update_fields=['finish_value', 'status', 'finish_time'])
+                # self.finish_time = datetime.datetime.now()
+                self.save(update_fields=['finish_value', 'status'])
 
             if self.mission.kpi_type == MamaMission.KPI_AMOUNT \
                     or self.mission.target == MamaMission.TARGET_GROUP:

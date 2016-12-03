@@ -61,7 +61,7 @@ def gen_mama_custom_qrcode_url(mama_id):
     return qrcode_link, content
 
 
-@app.task(max_retries=3, default_retry_delay=5)
+@app.task(max_retries=3, default_retry_delay=5, ignore_result=False)
 def fetch_wxpub_mama_custom_qrcode_url(mama_id):
     """
     为小鹿妈妈创建带背景图的开店二维码，并上传七牛，返回七牛链接
@@ -71,7 +71,6 @@ def fetch_wxpub_mama_custom_qrcode_url(mama_id):
         return
 
     customer = mama.get_customer()
-
     thumbnail = customer.thumbnail or DEFAULT_MAMA_THUMBNAIL
 
     qrcode_tpls = WeixinQRcodeTemplate.objects.filter(status=True)

@@ -101,6 +101,7 @@ CELERY_IMPORTS = (
     'flashsale.promotion.tasks_activity',
     'shopback.items.tasks_stats',
     'flashsale.forecast.apis',
+    'shopapp.weixin.utils',
 )
 
 APIS_ROUTES = {
