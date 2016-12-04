@@ -38,7 +38,6 @@ def create_credential(
 
     elif channel in (UnionPayConf.WX, UnionPayConf.WX_PUB):
         credential.update({
-
             "nonceStr": WXPayUtil.generate_nonce_str(),
         })
         if channel == UnionPayConf.WX:

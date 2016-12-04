@@ -666,6 +666,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         return {'channel': channel, 'success': True, 'id': sale_trade.id, 'info': '订单支付成功'}
 
     @rest_exception(errmsg='')
+    @transaction.atomic
     def budget_charge(self, sale_trade):
         """ 小鹿钱包支付实现 """
 
@@ -684,7 +685,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                                  budget_type=BudgetLog.BUDGET_OUT,
                                  status=BudgetLog.CONFIRMED)
         # 确认付款后保存
-        confirmTradeChargeTask.delay(strade_id)
+        transaction.on_commit(lambda: confirmTradeChargeTask.delay(strade_id))
         return {'channel': channel, 'success': True, 'id': sale_trade.id, 'info': '订单支付成功'}
 
     @rest_exception(errmsg=u'订单支付异常')

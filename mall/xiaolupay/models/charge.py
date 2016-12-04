@@ -3,6 +3,7 @@ from __future__ import absolute_import, unicode_literals
 
 import datetime
 from django.db import models
+from django.db import transaction
 from core.models import BaseModel
 from core.fields import JSONCharMyField
 from signals import signal_charge_success, create_signal_message
@@ -67,7 +68,8 @@ class ChargeOrder(BaseModel):
     def credential(self):
         results = self.get_or_create_credential()
         return results[0]
-
+    
+    @transaction.atomic
     def get_or_create_credential(self):
         credent = Credential.objects.filter(
             order_no=self.order_no,

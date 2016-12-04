@@ -240,6 +240,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         confirmTradeChargeTask.delay(strade_id)
         return {'channel':channel,'success':True,'id':sale_trade.id,'info':'订单支付成功', 'from_page': 'order_commit'}
 
+    @transaction.atomic
     def budget_charge(self, sale_trade, check_coupon=True, **kwargs):
         """
         小鹿钱包支付实现
@@ -267,10 +268,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             )
 
         # 确认付款后保存
-        if sale_trade.order_type == 3:
-            confirmTradeChargeTask(strade_id)
-        else:
-            confirmTradeChargeTask.delay(strade_id)
+        confirmTradeChargeTask(strade_id)
 
         if sale_trade.order_type == 3:
             success_url = CONS.TEAMBUY_SUCCESS_URL.format(order_tid=sale_trade.tid) + '?from_page=order_commit'
@@ -313,12 +311,13 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         cancel_url = urlparse.urljoin(settings.M_SITE_URL, CONS.MALL_PAY_CANCEL_URL)
 
         if sale_trade.has_budget_paid:
-            ubudget = UserBudget.objects.get(user=sale_trade.buyer_id)
-            budget_charge_create = ubudget.charge_pending(sale_trade.id, sale_trade.budget_payment)
-            if not budget_charge_create:
-                logger.error('budget payment err:tid=%s, payment=%s, budget_payment=%s' % (
-                    sale_trade.tid, sale_trade.payment, sale_trade.budget_payment))
-                raise Exception(u'钱包余额不足')
+            with transaction.atomic:
+                ubudget = UserBudget.objects.get(user=sale_trade.buyer_id)
+                budget_charge_create = ubudget.charge_pending(sale_trade.id, sale_trade.budget_payment)
+                if not budget_charge_create:
+                    logger.error('budget payment err:tid=%s, payment=%s, budget_payment=%s' % (
+                        sale_trade.tid, sale_trade.payment, sale_trade.budget_payment))
+                    raise Exception(u'钱包余额不足')
 
         extra = {}
         if channel == SaleTrade.WX_PUB:
@@ -343,7 +342,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             'metadata': dict(color='red'),
             'extra': extra
         }
-        charge = xiaolupay.Charge.create(api_key=settings.PINGPP_APPKEY, **params)
+        charge = xiaolupay.Charge.create(**params)
         sale_trade.charge = charge.id
         update_model_fields(sale_trade, update_fields=['charge'])
         return charge

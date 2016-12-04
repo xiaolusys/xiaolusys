@@ -377,7 +377,8 @@ class SaleTrade(BaseModel):
                 if order.is_deposit() and order.status == SaleTrade.WAIT_SELLER_SEND_GOODS:
                     order.status = SaleTrade.TRADE_FINISHED
                     order.save(update_fields=['status'])
-            signal_saletrade_pay_confirm.send(sender=SaleTrade, obj=self)
+            strade = self
+            transaction.on_commit(lambda: signal_saletrade_pay_confirm.send(sender=SaleTrade, obj=strade))            
         except Exception, exc:
             logger.error(str(exc), exc_info=True)
             if not settings.INGORE_SIGNAL_EXCEPTION:
