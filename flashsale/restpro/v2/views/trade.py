@@ -610,7 +610,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                     discount_fee += self.calc_counpon_discount(coupon_id, **kwargs)
 
             # caution APP立减2元，立减金额不依客户端传入金额做计算
-            if pid == CONS.ETS_APPCUT and int(param['value']) > 0 and CONS.PAY_EXTRAS[pid].get('type') == CONS.DISCOUNT:
+            if pid == CONS.ETS_APPCUT and float(param['value']) > 0 and CONS.PAY_EXTRAS[pid].get('type') == CONS.DISCOUNT:
                 discount_fee += CONS.PAY_EXTRAS[pid]['value'] * 100
 
         return round(discount_fee)
