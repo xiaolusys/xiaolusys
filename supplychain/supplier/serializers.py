@@ -179,6 +179,7 @@ class SaleSupplierFormSerializer(serializers.ModelSerializer):
                   "progress",
                   "supplier_type",
                   "supplier_zone",
+                  "stocking_mode",
                   "buyer",
                   "ware_by",
                   'return_ware_by')
