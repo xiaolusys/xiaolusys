@@ -78,9 +78,7 @@ def get_freeze_boutique_coupons_by_transfer(transfer_record_id):
     """通过流通券记录　获取冻结状态的精品券
     """
     freeze_boutiques = UserCoupon.objects.get_freeze_boutique_coupons()
-    print 'freeze_boutiques====>', freeze_boutiques
     t = '"freeze_by_transfer_id": %s' % transfer_record_id
-    print 'ttt -> ', t
     return freeze_boutiques.filter(extras__contains=t)
 
 

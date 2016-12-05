@@ -38,14 +38,49 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         """获取　未使用状态的　精品类型　优惠券
         """
         customer = get_customer_by_django_user(user=request.user)
-        unused_boutique_coupons = UserCoupon.objects.get_unused_boutique_coupons().filter(customer_id=customer.id)
-        queryset = unused_boutique_coupons
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = serializers.BoutiqueUserCouponSerialize(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        serializer = serializers.BoutiqueUserCouponSerialize(queryset, many=True)
-        return Response(serializer.data)
+        data = []
+        ubcs = UserCoupon.objects.get_unused_boutique_coupons().filter(customer_id=customer.id)
+        # queryset = unused_boutique_coupons
+        # page = self.paginate_queryset(queryset)
+        # if page is not None:
+        # serializer = serializers.BoutiqueUserCouponSerialize(page, many=True)
+        # return self.get_paginated_response(serializer.data)
+        # serializer = serializers.BoutiqueUserCouponSerialize(queryset, many=True)
+        # return Response(serializer.data)
+        item = {}
+        for coupon in ubcs:
+            template_id = coupon.template_id
+            if template_id not in item:
+                product_img = coupon.self_template().extras.get('product_img')
+                item[template_id] = {
+                    'product_img': product_img,
+                    'coupon_num': 1,
+                    'coupon_ids': [],
+                    'gift_transfer_coupon_ids': [],
+                    'from_sys_coupon_ids': [],
+                    'from_mama_coupon_ids': [],
+                }
+            else:
+                item[template_id]['coupon_num'] += 1
+            item[template_id]['coupon_ids'].append(coupon.id)
+            transfer_coupon_pk = coupon.extras.get('transfer_coupon_pk')
+            if transfer_coupon_pk:
+                item[template_id]['from_mama_coupon_ids'].append(coupon.id)
+            elif coupon.is_gift_transfer_coupon:  # 如果是系统赠送的流通优惠券
+                item[template_id]['gift_transfer_coupon_ids'].append(coupon.id)
+            else:
+                item[template_id]['from_sys_coupon_ids'].append(coupon.id)
+        for k, v in item.iteritems():
+            data.append({
+                'template_id': k,
+                'product_img': v['product_img'],
+                'coupon_ids': v['coupon_ids'],
+                'coupon_num': v['coupon_num'],
+                'from_mama_coupon_ids': v['from_mama_coupon_ids'],
+                'gift_transfer_coupon_ids': v['gift_transfer_coupon_ids'],
+                'from_sys_coupon_ids': v['from_sys_coupon_ids']
+            })
+        return Response(data)
 
     @list_route(methods=['POST'])
     def apply_return_boutique_coupons(self, request, *args, **kwargs):
