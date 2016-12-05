@@ -141,7 +141,7 @@ def create_user_coupon(customer_id, coupon_template_id,
 
         cou.order_coupon_id = share_coupon_record.id
         cou.save(update_fields=['order_coupon_id'])
-        task_update_share_coupon_release_count(share_coupon_record.id)  # 更新分享券领取数量
+        task_update_share_coupon_release_count.delay(share_coupon_record.id)  # 更新分享券领取数量
     from ...tasks import task_update_tpl_released_coupon_nums
 
     task_update_tpl_released_coupon_nums.delay(tpl.id)
