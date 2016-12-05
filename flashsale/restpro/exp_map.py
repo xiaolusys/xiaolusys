@@ -232,7 +232,7 @@ exp_map = {'优速':'UC',
 kd100_exp_map = {"韵达":"yunda",'韵达快递':'yunda','韵达速递':'yunda',
                  "申通":"shentong","申通快递":"shentong","申通速递":"shentong",
                  "顺丰":"shunfeng","顺丰快递":"shunfeng","顺丰速递":"shunfeng",
-                 "EMS":"ems",
+                 "EM":"ems",  #对应于上面物流表中EM
                  "百世":"huitongkuaidi","百世汇通":"huitongkuaidi",
                  "中通":"zhongtong","中通快递":"zhongtong","中通速递":"zhongtong",
                  "圆通":"yuantong","圆通快递":"yuantong","圆通速递":"yuantong",
