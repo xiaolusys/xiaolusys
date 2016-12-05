@@ -1,0 +1,125 @@
+{% extends 'layout.html' %} {% block main %}
+<div class="row">
+  <form action="{{ req.path }}" method="GET" name="query_form">
+    <div class="col-xs-6">
+      <input type="text" class="form-control" name="mama_id" value="{{ mama_id }}" placeholder="输入妈妈ID、手机号">
+    </div>
+    <button type="submit" class="btn btn-default">查询</button>
+  </form>
+</div>
+
+<div class="row">
+  <div class="col-xs-4">
+    <div class="panel panel-default">
+      <div class="panel-heading">用户信息</div>
+      <table class="table">
+        {% if mama %}
+        <tr>
+          <td>妈妈ID</td>
+          <td><a href="{% url 'yy-mama-show'  %}?{{ mama.id }}" target="_blank">{{ mama.id }}(点我看妈妈详细信息)</a></td>
+        </tr>
+        <tr>
+          <td>用户ID</td>
+          <td>{{ customer.id }}</td>
+        </tr>
+        <tr>
+          <td>手机号</td>
+          <td>{{ customer.mobile }}</td>
+        </tr>
+        {% endif %}
+      </table>
+    </div>
+  </div>
+  <div class="col-xs-4">
+    <div class="panel panel-default">
+      <div class="panel-heading">个人钱包</div>
+      <table class="table">
+        <tr>
+          <td>余额</td>
+          <td>{{ xiaolu_wallet_remain }}</td>
+        </tr>
+        <tr>
+            <td>收入</td>
+            <td>{{ xiaolu_wallet_in }}</td>
+        </tr>
+        <tr>
+            <td>支出</td>
+            <td>{{ xiaolu_wallet_out }}</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="col-xs-4">
+    <div class="panel panel-default">
+      <div class="panel-heading">妈妈钱包</div>
+      <table class="table">
+        <tr>
+          <td>余额</td>
+          <td>{{ cash_num }}</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div class="row">
+
+  <div class="col-xs-4">
+    <div class="panel panel-default">
+      <div class="panel-heading">妈妈钱包(支出明细)</div>
+      <table class="table">
+        {% for item in mama_wallet %}
+        <tr>
+          <td>{{ item.created }}</td>
+          <td>{{ item.cash_out_type }}</td>
+          <td>{{ item.value }}</td>
+          <td>{{ item.status }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+
+  <div class="col-xs-4">
+    <div class="panel panel-default">
+      <div class="panel-heading">个人钱包(收支明细)</div>
+      <table class="table">
+        <tr>
+          <th>创建时间</th>
+          <th></th>
+          <th>金额</th>
+          <th>原因</th>
+          <th>状态</th>
+        </tr>
+        {% for item in xiaolu_wallet %}
+        <tr>
+          <td>{{ item.created }}</td>
+          <td>{{ item.budget_type }}</td>
+          <td>{{ item.flow_amount }}</td>
+          <td>{{ item.budget_log_type }}</td>
+          <td>{{ item.status }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+  <div class="col-xs-4">
+    <div class="panel panel-default">
+      <div class="panel-heading">红包明细</div>
+      <table class="table">
+        {% for item in envelopes %}
+        <tr>
+          <td>{{ item.created }}</td>
+          <td>{{ item.amount }}</td>
+          <td>{{ item.status }}</td>
+          <td>{{ item.wx.return_msg }}</td>
+          <td>{{ item.wx.result_code }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
