@@ -857,7 +857,7 @@ def get_mama_link(mama_id, ninepic):
         c = Context({'mm_linkid': mama_id})
         detail_l = next_suffix.render(c)
     else:
-        if (',' in jump_str and '/' not in jump_str) or str(jump_str).isdigit():  # 详情页
+        if (',' in jump_str and '/' not in jump_str) or str(jump_str).strip().isdigit():  # 详情页
             model_ids = jump_str.split(',')
             model_id = random.choice(model_ids)
             c = Context({'mm_linkid': mama_id, 'model_id': model_id})
