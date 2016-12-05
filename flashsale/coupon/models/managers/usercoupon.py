@@ -31,6 +31,24 @@ class UserCouponManager(BaseManager):
         """
         return self.get_queryset().filter(status=self.model.UNUSED)
 
+    def get_freeze_coupons(self):
+        # type: () -> Optional[List[UserCoupon]]
+        """获取冻结的用户优惠券
+        """
+        return self.get_queryset().filter(status=self.model.FREEZE)
+
     def get_order_share_coupons(self, order_coupon_id):
         # type: (int) -> Optional[List[UserCoupon]]
         return self.get_queryset().filter(order_coupon_id=order_coupon_id)
+
+    def get_unused_boutique_coupons(self):
+        # type: () -> Optional[List[UserCoupon]]
+        """获取　没有使用状态的　精品券
+        """
+        return self.get_unused_coupons().filter(coupon_type=self.model.TYPE_TRANSFER)
+
+    def get_freeze_boutique_coupons(self):
+        # type: () -> Optional[List[UserCoupon]]
+        """获取　冻结状态的　精品券
+        """
+        return self.get_freeze_coupons().filter(coupon_type=self.model.TYPE_TRANSFER)

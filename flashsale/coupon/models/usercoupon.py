@@ -118,6 +118,10 @@ class UserCoupon(BaseModel):
         ct = CouponTemplate.objects.filter(id=self.template_id).first()
         return ct and ct.coupon_type == CouponTemplate.TYPE_TRANSFER
 
+    @property
+    def is_gift_transfer_coupon(self):
+        return 'gift_transfer' in self.uniq_id
+
     def self_template(self):
         # type: () -> CouponTemplate
         from flashsale.coupon.models import CouponTemplate
@@ -164,6 +168,11 @@ class UserCoupon(BaseModel):
         # type: () -> text_type
         """ 用户头像 """
         return self.extras['user_info']['thumbnail']
+
+    @property
+    def transfer_coupon_pk(self):
+        # type: () -> Optional[text_type]
+        return self.extras.get('transfer_coupon_pk')
 
     def coupon_basic_check(self):
         # type: () -> UserCoupon

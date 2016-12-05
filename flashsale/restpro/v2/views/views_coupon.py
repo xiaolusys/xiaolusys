@@ -17,6 +17,8 @@ from flashsale.coupon.models import CouponTransferRecord, UserCoupon
 from flashsale.pay.models import Customer
 from flashsale.restpro.v2.serializers import CouponTransferRecordSerializer
 
+from flashsale.coupon.apis.v1.transfer import verify_transfer_record
+
 logger = logging.getLogger(__name__)
 
 def get_charged_mama(user):
@@ -290,6 +292,24 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         res = Response(left_coupons)
         return res
 
+    @list_route(methods=['POST'])
+    def verify_return_transfer_record(self, request, *args, **kwargs):
+        # type: (HttpRequest, *Any, **Any) -> Response
+        """上级妈妈审核流通记录　并冻结该流通记录优惠券
+        """
+        transfer_record_id = request.POST.get('transfer_record_id')
+        if not transfer_record_id:
+            return Response({'code': 1, 'info': '参数错误'})
+        transfer_record_id = int(str(transfer_record_id).strip())
+        try:
+            state = verify_transfer_record(request.user, transfer_record_id)
+        except Exception as e:
+            return Response({'code': 3, 'info': '审核异常:%s' % e.message})
+        if state:
+            return Response({'code': 0, 'info': '审核成功'})
+        return Response({'code': 2, 'info': '审核出错'})
+
+
 class CouponExchgOrderViewSet(viewsets.ModelViewSet):
     queryset = CouponTransferRecord.objects.all()
     serializer_class = CouponTransferRecordSerializer
@@ -309,14 +329,18 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
             mama_id = mama.id
 
             from flashsale.xiaolumm.models.models_fortune import OrderCarry
-            exchg_orders = OrderCarry.objects.filter(mama_id=mama_id, carry_type__in=[OrderCarry.WAP_ORDER, OrderCarry.APP_ORDER],
-                                                    status__in=[OrderCarry.ESTIMATE, OrderCarry.CONFIRM], date_field__gt='2016-11-30')
+
+            exchg_orders = OrderCarry.objects.filter(mama_id=mama_id,
+                                                     carry_type__in=[OrderCarry.WAP_ORDER, OrderCarry.APP_ORDER],
+                                                     status__in=[OrderCarry.ESTIMATE, OrderCarry.CONFIRM],
+                                                     date_field__gt='2016-11-30')
 
         results = []
         if exchg_orders:
             for entry in exchg_orders:
                 # find sale trade use coupons
                 from flashsale.pay.models.trade import SaleOrder, SaleTrade
+
                 sale_order = SaleOrder.objects.filter(oid=entry.order_id).first()
                 if not sale_order:
                     continue
@@ -329,8 +353,9 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                 else:
                     use_template_id = None
 
-                #find modelproduct
+                # find modelproduct
                 from flashsale.pay.models.product import ModelProduct
+
                 model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id, is_onsale=True).first()
                 if model_product and model_product.extras.has_key('payinfo') and model_product.extras['payinfo'].has_key('coupon_template_ids'):
                     if model_product.extras['payinfo']['coupon_template_ids'] and len(model_product.extras['payinfo']['coupon_template_ids']) > 0:
@@ -341,7 +366,8 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                             if use_template_id and use_template_id in template_ids:
                                 continue
                             else:
-                                results.append({'exchg_template_id': template_id, 'num': round(sale_order.payment / sale_order.price),
+                                results.append({'exchg_template_id': template_id,
+                                                'num': round(sale_order.payment / sale_order.price),
                                                 'order_id': entry.order_id, 'sku_img': entry.sku_img,
                                                 'contributor_nick': entry.contributor_nick, 'status': entry.status,
                                                 'status_display': OrderCarry.STATUS_TYPES[entry.status][1],
@@ -397,6 +423,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
             return res
 
         from flashsale.coupon.apis.v1.transfer import coupon_exchange_saleorder
+
         res = coupon_exchange_saleorder(customer, order_id, mama_id, exchg_template_id, coupon_num)
         res = Response(res)
         # res["Access-Control-Allow-Origin"] = "*"
