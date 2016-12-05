@@ -939,6 +939,8 @@ class PackageSkuItem(BaseModel):
         """
         if self.assign_status == 3:
             raise Exception(u'已取消的包裹商品不能再次取消:%s' % self.id)
+        if self.assign_status == 2:
+            raise Exception(u'已发货的包裹商品不能取消:%s' % self.id)
         pa = self.get_purchase_arrangement()
         if pa and not pa.initial_book:
             pa.cancel()
@@ -946,7 +948,7 @@ class PackageSkuItem(BaseModel):
         self.status = PSI_STATUS.CANCEL
         self.assign_status = 3
         self.save()
-        SkuStock.set_psi_cancel(self.sku_id, self.num, ori_status,stat=stat)
+        SkuStock.set_psi_cancel(self.sku_id, self.num, ori_status, stat=stat)
     # -----------------------------------
 
     def reset_status(self):

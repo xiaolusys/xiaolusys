@@ -207,7 +207,7 @@ class ForecastInbound(BaseModel):
         forcasts.filter(status__in=[ForecastInbound.ST_DRAFT, ForecastInbound.ST_APPROVED]).update(status=ForecastInbound.ST_CANCELED)
         for order_list_id in order_list_ids:
             ol = OrderList.objects.get(id=order_list_id)
-            if ol.stage == OrderList.STAGE_RECEIVE and not ol.third_package:
+            if ol.stage in [OrderList.STAGE_CHECKED, OrderList.STAGE_PAY, OrderList.STAGE_RECEIVE] and not ol.third_package:
                 res.append(ForecastInbound._generate([order_list_id]))
         return res
 

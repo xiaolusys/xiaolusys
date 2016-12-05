@@ -889,7 +889,7 @@ class SaleOrder(PayBaseModel):
         psi = PackageSkuItem.create(self)
 
     def set_psi_cancel(self):
-        if self.package_sku:
+        if self.package_sku and self.status == SaleOrder.WAIT_SELLER_SEND_GOODS:
             self.package_sku.set_status_cancel()
 
     def is_teambuy(self):
