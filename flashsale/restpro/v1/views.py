@@ -344,6 +344,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         receiver_name = content.get('receiver_name', '').strip()
         receiver_mobile = content.get('receiver_mobile', '').strip()
         logistic_company_code = content.get('logistic_company_code', '').strip()
+        identification_no = content.get('identification_no', '').strip()
         if not receiver_state or not receiver_city or not receiver_district or not receiver_name \
                 or not re.compile(regex.REGEX_MOBILE).match(receiver_mobile):
             logger.warn('address unmatch: agent=%s, post=%s' % (request.META.get('HTTP_USER_AGENT'), request.data))
@@ -356,7 +357,8 @@ class UserAddressViewSet(viewsets.ModelViewSet):
                 receiver_district=receiver_district,
                 receiver_address=receiver_address,
                 receiver_mobile=receiver_mobile,
-                status=UserAddress.NORMAL,)
+                status=UserAddress.NORMAL,
+                identification_no=identification_no,)
             if default == 'true':  # 设置为默认地址
                 address.set_default_address()
             address.set_logistic_company(logistic_company_code)
