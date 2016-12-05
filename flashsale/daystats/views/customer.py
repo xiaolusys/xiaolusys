@@ -211,43 +211,61 @@ def index(req):
     return render(req, 'yunying/customer/index.html', {'charts': charts})
 
 
+@login_required
 def wallet(req):
-    mama_id = req.GET.get('mama_id')
-    mama = XiaoluMama.objects.filter(id=mama_id).first()
-    customer = Customer.objects.get(unionid=mama.openid)
-
-    xiaolu_wallet = BudgetLog.objects.filter(customer_id=customer.id).order_by('-created')
-    xiaolu_wallet_in = BudgetLog.objects.filter(
-        customer_id=customer.id,
-        budget_type=BudgetLog.BUDGET_IN,
-        status__in=(BudgetLog.PENDING, BudgetLog.CONFIRMED)
-    ).aggregate(amount=Sum('flow_amount'))['amount'] * 0.01
-    xiaolu_wallet_out = BudgetLog.objects.filter(
-        customer_id=customer.id,
-        budget_type=BudgetLog.BUDGET_OUT,
-        status__in=(BudgetLog.PENDING, BudgetLog.CONFIRMED)
-    ).aggregate(amount=Sum('flow_amount'))['amount'] * 0.01
-    xiaolu_wallet_remain = xiaolu_wallet_in - xiaolu_wallet_out
-    for item in xiaolu_wallet:
-        item.flow_amount = item.flow_amount * 0.01
-        item.budget_type = dict(BudgetLog.BUDGET_CHOICES).get(item.budget_type)
-        item.budget_log_type = dict(BudgetLog.BUDGET_LOG_CHOICES).get(item.budget_log_type)
-        item.status = {0: '已提现', 1: '提现失败，已经退款', 2: '提现中，等待审核'}.get(item.status)
-
-    mama_wallet = CashOut.objects.filter(xlmm=mama.id).order_by('-created')
-    for item in mama_wallet:
-        item.value = item.value * 0.01
-        item.cash_out_type = dict(CashOut.TYPE_CHOICES).get(item.cash_out_type)
-        item.status = dict(CashOut.STATUS_CHOICES).get(item.status)
-    fortune = MamaFortune.objects.filter(mama_id=mama_id).first()
-    if fortune:
-        cash_num = fortune.cash_num_display()
+    mama_id = req.GET.get('mama_id') or ''
+    if mama_id and len(mama_id) == 11:
+        mobile = mama_id
+        customer = Customer.objects.filter(mobile=mobile).first()
+        mama = XiaoluMama.objects.filter(openid=customer.unionid).first()
+    elif mama_id:
+        mama = XiaoluMama.objects.filter(id=mama_id).first()
+        customer = Customer.objects.filter(unionid=mama.openid).first()
     else:
-        cash_num = 0
+        mama = None
+        customer = None
 
-    envelopes = Envelop.objects.filter(receiver__in=(mama.id, customer.mobile)).order_by('-created')
-    for item in envelopes:
-        item.amount = item.amount * 0.01
-        item.status = dict(Envelop.STATUS_CHOICES).get(item.status)
-        item.wx = WeixinRedEnvelope.objects.filter(mch_billno=item.envelop_id).first()
+    if customer:
+        xiaolu_wallet = BudgetLog.objects.filter(customer_id=customer.id).order_by('-created')
+        xiaolu_wallet_in = BudgetLog.objects.filter(
+            customer_id=customer.id,
+            budget_type=BudgetLog.BUDGET_IN,
+            status__in=(BudgetLog.PENDING, BudgetLog.CONFIRMED)
+        ).aggregate(amount=Sum('flow_amount'))['amount'] * 0.01
+        xiaolu_wallet_out = BudgetLog.objects.filter(
+            customer_id=customer.id,
+            budget_type=BudgetLog.BUDGET_OUT,
+            status__in=(BudgetLog.PENDING, BudgetLog.CONFIRMED)
+        ).aggregate(amount=Sum('flow_amount'))['amount'] * 0.01
+        xiaolu_wallet_remain = xiaolu_wallet_in - xiaolu_wallet_out
+        for item in xiaolu_wallet:
+            item.flow_amount = item.flow_amount * 0.01
+            item.budget_type = dict(BudgetLog.BUDGET_CHOICES).get(item.budget_type)
+            item.budget_log_type = dict(BudgetLog.BUDGET_LOG_CHOICES).get(item.budget_log_type)
+            item.status = {0: '已提现', 1: '提现失败，已经退款', 2: '提现中，等待审核'}.get(item.status)
+
+    if mama:
+        mama_wallet = CashOut.objects.filter(xlmm=mama.id).order_by('-created')
+        for item in mama_wallet:
+            item.value = item.value * 0.01
+            item.cash_out_type = dict(CashOut.TYPE_CHOICES).get(item.cash_out_type)
+            item.status = dict(CashOut.STATUS_CHOICES).get(item.status)
+        fortune = MamaFortune.objects.filter(mama_id=mama_id).first()
+        if fortune:
+            cash_num = fortune.cash_num_display()
+        else:
+            cash_num = 0
+
+    query = []
+    if mama:
+        query.append(mama.id)
+    if customer:
+        query.append(customer.mobile)
+
+    if query:
+        envelopes = Envelop.objects.filter(receiver__in=query).order_by('-created')
+        for item in envelopes:
+            item.amount = item.amount * 0.01
+            item.status = dict(Envelop.STATUS_CHOICES).get(item.status)
+            item.wx = WeixinRedEnvelope.objects.filter(mch_billno=item.envelop_id).first()
     return render(req, 'yunying/customer/wallet.html', locals())
