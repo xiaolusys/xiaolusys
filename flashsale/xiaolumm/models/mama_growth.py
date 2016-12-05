@@ -56,6 +56,10 @@ def year_week_range(year_week):
     dt = datetime.datetime.strptime('%s-0' % year_week, '%Y-%W-%w')
     return week_range(dt)
 
+def year_weekend_day(year_week):
+    dt = datetime.datetime.strptime('%s-0' % year_week, '%Y-%W-%w')
+    return dt + datetime.datetime(23, 59, 59)
+
 
 def get_mama_week_sale_mission(mama_id, year_week):
     mission = MamaMissionRecord.objects.filter(
@@ -120,9 +124,9 @@ class MamaSaleGrade(BaseModel):
                 mama=xiaolumama,
                 combo_count = 0,
                 grade=cls.calc_sale_amount_grade(mama_last_mission and mama_last_mission.finish_value or 0),
-                last_record_time= year_week_range(last_year_week)[1],
+                last_record_time= year_weekend_day(last_year_week),
                 total_finish_count= len(finish_week_list),
-                first_finish_time= finish_week_list and year_week_range(finish_week_list[0])[1] or None
+                first_finish_time= finish_week_list and year_weekend_day(finish_week_list[0]) or None
             )
             sale_grade.save()
 
@@ -135,7 +139,7 @@ class MamaSaleGrade(BaseModel):
             last_week_grade = cls.calc_sale_amount_grade(last_week_finish_value)
             last_week_mission_finished = mama_last_mission and mama_last_mission.is_finished() or False
             if last_week_mission_finished:
-                if sale_grade.grade == last_week_grade :
+                if sale_grade.grade == last_week_grade:
                     sale_grade.combo_count += 1
             else:
                 sale_grade.combo_count = 0
@@ -143,9 +147,9 @@ class MamaSaleGrade(BaseModel):
             sale_grade.grade = last_week_grade
             # sale_grade.combo_count = len(combo_week_list)
             if not sale_grade.first_finish_time:
-                sale_grade.first_finish_time = finish_week_list and year_week_range(finish_week_list[0])[1] or None
+                sale_grade.first_finish_time = finish_week_list and year_weekend_day(finish_week_list[0]) or None
             sale_grade.total_finish_count = len(finish_week_list)
-            sale_grade.last_record_time = year_week_range(last_year_week)[1]
+            sale_grade.last_record_time = year_weekend_day(last_year_week)
             sale_grade.save()
 
         return sale_grade
