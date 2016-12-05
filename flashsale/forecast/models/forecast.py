@@ -198,7 +198,7 @@ class ForecastInbound(BaseModel):
             重设预测：从以前的预测单中删除本订货单的关联，利用此订货单重新建立预测
         """
         forcasts = ForecastInbound.objects.filter(relate_order_set__id=order_list_id)
-        order_list_ids = []
+        order_list_ids = [order_list_id]
         for forcast in forcasts:
             for ol in forcast.relate_order_set.all():
                 order_list_ids.append(ol.id)
