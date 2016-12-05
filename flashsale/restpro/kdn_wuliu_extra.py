@@ -380,6 +380,7 @@ def get_exp_by_kd100(company_name,out_sid):
         each_info['AcceptTime'] = i['ftime']
         each_info['AcceptStation'] = i['context']
         all_info.append(each_info)
+    all_info.reverse()
 
     write_info = {
         "out_sid":res["nu"],
