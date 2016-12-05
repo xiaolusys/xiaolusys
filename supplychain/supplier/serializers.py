@@ -104,6 +104,7 @@ class SaleSupplierSerializer(serializers.ModelSerializer):
                   "description",
                   'progress',
                   "mobile",
+                  "stocking_mode",
                   'contact',
                   'category',
                   "address",
