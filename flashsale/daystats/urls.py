@@ -54,6 +54,7 @@ urlpatterns += [
 
     url(r'^yunying/customer/$', customer.index, name='yy-customer-index'),
     url(r'^yunying/customer/list$', customer.list, name='yy-customer-list'),
+    url(r'^yunying/customer/wallet$', customer.wallet, name='yy-customer-wallet'),
 
     url(r'^yunying/product/$', product.index, name='yy-product-index'),
     url(r'^yunying/product/category$', product.salecategory, name='yy-product-salecategory'),
