@@ -106,7 +106,7 @@ class ShareUserCouponSerialize(serializers.ModelSerializer):
 
 # v2　用户接口　加　serialize
 
-class BoutiqueUserCouponSerialize(serializers.ModelSerializer):
+class UserCouponListSerialize(serializers.ModelSerializer):
     class Meta:
         model = UserCoupon
         fields = (

@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import list_route
 from rest_framework import authentication
 from rest_framework import permissions
+from rest_framework import filters
 
 from flashsale.pay.apis.v1.customer import get_customer_by_django_user
 
@@ -17,14 +18,30 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+class UserCouponsFilter(filters.FilterSet):
+    class Meta:
+        model = UserCoupon
+        fields = ['status', 'template_id', 'coupon_type']
+
+
 class UserCouponsViewSet(viewsets.ModelViewSet):
     queryset = UserCoupon.objects.all()
     serializer_class = serializers.UserCouponSerialize
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
+    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
+    filter_class = UserCouponsFilter
 
     def list(self, request, *args, **kwargs):
-        return Response({'code': 1, 'info': 'method not allow'})
+        # type: (HttpRequest, *Any, **Any) -> Response
+        customer = get_customer_by_django_user(user=request.user)
+        queryset = self.filter_queryset(self.get_queryset().filter(customer_id=customer.id))
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = serializers.UserCouponListSerialize(queryset, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = serializers.UserCouponListSerialize(queryset, many=True)
+        return Response(serializer.data)
 
     def update(self, request, *args, **kwargs):
         return Response({'code': 1, 'info': 'method not allow'})
@@ -40,13 +57,6 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         customer = get_customer_by_django_user(user=request.user)
         data = []
         ubcs = UserCoupon.objects.get_unused_boutique_coupons().filter(customer_id=customer.id)
-        # queryset = unused_boutique_coupons
-        # page = self.paginate_queryset(queryset)
-        # if page is not None:
-        # serializer = serializers.BoutiqueUserCouponSerialize(page, many=True)
-        # return self.get_paginated_response(serializer.data)
-        # serializer = serializers.BoutiqueUserCouponSerialize(queryset, many=True)
-        # return Response(serializer.data)
         item = {}
         for coupon in ubcs:
             template_id = coupon.template_id
