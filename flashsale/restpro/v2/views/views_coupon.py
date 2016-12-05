@@ -334,10 +334,11 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                 model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id, is_onsale=True).first()
                 if model_product and model_product.extras.has_key('payinfo') and model_product.extras['payinfo'].has_key('coupon_template_ids'):
                     if model_product.extras['payinfo']['coupon_template_ids'] and len(model_product.extras['payinfo']['coupon_template_ids']) > 0:
+                        template_ids = model_product.extras['payinfo']['coupon_template_ids']
                         template_id = model_product.extras['payinfo']['coupon_template_ids'][0]
                         #用的券是精品券那就无法兑换
-                        if template_id:
-                            if use_template_id and template_id == use_template_id:
+                        if template_ids and template_id:
+                            if use_template_id and use_template_id in template_ids:
                                 continue
                             else:
                                 results.append({'exchg_template_id': template_id, 'num': round(sale_order.payment / sale_order.price),
