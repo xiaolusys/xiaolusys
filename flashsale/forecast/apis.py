@@ -171,23 +171,23 @@ def api_create_or_update_realinbound_by_inbound(inbound_id):
             except Exception,exc:
                 logger.error('inbound error:%s'%exc.message, exc_info=True)
 
-        if forecast_inbound:
-            forecast_inbound.inbound_arrive_update_status(arrival_time=inbound.created)
-            for detail in forecast_inbound.normal_details:
-                ib_detail = inbound_sku_dict.pop(detail.sku_id, None)
-                if not ib_detail:
-                    forecast_inbound.has_lack |= True
-                    continue
-
-                if detail.forecast_arrive_num > ib_detail['arrival_quantity']:
-                    forecast_inbound.has_lack |= True
-                elif detail.forecast_arrive_num < ib_detail['arrival_quantity']:
-                    forecast_inbound.has_overhead |= True
-                if ib_detail['inferior_quantity'] > 0:
-                    forecast_inbound.has_defact |= True
-            if inbound_sku_dict:
-                forecast_inbound.has_wrong = True
-            forecast_inbound.save()
+        # if forecast_inbound:
+        #     forecast_inbound.inbound_arrive_update_status(arrival_time=inbound.created)
+        #     for detail in forecast_inbound.normal_details:
+        #         ib_detail = inbound_sku_dict.pop(detail.sku_id, None)
+        #         if not ib_detail:
+        #             forecast_inbound.has_lack |= True
+        #             continue
+        #
+        #         if detail.forecast_arrive_num > ib_detail['arrival_quantity']:
+        #             forecast_inbound.has_lack |= True
+        #         elif detail.forecast_arrive_num < ib_detail['arrival_quantity']:
+        #             forecast_inbound.has_overhead |= True
+        #         if ib_detail['inferior_quantity'] > 0:
+        #             forecast_inbound.has_defact |= True
+        #     if inbound_sku_dict:
+        #         forecast_inbound.has_wrong = True
+        #     forecast_inbound.save()
         # 更新orderlist order_group_key
         from flashsale.dinghuo.tasks import task_update_order_group_key
         task_update_order_group_key.delay(inbound_order_set)
