@@ -146,42 +146,6 @@ def task_xlmm_score():
 
 
 @app.task()
-def task_calc_all_xlmm_elite_score():
-    from flashsale.xiaolumm.models.models import XiaoluMama
-    elite_mamas = XiaoluMama.objects.filter(status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED)
-    mama_count = 0
-    for mama in elite_mamas:
-        is_elite = (mama.referal_from == XiaoluMama.DIRECT) or (mama.referal_from == XiaoluMama.INDIRECT)
-        if is_elite:
-            task_calc_xlmm_elite_score.delay(mama.id)
-            mama_count += 1
-    logger.info({'message': u'cacl elite score | mama count=%s' % (mama_count), })
-
-    task_check_xlmm_exchg_order.delay()
-    task_check_xlmm_return_exchg_order.delay()
-
-
-@app.task()
-def task_calc_xlmm_elite_score(mama_id):
-    from flashsale.coupon.models.transfer_coupon import CouponTransferRecord
-    res = CouponTransferRecord.objects.filter(coupon_from_mama_id=mama_id, transfer_status=CouponTransferRecord.DELIVERED, transfer_type=CouponTransferRecord.OUT_CASHOUT).aggregate(
-        n=Sum('elite_score'))
-    out_score = res['n'] or 0
-
-    res = CouponTransferRecord.objects.filter(coupon_to_mama_id=mama_id, transfer_status=CouponTransferRecord.DELIVERED, transfer_type=CouponTransferRecord.IN_BUY_COUPON).aggregate(
-        n=Sum('elite_score'))
-    in_buy_score = res['n'] or 0
-
-    res = CouponTransferRecord.objects.filter(coupon_to_mama_id=mama_id, transfer_status=CouponTransferRecord.DELIVERED,
-                                              transfer_type=CouponTransferRecord.OUT_TRANSFER).aggregate(
-        n=Sum('elite_score'))
-    in_trans_score = res['n'] or 0
-
-    score = in_buy_score + in_trans_score - out_score
-    from flashsale.xiaolumm.models.models import XiaoluMama
-    XiaoluMama.objects.filter(id=mama_id).update(elite_score=score)
-
-@app.task()
 def task_check_xlmm_exchg_order():
     exchg_orders = OrderCarry.objects.filter(carry_type__in=[OrderCarry.WAP_ORDER, OrderCarry.APP_ORDER],
                                              status__in=[OrderCarry.CONFIRM],
@@ -234,6 +198,7 @@ def task_check_xlmm_exchg_order():
                  'message3': u'exchg_goods_payment=%s == exchg_budget_sum=%s' % (exchg_goods_payment, exchg_budget_sum)
                 })
 
+
 @app.task()
 def task_check_xlmm_return_exchg_order():
     exchg_orders = OrderCarry.objects.filter(carry_type__in=[OrderCarry.WAP_ORDER, OrderCarry.APP_ORDER],
@@ -280,3 +245,44 @@ def task_check_xlmm_return_exchg_order():
                  'message2': u' exchg_goods_num=%s == exchg_trancoupon_num=%s' % (exchg_goods_num, exchg_trancoupon_num),
                  'message3': u'exchg_goods_payment=%s == exchg_budget_sum=%s' % (exchg_goods_payment, exchg_budget_sum)
                 })
+
+
+@app.task()
+def task_calc_xlmm_elite_score(mama_id):
+    from flashsale.coupon.models.transfer_coupon import CouponTransferRecord
+    res = CouponTransferRecord.objects.filter(coupon_from_mama_id=mama_id, transfer_status=CouponTransferRecord.DELIVERED, transfer_type=CouponTransferRecord.OUT_CASHOUT).aggregate(
+        n=Sum('elite_score'))
+    out_score = res['n'] or 0
+
+    res = CouponTransferRecord.objects.filter(coupon_to_mama_id=mama_id, transfer_status=CouponTransferRecord.DELIVERED, transfer_type=CouponTransferRecord.IN_BUY_COUPON).aggregate(
+        n=Sum('elite_score'))
+    in_buy_score = res['n'] or 0
+
+    res = CouponTransferRecord.objects.filter(coupon_to_mama_id=mama_id, transfer_status=CouponTransferRecord.DELIVERED,
+                                              transfer_type=CouponTransferRecord.OUT_TRANSFER).aggregate(
+        n=Sum('elite_score'))
+    in_trans_score = res['n'] or 0
+
+    score = in_buy_score + in_trans_score - out_score
+    from flashsale.xiaolumm.models.models import XiaoluMama
+    XiaoluMama.objects.filter(id=mama_id).update(elite_score=score)
+
+
+@app.task()
+def task_calc_all_xlmm_elite_score():
+    from flashsale.xiaolumm.models.models import XiaoluMama
+    elite_mamas = XiaoluMama.objects.filter(status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED,
+                                            referal_from__in=[XiaoluMama.DIRECT, XiaoluMama.INDIRECT])
+
+    mama_count = 0
+    for mama in elite_mamas:
+        is_elite = (mama.referal_from == XiaoluMama.DIRECT) or (mama.referal_from == XiaoluMama.INDIRECT)
+        if is_elite:
+            task_calc_xlmm_elite_score.delay(mama.id)
+            mama_count += 1
+    logger.info({'message': u'cacl elite score | mama count=%s' % (mama_count), })
+
+    task_check_xlmm_exchg_order.delay()
+    task_check_xlmm_return_exchg_order.delay()
+
+
