@@ -871,13 +871,18 @@ class PackageSkuItem(BaseModel):
             self.save()
             SkuStock.set_psi_init_assigned(self.sku_id, self.num)
 
-    def set_status_not_assigned(self, stat=True, save=True, rebook=True):
+    def set_status_not_assigned(self, stat=True, save=True, rebook=True, ):
         self.status = PSI_STATUS.PAID
-        self.assign_status = 0
+        self.assign_status = PackageSkuItem.NOT_ASSIGNED
         self.assign_time = datetime.datetime.now()
         if save:
+            package_order = self.package_order
+            self.package_order_id = None
+            self.package_order_pid = None
             self.save()
             SkuStock.set_psi_not_assigned(self.sku_id, self.num, stat=stat)
+            if package_order:
+                package_order.update_relase_package_sku_item()
         if rebook:
             pa = self.get_purchase_arrangement()
             if not pa:
@@ -886,6 +891,8 @@ class PackageSkuItem(BaseModel):
                 pa.status = 1
                 pa.save()
                 pa.generate_order(retry=True)
+
+
 
     def merge(self):
         self.status = PSI_STATUS.MERGED

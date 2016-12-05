@@ -692,7 +692,6 @@ class SkuStock(models.Model):
         if self.assign_num <= 0:
             return
         now_num = self.realtime_quantity - self.assign_num
-        check_if_err = False
         if now_num > 0:
             return
         if psi_id:
@@ -701,10 +700,8 @@ class SkuStock(models.Model):
                                                 # status=PSI_STATUS.ASSIGNED,
                                                 assign_status=PackageSkuItem.ASSIGNED).first()
             if psi:
-                # psi.set_status_not_assigned()
-                psi.reset_assign_status()
+                psi.set_status_not_assigned()
             else:
-                check_if_err = True
                 SkuStock.set_psi_not_assigned(self.sku_id, 0, stat=True, warning=True)
         elif orderlist:
             psi = PackageSkuItem.objects.filter(sku_id=self.sku_id,
@@ -712,11 +709,8 @@ class SkuStock(models.Model):
                                                 # status=PSI_STATUS.ASSIGNED,
                                                 assign_status=PackageSkuItem.ASSIGNED).first()
             if psi:
-                # psi.set_status_not_assigned()
-                psi.reset_assign_status()
-                SkuStock.set_psi_not_assigned(self.sku_id, 0, stat=True, warning=True)
+                psi.set_status_not_assigned()
             else:
-                check_if_err = True
                 SkuStock.set_psi_not_assigned(self.sku_id, 0, stat=True, warning=True)
         else:
             psi = PackageSkuItem.objects.filter(sku_id=self.sku_id,
@@ -724,13 +718,9 @@ class SkuStock(models.Model):
                                                 assign_status=PackageSkuItem.ASSIGNED).order_by(
                 '-pay_time').first()
             if psi:
-                # psi.set_status_not_assigned()
-                psi.reset_assign_status()
+                psi.set_status_not_assigned()
             else:
-                check_if_err = True
                 SkuStock.set_psi_not_assigned(self.sku_id, 0, stat=True, warning=True)
-        # if self.realtime_quantity - self.assign_num < 0 and self.assign_num > 0 and check_if_err and again:
-        #     self.relase_assign(again=False)
 
 
 def invalid_apiskustat_cache(sender, instance, *args, **kwargs):
