@@ -311,7 +311,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         cancel_url = urlparse.urljoin(settings.M_SITE_URL, CONS.MALL_PAY_CANCEL_URL)
 
         if sale_trade.has_budget_paid:
-            with transaction.atomic:
+            with transaction.atomic():
                 ubudget = UserBudget.objects.get(user=sale_trade.buyer_id)
                 budget_charge_create = ubudget.charge_pending(sale_trade.id, sale_trade.budget_payment)
                 if not budget_charge_create:
