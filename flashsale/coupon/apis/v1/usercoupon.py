@@ -1,7 +1,9 @@
 # coding=utf-8
 from __future__ import unicode_literals, absolute_import
 import datetime
-from flashsale.pay.apis.v1.customer import get_customer_by_id
+from django.db import transaction
+
+from flashsale.pay.apis.v1.customer import get_customer_by_id, get_customer_by_unionid
 from ...models.usercoupon import UserCoupon
 from .coupontemplate import get_coupon_template_by_id
 from .ordersharecoupon import get_order_share_coupon_by_id
@@ -69,6 +71,17 @@ def get_user_coupon_by_id(id):
 def get_user_coupons_by_ids(ids):
     # type: (int) -> Optional[List[UserCoupon]]
     return UserCoupon.objects.get_coupons(ids)
+
+
+def get_freeze_boutique_coupons_by_transfer(transfer_record_id):
+    # type: (int) -> Optional[List[UserCoupon]]
+    """通过流通券记录　获取冻结状态的精品券
+    """
+    freeze_boutiques = UserCoupon.objects.get_freeze_boutique_coupons()
+    print 'freeze_boutiques====>', freeze_boutiques
+    t = '"freeze_by_transfer_id": %s' % transfer_record_id
+    print 'ttt -> ', t
+    return freeze_boutiques.filter(extras__contains=t)
 
 
 def release_coupon_for_deposit(customer_id, deposit_type, trade_id=None, cash_out_id=None):
@@ -170,16 +183,47 @@ def return_user_coupon_by_order_refund(trade_tid, num):
     task_return_user_coupon_by_trade.delay(trade_tid, num)
 
 
-def return_transfer_coupon(coupon_ids, customer_id, transfer_id):
+def freeze_transfer_coupon(coupon_ids, transfer_id):
     # type : (List[int], int) -> bool
-    """ 给 流通券退回上级　妈妈
+    """ 冻结申请的　退还上级的　优惠券
     """
     coupons = get_user_coupons_by_ids(coupon_ids)
     for coupon in coupons:
+        coupon.status = UserCoupon.FREEZE
+        coupon.extras['freeze_by_transfer_id'] = transfer_id
+        coupon.save(update_fields=['status', 'customer_id', 'extras', 'modified'])
+    return True
+
+
+def set_upper_mama_trace(coupons, transfer_id):
+    # type: (List[UserCoupon]) -> bool
+    """设置上级　妈妈审核过的优惠券　记录
+    """
+    for coupon in coupons:
+        coupon.extras['will_return_2'] = transfer_id
+        coupon.save(update_fields=['extras', 'modified'])
+    return True
+
+
+@transaction.atomic()
+def return_transfer_coupon(coupons):
+    # type : (List[UserCoupon], int) -> bool
+    """ 给 流通券退回上级　妈妈
+    """
+    from .transfer import get_transfer_record_by_id, set_transfer_record_complete
+    from flashsale.xiaolumm.apis.v1.xiaolumama import get_mama_by_id
+
+    for coupon in coupons:
+        will_return_2_transfer_id = coupon.extras.get('will_return_2')
+        if not will_return_2_transfer_id:
+            continue
+        transfer = get_transfer_record_by_id(will_return_2_transfer_id)
+        set_transfer_record_complete(transfer)
+        to_mama = get_mama_by_id(transfer.coupon_to_mama_id)
+        customer = get_customer_by_unionid(to_mama.openid)
+        if not customer:
+            continue
         coupon.status = UserCoupon.UNUSED
-        coupon.customer_id = customer_id
-        if coupon.extras.has_key('return_transfer_ids'):
-            coupon.extras['return_transfer_ids'].append(transfer_id)
-        else:
-            coupon.extras['return_transfer_ids'] = [transfer_id]
-        coupon.save(update_fields=['status', 'customer_id', 'extras'])
+        coupon.customer_id = customer.id
+        coupon.save(update_fields=['status', 'customer_id', 'modified'])
+    return True

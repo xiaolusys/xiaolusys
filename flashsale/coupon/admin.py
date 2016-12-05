@@ -95,9 +95,12 @@ admin.site.register(TmpShareCoupon, TmpShareCouponAdmin)
 
 
 class CouponTransferRecordAdmin(admin.ModelAdmin):
-    list_display = ('coupon_from_mama_id', 'last_visit', 'from_mama_nick', 'coupon_to_mama_id', 'is_new', 'to_mama_nick', 'template_id', 'template_name',
-                    'coupon_value', 'coupon_num',  'transfer_type', 'transfer_status', 'total_num', 'status', 'uni_key', 'date_field',
-                    'init_from_mama_id','order_no', 'product_id', 'elite_score', 'to_mama_manager', 'modified', 'created')
+    list_display = ('id', 'coupon_from_mama_id', 'last_visit', 'from_mama_nick', 'coupon_to_mama_id', 'is_new',
+                    'to_mama_nick', 'template_id', 'template_name',
+                    'coupon_value', 'coupon_num', 'transfer_type', 'transfer_status', 'total_num', 'status', 'uni_key',
+                    'date_field',
+                    'init_from_mama_id', 'order_no', 'product_id', 'elite_score', 'to_mama_manager', 'modified',
+                    'created')
     list_filter = ('transfer_type', 'transfer_status', 'status', ('created', DateFieldListFilter))
     search_fields = ['=coupon_from_mama_id', '=coupon_to_mama_id']
     list_per_page = 20
@@ -110,7 +113,7 @@ class CouponTransferRecordAdmin(admin.ModelAdmin):
 
     def total_num(self, obj):
         res = CouponTransferRecord.objects.filter(
-            date_field=obj.date_field,transfer_type=obj.transfer_type,
+            date_field=obj.date_field, transfer_type=obj.transfer_type,
             transfer_status=obj.transfer_status).aggregate(n=Sum('coupon_num'))
         return res['n'] or 0
 
