@@ -237,11 +237,13 @@ def apply_pending_return_transfer_coupon(usercoupon_ids):
         else:
             item[transfer_record.id].append(usercoupon.id)
         transfer_records.add(transfer_record)
-    count = 1
     for origin_record in transfer_records:
         coupon_ids = item[origin_record.id]
         num = len(coupon_ids)
         # 生成 带审核 流通记录
+        count = CouponTransferRecord.objects.filter(transfer_type=CouponTransferRecord.IN_RETURN_COUPON,
+                                                    uni_key__contains='return-upper-%s-' % origin_record.id).count()
+        uni_key = 'return-upper-%s-%s' % (origin_record.id, count + 1)
         new_transfer = CouponTransferRecord(
             coupon_from_mama_id=origin_record.coupon_to_mama_id,
             from_mama_thumbnail=origin_record.to_mama_thumbnail,
@@ -255,11 +257,10 @@ def apply_pending_return_transfer_coupon(usercoupon_ids):
             product_img=origin_record.product_img,
             coupon_num=num,
             transfer_type=CouponTransferRecord.IN_RETURN_COUPON,
-            uni_key='return-upper-%s-%s' % (origin_record.id, count),
+            uni_key=uni_key,
             date_field=datetime.date.today(),
             transfer_status=CouponTransferRecord.PENDING)
         new_transfer.save()
-        count += 1
         freeze_transfer_coupon(coupon_ids, new_transfer.id)  # 冻结优惠券
     return True
 
