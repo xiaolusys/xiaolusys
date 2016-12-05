@@ -444,7 +444,9 @@ class PackageOrder(models.Model):
         if psi:
             PackageSkuItem.objects.filter(id=psi.id).update(package_order_id=package_order.id,
                                                             package_order_pid=package_order.pid)
+        package_order.set_logistics_company()
         return package_order
+
 
     @staticmethod
     def get_or_create(id, sale_trade):
