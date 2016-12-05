@@ -211,6 +211,7 @@ def index(req):
     return render(req, 'yunying/customer/index.html', {'charts': charts})
 
 
+@login_required
 def wallet(req):
     mama_id = req.GET.get('mama_id')
     mama = XiaoluMama.objects.filter(id=mama_id).first()
