@@ -138,6 +138,7 @@ class SaleSupplierViewSet(viewsets.ModelViewSet):
             'platform': SaleSupplier.PLATFORM_CHOICE,
             'ware_by': WARE_CHOICES,
             'return_ware_by': WARE_CHOICES,
+            'stocking_mode': SaleSupplier.STOCKING_MODE_CHOICES,
             'status': SaleSupplier.STATUS_CHOICES,
         })
 
