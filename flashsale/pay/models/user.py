@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class Register(PayBaseModel):
-    MAX_VALID_COUNT = 6
+    MAX_VALID_COUNT = 3
     MAX_SUBMIT_TIMES = 20
 
     id = models.AutoField(primary_key=True, verbose_name=u'ID')

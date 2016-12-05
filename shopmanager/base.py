@@ -354,11 +354,13 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_THROTTLE_CLASSES': (
         'rest_framework.throttling.AnonRateThrottle',
-        'rest_framework.throttling.UserRateThrottle'
+        'rest_framework.throttling.UserRateThrottle',
+        'rest_framework.throttling.ScopedRateThrottle',
     ),
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '3600/hour',
-        'user': '3600/hour'
+        'auth': '60/hour',
+        'anon': '500/hour',
+        'user': '1000/hour'
     }
 }
 

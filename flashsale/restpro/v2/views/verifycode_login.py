@@ -33,7 +33,6 @@ def check_day_limit(reg):
     """
     whether or not the day_limit is reached.
     """
-    print "reg.submit_count=", reg.submit_count
     if reg.code_time:
         date1 = datetime.date.today()
         date2 = reg.code_time.date()
@@ -185,6 +184,7 @@ class SendCodeView(views.APIView):
     mobile: mobile number
     action: one of 5 actions (register，sms_login, find_pwd, change_pwd, bind)
     """
+    throttle_scope = 'auth'
 
     def post(self, request):
         content = request.data
@@ -257,6 +257,7 @@ class RequestCashoutVerifyCode(views.APIView):
 
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
+    throttle_scope = 'auth'
 
     def post(self, request):
         user = request.user
@@ -301,6 +302,7 @@ class VerifyCodeView(views.APIView):
     mobile: mobile number
     action: one of 5 actions (register，sms_login, find_pwd, change_pwd, bind)
     """
+    throttle_scope = 'auth'
 
     def post(self, request):
         content = {}
@@ -366,6 +368,7 @@ class ResetPasswordView(views.APIView):
 
     /reset_password?mobile=xxx&password1=xxx&password2=xxx&verify_code=xxx
     """
+    throttle_scope = 'auth'
 
     def post(self, request):
         """
@@ -406,6 +409,7 @@ class PasswordLoginView(views.APIView):
     User login with username and password. She can login either via APP or H5 Web.
 
     """
+    throttle_scope = 'auth'
 
     def post(self, request):
         content = request.data
@@ -474,6 +478,7 @@ class WeixinAppLoginView(views.APIView):
     User login with Weixin authorization via APP.
 
     """
+    throttle_scope = 'auth'
 
     def post(self, request):
         """
