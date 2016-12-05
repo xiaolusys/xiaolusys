@@ -293,7 +293,8 @@ class ForecastInbound(BaseModel):
 
     @staticmethod
     def _generate(orderlist_ids):
-        order_lists = OrderList.objects.filter(id__in=orderlist_ids, stage=OrderList.STAGE_RECEIVE)
+        order_lists = OrderList.objects.filter(id__in=orderlist_ids, stage__in=[OrderList.STAGE_CHECKED,
+            OrderList.STAGE_PAY, OrderList.STAGE_RECEIVE])
         if order_lists.count() == 0:
             return
         order_list = order_lists.first()
