@@ -213,14 +213,17 @@ def index(req):
 
 @login_required
 def wallet(req):
-    mama_id = req.GET.get('mama_id')
-    if len(mama_id) == 11:
+    mama_id = req.GET.get('mama_id') or ''
+    if mama_id and len(mama_id) == 11:
         mobile = mama_id
         customer = Customer.objects.filter(mobile=mobile).first()
         mama = XiaoluMama.objects.filter(openid=customer.unionid).first()
-    else:
+    elif mama_id:
         mama = XiaoluMama.objects.filter(id=mama_id).first()
         customer = Customer.objects.filter(unionid=mama.openid).first()
+    else:
+        mama = None
+        customer = None
 
     if customer:
         xiaolu_wallet = BudgetLog.objects.filter(customer_id=customer.id).order_by('-created')
