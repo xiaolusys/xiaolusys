@@ -4,7 +4,10 @@ import re
 import urllib
 import time
 import datetime
+from urlparse import urlparse
 
+from django.conf import settings
+from django.http.request import split_domain_port, validate_host
 from rest_framework import mixins
 from rest_framework import viewsets
 from rest_framework.decorators import list_route
@@ -130,6 +133,18 @@ class VerifyCodeViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets
     register，sms_login, find_pwd, change_pwd, bind.
     """
 
+def valid_send_request(self, request):
+    user_agent = (request.META.get('HTTP_USER_AGENT') or '').lower()
+    http_referer = (request.META.get('HTTP_REFERER') or '').lower()
+    if not user_agent or user_agent.lower().find('windows') > 0:
+        return False
+    if (user_agent.find('xlmm') < 0 and user_agent.find('micromessenger') < 0 ) or user_agent.find('build') > 0:
+        return False
+    domain = http_referer and urlparse(http_referer).hostname
+    if domain and not validate_host(domain, settings.ALLOWED_HOSTS):
+        return False
+    return True
+
     @list_route(methods=['post'])
     def send_code(self, request):
         """
@@ -142,6 +157,15 @@ class VerifyCodeViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets
 
         if not validate_mobile(mobile):
             return Response({"rcode": 1, "msg": u"亲，手机号码错啦！"})
+
+        valid_request = self.valid_send_request(request)
+        if not valid_request:
+            import random
+            rnum = random.randint(1, 10)
+            if rnum % 2 == 1:
+                return Response({"rcode": 0, "msg": u"手机已注册"})
+            else:
+                return Response({"rcode": 0, "msg": u"验证码已发送"})
 
         customer = get_customer(request, mobile)
         if customer:
