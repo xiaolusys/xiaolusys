@@ -112,7 +112,7 @@ admin.site.register(SaleOrder, SaleOrderAdmin)
 
 class SaleTradeAdmin(BaseModelAdmin):
     list_display = (
-        'id_link', 'tid', 'buyer_nick', 'channel', 'order_type', 'payment', 'pay_time', 'created', 'status',
+        'id_link', 'tid', 'buyer_nick', 'channel', 'order_type', 'total_fee', 'payment', 'pay_time', 'created', 'status',
         'buyer_info')
     list_display_links = ('tid', 'buyer_info')
     # list_editable = ('update_time','task_type' ,'is_success','status')

@@ -196,24 +196,12 @@ class SendCodeView(views.APIView):
     """
     throttle_scope = 'auth'
 
-    def valid_send_request(self, request):
-        user_agent = (request.META.get('HTTP_USER_AGENT') or '').lower()
-        http_referer = (request.META.get('HTTP_REFERER') or '').lower()
-        if not user_agent or user_agent.lower().find('windows') > 0:
-            return False
-        if (user_agent.find('xlmm') < 0 and user_agent.find('micromessenger') < 0) or user_agent.find('build') > 0:
-            return False
-        domain = http_referer and urlparse(http_referer).hostname
-        if domain and not validate_host(domain, settings.ALLOWED_HOSTS):
-            return False
-        return True
-
     def post(self, request):
         content = request.data
         mobile = content.get("mobile", "0")
         action = content.get("action", "")
 
-        valid_request = self.valid_send_request(request)
+        valid_request = valid_send_request(request)
         if not valid_request:
             import random
             rnum = random.randint(1, 10)

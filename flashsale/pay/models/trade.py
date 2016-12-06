@@ -100,13 +100,15 @@ class SaleTrade(BaseModel):
     TRADE_FINISHED = 5
     TRADE_CLOSED = 6
     TRADE_CLOSED_BY_SYS = 7
-    NORMAL_TRADE_STATUS = (WAIT_BUYER_PAY,
-                           WAIT_SELLER_SEND_GOODS,
-                           WAIT_BUYER_CONFIRM_GOODS,
-                           TRADE_BUYER_SIGNED,
-                           TRADE_FINISHED,
-                           TRADE_CLOSED,
-                           TRADE_CLOSED_BY_SYS)
+    NORMAL_TRADE_STATUS = (
+        WAIT_BUYER_PAY,
+        WAIT_SELLER_SEND_GOODS,
+        WAIT_BUYER_CONFIRM_GOODS,
+        TRADE_BUYER_SIGNED,
+        TRADE_FINISHED,
+        TRADE_CLOSED,
+        TRADE_CLOSED_BY_SYS
+    )
 
     REFUNDABLE_STATUS = (WAIT_SELLER_SEND_GOODS,
                          WAIT_BUYER_CONFIRM_GOODS)
