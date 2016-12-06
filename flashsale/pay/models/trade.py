@@ -436,7 +436,8 @@ class SaleTrade(BaseModel):
         new_num = old_sale_order.num
         print old_sale_order.id
         old_sale_order.save()
-        old_sale_order.set_psi_cancel()
+        if old_sale_order.status == SaleOrder.WAIT_SELLER_SEND_GOODS:
+            old_sale_order.set_psi_cancel()
 
         new_sale_order = old_sale_order
         new_sale_order.id = None
@@ -889,7 +890,7 @@ class SaleOrder(PayBaseModel):
         psi = PackageSkuItem.create(self)
 
     def set_psi_cancel(self):
-        if self.package_sku and self.status == SaleOrder.WAIT_SELLER_SEND_GOODS:
+        if self.package_sku:
             self.package_sku.set_status_cancel()
 
     def is_teambuy(self):
