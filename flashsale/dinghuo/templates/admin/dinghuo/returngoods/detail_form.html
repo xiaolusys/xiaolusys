@@ -162,8 +162,9 @@
                         {%for products_item in original.products_item_sku%}
                         {%for detail in products_item.detail_items%}
                         <tr>
-                        {%if forloop.first%}
                         <td class="action-checkbox"><input class="action-select" name="_selected_action" type="checkbox" value={{detail.skuid}} onclick="can_change(this)"/></td>
+                        {%if forloop.first%}
+
                         <td rowspan={{products_item.detail_length}}><a href="/admin/items/product?id={{products_item.id}}" target="_blank">{{products_item.id}}</a></td>
                         <td rowspan="{{products_item.detail_length}}">{{products_item.title}}</td>
                         <td rowspan="{{products_item.detail_length}}">
