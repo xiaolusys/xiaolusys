@@ -72,11 +72,11 @@ def task_register_code(mobile, send_type="1"):
         if send_type == "1":
             msg_type = SMS_TYPE.SMS_NOTIFY_REGISTER_CODE
         elif send_type == "2":
-            msg_type = SMS_TYPE.SMS_NOTIFY_REGISTER_CODE
+            msg_type = SMS_TYPE.SMS_NOTIFY_RESET_PASSWORD
         elif send_type == "3":
-            msg_type = SMS_TYPE.SMS_NOTIFY_REGISTER_CODE
+            msg_type = SMS_TYPE.SMS_NOTIFY_LOGIN_CODE
         elif send_type == "4":
-            msg_type = SMS_TYPE.SMS_NOTIFY_REGISTER_CODE
+            msg_type = SMS_TYPE.SMS_NOTIFY_CASHOUT_CODE
         else:
             return
 
