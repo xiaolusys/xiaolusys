@@ -1,11 +1,10 @@
 # encoding=utf8
 from django.shortcuts import render
+from django.http import HttpResponseForbidden
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.decorators import permission_required
-from flashsale.pay.models.user import Customer, BudgetLog
+from flashsale.pay.models.user import BudgetLog
 from flashsale.xiaolumm.models.models_fortune import CarryRecord
 from flashsale.xiaolumm.models import (
-    XiaoluMama,
     CashOut
 )
 from flashsale.daystats.mylib.util import (
@@ -17,7 +16,20 @@ from flashsale.daystats.mylib.db import (
 )
 
 
+def group_required(groups):
+    def decorator(func):
+        def wrapper(req, *args, **kwargs):
+            user = req.user
+            in_group = user.groups.filter(id__in=groups).first()
+            if in_group or user.is_superuser:
+                return func(req, *args, **kwargs)
+            return HttpResponseForbidden()
+        return wrapper
+    return decorator
+
+
 @login_required
+@group_required([6])
 def index(req):
     """
     红包+退款+退款补邮费+兑换订单+妈妈收益佣金=个人账户增加额+妈妈账户增加额+红包支出+个人账户消费支出+个人账户兑换订单支出
