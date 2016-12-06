@@ -1,3 +1,4 @@
+
 {% extends "admin/base_site_v2.html" %}
 {% load i18n admin_urls static admin_list %}
 
@@ -132,7 +133,7 @@
                     <input type="button" class="btn-mini btn-success" id="id_btn_finished" value="已经完成"/>&nbsp;&nbsp;
                 {%endif%}
                 {%endif%}
-
+                <input type="button" class="btn-mini btn-success" id="change_to_refund" value="换货变退货回款" onclick="change_become_refund(this)" disabled="true"/>
 
             </div>
         </div>
@@ -142,6 +143,7 @@
                 <div class="results">
                     <table>
                         <thead class="table_return_goods">
+                        <td><span><input type="checkbox" id="action-toggle" onclick="action_toggle(this)" value={{original.id}}></span></td>
                         <td>商品ID</td>
                         <td>商品名称</td>
                         <td>商品图片</td>
@@ -161,6 +163,7 @@
                         {%for detail in products_item.detail_items%}
                         <tr>
                         {%if forloop.first%}
+                        <td class="action-checkbox"><input class="action-select" name="_selected_action" type="checkbox" value={{detail.skuid}} onclick="can_change(this)"/></td>
                         <td rowspan={{products_item.detail_length}}><a href="/admin/items/product?id={{products_item.id}}" target="_blank">{{products_item.id}}</a></td>
                         <td rowspan="{{products_item.detail_length}}">{{products_item.title}}</td>
                         <td rowspan="{{products_item.detail_length}}">
@@ -400,6 +403,65 @@
             }
         }
     }
+    function action_toggle(obj){
+    	if(obj.checked==true){
+    		var as = $(".action-select");
+    		for(var i=0;i<as.length;i++){
+    			as[i].checked=true;
+    			document.getElementById("change_to_refund").disabled=false;
+    		}
+    	}
+    	else{
+    		var as = $(".action-select");
+    		for(var i=0;i<as.length;i++){
+    			as[i].checked=false;
+    			document.getElementById("change_to_refund").disabled=true;
+    		}
+    	}
+    }
+    function can_change(obj){
+    if(obj.checked==true){
+    	document.getElementById("change_to_refund").disabled=false;
+    }
+    else{
+    	var as = $(".action-select");
+    	var flag=0;
+    	for (var i=0;i<as.length;i++){
+    		if(as[i].checked==true){
+    			flag=1;
+    		}
+    	}
+    	if(flag==1){
+    		document.getElementById("change_to_refund").disabled=false;
+    	}
+    	else{
+    		document.getElementById("change_to_refund").disabled=true;
+    	}
+    }
+    }
+    function change_become_refund(obj){
+    	var returngoods_id = $("#action-toggle").attr("value");
+    	var as = $(".action-select");
+    	var RGdetail_ids = [];
+    	for (var i=0;i<as.length;i++){
+    		if(as[i].checked==true){
+    		RGdetail_ids.push(as[i].value);
+    	}
+    	}
+    	var cfm = confirm("是否把这些sku:"+RGdetail_ids+"    从换货转换成退货回款");
+    	if(cfm==true){
+	    	var url = "/sale/dinghuo/returngoods/replace_become_refund/";
+	    	var data = {"returngoods_id":returngoods_id,"RGdetail_ids":JSON.stringify(RGdetail_ids)};
+	    	 $.ajax({"url":url,"data":data,"type":"post",dataType: "json","success":callback});
+	    	function callback(res) {
+	    		console.log(res["new_returngoods_id"]);
+	    		var new_returngoods_id = res["new_returngoods_id"]
+	    		window.location.reload();
+	    		alert("移除的货物在新的订货单:"+new_returngoods_id+"中");
+    	}
+    	}
+    }
+
     function modify_return_goods_sku(sku, id, num, price){
         var url = "/sale/dinghuo/returngoods/modify_return_goods_sku/";
         var data = {"sku_id": sku, "num":num, "price":price, "id": id};
