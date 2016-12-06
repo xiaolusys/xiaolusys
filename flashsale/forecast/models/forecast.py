@@ -237,6 +237,7 @@ class ForecastInbound(BaseModel):
             forecast.forecast_no = 'inbound-%s' % (inbound.id, )
             forecast.status = ForecastInbound.ST_ARRIVED
             forecast.save()
+            order_list_ids = [f.id for f in forecast.relate_order_set.all()]
         return ForecastInbound._generate(order_list_ids)
 
     @staticmethod
