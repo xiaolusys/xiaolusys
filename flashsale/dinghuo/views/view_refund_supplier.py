@@ -24,6 +24,7 @@ import common.utils
 from core.options import log_action, ADDITION, CHANGE
 from ..tasks import calcu_refund_info_by_pro_v2
 from shopback.logistics.models import LogisticsCompany
+from flashsale.dinghuo.models import InBound,OrderList,OrderDetail
 
 logger = logging.getLogger('django.request')
 
@@ -192,6 +193,46 @@ def modify_return_goods_sku(request):
     rg_detail.save()
     return HttpResponse(True)
 
+
+def replace_become_refund(request):
+    content = request.POST
+    id = content.get("returngoods_id",None)
+    RGdetail_ids = content.get("RGdetail_ids",None)
+    RGdetail_ids = json.loads(RGdetail_ids)
+    new_returngoods_id = get_new_ctr(id,RGdetail_ids)
+    return HttpResponse(json.dumps({"new_returngoods_id":new_returngoods_id}))
+
+def get_new_ctr(returngoods_id,RGdetail_ids):
+    supplier = ReturnGoods.objects.get(id=returngoods_id).supplier
+    return_goods = ReturnGoods.objects.create(supplier=supplier, type=ReturnGoods.TYPE_COMMON,
+                                              memo="由退货单中" + returngoods_id + "中的数据生成的新退货单")  #先生成新的退货单 by供应商
+
+    # orderlist_id = InBound.objects.filter(return_goods_id=returngoods_id).first().ori_orderlist_id          #根据老的退货单,找到入仓单,找到订货单,找到里面所有的货的id和价格
+    # order_detail_all = OrderList.objects.filter(id=orderlist_id).first().order_list.all()
+    # order_detail_all = {i.chichu_id:i.buy_unitprice for i in order_detail_all}
+    sum_num = 0
+    sum_money = 0
+    for i in RGdetail_ids:                                                     #对于每一个我们期望变成退款的货,我们找到并修改价格,退货类型,以及它的退货单外键
+        rg_detail = RGDetail.objects.filter(skuid=i).first()
+        order_detail = OrderDetail.objects.filter(chichu_id=i).order_by("-created")
+        if not order_detail:
+            buy_unitprice = 0                          #订货单中没有,说明是多货,那么回款为0
+        else:
+            buy_unitprice = order_detail.first().buy_unitprice
+        rg_detail.price = buy_unitprice
+        rg_detail.type = RGDetail.TYPE_REFUND
+        rg_detail.return_goods = return_goods
+        sum_num = sum_num + rg_detail.num + rg_detail.inferior_num
+        sum_money = sum_money + rg_detail.price * (rg_detail.num + rg_detail.inferior_num)
+        rg_detail.save()
+
+    return_goods.return_num = sum_num                            #就算新产生退货单的退货数和计划退货金额
+    return_goods.plan_amount = sum_money
+    return_goods.sum_amount = sum_money
+    return_goods.save()
+
+    ReturnGoods.objects.filter(id=returngoods_id).update(return_num=F("return_num")-sum_num) #修改原先退货单的退货数量
+    return return_goods.id
 
 def delete_return_goods_sku(request):
     content = request.POST
