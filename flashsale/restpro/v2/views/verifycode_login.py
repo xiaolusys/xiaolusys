@@ -213,7 +213,7 @@ class SendCodeView(views.APIView):
         mobile = content.get("mobile", "0")
         action = content.get("action", "")
 
-        valid_request = valid_send_request(request)
+        valid_request = self.valid_send_request(request)
         if not valid_request:
             import random
             rnum = random.randint(1, 10)
