@@ -52,11 +52,11 @@ admin.site.register(ReceiptGoods, ReceiptGoodsAdmin)
 
 
 class StockAdjustAdmin(admin.ModelAdmin):
-    list_display = ("sku", "num", "inferior", "status")
+    list_display = ("sku", "num", "inferior", "note", "status")
     list_filter = ("inferior", "status")
     readonly_fields = ("status", "ware_by")
     search_fields = (
-        "id", "sku",
+        "id", "sku_id",
         "=creator",
     )
     # change_form_template = ""

@@ -158,17 +158,11 @@ class SaleProduct(BaseTagModel):
         agent_prices = []
         std_sale_prices = []
         costs = []
-        remain_num = 0
         for sku in self.sku_extras:
             agent_prices.append(sku['agent_price'])
             std_sale_prices .append(sku['std_sale_price'])
             costs.append(sku['cost'])
-            remain_num_str = str(sku['remain_num']).strip()
-            remain_num += int(remain_num_str) if remain_num_str.isdigit() else 0
         update_fields = []
-        if self.remain_num != remain_num:
-            self.remain_num = remain_num
-            update_fields.append('remain_num')
         if self.price != min(agent_prices):
             self.price = min(agent_prices)
             self.on_sale_price = min(agent_prices)
