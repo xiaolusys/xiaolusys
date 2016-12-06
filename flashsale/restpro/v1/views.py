@@ -195,7 +195,10 @@ class UserAddressViewSet(viewsets.ModelViewSet):
 
     def get_owner_queryset(self, request):
         customer = get_object_or_404(Customer, user=request.user)
-        return self.queryset.filter(cus_uid=customer.id, status=UserAddress.NORMAL).order_by('-default')
+        return self.queryset.filter(
+            cus_uid=customer.id,
+            status=UserAddress.NORMAL
+        ).order_by('-default', 'receiver_name')
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
