@@ -23,6 +23,6 @@ class CouponTransferRecordManager(BaseManager):
 
     def get_return_transfer_coupons(self):
         # type: () -> Optional[List[CouponTransferRecord]]
-        """　获取　下属　退回类型　的有效的　流通记录
+        """　获取　退回类型　的有效的　流通记录
         """
         return self.get_effect_transfer_coupons().filter(transfer_type=self.model.IN_RETURN_COUPON)
