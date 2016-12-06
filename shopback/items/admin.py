@@ -928,7 +928,6 @@ class ProductSkuAdmin(admin.ModelAdmin):
                     'is_assign', 'is_split', 'is_match', 'post_check',
                     'district_link', 'status')
     list_display_links = ('outer_id',)
-    list_editable = ('quantity',)
 
     date_hierarchy = 'modified'
     # ordering = ['created_at']
