@@ -20,6 +20,7 @@ from flashsale.daystats.views import (
     sql,
     database,
     wdt,
+    money,
 )
 from .view import popularize_Cost, DailyStatsViewSet
 
@@ -73,6 +74,8 @@ urlpatterns += [
     url(r'^yunying/mama/score$', mama.score, name='yy-mama-score'),
     url(r'^yunying/mama/rank$', mama.rank, name='yy-mama-rank'),
     url(r'^yunying/mama/coupon', mama.transfer_coupon, name='yy-mama-coupon'),
+
+    url(r'^yunying/money/', money.index, name='yy-money-index'),
 
     url(r'^yunying/sql/$', sql.index, name='yy-sql-index'),
     url(r'^yunying/sql/(?P<id>.*)/destroy$', sql.destroy, name='yy-sql-destroy'),

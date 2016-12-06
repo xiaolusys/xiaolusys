@@ -242,7 +242,7 @@ def wallet(req):
             item.flow_amount = item.flow_amount * 0.01
             item.budget_type = dict(BudgetLog.BUDGET_CHOICES).get(item.budget_type)
             item.budget_log_type = dict(BudgetLog.BUDGET_LOG_CHOICES).get(item.budget_log_type)
-            item.status = {0: '已提现', 1: '提现失败，已经退款', 2: '提现中，等待审核'}.get(item.status)
+            item.status = dict(BudgetLog.STATUS).get(item.status)
 
     if mama:
         mama_wallet = CashOut.objects.filter(xlmm=mama.id).order_by('-created')
