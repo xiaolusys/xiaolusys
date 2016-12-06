@@ -240,6 +240,7 @@ def apply_pending_return_transfer_coupon(usercoupon_ids):
     for origin_record in transfer_records:
         coupon_ids = item[origin_record.id]
         num = len(coupon_ids)
+        elite_score = (origin_record.elite_score / origin_record.coupon_num) * num
         # 生成 带审核 流通记录
         count = CouponTransferRecord.objects.filter(transfer_type=CouponTransferRecord.IN_RETURN_COUPON,
                                                     uni_key__contains='return-upper-%s-' % origin_record.id).count()
@@ -259,6 +260,8 @@ def apply_pending_return_transfer_coupon(usercoupon_ids):
             transfer_type=CouponTransferRecord.IN_RETURN_COUPON,
             uni_key=uni_key,
             date_field=datetime.date.today(),
+            product_id=origin_record.product_id,
+            elite_score=elite_score,
             transfer_status=CouponTransferRecord.PENDING)
         new_transfer.save()
         freeze_transfer_coupon(coupon_ids, new_transfer.id)  # 冻结优惠券

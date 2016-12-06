@@ -146,7 +146,7 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         mama = get_mama_by_openid(customer.unionid)
         can_return_elite = mama.elite_score - mama.get_level_lowest_elite()  # 当前可退回的积分数
         coupon_elite = get_coupons_elite(user_coupons, mama.elite_level)  # 计算优惠券在当前等级的积分
-        if coupon_elite >= can_return_elite:
+        if coupon_elite > can_return_elite:
             return Response({'code': 5, 'info': '超过兑换券等级积分'})
         state = apply_pending_return_transfer_coupon(coupon_ids)
         if not state:
