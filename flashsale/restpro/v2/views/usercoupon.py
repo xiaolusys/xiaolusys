@@ -7,8 +7,10 @@ from rest_framework import authentication
 from rest_framework import permissions
 from rest_framework import filters
 
+from flashsale.pay.models import ModelProduct
+from shopback.items.models import Product
 from flashsale.pay.apis.v1.customer import get_customer_by_django_user
-
+from flashsale.xiaolumm.apis.v1.xiaolumama import get_mama_by_openid
 from flashsale.coupon import serializers
 from flashsale.coupon.models import UserCoupon
 from flashsale.coupon.apis.v1.transfer import apply_pending_return_transfer_coupon
@@ -16,6 +18,30 @@ from flashsale.coupon.apis.v1.usercoupon import return_transfer_coupon
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+def get_coupons_elite(user_coupons, mama_level):
+    # type: (List[UserCoupon], text_type) -> int
+    """计算优惠券 在当前等级的 积分
+    """
+    virtual_model_products = ModelProduct.objects.get_virtual_modelproducts()  # 虚拟商品
+    map_dict = {}
+    for md in virtual_model_products:
+        md_bind_tpl_id = md.extras.get('template_id')
+        if not md_bind_tpl_id:
+            continue
+        map_dict[md_bind_tpl_id] = md.id
+    model_ids = []
+    for coupon in user_coupons:
+        model_ids.append(map_dict[coupon.template_id])
+    products = Product.objects.filter(model_id__in=model_ids).values('model_id', 'name', 'elite_score')
+    total_elite_score = 0
+    for c in user_coupons:
+        model_id = map_dict[c.template_id]
+        for p in products:
+            if mama_level in p['name'] and p['model_id'] == model_id:  # 款式相同　并且名字含有　对应等级的产品
+                total_elite_score += p['elite_score']  # 累加积分
+    return total_elite_score
 
 
 class UserCouponsFilter(filters.FilterSet):
@@ -114,6 +140,14 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         coupon_ids = [c['id'] for c in user_coupons.values('id')]
         if not coupon_ids:
             return Response({'code': 3, 'info': '没有找到优惠券'})
+        if not customer.unionid:
+            return Response({'code': 4, 'info': '用户错误'})
+        # 判断积分是否可以退券操作
+        mama = get_mama_by_openid(customer.unionid)
+        can_return_elite = mama.elite_score - mama.get_level_lowest_elite()  # 当前可退回的积分数
+        coupon_elite = get_coupons_elite(user_coupons, mama.elite_level)  # 计算优惠券在当前等级的积分
+        if coupon_elite >= can_return_elite:
+            return Response({'code': 5, 'info': '超过兑换券等级积分'})
         state = apply_pending_return_transfer_coupon(coupon_ids)
         if not state:
             return Response({'code': 2, 'info': '申请失败'})

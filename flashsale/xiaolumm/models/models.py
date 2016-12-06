@@ -860,6 +860,19 @@ class XiaoluMama(BaseModel):
 
         return 'Associate'
 
+    def get_level_lowest_elite(self):
+        # type: (text_type) -> int
+        """妈妈积分等级 对应　最低积分数值
+        """
+        m = {
+            'Associate': 50,
+            'Director': 300,
+            'VP': 1000,
+            'Partner': 3000,
+            'SP': 10000
+        }
+        return m[self.elite_level]
+
     def get_upgrade_score(self):
         if self.elite_score >= 10000:
             return 0
