@@ -58,7 +58,8 @@ def year_week_range(year_week):
 
 def year_weekend_day(year_week):
     dt = datetime.datetime.strptime('%s-0' % year_week, '%Y-%W-%w')
-    return dt + datetime.datetime(23, 59, 59)
+    # 若使用2016-12-01 00:00:00 + datetime.time.max,会导致mysql对时间round成2016-12-02 00:00:00
+    return dt + datetime.timedelta(seconds=24*3600-1)
 
 
 def get_mama_week_sale_mission(mama_id, year_week):
