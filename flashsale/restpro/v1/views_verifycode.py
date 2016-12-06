@@ -134,6 +134,8 @@ class VerifyCodeViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets
     """
 
     def valid_send_request(self, request):
+        if not settings.DEPLOY_ENV:
+            return True
         user_agent = (request.META.get('HTTP_USER_AGENT') or '').lower()
         http_referer = (request.META.get('HTTP_REFERER') or '').lower()
         if not user_agent or user_agent.lower().find('windows') > 0:

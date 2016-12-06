@@ -12,6 +12,7 @@ global_setup.cancel_pingpp_charge_ssl_verify()
 
 
 DEBUG = False
+DEPLOY_ENV = False
 XIAOLU_UNIONPAY_SWITH = True #切换小鹿支付开关
 
 ADMINS = ()

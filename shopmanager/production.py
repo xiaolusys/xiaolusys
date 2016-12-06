@@ -3,6 +3,7 @@ import os
 from .base import *
 
 DEBUG = False
+DEPLOY_ENV = True
 
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_COOKIE_AGE = 24 * 15 * 60 * 60
