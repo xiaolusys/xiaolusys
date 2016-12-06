@@ -4,7 +4,7 @@ import datetime
 import re
 import random
 
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django.http import HttpResponse, Http404
 from django.shortcuts import redirect, render
 from django.template import RequestContext
@@ -17,6 +17,7 @@ from rest_framework.response import Response
 from flashsale.xiaolumm.models import CarryLog
 from shopback.trades.models import PackageSkuItem
 from .models import DailyStat, PopularizeCost
+from flashsale.coupon.models import CouponTransferRecord
 
 
 # 推广成本分类统计，包含（订单返利，代理补贴，点击补贴，…）
@@ -143,6 +144,19 @@ class DailyStatsViewSet(viewsets.GenericViewSet):
         elif type_ == 7:
             q = PackageSkuItem.objects.filter(assign_status=0, purchase_order_unikey='')
             q.filter(pay_time__lt=now - datetime.timedelta(days=1))
+            n_total = q.count()
+            n_delay = q.filter(pay_time__lt=now - datetime.timedelta(days=1)).only('id').count()
+            n_s_delay = q.filter(pay_time__lt=now - datetime.timedelta(days=2)).only('id').count()
+            n_ss_delay = q.filter(pay_time__lt=now - datetime.timedelta(days=3)).only('id').count()
+            data = {'n_total': n_total, 'n_delay': n_delay, 'n_s_delay': n_s_delay, 'n_ss_delay': n_ss_delay}
+        elif type_ == 8:
+            fifteen_dayago = now - datetime.timedelta(days=20)
+            transfer_qs = CouponTransferRecord.objects.filter(status=CouponTransferRecord.EFFECT, date_field__gte=fifteen_dayago)
+            consume_tids = transfer_qs.filter(transfer_type=CouponTransferRecord.OUT_CONSUMED).values_list('order_no', flat=True)
+            exchg_oids = transfer_qs.filter(transfer_type=CouponTransferRecord.OUT_EXCHG_SALEORDER).values_list('order_no', flat=True)
+            q = SaleOrder.objects.filter(Q(sale_trade__tid__in=consume_tids)|Q(oid__in=exchg_oids),
+                                     status=SaleOrder.WAIT_SELLER_SEND_GOODS)
+
             n_total = q.count()
             n_delay = q.filter(pay_time__lt=now - datetime.timedelta(days=1)).only('id').count()
             n_s_delay = q.filter(pay_time__lt=now - datetime.timedelta(days=2)).only('id').count()

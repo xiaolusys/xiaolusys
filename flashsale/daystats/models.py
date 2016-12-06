@@ -23,7 +23,7 @@ class DailyStat(models.Model):
     day_date = models.DateField(verbose_name=u'统计日期')
 
     class Meta:
-        db_table = 'flashsale_dailystat'
+        db_table  = 'flashsale_dailystat'
         app_label = 'daystats'
         verbose_name = u'特卖/每日统计'
         verbose_name_plural = u'特卖/每日统计列表'

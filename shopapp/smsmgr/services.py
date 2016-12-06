@@ -87,7 +87,7 @@ class SMSManager():
 
     def on_send(self, *args, **kwargs):
         if not settings.SMS_PUSH_SWITCH:
-            return
+            return False
         return self._batch_send(*args, **kwargs)
 
     def on_success(self, success_count):

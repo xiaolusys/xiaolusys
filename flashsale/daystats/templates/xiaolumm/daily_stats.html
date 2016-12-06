@@ -218,6 +218,27 @@
                     <p>已抢光前５个商品ID</p>
                 </td>
             </tr>
+            <tr id="transfer_coupon_order">
+                <td>
+                    <h2>精品汇订单</h2>
+                </td>
+                <td>
+                    <p><em class="n-ss-delay">０</em></p>
+                    <p>超过3天未发货</p>
+                </td>
+                <td>
+                    <p><em class="n-s-delay">０</em></p>
+                    <p>超过2天未发货</p>
+                </td>
+                <td>
+                    <p><em class="n-delay">０</em></p>
+                    <p>超过1天未发货</p>
+                </td>
+                <td>
+                    <p><em class="n-total">０</em></p>
+                    <p>总计</p>
+                </td>
+            </tr>
         </table>
         <div class="full-screen">
             <button class="btn btn-default btn-block" id="full-screen-btn">全屏</button>
@@ -293,6 +314,7 @@
              _.delay(reload, 10, 7, '#weidinghuo');
              _.delay(reload, 10, 4, '#dinghuo');
              _.delay(reload, 10, 6, '#sellout');
+             _.delay(reload, 10, 8, '#transfer_coupon_order');
              $('#full-screen-btn').click(function(){
                  toggleFullScreen();
              });
