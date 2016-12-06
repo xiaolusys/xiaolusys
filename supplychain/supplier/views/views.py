@@ -296,7 +296,7 @@ class SaleProductDetail(generics.RetrieveUpdateDestroyAPIView):
             'std_sale_price': instance.std_sale_price or '',
             'sale_price': instance.sale_price or '',
             'supplier_sku': instance.supplier_sku,
-            'remain_num': instance.remain_num or 10
+            'remain_num': 0
         })
 
     @classmethod
