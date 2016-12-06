@@ -213,7 +213,7 @@ def get_new_ctr(returngoods_id,RGdetail_ids):
     sum_num = 0
     sum_money = 0
     for i in RGdetail_ids:                                                     #对于每一个我们期望变成退款的货,我们找到并修改价格,退货类型,以及它的退货单外键
-        rg_detail = RGDetail.objects.filter(skuid=i).first()
+        rg_detail = RGDetail.objects.filter(skuid=i,return_goods=return_goods).first()
         order_detail = OrderDetail.objects.filter(chichu_id=i).order_by("-created")
         if not order_detail:
             buy_unitprice = 0                          #订货单中没有,说明是多货,那么回款为0
