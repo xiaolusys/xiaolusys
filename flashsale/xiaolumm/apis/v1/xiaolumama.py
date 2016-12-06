@@ -11,12 +11,19 @@ from .potentialmama import update_potential_by_deposit, create_potential_mama
 __ALL__ = [
     'get_mama_by_id',
     'mama_pay_deposit',
+    'set_mama_manager_by_mama_id',
+    'get_mama_by_openid'
 ]
 
 
 def get_mama_by_id(id):
     # type: (int) -> XiaoluMama
     return XiaoluMama.objects.get(id=id)
+
+
+def get_mama_by_openid(openid):
+    # type: (text_type) -> XiaoluMama
+    return XiaoluMama.objects.get(openid=openid)
 
 
 def mama_pay_deposit(customer_id, deposit_type, referrer, trade_id, oid=None):
