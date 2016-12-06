@@ -7,7 +7,7 @@ import datetime
 from urlparse import urlparse
 
 from django.conf import settings
-from django.http.request import split_domain_port, validate_host
+from django.http.request import validate_host
 from rest_framework import mixins
 from rest_framework import viewsets
 from rest_framework.decorators import list_route
@@ -133,17 +133,17 @@ class VerifyCodeViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets
     register，sms_login, find_pwd, change_pwd, bind.
     """
 
-def valid_send_request(self, request):
-    user_agent = (request.META.get('HTTP_USER_AGENT') or '').lower()
-    http_referer = (request.META.get('HTTP_REFERER') or '').lower()
-    if not user_agent or user_agent.lower().find('windows') > 0:
-        return False
-    if (user_agent.find('xlmm') < 0 and user_agent.find('micromessenger') < 0 ) or user_agent.find('build') > 0:
-        return False
-    domain = http_referer and urlparse(http_referer).hostname
-    if domain and not validate_host(domain, settings.ALLOWED_HOSTS):
-        return False
-    return True
+    def valid_send_request(self, request):
+        user_agent = (request.META.get('HTTP_USER_AGENT') or '').lower()
+        http_referer = (request.META.get('HTTP_REFERER') or '').lower()
+        if not user_agent or user_agent.lower().find('windows') > 0:
+            return False
+        if (user_agent.find('xlmm') < 0 and user_agent.find('micromessenger') < 0 ) or user_agent.find('build') > 0:
+            return False
+        domain = http_referer and urlparse(http_referer).hostname
+        if domain and not validate_host(domain, settings.ALLOWED_HOSTS):
+            return False
+        return True
 
     @list_route(methods=['post'])
     def send_code(self, request):

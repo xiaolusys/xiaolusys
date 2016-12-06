@@ -3,7 +3,9 @@ import datetime
 import logging
 import re
 import time
+from urlparse import urlparse
 
+from django.http.request import validate_host
 from django.conf import settings
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User as DjangoUser
@@ -168,11 +170,17 @@ def is_from_app(params):
     return False
 
 
-def filter_spam_sms_request(request):
-    http_referer = request.META.get('HTTP_REFERER', '')
-    if http_referer.find('98.cn') > 0:
-        return Response('ok')
-    return None
+def valid_send_request(request):
+    user_agent = (request.META.get('HTTP_USER_AGENT') or '').lower()
+    http_referer = (request.META.get('HTTP_REFERER') or '').lower()
+    if not user_agent or user_agent.lower().find('windows') > 0:
+        return False
+    if (user_agent.find('xlmm') < 0 and user_agent.find('micromessenger') < 0) or user_agent.find('build') > 0:
+        return False
+    domain = http_referer and urlparse(http_referer).hostname
+    if domain and not validate_host(domain, settings.ALLOWED_HOSTS):
+        return False
+    return True
 
 
 class SendCodeView(views.APIView):
@@ -186,14 +194,31 @@ class SendCodeView(views.APIView):
     """
     throttle_scope = 'auth'
 
+    def valid_send_request(self, request):
+        user_agent = (request.META.get('HTTP_USER_AGENT') or '').lower()
+        http_referer = (request.META.get('HTTP_REFERER') or '').lower()
+        if not user_agent or user_agent.lower().find('windows') > 0:
+            return False
+        if (user_agent.find('xlmm') < 0 and user_agent.find('micromessenger') < 0) or user_agent.find('build') > 0:
+            return False
+        domain = http_referer and urlparse(http_referer).hostname
+        if domain and not validate_host(domain, settings.ALLOWED_HOSTS):
+            return False
+        return True
+
     def post(self, request):
         content = request.data
         mobile = content.get("mobile", "0")
         action = content.get("action", "")
 
-        is_spam = filter_spam_sms_request(request)
-        if is_spam:
-            return is_spam
+        valid_request = valid_send_request(request)
+        if not valid_request:
+            import random
+            rnum = random.randint(1, 10)
+            if rnum % 2 == 1:
+                return Response({"rcode": 0, "msg": u"手机已注册"})
+            else:
+                return Response({"rcode": 0, "msg": u"验证码已发送"})
 
         klog.info({
             'action': 'api.v2.send_code',

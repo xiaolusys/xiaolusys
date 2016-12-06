@@ -8,6 +8,7 @@ from . import views
 from .views.kdn import KdnView
 from flashsale.xiaolumm.views import views_rank, views_message, award, week_rank
 from flashsale.pay.views import teambuy
+from flashsale.restpro.v1 import views_coupon_new
 from flashsale.restpro.v2.views import usercoupon
 
 v2_router = routers.DefaultRouter(trailing_slash=False)
@@ -34,8 +35,6 @@ v2_router.register(r'checkin', views.CheckinViewSet)
 v2_router.register(r'qrcode', views.QRcodeViewSet)
 v2_router.register(r'exchgorder', views.CouponExchgOrderViewSet)
 
-from flashsale.restpro.v1 import views_coupon_new
-from flashsale.restpro.v2 import views
 
 v2_router.register(r'usercoupons', views_coupon_new.UserCouponsViewSet)
 v2_router.register(r'usercoupon', usercoupon.UserCouponsViewSet)
@@ -77,8 +76,6 @@ v2_router_urls += format_suffix_patterns([
     url(r'^urlredirect', views.URLRedirectViewSet.as_view({'get': 'redirect'})),
     url(r'^wdt/logistics', views.WangDianTongViewSet.as_view({'post': 'logistics'})),
 ])
-
-from flashsale.restpro.v2 import views
 
 lesson_router = routers.DefaultRouter(trailing_slash=False)
 lesson_router.register(r'lessontopic', views.LessonTopicViewSet)
