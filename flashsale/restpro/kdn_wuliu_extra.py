@@ -206,7 +206,7 @@ def add_DataSign(f):
         return f(*args,**kwargs)
     return wrapper
 
-def comfirm_get(out_sid,status):
+def comfirm_get(out_sid,status):            #根据物流状态自动确认收货
     out_sid = str(out_sid)
     logging.warn("comfirm_get")
     logger.warn({'action': "kdn", 'info': "start_comfirm_get:"+ out_sid})
@@ -220,6 +220,21 @@ def comfirm_get(out_sid,status):
             for i in so:
                 logger.warn({'action': "kdn", 'info': "change_get_goods:" + out_sid})
                 i.confirm_sign_order()
+
+def confirm_get_by_content(out_sid,content):   #根据物流内容自动确认收货
+    out_sid = str(out_sid)
+    logging.warn("confirm_get_by_content")
+    logger.warn({'action': "kdn", 'info': "confirm_get_by_content:" + out_sid})
+    if content.find("\u5df2\u7b7e\u6536")!=-1:
+        packageskuitem = PackageSkuItem.objects.filter(out_sid=out_sid).values("oid")
+        if packageskuitem:
+            packageskuitem = [i['oid'] for i in packageskuitem]
+            so = SaleOrder.objects.filter(oid__in=packageskuitem, status=SaleOrder.WAIT_BUYER_CONFIRM_GOODS)
+            if so:
+                for i in so:
+                    logger.warn({'action': "kdn", 'info': "confirm_sign_order:" + out_sid})
+                    i.confirm_sign_order()
+
 
 def write_traces(kwargs):
     logger.warn({'action': "kdn", 'info': "start change status"})
