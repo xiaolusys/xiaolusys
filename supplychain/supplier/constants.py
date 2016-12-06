@@ -15,3 +15,5 @@ else:
 
 WAP_PUSH_TAG = u'每日推送'
 
+
+STOCKING_MODE_CHOICES = ((0, u'未备货'), (1, u'备货'))

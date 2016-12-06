@@ -9,6 +9,7 @@ from django.db.models.signals import pre_save, post_save
 from core.models import BaseTagModel, BaseModel
 from core.fields import JSONCharMyField
 from core.utils import update_model_fields
+from supplychain.supplier.constants import STOCKING_MODE_CHOICES
 
 
 class SaleProduct(BaseTagModel):
@@ -67,6 +68,7 @@ class SaleProduct(BaseTagModel):
                                 choices=PLATFORM_CHOICE, verbose_name=u'来自平台')
 
     hot_value = models.IntegerField(default=0, verbose_name=u'热度值')
+    stocking_mode = models.IntegerField(default=0, choices=STOCKING_MODE_CHOICES, db_index=True, verbose_name=u'存货模式')
     voting = models.BooleanField(default=False, verbose_name=u'参与投票')
     sale_price = models.FloatField(default=0, verbose_name=u'采购价')
     on_sale_price = models.FloatField(default=0, verbose_name=u'售价')
@@ -85,7 +87,7 @@ class SaleProduct(BaseTagModel):
     sale_time = models.DateTimeField(null=True, blank=True, verbose_name=u'上架日期')
     reserve_time = models.DateTimeField(null=True, blank=True, verbose_name=u'预留时间')
     supplier_sku = models.CharField(max_length=64, blank=True, verbose_name=u'供应商货号')
-    remain_num = models.IntegerField(default=0, verbose_name=u'预留数')
+    # remain_num = models.IntegerField(default=0, verbose_name=u'预留数')
     orderlist_show_memo = models.BooleanField(default=False, verbose_name=u'订货详情显示备注')
 
     sku_extras = JSONCharMyField(max_length=10240, default=[], verbose_name=u"sku信息")

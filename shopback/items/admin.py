@@ -123,8 +123,8 @@ class ProductAdmin(ApproxAdmin):
     form = ProductModelForm
     list_per_page = 25
 
-    list_display = ('id', 'outer_id_link', 'pic_link', 'collect_num',
-                    'category_select', 'remain_num', 'wait_post_num',
+    list_display = ('id', 'outer_id_link', 'pic_link', 'category_select',
+                    # 'collect_num','remain_num', 'wait_post_num',
                     'lock_num', 'wait_receive_num', 'cost', 'std_sale_price',
                     'agent_price', 'modelproduct_link', 'sync_stock', 'is_watermark',
                     'sale_time_select', 'sale_charger', 'ware_select',
@@ -923,7 +923,7 @@ admin.site.register(Product, ProductAdmin)
 
 class ProductSkuAdmin(admin.ModelAdmin):
     list_display = ('id', 'outer_id', 'product', 'properties_name',
-                    'properties_alias', 'quantity', 'warn_num', 'remain_num',
+                    'properties_alias', 'warn_num', 'remain_num',
                     'wait_post_num', 'lock_num', 'cost', 'std_sale_price', 'sync_stock',
                     'is_assign', 'is_split', 'is_match', 'post_check',
                     'district_link', 'status')
@@ -957,7 +957,7 @@ class ProductSkuAdmin(admin.ModelAdmin):
         'classes': ('expand',),
         'fields':
             (('outer_id', 'properties_name', 'properties_alias', 'status'),
-             ('quantity', 'warn_num', 'remain_num', 'wait_post_num', 'lock_num', 'weight'),
+             ('warn_num', 'remain_num', 'wait_post_num', 'lock_num', 'weight'),
              ('cost', 'std_purchase_price', 'std_sale_price', 'agent_price',
               'staff_price'), ('sync_stock', 'is_assign', 'is_split', 'is_match',
                                'memo', 'buyer_prompt', "sku_inferior_num"))
