@@ -18,6 +18,8 @@ from flashsale.pay.models import Customer
 from flashsale.restpro.v2.serializers import CouponTransferRecordSerializer
 
 from flashsale.coupon.apis.v1.transfer import verify_transfer_record
+from flashsale.pay.apis.v1.customer import get_customer_by_django_user
+from flashsale.xiaolumm.apis.v1.xiaolumama import get_mama_by_openid
 
 logger = logging.getLogger(__name__)
 
@@ -219,7 +221,9 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         
         mama = get_charged_mama(request.user)
         mama_id = mama.id
-        coupons = self.queryset.filter(coupon_from_mama_id=mama_id,status=status).order_by('-created')
+        coupons = self.queryset.filter(coupon_from_mama_id=mama_id, status=status).exclude(transfer_type__in=[
+            CouponTransferRecord.OUT_CASHOUT,
+            CouponTransferRecord.IN_RETURN_COUPON]).order_by('-created')
         if transfer_status:
             coupons = coupons.filter(transfer_status=transfer_status.strip())
 
@@ -242,17 +246,19 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         content = request.GET
         transfer_status = content.get("transfer_status") or None
         status = CouponTransferRecord.EFFECT
-        
+
         mama = get_charged_mama(request.user)
         mama_id = mama.id
-        coupons = self.queryset.filter(coupon_to_mama_id=mama_id,status=status).order_by('-created')
+        coupons = self.queryset.filter(coupon_to_mama_id=mama_id, status=status).exclude(transfer_type__in=[
+            CouponTransferRecord.OUT_CASHOUT,
+            CouponTransferRecord.IN_RETURN_COUPON]).order_by('-created')
         if transfer_status:
             coupons = coupons.filter(transfer_status=transfer_status.strip())
 
         coupons = self.paginate_queryset(coupons)
         serializer = CouponTransferRecordSerializer(coupons, many=True)
         res = self.get_paginated_response(serializer.data)
-        #res["Access-Control-Allow-Origin"] = "*"
+        # res["Access-Control-Allow-Origin"] = "*"
         return res
 
     @list_route(methods=['GET'])
@@ -308,6 +314,44 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         if state:
             return Response({'code': 0, 'info': '审核成功'})
         return Response({'code': 2, 'info': '审核出错'})
+
+    @list_route(methods=['get'])
+    def list_return_transfer_record(self, request, *args, **kwargs):
+        # type: (HttpRequest, *Any, **Any) -> Response
+        """下属退回自己的　优惠券　流通记录　列表
+        """
+        customer = get_customer_by_django_user(request.user)
+        if not customer.unionid:
+            return Response({'code': 1, 'info': '用户错误'})
+        mama = get_mama_by_openid(customer.unionid)
+        if not mama:
+            return Response({'code': 2, 'info': '妈妈不存在'})
+        queryset = CouponTransferRecord.objects.get_return_transfer_coupons().filter(coupon_to_mama_id=mama.id)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @list_route(methods=['get'])
+    def list_apply_transfer_record(self, request, *args, **kwargs):
+        # type: (HttpRequest, *Any, **Any) -> Response
+        """向上级申请退券的　优惠券　流通记录　列表
+        """
+        customer = get_customer_by_django_user(request.user)
+        if not customer.unionid:
+            return Response({'code': 1, 'info': '用户错误'})
+        mama = get_mama_by_openid(customer.unionid)
+        if not mama:
+            return Response({'code': 2, 'info': '妈妈不存在'})
+        queryset = CouponTransferRecord.objects.get_return_transfer_coupons().filter(coupon_from_mama_id=mama.id)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class CouponExchgOrderViewSet(viewsets.ModelViewSet):

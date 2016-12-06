@@ -7,7 +7,7 @@ from django.db.models.signals import post_save
 from rest_framework import exceptions
 from flashsale.xiaolumm.models import ReferalRelationship
 from core.models import BaseModel
-
+from .managers import transfercoupon
 logger = logging.getLogger(__name__)
 
 def get_referal_from_mama_id(to_mama_id):
@@ -83,6 +83,7 @@ class CouponTransferRecord(BaseModel):
     elite_level = models.CharField(max_length=16, blank=True, null=True, verbose_name=u'等级')
     elite_score = models.IntegerField(default=0, verbose_name=u"精英汇积分")
     product_id = models.BigIntegerField(default=0, verbose_name=u'商品ID')
+    objects = transfercoupon.CouponTransferRecordManager()
 
     class Meta:
         db_table = "flashsale_coupon_transfer_record"
