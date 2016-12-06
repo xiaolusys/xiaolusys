@@ -135,7 +135,7 @@ class InBound(models.Model):
     def order_list_ids(self):
         """注意它于orderlist_ids的差别，orderlist_ids是预测关联的订货单,order_list_ids是实际关联的订货单"""
         if not hasattr(self, '_order_list_ids_'):
-            query = OrderDetail.objects.filter(id__in=self.order_detail_ids).values('orderlist_id').distinct()
+            query = OrderDetail.objects.filter(id__in=self.order_detail_ids, arrival_quantity__gt=0).values('orderlist_id').distinct()
             self._order_list_ids_ = [item['orderlist_id'] for item in query]
         return self._order_list_ids_
 
