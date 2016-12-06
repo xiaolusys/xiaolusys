@@ -198,7 +198,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         return self.queryset.filter(
             cus_uid=customer.id,
             status=UserAddress.NORMAL
-        ).order_by('-default', 'receiver_name')
+        ).extra(select={'receiver_name': 'convert(`receiver_name` using gbk)'}).order_by('-default', 'receiver_name')
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
