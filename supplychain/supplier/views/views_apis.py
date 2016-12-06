@@ -35,7 +35,7 @@ from supplychain.supplier.models import (
 )
 from supplychain.supplier import serializers
 from supplychain.basic import fetch_urls
-
+from supplychain.supplier.constants import STOCKING_MODE_CHOICES
 import logging
 
 logger = logging.getLogger(__name__)
@@ -138,7 +138,7 @@ class SaleSupplierViewSet(viewsets.ModelViewSet):
             'platform': SaleSupplier.PLATFORM_CHOICE,
             'ware_by': WARE_CHOICES,
             'return_ware_by': WARE_CHOICES,
-            'stocking_mode': SaleSupplier.STOCKING_MODE_CHOICES,
+            'stocking_mode': STOCKING_MODE_CHOICES,
             'status': SaleSupplier.STATUS_CHOICES,
         })
 

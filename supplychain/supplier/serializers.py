@@ -250,7 +250,7 @@ class SaleProductSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'outer_id', 'title', 'price', 'pic_url', 'product_link', 'sale_supplier', 'contactor',
             'sale_category', 'platform', 'hot_value', 'sale_price', 'on_sale_price', 'std_sale_price',
-            'memo', 'status', 'sale_time', 'created', 'modified', 'reserve_time', 'supplier_sku', 'remain_num',
+            'memo', 'status', 'sale_time', 'created', 'modified', 'reserve_time', 'supplier_sku',
             'orderlist_show_memo')
 
 
