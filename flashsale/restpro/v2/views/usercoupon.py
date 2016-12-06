@@ -54,6 +54,8 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         # type: (HttpRequest, *Any, **Any) -> Response
         """获取　未使用状态的　精品类型　优惠券
         """
+        from shopback.monitor.models import XiaoluSwitch
+
         customer = get_customer_by_django_user(user=request.user)
         data = []
         ubcs = UserCoupon.objects.get_unused_boutique_coupons().filter(customer_id=customer.id)
@@ -80,9 +82,12 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
                 item[template_id]['gift_transfer_coupon_ids'].append(coupon.id)
             else:
                 item[template_id]['from_sys_coupon_ids'].append(coupon.id)
+        switch = XiaoluSwitch.objects.filter(title='退优惠券给上级').first()
+        can_return_upper = switch.status if switch else 0
         for k, v in item.iteritems():
             data.append({
                 'template_id': k,
+                'can_return_upper': can_return_upper,
                 'product_img': v['product_img'],
                 'coupon_ids': v['coupon_ids'],
                 'coupon_num': v['coupon_num'],

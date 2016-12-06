@@ -293,3 +293,14 @@ def set_transfer_record_complete(transfer_record):
     """
     transfer_record.transfer_status = CouponTransferRecord.DELIVERED
     transfer_record.save(['transfer_status', 'modified'])
+
+
+def cancel_transfer_record_by_trade(trade_tid):
+    # type: (text_type) -> bool
+    """因为 订单取消(用户手动取消)  取消掉流通券记录
+    """
+    transfer_record = CouponTransferRecord.objects.filter(uni_key=trade_tid).first()
+    if not transfer_record:
+        return False
+    transfer_record.transfer_status = CouponTransferRecord.CANCELED  # 取消
+    transfer_record.save(['transfer_status', 'modified'])
