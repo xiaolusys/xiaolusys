@@ -175,9 +175,9 @@ MEDIA_URL = "http://%s/" % QINIU_BUCKET_DOMAIN
 ######################## RESTFRAME WORK #########################
 REST_FRAMEWORK.update({
     'DEFAULT_THROTTLE_RATES': {
-        'auth': '1000/hour',
-        'anon': '1000/hour',
-        'user': '1000/hour'
+        'auth': '10000/hour',
+        'anon': '10000/hour',
+        'user': '10000/hour'
     },
 })
 
