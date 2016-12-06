@@ -6,6 +6,7 @@ from django.db import models
 from django.db.models.signals import post_save
 from .managers.supplier import SaleSupplierManager
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
+from supplychain.supplier.constants import STOCKING_MODE_CHOICES
 
 
 class SaleSupplier(models.Model):
@@ -74,7 +75,6 @@ class SaleSupplier(models.Model):
                      (WHOLESALER, u'经销批发'),
                      (BRAND_OWNER, u'品牌'),
                      (CLOTHING_FACTORY, u'源头大厂'))
-    STOCKING_MODE_CHOICES = ((0, u'未备货'), (1, u'备货'))
     supplier_name = models.CharField(max_length=64, unique=True, db_index=True, blank=False, verbose_name=u'供应商名')
     supplier_code = models.CharField(max_length=64, blank=True, verbose_name=u'品牌缩写')
 

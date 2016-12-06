@@ -395,7 +395,7 @@ class SaleProductAdmin(ApproxAdmin):
                    , ('pic_url', 'product_link')
                    , ('price', 'sale_price')
                    , ('on_sale_price', 'std_sale_price')
-                   , ('supplier_sku', 'remain_num')
+                   , ('supplier_sku', 'stocking_mode')
                    , ('sale_supplier', 'sale_category')
                    , ('platform', 'hot_value','status','is_changed')
                    , ('sale_time', 'reserve_time', 'contactor')
