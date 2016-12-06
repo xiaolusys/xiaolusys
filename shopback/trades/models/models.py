@@ -1202,16 +1202,16 @@ class SendLaterTrade(models.Model):
 
 
 REPLAY_TRADE__WULIU_STATUS = (
-    (pcfg.RP_BUG_STATUS, u'查询异常'),
-    (pcfg.RP_NO_RECORD_STATUS, u'没有记录'),
-    (pcfg.RP_IN_WAY_STATUS, u'在路上'),
-    (pcfg.RP_IN_SENDSTATUS, u'派送中'),
-    (pcfg.RP_ALREADY_SIGN_STATUS, u'已经签收'),
-    (pcfg.RP_REFUSE_SIGN_STATUS, u'拒绝签收'),
-    (pcfg.RP_CANNOT_SEND_STATUS, u'某些原因，无法派送'),
-    (pcfg.RP_INVALID__STATUS, u'无效单'),
-    (pcfg.RP_OVER_TIME_STATUS, u'超时单'),
-    (pcfg.RP_FAILED_SIGN_STATUS, u'签收失败'),
+    (pcfg.RP_BUG_STATUS, u'查询异常'),  #kdn
+    (pcfg.RP_NO_RECORD_STATUS, u'快递100下的查询结果'), #kdn
+    (pcfg.RP_IN_WAY_STATUS, u'在途中'),  #kdn
+    (pcfg.RP_IN_SENDSTATUS, u'签收'),    #kdn
+    (pcfg.RP_ALREADY_SIGN_STATUS, u'问题件') #kdn
+    # (pcfg.RP_REFUSE_SIGN_STATUS, u'拒绝签收'),
+    # (pcfg.RP_CANNOT_SEND_STATUS, u'某些原因，无法派送'),
+    # (pcfg.RP_INVALID__STATUS, u'无效单'),
+    # (pcfg.RP_OVER_TIME_STATUS, u'超时单'),
+    # (pcfg.RP_FAILED_SIGN_STATUS, u'签收失败'),
 )
 
 
