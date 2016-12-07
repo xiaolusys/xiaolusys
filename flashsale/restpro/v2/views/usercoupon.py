@@ -6,15 +6,15 @@ from rest_framework.decorators import list_route
 from rest_framework import authentication
 from rest_framework import permissions
 from rest_framework import filters
+from django.db.models import Sum
 
 from flashsale.pay.models import ModelProduct
 from shopback.items.models import Product
 from flashsale.pay.apis.v1.customer import get_customer_by_django_user
 from flashsale.xiaolumm.apis.v1.xiaolumama import get_mama_by_openid
 from flashsale.coupon import serializers
-from flashsale.coupon.models import UserCoupon
+from flashsale.coupon.models import UserCoupon, CouponTransferRecord
 from flashsale.coupon.apis.v1.transfer import apply_pending_return_transfer_coupon
-from flashsale.coupon.apis.v1.usercoupon import return_transfer_coupon
 import logging
 
 logger = logging.getLogger(__name__)
@@ -145,6 +145,10 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         # 判断积分是否可以退券操作
         mama = get_mama_by_openid(customer.unionid)
         can_return_elite = mama.elite_score - mama.get_level_lowest_elite()  # 当前可退回的积分数
+        p_records = CouponTransferRecord.objects.get_return_transfer_coupons().filter(coupon_from_mama_id=mama.id,
+                                                                                      transfer_status=CouponTransferRecord.PENDING)
+        p_elite_score = p_records.aggregate(s_elite_score=Sum('elite_score')).get('s_elite_score') or 0
+        can_return_elite = can_return_elite - p_elite_score  # 这里的可以退还的积分要减去　待审核的积分数量
         coupon_elite = get_coupons_elite(user_coupons, mama.elite_level)  # 计算优惠券在当前等级的积分
         if coupon_elite > can_return_elite:
             return Response({'code': 5, 'info': '超过兑换券等级积分'})
@@ -152,25 +156,3 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         if not state:
             return Response({'code': 2, 'info': '申请失败'})
         return Response({'code': 0, 'info': '申请成功'})
-
-    @list_route(methods=['post'])
-    def return_freeze_boutique_coupons_2_upper(self, request, *args, **kwargs):
-        # type: (HttpRequest, *Any, **Any) -> Response
-        """将自己　被冻结的　且标记了　将要退回　流通记录的　优惠券退回给上级
-        """
-        customer = get_customer_by_django_user(request.user)
-        coupon_ids = request.POST.get('coupon_ids')
-        if not isinstance(coupon_ids, list):
-            coupon_ids = coupon_ids.split(',')
-            coupon_ids = [str(i).strip() for i in coupon_ids if i.strip().isdigit()]
-        if not coupon_ids:
-            return Response({'code': 1, 'info': '参数错误'})
-        user_coupons = UserCoupon.objects.get_freeze_boutique_coupons().filter(customer_id=customer.id,
-                                                                               id__in=coupon_ids)
-        if not user_coupons:
-            return Response({'code': 3, 'info': '没有找到优惠券'})
-        state = return_transfer_coupon(user_coupons)
-        if not state:
-            return Response({'code': 2, 'info': '操作失败'})
-        return Response({'code': 0, 'info': '操作成功'})
-

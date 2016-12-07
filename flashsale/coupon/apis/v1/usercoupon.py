@@ -16,6 +16,8 @@ __ALL__ = [
     'use_coupon_by_ids',
     'get_user_coupon_by_id',
     'get_user_coupons_by_ids',
+    'get_freeze_boutique_coupons_by_transfer',
+    'get_will_return_coupons_by_transfer_id',
 ]
 
 
@@ -73,11 +75,13 @@ def get_user_coupons_by_ids(ids):
     return UserCoupon.objects.get_coupons(ids)
 
 
-def get_freeze_boutique_coupons_by_transfer(transfer_record_id):
-    # type: (int) -> Optional[List[UserCoupon]]
+def get_freeze_boutique_coupons_by_transfer(transfer_record_id, customer_id=None):
+    # type: (int, Optional[int]) -> Optional[List[UserCoupon]]
     """通过流通券记录　获取冻结状态的精品券
     """
     freeze_boutiques = UserCoupon.objects.get_freeze_boutique_coupons()
+    if customer_id:
+        freeze_boutiques = freeze_boutiques.filter(customer_id=customer_id)
     t = '"freeze_by_transfer_id": %s' % transfer_record_id
     return freeze_boutiques.filter(extras__contains=t)
 
@@ -193,16 +197,6 @@ def freeze_transfer_coupon(coupon_ids, transfer_id):
     return True
 
 
-def set_upper_mama_trace(coupons, transfer_id):
-    # type: (List[UserCoupon]) -> bool
-    """设置上级　妈妈审核过的优惠券　记录
-    """
-    for coupon in coupons:
-        coupon.extras['will_return_2'] = transfer_id
-        coupon.save(update_fields=['extras', 'modified'])
-    return True
-
-
 @transaction.atomic()
 def return_transfer_coupon(coupons):
     # type : (List[UserCoupon], int) -> bool
@@ -210,9 +204,11 @@ def return_transfer_coupon(coupons):
     """
     from .transfer import get_transfer_record_by_id, set_transfer_record_complete
     from flashsale.xiaolumm.apis.v1.xiaolumama import get_mama_by_id
+    from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
 
+    mama_ids = set()
     for coupon in coupons:
-        will_return_2_transfer_id = coupon.extras.get('will_return_2')
+        will_return_2_transfer_id = coupon.extras.get('freeze_by_transfer_id')
         if not will_return_2_transfer_id:
             continue
         transfer = get_transfer_record_by_id(will_return_2_transfer_id)
@@ -224,4 +220,8 @@ def return_transfer_coupon(coupons):
         coupon.status = UserCoupon.UNUSED
         coupon.customer_id = customer.id
         coupon.save(update_fields=['status', 'customer_id', 'modified'])
+        mama_ids.add(transfer.coupon_to_mama_id)
+        mama_ids.add(transfer.coupon_from_mama_id)
+    for mama_id in mama_ids:
+        task_calc_xlmm_elite_score.delay(mama_id)  # 重算积分
     return True

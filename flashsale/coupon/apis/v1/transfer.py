@@ -10,7 +10,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 from .usercoupon import get_user_coupons_by_ids, freeze_transfer_coupon, get_freeze_boutique_coupons_by_transfer, \
-    return_transfer_coupon, set_upper_mama_trace
+    rollback_user_coupon_status_2_unused_by_ids
 from flashsale.pay.apis.v1.customer import get_customer_by_django_user
 
 __ALL__ = [
@@ -290,9 +290,9 @@ def apply_pending_return_transfer_coupon(usercoupon_ids):
 
 
 @transaction.atomic()
-def verify_transfer_record(user, transfer_record_id):
+def agree_apply_transfer_record(user, transfer_record_id):
     # type: (DjangoUser, int) -> bool
-    """审核下属退还　的流通记录　　
+    """同意下属退还　的流通记录　　
     1. 将流通记录设置为待发放　　
     """
     customer = get_customer_by_django_user(user)
@@ -306,8 +306,30 @@ def verify_transfer_record(user, transfer_record_id):
         raise Exception('记录审核人错误')
     record.transfer_status = CouponTransferRecord.PROCESSED  # 待发放状态
     record.save(update_fields=['transfer_status', 'modified'])
+    return True
+
+
+@transaction.atomic()
+def reject_apply_transfer_record(user, transfer_record_id):
+    # type: (DjangoUser, int) -> bool
+    """拒绝下属退还　的流通记录　　
+    1. 将流通记录设置为取消　　
+    2. 优惠券状态设置为　未使用
+    """
+    customer = get_customer_by_django_user(user)
+    record = get_transfer_record_by_id(transfer_record_id)
+    if record.transfer_type != CouponTransferRecord.IN_RETURN_COUPON:
+        raise Exception('记录类型有错')
+    if record.transfer_status != CouponTransferRecord.PENDING:
+        raise Exception('记录状态不在待审核')
+    mama = customer.get_charged_mama()
+    if record.coupon_to_mama_id != mama.id:
+        raise Exception('记录审核人错误')
+    record.transfer_status = CouponTransferRecord.CANCELED  # 取消状态
+    record.save(update_fields=['transfer_status', 'modified'])
     coupons = get_freeze_boutique_coupons_by_transfer(record.id)
-    set_upper_mama_trace(coupons, record.id)
+    coupon_ids = [i['id'] for i in coupons.values('id')]
+    rollback_user_coupon_status_2_unused_by_ids(coupon_ids)  # 状态设置为未使用
     return True
 
 

@@ -122,7 +122,7 @@ deploy:
   ssh:
     host:
       - sale.xiaolumm.com
-      - sale4.xiaolumm.com
+      - sale5.xiaolumm.com
       - sale8.xiaolumm.com
     user: root
     when:
@@ -152,7 +152,7 @@ deploy:
   ssh:
     host:
       - sale.xiaolumm.com
-      - sale4.xiaolumm.com
+      - sale5.xiaolumm.com
     user: root
     when:
       branch: [master, celery]
