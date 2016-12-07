@@ -177,7 +177,7 @@ def valid_send_request(request):
     http_referer = (request.META.get('HTTP_REFERER') or '').lower()
     if not user_agent or user_agent.lower().find('windows') > 0:
         return False
-    if user_agent and (user_agent.find('xlmm') < 0 and user_agent.find('micromessenger') < 0 ) or user_agent.find('build') > 0:
+    if user_agent and (user_agent.find('xlmm') < 0 and user_agent.find('micromessenger') < 0 ):
         return False
     domain = http_referer and urlparse(http_referer).hostname
     if domain and not validate_host(domain, settings.ALLOWED_HOSTS):
@@ -201,6 +201,7 @@ class SendCodeView(views.APIView):
         mobile = content.get("mobile", "0")
         action = content.get("action", "")
 
+        # 稳定后，日志可以移到valid_request　之后，降低系统负担
         klog.info({
             'action': 'api.v2.send_code',
             'ip': request.META.get('REMOTE_ADDR', ''),
