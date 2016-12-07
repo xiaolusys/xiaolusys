@@ -351,7 +351,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
             return Response({'code': 1, 'info': '用户错误'})
         mama = get_mama_by_openid(customer.unionid)
         if not mama:
-            return Response({'code': 2, 'info': '妈妈不存在'})
+            return Response({'code': 2, 'info': '妈妈记录没找到'})
         queryset = CouponTransferRecord.objects.get_return_transfer_coupons().filter(coupon_to_mama_id=mama.id)
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -370,7 +370,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
             return Response({'code': 1, 'info': '用户错误'})
         mama = get_mama_by_openid(customer.unionid)
         if not mama:
-            return Response({'code': 2, 'info': '妈妈不存在'})
+            return Response({'code': 2, 'info': '妈妈记录没找到'})
         queryset = CouponTransferRecord.objects.get_return_transfer_coupons().filter(coupon_from_mama_id=mama.id)
         page = self.paginate_queryset(queryset)
         if page is not None:

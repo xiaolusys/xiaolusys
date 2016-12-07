@@ -204,7 +204,9 @@ def return_transfer_coupon(coupons):
     """
     from .transfer import get_transfer_record_by_id, set_transfer_record_complete
     from flashsale.xiaolumm.apis.v1.xiaolumama import get_mama_by_id
+    from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
 
+    mama_ids = set()
     for coupon in coupons:
         will_return_2_transfer_id = coupon.extras.get('freeze_by_transfer_id')
         if not will_return_2_transfer_id:
@@ -218,4 +220,8 @@ def return_transfer_coupon(coupons):
         coupon.status = UserCoupon.UNUSED
         coupon.customer_id = customer.id
         coupon.save(update_fields=['status', 'customer_id', 'modified'])
+        mama_ids.add(transfer.coupon_to_mama_id)
+        mama_ids.add(transfer.coupon_from_mama_id)
+    for mama_id in mama_ids:
+        task_calc_xlmm_elite_score.delay(mama_id)  # 重算积分
     return True
