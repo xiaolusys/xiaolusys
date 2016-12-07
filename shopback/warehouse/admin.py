@@ -56,7 +56,7 @@ class StockAdjustAdmin(admin.ModelAdmin):
     list_filter = ("inferior", "status")
     readonly_fields = ("status", "ware_by")
     search_fields = (
-        "=id", "sku__id"
+        "=id", "sku__id", "note"
     )
     # change_form_template = ""
 
