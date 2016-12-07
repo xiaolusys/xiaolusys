@@ -223,5 +223,5 @@ def return_transfer_coupon(coupons):
         mama_ids.add(transfer.coupon_to_mama_id)
         mama_ids.add(transfer.coupon_from_mama_id)
     for mama_id in mama_ids:
-        task_calc_xlmm_elite_score.delay(mama_id)  # 重算积分
+        task_calc_xlmm_elite_score(mama_id)  # 重算积分
     return True
