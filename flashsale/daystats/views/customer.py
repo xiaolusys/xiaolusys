@@ -211,7 +211,7 @@ def index(req):
     return render(req, 'yunying/customer/index.html', {'charts': charts})
 
 
-# @login_required
+@login_required
 def wallet(req):
     mama_id = req.GET.get('mama_id') or ''
     if mama_id and len(mama_id) == 11:
