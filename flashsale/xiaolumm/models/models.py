@@ -865,7 +865,7 @@ class XiaoluMama(BaseModel):
         """妈妈积分等级 对应　最低积分数值
         """
         m = {
-            'Associate': 50,
+            'Associate': 0,
             'Director': 300,
             'VP': 1000,
             'Partner': 3000,
