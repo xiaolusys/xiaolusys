@@ -250,7 +250,8 @@ def task_check_xlmm_return_exchg_order():
 @app.task()
 def task_calc_xlmm_elite_score(mama_id):
     from flashsale.coupon.models.transfer_coupon import CouponTransferRecord
-    res = CouponTransferRecord.objects.filter(coupon_from_mama_id=mama_id, transfer_status=CouponTransferRecord.DELIVERED, transfer_type=CouponTransferRecord.OUT_CASHOUT).aggregate(
+    res = CouponTransferRecord.objects.filter(coupon_from_mama_id=mama_id, transfer_status=CouponTransferRecord.DELIVERED,
+                                              transfer_type__in=[CouponTransferRecord.OUT_CASHOUT, CouponTransferRecord.IN_RETURN_COUPON]).aggregate(
         n=Sum('elite_score'))
     out_score = res['n'] or 0
 
