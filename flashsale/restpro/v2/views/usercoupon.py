@@ -151,7 +151,7 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         can_return_elite = can_return_elite - p_elite_score  # 这里的可以退还的积分要减去　待审核的积分数量
         coupon_elite = get_coupons_elite(user_coupons, mama.elite_level)  # 计算优惠券在当前等级的积分
         if coupon_elite > can_return_elite:
-            return Response({'code': 5, 'info': '超过兑换券等级积分'})
+            return Response({'code': 5, 'info': '您的退券张数太多，会导致您降级，请减少退券数量'})
         state = apply_pending_return_transfer_coupon(coupon_ids)
         if not state:
             return Response({'code': 2, 'info': '申请失败'})
