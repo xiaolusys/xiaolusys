@@ -204,15 +204,18 @@ def replace_become_refund(request):
 
 def get_new_ctr(returngoods_id,RGdetail_ids):
     supplier = ReturnGoods.objects.get(id=returngoods_id).supplier
+    bei = " 换货变退货回款，需要这个新的退货单作为财务收款凭证，仓库如果没货，就不要发，此单作为收款凭据，不要作废"
     return_goods = ReturnGoods.objects.create(supplier=supplier, type=ReturnGoods.TYPE_COMMON,
-                                              memo="由退货单中" + returngoods_id + "中的数据生成的新退货单")  #先生成新的退货单 by供应商
+                                              memo="由退货单中" + returngoods_id + "中的数据生成的新退货单,"+bei)  #先生成新的退货单 by供应商
 
     # orderlist_id = InBound.objects.filter(return_goods_id=returngoods_id).first().ori_orderlist_id          #根据老的退货单,找到入仓单,找到订货单,找到里面所有的货的id和价格
     # order_detail_all = OrderList.objects.filter(id=orderlist_id).first().order_list.all()
     # order_detail_all = {i.chichu_id:i.buy_unitprice for i in order_detail_all}
     sum_num = 0
     sum_money = 0
+    str_rgdetail_ids = ''
     for i in RGdetail_ids:                                                     #对于每一个我们期望变成退款的货,我们找到并修改价格,退货类型,以及它的退货单外键
+        str_rgdetail_ids = str_rgdetail_ids + str(i)+' '
         rg_detail = RGDetail.objects.filter(skuid=i,return_goods_id=returngoods_id).first()
         order_detail = OrderDetail.objects.filter(chichu_id=i).order_by("-created")
         if not order_detail:
@@ -231,7 +234,10 @@ def get_new_ctr(returngoods_id,RGdetail_ids):
     return_goods.sum_amount = sum_money
     return_goods.save()
 
-    ReturnGoods.objects.filter(id=returngoods_id).update(return_num=F("return_num")-sum_num) #修改原先退货单的退货数量
+    o_bei = "    由于无货可换,供应商只能退款给我司,所以"+"此单中的sku:"+str_rgdetail_ids+"已移除到新的退货单:"+return_goods.id+"中"
+    origin_memo = ReturnGoods.objects.get(id=returngoods_id).memo
+    ReturnGoods.objects.filter(id=returngoods_id).update(return_num=F("return_num")-sum_num,memo = origin_memo+o_bei) #修改原先退货单的退货数量
+
     return return_goods.id
 
 def delete_return_goods_sku(request):
