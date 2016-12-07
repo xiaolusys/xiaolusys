@@ -201,15 +201,6 @@ class SendCodeView(views.APIView):
         mobile = content.get("mobile", "0")
         action = content.get("action", "")
 
-        valid_request = valid_send_request(request)
-        if not valid_request:
-            import random
-            rnum = random.randint(1, 10)
-            if rnum % 2 == 1:
-                return Response({"rcode": 0, "code": 0, "msg": u"手机已注册", "info": u"手机已注册"})
-            else:
-                return Response({"rcode": 0, "code": 0, "msg": u"验证码已发送", "info": u"验证码已发送"})
-
         klog.info({
             'action': 'api.v2.send_code',
             'ip': request.META.get('REMOTE_ADDR', ''),
@@ -220,6 +211,15 @@ class SendCodeView(views.APIView):
             'mobile': mobile,
             'param_action': action,
         })
+
+        valid_request = valid_send_request(request)
+        if not valid_request:
+            import random
+            rnum = random.randint(1, 10)
+            if rnum % 2 == 1:
+                return Response({"rcode": 0, "code": 0, "msg": u"手机已注册", "info": u"手机已注册"})
+            else:
+                return Response({"rcode": 0, "code": 0, "msg": u"验证码已发送", "info": u"验证码已发送"})
 
         if not validate_mobile(mobile):
             info = u"亲，手机号码错啦！"
