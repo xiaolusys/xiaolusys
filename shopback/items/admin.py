@@ -1242,7 +1242,7 @@ class SkuStockAdmin(admin.ModelAdmin):
     list_display = (
         'sku_link', 'skucode', 'supplier', 'product_id_link', 'product_title', 'properties_name_alias',
         'now_quantity', 'old_quantity', 'sold_num_link', 'post_num_link', '_wait_post_num', 'unused_stock_link',
-        'adjust_quantity', 'assign_num_link', '_wait_assign_num', '_wait_order_num', 'history_quantity',
+        'adjust_quantity_link', 'assign_num_link', '_wait_assign_num', '_wait_order_num', 'history_quantity',
         'inbound_quantity_link', 'return_quantity_link', 'rg_quantity_link',
         'district_link', 'created')
     list_display_links = ['sku_link']
@@ -1544,6 +1544,16 @@ class SkuStockAdmin(admin.ModelAdmin):
     post_num_link.allow_tags = True
     post_num_link.short_description = u'已发数'
     post_num_link.admin_order_field = 'post_num'
+
+    def adjust_quantity_link(self, obj):
+        return ('<a href="%(url)s" target="_blank">%(num)s</a>') % {
+            'url': '/admin/warehouse/stockadjust/?sku_id=%s' % obj.sku_id,
+            'num': obj.adjust_quantity
+        }
+
+    adjust_quantity_link.allow_tags = True
+    adjust_quantity_link.short_description = u'调整数'
+    adjust_quantity_link.admin_order_field = 'adjust_quantity'
 
     def assign_num_link(self, obj):
         return ('<a href="%(url)s" target="_blank">%(num)s</a>') % {
