@@ -377,8 +377,8 @@ def create_push_event_invite_fans(mama_id, contributor_nick, contributor_mama_id
 def task_weixinfans_create_fans_awardcarry(referal_from_mama_id, referal_to_unionid):
     if referal_from_mama_id < 1:
         return
-    
-    carry_num = 30
+    # mama referal award carrynum
+    carry_num = 10
     carry_type = AwardCarry.AWARD_INVITE_FANS # 邀请关注成为粉丝
     mama_id = referal_from_mama_id
 

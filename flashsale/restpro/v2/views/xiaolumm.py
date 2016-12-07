@@ -1057,22 +1057,29 @@ class RecruitEliteMamaView(APIView):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
 
+    throttle_scope = 'auth'
+
     def post(self, request, *args, **kwargs):
         referal_from_mama_id = get_mama_id(request.user)
-        
+
         content = request.POST
         mama_id = content.get("mama_id")
-        
-        if not mama_id:
-            res = {"code": 1, "info": u"必须提供mama_id！"}
+        mama_phone = content.get("mama_phone",'')
+        if not mama_id or not mama_phone.strip():
+            res = {"code": 1, "info": u"必须提供妈妈ID及手机号！"}
             return Response(res)
 
         mama = XiaoluMama.objects.filter(id=mama_id).first()
-        if not mama:
-            info = u"妈妈ID %s不存在!" % mama_id
+        if not mama or referal_from_mama_id == mama.id:
+            info = u"妈妈ID %s 不合法!" % mama_id
             res = {"code": 2, "info": info}
             return Response(res)
-            
+
+        customer = mama.get_mama_customer()
+        if not customer or customer.mobile != mama_phone:
+            res = {"code": 4, "info": u"妈妈ID与手机号不匹配！"}
+            return Response(res)
+
         rr = ReferalRelationship.objects.filter(referal_to_mama_id=mama_id).first()
         if rr and rr.referal_from_mama_id != referal_from_mama_id:
             res = {"code": 2, "info": u"该用户似乎已被其他妈妈推荐，请联系管理员处理！"}
@@ -1106,6 +1113,8 @@ class RecruitEliteMamaView(APIView):
         info = u"精英妈妈帐户开启成功，请立即转入5张精品券！"
         res = {"code": 0, "info":info}
         return Response(res)
+
+    # get = post
 
 class EnableEliteCouponView(APIView):
     """
