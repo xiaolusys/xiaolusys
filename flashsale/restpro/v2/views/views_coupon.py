@@ -17,7 +17,8 @@ from flashsale.coupon.models import CouponTransferRecord, UserCoupon
 from flashsale.pay.models import Customer
 from flashsale.restpro.v2.serializers import CouponTransferRecordSerializer
 
-from flashsale.coupon.apis.v1.transfer import verify_transfer_record, get_freeze_boutique_coupons_by_transfer
+from flashsale.coupon.apis.v1.transfer import agree_apply_transfer_record, reject_apply_transfer_record, \
+    get_freeze_boutique_coupons_by_transfer
 from flashsale.coupon.apis.v1.usercoupon import return_transfer_coupon
 from flashsale.pay.apis.v1.customer import get_customer_by_django_user
 from flashsale.xiaolumm.apis.v1.xiaolumama import get_mama_by_openid
@@ -305,11 +306,17 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         """上级妈妈审核流通记录　并冻结该流通记录优惠券
         """
         transfer_record_id = request.POST.get('transfer_record_id')
-        if not transfer_record_id:
+        verify_func = request.POST.get('verify_func')
+        if not transfer_record_id or not verify_func:
             return Response({'code': 1, 'info': '参数错误'})
         transfer_record_id = int(str(transfer_record_id).strip())
         try:
-            state = verify_transfer_record(request.user, transfer_record_id)
+            if verify_func == 'agree':  # 同意
+                state = agree_apply_transfer_record(request.user, transfer_record_id)
+            elif verify_func == 'reject':  # 拒绝
+                state = reject_apply_transfer_record(request.user, transfer_record_id)
+            else:
+                return Response({'code': 1, 'info': '参数错误'})
         except Exception as e:
             return Response({'code': 3, 'info': '审核异常:%s' % e.message})
         if state:
