@@ -51,7 +51,7 @@ class MamaMissionRecordSerializer(serializers.ModelSerializer):
 
         return {
             'id': mission.id,
-            'name': mission.name,
+            'name': obj.get_mission_name(),
             'kpi_type': mission.kpi_type,
             'target_value': target_value,
             'award_amount': award_amount

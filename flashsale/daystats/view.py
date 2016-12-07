@@ -154,9 +154,7 @@ class DailyStatsViewSet(viewsets.GenericViewSet):
             transfer_qs = CouponTransferRecord.objects.filter(status=CouponTransferRecord.EFFECT, date_field__gte=fifteen_dayago)
             consume_tids = transfer_qs.filter(transfer_type=CouponTransferRecord.OUT_CONSUMED).values_list('order_no', flat=True)
             exchg_oids = transfer_qs.filter(transfer_type=CouponTransferRecord.OUT_EXCHG_SALEORDER).values_list('order_no', flat=True)
-            q = SaleOrder.objects.filter(Q(sale_trade__tid__in=consume_tids)|Q(oid__in=exchg_oids),
-                                     status=SaleOrder.WAIT_SELLER_SEND_GOODS)
-
+            q = SaleOrder.objects.filter(Q(sale_trade__tid__in=consume_tids)|Q(oid__in=exchg_oids),status=SaleOrder.WAIT_SELLER_SEND_GOODS)
             n_total = q.count()
             n_delay = q.filter(pay_time__lt=now - datetime.timedelta(days=1)).only('id').count()
             n_s_delay = q.filter(pay_time__lt=now - datetime.timedelta(days=2)).only('id').count()
