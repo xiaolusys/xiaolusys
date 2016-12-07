@@ -211,7 +211,7 @@ def index(req):
     return render(req, 'yunying/customer/index.html', {'charts': charts})
 
 
-@login_required
+# @login_required
 def wallet(req):
     mama_id = req.GET.get('mama_id') or ''
     if mama_id and len(mama_id) == 11:
@@ -242,7 +242,7 @@ def wallet(req):
             item.flow_amount = item.flow_amount * 0.01
             item.budget_type = dict(BudgetLog.BUDGET_CHOICES).get(item.budget_type)
             item.budget_log_type = dict(BudgetLog.BUDGET_LOG_CHOICES).get(item.budget_log_type)
-            item.status = dict(BudgetLog.STATUS).get(item.status)
+            item.status = dict(BudgetLog.STATUS_CHOICES).get(item.status)
 
     if mama:
         mama_wallet = CashOut.objects.filter(xlmm=mama.id).order_by('-created')
