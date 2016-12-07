@@ -195,14 +195,9 @@ class CouponTransferRecord(BaseModel):
         coupon_value = int(ct.value)
         product_img = ct.extras.get("product_img") or ''
 
-        product_id = 0
-        elite_score = 0
-        sale_orders = sale_trade.normal_orders
-        if sale_orders:
-            product_id = sale_orders[0].item_id
-            from shopback.items.models import Product
-            product = Product.objects.filter(id=product_id).first()
-            elite_score = product.elite_score * (int(coupon_num))
+        from flashsale.coupon.apis.v1.transfer import get_elite_score_by_templateid
+        product_id, elite_score = get_elite_score_by_templateid(template_id, from_mama)
+        elite_score *= int(coupon_num)
 
         transfer_status = cls.DELIVERED
         coupon = cls(coupon_from_mama_id=coupon_from_mama_id, from_mama_thumbnail=from_mama_thumbnail,
@@ -363,16 +358,10 @@ class CouponTransferRecord(BaseModel):
         coupon_value = int(template.value)
         product_img = template.extras.get("product_img") or ''
 
-        product_id = 0
-        elite_score = 0
-        from flashsale.pay.models.trade import SaleOrder, SaleTrade
-        sale_trade = SaleTrade.objects.filter(tid=trade_tid).first()
-        sale_orders = sale_trade.sale_orders.all()
-        if sale_orders:
-            product_id = sale_orders[0].item_id
-            from shopback.items.models import Product
-            product = Product.objects.filter(id=product_id).first()
-            elite_score = product.elite_score * (int(coupon_num))
+        from flashsale.coupon.apis.v1.transfer import get_elite_score_by_templateid
+        mama = customer.get_charged_mama()
+        product_id, elite_score = get_elite_score_by_templateid(template_id, mama)
+        elite_score *= int(coupon_num)
     
         coupon = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id, from_mama_thumbnail=from_mama_thumbnail,
                                       from_mama_nick=from_mama_nick, coupon_to_mama_id=coupon_to_mama_id,
@@ -420,10 +409,9 @@ class CouponTransferRecord(BaseModel):
         coupon_value = int(ct.value)
         product_img = ct.extras.get("product_img") or ''
 
-        product_id = sale_order.item_id
-        from shopback.items.models import Product
-        product = Product.objects.filter(id=product_id).first()
-        elite_score = product.elite_score * (int(coupon_num))
+        from flashsale.coupon.apis.v1.transfer import get_elite_score_by_templateid
+        product_id, elite_score = get_elite_score_by_templateid(template_id, from_mama)
+        elite_score *= int(coupon_num)
 
         transfer_status = cls.DELIVERED
         coupon = cls(coupon_from_mama_id=coupon_from_mama_id, from_mama_thumbnail=from_mama_thumbnail,
