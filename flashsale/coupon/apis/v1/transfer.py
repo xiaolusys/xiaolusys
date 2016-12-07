@@ -9,8 +9,7 @@ from ...models.usercoupon import UserCoupon
 import logging
 
 logger = logging.getLogger(__name__)
-from .usercoupon import get_user_coupons_by_ids, freeze_transfer_coupon, get_freeze_boutique_coupons_by_transfer, \
-    return_transfer_coupon, set_upper_mama_trace
+from .usercoupon import get_user_coupons_by_ids, freeze_transfer_coupon, get_freeze_boutique_coupons_by_transfer#, set_upper_mama_trace
 from flashsale.pay.apis.v1.customer import get_customer_by_django_user
 
 __ALL__ = [
@@ -285,8 +284,6 @@ def verify_transfer_record(user, transfer_record_id):
         raise Exception('记录审核人错误')
     record.transfer_status = CouponTransferRecord.PROCESSED  # 待发放状态
     record.save(update_fields=['transfer_status', 'modified'])
-    coupons = get_freeze_boutique_coupons_by_transfer(record.id)
-    set_upper_mama_trace(coupons, record.id)
     return True
 
 
