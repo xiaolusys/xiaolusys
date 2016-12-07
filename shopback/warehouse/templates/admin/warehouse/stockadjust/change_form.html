@@ -60,31 +60,31 @@
                 <div class="form-row field-creator">
                     <div>
                         <label for="id_creator">创建者:</label>
-                        <input class="vTextField" id="id_creator" maxlength="30" name="creator" type="text" value="{{user.username}}">
+                        <input class="vTextField" id="id_creator" maxlength="30" name="creator" type="text" value="{{user.username}}"  {%if original%}readonly=True{%endif%}>
                     </div>
                 </div>
                 <div class="form-row field-sku_id">
                     <div>
                         <label class="required" for="id_sku">SKU:</label>
-                        <input class="vIntegerField" id="id_sku" name="sku" type="text">
+                        <input class="vIntegerField" id="id_sku" name="sku" type="text" value="{{original.sku_id}}" {%if original%}readonly=True{%endif%}>
                     </div>
                 </div>
                 <div class="form-row field-num">
                     <div>
                         <label class="required" for="id_num">调整数:</label>
-                        <input class="vIntegerField" id="id_num" name="num" type="text" value="0">
+                        <input class="vIntegerField" id="id_num" name="num" type="text" value="{{original.num}}"  {%if original%}readonly=True{%endif%}>
                     </div>
                 </div>
                 <div class="form-row field-inferior">
                     <div class="checkbox-row">
-                        <input id="id_inferior" name="inferior" type="checkbox"><label class="vCheckboxLabel"
+                        <input id="id_inferior" name="inferior" type="checkbox" {%if original.inferior%}checked="checked"{%endif%}  {%if original%}onclick="return false"{%endif%}><label class="vCheckboxLabel"
                                                                                        for="id_inferior">次品</label>
                     </div>
                 </div>
                 <div class="form-row field-note">
                     <div>
                         <label for="id_note">备注:</label>
-                        <textarea id="id_note" style="width:80%;height:50px;" maxlength="200" name="note"></textarea>
+                        <textarea id="id_note" style="width:80%;height:50px;" maxlength="200" name="note">{{original.note}}</textarea>
                     </div>
                 </div>
             </fieldset>
