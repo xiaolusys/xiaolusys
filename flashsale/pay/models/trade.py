@@ -276,8 +276,10 @@ class SaleTrade(BaseModel):
             如果包含第三方发货的包裹，一订货就不容许换地址了
         """
         if self.status in [SaleTrade.WAIT_SELLER_SEND_GOODS]:
-            if self.product.ware_by == WARE_THIRD and self.package_sku and self.package_sku.is_booked():
-                return False
+            if self.order_type in [SaleTrade.TEAMBUY_ORDER, SaleTrade.SALE_ORDER]:
+                for so in self.sale_orders.all():
+                    if so.product.ware_by == WARE_THIRD and so.package_sku and so.package_sku.is_booked():
+                        return False
             return True
         return False
 
