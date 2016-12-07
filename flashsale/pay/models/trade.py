@@ -273,14 +273,11 @@ class SaleTrade(BaseModel):
 
     def can_change_address(self):
         """
-            如果包含第三方发货的包裹，一订货就不容许退货
+            如果包含第三方发货的包裹，一订货就不容许换地址了
         """
         if self.status in [SaleTrade.WAIT_SELLER_SEND_GOODS]:
-            if self.order_type == SaleTrade.TEAMBUY_ORDER:
-                for so in self.sale_orders.all():
-                    if so.package_sku.is_booked():
-                        # if so.product.ware_by == WARE_THIRD and so.package_sku.purchase_order_unikey:
-                        return False
+            if self.product.ware_by == WARE_THIRD and self.package_sku and self.package_sku.is_booked():
+                return False
             return True
         return False
 
