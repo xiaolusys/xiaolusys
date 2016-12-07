@@ -19,6 +19,27 @@ __ALL__ = [
 ]
 
 
+def get_elite_score_by_templateid(templateid, mama):
+    # find modelproduct
+    from flashsale.pay.models.product import ModelProduct
+    virtual_model_products = ModelProduct.objects.get_virtual_modelproducts()  # 虚拟商品
+    find_mp = None
+    for md in virtual_model_products:
+        md_bind_tpl_id = md.extras.get('template_id')
+        if not md_bind_tpl_id:
+            continue
+        if templateid == md_bind_tpl_id:
+            find_mp = md
+            break
+    if find_mp:
+        if not mama:
+            return find_mp.products[0].id, find_mp.products[0].elite_score
+        else:
+            for product in find_mp.products:
+                if mama.elite_level in product.name:
+                    return product.id, product.elite_score
+    return 0, 0
+
 def get_transfer_record_by_id(id):
     # type: (int) -> CouponTransferRecord
     return CouponTransferRecord.objects.get(id=id)
