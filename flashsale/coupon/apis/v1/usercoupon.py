@@ -82,8 +82,8 @@ def get_freeze_boutique_coupons_by_transfer(transfer_record_id, customer_id=None
     freeze_boutiques = UserCoupon.objects.get_freeze_boutique_coupons()
     if customer_id:
         freeze_boutiques = freeze_boutiques.filter(customer_id=customer_id)
-    t = '"freeze_by_transfer_id": "%s"' % transfer_record_id
-    return freeze_boutiques.filter(extras__contains=t)
+    coupons = freeze_boutiques.filter(extras__contains='"freeze_by_transfer_id": "%s"' % transfer_record_id)
+    return coupons
 
 
 def release_coupon_for_deposit(customer_id, deposit_type, trade_id=None, cash_out_id=None):
@@ -211,6 +211,7 @@ def return_transfer_coupon(coupons):
         will_return_2_transfer_id = coupon.extras.get('freeze_by_transfer_id')
         if not will_return_2_transfer_id:
             continue
+        will_return_2_transfer_id = int(will_return_2_transfer_id)
         transfer = get_transfer_record_by_id(will_return_2_transfer_id)
         set_transfer_record_complete(transfer)
         to_mama = get_mama_by_id(transfer.coupon_to_mama_id)
