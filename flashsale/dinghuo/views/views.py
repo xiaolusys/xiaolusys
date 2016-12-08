@@ -1162,12 +1162,22 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         orderlist = bill.get_orderlist()
         if bill.status in [Bill.STATUS_DEALED, Bill.STATUS_COMPLETED]:
             return Response({"res": False, "data": [], "desc": u"账单已支付不能从订货单编辑"})
-        if bill.is_merged():
-            return Response({"res": False, "data": [], "desc": u"合并账单不能从订货单编辑"})
         if pay_way == Bill.SELF_PAY:
             return Response({"res": False, "data": [], "desc": u"无法选择自付"})
-        if float(plan_amount) == 0:
+        if plan_amount and float(plan_amount) <= 0:
             return Response({"res": False, "data": [], "desc": u"计划金额不能为0"})
+        if bill.is_merged():
+            return Response({"res": False, "data": [], "desc": u"合并账单不能从订货单编辑"})
+        if bill.type == 0:  #作废情况下修改付款金额
+            if bill.plan_amount != float(plan_amount):
+                merged_bill = bill.get_merged_parent_bill()
+                merged_bill.plan_amount = merged_bill.plan_amount - bill.plan_amount + float(plan_amount)
+                merged_bill.save()
+                bill.plan_amount = float(plan_amount)
+                bill.save()
+                orderlist.order_amount = float(plan_amount)
+                orderlist.save()
+                return Response({"res": True, "data": [], "desc": u"金额修改成功"})
         pay_method = pay_tool
         if pay_method == '0':
             return Response({"res": False, "data": [], "desc": u"请选择支付方式"})
@@ -1228,6 +1238,8 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
     def set_bill_dealed(self, request, pk):
         content = request.POST
         plan_amount = content.get("amount")
+        if not plan_amount or float(plan_amount)<0:
+            return Response({"res": False, "data": [pk], "desc": "金额格式不对"})
         transaction_no = content.get("transaction_no")
         attachment = content.get("attachment")
         note = content.get("note")
@@ -1235,6 +1247,16 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         orderlist = OrderList.objects.get(id=pk)
         if orderlist.bill_method == OrderList.PC_COD_TYPE:
             return Response({"res": False, "data": [pk], "desc": "货到付款不会生成回款记录,回款金额已在付款中扣除"})
+        if BillRelation.objects.filter(object_id=pk, type=2).count() == 2:           #在合单之后更新金额,作废情况下修改回款金额
+            bill_ids = BillRelation.objects.filter(object_id=pk, type=2).values("bill_id")
+            bill_ids = list(bill_ids)
+            bill_ids = [i['bill_id'] for i in bill_ids]
+            bill_ids.sort()
+            origin_amount = Bill.objects.get(id=bill_ids[0]).plan_amount
+            Bill.objects.filter(id=bill_ids[0]).update(plan_amount=float(plan_amount))
+            Bill.objects.filter(id=bill_ids[1]).update(plan_amount=F("plan_amount")+float(plan_amount)-origin_amount)
+            return Response({"res": True, "data": [pk], "desc": "修改合单之后的金额成功"})
+
         bill = BillRelation.objects.get(object_id=pk, type=2).bill
         bill.plan_amount = plan_amount
         bill.transcation_no = transaction_no

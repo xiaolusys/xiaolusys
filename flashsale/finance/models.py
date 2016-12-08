@@ -182,6 +182,21 @@ class Bill(BaseModel):
     def get_orderlist(self):
         return self.billrelation_set.first().get_based_object()
 
+    def get_merged_parent_bill(self):
+        if self.type == Bill.DELETE:
+            my_object_id = self.billrelation_set.all().first().object_id
+            my_content_type = self.billrelation_set.all().first().content_type
+            my_billrelation_id = self.billrelation_set.all().first().id
+            merged_bill = BillRelation.objects.filter(object_id=my_object_id, content_type=my_content_type).exclude(id=my_billrelation_id).first().bill
+            return merged_bill
+            # merged_bill_id = merged_bill.id
+            # return merged_bill_id
+        else:
+            return self.id
+
+
+
+
     def is_merged(self):
         return self.billrelation_set.count() > 1
 
