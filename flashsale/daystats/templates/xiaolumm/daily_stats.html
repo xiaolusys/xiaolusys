@@ -51,31 +51,35 @@
 
 	 }
 
-         table {
-             width: 100%;
-             height: 100%;
-             position: absolute;
-             top: 0;
-             bottom: 0;
-             rules: none;
-         }
+     #transfer_coupon_order {
+        background-color: #0884F1;
+     }
 
-         tr {
-             text-align: center;
-         }
+     table {
+         width: 100%;
+         height: 100%;
+         position: absolute;
+         top: 0;
+         bottom: 0;
+         rules: none;
+     }
 
-         td:nth-child(n+2) p:first-child{
-             margin-top: 10px;
-         }
+     tr {
+         text-align: center;
+     }
 
-         .full-screen {
-             position: fixed;
-             width: 80px;
-             z-index: 1;
-             bottom: 5px;
-             left: 5px;
-         }
-        </style>
+     td:nth-child(n+2) p:first-child{
+         margin-top: 10px;
+     }
+
+     .full-screen {
+         position: fixed;
+         width: 80px;
+         z-index: 1;
+         bottom: 5px;
+         left: 5px;
+     }
+    </style>
     </head>
     <body>
         <table>
@@ -163,6 +167,27 @@
                     <p>总计</p>
                 </td>
             </tr>
+            <tr id="transfer_coupon_order">
+                <td>
+                    <h2>精品汇订单</h2>
+                </td>
+                <td>
+                    <p><em class="n-ss-delay">０</em></p>
+                    <p>超过3天未发货</p>
+                </td>
+                <td>
+                    <p><em class="n-s-delay">０</em></p>
+                    <p>超过2天未发货</p>
+                </td>
+                <td>
+                    <p><em class="n-delay">０</em></p>
+                    <p>超过1天未发货</p>
+                </td>
+                <td>
+                    <p><em class="n-total">０</em></p>
+                    <p>总计</p>
+                </td>
+            </tr>
             <tr id="weidinghuo">
                 <td>
                     <h2>未订货</h2>
@@ -218,27 +243,7 @@
                     <p>已抢光前５个商品ID</p>
                 </td>
             </tr>
-            <tr id="transfer_coupon_order">
-                <td>
-                    <h2>精品汇订单</h2>
-                </td>
-                <td>
-                    <p><em class="n-ss-delay">０</em></p>
-                    <p>超过3天未发货</p>
-                </td>
-                <td>
-                    <p><em class="n-s-delay">０</em></p>
-                    <p>超过2天未发货</p>
-                </td>
-                <td>
-                    <p><em class="n-delay">０</em></p>
-                    <p>超过1天未发货</p>
-                </td>
-                <td>
-                    <p><em class="n-total">０</em></p>
-                    <p>总计</p>
-                </td>
-            </tr>
+
         </table>
         <div class="full-screen">
             <button class="btn btn-default btn-block" id="full-screen-btn">全屏</button>
