@@ -125,9 +125,10 @@ def create_charge(
             except IntegrityError:
                 charge = ChargeOrder.objects.filter(order_no=order_no).first()
 
-        if charge.channel != channel:
+        if charge.channel != channel or charge.extra != extra:
             charge.channel = channel
-            charge.save(update_fields=['channel'])
+            charge.extra   = extra
+            charge.save(update_fields=['channel', 'extra'])
 
     charge.get_or_create_credential()
     return charge
