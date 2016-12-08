@@ -26,7 +26,7 @@ def pay_channel_notify(request, channel):
     if channel in ('alipay', 'alipay_wap'):
         order_no = content['out_trade_no']
 
-        credential = Credential.order_no.filter(order_no=order_no, channel__in=('alipay', 'alipay_wap'))\
+        credential = Credential.objects.filter(order_no=order_no, channel__in=('alipay', 'alipay_wap'))\
             .order_by('-created').first()
         channel = credential.channel
 
