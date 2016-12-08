@@ -444,12 +444,18 @@ function handleXlsFile(e) {
 <div class="row">
     <div class="col-lg-4">
         <div class="alert alert-success row" role="alert">
-            <strong>快递公司:</strong>
-            {{ orderlist.get_express_company_display }}
-        </div>
-        <div class="alert alert-success row" role="alert" style="margin-top: -15px">
-            <strong>快递单号:</strong>
-            <span onclick="showwuliu({{ orderlist.id }})">{{orderlist.express_no}}</span>
+            <strong>到货信息:</strong>
+            {%if orderlist.stage >= 1 and orderlist.stage <= 4 %}
+            <input class="btn btn-info" type="button"  data-toggle="modal" data-target="#expressModal" value="录入">
+            {%endif%}
+            <div class="alert row alert-success" role="alert" style="margin-top: -15px;margin-bottom:-10px;">
+                快递公司:
+                {{ orderlist.get_express_company_display }}
+            </div>
+            <div class="alert row alert-success" role="alert" style="margin-top: -20px;margin-bottom:-10px;">
+                快递单号:
+                <span onclick="showwuliu({{ orderlist.id }})">{{orderlist.express_no}}</span>
+            </div>
         </div>
         <div class="alert alert-success row" role="alert" style="margin-top: -15px">
             <strong>预计金额:</strong> {{ orderlist.order_amount }}
@@ -643,32 +649,6 @@ function handleXlsFile(e) {
             </tfoot>
         </table>
     </div>
-    <!--<br>-->
-    <!--<div class="row" id="searchfield">-->
-        <!--<legend>-->
-            <!--<h2 class="head-title">搜索物品-->
-            <!--</h2>-->
-        <!--</legend>-->
-    <!--</div>-->
-    <!--<div class="row">-->
-        <!--<div class="input-group col-xs-4">-->
-            <!--<input type="text" class="form-control" id="searchtext"/>-->
-            <!--<label id="searchbutton" type="button" class="input-group-addon" for="searchtext">搜索</label>-->
-        <!--</div>-->
-    <!--</div>-->
-    <!--<div class="row">-->
-        <!--<table id="searchtable" border="1" class="table table-striped table-bordered table-hover">-->
-            <!--<thead>-->
-            <!--<th width="100px">商品编码</th>-->
-            <!--<th width="100px">商品名称</th>-->
-            <!--<th width="80px">图片</th>-->
-            <!--<th width="100px">规格</th>-->
-            <!--<th width="100px">买入单价</th>-->
-            <!--<th width="100px">数量</th>-->
-            <!--<th width="80px">操作</th>-->
-            <!--</thead>-->
-        <!--</table>-->
-    <!--</div>-->
     <div class="modal press" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -742,6 +722,55 @@ function handleXlsFile(e) {
                     <button type="button" class="btn btn-primary" id="btn_gen_return">生成退货单</button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div class="modal press" id="expressModal" tabindex="-1" role="dialog" aria-labelledby="expressModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <label>到货信息</label>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <label style="float:left">物流公司:</label>
+                        <select class="form-control" style="width:50%;float:left" id="modal_express_company">
+                            <option value="YUNDA" {%if orderlist.express_company == "YUNDA"%}selected=selected{%endif%}>韵达速递</option>
+                            <option value="STO" {%if orderlist.express_company == "STO"%}selected=selected{%endif%}>申通快递</option>
+                            <option value="ZTO" {%if orderlist.express_company == "ZTO"%}selected=selected{%endif%}>中通快递</option>
+                            <option value="EMS" {%if orderlist.express_company == "EMS"%}selected=selected{%endif%}>邮政</option>
+                            <option value="ZJS" {%if orderlist.express_company == "ZJS"%}selected=selected{%endif%}>宅急送</option>
+                            <option value="SF" {%if orderlist.express_company == "SF"%}selected=selected{%endif%}>顺丰速运</option>
+                            <option value="YTO" {%if orderlist.express_company == "YTO"%}selected=selected{%endif%}>圆通</option>
+                            <option value="HTKY" {%if orderlist.express_company == "HTKY"%}selected=selected{%endif%}>汇通快递</option>
+                            <option value="TTKDEX" {%if orderlist.express_company == "TTKDEX"%}selected=selected{%endif%}>天天快递</option>
+                            <option value="QFKD" {%if orderlist.express_company == "QFKD"%}selected=selected{%endif%}>全峰快递</option>
+                            <option value="DBKD" {%if orderlist.express_company == "DBKD"%}selected=selected{%endif%}>德邦快递</option>
+                        </select>
+                    </div>
+                    <div class="row">
+                        <label>物流单号:</label>
+                        <input type="text" id="modal_express_no" value="{{orderlist.express_no}}">
+                    </div>
+                    <div class="row">
+                        <input type="button" value="提交" onclick="set_express_no()">
+                    </div>
+                </div>
+                <!--<div class="modal-body">-->
+                    <!--<div class="row">-->
+                        <!--<label>同时发货</label>-->
+                    <!--</div>-->
+                    <!--<div class="row">-->
+                        <!--<table>-->
+                            <!--for ol in orderlists-->
+                            <!--<tr><td><input type="checkbox" {}></td><td></td></tr>-->
+                            <!--<tr><td></td><td></td></tr>-->
+                            <!--endfor-->
+                        <!--</table>-->
+                    <!--</div>-->
+                <!--</div>-->
+            </div>
+
         </div>
     </div>
 
@@ -832,7 +861,9 @@ function handleXlsFile(e) {
             </div>
         </div>
     </div>
+
     <div class="modal" id="billback-modal" tabindex="-1" role="dialog">
+
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -884,7 +915,7 @@ function handleXlsFile(e) {
         $('#confirm').click(function(){
             var url = "/sale/dinghuo/update_dinghuo/";
             var data = {"dinghuo_id":$ ('#orderlist_id').text(),
-                        "express_company_id": $ ('#express_company_id').val(),
+                        "express_company_id": $ ('#modal_express_company').val(),
                         "express_no":$ ('#express_no').val(),
                         "pay_way":$ ('#pay_way').val(),"supplier_name":$ ('#supplier_name').val()
                     };
@@ -916,8 +947,6 @@ function handleXlsFile(e) {
         });
         function set_status_state() {
             var url = '/sale/dinghuo/dinghuo_orderlist/'+ ORDERLIST_ID +'/set_stage_state';
-
-
             $.ajax({url: url,
                 type: "post",
                 dateType: "json",
@@ -926,6 +955,19 @@ function handleXlsFile(e) {
                     back_money = res.data[1];
                     $("#back_money").html(back_money);
                     swal("Tips", "开始结算", "warning");
+                    window.location.reload();
+                }
+            });
+        };
+        function set_express_no(){
+            var url = '/sale/dinghuo/dinghuo_orderlist/'+ ORDERLIST_ID +'/set_express_no';
+            var data = {"express_no": $('#modal_express_no').val(),
+                        "express_company":$('#modal_express_company').val()};
+            $.ajax({url: url,
+                type: "post",
+                data:data,
+                dateType: "json",
+                success: function(res){
                     window.location.reload();
                 }
             });
