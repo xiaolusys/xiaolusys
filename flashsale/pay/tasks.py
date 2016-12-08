@@ -298,12 +298,12 @@ def pull_Paid_SaleTrade(pre_day=1, interval=2):
                                                 pay_time__isnull=True,
                                                 channel__in=['wx','wx_pub','alipay','apipay_wap'])
     for order_no in unfinish_orderqs.values_list('tid', flat=True):
-        charge_notify = xiaolupay.Charge.retrieve(order_no)
-        if charge_notify:
-            try:
+        try:
+            charge_notify = xiaolupay.Charge.retrieve(order_no)
+            if charge_notify:
                 notifyTradePayTask(charge_notify)
-            except Exception, exc:
-                logger.error(exc.message, exc_info=True)
+        except Exception, exc:
+            logger.error(exc.message, exc_info=True)
 
 
 @app.task
