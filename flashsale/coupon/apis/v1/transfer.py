@@ -241,11 +241,12 @@ def saleorder_return_coupon_exchange(salerefund, payment):
 
 
 @transaction.atomic()
-def apply_pending_return_transfer_coupon(usercoupon_ids):
+def apply_pending_return_transfer_coupon(usercoupon_ids, customer):
     # type: (List[int]) -> bool
     """下属 提交待审核　退精品券　给　上级
     """
     usercoupons = get_user_coupons_by_ids(usercoupon_ids)
+    mama = customer.get_charged_mama()
     item = {}
     transfer_records = set()
     for usercoupon in usercoupons:
@@ -253,11 +254,15 @@ def apply_pending_return_transfer_coupon(usercoupon_ids):
         if not transfer_coupon_pk:
             continue
         transfer_record = get_transfer_record_by_id(int(transfer_coupon_pk))
+        if transfer_record.coupon_to_mama_id != mama.id:    # 当前妈妈与　转券时候 的　ｔｏ 妈妈一致
+            continue
         if transfer_record.id not in item:
             item[transfer_record.id] = [usercoupon.id]
         else:
             item[transfer_record.id].append(usercoupon.id)
         transfer_records.add(transfer_record)
+    if not transfer_records:
+        return False
     for origin_record in transfer_records:
         coupon_ids = item[origin_record.id]
         num = len(coupon_ids)
