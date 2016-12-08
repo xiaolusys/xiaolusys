@@ -381,6 +381,10 @@ class OrderList(models.Model):
             psis = []
         return psis
 
+    @staticmethod
+    def filter_by_supplier(supplier_id, stages=[1, 2, 3]):
+        return OrderList.objects.filter(stage__in=stages, supplier_id=supplier_id)
+
     def verify_order(self):
         """
         审核订货单
@@ -480,6 +484,18 @@ class OrderList(models.Model):
         if self.set_stat():
             self.save()
 
+    def set_express_no(self, express_no, express_company):
+        self.express_no = express_no
+        self.express_company = express_company
+        self.save()
+        from flashsale.forecast.models import ForecastInbound
+        inbounds = ForecastInbound.objects.filter(relate_order_set__id=self.id, status__in=[ForecastInbound.ST_DRAFT,
+                                                                                 ForecastInbound.ST_APPROVED])
+        if inbounds.count() == 1:
+            inbounds.update(express_code=self.express_company, express_no=self.express_no)
+        else:
+            inbounds.filter(express_no='').update(express_code=self.express_company, express_no=self.express_no)
+
     def has_paid(self):
         return self.status > OrderList.STAGE_PAY
 
@@ -527,6 +543,8 @@ class OrderList(models.Model):
         self.received_time = datetime.datetime.now()
         self.arrival_process = OrderList.ARRIVAL_FINISHED
         self.save()
+        from flashsale.forecast.models import ForecastInbound
+        ForecastInbound.reset_forecast(self.id, status=ForecastInbound.ST_ARRIVED)
 
     def set_stage_complete(self):
         self.stage = OrderList.STAGE_COMPLETED

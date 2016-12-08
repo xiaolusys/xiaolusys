@@ -1223,6 +1223,14 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         orderlist.set_stage_state()
         return Response({"res": True, "data": [sum], "desc": ""})
 
+    @detail_route(methods=['post'])
+    def set_express_no(self, request, pk):
+        ol = get_object_or_404(OrderList, pk=pk)
+        express_no = request.POST.get("express_no")
+        express_company = request.POST.get("express_company")
+        ol.set_express_no(express_no, express_company)
+        return Response({"res": True})
+
     @detail_route(methods=['get'])
     def get_back_money(self, request, pk):
         from flashsale.finance.models import BillRelation

@@ -193,7 +193,7 @@ class ForecastInbound(BaseModel):
 
     @staticmethod
     @transaction.atomic
-    def reset_forecast(order_list_id):
+    def reset_forecast(order_list_id, status='canceled'):
         """
             重设预测：从以前的预测单中删除本订货单的关联，利用此订货单重新建立预测
         """
@@ -204,7 +204,9 @@ class ForecastInbound(BaseModel):
                 order_list_ids.append(ol.id)
         order_list_ids = list(set(order_list_ids))
         res = []
-        forcasts.filter(status__in=[ForecastInbound.ST_DRAFT, ForecastInbound.ST_APPROVED]).update(status=ForecastInbound.ST_CANCELED)
+        if status not in ['canceled', 'arrived']:
+            raise Exception('forecast end status must in canceled,arrived')
+        forcasts.filter(status__in=[ForecastInbound.ST_DRAFT, ForecastInbound.ST_APPROVED]).update(status=status)
         for order_list_id in order_list_ids:
             ol = OrderList.objects.get(id=order_list_id)
             if ol.stage in [OrderList.STAGE_CHECKED, OrderList.STAGE_PAY, OrderList.STAGE_RECEIVE] and not ol.third_package:
