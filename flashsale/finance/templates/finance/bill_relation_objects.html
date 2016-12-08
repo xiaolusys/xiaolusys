@@ -2,7 +2,7 @@
 <p>
     <span style="color:#cc9933">{{relation_object.name}}:</span>
     {% for item in relation_object.items %}
-    <a href="{{item.object_url}}" target="_blank">{{item.object_id}}</a>
+    <a href="{{item.object_url}}" target="_blank">|{{item.object_id}} RMB:{{ item.bill.plan_amount}}</a>
     {% endfor %}
 </p>
 {% endfor %}
