@@ -48,13 +48,11 @@ def saveUserDuringOrdersTask(user_id, update_from=None, update_to=None, status=N
                 for trade in order_list['trades']['trade']:
 
                     modified = parse_datetime(trade['modified']) if trade.get('modified', None) else None
-
                     if TradeService.isValidPubTime(user_id, trade['tid'], modified):
                         try:
                             trade_dict = OrderService.getTradeFullInfo(user_id, trade['tid'])
                             order_trade = OrderService.saveTradeByDict(user_id, trade_dict)
                             OrderService.createMergeTrade(order_trade)
-
                         except Exception, exc:
                             logger.error(u'淘宝订单下载失败:%s' % exc.message, exc_info=True)
 

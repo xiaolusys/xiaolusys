@@ -99,7 +99,7 @@ class ChargeOrder(BaseModel):
     def confirm_paid(self, time_paid, **kwargs):
         update_fields = ['paid', 'time_paid']
         for k, v in kwargs.iteritems():
-            if hasattr(self, k):
+            if hasattr(self, k) and v:
                 setattr(self, k, v)
                 update_fields.append(k)
 

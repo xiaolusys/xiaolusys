@@ -40,6 +40,7 @@ def create_credential(
         credential.update({
             "nonceStr": WXPayUtil.generate_nonce_str(),
         })
+        notify_url = WXPayConf.NOTIFY_URL.format(channel=channel)
         if channel == UnionPayConf.WX:
             wx_config = WXPayConf.wx_configs()
             wxpay = WXPay(**wx_config)
@@ -47,7 +48,7 @@ def create_credential(
                 'out_trade_no': order_no,
                 'body': subject,
                 'total_fee': amount,
-                'notify_url': WXPayConf.NOTIFY_URL,
+                'notify_url': notify_url,
                 'trade_type': 'APP',
                 'nonce_str': credential['nonceStr'],
             })
@@ -73,7 +74,7 @@ def create_credential(
                 'out_trade_no': order_no,
                 'body': subject,
                 'total_fee': amount,
-                'notify_url': WXPayConf.NOTIFY_URL,
+                'notify_url': notify_url,
                 'trade_type': 'JSAPI',
                 'openid': extra['open_id'],
                 'nonce_str': credential['nonceStr'],
@@ -134,20 +135,20 @@ def create_charge(
     return charge
 
 @transaction.atomic
-def retrieve_or_update_order(order_no, notify_order_info=None):
+def retrieve_or_update_order(order_no, channel=None, notify_order_info=None):
 
     filters = Q(order_no=order_no)
     if order_no.isdigit():
         filters |= Q(id=order_no)
 
-    charge_order = ChargeOrder.objects.filter(filters).first()
+    charge_order = ChargeOrder.objects.select_for_update().filter(filters).first()
     if not charge_order:
         return None
 
     if charge_order.paid:
         return charge_order
 
-    channel = charge_order.channel
+    channel = channel or charge_order.channel
     paid_success = False
     time_paid    = datetime.datetime.now()
     transaction_no = ''
@@ -187,7 +188,7 @@ def retrieve_or_update_order(order_no, notify_order_info=None):
             time_paid = datetime.datetime.strptime(resp['time_end'],'%Y%m%d%H%M%S') or None
 
     if paid_success:
-        charge_order.confirm_paid(time_paid, transaction_no=transaction_no)
+        charge_order.confirm_paid(time_paid, channel=channel, transaction_no=transaction_no)
     else:
         charge_order.failure_paid(fail_code, fail_msg, transaction_no=transaction_no)
 

@@ -102,7 +102,7 @@ REST_FRAMEWORK.update({
 
 ######################## WEIXIN CONFIG ########################
 
-WX_NOTIFY_URL = 'http://api.xiaolumeimei.com/rest/notify/wxpay/'
+WX_NOTIFY_URL = 'http://api.xiaolumeimei.com/rest/notify/{channel}/'
 WX_JS_API_CALL_URL ='http://i.xiaolumm.com/pay/?showwxpaytitle=1'
 
 # ================ 小鹿美美特卖[公众号] ==================
