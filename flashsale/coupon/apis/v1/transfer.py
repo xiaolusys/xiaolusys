@@ -274,6 +274,7 @@ def apply_pending_return_transfer_coupon(usercoupon_ids):
             to_mama_thumbnail=origin_record.from_mama_thumbnail,
             to_mama_nick=origin_record.from_mama_nick,
             coupon_value=origin_record.coupon_value,
+            template_id=origin_record.template_id,
             init_from_mama_id=origin_record.coupon_from_mama_id,
             order_no='old-transfer-id-%s' % origin_record.id,  # 不能修改本行　否则会引起退券混乱
             product_img=origin_record.product_img,
