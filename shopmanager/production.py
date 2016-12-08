@@ -71,7 +71,7 @@ CACHES = {
             'PICKLE_VERSION': 2,
             # 'CONNECTION_POOL_CLASS': 'redis.BlockingConnectionPool',
             'CONNECTION_POOL_CLASS_KWARGS': {
-                'max_connections': 80,
+                'max_connections': 100,
                 # 'timeout': 10,
             }
         }
@@ -80,7 +80,8 @@ CACHES = {
 
 ##########################CELERY TASK##########################
 CLOSE_CELERY = False
-CELERY_BROKER_URL = 'redis://:{0}@{1}:6379/29'.format(REDIS_AUTH, REDIS_HOST)
+# CELERY_BROKER_URL = 'redis://:{0}@{1}:6379/29'.format(REDIS_AUTH, REDIS_HOST)
+CELERY_BROKER_URL = 'redis://10.45.32.34:6379/29'
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL #'redis://:{0}@{1}:6379/28'.format(REDIS_AUTH, REDIS_HOST)
 
 ##########################SENTRY RAVEN##########################
