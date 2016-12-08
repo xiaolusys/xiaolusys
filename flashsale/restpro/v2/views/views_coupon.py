@@ -468,6 +468,10 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
             # res["Access-Control-Allow-Origin"] = "*"
             return res
 
+        if int(coupon_num) == 0:
+            res = Response({"code": 4, "info": u'兑换精品券数量不能为0!'})
+            return res
+
         customer = Customer.objects.normal_customer.filter(user=request.user).first()
         if customer:
             customer_id = customer.id

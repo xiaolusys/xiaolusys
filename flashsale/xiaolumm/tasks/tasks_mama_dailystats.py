@@ -148,12 +148,13 @@ def task_xlmm_score():
 @app.task()
 def task_check_xlmm_exchg_order():
     exchg_orders = OrderCarry.objects.filter(carry_type__in=[OrderCarry.WAP_ORDER, OrderCarry.APP_ORDER],
-                                             status__in=[OrderCarry.CONFIRM],
-                                             date_field__gt='2016-11-30')
+                                         status__in=[OrderCarry.CONFIRM, OrderCarry.CANCEL],
+                                         date_field__gt='2016-11-30')
 
     order_num = 0
-    coupon_record_num = 0
-    exchg_coupon_num = 0
+    succ_coupon_record_num = 0
+    succ_exchg_coupon_num = 0
+    succ_exchg_goods_payment = 0
     exchg_goods_num = 0
     exchg_goods_payment = 0
     exchg_budget_sum = 0
@@ -166,26 +167,37 @@ def task_check_xlmm_exchg_order():
             sale_order = SaleOrder.objects.filter(oid=entry.order_id).first()
             if not sale_order:
                 continue
-            if sale_order and sale_order.extras.has_key('exchange') and sale_order.extras['exchange'] == True:
+            if sale_order and sale_order.extras.has_key('exchange'):
+                print sale_order.extras
                 order_num += 1
                 exchg_goods_num += sale_order.payment / sale_order.price
                 exchg_goods_payment += round(sale_order.payment * 100)
                 results.append(entry.order_id)
-                from flashsale.coupon.models.usercoupon import UserCoupon
-                user_coupons = UserCoupon.objects.filter(trade_tid=entry.order_id,
-                                                         status=UserCoupon.USED)
-                if user_coupons:
-                    coupon_record_num += 1
-                    exchg_coupon_num += user_coupons.count()
+                if sale_order.extras['exchange'] == True:
+                    succ_exchg_goods_payment += round(sale_order.payment * 100)
+                    from flashsale.coupon.models.usercoupon import UserCoupon
+                    user_coupons = UserCoupon.objects.filter(trade_tid=entry.order_id,
+                                                             status=UserCoupon.USED)
+                    if user_coupons:
+                        succ_coupon_record_num += 1
+                        succ_exchg_coupon_num += user_coupons.count()
 
     from flashsale.pay.models.user import BudgetLog
-    budget_log = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_IN,
+    budget_log1 = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_IN,
                                           budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED)
-    budget_num = budget_log.count()
-    res = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_IN,
+    budget_log2 = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_OUT,
+                                           budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED)
+    budget_num = budget_log1.count() - budget_log2.count()
+    res1 = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_IN,
                                    budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED).aggregate(
         n=Sum('flow_amount'))
-    exchg_budget_sum = res['n'] or 0
+    exchg_budget_sum1 = res1['n'] or 0
+    res2 = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_OUT,
+                                   budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED).aggregate(
+        n=Sum('flow_amount'))
+
+    exchg_budget_sum2 = res2['n'] or 0
+    exchg_budget_sum = exchg_budget_sum1 - exchg_budget_sum2
 
     from flashsale.coupon.models.transfer_coupon import CouponTransferRecord
     trans_num = CouponTransferRecord.objects.filter(transfer_type=CouponTransferRecord.OUT_EXCHG_SALEORDER).count()
@@ -193,16 +205,17 @@ def task_check_xlmm_exchg_order():
         n=Sum('coupon_num'))
     exchg_trancoupon_num = res['n'] or 0
 
-    logger.info({'message': u'check exchg order | order_num=%s == budget_num=%s == trans_num=%s == coupon_record_num=%s?' % (order_num,budget_num,trans_num,coupon_record_num),
-                 'message2': u'exchg_coupon_num=%s == exchg_goods_num=%s == exchg_trancoupon_num=%s' % (exchg_coupon_num, exchg_goods_num, exchg_trancoupon_num),
-                 'message3': u'exchg_goods_payment=%s == exchg_budget_sum=%s' % (exchg_goods_payment, exchg_budget_sum)
+    logger.info({'message': u'check exchg order | order_num=%s == budget_num=%s == trans_num=%s ?' % (order_num,budget_log1.count(),trans_num),
+                 'message2': u' exchg_goods_num=%s == exchg_trancoupon_num=%s' % (exchg_goods_num, exchg_trancoupon_num),
+                 'message3': u'succ_coupon_record_num=%s == succ budget_num=%s' % (succ_coupon_record_num, budget_num),
+                 'message4': u'exchg_goods_payment=%s == exchg_budget_sum=%s , succ_exchg_goods_payment=%s == exchg_budget_sum=%s' % (exchg_goods_payment, exchg_budget_sum1, succ_exchg_goods_payment, exchg_budget_sum)
                 })
 
 
 @app.task()
 def task_check_xlmm_return_exchg_order():
     exchg_orders = OrderCarry.objects.filter(carry_type__in=[OrderCarry.WAP_ORDER, OrderCarry.APP_ORDER],
-                                             status__in=[OrderCarry.CONFIRM],
+                                             status__in=[OrderCarry.CONFIRM, OrderCarry.CANCEL],
                                              date_field__gt='2016-11-30')
 
     order_num = 0
