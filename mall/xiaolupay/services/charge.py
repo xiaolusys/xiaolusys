@@ -108,7 +108,7 @@ def create_charge(
         ):
     time_now = datetime.datetime.now()
     with transaction.atomic():
-        charge = ChargeOrder.objectsselect_for_update().filter(order_no=order_no).first()
+        charge = ChargeOrder.objects.select_for_update().filter(order_no=order_no).first()
         if not charge:
             try:
                 charge = ChargeOrder.objects.create(
