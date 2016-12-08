@@ -82,7 +82,7 @@ def get_freeze_boutique_coupons_by_transfer(transfer_record_id, customer_id=None
     freeze_boutiques = UserCoupon.objects.get_freeze_boutique_coupons()
     if customer_id:
         freeze_boutiques = freeze_boutiques.filter(customer_id=customer_id)
-    t = '"freeze_by_transfer_id": %s' % transfer_record_id
+    t = '"freeze_by_transfer_id": "%s"' % transfer_record_id
     return freeze_boutiques.filter(extras__contains=t)
 
 
@@ -192,7 +192,7 @@ def freeze_transfer_coupon(coupon_ids, transfer_id):
     coupons = get_user_coupons_by_ids(coupon_ids)
     for coupon in coupons:
         coupon.status = UserCoupon.FREEZE
-        coupon.extras['freeze_by_transfer_id'] = transfer_id
+        coupon.extras['freeze_by_transfer_id'] = str(transfer_id)
         coupon.save(update_fields=['status', 'customer_id', 'extras', 'modified'])
     return True
 
