@@ -3,7 +3,7 @@ from __future__ import absolute_import, unicode_literals
 
 import datetime
 from django.db import models
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from core.models import BaseModel
 from core.fields import JSONCharMyField
 from signals import signal_charge_success, create_signal_message
@@ -68,32 +68,33 @@ class ChargeOrder(BaseModel):
     def credential(self):
         results = self.get_or_create_credential()
         return results[0]
-    
-    @transaction.atomic
+
     def get_or_create_credential(self):
-        credent = Credential.objects.filter(
+        Credential.objects.get_or_create(
             order_no=self.order_no,
             channel=self.channel
-        ).first()
-        if not credent:
-            from ..services.charge import create_credential
-            credential = create_credential(
+        )
+        with transaction.atomic():
+            credent = Credential.objects.select_for_update().get(
                 order_no=self.order_no,
-                amount=self.amount,
-                channel=self.channel,
-                currency=self.currency,
-                subject=self.subject,
-                body=self.body,
-                extra=self.extra,
-                client_ip=self.client_ip,
+                channel=self.channel
             )
-            credent = Credential.objects.create(
-                order_no=self.order_no,
-                channel=self.channel,
-                extra=credential,
-            )
-            return credent.extra, True
-        return credent.extra, False
+            if not credent.extra:
+                from ..services.charge import create_credential
+                credential = create_credential(
+                    order_no=self.order_no,
+                    amount=self.amount,
+                    channel=self.channel,
+                    currency=self.currency,
+                    subject=self.subject,
+                    body=self.body,
+                    extra=self.extra,
+                    client_ip=self.client_ip,
+                )
+                credent.extra = credential
+                credent.save()
+                return credent.extra, True
+            return credent.extra, False
 
     def confirm_paid(self, time_paid, **kwargs):
         update_fields = ['paid', 'time_paid']

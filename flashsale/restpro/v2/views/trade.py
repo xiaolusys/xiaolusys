@@ -5,7 +5,7 @@ import datetime
 import urlparse
 import decimal
 
-from django.db import models, IntegrityError
+from django.db import models, transaction, IntegrityError
 from django.shortcuts import get_object_or_404
 from django.core.urlresolvers import reverse
 from django.conf import settings
@@ -363,7 +363,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         """
         tuuid = form.get('uuid')
         assert UUID_RE.match(tuuid), u'订单UUID异常'
-        sale_trade = SaleTrade.objects.filter(tid=tuuid).first()
+        sale_trade = SaleTrade.objects.select_for_update().filter(tid=tuuid).first()
         if sale_trade and sale_trade.buyer_id != customer.id:
             raise Exception(u'该订单号被重用: %s'%request.POST.dict())
 
@@ -454,7 +454,13 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             hasattr(sale_trade, k) and setattr(sale_trade, k, v)
         if order_type == SaleTrade.TEAMBUY_ORDER:
             sale_trade.extras_info['teambuy_id'] = teambuy.id if teambuy else ''
-        sale_trade.save()
+            
+        try:
+            sale_trade.save()
+        except IntegrityError:
+            sale_trade = SaleTrade.objects.filter(tid=tuuid).first()
+            return sale_trade, False
+
         # record prepay stats
         from django_statsd.clients import statsd
         statsd.incr('xiaolumm.prepay_count')

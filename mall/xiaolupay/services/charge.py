@@ -3,7 +3,7 @@ from __future__ import absolute_import, unicode_literals
 
 import datetime
 from django.db.models import Q
-from django.db import transaction
+from django.db import transaction, IntegrityError
 
 from ..apis.v1.conf import UnionPayConf, PINGPP_CREDENTIAL_TPL, PINGPP_CHARGE_TPL
 from ..libs.alipay import AliPay, AlipayConf
@@ -95,6 +95,7 @@ def create_credential(
 
     return credential
 
+
 def create_charge(
             order_no='',
             amount=0,
@@ -107,23 +108,26 @@ def create_charge(
         ):
     time_now = datetime.datetime.now()
     with transaction.atomic():
-        charge = ChargeOrder.objects.filter(order_no=order_no).first()
+        charge = ChargeOrder.objectsselect_for_update().filter(order_no=order_no).first()
         if not charge:
-            charge = ChargeOrder.objects.create(
-                order_no  = order_no,
-                channel   = channel,
-                client_ip = client_ip,
-                amount    = amount,
-                currency  = currency,
-                subject = subject,
-                body    = body,
-                extra   = extra,
-                time_expire = time_now + datetime.timedelta(seconds=UnionPayConf.TIME_EXPIRED)
-            )
-        else:
-            if charge.channel != channel:
-                charge.channel = channel
-                charge.save(update_fields=['channel'])
+            try:
+                charge = ChargeOrder.objects.create(
+                    order_no  = order_no,
+                    channel   = channel,
+                    client_ip = client_ip,
+                    amount    = amount,
+                    currency  = currency,
+                    subject = subject,
+                    body    = body,
+                    extra   = extra,
+                    time_expire = time_now + datetime.timedelta(seconds=UnionPayConf.TIME_EXPIRED)
+                )
+            except IntegrityError:
+                charge = ChargeOrder.objects.filter(order_no=order_no).first()
+
+        if charge.channel != channel:
+            charge.channel = channel
+            charge.save(update_fields=['channel'])
 
     charge.get_or_create_credential()
     return charge
