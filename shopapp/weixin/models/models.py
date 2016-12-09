@@ -97,8 +97,8 @@ class WeiXinAccount(models.Model):
         list_cache_key = cls.gen_account_list_cache_key()
         cache_value = cache.get(list_cache_key)
         if not cache_value:
-            cache_value = WeiXinAccount.objects.all().values(
-                'account_id', 'token', 'app_id', 'app_secret', 'access_token', 'js_ticket')
+            cache_value = list(cls.objects.all().values(
+                'account_id', 'token', 'app_id', 'app_secret', 'access_token', 'js_ticket'))
             cache.set(list_cache_key, cache_value, 24 * 3600)
 
         return cache_value
