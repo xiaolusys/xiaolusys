@@ -31,8 +31,8 @@ def pay_channel_notify(request, channel):
         channel = credential.channel
 
     elif channel in ('wx', 'wx_pub'):
-        params = WXPay.process_wxpay_response(content)
-        order_no = params['out_trade_no']
+        content = WXPay.process_wxpay_response(content)
+        order_no = content['out_trade_no']
     else:
         order_no = ''
 
