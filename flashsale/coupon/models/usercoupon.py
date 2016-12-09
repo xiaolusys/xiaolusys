@@ -228,12 +228,33 @@ class UserCoupon(BaseModel):
             return 1
         return 2
 
+    @property
+    def return_mama_chain(self):
+        # type: () -> Optional[List[int]]
+        """退回 上级 的 妈妈id 列表
+        """
+        return self.extras.get('chain')
+
     def can_return_sys(self):
         # type: () -> bool
         """是否可以退还给系统
         """
-        if self.coupon_type != UserCoupon.TYPE_TRANSFER:
+        if not self.coupon_type == UserCoupon.TYPE_TRANSFER:
+            return False  # 不是精品券  一律 不许 退
+        if self.is_gift_transfer_coupon:  # 系统赠送的券 不能退 给 系统
             return False
-        if self.transfer_coupon_pk:
+        if not self.return_mama_chain:
+            # 情况1. chain 不存在  则为 直接购买 没有转 过 则可以退系统
+            # 情况2. chain 是 空的列表  则为 已经 退回 最上面 一级 则可以退系统
+            return True
+        return False
+
+    def can_return_upper_mama(self):
+        # type: ()-> bool
+        """是否可以退回上级妈妈
+        """
+        if not self.coupon_type == UserCoupon.TYPE_TRANSFER:
             return False
-        return True
+        if self.return_mama_chain:  # 退券chain 中 还 存在上级妈妈的id
+            return True
+        return False

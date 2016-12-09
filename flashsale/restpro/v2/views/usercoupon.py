@@ -102,13 +102,12 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
             else:
                 item[template_id]['coupon_num'] += 1
             item[template_id]['coupon_ids'].append(coupon.id)
-            transfer_coupon_pk = coupon.extras.get('transfer_coupon_pk')
-            if transfer_coupon_pk:
+            if coupon.can_return_upper_mama():
                 item[template_id]['from_mama_coupon_ids'].append(coupon.id)
-            elif coupon.is_gift_transfer_coupon:  # 如果是系统赠送的流通优惠券
-                item[template_id]['gift_transfer_coupon_ids'].append(coupon.id)
-            else:
+            if coupon.can_return_sys():
                 item[template_id]['from_sys_coupon_ids'].append(coupon.id)
+            if coupon.is_gift_transfer_coupon:  # 如果是系统赠送的流通优惠券
+                item[template_id]['gift_transfer_coupon_ids'].append(coupon.id)
         switch = XiaoluSwitch.objects.filter(title='退优惠券给上级').first()
         can_return_upper = switch.status if switch else 0
         for k, v in item.iteritems():
