@@ -227,3 +227,13 @@ class UserCoupon(BaseModel):
         if self.status == UserCoupon.UNUSED:
             return 1
         return 2
+
+    def can_return_sys(self):
+        # type: () -> bool
+        """是否可以退还给系统
+        """
+        if self.coupon_type != UserCoupon.TYPE_TRANSFER:
+            return False
+        if self.transfer_coupon_pk:
+            return False
+        return True

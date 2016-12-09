@@ -8,6 +8,8 @@ from rest_framework import authentication
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.decorators import list_route, detail_route
+from rest_framework import exceptions
+from rest_framework import filters
 
 from flashsale.xiaolumm.models import ReferalRelationship, XiaoluMama
 
@@ -18,7 +20,7 @@ from flashsale.pay.models import Customer
 from flashsale.restpro.v2.serializers import CouponTransferRecordSerializer
 
 from flashsale.coupon.apis.v1.transfer import agree_apply_transfer_record, reject_apply_transfer_record, \
-    get_freeze_boutique_coupons_by_transfer
+    get_freeze_boutique_coupons_by_transfer, cancel_return_2_sys_transfer
 from flashsale.coupon.apis.v1.usercoupon import return_transfer_coupon
 from flashsale.pay.apis.v1.customer import get_customer_by_django_user
 from flashsale.xiaolumm.apis.v1.xiaolumama import get_mama_by_openid
@@ -53,10 +55,20 @@ def process_transfer_coupon(customer_id, init_from_customer_id, record):
     for coupon in coupons:
         coupon.customer_id = init_from_customer_id
         coupon.extras.update({"transfer_coupon_pk":record.id})
+        if not coupon.extras.has_key('chain'):  # 添加流通的上级妈妈　用于　退券　时候　退回上级
+            coupon.extras['chain'] = [record.coupon_from_mama_id]
+        else:
+            coupon.extras['chain'].append(record.coupon_from_mama_id)
         coupon.save()
     from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
     task_calc_xlmm_elite_score(record.coupon_to_mama_id)  # 计算妈妈积分
     return {"code": 0, "info": u"发放成功"}
+
+
+class CouponTransferRecordFilter(filters.FilterSet):
+    class Meta:
+        model = CouponTransferRecord
+        fields = ['transfer_type', 'transfer_status']
 
 
 class CouponTransferRecordViewSet(viewsets.ModelViewSet):
@@ -70,8 +82,21 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
 
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
+    filter_class = CouponTransferRecordFilter
 
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    def list(self, request, *args, **kwargs):
+        return exceptions.APIException('METHOD NOT ALLOW')
+
+    def create(self, request, *args, **kwargs):
+        return exceptions.APIException('METHOD NOT ALLOW')
+
+    def update(self, request, *args, **kwargs):
+        return exceptions.APIException('METHOD NOT ALLOW')
+
+    def destroy(self, request, *args, **kwargs):
+        return exceptions.APIException('METHOD NOT ALLOW')
 
     @list_route(methods=['POST'])
     def start_transfer(self, request, *args, **kwargs):
@@ -101,7 +126,6 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         #res["Access-Control-Allow-Origin"] = "*"
 
         return res
-
 
     def start_return_coupon(self, request, *args, **kwargs):
         pass
@@ -206,6 +230,10 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
             for coupon in coupons:
                 coupon.customer_id = init_from_customer.id
                 coupon.extras.update({"transfer_coupon_pk":pk})
+                if not coupon.extras.has_key('chain'):  # 添加流通的上级妈妈　用于　退券　时候　退回上级
+                    coupon.extras['chain'] = [record.coupon_from_mama_id]
+                else:
+                    coupon.extras['chain'].append(record.coupon_from_mama_id)
                 coupon.save()
             info = u"发放成功"
 
@@ -341,6 +369,22 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
             return Response({'code': 2, 'info': '操作失败'})
         return Response({'code': 0, 'info': '操作成功'})
 
+    @list_route(methods=['post'])
+    def cancel_return_2_sys_transfer_coupon(self, request, *args, **kwargs):
+        # type: (HttpRequest, *Any, **Any) -> Response
+        """取消　退券　给　系统
+        """
+        transfer_record_id = request.POST.get('transfer_record_id')
+        if not transfer_record_id:
+            return Response({'code': 1, 'info': '参数错误'})
+        customer = get_customer_by_django_user(request.user)  # 下属用户返还自己的　券　给上级
+        transfer_record_id = int(str(transfer_record_id).strip())
+        try:
+            cancel_return_2_sys_transfer(transfer_record_id, customer=customer)
+        except Exception as e:
+            return Response({'code': 3, 'info': '取消出错:%s' % e.message})
+        return Response({'code': 0, 'info': '已经取消'})
+
     @list_route(methods=['get'])
     def list_return_transfer_record(self, request, *args, **kwargs):
         # type: (HttpRequest, *Any, **Any) -> Response
@@ -353,6 +397,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         if not mama:
             return Response({'code': 2, 'info': '妈妈记录没找到'})
         queryset = CouponTransferRecord.objects.get_return_transfer_coupons().filter(coupon_to_mama_id=mama.id)
+        queryset = self.filter_queryset(queryset)
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -361,7 +406,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @list_route(methods=['get'])
-    def list_apply_transfer_record(self, request, *args, **kwargs):
+    def list_from_my_records(self, request, *args, **kwargs):
         # type: (HttpRequest, *Any, **Any) -> Response
         """向上级申请退券的　优惠券　流通记录　列表
         """
@@ -371,7 +416,8 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         mama = get_mama_by_openid(customer.unionid)
         if not mama:
             return Response({'code': 2, 'info': '妈妈记录没找到'})
-        queryset = CouponTransferRecord.objects.get_return_transfer_coupons().filter(coupon_from_mama_id=mama.id)
+        queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.filter(coupon_from_mama_id=mama.id)
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)

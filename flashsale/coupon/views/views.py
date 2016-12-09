@@ -8,7 +8,8 @@ from rest_framework.response import Response
 from core.options import log_action, CHANGE, ADDITION
 from flashsale.pay.models import SaleTrade, Customer
 from ..apis.v1.usercoupon import create_user_coupon
-from ..models import UserCoupon, CouponTemplate
+from ..apis.v1.transfer import agree_apply_transfer_record_2_sys, cancel_return_2_sys_transfer
+from ..models import UserCoupon, CouponTemplate, CouponTransferRecord
 
 import logging
 
@@ -24,7 +25,7 @@ class ReleaseOmissive(APIView):
     usercoupons = UserCoupon.objects.all()
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer,)
     template_name = "sale/release_usercoupon.html"
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser)
 
     def get(self, request):
         content = request.GET
@@ -92,3 +93,29 @@ class ReleaseOmissive(APIView):
         except Exception as e:
             message = e.message
         return Response({'code': 0, "message": message})
+
+
+class VerifyReturnSysTransfer(APIView):
+    transfer_coupons = CouponTransferRecord.objects.all()
+    renderer_classes = (JSONRenderer, TemplateHTMLRenderer,)
+    permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser)
+
+    def post(self, request):
+        # type: (HttpRequest) -> Response
+        """工作人员 审核 用户申请的 退 精品优惠券
+        """
+        transfer_record_id = request.POST.get('transfer_record_id')
+        return_func = request.POST.get('return_func')
+
+        if not (transfer_record_id and return_func):
+            return Response({'code': 1, 'info': '参数错误'})
+        try:
+            if return_func == 'agree':
+                agree_apply_transfer_record_2_sys(transfer_record_id, user=request.user)
+            elif return_func == 'reject':
+                cancel_return_2_sys_transfer(transfer_record_id, admin_user=request.user)
+            else:
+                return Response({'code': 1, 'info': '参数错误'})
+            return Response({'code': 0, 'info': '审核成功'})
+        except Exception as e:
+            return Response({'code': 2, 'info': '审核出错: %s' % e.message})

@@ -518,6 +518,7 @@ class BudgetLog(PayBaseModel):
     BG_REFERAL_FANS = 'rfan'
     BG_SUBSCRIBE = 'subs'
     BG_EXCHG_ORDER = 'exchg'
+    BG_RETURN_COUPON = 'rtcoup'
 
     BUDGET_LOG_CHOICES = (
         (BG_ENVELOPE, u'红包'),
@@ -529,6 +530,7 @@ class BudgetLog(PayBaseModel):
         (BG_REFERAL_FANS, u'推荐粉丝'),
         (BG_SUBSCRIBE, u'关注'),
         (BG_EXCHG_ORDER, u'兑换订单'),
+        (BG_RETURN_COUPON, u'退精品券'),
     )
 
     CONFIRMED = 0
@@ -616,6 +618,23 @@ class BudgetLog(PayBaseModel):
         budget_log.save()
         return budget_log
 
+    @classmethod
+    def create_return_coupon_log(cls, customer_id, quote_id, flow_amount):
+        # type: (int, int, int) -> BudgetLog
+        """用户退还优惠券　兑换　金额 给用户
+        """
+        uni_key = cls.gen_uni_key(customer_id, BudgetLog.BUDGET_IN, BudgetLog.BG_RETURN_COUPON)
+        budget_log = cls(customer_id=customer_id,
+                         flow_amount=flow_amount,
+                         budget_type=BudgetLog.BUDGET_IN,
+                         budget_log_type=BudgetLog.BG_RETURN_COUPON,
+                         budget_date=datetime.date.today(),
+                         referal_id=quote_id,
+                         status=BudgetLog.PENDING,
+                         uni_key=uni_key)
+        budget_log.save()
+        return budget_log
+
     def get_flow_amount_display(self):
         """ 返回金额　"""
         return self.flow_amount / 100.0
@@ -633,6 +652,26 @@ class BudgetLog(PayBaseModel):
         return '您通过{0}{1}{2}元.'.format(self.get_budget_log_type_display(),
                                        self.get_budget_type_display(),
                                        self.flow_amount * 0.01)
+
+    def cancel_budget_log(self):
+        # type: () -> bool
+        """取消 钱包记录
+        """
+        if self.status == BudgetLog.CANCELED:
+            return False
+        self.status = BudgetLog.CANCELED
+        self.save(update_fields=['status', 'modified'])
+        return True
+
+    def confirm_budget_log(self):
+        # type: () -> bool
+        """确定钱包记录
+        """
+        if self.status != BudgetLog.CONFIRMED:
+            self.status = BudgetLog.CONFIRMED
+            self.save(update_fields=['status', 'modified'])
+            return True
+        return False
 
     def cancel_and_return(self):
         """ 将待确认或已确认的支出取消并返还小鹿账户 """
