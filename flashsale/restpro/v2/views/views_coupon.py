@@ -397,6 +397,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         if not mama:
             return Response({'code': 2, 'info': '妈妈记录没找到'})
         queryset = CouponTransferRecord.objects.get_return_transfer_coupons().filter(coupon_to_mama_id=mama.id)
+        queryset = self.filter_queryset(queryset)
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)

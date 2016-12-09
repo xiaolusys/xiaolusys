@@ -359,17 +359,20 @@ def agree_apply_transfer_record(user, transfer_record_id):
     """同意下属退还　的流通记录　　
     1. 将流通记录设置为待发放　　
     """
+    from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
+
     customer = get_customer_by_django_user(user)
     record = get_transfer_record_by_id(transfer_record_id)
     if record.transfer_type != CouponTransferRecord.IN_RETURN_COUPON:
         raise Exception('记录类型有错')
     if record.transfer_status != CouponTransferRecord.PENDING:
         raise Exception('记录状态不在待审核')
-    mama = customer.get_charged_mama()
+    mama = customer.get_xiaolumm()
     if record.coupon_to_mama_id != mama.id:
         raise Exception('记录审核人错误')
     record.transfer_status = CouponTransferRecord.PROCESSED  # 待发放状态
     record.save(update_fields=['transfer_status', 'modified'])
+    task_calc_xlmm_elite_score(mama.id)  # 重算积分
     return True
 
 
@@ -403,6 +406,7 @@ def agree_apply_transfer_record_2_sys(transfer_record_id, user=None):
     """ 同意用户的 退券 到系统
     """
     from .usercoupon import cancel_coupon_by_ids
+    from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
 
     record = get_transfer_record_by_id(transfer_record_id)
 
@@ -418,6 +422,7 @@ def agree_apply_transfer_record_2_sys(transfer_record_id, user=None):
     record.save(update_fields=['transfer_status', 'modified'])  # 完成流通记录
     if user:
         log_action(user, record, CHANGE, '同意用户申请退券退金额')
+    task_calc_xlmm_elite_score(record.coupon_from_mama_id)  # 重算积分
     return True
 
 
