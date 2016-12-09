@@ -227,20 +227,16 @@ def wallet(req):
 
     if customer:
         xiaolu_wallet = BudgetLog.objects.filter(customer_id=customer.id).order_by('-created')
-        xiaolu_wallet_in = BudgetLog.objects.filter(
+        xiaolu_wallet_in = (BudgetLog.objects.filter(
             customer_id=customer.id,
             budget_type=BudgetLog.BUDGET_IN,
             status__in=(BudgetLog.PENDING, BudgetLog.CONFIRMED)
-        ).aggregate(amount=Sum('flow_amount'))['amount'] * 0.01
-        xiaolu_wallet_out = BudgetLog.objects.filter(
+        ).aggregate(amount=Sum('flow_amount')).get('amount') or 0) * 0.01
+        xiaolu_wallet_out = (BudgetLog.objects.filter(
             customer_id=customer.id,
             budget_type=BudgetLog.BUDGET_OUT,
             status__in=(BudgetLog.PENDING, BudgetLog.CONFIRMED)
-        ).aggregate(amount=Sum('flow_amount'))
-        if xiaolu_wallet_out:
-            xiaolu_wallet_out = xiaolu_wallet_out['amount'] * 0.01
-        else:
-            xiaolu_wallet_out = 0
+        ).aggregate(amount=Sum('flow_amount')).get('amount') or 0) * 0.01
         xiaolu_wallet_remain = xiaolu_wallet_in - xiaolu_wallet_out
         for item in xiaolu_wallet:
             item.flow_amount = item.flow_amount * 0.01
