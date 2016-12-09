@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 def pay_channel_notify(request, channel):
 
-    content = request.POST.dict()
+    content = request.POST.dict() or request.body
     logger.info({
         'action': 'notify',
         'channel': channel,
