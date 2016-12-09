@@ -267,7 +267,7 @@ class RefundProduct(models.Model):
     @staticmethod
     def refund_change(origin_sku_id, changed_sku_id, changed_outer_id, changed_outer_sku_id, changed_title,
                       change_property):
-        origin_rf = RefundProduct.objects.filter(sku_id=origin_sku_id)
+        origin_rf = RefundProduct.objects.filter(sku_id=int(origin_sku_id))
         changed_info = dict(sku_id=changed_sku_id, outer_id=changed_outer_id, outer_sku_id=changed_outer_sku_id,\
                             title=changed_title, property=change_property)
         if origin_rf.first():
@@ -275,9 +275,9 @@ class RefundProduct(models.Model):
                 origin_rf.update(**changed_info)
             except Exception,e:
                 return "db update wrong"
-                from shopback.items.tasks_stats import task_refundproduct_update_productskustats_return_quantity
-                task_refundproduct_update_productskustats_return_quantity.delay(origin_sku_id)
-                task_refundproduct_update_productskustats_return_quantity.delay(changed_sku_id)
+            from shopback.items.tasks_stats import task_refundproduct_update_productskustats_return_quantity
+            task_refundproduct_update_productskustats_return_quantity.delay(origin_sku_id)
+            task_refundproduct_update_productskustats_return_quantity.delay(changed_sku_id)
             return "success"
         else:
             return "sku_id is not exist"
