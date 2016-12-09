@@ -236,7 +236,11 @@ def wallet(req):
             customer_id=customer.id,
             budget_type=BudgetLog.BUDGET_OUT,
             status__in=(BudgetLog.PENDING, BudgetLog.CONFIRMED)
-        ).aggregate(amount=Sum('flow_amount'))['amount'] * 0.01
+        ).aggregate(amount=Sum('flow_amount'))
+        if xiaolu_wallet_out:
+            xiaolu_wallet_out = xiaolu_wallet_out['amount'] * 0.01
+        else:
+            xiaolu_wallet_out = 0
         xiaolu_wallet_remain = xiaolu_wallet_in - xiaolu_wallet_out
         for item in xiaolu_wallet:
             item.flow_amount = item.flow_amount * 0.01
