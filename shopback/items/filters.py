@@ -239,14 +239,15 @@ class ProductSkuStatsUnusedStockFilter(SimpleListFilter):
                 return queryset.filter(id__in=SkuStock.redundancies())
 
 
-class ProductVirtualFilter(SimpleListFilter):
+class ProductTypeFilter(SimpleListFilter):
     """按是否虚拟商品过滤"""
-    title = u'虚拟商品'
-    parameter_name = 'product_virtual'
+    title = u'商品类型'
+    parameter_name = 'product_type'
 
     def lookups(self, request, model_admin):
-        condition = (("1", u'是'),
-                     ("2", u'否'))
+        condition = (("0", u'普通商品'),
+                     ("1", u'虚拟商品'),
+                     ("2", u'非卖品'))
         return condition
 
     def queryset(self, request, queryset):
@@ -254,10 +255,12 @@ class ProductVirtualFilter(SimpleListFilter):
         if not status_id:
             return queryset
         else:
+            if status_id == '0':
+                return queryset.filter(product__type=0)
             if status_id == '1':
-                return queryset.filter(product__outer_id__startswith='RMB')
+                return queryset.filter(product__type=1)
             if status_id == '2':
-                return queryset.exclude(product__outer_id__startswith='RMB')
+                return queryset.filter(product__type=2)
 
 
 class ProductWareByFilter(SimpleListFilter):

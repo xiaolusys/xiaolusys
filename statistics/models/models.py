@@ -327,7 +327,7 @@ class DailyStat(BaseModel):
         from shopback.items.models import SkuStock
         from shopback.items.models import Product
 
-        return SkuStock.objects.exclude(product__outer_id__startswith='RMB',
+        return SkuStock.objects.exclude(product__type=Product.NORMAL_SALE,
                                                product__status=Product.NORMAL).aggregate(
             n=Sum("history_quantity") + Sum('adjust_quantity') + Sum('inbound_quantity') + Sum('return_quantity') - Sum(
                 'rg_quantity') - Sum('post_num')).get('n') or 0
@@ -349,8 +349,7 @@ WHERE p.status = 'normal' and not p.outer_id like 'RMB%';"""
     def get_noyouni_stock():
         from shopback.items.models import SkuStock
         from shopback.items.models import Product
-        return SkuStock.objects.filter(product__status=Product.NORMAL).exclude(
-            product__outer_id__startswith='RMB').exclude(product__category_id=1).aggregate(
+        return SkuStock.objects.filter(product__status=Product.NORMAL, product__type=Product.NORMAL_SALE).exclude(product__category_id=1).aggregate(
             n=Sum("history_quantity") + Sum('adjust_quantity') + Sum('inbound_quantity') + Sum('return_quantity') - Sum(
                 'rg_quantity') - Sum('post_num')).get('n') or 0
 
@@ -372,8 +371,7 @@ WHERE p.status = 'normal' and not p.outer_id like 'RMB%' and not p.category_id=1
     def get_youni_stock():
         from shopback.items.models import SkuStock
         from shopback.items.models import Product
-        return SkuStock.objects.filter(product__status=Product.NORMAL, product__category_id=1).exclude(
-            product__outer_id__startswith='RMB').aggregate(
+        return SkuStock.objects.filter(product__status=Product.NORMAL, product__category_id=1, product__type=Product.NORMAL_SALE).aggregate(
             n=Sum("history_quantity") + Sum('adjust_quantity') + Sum('inbound_quantity') + Sum('return_quantity') - Sum(
                 'rg_quantity') - Sum('post_num')).get('n') or 0
 
