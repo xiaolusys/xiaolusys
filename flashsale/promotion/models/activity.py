@@ -5,6 +5,7 @@ import datetime
 from django.db import models
 from core.fields import JSONCharMyField
 from core.models import BaseModel
+from common.urlutils import replace_domain
 from shopback.items.models import Product
 from .managers.activity import ActivityManager, ActivityProManager
 import logging
@@ -63,12 +64,13 @@ class ActivityEntry(BaseModel):
         return self.is_active and self.start_time <= datetime.datetime.now() < self.end_time
 
     def get_shareparams(self, **params):
+        share_link = replace_domain(self.share_link.format(**params))
         return {
             'id': self.id,
             'title': self.title.format(**params),
             'share_type': 'link',
             'share_icon': self.share_icon,
-            'share_link': self.share_link.format(**params),
+            'share_link': share_link,
             'active_dec': self.act_desc.format(**params),
         }
 

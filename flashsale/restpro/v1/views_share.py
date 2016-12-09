@@ -19,6 +19,7 @@ from rest_framework.views import APIView
 from flashsale.pay.models import CustomShare, Customer, ModelProduct
 from flashsale.xiaolumm.models import XiaoluMama
 from shopback.items.models import Product
+from common.urlutils import replace_domain
 
 from shopapp.weixin.models import WeixinUnionID
 from shopapp.weixin.weixin_apis import WeiXinAPI, WeiXinRequestException
@@ -90,7 +91,7 @@ class CustomShareViewSet(viewsets.ReadOnlyModelViewSet):
         if product:
             product.detail_note = product.detail and product.detail.note or ''
 
-        resp['share_link'] = cshare.share_link(xlmm=xlmm_id, **kwargs)
+        resp['share_link'] = replace_domain(cshare.share_link(xlmm=xlmm_id, **kwargs))
         resp['title'] = cshare.share_title(xlmm=xlmm_id, **kwargs)
         resp['desc'] = cshare.share_desc(xlmm=xlmm_id, **kwargs)
         resp['share_img'] = cshare.share_image(xlmm=xlmm_id, **kwargs)

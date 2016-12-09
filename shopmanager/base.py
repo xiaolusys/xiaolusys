@@ -23,6 +23,12 @@ MANAGERS = (
 
 ALLOWED_HOSTS = ['.huyi.so', '.xiaolu.so', '.xiaolumeimei.com', '.xiaolumm.com', '.xip.io']
 
+# 微信分享备用域名
+STANDBY_DOMAINS = [
+    'm.xiaolu.so',
+    'm.xiaolumm.com',
+]
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
