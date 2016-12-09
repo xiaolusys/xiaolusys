@@ -134,7 +134,12 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         if not product.is_onshelf():
             return Response({"code": 3, "info": u'商品已下架'})
 
-        sku = ProductSku.objects.filter(id=sku_id, product_id=product_id).first()
+        # 如前端传入的参数 product_id, sku_id不一致，后端先校正再处理
+        sku = ProductSku.objects.filter(id=sku_id).first()
+        if sku and sku.product != product:
+            sku_pname =  sku.properties_name or sku.properties_alias
+            sku = product.normal_skus.filter(models.Q(properties_name=sku_pname)|models.Q(properties_alias=sku_pname)).frist()
+
         if not sku:
             logger.error(u'购物车商品id不一致: (%s, %s), agent=%s' % (product_id, sku_id, request.META.get('HTTP_USER_AGENT')))
             return Response({"code": 8, "info": u'商品提交信息不一致'})
