@@ -14,7 +14,8 @@ from flashsale.pay.apis.v1.customer import get_customer_by_django_user
 from flashsale.xiaolumm.apis.v1.xiaolumama import get_mama_by_openid
 from flashsale.coupon import serializers
 from flashsale.coupon.models import UserCoupon, CouponTransferRecord
-from flashsale.coupon.apis.v1.transfer import apply_pending_return_transfer_coupon
+from flashsale.coupon.apis.v1.transfer import apply_pending_return_transfer_coupon, \
+    apply_pending_return_transfer_coupon_2_sys
 import logging
 
 logger = logging.getLogger(__name__)
@@ -101,13 +102,12 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
             else:
                 item[template_id]['coupon_num'] += 1
             item[template_id]['coupon_ids'].append(coupon.id)
-            transfer_coupon_pk = coupon.extras.get('transfer_coupon_pk')
-            if transfer_coupon_pk:
+            if coupon.can_return_upper_mama():
                 item[template_id]['from_mama_coupon_ids'].append(coupon.id)
-            elif coupon.is_gift_transfer_coupon:  # 如果是系统赠送的流通优惠券
-                item[template_id]['gift_transfer_coupon_ids'].append(coupon.id)
-            else:
+            if coupon.can_return_sys():
                 item[template_id]['from_sys_coupon_ids'].append(coupon.id)
+            if coupon.is_gift_transfer_coupon:  # 如果是系统赠送的流通优惠券
+                item[template_id]['gift_transfer_coupon_ids'].append(coupon.id)
         switch = XiaoluSwitch.objects.filter(title='退优惠券给上级').first()
         can_return_upper = switch.status if switch else 0
         for k, v in item.iteritems():
@@ -130,6 +130,7 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         """
         customer = get_customer_by_django_user(request.user)
         coupon_ids = request.POST.get('coupon_ids')
+        return_to = request.POST.get('return_to')
         if not isinstance(coupon_ids, list):
             coupon_ids = coupon_ids.split(',')
             coupon_ids = [str(i).strip() for i in coupon_ids if i.strip().isdigit()]
@@ -152,7 +153,15 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         coupon_elite = get_coupons_elite(user_coupons, mama.elite_level)  # 计算优惠券在当前等级的积分
         if coupon_elite > can_return_elite:
             return Response({'code': 5, 'info': '您的退券张数太多，会导致您降级，请减少退券数量'})
-        state = apply_pending_return_transfer_coupon(coupon_ids, customer)
+        if return_to == 'upper_mama':  # 退给上级
+            state = apply_pending_return_transfer_coupon(coupon_ids, customer)
+        elif return_to == 'sys':  # 退给系统
+            try:
+                state = apply_pending_return_transfer_coupon_2_sys(coupon_ids, customer)
+            except Exception as e:
+                return Response({'code': 5, 'info': '申请出错:%s' % e.message})
+        else:
+            return Response({'code': 1, 'info': '参数错误'})
         if not state:
             return Response({'code': 2, 'info': '申请失败'})
         return Response({'code': 0, 'info': '申请成功'})

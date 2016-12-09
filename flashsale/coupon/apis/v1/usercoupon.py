@@ -197,6 +197,17 @@ def freeze_transfer_coupon(coupon_ids, transfer_id):
     return True
 
 
+def cancel_coupon_by_ids(coupon_ids):
+    # type: (List[int]) -> bool
+    """取消 优惠券
+    """
+    coupons = get_user_coupons_by_ids(coupon_ids)
+    for coupon in coupons:
+        coupon.status = UserCoupon.CANCEL
+        coupon.save(update_fields=['status', 'modified'])
+    return True
+
+
 @transaction.atomic()
 def return_transfer_coupon(coupons):
     # type : (List[UserCoupon], int) -> bool
@@ -220,7 +231,12 @@ def return_transfer_coupon(coupons):
             continue
         coupon.status = UserCoupon.UNUSED
         coupon.customer_id = customer.id
-        coupon.save(update_fields=['status', 'customer_id', 'modified'])
+        chain = coupon.extras.get('chain')
+        if not chain or chain[-1] != to_mama.id:  # 没有　流通过程中的妈妈记录　或者　要退的上级　不是对应的妈妈ｉｄ则抛出异常
+            raise Exception('异常优惠券记录')
+        chain.pop()
+        coupon.extras['chain'] = chain
+        coupon.save(update_fields=['status', 'customer_id', 'extras', 'modified'])
         mama_ids.add(transfer.coupon_to_mama_id)
         mama_ids.add(transfer.coupon_from_mama_id)
     for mama_id in mama_ids:

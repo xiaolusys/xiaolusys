@@ -7,6 +7,7 @@ from flashsale.xiaolumm.models import MamaDailyAppVisit
 from flashsale.coupon.models import CouponTemplate, OrderShareCoupon, UserCoupon, TmpShareCoupon, CouponTransferRecord
 from flashsale.xiaolumm.apis.v1.xiaolumama import get_mama_by_id
 
+
 class CouponTemplateAdmin(admin.ModelAdmin):
     fieldsets = (
         (u'标题信息:', {
@@ -74,7 +75,9 @@ class UserCouponAdmin(admin.ModelAdmin):
         }),
     )
 
-    list_display = ('id', 'title', "customer_id", 'status', "uniq_id", 'finished_time', 'expires_time', 'is_pushed', 'modified', 'created')
+    list_display = ('id', 'title', "customer_id", 'status', "uniq_id", 'finished_time',
+                    'expires_time', 'is_pushed', 'modified',
+                    'created')
 
     list_filter = ('coupon_type', 'status', 'expires_time', 'finished_time', ('created', DateFieldListFilter))
     search_fields = ['=id', '=template_id', '=customer_id']
@@ -97,8 +100,8 @@ admin.site.register(TmpShareCoupon, TmpShareCouponAdmin)
 class CouponTransferRecordAdmin(admin.ModelAdmin):
     list_display = ('id', 'coupon_from_mama_id', 'last_visit', 'from_mama_nick', 'coupon_to_mama_id', 'is_new',
                     'to_mama_nick', 'template_id', 'template_name',
-                    'coupon_value', 'coupon_num', 'transfer_type', 'transfer_status', 'total_num', 'status', 'uni_key',
-                    'date_field',
+                    'coupon_value', 'coupon_num', 'transfer_type', 'transfer_status_show', 'total_num',
+                    'status', 'uni_key', 'date_field',
                     'init_from_mama_id', 'order_no', 'product_id', 'elite_score', 'to_mama_manager', 'modified',
                     'created')
     list_filter = ('transfer_type', 'transfer_status', 'status', ('created', DateFieldListFilter))
@@ -125,11 +128,23 @@ class CouponTransferRecordAdmin(admin.ModelAdmin):
 
     def is_new(self, obj):
         c = CouponTransferRecord.objects.filter(
-            date_field__lt=obj.date_field,coupon_to_mama_id=obj.coupon_to_mama_id,
+            date_field__lt=obj.date_field, coupon_to_mama_id=obj.coupon_to_mama_id,
             transfer_status=CouponTransferRecord.DELIVERED).first()
         if not c:
             return 'NEW'
         return ''
+
+    def transfer_status_show(self, obj):
+        # type : (CouponTransferRecord) -> text_type
+        if obj.transfer_status == CouponTransferRecord.PENDING and \
+                        obj.transfer_type == CouponTransferRecord.OUT_CASHOUT:  # 待审核 和 类型为 退券换钱
+            et = 'style="padding: 0px 6px" type="button"'
+            html1 = '<input class="returnT%s" %s onclick="agreeReturnTransfer(%s)" value="通过">' % (obj.id, et, obj.id )
+            html2 = '<input class="returnT%s" %s onclick="rejectReturnTransfer(%s)" value="拒绝">' % (obj.id, et, obj.id )
+            return ''.join([html1, html2])
+        return obj.get_transfer_status_display()
+    transfer_status_show.allow_tags = True
+    transfer_status_show.short_description = u"流通状态"
 
     def to_mama_manager(self, obj):
         # type : (CouponTransferRecord) -> text_type
@@ -139,7 +154,17 @@ class CouponTransferRecordAdmin(admin.ModelAdmin):
         if not mm.mama_manager:
             return u''
         return mm.mama_manager.last_name + mm.mama_manager.first_name
+
     to_mama_manager.allow_tags = True
     to_mama_manager.short_description = u"归属管理员"
+
+    class Media:
+        js = (
+            '/static/jquery/jquery-2.1.1.min.js',
+            "/static/layer-v1.9.2/layer/layer.js",
+            '/static/coupon/js/transferCoupon.js',
+            "/static/layer-v1.9.2/layer/extend/layer.ext.js",
+        )
+
 
 admin.site.register(CouponTransferRecord, CouponTransferRecordAdmin)

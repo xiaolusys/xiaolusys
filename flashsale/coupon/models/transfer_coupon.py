@@ -196,7 +196,7 @@ class CouponTransferRecord(BaseModel):
         product_img = ct.extras.get("product_img") or ''
 
         from flashsale.coupon.apis.v1.transfer import get_elite_score_by_templateid
-        product_id, elite_score = get_elite_score_by_templateid(template_id, from_mama)
+        product_id, elite_score, _ = get_elite_score_by_templateid(template_id, from_mama)
         elite_score *= int(coupon_num)
 
         transfer_status = cls.DELIVERED
@@ -360,7 +360,7 @@ class CouponTransferRecord(BaseModel):
 
         from flashsale.coupon.apis.v1.transfer import get_elite_score_by_templateid
         mama = customer.get_charged_mama()
-        product_id, elite_score = get_elite_score_by_templateid(template_id, mama)
+        product_id, elite_score, _ = get_elite_score_by_templateid(template_id, mama)
         elite_score *= int(coupon_num)
     
         coupon = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id, from_mama_thumbnail=from_mama_thumbnail,
@@ -410,7 +410,7 @@ class CouponTransferRecord(BaseModel):
         product_img = ct.extras.get("product_img") or ''
 
         from flashsale.coupon.apis.v1.transfer import get_elite_score_by_templateid
-        product_id, elite_score = get_elite_score_by_templateid(template_id, from_mama)
+        product_id, elite_score, _ = get_elite_score_by_templateid(template_id, from_mama)
         elite_score *= int(coupon_num)
 
         transfer_status = cls.DELIVERED
