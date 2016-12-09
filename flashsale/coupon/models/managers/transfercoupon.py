@@ -26,3 +26,9 @@ class CouponTransferRecordManager(BaseManager):
         """　获取　退回类型　的有效的　流通记录
         """
         return self.get_effect_transfer_coupons().filter(transfer_type=self.model.IN_RETURN_COUPON)
+
+    def get_out_cash_transfer_coupons(self):
+        # type: () -> Optional[List[CouponTransferRecord]]
+        """　获取　退回系统类型　的有效的　流通记录
+        """
+        return self.get_effect_transfer_coupons().filter(transfer_type=self.model.OUT_CASHOUT)

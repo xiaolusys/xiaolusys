@@ -18,7 +18,7 @@ from flashsale.pay.models import Customer
 from flashsale.restpro.v2.serializers import CouponTransferRecordSerializer
 
 from flashsale.coupon.apis.v1.transfer import agree_apply_transfer_record, reject_apply_transfer_record, \
-    get_freeze_boutique_coupons_by_transfer
+    get_freeze_boutique_coupons_by_transfer, cancel_return_2_sys_transfer
 from flashsale.coupon.apis.v1.usercoupon import return_transfer_coupon
 from flashsale.pay.apis.v1.customer import get_customer_by_django_user
 from flashsale.xiaolumm.apis.v1.xiaolumama import get_mama_by_openid
@@ -348,6 +348,22 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         if not state:
             return Response({'code': 2, 'info': '操作失败'})
         return Response({'code': 0, 'info': '操作成功'})
+
+    @list_route(methods=['post'])
+    def cancel_return_2_sys_transfer_coupon(self, request, *args, **kwargs):
+        # type: (HttpRequest, *Any, **Any) -> Response
+        """取消　退券　给　系统
+        """
+        transfer_record_id = request.POST.get('transfer_record_id')
+        if not transfer_record_id:
+            return Response({'code': 1, 'info': '参数错误'})
+        customer = get_customer_by_django_user(request.user)  # 下属用户返还自己的　券　给上级
+        transfer_record_id = int(str(transfer_record_id).strip())
+        try:
+            cancel_return_2_sys_transfer(transfer_record_id, customer)
+        except Exception as e:
+            return Response({'code': 3, 'info': '取消出错:%s' % e.message})
+        return Response({'code': 0, 'info': '已经取消'})
 
     @list_route(methods=['get'])
     def list_return_transfer_record(self, request, *args, **kwargs):

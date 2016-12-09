@@ -3,6 +3,8 @@ from __future__ import unicode_literals, absolute_import
 import datetime
 from django.db import IntegrityError
 from django.db import transaction
+from core.options import log_action, CHANGE
+
 from rest_framework import exceptions
 from ...models.transfer_coupon import CouponTransferRecord
 from ...models.usercoupon import UserCoupon
@@ -12,6 +14,7 @@ logger = logging.getLogger(__name__)
 from .usercoupon import get_user_coupons_by_ids, freeze_transfer_coupon, get_freeze_boutique_coupons_by_transfer, \
     rollback_user_coupon_status_2_unused_by_ids
 from flashsale.pay.apis.v1.customer import get_customer_by_django_user
+from flashsale.pay.models import BudgetLog
 
 __ALL__ = [
     'create_coupon_transfer_record',
@@ -20,8 +23,11 @@ __ALL__ = [
 
 
 def get_elite_score_by_templateid(templateid, mama):
-    # find modelproduct
+    # type: (int, XiaoluMama) -> Tuple[int, int, float]
+    """通过优惠券模板ID　和　小鹿妈妈 获取　精品券商品id　积分　和　价格
+    """
     from flashsale.pay.models.product import ModelProduct
+
     virtual_model_products = ModelProduct.objects.get_virtual_modelproducts()  # 虚拟商品
     find_mp = None
     for md in virtual_model_products:
@@ -33,12 +39,13 @@ def get_elite_score_by_templateid(templateid, mama):
             break
     if find_mp:
         if not mama:
-            return find_mp.products[0].id, find_mp.products[0].elite_score
+            return find_mp.products[0].id, find_mp.products[0].elite_score, find_mp.products[0].agent_price
         else:
             for product in find_mp.products:
                 if mama.elite_level in product.name:
-                    return product.id, product.elite_score
-    return 0, 0
+                    return product.id, product.elite_score, product.agent_price
+    return 0, 0, 0.0
+
 
 def get_transfer_record_by_id(id):
     # type: (int) -> CouponTransferRecord
@@ -254,7 +261,7 @@ def apply_pending_return_transfer_coupon(usercoupon_ids, customer):
         if not transfer_coupon_pk:
             continue
         transfer_record = get_transfer_record_by_id(int(transfer_coupon_pk))
-        if transfer_record.coupon_to_mama_id != mama.id:    # 当前妈妈与　转券时候 的　ｔｏ 妈妈一致
+        if transfer_record.coupon_to_mama_id != mama.id:  # 当前妈妈与　转券时候 的　ｔｏ 妈妈一致
             continue
         if transfer_record.id not in item:
             item[transfer_record.id] = [usercoupon.id]
@@ -292,6 +299,57 @@ def apply_pending_return_transfer_coupon(usercoupon_ids, customer):
             transfer_status=CouponTransferRecord.PENDING)
         new_transfer.save()
         freeze_transfer_coupon(coupon_ids, new_transfer.id)  # 冻结优惠券
+    return True
+
+
+@transaction.atomic()
+def apply_pending_return_transfer_coupon_2_sys(coupon_ids, customer):
+    # type: (List[int], Customer) -> float
+    """退精品券给系统　生成退券给系统记录
+    """
+    from .coupontemplate import get_coupon_template_by_id
+    from flashsale.pay.models import BudgetLog
+
+    coupons = get_user_coupons_by_ids(coupon_ids)
+    mama = customer.get_charged_mama()
+    template_ids = set()
+    for coupon in coupons:
+        if not coupon.can_return_sys():
+            raise Exception('%s不支持退券给系统' % coupon.title)
+        template_ids.add(coupon.template_id)
+    if len(template_ids) != 1:
+        raise Exception('多种券不支持同时退券')
+    template_id = template_ids.pop()
+    template = get_coupon_template_by_id(template_id)
+    product_id, elite_score, agent_price = get_elite_score_by_templateid(template_id, mama)
+    product_img = template.extras.get("product_img") or ''
+    coupon_value = int(template.value)
+    num = coupons.count()
+    total_elite_score = elite_score * num  # 计算总积分
+    total_agent_price = agent_price * num  # 计算总退款
+    count = CouponTransferRecord.objects.get_out_cash_transfer_coupons().filter(coupon_from_mama_id=mama.id).count()
+    uni_key = 'return-sys-%s-%s' % (mama.id, count)
+    transfer = CouponTransferRecord(
+        coupon_from_mama_id=mama.id,
+        from_mama_thumbnail=customer.thumbnail,
+        from_mama_nick=customer.nick,
+        coupon_to_mama_id=0,
+        to_mama_thumbnail='http://7xogkj.com2.z0.glb.qiniucdn.com/222-ohmydeer.png?imageMogr2/thumbnail/60/format/png',
+        to_mama_nick='SYSTEM',
+        coupon_value=coupon_value,
+        template_id=template_id,
+        order_no='return-money-%s' % total_agent_price,
+        product_img=product_img,
+        coupon_num=num,
+        transfer_type=CouponTransferRecord.OUT_CASHOUT,
+        uni_key=uni_key,
+        date_field=datetime.date.today(),
+        product_id=product_id,
+        elite_score=total_elite_score,
+        transfer_status=CouponTransferRecord.PENDING)
+    transfer.save()
+    BudgetLog.create_return_coupon_log(customer.id, transfer.id, flow_amount=int(total_agent_price * 100))  # 生成钱包待确定记录
+    freeze_transfer_coupon(coupon_ids, transfer.id)  # 冻结优惠券
     return True
 
 
@@ -336,6 +394,27 @@ def reject_apply_transfer_record(user, transfer_record_id):
     coupons = get_freeze_boutique_coupons_by_transfer(record.id)
     coupon_ids = [i['id'] for i in coupons.values('id')]
     rollback_user_coupon_status_2_unused_by_ids(coupon_ids)  # 状态设置为未使用
+    return True
+
+
+@transaction.atomic()
+def cancel_return_2_sys_transfer(transfer_record_id, customer):
+    # type: (int, Customer) -> bool
+    """用户取消　退　精品券　给　系统
+    """
+    coupons = get_freeze_boutique_coupons_by_transfer(transfer_record_id, customer.id)
+    if not coupons:
+        raise Exception('优惠券没有找到')
+    record = get_transfer_record_by_id(transfer_record_id)
+    coupon_ids = [cou.id for cou in coupons]
+    rollback_user_coupon_status_2_unused_by_ids(coupon_ids)  # 优惠券设置为可以使用状态
+    # 待确定小鹿钱包取消
+    bglogs = BudgetLog.objects.get_pending_return_boutique_coupon().filter(referal_id=str(record.id))
+    for b in bglogs:
+        b.cancel_budget_log()  # 取消钱包记录
+    record.transfer_status = CouponTransferRecord.CANCELED  # 取消 申请流通券记录
+    record.save(update_fields=['transfer_status', 'modified'])
+    log_action(customer.user, record, CHANGE, u'用户取消申请状态')
     return True
 
 
