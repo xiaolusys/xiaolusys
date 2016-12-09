@@ -20,6 +20,7 @@ class ActivityEntry(BaseModel):
     ACT_BRAND = 'brand'
     ACT_TOP = 'atop'
     ACT_TOPIC = 'topic'
+    ACT_JINGPIN = 'jingpin'
 
     ACT_CHOICES = (
         (ACT_WEBVIEW, u'普通活动'),
@@ -28,6 +29,7 @@ class ActivityEntry(BaseModel):
         (ACT_BRAND, u'品牌专场'),
         (ACT_COUPON, u'优惠券活动'),
         (ACT_MAMA, u'妈妈活动'),
+        (ACT_JINGPIN, u'精品汇活动'),
     )
 
     title = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'活动/品牌名称')

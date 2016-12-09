@@ -50,6 +50,9 @@ def get_landing_effect_activities():
     """ 根据时间获取活动列表app首页展示 """
     return ActivityEntry.objects.sale_home_page_activities()
 
+def get_jingpin_effect_activities():
+    return ActivityEntry.objects.jingpin_page_activities();
+
 
 def _validate_start_end_time(start_time, end_time):
     # type: (datetime.datetime, datetime.datetime) -> None

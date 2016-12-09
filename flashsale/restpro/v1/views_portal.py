@@ -31,7 +31,7 @@ class PortalViewSet(viewsets.ReadOnlyModelViewSet):
 
     def calc_porter_cache_key(self, view_instance, view_method,
                               request, args, kwargs):
-        key_vals = ['days']
+        key_vals = ['days', 'category']
         key_maps = kwargs or {}
         for k, v in request.GET.copy().iteritems():
             if k in key_vals and v.strip():
@@ -56,14 +56,19 @@ class PortalViewSet(viewsets.ReadOnlyModelViewSet):
                 break
         return ldate
 
-    def get_today_poster(self):
+    def get_today_poster(self, category=None):
         target_date = datetime.datetime.now()
-        poster = self.queryset.filter(active_time__lte=target_date).order_by('-active_time').first()
+        if category == 'jingpin':
+            poster = self.queryset.filter(active_time__lte=target_date, category=GoodShelf.CATEGORY_JINGPIN).order_by('-active_time').first()
+        else:
+            poster = self.queryset.filter(active_time__lte=target_date, category=GoodShelf.CATEGORY_INDEX).order_by('-active_time').first()
         return poster
 
     @cache_response(timeout=CACHE_VIEW_TIMEOUT, key_func='calc_porter_cache_key')
     def list(self, request, *args, **kwargs):
-        poster = self.get_today_poster()
+        category = request.GET.get('category')
+        poster = self.get_today_poster(category=category)
+        poster.request_category = category
         serializer = self.get_serializer(poster, many=False)
         return Response(serializer.data)
 
