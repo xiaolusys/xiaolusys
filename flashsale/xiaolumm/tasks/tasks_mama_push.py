@@ -58,7 +58,7 @@ def task_push_mama_cashout_msg(envelop):
 
 
 @app.task
-def task_apis_awardcarry(awardcarry):
+def task_weixin_push_awardcarry(awardcarry):
     from shopapp.weixin.apis import WeixinPush
     wp = WeixinPush()
 
@@ -73,13 +73,13 @@ def task_apis_awardcarry(awardcarry):
 
 
 @app.task
-def task_apis_clickcarry(clickcarry, fake=False):
+def task_weixin_push_clickcarry(clickcarry, fake=False):
     wp = WeixinPush()
     wp.push_mama_clickcarry(clickcarry, fake=fake)
 
 
 @app.task(max_retries=3, default_retry_delay=6)
-def task_apis_ordercarry(ordercarry):
+def task_weixin_push_ordercarry(ordercarry):
     from flashsale.pay.models import SaleOrder
     from flashsale.xiaolumm.models import OrderCarry
 
@@ -91,7 +91,7 @@ def task_apis_ordercarry(ordercarry):
     try:
         sale_trade_id = sale_order.sale_trade.tid
     except Exception as exc:
-        raise task_apis_ordercarry.retry(exc=exc)
+        raise task_weixin_push_ordercarry.retry(exc=exc)
 
     if ordercarry.carry_type == OrderCarry.REFERAL_ORDER:
         event_type = WeixinPushEvent.SUB_ORDER_CARRY_INIT
@@ -142,7 +142,7 @@ def task_apis_ordercarry(ordercarry):
 
 
 @app.task(serializer='pickle')
-def task_apis_update_app(app_visit):
+def task_weixin_push_update_app(app_visit):
     device_type = app_visit.device_type
     device = ''
 
@@ -172,7 +172,7 @@ def task_apis_update_app(app_visit):
 
 
 @app.task
-def task_apis_invite_trial(potential_mama):
+def task_weixin_push_invite_trial(potential_mama):
     from flashsale.xiaolumm.models import PotentialMama, ReferalRelationship, AwardCarry
 
     referal_mama_id, potential_mama_id = potential_mama.referal_mama, potential_mama.potential_mama
@@ -273,7 +273,7 @@ def task_sms_push_mama(xlmm):
 
 
 @app.task
-def task_apis_invite_fans_limit(today_invites, max_daily_fans_invites):
+def task_weixin_push_invite_fans_limit(today_invites, max_daily_fans_invites):
     """
     通知每日邀请上限，超过不发奖金。
     """
@@ -281,7 +281,7 @@ def task_apis_invite_fans_limit(today_invites, max_daily_fans_invites):
 
 
 @app.task(max_retries=3, default_retry_delay=6)
-def task_apis_mama_coupon_audit(coupon_record):
+def task_weixin_push_mama_coupon_audit(coupon_record):
     """
     精品券审核申请推送
     """

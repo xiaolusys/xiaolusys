@@ -543,7 +543,7 @@ def ordercarry_weixin_push(sender, instance, created, **kwargs):
         return
     if instance.mama_id < 1:
         return
-    from flashsale.xiaolumm.tasks import task_weixin_push_ordercarry
+    from flashsale.xiaolumm.tasks.tasks_mama_push import task_weixin_push_ordercarry
     task_weixin_push_ordercarry.delay(instance)
 
 post_save.connect(ordercarry_weixin_push,
