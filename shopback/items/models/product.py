@@ -88,7 +88,9 @@ class Product(models.Model):
     DOWN_SHELF = 0
     SHELF_CHOICES = ((UP_SHELF, u'已上架'),
                      (DOWN_SHELF, u'未上架'))
-
+    NORMAL_SALE = 0
+    VIRTUAL_SALE = 1
+    NO_SALE = 2
     TYPE_CHOICES = (
         (0, u'商品'),
         (1, u'虚拟商品'),

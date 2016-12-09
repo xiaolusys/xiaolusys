@@ -48,12 +48,11 @@ class OrderListAdmin(BaseModelAdmin):
     inlines = [orderdetailInline]
 
     list_display = (
-        'id', 'buyer_select', 'order_amount', 'calcu_model_num', 'quantity', 'purchase_total_num', 'shelf_status',
-        'created', 'press_num', 'stage', 'get_receive_status', 'is_postpay', 'changedetail', 'supplier', 'note_name',
-        'purchase_order_unikey_link', 'express_no', 'remind_link')
+        'id', 'buyer_select', 'order_amount','quantity', 'created', 'press_num', 'stage', 'get_receive_status', 'is_postpay', 'changedetail', 'supplier', 'note_name',
+        'purchase_order_unikey_link', 'shelf_status', 'remind_link')
     list_filter = (('created', DateFieldListFilter), 'stage', 'arrival_process', 'is_postpay', 'press_num',
                    'pay_status', BuyerNameFilter, 'last_pay_date', 'created_by')
-    search_fields = ['id', 'supplier__supplier_name', 'supplier_shop', 'express_no', 'note', 'purchase_order_unikey']
+    search_fields = ['id', 'supplier__supplier_name', 'supplier_shop', 'note', 'purchase_order_unikey']
     date_hierarchy = 'created'
 
     list_per_page = 25
@@ -132,7 +131,7 @@ class OrderListAdmin(BaseModelAdmin):
         return '{0}'.format(quantityofoneorder)
 
     quantity.allow_tags = True
-    quantity.short_description = u"商品数量"
+    quantity.short_description = u"数量"
 
     def get_receive_status(self, obj):
         return obj.get_receive_status()
@@ -171,11 +170,11 @@ class OrderListAdmin(BaseModelAdmin):
         if obj.status == OrderList.SUBMITTING:
             return obj.purchase_order_unikey
 
-        return u'<a href="/admin/trades/packageskuitem/?o=11.-10&q=%s" target="_blank" style="display: block;" >%s</a>' % (
+        return u'<a href="/admin/trades/packageskuitem/?o=11.-10&purchase_order_unikey=%s" target="_blank" style="display: block;" >%s</a>' % (
             obj.purchase_order_unikey, obj.purchase_order_unikey)
 
     purchase_order_unikey_link.allow_tags = True
-    purchase_order_unikey_link.short_description = "订单列表"
+    purchase_order_unikey_link.short_description = u"订单列表"
 
     def remind_link(self, obj):
         t = datetime.datetime.now() - datetime.timedelta(days=30)

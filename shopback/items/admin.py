@@ -29,7 +29,7 @@ from core.admin import ApproxAdmin
 from shopback.items.forms import ProductModelForm, ProductSkuFormset
 from core.filters import DateFieldListFilter
 from shopback.items.filters import ChargerFilter, DateScheduleFilter, GroupNameFilter, CategoryFilter, \
-    ProductVirtualFilter, ProductStatusFilter, ProductCategoryFilter
+    ProductTypeFilter, ProductStatusFilter, ProductCategoryFilter
 from common.utils import gen_cvs_tuple, CSVUnicodeWriter, update_model_fields
 from flashsale.pay.models import Productdetail
 from flashsale.pay.forms import ProductdetailForm
@@ -1252,7 +1252,7 @@ class SkuStockAdmin(admin.ModelAdmin):
                        'waitingpay_num', 'created', 'modified', 'status']
     list_select_related = True
     list_per_page = 50
-    list_filter = ['status', ProductSkuStatsUnusedStockFilter, ProductWareByFilter, ProductVirtualFilter,
+    list_filter = ['status', ProductSkuStatsUnusedStockFilter, ProductWareByFilter, ProductTypeFilter,
                    ProductStatusFilter, ProductCategoryFilter]
 
     SKU_PREVIEW_TPL = (
