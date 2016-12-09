@@ -3,6 +3,7 @@
   "fields": {
     "active_time": "2015-07-23T15:16:02",
     "title": "xiaolumm",
+    "category": "index",
     "created": "2015-07-23T15:16:07",
     "is_active": true,
     "modified": "2015-07-24T11:49:10",
@@ -25,6 +26,7 @@
 {
   "fields": {
     "active_time": "2015-07-24T11:49:20",
+    "category": "index",
     "title": "20150724",
     "created": "2015-07-24T11:50:18",
     "is_active": true,
