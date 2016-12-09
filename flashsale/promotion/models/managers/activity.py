@@ -46,7 +46,15 @@ class ActivityManager(BaseManager):
         """特卖首页活动
         """
         return self.effect_activities().exclude(act_type__in=(self.model.ACT_MAMA,
-                                                              self.model.ACT_BRAND))
+                                                              self.model.ACT_BRAND,
+                                                              self.model.ACT_JINGPIN))
+
+    def jingpin_page_activities(self):
+        """
+        精品汇页面活动
+        """
+        from flashsale.promotion.models import ActivityEntry
+        return self.effect_activities().filter(act_type=ActivityEntry.ACT_JINGPIN)
 
 
 class ActivityProManager(BaseManager):

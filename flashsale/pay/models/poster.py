@@ -45,7 +45,15 @@ class GoodShelf(PayBaseModel):
     DEFAULT_WEN_POSTER = DEFAULT_WEN_POSTER
     DEFAULT_CHD_POSTER = DEFAULT_CHD_POSTER
 
+    CATEGORY_INDEX = 'index'
+    CATEGORY_JINGPIN = 'jingpin'
+    CATEGORY_CHOICES = (
+        (CATEGORY_INDEX, u'首页'),
+        (CATEGORY_JINGPIN, u'精品汇页面')
+    )
+
     title = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'海报名称')
+    category = models.CharField(max_length=16, choices=CATEGORY_CHOICES, default=CATEGORY_INDEX, verbose_name=u'海报类型')
 
     wem_posters = JSONCharMyField(max_length=10240, blank=True,
                                   default=default_wen_poster,

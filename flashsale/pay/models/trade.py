@@ -379,7 +379,7 @@ class SaleTrade(BaseModel):
                     order.status = SaleTrade.TRADE_FINISHED
                     order.save(update_fields=['status'])
             strade = self
-            transaction.on_commit(lambda: signal_saletrade_pay_confirm.send(sender=SaleTrade, obj=strade))            
+            transaction.on_commit(lambda: signal_saletrade_pay_confirm.send(sender=SaleTrade, obj=strade))
         except Exception, exc:
             logger.error(str(exc), exc_info=True)
             if not settings.INGORE_SIGNAL_EXCEPTION:
