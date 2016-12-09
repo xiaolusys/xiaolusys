@@ -144,6 +144,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             logger.error(u'购物车商品id不一致: (%s, %s), agent=%s' % (product_id, sku_id, request.META.get('HTTP_USER_AGENT')))
             return Response({"code": 8, "info": u'商品提交信息不一致'})
 
+        sku_id = sku.id
         cart_id = data.get("cart_id", None)
         if cart_id and cart_id.isdigit():
             s_temp = ShoppingCart.objects.filter(item_id=product_id, sku_id=sku_id,
