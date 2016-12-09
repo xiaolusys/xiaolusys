@@ -8,7 +8,7 @@ from shopmanager import celery_app as app
 import datetime
 from flashsale.xiaolumm.models import XiaoluMama, NinePicAdver, WeixinPushEvent
 from flashsale.push import push_mama
-from shopapp.weixin.weixin_push import WeixinPush
+from shopapp.weixin.apis import WeixinPush
 from flashsale.xiaolumm.util_emoji import gen_emoji, match_emoji
 from shopapp.weixin.models import WeixinUnionID
 from django.db.models import Count, Sum
@@ -58,8 +58,8 @@ def task_push_mama_cashout_msg(envelop):
 
 
 @app.task
-def task_weixin_push_awardcarry(awardcarry):
-    from shopapp.weixin.weixin_push import WeixinPush
+def task_apis_awardcarry(awardcarry):
+    from shopapp.weixin.apis import WeixinPush
     wp = WeixinPush()
 
     from flashsale.xiaolumm import util_description
@@ -73,13 +73,13 @@ def task_weixin_push_awardcarry(awardcarry):
 
 
 @app.task
-def task_weixin_push_clickcarry(clickcarry, fake=False):
+def task_apis_clickcarry(clickcarry, fake=False):
     wp = WeixinPush()
     wp.push_mama_clickcarry(clickcarry, fake=fake)
 
 
 @app.task(max_retries=3, default_retry_delay=6)
-def task_weixin_push_ordercarry(ordercarry):
+def task_apis_ordercarry(ordercarry):
     from flashsale.pay.models import SaleOrder
     from flashsale.xiaolumm.models import OrderCarry
 
@@ -91,7 +91,7 @@ def task_weixin_push_ordercarry(ordercarry):
     try:
         sale_trade_id = sale_order.sale_trade.tid
     except Exception as exc:
-        raise task_weixin_push_ordercarry.retry(exc=exc)
+        raise task_apis_ordercarry.retry(exc=exc)
 
     if ordercarry.carry_type == OrderCarry.REFERAL_ORDER:
         event_type = WeixinPushEvent.SUB_ORDER_CARRY_INIT
@@ -142,7 +142,7 @@ def task_weixin_push_ordercarry(ordercarry):
 
 
 @app.task(serializer='pickle')
-def task_weixin_push_update_app(app_visit):
+def task_apis_update_app(app_visit):
     device_type = app_visit.device_type
     device = ''
 
@@ -162,7 +162,7 @@ def task_weixin_push_update_app(app_visit):
         # already latest, no need to push udpate reminder
         return
 
-    from shopapp.weixin.weixin_push import WeixinPush
+    from shopapp.weixin.apis import WeixinPush
     wp = WeixinPush()
 
     mama_id = app_visit.mama_id
@@ -172,7 +172,7 @@ def task_weixin_push_update_app(app_visit):
 
 
 @app.task
-def task_weixin_push_invite_trial(potential_mama):
+def task_apis_invite_trial(potential_mama):
     from flashsale.xiaolumm.models import PotentialMama, ReferalRelationship, AwardCarry
 
     referal_mama_id, potential_mama_id = potential_mama.referal_mama, potential_mama.potential_mama
@@ -216,7 +216,7 @@ def task_weixin_push_invite_trial(potential_mama):
     carry_num = utils.get_award_carry_num(rr_cnt, XiaoluMama.FULL)
     carry_num = carry_num * 0.01
 
-    from shopapp.weixin.weixin_push import WeixinPush
+    from shopapp.weixin.apis import WeixinPush
     wp = WeixinPush()
 
     wp.push_mama_invite_trial(referal_mama_id,potential_mama_id, diff_num,award_num,invite_num,award_sum,trial_num,carry_num)
@@ -237,7 +237,7 @@ def task_push_new_mama_task(xlmm, current_task, params=None):
     """
     return  # 暂时关闭新手任务推送
 
-    from shopapp.weixin.weixin_push import WeixinPush
+    from shopapp.weixin.apis import WeixinPush
     from flashsale.xiaolumm.models.new_mama_task import NewMamaTask
 
     next_task = xlmm.get_next_new_mama_task()
@@ -273,7 +273,7 @@ def task_sms_push_mama(xlmm):
 
 
 @app.task
-def task_weixin_push_invite_fans_limit(today_invites, max_daily_fans_invites):
+def task_apis_invite_fans_limit(today_invites, max_daily_fans_invites):
     """
     通知每日邀请上限，超过不发奖金。
     """
@@ -281,11 +281,11 @@ def task_weixin_push_invite_fans_limit(today_invites, max_daily_fans_invites):
 
 
 @app.task(max_retries=3, default_retry_delay=6)
-def task_weixin_push_mama_coupon_audit(coupon_record):
+def task_apis_mama_coupon_audit(coupon_record):
     """
     精品券审核申请推送
     """
-    from shopapp.weixin.weixin_push import WeixinPush
+    from shopapp.weixin.apis import WeixinPush
 
     push = WeixinPush()
     push.push_mama_coupon_audit(coupon_record)

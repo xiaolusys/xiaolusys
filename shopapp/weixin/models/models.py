@@ -12,13 +12,8 @@ from django.db.models.signals import post_save
 from core import managers
 from core.models import CacheModel
 from core.fields import JSONCharMyField
-from .managers import VipCodeManager, WeixinUserManager
+from ..managers import VipCodeManager, WeixinUserManager
 
-from shopback.trades.models import MergeTrade
-from .models_base import WeixinUnionID,WeixinUserInfo
-from shopback.trades.models import PackageOrder
-from .models_base import WeixinUnionID, WeixinFans
-from .models_sale import WXProduct,WXSkuProperty,WXProductSku,WXOrder,WXLogistic
 
 MIAOSHA_SELLER_ID = 'wxmiaosha'
 SAFE_CODE_SECONDS = 180
@@ -26,6 +21,7 @@ TOKEN_EXPIRED_IN = 15 * 60
 
 
 def get_Unionid(openid, appid):
+    from .base import WeixinUnionID
     try:
         wxunion = WeixinUnionID.objects.get(openid=openid, app_key=appid)
         return wxunion.unionid
@@ -43,8 +39,8 @@ class AnonymousWeixinAccount():
 
 class WeiXinAccount(models.Model):
     account_id = models.CharField(max_length=32, unique=True,
-                                  verbose_name=u'OPEN ID')
-
+                                  verbose_name=u'原始ID')
+    account_name = models.CharField(max_length=32, blank=True, verbose_name=u'公众号名称')
     token = models.CharField(max_length=32, verbose_name=u'TOKEN')
 
     app_id = models.CharField(max_length=64, verbose_name=u'应用ID')
@@ -917,6 +913,8 @@ weixin_sampleconfirm_signal.connect(sample_confirm_answer2score, sender=SampleOr
 def convert_trade_payment2score(sender, trade_id, *args, **kwargs):
     try:
         from shopback import paramconfig as pcfg
+        from shopback.trades.models import MergeTrade
+
         instance = MergeTrade.objects.get(id=trade_id)
         # the order is finished , print express or handsale
         if (instance.sys_status != pcfg.FINISHED_STATUS
@@ -971,6 +969,9 @@ def convert_trade_payment2score(sender, trade_id, *args, **kwargs):
 def convert_package_payment2score(sender,package_order_id,*args,**kwargs):
     try:
         from shopback import paramconfig as pcfg
+        from shopback.trades.models import PackageOrder
+        if sender != PackageOrder:
+            return
         instance = PackageOrder.objects.get(id = package_order_id)
         #the order is finished , print express or handsale
         if (instance.sys_status != PackageOrder.FINISHED_STATUS
@@ -1019,10 +1020,7 @@ def convert_package_payment2score(sender,package_order_id,*args,**kwargs):
         logger = logging.getLogger("celery.handler")
         logger.error(u'订单积分转换失败:%s'%exc.message,exc_info=True)
 
-
-confirm_trade_signal.connect(convert_package_payment2score, sender=PackageOrder)
-
-
+confirm_trade_signal.connect(convert_package_payment2score)
 
 # 推荐关系增加积分
 

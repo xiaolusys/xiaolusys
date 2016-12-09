@@ -181,28 +181,11 @@ post_save.connect(weixinfans_create_awardcarry,
 #                 sender=WeixinFans, dispatch_uid='pre_save_weixinfans_xlmm_newtask')
 
 
-class WeixinTplMsg(BaseModel):
-    """
-    """
-    wx_template_id = models.CharField(max_length=255, verbose_name=u'微信模板ID')
-    template_ids = JSONCharMyField(max_length=512, blank=True, default={}, verbose_name=u'模版ID集合')
-    content = models.TextField(blank=True, null=True, verbose_name=u'模板内容')
-    header = models.CharField(max_length=512, blank=True, null=True, verbose_name=u'模板消息头部')
-    footer = models.CharField(max_length=512, blank=True, null=True, verbose_name=u'模板消息尾部')
-    status = models.BooleanField(default=True, verbose_name=u"使用")
-
-    class Meta:
-        db_table = 'shop_weixin_template_msg'
-        app_label = 'weixin'
-        verbose_name = u'微信模板消息'
-        verbose_name_plural = u'微信模板消息列表'
-
-
 from core.weixin import signals
 
 
 def fetch_weixin_userinfo(sender, appid, resp_data, *args, **kwargs):
-    from .tasks import task_Update_Weixin_Userinfo
+    from ..tasks import task_Update_Weixin_Userinfo
     openid = resp_data.get('openid')
     if not openid or not appid:
         return

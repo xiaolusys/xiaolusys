@@ -49,7 +49,7 @@ import time
 from django.db.models import Sum
 from django.shortcuts import redirect, render
 from .forms import EnvelopForm, CustomShareForm
-from shopapp.weixin.models_base import WeixinUnionID
+from shopapp.weixin.models import WeixinUnionID
 
 import logging
 

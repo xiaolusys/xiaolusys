@@ -22,7 +22,7 @@ from shopback.items.models import Product
 from common.urlutils import replace_domain
 
 from shopapp.weixin.models import WeixinUnionID
-from shopapp.weixin.weixin_apis import WeiXinAPI, WeiXinRequestException
+from shopapp.weixin.apis import WeiXinAPI, WeiXinRequestException
 from flashsale.restpro import permissions as perms
 from . import serializers
 from core.options import log_action, ADDITION, CHANGE

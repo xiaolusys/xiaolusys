@@ -3,7 +3,7 @@ from __future__ import absolute_import, unicode_literals
 from shopmanager import celery_app as app
 
 from .mipush import mipush_of_ios, mipush_of_android
-from shopapp.weixin.weixin_push import WeixinPush
+from shopapp.weixin.apis import WeixinPush
 
 
 @app.task(max_retries=3, default_retry_delay=5)

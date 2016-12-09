@@ -16,7 +16,7 @@ from .models import (ExamProblem,
                      ExamUserPaper,
                      ExamUserProblem,
                      Invitationship)
-from shopapp.weixin.views import WeiXinUser, get_user_openid
+from shopapp.weixin.views.views import WeiXinUser, get_user_openid
 from shopapp.signals import weixin_active_signal
 
 import logging

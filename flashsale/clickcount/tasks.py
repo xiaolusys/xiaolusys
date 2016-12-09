@@ -100,16 +100,15 @@ def calc_Xlmm_ClickRebeta(xlmm, time_from, time_to, xlmm_cc=None):
             return 0
         xlmm_cc = mama_ccs[0]
 
-    buyercount = StatisticsShopping.normal_objects.filter(linkid=xlmm.id,
-                                                          shoptime__range=(time_from, time_to)).values(
-        'openid').distinct().count()
+    buyercount = StatisticsShopping.normal_objects.filter(
+        linkid=xlmm.id, shoptime__range=(time_from, time_to)).values('openid').distinct().count()
     day_date = time_from.date()
     click_price = xlmm.get_Mama_Click_Price_By_Day(buyercount, day_date=day_date)
     click_num = xlmm_cc.valid_num
 
     # 设置最高有效最高点击上限
     max_click_count = xlmm.get_Mama_Max_Valid_Clickcount(buyercount, day_date=day_date)
-    #         click_rebeta = click_num  * click_price
+    # click_rebeta = click_num  * click_price
 
     ten_click_num = 0
     ten_click_price = 0

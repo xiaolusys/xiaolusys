@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from django.db import models
 from core.fields import JSONCharMyField
 
-from .managers import WeixinProductManager
+from ..managers import WeixinProductManager
 
 
 class WXProduct(models.Model):

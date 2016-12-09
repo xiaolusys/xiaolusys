@@ -552,7 +552,7 @@ class SaleRefund(PayBaseModel):
     def send_refund_agree_weixin_message(self):
         # type : () -> None
         from flashsale.xiaolumm.models import WeixinPushEvent
-        from shopapp.weixin.weixin_push import WeixinPush
+        from shopapp.weixin.apis import WeixinPush
 
         push = WeixinPush()
         push.push_refund_notify(self, WeixinPushEvent.SALE_REFUND_AGREE)  # 推送同意退款微信消息
@@ -562,7 +562,7 @@ class SaleRefund(PayBaseModel):
         """发送退款成功微信推送
         """
         from flashsale.xiaolumm.models import WeixinPushEvent
-        from shopapp.weixin.weixin_push import WeixinPush
+        from shopapp.weixin.apis import WeixinPush
 
         push = WeixinPush()
         push.push_refund_notify(self, WeixinPushEvent.SALE_REFUND_GOODS_SUCCESS)  # 推送退款成功微信消息

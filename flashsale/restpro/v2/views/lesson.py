@@ -355,7 +355,7 @@ class LessonAttendRecordViewSet(viewsets.ModelViewSet):
 
 
 from core.weixin.mixins import WeixinAuthMixin
-from shopapp.weixin.models_base import WeixinUserInfo
+from shopapp.weixin.models import WeixinUserInfo
 
 
 class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):

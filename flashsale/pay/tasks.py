@@ -733,7 +733,7 @@ def task_customer_update_weixinuserinfo(customer):
     if not customer.unionid:
         return
 
-    from shopapp.weixin.models_base import WeixinUserInfo
+    from shopapp.weixin.models import WeixinUserInfo
     info = WeixinUserInfo.objects.filter(unionid=customer.unionid).first()
     if not info:
         info = WeixinUserInfo(unionid=customer.unionid,nick=customer.nick,thumbnail=customer.thumbnail)

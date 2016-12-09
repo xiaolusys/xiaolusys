@@ -254,7 +254,7 @@ class XLSampleapplyView(WeixinAuthMixin, View):
 
 
 from common.utils import valid_mobile
-from shopapp.weixin.models_base import WeixinUserInfo
+from shopapp.weixin.models import WeixinUserInfo
 
 
 class APPDownloadView(WeixinAuthMixin, View):

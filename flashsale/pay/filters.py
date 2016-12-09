@@ -1,7 +1,7 @@
 # coding=utf-8
 from datetime import datetime, timedelta
 from django.contrib.admin import SimpleListFilter
-from shopapp.weixin.models_base import WeixinUnionID
+from shopapp.weixin.models import WeixinUnionID
 from flashsale.xiaolumm.models import XiaoluMama
 import constants
 

@@ -11,8 +11,6 @@ from django.db.models import Sum
 from flashsale.xiaolumm.managers import XiaoluMamaManager
 
 # Create your models here.
-from shopback.items.models import Product
-from shopapp.weixin.models_sale import WXProductSku
 from common.modelutils import update_model_fields
 from core.models import BaseModel
 from core.fields import JSONCharMyField
@@ -285,10 +283,12 @@ class XiaoluMama(BaseModel):
 
     def get_Mama_Order_Rebeta(self, order):
         # 如果订单来自小鹿特卖平台
+        from shopback.items.models import Product
         if hasattr(order, 'item_id'):
             product_qs = Product.objects.filter(id=order.item_id)
         # 如果订单来自微信小店
         elif hasattr(order, 'product_sku'):
+            from shopapp.weixin.models import WXProductSku
             try:
                 wxsku = WXProductSku.objects.get(sku_id=order.product_sku,
                                                  product=order.product_id)
@@ -995,7 +995,7 @@ class XiaoluMama(BaseModel):
         from flashsale.coupon.models import OrderShareCoupon
         from flashsale.xiaolumm.models import XlmmFans, PotentialMama
         from flashsale.xiaolumm.models.models_fortune import CarryRecord, OrderCarry, ReferalRelationship
-        from shopapp.weixin.models_base import WeixinFans
+        from shopapp.weixin.models import WeixinFans
 
         customer = self.get_customer()
 
@@ -1518,7 +1518,7 @@ pre_save.connect(potentialmama_xlmm_newtask,
 #    from flashsale.xiaolumm.tasks_mama_push import task_sms_push_mama, task_push_new_mama_task
 #    from flashsale.xiaolumm.tasks_mama_fortune import task_subscribe_weixin_send_award
 #    from flashsale.xiaolumm.models.new_mama_task import NewMamaTask
-#    from shopapp.weixin.models_base import WeixinFans
+#    from shopapp.weixin.models import WeixinFans
 #
 #    potentialmama = instance
 #

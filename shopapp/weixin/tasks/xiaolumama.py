@@ -9,7 +9,7 @@ from flashsale.xiaolumm.models import XiaoluMama, PotentialMama, XlmmFans, Award
 from flashsale.pay.models import BudgetLog
 from shopback.monitor.models import XiaoluSwitch
 
-from ..weixin_apis import WeiXinAPI
+from ..apis import WeiXinAPI
 from ..models import WeixinUnionID, WeixinUserInfo, WeixinFans, WeiXinAutoResponse
 from ..utils import fetch_wxpub_mama_custom_qrcode_media_id, fetch_wxpub_mama_manager_qrcode_media_id
 

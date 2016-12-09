@@ -5,8 +5,8 @@ import os
 import sys
 sys.path.append('.')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'shopmanager.local_settings')
-# from shopapp.weixin.weixin_apis import WeiXinAPI
-from shopapp.weixin.weixin_push import WeixinPush
+# from shopapp.weixin.apis import WeiXinAPI
+from shopapp.weixin.apis import WeixinPush
 from flashsale.pay.models.trade import SaleTrade, SaleOrder
 from flashsale.pay.models.refund import SaleRefund
 from flashsale.pay.models.user import Customer
@@ -77,7 +77,7 @@ def test_push_mama_coupon_audit():
 
 
 def test_send_msg():
-    from shopapp.weixin.weixin_apis import WeiXinAPI
+    from shopapp.weixin.apis import WeiXinAPI
     # openid = 'our5huD8xO6QY-lJc1DTrqRut3us'
     openid = 'our5huNlWVnegDDtQ5BHy7qaaBYM'  #　子飞
 

@@ -9,8 +9,8 @@ gevent.monkey.patch_all()
 from gevent.pool import Pool
 from datetime import datetime
 from django.conf import settings
-from shopapp.weixin.weixin_apis import WeiXinAPI
-from shopapp.weixin.models_base import WeixinFans
+from shopapp.weixin.apis import WeiXinAPI
+from shopapp.weixin.models import WeixinFans
 
 
 def main():

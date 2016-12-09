@@ -3,8 +3,8 @@ from __future__ import absolute_import, unicode_literals
 from shopmanager import celery_app as app
 
 import datetime
-from shopapp.weixin.weixin_apis import WeiXinAPI
-from shopapp.weixin.models import WeixinFans, WeixinUnionID
+from ..apis import WeiXinAPI
+from ..models import WeixinFans, WeixinUnionID
 
 import logging
 logger = logging.getLogger(__name__)

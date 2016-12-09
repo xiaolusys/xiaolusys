@@ -38,7 +38,7 @@ from flashsale.xiaolumm.models.models_fortune import (
     MamaDailyAppVisit,
     MamaFortune
 )
-from shopapp.weixin.models_base import WeixinFans
+from shopapp.weixin.models import WeixinFans
 
 
 def generate_sql_from_tokens(tokens):

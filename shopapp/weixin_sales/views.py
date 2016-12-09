@@ -10,7 +10,7 @@ from django.template import RequestContext
 from django.shortcuts import render
 
 from shopback.base.authentication import login_required_ajax
-from shopapp.weixin.views import WeiXinUser, VipCode, get_user_openid
+from shopapp.weixin.views.views import WeiXinUser, VipCode, get_user_openid
 from .models import WeixinUserPicture, WeixinUserAward, WeixinLinkShare
 from .tasks import task_notify_referal_award
 from shopapp.signals import weixin_referal_signal

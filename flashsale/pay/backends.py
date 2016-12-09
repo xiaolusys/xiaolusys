@@ -10,7 +10,7 @@ from django.core.urlresolvers import reverse
 from .models import Customer, Register
 from core.weixin import options
 from .tasks import task_Update_Sale_Customer, task_Refresh_Sale_Customer
-from shopapp.weixin.views import valid_openid
+from shopapp.weixin.views.views import valid_openid
 from shopapp.weixin.models import WeiXinUser, WeixinUnionID
 
 import logging

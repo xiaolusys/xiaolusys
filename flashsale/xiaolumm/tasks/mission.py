@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 def task_push_mission_state_msg_to_weixin_user(mission_record_id, state):
     """state: staging,任务未完成状态通知; finished,任务完成奖励通知； confirm,任务奖励确认通知; cancel,任务奖励取消通知;"""
     try:
-        from shopapp.weixin.weixin_push import WeixinPush
+        from shopapp.weixin.apis import WeixinPush
         mama_mission = MamaMissionRecord.objects.filter(id=mission_record_id).first()
         if not settings.MAMA_MISSION_PUSH_SWITCH and  mama_mission.mama_id > 135 :
             return

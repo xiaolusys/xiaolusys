@@ -1,3 +1,6 @@
+# coding: utf8
+from __future__ import absolute_import, unicode_literals
+
 # encoding=utf8
 import json
 import random
@@ -7,8 +10,8 @@ from django.conf import settings
 from flashsale.xiaolumm.models import XiaoluMama, WeixinPushEvent
 from flashsale.pay.models.teambuy import TeamBuyDetail
 from flashsale.pay.models.trade import SaleTrade
-from shopapp.weixin.weixin_apis import WeiXinAPI
-from shopapp.weixin.models_base import (
+from ..apis.wxpubsdk import WeiXinAPI
+from shopapp.weixin.models import (
     WeixinFans,
     WeixinTplMsg,
 )

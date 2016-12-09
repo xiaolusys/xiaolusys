@@ -14,7 +14,7 @@ from core.admin import ApproxAdmin
 from core.filters import DateFieldListFilter
 from shopback.items.models import Product
 from common.utils import gen_cvs_tuple, CSVUnicodeWriter
-from .models_base import (
+from .models import (
     WeixinUserInfo,
     WeixinTplMsg,
     WeixinFans,
@@ -101,7 +101,7 @@ class UserChangeList(ChangeList):
 
 
 class WeiXinAccountAdmin(admin.ModelAdmin):
-    list_display = ('id', 'account_id', 'token', 'app_id', 'expires_in',
+    list_display = ('id', 'account_id', 'account_name', 'token', 'app_id', 'expires_in',
                     'expired', 'in_voice', 'is_active')
 
     list_display_links = ('id', 'account_id')
@@ -132,7 +132,7 @@ class WeiXinAccountAdmin(admin.ModelAdmin):
             try:
                 jmenu = obj.jmenu.copy()
                 # self.unicode2Utf8(jmenu)
-                from .weixin_apis import WeiXinAPI
+                from .apis.wxpubsdk import WeiXinAPI
                 wx_api = WeiXinAPI()
                 wx_api.setAccountId(wxpubId=obj.account_id)
 

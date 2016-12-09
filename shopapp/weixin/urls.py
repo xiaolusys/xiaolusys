@@ -7,9 +7,8 @@ from django.views.decorators.cache import cache_page
 from django.views.generic import TemplateView
 from shopback.base.proxy import ProxyView
 from shopapp.weixin_sales.decorators import record_weixin_clicks
-from shopapp.weixin import views
+from shopapp.weixin.views import views, proxy
 
-from shopapp.weixin.views import *
 
 # from core.options.renderers  import BaseJsonRenderer
 # from core.options.permissions import IsAuthenticated
@@ -32,7 +31,7 @@ urlpatterns = [
        template_name="weixin/baby_archives.html"),
        name='weixin_baby_archive'),
 
-    url(r'^charge/(?P<pk>\d+)/$', chargeWXUser),
+    url(r'^charge/(?P<pk>\d+)/$', views.chargeWXUser),
     url(r'^user/(?P<pk>\d+)/$', views.WeixinUserModelView.as_view()),
 
     url(r'^referal/$', views.ReferalView.as_view()),
@@ -97,24 +96,23 @@ urlpatterns = [
 
     url(r'^checkqr/', views.TestCodeView.as_view()),
 
-    url(r'^warn/$', warn, name='weixin_warn'),
-    url(r'^rights/$', rights, name='weixin_feedback'),
-    url(r'^napay/$', napay, name='weixin_napay'),
-    url(r'^wxpay/$', wxpay, name='weixin_wxpay'),
+    url(r'^warn/$', views.warn, name='weixin_warn'),
+    url(r'^rights/$', views.rights, name='weixin_feedback'),
+    url(r'^napay/$', views.napay, name='weixin_napay'),
+    url(r'^wxpay/$', views.wxpay, name='weixin_wxpay'),
 
-    url(r'^wxorder_detail/$', weixinorder_detail, name='weixinorder_detail'),
+    url(r'^wxorder_detail/$', views.weixinorder_detail, name='weixinorder_detail'),
 ]
 
-from . import views_proxy
 
 urlpatterns += [
-    url(r'^proxy/token/$', views_proxy.WXTokenProxy.as_view()),
-    url(r'^proxy/item/$', views_proxy.SaleProductSearch.as_view()),
+    url(r'^proxy/token/$', proxy.WXTokenProxy.as_view()),
+    url(r'^proxy/item/$', proxy.SaleProductSearch.as_view()),
     url(r'^proxy/u/(?P<pub_id>\w+)/$',
-     views_proxy.WXMessageHttpProxy.as_view(base_url=settings.NTALKER_NOTIFY_URL), {'url': ''}),
+        proxy.WXMessageHttpProxy.as_view(base_url=settings.NTALKER_NOTIFY_URL), {'url': ''}),
     url(r'^proxy/ntalker/$',
-     views_proxy.WXCustomAndMediaProxy.as_view(base_url=settings.WX_MESSAGE_URL), {'url': ''}),
+        proxy.WXCustomAndMediaProxy.as_view(base_url=settings.WX_MESSAGE_URL), {'url': ''}),
     url(r'^proxy/upload/$',
-     views_proxy.WXCustomAndMediaProxy.as_view(base_url=settings.WX_MEDIA_UPLOAD_URL), {'url': ''}),
-    url(r'^proxy/down/$', views_proxy.WXCustomAndMediaProxy.as_view(base_url=settings.WX_MEDIA_GET_URL), {'url': ''}),
+        proxy.WXCustomAndMediaProxy.as_view(base_url=settings.WX_MEDIA_UPLOAD_URL), {'url': ''}),
+    url(r'^proxy/down/$', proxy.WXCustomAndMediaProxy.as_view(base_url=settings.WX_MEDIA_GET_URL), {'url': ''}),
 ]

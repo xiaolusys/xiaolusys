@@ -30,7 +30,7 @@ class FlashSaleHandler(BaseHandler):
 
         from shopback.items.models import ProductSku, ItemNumTaskLog
         from shopapp.weixin.models import WXProduct, WXProductSku
-        from shopapp.weixin.weixin_apis import WeiXinAPI
+        from shopapp.weixin.apis import WeiXinAPI
         from shopback.users.models import User
 
         wx_api = WeiXinAPI()

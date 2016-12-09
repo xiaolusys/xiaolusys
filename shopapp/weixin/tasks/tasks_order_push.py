@@ -3,7 +3,7 @@ from __future__ import absolute_import, unicode_literals
 from shopmanager import celery_app as app
 
 from datetime import datetime, timedelta
-from shopapp.weixin.weixin_push import WeixinPush
+from ..apis import WeixinPush
 from flashsale.pay.models.teambuy import TeamBuy, TeamBuyDetail
 
 

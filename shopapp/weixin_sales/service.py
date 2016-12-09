@@ -7,7 +7,7 @@ from django.conf import settings
 from shopapp.weixin.models import (WeiXinUser,
                                    AnonymousWeixinUser,
                                    WeiXinAutoResponse)
-from shopapp.weixin.weixin_apis import WeiXinAPI
+from shopapp.weixin.apis import WeiXinAPI
 from .models import WeixinUserPicture, WeixinUserAward
 
 WEIXIN_PICTURE_PATH = 'weixin'

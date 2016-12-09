@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 from flashsale.xiaolumm.models.models_lesson import LessonTopic, Instructor, Lesson, LessonAttendRecord
 from flashsale.promotion.models import ActivityEntry
 from core.weixin.mixins import WeixinAuthMixin
-from shopapp.weixin.models_base import WeixinUserInfo
+from shopapp.weixin.models import WeixinUserInfo
 
 
 def get_customer_id(user):

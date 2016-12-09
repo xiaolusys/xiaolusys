@@ -4,8 +4,8 @@ from datetime import datetime
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from shopapp.weixin.weixin_apis import WeiXinAPI
-from shopapp.weixin.models_base import WeixinFans
+from shopapp.weixin.apis import WeiXinAPI
+from shopapp.weixin.models import WeixinFans
 
 
 class Command(BaseCommand):

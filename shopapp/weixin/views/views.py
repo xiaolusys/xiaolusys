@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404
 from django.core.serializers.json import DjangoJSONEncoder
 
 from shopapp.weixin.service import *
-from .models import (WeiXinUser,
+from ..models import (WeiXinUser,
                      ReferalRelationship,
                      ReferalSummary,
                      ReferalBonusRecord,
@@ -33,7 +33,7 @@ from .models import (WeiXinUser,
                      WeixinClickScoreRecord,
                      WeixinScoreBuy)
 
-from .weixin_apis import WeiXinAPI, WeiXinRequestException
+from ..apis.wxpubsdk import WeiXinAPI, WeiXinRequestException
 from shopapp.weixin_score.models import SampleFrozenScore
 from shopapp.weixin_examination.models import ExamUserPaper
 from shopback.trades.models import MergeTrade
@@ -46,7 +46,7 @@ from shopapp.signals import (weixin_readclick_signal,
                              weixin_refund_signal,
                              weixin_surveyconfirm_signal)
 
-from .weixin_kfkeys import URLMAP, KFKEYS, KFMAP, IMG_URL_PREFIX
+from ..constants import URLMAP, KFKEYS, KFMAP, IMG_URL_PREFIX
 
 import logging
 import json
@@ -1574,7 +1574,7 @@ from rest_framework import permissions
 from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.views import APIView
 from rest_framework import authentication
-from . import serializers
+from .. import serializers
 from shopback.base.new_renders import new_BaseJSONRenderer
 
 LINK_RE = re.compile('^.+pid=(?P<pid>[\w-]{16,64})')

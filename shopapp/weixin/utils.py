@@ -19,8 +19,8 @@ from PIL import (
 import simplejson
 
 from flashsale.xiaolumm.models import XiaoluMama
-from shopapp.weixin.weixin_apis import WeiXinAPI
-from shopapp.weixin.models_base import WeixinQRcodeTemplate
+from .apis.wxpubsdk import WeiXinAPI
+from shopapp.weixin.models import WeixinQRcodeTemplate
 from core.logger import log_consume_time
 from core.upload.upload import upload_public_to_remote, generate_public_url
 

@@ -38,7 +38,7 @@ class DressShareMixin(object):
     def gen_wxshare_signs(self, request):
         """ 生成微信分享参数 """
         try:
-            from shopapp.weixin.weixin_apis import WeiXinAPI
+            from shopapp.weixin.apis import WeiXinAPI
             wx_api = WeiXinAPI()
             referal_url = self.get_referal_url(request)
             wx_api.setAccountId(appKey=settings.WX_PUB_APPID)

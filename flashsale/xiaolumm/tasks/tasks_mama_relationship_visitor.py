@@ -149,7 +149,7 @@ def task_update_unique_visitor(mama_id, openid, appkey, click_time):
     nick, img = '', ''
     unionid = get_unionid_by_openid(openid, appkey)
     if unionid:
-        from shopapp.weixin.models_base import WeixinUserInfo
+        from shopapp.weixin.models import WeixinUserInfo
         userinfo = WeixinUserInfo.objects.filter(unionid=unionid).first()
         if userinfo:
             nick, img = userinfo.nick, userinfo.thumbnail

@@ -22,7 +22,7 @@ from rest_framework.views import APIView
 from django.shortcuts import redirect
 
 from core.xlmm_response import make_response, SUCCESS_RESPONSE
-from shopapp.weixin.weixin_apis import WeiXinAPI
+from shopapp.weixin.apis import WeiXinAPI
 from flashsale.pay.models import Customer, ModelProduct
 from flashsale.restpro import permissions as perms
 from flashsale.xiaolumm.models.models_fortune import MamaFortune, CarryRecord, ActiveValue, OrderCarry, ClickCarry, \

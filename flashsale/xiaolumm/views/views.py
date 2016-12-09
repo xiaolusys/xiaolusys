@@ -25,7 +25,7 @@ from flashsale.clickrebeta.models import StatisticsShoppingByDay, StatisticsShop
 from flashsale.pay.models import SaleTrade, Customer, SaleRefund, Envelop, SaleOrder
 from shopapp.weixin.models import WeiXinUser
 from shopapp.weixin.options import get_unionid_by_openid
-from shopapp.weixin.views import valid_openid
+from shopapp.weixin.views.views import valid_openid
 from flashsale.xiaolumm.models import XiaoluMama, CashOut, CarryLog
 from flashsale.xiaolumm.serializers import CashOutSerializer, CarryLogSerializer
 

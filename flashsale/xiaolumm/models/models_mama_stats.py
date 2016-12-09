@@ -245,7 +245,7 @@ def send_weixin_push(sender, instance, created, **kwargs):
     if not created:
         return
 
-    from shopapp.weixin.weixin_push import WeixinPush
+    from shopapp.weixin.apis import WeixinPush
     wxpush = WeixinPush()
     wxpush.push_event(instance)
 

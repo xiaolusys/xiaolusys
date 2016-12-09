@@ -8,11 +8,11 @@ from django.http import HttpResponse
 from httpproxy.views import HttpProxy
 
 from shopapp.weixin.models import  WeiXinAutoResponse
-from . import tasks
+from .. import tasks
 from shopback.items.models import Product
 
 import logging
-from . import service
+from .. import service
 
 logger = logging.getLogger('django.request')
 
@@ -249,12 +249,12 @@ class SaleProductSearch(View):
                 "siteprice": '%.2f' % product.agent_price,
                 "marketprice": '%.2f' % product.std_sale_price,
                 "category": str(product.category),
-                "brand": "小鹿美美",
-                "custom1": ["可选颜色", product_detail and product_detail.color or ''],
-                "custom2": ["可选尺码", ','.join([s.name for s in product.normal_skus])],
-                "custom3": ["材质", product_detail and product_detail.material or ''],
-                "custom4": ["洗涤说明", product_detail and product_detail.wash_instructions or ''],
-                "custom5": ["备注", product_detail and product_detail.note or '']
+                "brand": u"小鹿美美",
+                "custom1": [u"可选颜色", product_detail and product_detail.color or ''],
+                "custom2": [u"可选尺码", ','.join([s.name for s in product.normal_skus])],
+                "custom3": [u"材质", product_detail and product_detail.material or ''],
+                "custom4": [u"洗涤说明", product_detail and product_detail.wash_instructions or ''],
+                "custom5": [u"备注", product_detail and product_detail.note or '']
             }
         }
 

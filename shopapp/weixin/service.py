@@ -21,8 +21,8 @@ from shopapp.weixin.models import (
 
 from flashsale.xiaolumm.models import XiaoluMama, MamaTabVisitStats
 from shopapp.weixin.models import WeixinUnionID
-from shopapp.weixin.models_base import WeixinFans
-from .weixin_apis import WeiXinAPI
+from shopapp.weixin.models import WeixinFans
+from .apis.wxpubsdk import WeiXinAPI
 from .utils import fetch_wxpub_mama_manager_qrcode_media_id
 from shopback.base.service import LocalService
 from shopback.logistics import getLogisticTrace
