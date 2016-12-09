@@ -176,7 +176,12 @@ class Bill(BaseModel):
         for bill_relation in self.billrelation_set.order_by('id'):
             if bill_relation.get_type_display() not in objects:
                 objects[bill_relation.get_type_display()] = []
+            zf_plan_amount = BillRelation.objects.filter(content_type=bill_relation.content_type, type=bill_relation.type,
+                                              object_id=bill_relation.object_id).first().bill.plan_amount
+            bill_relation.zf_plan_amount=zf_plan_amount
             objects[bill_relation.get_type_display()].append(bill_relation)
+            print bill_relation.zf_plan_amount
+        print objects
         return objects
 
     def get_orderlist(self):
