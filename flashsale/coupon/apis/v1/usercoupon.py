@@ -197,6 +197,17 @@ def freeze_transfer_coupon(coupon_ids, transfer_id):
     return True
 
 
+def cancel_coupon_by_ids(coupon_ids):
+    # type: (List[int]) -> bool
+    """取消 优惠券
+    """
+    coupons = get_user_coupons_by_ids(coupon_ids)
+    for coupon in coupons:
+        coupon.status = UserCoupon.CANCEL
+        coupon.save(update_fields=['status', 'modified'])
+    return True
+
+
 @transaction.atomic()
 def return_transfer_coupon(coupons):
     # type : (List[UserCoupon], int) -> bool

@@ -8,6 +8,8 @@ from rest_framework import authentication
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.decorators import list_route, detail_route
+from rest_framework import exceptions
+from rest_framework import filters
 
 from flashsale.xiaolumm.models import ReferalRelationship, XiaoluMama
 
@@ -63,6 +65,12 @@ def process_transfer_coupon(customer_id, init_from_customer_id, record):
     return {"code": 0, "info": u"发放成功"}
 
 
+class CouponTransferRecordFilter(filters.FilterSet):
+    class Meta:
+        model = CouponTransferRecord
+        fields = ['transfer_type', 'transfer_status']
+
+
 class CouponTransferRecordViewSet(viewsets.ModelViewSet):
     paginate_by = 10
     page_query_param = 'page'
@@ -74,8 +82,21 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
 
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
+    filter_class = CouponTransferRecordFilter
 
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    def list(self, request, *args, **kwargs):
+        return exceptions.APIException('METHOD NOT ALLOW')
+
+    def create(self, request, *args, **kwargs):
+        return exceptions.APIException('METHOD NOT ALLOW')
+
+    def update(self, request, *args, **kwargs):
+        return exceptions.APIException('METHOD NOT ALLOW')
+
+    def destroy(self, request, *args, **kwargs):
+        return exceptions.APIException('METHOD NOT ALLOW')
 
     @list_route(methods=['POST'])
     def start_transfer(self, request, *args, **kwargs):
@@ -105,7 +126,6 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         #res["Access-Control-Allow-Origin"] = "*"
 
         return res
-
 
     def start_return_coupon(self, request, *args, **kwargs):
         pass
@@ -360,7 +380,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         customer = get_customer_by_django_user(request.user)  # 下属用户返还自己的　券　给上级
         transfer_record_id = int(str(transfer_record_id).strip())
         try:
-            cancel_return_2_sys_transfer(transfer_record_id, customer)
+            cancel_return_2_sys_transfer(transfer_record_id, customer=customer)
         except Exception as e:
             return Response({'code': 3, 'info': '取消出错:%s' % e.message})
         return Response({'code': 0, 'info': '已经取消'})
@@ -385,7 +405,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @list_route(methods=['get'])
-    def list_apply_transfer_record(self, request, *args, **kwargs):
+    def list_from_my_records(self, request, *args, **kwargs):
         # type: (HttpRequest, *Any, **Any) -> Response
         """向上级申请退券的　优惠券　流通记录　列表
         """
@@ -395,7 +415,8 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         mama = get_mama_by_openid(customer.unionid)
         if not mama:
             return Response({'code': 2, 'info': '妈妈记录没找到'})
-        queryset = CouponTransferRecord.objects.get_return_transfer_coupons().filter(coupon_from_mama_id=mama.id)
+        queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.filter(coupon_from_mama_id=mama.id)
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)

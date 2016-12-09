@@ -663,6 +663,16 @@ class BudgetLog(PayBaseModel):
         self.save(update_fields=['status', 'modified'])
         return True
 
+    def confirm_budget_log(self):
+        # type: () -> bool
+        """确定钱包记录
+        """
+        if self.status != BudgetLog.CONFIRMED:
+            self.status = BudgetLog.CONFIRMED
+            self.save(update_fields=['status', 'modified'])
+            return True
+        return False
+
     def cancel_and_return(self):
         """ 将待确认或已确认的支出取消并返还小鹿账户 """
         if self.status not in (self.CONFIRMED, self.PENDING):
