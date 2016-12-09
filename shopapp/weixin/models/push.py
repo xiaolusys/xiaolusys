@@ -8,6 +8,7 @@ from core.fields import JSONCharMyField
 class WeixinTplMsg(BaseModel):
     """
     """
+    
     wx_template_id = models.CharField(max_length=255, verbose_name=u'微信模板ID')
     template_ids = JSONCharMyField(max_length=512, blank=True, default={}, verbose_name=u'模版ID集合')
     content = models.TextField(blank=True, null=True, verbose_name=u'模板内容')
