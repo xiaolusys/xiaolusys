@@ -16,7 +16,7 @@
         {% if mama %}
         <tr>
           <td>妈妈ID</td>
-          <td><a href="{% url 'yy-mama-show'  %}?mama_id{{ mama.id }}" target="_blank">{{ mama.id }}(点我看妈妈详细信息)</a></td>
+          <td><a href="{% url 'yy-mama-show'  %}?mama_id={{ mama.id }}" target="_blank">{{ mama.id }}(点我看妈妈详细信息)</a></td>
         </tr>
         <tr>
           <td>用户ID</td>
