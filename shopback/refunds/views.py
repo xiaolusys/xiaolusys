@@ -11,7 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required
 # from djangorestframework.views import ModelView
 from shopback.trades.models import MergeTrade, MergeOrder,PackageSkuItem
-from shopback.items.models import Product, ProductSku, Item
+from shopback.items.models import Product, ProductSku, Item,SkuStock
 from shopback.refunds.models import RefundProduct, Refund, REFUND_STATUS, CS_STATUS_CHOICES
 from common.utils import parse_datetime, parse_date, format_time, map_int2str
 from shopback.refunds.tasks import updateAllUserRefundOrderTask
@@ -25,6 +25,7 @@ from rest_framework import permissions
 from rest_framework.views import APIView
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
+
 
 
 
@@ -436,22 +437,20 @@ def refund_change(request):
         changed_sku_id = content.get('changed_sku_id')
         changed_outer_id = None
         changed_outer_sku_id = None
-        changed_title = None
-        change_property = None
-        print changed_sku_id
-        change_rf = RefundProduct.objects.filter(sku_id=changed_sku_id)
+        changed_title = ''
+        change_property = ''
+        change_rf = SkuStock.objects.filter(sku=changed_sku_id)  #实际退货给供应商的商品名称和规格
         if change_rf:
             change_rf = change_rf.first()
-            changed_outer_id = change_rf.outer_id
-            changed_outer_sku_id = change_rf.outer_sku_id
-            changed_title = change_rf.title
-            change_property = change_rf.property
+            changed_title = change_rf.product.name
+            change_property = change_rf.properties_name
         else:
             return HttpResponse(json.dumps({"status": False, "info": "origin_sku_id not exist"}),
                                 content_type="application/json")
 
-        if not all([origin_sku_id,changed_sku_id,changed_outer_id,changed_outer_sku_id,changed_title,change_property]):
+        if not all([origin_sku_id,changed_sku_id,changed_title,change_property]):
             return HttpResponse(json.dumps({"status": False, "info": "some param not exist"}),content_type="application/json")
+        print origin_sku_id
         result = RefundProduct.refund_change(origin_sku_id, changed_sku_id, changed_outer_id, changed_outer_sku_id, changed_title,\
                                     change_property)
         if result == "success":
