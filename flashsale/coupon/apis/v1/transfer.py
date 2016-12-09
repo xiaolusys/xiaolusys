@@ -248,54 +248,63 @@ def saleorder_return_coupon_exchange(salerefund, payment):
 
 
 @transaction.atomic()
-def apply_pending_return_transfer_coupon(usercoupon_ids, customer):
+def apply_pending_return_transfer_coupon(coupon_ids, customer):
     # type: (List[int]) -> bool
     """下属 提交待审核　退精品券　给　上级
     """
-    usercoupons = get_user_coupons_by_ids(usercoupon_ids)
-    mama = customer.get_charged_mama()
-    item = {}
-    transfer_records = set()
-    for usercoupon in usercoupons:
-        transfer_coupon_pk = usercoupon.transfer_coupon_pk
-        if not transfer_coupon_pk:
-            continue
-        transfer_record = get_transfer_record_by_id(int(transfer_coupon_pk))
-        if transfer_record.coupon_to_mama_id != mama.id:  # 当前妈妈与　转券时候 的　ｔｏ 妈妈一致
-            continue
-        if transfer_record.id not in item:
-            item[transfer_record.id] = [usercoupon.id]
+    from .coupontemplate import get_coupon_template_by_id
+    from flashsale.xiaolumm.apis.v1.xiaolumama import get_mama_by_id
+    coupons = get_user_coupons_by_ids(coupon_ids)
+    mama = customer.get_xiaolumm()
+    template_ids = set()
+    upper_mamas = {}
+    for coupon in coupons:
+        if not coupon.can_return_upper_mama():
+            raise Exception('%s不支持退券给上级妈妈' % coupon.title)
+        template_ids.add(coupon.template_id)
+
+        # 组织下 数据  key是上级妈妈id  value是 要退给上级妈妈的券 数量
+        chain = coupon.return_mama_chain
+        upmm = chain[-1]
+        if upmm not in upper_mamas:
+            upper_mamas[upmm] = 1
         else:
-            item[transfer_record.id].append(usercoupon.id)
-        transfer_records.add(transfer_record)
-    if not transfer_records:
-        return False
-    for origin_record in transfer_records:
-        coupon_ids = item[origin_record.id]
-        num = len(coupon_ids)
-        elite_score = (origin_record.elite_score / origin_record.coupon_num) * num
+            upper_mamas[upmm] += 1
+    if len(template_ids) != 1:
+        raise Exception('多种券不支持同时退券')
+
+    template_id = template_ids.pop()
+    template = get_coupon_template_by_id(template_id)
+    product_id, elite_score, agent_price = get_elite_score_by_templateid(template_id, mama)
+    coupon_value = int(template.value)
+    product_img = template.extras.get("product_img") or ''
+
+    for upper_mama_id, num in upper_mamas.iteritems():
         # 生成 带审核 流通记录
+        total_elite_score = elite_score * num
         count = CouponTransferRecord.objects.filter(transfer_type=CouponTransferRecord.IN_RETURN_COUPON,
-                                                    uni_key__contains='return-upper-%s-' % origin_record.id).count()
-        uni_key = 'return-upper-%s-%s' % (origin_record.id, count + 1)
+                                                    uni_key__contains='return-upper-%s-%s-' % (
+                                                        upper_mama_id, template.id)).count()
+        uni_key = 'return-upper-%s-%s-%s' % (upper_mama_id, template.id, count + 1)
+        upper_mm = get_mama_by_id(upper_mama_id)  # 要退给上级的妈妈
+        upper_customer = upper_mm.get_customer()
         new_transfer = CouponTransferRecord(
-            coupon_from_mama_id=origin_record.coupon_to_mama_id,
-            from_mama_thumbnail=origin_record.to_mama_thumbnail,
-            from_mama_nick=origin_record.to_mama_nick,
-            coupon_to_mama_id=origin_record.coupon_from_mama_id,
-            to_mama_thumbnail=origin_record.from_mama_thumbnail,
-            to_mama_nick=origin_record.from_mama_nick,
-            coupon_value=origin_record.coupon_value,
-            template_id=origin_record.template_id,
-            init_from_mama_id=origin_record.coupon_from_mama_id,
-            order_no='old-transfer-id-%s' % origin_record.id,  # 不能修改本行　否则会引起退券混乱
-            product_img=origin_record.product_img,
+            coupon_from_mama_id=mama.id,
+            from_mama_thumbnail=customer.thumbnail,
+            from_mama_nick=customer.nick,
+            coupon_to_mama_id=upper_mama_id,
+            to_mama_thumbnail=upper_customer.thumbnail,
+            to_mama_nick=upper_customer.nick,
+            coupon_value=coupon_value,
+            template_id=template_id,
+            order_no=uni_key,
+            product_img=product_img,
             coupon_num=num,
             transfer_type=CouponTransferRecord.IN_RETURN_COUPON,
             uni_key=uni_key,
             date_field=datetime.date.today(),
-            product_id=origin_record.product_id,
-            elite_score=elite_score,
+            product_id=product_id,
+            elite_score=total_elite_score,
             transfer_status=CouponTransferRecord.PENDING)
         new_transfer.save()
         freeze_transfer_coupon(coupon_ids, new_transfer.id)  # 冻结优惠券
@@ -311,7 +320,7 @@ def apply_pending_return_transfer_coupon_2_sys(coupon_ids, customer):
     from flashsale.pay.models import BudgetLog
 
     coupons = get_user_coupons_by_ids(coupon_ids)
-    mama = customer.get_charged_mama()
+    mama = customer.get_xiaolumm()
     template_ids = set()
     for coupon in coupons:
         if not coupon.can_return_sys():
