@@ -58,11 +58,6 @@ deploy:
         -e TARGET=production -e INSTANCE=admin -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
         -v /var/data:/data -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9000:9000
         registry.aliyuncs.com/xiaolu-img/xiaolusys:latest gunicorn -k gevent -c gunicorn_config.py -w 4 shopmanager.wsgi
-      - docker rm -f celery-flower
-      - docker run --name=celery-flower --restart=always --log_file_max_size = 1073741824 --log_file_prefix = /data/flower
-        -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH -e FLOWER_BASIC_AUTH=xiaolu:2016xiaoluyear
-        -v /var/data:/data -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:5555:5555 -e C_FORCE_ROOT=1
-        registry.aliyuncs.com/xiaolu-img/xiaolusys:latest flower -A shopmanager --conf=shopmanager/task_settings.py
       - docker rm -f celerybeat
       - docker run --name=celerybeat --restart=always --log-opt max-file=1 --log-opt max-size=1m
         -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
@@ -119,6 +114,18 @@ deploy:
         -v /var/data:/data -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9009:9000
         registry.aliyuncs.com/xiaolu-img/xiaolusys:warden
         gunicorn -k gevent -w 1 -c gunicorn_config.py shopmanager.wsgi
+  ssh:
+    host: staging.xiaolumm.com
+    user: root
+    when:
+      branch: flower
+    commands:
+      - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
+      - docker rm -f celery-flower
+      - docker run --name=celery-flower --restart=always -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
+        -e FLOWER_BASIC_AUTH=xiaolu:2016xiaoluyear -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:5555:5555
+        -v /var/data:/data  -e C_FORCE_ROOT=1 registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
+        flower -A shopmanager --log_file_max_size = 1073741824 --conf=shopmanager/task_settings.py
   ssh:
     host:
       - sale.xiaolumm.com
