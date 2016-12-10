@@ -13,9 +13,8 @@ from flashsale.xiaolumm import util_unikey
 from flashsale.xiaolumm import utils
 from flashsale.xiaolumm.models import XiaoluMama
 
-import global_setup
 import logging
-logger = logging.getLogger('celery.handler')
+logger = logging.getLogger('service')
 
 def get_cur_info():
     """Return the frame object for the caller's stack frame."""
@@ -135,11 +134,9 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
 @app.task(serializer='pickle')
 def task_update_ordercarry(mama_id, order, customer_pk, carry_amount, agency_level, carry_plan_name, via_app):
     """
-    Whenever a sku order gets saved, trigger this task to update 
+    Whenever a sku order gets saved, trigger this task to update
     corresponding order_carry record.
     """
-    print "%s, mama_id: %s" % (get_cur_info(), mama_id)
-
     status = 0  # unpaid
     if order.is_pending():
         status = 1
@@ -154,13 +151,24 @@ def task_update_ordercarry(mama_id, order, customer_pk, carry_amount, agency_lev
 
     carry_description = util_description.get_ordercarry_description(via_app=via_app)
     carry_num = carry_amount
-            
+
     order_id = order.oid
     # each order can only generate carry once for one type.
     uni_key = util_unikey.gen_ordercarry_unikey(carry_type, order_id)
 
     order_carry = OrderCarry.objects.filter(uni_key=uni_key).first()
     if order_carry:
+        logger.info({
+            'action': 'ordercarry',
+            'order_no': order.oid,
+            'desc': 'order_carry exist',
+            'mama_id': mama_id,
+            'carry_num': carry_num,
+            'agency_level': agency_level,
+            'via_app': via_app,
+            'carry_type': carry_type,
+            'status': status,
+        })
         update_fields = []
         if order_carry.status != status:
             # We only update status change. We assume no price/value change.
@@ -181,9 +189,21 @@ def task_update_ordercarry(mama_id, order, customer_pk, carry_amount, agency_lev
             order_carry.save(update_fields=update_fields)
         return
 
+    logger.info({
+        'action': 'ordercarry',
+        'order_no': order.oid,
+        'desc': 'task_update_ordercarry save ',
+        'mama_id': mama_id,
+        'customer_pk': customer_pk,
+        'carry_amount': carry_amount,
+        'agency_level': agency_level,
+        'carry_plan_name': carry_plan_name,
+        'via_app': via_app,
+        'carry_type': carry_type,
+        'status': status,
+    })
     try:
         order_value = round(order.payment * 100, 0)
-
         sku_name = order.title
         sku_img = order.pic_path
 
@@ -233,7 +253,7 @@ def task_update_ordercarry(mama_id, order, customer_pk, carry_amount, agency_lev
 #
 #    if idx == 1:
 #        logger.error("get_award_carry_num | num: %s, referal_type: %s" % (num, referal_type))
-#    
+#
 #    return award_carry_array[idx - 1][1]
 #
 #
@@ -252,22 +272,22 @@ def task_referal_update_awardcarry(relationship):
 
     if relationship.referal_type == XiaoluMama.ELITE:
         return
-    
+
     from_mama_id = relationship.referal_from_mama_id
     to_mama_id = relationship.referal_to_mama_id
     carry_type = 1 # 直接推荐
-    
+
     #uni_key = util_unikey.gen_awardcarry_unikey(from_mama_id, to_mama_id)
     uni_key = AwardCarry.gen_uni_key(to_mama_id, carry_type)
 
     rr_cnt = ReferalRelationship.objects.filter(referal_from_mama_id=from_mama_id, referal_type__gte=XiaoluMama.HALF).exclude(referal_to_mama_id=to_mama_id).count()
     rr_cnt += 1
-    
+
     carry_num = utils.get_award_carry_num(rr_cnt, relationship.referal_type)
 
     status = 1
     carry_description = u'加入正式会员，奖金就会确认哦！'
-    
+
     if relationship.is_confirmed():
         status = 2  # confirmed
         carry_description = util_description.get_awardcarry_description(carry_type)
@@ -298,7 +318,7 @@ def task_referal_update_awardcarry(relationship):
             sys_oa = get_systemoa_user()
             log_action(sys_oa, award_carry, CHANGE, logmsg)
         return
-    
+
     if not award_carry:
         date_field = relationship.created.date()
         award_carry = AwardCarry(mama_id=from_mama_id, carry_num=carry_num, carry_type=carry_type,
@@ -323,7 +343,7 @@ def task_update_group_awardcarry(relationship):
 
     status = 1
     carry_description = u'%s推荐，加入正式会员，奖金就会确认哦！' % relationship.referal_from_mama_id
-    
+
     if relationship.is_confirmed():
         status = 2  # confirmed
         carry_description = util_description.get_awardcarry_description(carry_type)
@@ -342,7 +362,7 @@ def task_update_group_awardcarry(relationship):
 
     uni_key = AwardCarry.gen_uni_key(to_mama_id, carry_type)
     award_carry = AwardCarry.objects.filter(uni_key=uni_key).first()
-    
+
     if award_carry:
         from core.options import log_action, CHANGE, get_systemoa_user
         logmsg = 'mama_id:%s->%s|carry_num:%s->%s|status:%s->%s' % (award_carry.mama_id,from_mama_id,award_carry.carry_num,carry_num,award_carry.status,status)
@@ -388,7 +408,6 @@ def validate_self_mama(mama, order_created_time):
 @app.task(serializer='pickle')
 def task_order_trigger(sale_order):
     from flashsale.xiaolumm.models.models_fans import XlmmFans
-    logger.info("%s, saleorder_pk: %s" % (get_cur_info(), sale_order.id))
 
     customer_id = sale_order.sale_trade.buyer_id
     customer = Customer.objects.get(id=customer_id)
@@ -401,9 +420,18 @@ def task_order_trigger(sale_order):
         mm_linkid_mama = None
 
     validata_mama = validate_self_mama(self_mama, sale_order.pay_time or sale_order.created)
-    if global_setup.is_staging_environment():
-        logger.warn('order trigger:order_id=%s, self_mama=%s ,validata_mama=%s ,mm_linkid_mama=%s, created=%s' %
-            (sale_order.id ,self_mama, validata_mama, mm_linkid_mama, sale_order.created))
+
+    logger.info({
+        'action': 'ordercarry',
+        'order_no': sale_order.oid,
+        'desc': 'task_order_trigger start ',
+        'self_mama': self_mama,
+        'validata_mama': validata_mama,
+        'mm_linkid_mama': mm_linkid_mama,
+        'created': datetime.datetime.now(),
+        'order_created': sale_order.created,
+    })
+
     if self_mama and not validata_mama:
         self_mama = None
 
@@ -427,6 +455,15 @@ def task_order_trigger(sale_order):
             mm_linkid_mama = XiaoluMama.objects.filter(id=fans_record.xlmm,status=XiaoluMama.EFFECT,charge_status=XiaoluMama.CHARGED, charge_time__lte=sale_order.created).first()
 
     if not mm_linkid_mama:
+        logger.info({
+            'action': 'ordercarry',
+            'order_no': sale_order.oid,
+            'desc': 'no mm_linkid_mama ',
+            'self_mama': self_mama,
+            'validata_mama': validata_mama,
+            'mm_linkid_mama': mm_linkid_mama,
+            'created': datetime.datetime.now(),
+        })
         return
 
     order_num = 1
@@ -439,6 +476,16 @@ def task_order_trigger(sale_order):
     products = Product.objects.filter(id=sale_order.item_id)
 
     if products.count() <= 0:
+        logger.info({
+            'action': 'ordercarry',
+            'order_no': sale_order.oid,
+            'desc': 'not found product',
+            'mm_linkid_mama': mm_linkid_mama,
+            'product_id': sale_order.item_id,
+            'payment': payment,
+            'order_num': order_num,
+            'created': datetime.datetime.now(),
+        })
         return
 
     product = products[0]
@@ -457,7 +504,7 @@ def task_order_trigger(sale_order):
 
     #logger.warn("carry_amount %s, agency_level: %s, payment: %s, order_id: %s" % (carry_amount, agency_level, payment, sale_order.oid))
 
-    task_update_ordercarry.delay(mm_linkid_mama.pk, sale_order, customer_id, carry_amount, agency_level,
+    task_update_ordercarry(mm_linkid_mama.pk, sale_order, customer_id, carry_amount, agency_level,
                                  carry_scheme.name, via_app)
     #task_update_ordercarry.apply_async(args=[mm_linkid_mama.pk, sale_order, customer_id, carry_amount, agency_level,
     #                             carry_scheme.name, via_app], countdown=1)
