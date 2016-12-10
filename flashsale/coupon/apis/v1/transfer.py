@@ -472,7 +472,7 @@ def set_transfer_record_complete(transfer_record):
 
 def cancel_transfer_record_by_trade(trade_tid):
     # type: (text_type) -> bool
-    """因为 订单取消(用户手动取消)  取消掉流通券记录
+    """因为 订单取消(用户手动 或者 超出支付时间 系统自动 取消)  取消掉流通券记录
     """
     transfer_record = CouponTransferRecord.objects.filter(uni_key=trade_tid).first()
     if not transfer_record:

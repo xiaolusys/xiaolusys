@@ -45,7 +45,6 @@ from flashsale.xiaolumm.models import XiaoluMama,CarryLog
 from flashsale.pay.tasks import confirmTradeChargeTask, notifyTradePayTask, tasks_set_address_priority_logistics_code
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 from flashsale.coupon.apis.v1.usercoupon import use_coupon_by_ids
-from flashsale.coupon.apis.v1.transfer import cancel_transfer_record_by_trade
 from mall.xiaolupay import apis as xiaolupay
 
 import logging
@@ -1183,7 +1182,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         self.perform_destroy(instance)
         log_action(request.user.id, instance, CHANGE, u'取消订单')
-        cancel_transfer_record_by_trade(instance.tid)  # 将对应的流通券记录取消掉
         return Response({"code": 0, "info": u'订单已取消'})
 
     @detail_route(methods=['post'])
