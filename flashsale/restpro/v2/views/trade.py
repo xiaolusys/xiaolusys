@@ -200,11 +200,12 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         is_transfer_coupon = False
         for coupon_id in coupon_ids:
             user_coupon = UserCoupon.objects.get(id=coupon_id, customer_id=sale_trade.buyer_id)
-            user_coupon.coupon_basic_check()  # 优惠券基础检查
-            use_coupon_by_ids([user_coupon.id], sale_trade.tid)
-            template_id = user_coupon.template_id
-            if user_coupon.is_transfer_coupon():
-                is_transfer_coupon = True
+            if sale_trade.tid != user_coupon.trade_tid:
+                user_coupon.coupon_basic_check()  # 优惠券基础检查
+                use_coupon_by_ids([user_coupon.id], sale_trade.tid)
+                template_id = user_coupon.template_id
+                if user_coupon.is_transfer_coupon():
+                    is_transfer_coupon = True
 
         if is_transfer_coupon:
             coupon_num = len(coupon_ids)
@@ -453,7 +454,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             hasattr(sale_trade, k) and setattr(sale_trade, k, v)
         if order_type == SaleTrade.TEAMBUY_ORDER:
             sale_trade.extras_info['teambuy_id'] = teambuy.id if teambuy else ''
-            
+
         try:
             sale_trade.save()
         except IntegrityError:
@@ -568,7 +569,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         coupon_ids = filter(lambda x: x, coupon_ids)
         return coupon_ids
 
-    def calc_counpon_discount(self, coupon_id, item_ids, buyer_id, payment, **kwargs):
+    def calc_counpon_discount(self, coupon_id, item_ids, buyer_id, payment, order_no='',**kwargs):
         """
         计算优惠券折扣
         payment（单位分）按原始支付金额计算优惠信息
@@ -577,6 +578,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
         if not user_coupon:
             raise exceptions.APIException(u'优惠券未找到')
+
+        if user_coupon.trade_tid == order_no :
+            return round(user_coupon.value * 100)
 
         user_coupon.check_user_coupon(product_ids=item_ids, use_fee=payment / 100.0)
         return round(user_coupon.value * 100)
@@ -752,7 +756,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         extra_params = {
             'item_ids': item_ids,
             'buyer_id': customer.id,
-            'payment': cart_total_fee - cart_discount
+            'payment': cart_total_fee - cart_discount,
+            'order_no': tuuid,
         }
 
         # 计算折扣
@@ -961,7 +966,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         extra_params = {
             'item_ids': item_ids,
             'buyer_id': customer.id,
-            'payment': bn_totalfee - bn_discount
+            'payment': bn_totalfee - bn_discount,
+            'order_no': tuuid,
         }
         try:
             bn_discount += self.calc_extra_discount(pay_extras, **extra_params)
