@@ -58,12 +58,15 @@ def process_transfer_coupon(customer_id, init_from_customer_id, record):
     init_mama = init_customer.get_xiaolumm()
     mama_id = init_mama.id
     chain = []
+    c_count = 0
     while mama_id != coupon_from_mama_id:
         ship = ReferalRelationship.objects.filter(referal_to_mama_id=mama_id,
                                                   status=ReferalRelationship.VALID).first()
         mama_id = ship.referal_from_mama_id
         chain.insert(0, mama_id)
-
+        c_count += 1
+        if c_count >= 10:
+            break
     for coupon in coupons:
         coupon.customer_id = init_from_customer_id
         coupon.extras.update({"transfer_coupon_pk":record.id})
@@ -234,11 +237,15 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         coupon_from_mama_id = record.coupon_from_mama_id
         tmama_id = init_from_mama.id
         chain = []
+        c_count = 0
         while tmama_id != coupon_from_mama_id:
             ship = ReferalRelationship.objects.filter(referal_to_mama_id=tmama_id,
                                                       status=ReferalRelationship.VALID).first()
             tmama_id = ship.referal_from_mama_id
             chain.insert(0, tmama_id)
+            c_count += 1
+            if c_count >= 10:
+                break
 
         if record and record.can_process(mama_id) and mama.can_buy_transfer_coupon():
             coupons = UserCoupon.objects.filter(customer_id=customer.id,coupon_type=UserCoupon.TYPE_TRANSFER,status=UserCoupon.UNUSED, template_id=record.template_id)
