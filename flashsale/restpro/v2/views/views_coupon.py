@@ -22,7 +22,7 @@ from flashsale.restpro.v2.serializers import CouponTransferRecordSerializer
 from flashsale.coupon.apis.v1.transfer import agree_apply_transfer_record, reject_apply_transfer_record, \
     get_freeze_boutique_coupons_by_transfer, cancel_return_2_sys_transfer
 from flashsale.coupon.apis.v1.usercoupon import return_transfer_coupon
-from flashsale.pay.apis.v1.customer import get_customer_by_django_user
+from flashsale.pay.apis.v1.customer import get_customer_by_django_user, get_customer_by_id
 from flashsale.xiaolumm.apis.v1.xiaolumama import get_mama_by_openid
 
 logger = logging.getLogger(__name__)
@@ -52,13 +52,25 @@ def process_transfer_coupon(customer_id, init_from_customer_id, record):
     now = datetime.datetime.now()
     CouponTransferRecord.objects.filter(order_no=record.order_no).update(transfer_status=CouponTransferRecord.DELIVERED,modified=now)
     coupons = coupons[0:record.coupon_num]
+
+    coupon_from_mama_id = record.coupon_from_mama_id
+    init_customer = get_customer_by_id(init_from_customer_id)
+    init_mama = init_customer.get_xiaolumm()
+    mama_id = init_mama.id
+    chain = []
+    while mama_id != coupon_from_mama_id:
+        ship = ReferalRelationship.objects.filter(referal_to_mama_id=mama_id,
+                                                  status=ReferalRelationship.VALID).first()
+        mama_id = ship.referal_from_mama_id
+        chain.insert(0, mama_id)
+
     for coupon in coupons:
         coupon.customer_id = init_from_customer_id
         coupon.extras.update({"transfer_coupon_pk":record.id})
         if not coupon.extras.has_key('chain'):  # 添加流通的上级妈妈　用于　退券　时候　退回上级
-            coupon.extras['chain'] = [record.coupon_from_mama_id]
+            coupon.extras['chain'] = chain
         else:
-            coupon.extras['chain'].append(record.coupon_from_mama_id)
+            coupon.extras['chain'].extend(chain)
         coupon.save()
     from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
     task_calc_xlmm_elite_score(record.coupon_to_mama_id)  # 计算妈妈积分
@@ -219,6 +231,15 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
             info = u"您的精品券库存不足，请立即购买!"
             return Response({"code":2, "info":info})
 
+        coupon_from_mama_id = record.coupon_from_mama_id
+        tmama_id = init_from_mama.id
+        chain = []
+        while tmama_id != coupon_from_mama_id:
+            ship = ReferalRelationship.objects.filter(referal_to_mama_id=tmama_id,
+                                                      status=ReferalRelationship.VALID).first()
+            tmama_id = ship.referal_from_mama_id
+            chain.insert(0, tmama_id)
+
         if record and record.can_process(mama_id) and mama.can_buy_transfer_coupon():
             coupons = UserCoupon.objects.filter(customer_id=customer.id,coupon_type=UserCoupon.TYPE_TRANSFER,status=UserCoupon.UNUSED, template_id=record.template_id)
             if coupons.count() < record.coupon_num:
@@ -231,9 +252,9 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
                 coupon.customer_id = init_from_customer.id
                 coupon.extras.update({"transfer_coupon_pk":pk})
                 if not coupon.extras.has_key('chain'):  # 添加流通的上级妈妈　用于　退券　时候　退回上级
-                    coupon.extras['chain'] = [record.coupon_from_mama_id]
+                    coupon.extras['chain'] = chain
                 else:
-                    coupon.extras['chain'].append(record.coupon_from_mama_id)
+                    coupon.extras['chain'].extend(chain)
                 coupon.save()
             info = u"发放成功"
 
