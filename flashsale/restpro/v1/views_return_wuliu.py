@@ -16,6 +16,7 @@ from shopback.trades.models import TradeWuliu
 from flashsale.restpro import wuliu_choice
 import logging
 from shopback.logistics.models import LogisticsCompany
+from flashsale.restpro import kdn_wuliu_extra
 
 logger = logging.getLogger('lacked_wuliu_company_name')
 class ReturnWuliuViewSet(viewsets.ModelViewSet):
@@ -170,21 +171,31 @@ class ReturnWuliuViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def get_wuliu_by_packetid(self, request):
         content = request.GET
-        packetid = content.get("packetid",None)
-        packetid = ''.join(str(packetid).split())
-        company_name = content.get("company_name",None)
-        if not packetid or not company_name:
-            return Response({"errorinfo":"物流编号,物流公司编号或者退货单编号不存在"})
-        logistics_company = company_name
+        packetid = content.get("packetid", None)
+        company_code = content.get("company_code", None)
+        if packetid is None:  # 参数缺失
+            return Response({"info":"物流运单号为空了"})
+        if not company_code:
+            return Response({"info":"物流公司code未获得"})
+        if not packetid.isdigit():
+            return Response({"info":"物流单号有误,包含非数字"})
+        company_name = exp_map.reverse_map().get(company_code, None)
+        if not company_name:
+            company_name = kdn_wuliu_extra.get_logistics_name(company_code)
         out_sid = packetid
-        assert logistics_company is not None,'物流公司不能为空'
-        assert out_sid is not None, '物流单号不能为空'
+        if company_name:
+            logistics_company = company_name
+        else:
+            return Response({"info":"尚且还不支持"+company_code+"的物流公司查询"})
         tradewuliu = TradeWuliu.objects.filter(out_sid=out_sid).order_by("-id")
         if tradewuliu.first():
+            kdn_wuliu_extra.confirm_get_by_content(out_sid,tradewuliu.first().content)
+            logger.warn({'action': "kdn", 'info': "run get_wuliu_by_packetid_1"})
             result = wuliu_choice.result_choice[1](logistics_company,
                                                              out_sid,
                                                              tradewuliu.first())
         else:
+            logger.warn({'action': "kdn", 'info': "run get_wuliu_by_packetid_2"})
             result = wuliu_choice.result_choice[0](logistics_company,
                                                              out_sid,
                                                              tradewuliu.first())

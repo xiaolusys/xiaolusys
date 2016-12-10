@@ -136,38 +136,38 @@ class WuliuViewSet(viewsets.ModelViewSet):
                 res = kdn_wuliu_extra.packet_data(queryset)
                 return Response(res)
 
-    @list_route(methods=['get'])
-    def get_wuliu_by_packetid(self, request):
-        content = request.GET
-        packetid = content.get("packetid", None)
-        company_code = content.get("company_code", None)
-        if packetid is None:  # 参数缺失
-            return Response([])
-
-        queryset = self.queryset.filter(out_sid=packetid).order_by(
-            "-time")  # 这里要按照物流信息时间倒序
-        if queryset.exists():
-            last_wuliu = queryset[0]
-            last_time = last_wuliu.created  # 数据库中最新的记录时间
-            now = datetime.datetime.now()  # 现在时间
-            gap_time = (now - last_time).seconds
-            if gap_time <= self.gap_time or (last_wuliu.status in (pacg.RP_ALREADY_SIGN_STATUS,
-                                                                   pacg.RP_REFUSE_SIGN_STATUS,
-                                                                   pacg.RP_CANNOT_SEND_STATUS,
-                                                                   pacg.RP_INVALID__STATUS,
-                                                                   pacg.RP_OVER_TIME_STATUS,
-                                                                   pacg.RP_FAILED_SIGN_STATUS)):
-                # 属性定义的请求间隙 或者是物流信息是　已经签收了 疑难单　无效单　签收失败则不更新展示数据库中的数据
-                res = kdn_wuliu_extra.packet_data(queryset)
-                return Response(res)
-            else:  # 更新物流
-                get_third_apidata_by_packetid.delay(packetid, company_code)
-                res = kdn_wuliu_extra.packet_data(queryset)
-                return Response(res)
-        else:  # 更新物流
-            get_third_apidata_by_packetid.delay(packetid, company_code)
-            res = kdn_wuliu_extra.packet_data(queryset)
-            return Response(res)
+    # @list_route(methods=['get'])
+    # def get_wuliu_by_packetid(self, request):
+    #     content = request.GET
+    #     packetid = content.get("packetid", None)
+    #     company_code = content.get("company_code", None)
+    #     if packetid is None:  # 参数缺失
+    #         return Response([])
+    #
+    #     queryset = self.queryset.filter(out_sid=packetid).order_by(
+    #         "-time")  # 这里要按照物流信息时间倒序
+    #     if queryset.exists():
+    #         last_wuliu = queryset[0]
+    #         last_time = last_wuliu.created  # 数据库中最新的记录时间
+    #         now = datetime.datetime.now()  # 现在时间
+    #         gap_time = (now - last_time).seconds
+    #         if gap_time <= self.gap_time or (last_wuliu.status in (pacg.RP_ALREADY_SIGN_STATUS,
+    #                                                                pacg.RP_REFUSE_SIGN_STATUS,
+    #                                                                pacg.RP_CANNOT_SEND_STATUS,
+    #                                                                pacg.RP_INVALID__STATUS,
+    #                                                                pacg.RP_OVER_TIME_STATUS,
+    #                                                                pacg.RP_FAILED_SIGN_STATUS)):
+    #             # 属性定义的请求间隙 或者是物流信息是　已经签收了 疑难单　无效单　签收失败则不更新展示数据库中的数据
+    #             res = kdn_wuliu_extra.packet_data(queryset)
+    #             return Response(res)
+    #         else:  # 更新物流
+    #             get_third_apidata_by_packetid.delay(packetid, company_code)
+    #             res = kdn_wuliu_extra.packet_data(queryset)
+    #             return Response(res)
+    #     else:  # 更新物流
+    #         get_third_apidata_by_packetid.delay(packetid, company_code)
+    #         res = kdn_wuliu_extra.packet_data(queryset)
+    #         return Response(res)
 
     def create(self, request, *args, **kwargs):
         """ 创建本地物流信息存储 """
