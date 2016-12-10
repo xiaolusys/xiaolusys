@@ -164,8 +164,11 @@ def confirmTradeChargeTask(sale_trade_id, charge_time=None, charge=None):
     """ 订单确认付款,并更新状态 """
     strade = SaleTrade.objects.get(id=sale_trade_id)
     strade.charge_confirm(charge_time=charge_time, charge=charge)
-    saleservice = FlashSaleService(strade)
-    saleservice.payTrade()
+    try:
+        saleservice = FlashSaleService(strade)
+        saleservice.payTrade()
+    except Exception, exc:
+        logger.error(str(exc), exc_info=True)
 
 
 @app.task(max_retries=3, default_retry_delay=60)

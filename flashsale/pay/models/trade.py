@@ -408,7 +408,10 @@ class SaleTrade(BaseModel):
             except Exception, exc:
                 logger.error(exc.message, exc_info=True)
         self.confirm_payment()
-        self.set_order_paid()
+        try:
+            self.set_order_paid()
+        except Exception, exc:
+            logger.error(str(exc), exc_info=True)
 
     def pay_confirm(self):
         # 暂时用此方法替代charge_confirm进行测试
