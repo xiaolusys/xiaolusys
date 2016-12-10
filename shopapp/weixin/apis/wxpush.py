@@ -7,6 +7,8 @@ import random
 import logging
 import datetime
 from django.conf import settings
+
+from flashsale.coupon.models import CouponTransferRecord
 from flashsale.xiaolumm.models import XiaoluMama, WeixinPushEvent
 from flashsale.pay.models.teambuy import TeamBuyDetail
 from flashsale.pay.models.trade import SaleTrade
@@ -648,7 +650,13 @@ class WeixinPush(object):
         """
         from flashsale.coupon.models import CouponTemplate
 
-        mama_id = coupon_record.coupon_from_mama_id
+        if coupon_record.transfer_type in [CouponTransferRecord.OUT_TRANSFER]:
+            mama_id = coupon_record.coupon_from_mama_id
+        elif coupon_record.transfer_type in [CouponTransferRecord.OUT_CASHOUT, CouponTransferRecord.IN_RETURN_COUPON]:
+            mama_id = coupon_record.coupon_to_mama_id
+        else:
+            return
+
         customer = utils.get_mama_customer(mama_id)
 
         event_type = WeixinPushEvent.COUPON_TRANSFER_AUDIT
