@@ -54,6 +54,16 @@ DATABASES = {
             'charset': 'utf8',
             # 'sql_mode': 'STRICT_TRANS_TABLES',
         },  # storage_engine need mysql>5.4,and table_type need mysql<5.4
+    },
+    'readonly': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'xiaoludb',
+        'USER': 'xiaoludbo',
+        'PASSWORD': 'expired_20160730',
+        'HOST': MYSQL_HOST,
+        'OPTIONS':  {
+            'charset': 'utf8',
+        }
     }
 }
 
