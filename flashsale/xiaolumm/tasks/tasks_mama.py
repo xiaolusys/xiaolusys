@@ -182,7 +182,7 @@ def task_update_ordercarry(mama_id, order, customer_pk, carry_amount, agency_lev
         return
 
     try:
-        order_value = order.payment * 100
+        order_value = round(order.payment * 100, 0)
 
         sku_name = order.title
         sku_img = order.pic_path
