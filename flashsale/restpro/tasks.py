@@ -15,9 +15,10 @@ from shopback.items.models import Product, SkuStock
 from flashsale.pay.models import SaleRefund
 from shopback.trades.models import TradeWuliu, PackageSkuItem,ReturnWuLiu
 from flashsale.restpro.utils import save_pro_info
-from flashsale.restpro.kdn_wuliu_extra import kdn_subscription,get_reverse_code,kdn_subscription_sub,comfirm_get
+from flashsale.restpro.kdn_wuliu_extra import kdn_subscription,get_reverse_code,kdn_subscription_sub,comfirm_get,get_exp_by_kd100
+from flashsale.restpro import exp_map
 import logging
-import datetime
+import datetime,time
 logger = logging.getLogger(__name__)
 
 
@@ -236,6 +237,17 @@ def kdn_search(rid, expName, expNo):
     exp_info = {"expName": expName, "expNo": expNo}
     kdn_subscription(**exp_info)
 
+@app.task()
+def kd100_search(expName, expNo):  #expName是拼音
+    logging.warn(expNo)
+    logging.warn("快递100开始查询了")
+    logger.warn({'action': "kdn", 'info': "kd100_search:" + str(expNo)})
+    write_info = get_exp_by_kd100(str(expName),expNo)
+    kdn_get_push(**write_info)
+    time.sleep(2)
+    # if str(expName) in exp_map.kdn_not_support_exp:
+    #     write_info = get_exp_by_kd100(str(expName),expNo)
+    #     kdn_get_push(**write_info)
 @app.task()
 def kdn_get_push(*args, **kwargs):
     logger.warn({'action': "kdn", 'info': "kdn_get_push"})

@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
-from tasks import kdn_sub,kdn_search
+from tasks import kdn_sub,kdn_search,kd100_search
 from .kdn_wuliu_extra import format_content
+from flashsale.restpro import exp_map
 import logging
 
 logger = logging.getLogger(__name__)
@@ -24,14 +25,22 @@ def one_tradewuliu(logistics_company,out_sid,tradewuliu):
         "content": tradewuliu.content,
         "out_sid": tradewuliu.out_sid
     }
-    kdn_sub.delay(rid=None, expName=logistics_company, expNo=out_sid)
+    if str(logistics_company) in exp_map.kdn_not_support_exp:
+        logistics_company = exp_map.kd100_exp_map[str(logistics_company)]
+        kd100_search.delay(expName=logistics_company, expNo=out_sid)
+    else:
+        kdn_sub.delay(rid=None, expName=logistics_company, expNo=out_sid)
     return format_content(**format_exp_info)
 
 def zero_tradewuliu(logistics_company,out_sid,tradewuliu):
     logger.warn({'action': "kdn", 'info': "zero_tradewuliu"})
     wuliu_info = {"expName": logistics_company, "expNo": out_sid}
-    kdn_sub.delay(rid=None, expName=logistics_company, expNo=out_sid)
-    kdn_search.delay(rid=None, expName=logistics_company, expNo=out_sid)
+    if str(logistics_company) in exp_map.kdn_not_support_exp:
+        logistics_company = exp_map.kd100_exp_map[str(logistics_company)]
+        kd100_search.delay(expName=logistics_company, expNo=out_sid)
+    else:
+        kdn_sub.delay(rid=None, expName=logistics_company, expNo=out_sid)
+        kdn_search.delay(rid=None, expName=logistics_company, expNo=out_sid)
     return "物流信息暂未获得"
 
 result_choice = {1:one_tradewuliu,0:zero_tradewuliu}
