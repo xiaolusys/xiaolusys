@@ -20,7 +20,8 @@ def get_mama_week_sale_orders(mamaid_list, week_start, week_end):
     order_carrys = OrderCarry.objects.filter(
         date_field__range=(week_start, week_end), mama_id__in=mamaid_list,
         status__in=(OrderCarry.ESTIMATE, OrderCarry.CONFIRM),
-        carry_type__in=(OrderCarry.WAP_ORDER, OrderCarry.APP_ORDER)
+        carry_type__in=(OrderCarry.WAP_ORDER, OrderCarry.APP_ORDER),
+        carry_num__gt=0
     )
     return order_carrys
 

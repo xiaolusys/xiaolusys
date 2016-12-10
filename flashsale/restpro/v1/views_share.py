@@ -140,7 +140,9 @@ class CustomShareViewSet(viewsets.ReadOnlyModelViewSet):
     @list_route(methods=['get'])
     def product(self, request, *args, **kwargs):
         """ 分享商品信息接口 """
-        product_id = request.GET.get('product_id', 0)
+        product_id = request.GET.get('product_id', '0')
+        if product_id and not product_id.isdigit():
+            product_id = product_id.split('?')[0].split('/')[-1]
         product = get_object_or_404(Product, id=product_id)
 
         xlmm = self.get_xlmm(request)
@@ -156,7 +158,9 @@ class CustomShareViewSet(viewsets.ReadOnlyModelViewSet):
     @list_route(methods=['get'])
     def model(self, request, *args, **kwargs):
         """ 分享商品款式信息接口 """
-        model_id = request.GET.get('model_id', 0)
+        model_id = request.GET.get('model_id', '0')
+        if model_id and not model_id.isdigit():
+            model_id = model_id.split('?')[0].split('/')[-1]
         product_model = get_object_or_404(ModelProduct, id=model_id)
 
         xlmm = self.get_xlmm(request)
