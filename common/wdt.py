@@ -30,6 +30,7 @@ class WangDianTong(object):
         - content => dict
         """
         content = simplejson.dumps(content)
+        content = content.replace('+', '')
         data = {
             'Method': method,
             'SellerID': self.seller_id,
