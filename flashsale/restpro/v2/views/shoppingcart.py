@@ -138,7 +138,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         sku = ProductSku.objects.filter(id=sku_id).first()
         if sku and sku.product != product:
             sku_pname =  sku.properties_name or sku.properties_alias
-            sku = product.normal_skus.filter(models.Q(properties_name=sku_pname)|models.Q(properties_alias=sku_pname)).frist()
+            sku = product.normal_skus.filter(models.Q(properties_name=sku_pname)|models.Q(properties_alias=sku_pname)).first()
 
         if not sku:
             logger.error(u'购物车商品id不一致: (%s, %s), agent=%s' % (product_id, sku_id, request.META.get('HTTP_USER_AGENT')))
