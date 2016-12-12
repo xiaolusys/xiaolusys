@@ -175,17 +175,31 @@ def saleorder_return_coupon_exchange(salerefund, payment):
     })
 
     # 判断这个退款单对应的订单是曾经兑换过的
-    from flashsale.pay.models.trade import SaleOrder, SaleTrade
-
+    from flashsale.pay.models.trade import SaleOrder
     sale_order = SaleOrder.objects.filter(id=salerefund.order_id).first()
     if not (sale_order and sale_order.extras.has_key('exchange') and sale_order.extras['exchange'] == True):
         res = {}
         return res
 
-    from flashsale.pay.models.user import UserBudget, Customer
+    # 找出兑换这个订单的xlmm
+    from flashsale.xiaolumm.models import XiaoluMama
+    from flashsale.coupon.models.transfer_coupon import CouponTransferRecord
+    cts = CouponTransferRecord.objects.filter(transfer_type=CouponTransferRecord.OUT_EXCHG_SALEORDER,
+                                              uni_key=sale_order.oid, transfer_status=CouponTransferRecord.DELIVERED).first()
+    if cts:
+        mama_id = cts.coupon_from_mama_id
+        mama = XiaoluMama.objects.filter(id=mama_id).first()
+    else:
+        logger.error({
+            'message': u'return exchange order:CouponTransferRecord not found, customer=%s, payment=%s order oid=%s' % (
+                salerefund.buyer_id, payment, sale_order.oid),
+        })
+        res = {}
+        return res
 
+    from flashsale.pay.models.user import UserBudget, Customer
     not_enough_budget = False
-    customer = Customer.objects.normal_customer.filter(id=salerefund.buyer_id).first()
+    customer = Customer.objects.normal_customer.filter(unionid=mama.openid).first()
     user_budgets = UserBudget.objects.filter(user=customer)
     if user_budgets.exists():
         user_budget = user_budgets[0]
@@ -207,7 +221,7 @@ def saleorder_return_coupon_exchange(salerefund, payment):
     # (2)sale order置为已经取消兑换
     if sale_order:
         sale_order.extras['exchange'] = False
-        SaleOrder.objects.filter(oid=salerefund.order_id).update(extras=sale_order.extras)
+        SaleOrder.objects.filter(id=salerefund.order_id).update(extras=sale_order.extras)
     else:
         logger.warn({
             'message': u'return exchange order: order_id=%s not exist' % (salerefund.order_id),
@@ -232,10 +246,10 @@ def saleorder_return_coupon_exchange(salerefund, payment):
             num += 1
         if not not_enough_budget:
             UserCoupon.objects.filter(uniq_id=coupon.uniq_id).update(status=UserCoupon.UNUSED, trade_tid='',
-                                                                     finished_time='')
+                                                                     finished_time=datetime.datetime.now())
         else:
             UserCoupon.objects.filter(uniq_id=coupon.uniq_id).update(status=UserCoupon.FREEZE, trade_tid='',
-                                                                     finished_time='')
+                                                                     finished_time=datetime.datetime.now())
 
     # (4)在精品券流通记录增加退货退券记录
     logger.info({
