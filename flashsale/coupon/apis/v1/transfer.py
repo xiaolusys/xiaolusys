@@ -170,14 +170,14 @@ def coupon_exchange_saleorder(customer, order_id, mama_id, exchg_template_id, co
 @transaction.atomic
 def saleorder_return_coupon_exchange(salerefund, payment):
     logger.info({
-        'message': u'return exchange order:customer=%s, payment=%s ' % (
-            salerefund.buyer_id, payment),
+        'message': u'return exchange order:customer=%s, payment=%s refundid=%s' % (
+            salerefund.buyer_id, payment, salerefund.id),
     })
 
     # 判断这个退款单对应的订单是曾经兑换过的
     from flashsale.pay.models.trade import SaleOrder, SaleTrade
 
-    sale_order = SaleOrder.objects.filter(oid=salerefund.order_id).first()
+    sale_order = SaleOrder.objects.filter(id=salerefund.order_id).first()
     if not (sale_order and sale_order.extras.has_key('exchange') and sale_order.extras['exchange'] == True):
         res = {}
         return res
