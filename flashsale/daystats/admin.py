@@ -26,14 +26,31 @@ class DailyStatForm(forms.ModelForm):
 class DailyStatAdmin(ApproxAdmin):
     form = DailyStatForm
     list_display = ('day_date', 'total_click_count', 'total_valid_count', 'total_visiter_num', 'total_new_visiter_num',
-                    'get_total_payment_display', 'total_paycash', 'total_coupon', 'total_budget', 'total_boutique', 'total_deposite',
-                    'total_order_num', 'total_new_order_num', 'total_buyer_num', 'get_new_customer_num_display',
+                    'get_total_payment_display', 'total_paycash_display', 'total_coupon_display', 'total_budget_display',
+                    'total_boutique_display', 'total_deposite_display', 'total_order_num',
+                    'total_new_order_num', 'total_buyer_num', 'get_new_customer_num_display',
                     'get_seven_new_buyer_num', 'get_daily_rpi_display', 'get_price_per_customer_display',
                     'get_daily_roi_display')
     list_filter = (('day_date', DateFieldListFilter),)
     date_hierarchy = 'day_date'
     search_fields = ['=day_date']
     ordering = ('-day_date',)
+
+    def total_paycash_display(self, obj):
+        return '%.2f'% (obj.total_paycash / 100.0)
+
+    def total_coupon_display(self, obj):
+        return '%.2f' % (obj.total_coupon / 100.0)
+
+    def total_budget_display(self, obj):
+        return '%.2f' % (obj.total_budget / 100.0)
+
+    def total_boutique_display(self, obj):
+        return '%.2f' % (obj.total_boutique / 100.0)
+
+    def total_deposite_display(self, obj):
+        return '%.2f' % (obj.total_deposite / 100.0)
+
 
 
 admin.site.register(DailyStat, DailyStatAdmin)
