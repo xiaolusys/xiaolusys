@@ -208,9 +208,8 @@ def saleorder_return_coupon_exchange(salerefund, payment):
 
     # (1)在user钱包写支出记录，支出不够变成负数
     from flashsale.pay.models.user import BudgetLog
-
     today = datetime.date.today()
-    order_log = BudgetLog(customer_id=salerefund.buyer_id, flow_amount=int(payment),
+    order_log = BudgetLog(customer_id=customer.id, flow_amount=int(payment),
                           budget_type=BudgetLog.BUDGET_OUT,
                           budget_log_type=BudgetLog.BG_EXCHG_ORDER, referal_id=salerefund.id,
                           uni_key=salerefund.refund_no, status=BudgetLog.CONFIRMED,
