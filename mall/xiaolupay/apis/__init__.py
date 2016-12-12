@@ -10,9 +10,11 @@ ONLY_USE_XIAOLUPAY = getattr(settings, 'XIAOLU_UNIONPAY_SWITH', False)
 
 if ONLY_USE_XIAOLUPAY:
     from .v1.charge import Charge
+
 else:
     Charge = pingpp.Charge
-    RedEnvelope = pingpp.RedEnvelope
+
+RedEnvelope = pingpp.RedEnvelope
 
 
 
