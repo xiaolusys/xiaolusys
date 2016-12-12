@@ -46,8 +46,7 @@ class ActivityManager(BaseManager):
         """特卖首页活动
         """
         return self.effect_activities().exclude(act_type__in=(self.model.ACT_MAMA,
-                                                              self.model.ACT_BRAND,
-                                                              self.model.ACT_JINGPIN))
+                                                              self.model.ACT_BRAND))
 
     def jingpin_page_activities(self):
         """
