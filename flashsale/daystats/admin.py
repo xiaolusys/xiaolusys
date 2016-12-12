@@ -22,7 +22,7 @@ class DailyStatForm(forms.ModelForm):
         total_payment = self.cleaned_data['total_payment']
         return int(total_payment * 100)
 
-
+@admin.register(DailyStat)
 class DailyStatAdmin(ApproxAdmin):
     form = DailyStatForm
     list_display = ('day_date', 'total_click_count', 'total_valid_count', 'total_visiter_num', 'total_new_visiter_num',
@@ -39,23 +39,34 @@ class DailyStatAdmin(ApproxAdmin):
     def total_paycash_display(self, obj):
         return '%.2f'% (obj.total_paycash / 100.0)
 
+    total_paycash_display.allow_tags = True
+    total_paycash_display.short_description = u"实付现金"
+
     def total_coupon_display(self, obj):
         return '%.2f' % (obj.total_coupon / 100.0)
+
+    total_coupon_display.allow_tags = True
+    total_coupon_display.short_description = u"优惠券"
 
     def total_budget_display(self, obj):
         return '%.2f' % (obj.total_budget / 100.0)
 
+    total_budget_display.allow_tags = True
+    total_budget_display.short_description = u"钱包余额"
+
     def total_boutique_display(self, obj):
         return '%.2f' % (obj.total_boutique / 100.0)
+
+    total_boutique_display.allow_tags = True
+    total_boutique_display.short_description = u"购精品券"
 
     def total_deposite_display(self, obj):
         return '%.2f' % (obj.total_deposite / 100.0)
 
+    total_deposite_display.allow_tags = True
+    total_deposite_display.short_description = u"支付押金"
 
-
-admin.site.register(DailyStat, DailyStatAdmin)
-
-
+@admin.register(PopularizeCost)
 class PopularizeCostAdmin(admin.ModelAdmin):
     list_display = ('date',
                     'carrylog_order', 'carrylog_click', 'carrylog_thousand',
@@ -69,4 +80,3 @@ class PopularizeCostAdmin(admin.ModelAdmin):
     ordering = ('-date',)
 
 
-admin.site.register(PopularizeCost, PopularizeCostAdmin)
