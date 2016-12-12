@@ -231,7 +231,7 @@ def saleorder_return_coupon_exchange(salerefund, payment):
     # 只能修改部分优惠券的状态
     user_coupon = UserCoupon.objects.filter(trade_tid=sale_order.oid,
                                             status=UserCoupon.USED)
-    return_coupon_num = round(payment / sale_order.price)
+    return_coupon_num = round(payment / round(sale_order.price * 100))
     if user_coupon.count() < return_coupon_num:
         logger.warn({
             'message': u'return exchange order: user_coupon.count() %s < return_coupon_num %s' % (
