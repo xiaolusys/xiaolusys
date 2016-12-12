@@ -210,6 +210,8 @@ def comfirm_get(out_sid,status):            #根据物流状态自动确认收�
     out_sid = str(out_sid)
     logging.warn("comfirm_get")
     logger.warn({'action': "kdn", 'info': "start_comfirm_get:"+ out_sid})
+    tradewuliu = TradeWuliu.objects.filter(out_sid=out_sid).order_by("-id")
+    confirm_get_by_content(out_sid, tradewuliu.first().content)
     packageskuitem = PackageSkuItem.objects.filter(out_sid = out_sid).values("oid")
     logger.warn({'action': "kdn", 'info': "oid_by_out_sid:" + json.dumps(list(packageskuitem))})
     if packageskuitem and int(status) == 3:
@@ -225,7 +227,7 @@ def confirm_get_by_content(out_sid,content):   #根据物流内容自动确认�
     out_sid = str(out_sid)
     logging.warn("confirm_get_by_content")
     logger.warn({'action': "kdn", 'info': "confirm_get_by_content:" + out_sid})
-    if content.find("\u5df2\u7b7e\u6536")!=-1:
+    if content.find("\u5df2\u7b7e\u6536")!=-1 or content.find("\u59a5\u6295") != -1:
         packageskuitem = PackageSkuItem.objects.filter(out_sid=out_sid).values("oid")
         if packageskuitem:
             packageskuitem = [i['oid'] for i in packageskuitem]
@@ -413,8 +415,9 @@ if __name__ == '__main__':
     # test_info = {"expName" : '韵达快递',"expNo":"3101131769194"}
     # kdn_subscription_sub(**test_info)
     # format_content()
-    # comfirm_get('882655691181230843','3')
-    get_exp_by_kd100("yunda","1202412171242")
+    comfirm_get('402076604829','3')
+    # get_exp_by_kd100("yunda","1202412171242")
+
 
 
 
