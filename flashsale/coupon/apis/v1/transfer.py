@@ -255,7 +255,7 @@ def saleorder_return_coupon_exchange(salerefund, payment):
         'message': u'exchange order:return_coupon_num=%s ' % (return_coupon_num),
     })
     res = CouponTransferRecord.gen_return_record(customer, return_coupon_num,
-                                                 int(user_coupon.template_id), sale_order.sale_trade.tid)
+                                                 int(user_coupon[0].template_id), sale_order.sale_trade.tid)
 
     return res
 
