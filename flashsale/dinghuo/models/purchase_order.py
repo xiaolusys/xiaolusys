@@ -694,7 +694,7 @@ class OrderList(models.Model):
                      saleproduct.supplier_sku if saleproduct else '', str(p.sale_trade.buyer_nick),
                      str(p.product_sku.product.name), str(p.product_sku.properties_name),
                      str(p.product_sku.cost), str(p.num), '0', '0', '0', '0', '', str(p.sale_trade.receiver_name),
-                     str(o.user_address.identification_no) if o and o.user_address else '',
+                     '\'' + str(o.user_address.identification_no) if o and o.user_address else '',
                      str(o.receiver_state), str(o.receiver_city), str(o.receiver_district),
                               str(o.receiver_address), '', p.sale_trade.receiver_mobile, '', '', '', '',
                      p.sale_trade.created.strftime('%Y-%m-%D %H:%M:%S'),
