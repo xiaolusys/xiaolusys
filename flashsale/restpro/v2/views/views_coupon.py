@@ -424,7 +424,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         mama = get_mama_by_openid(customer.unionid)
         if not mama:
             return Response({'code': 2, 'info': '妈妈记录没找到'})
-        queryset = CouponTransferRecord.objects.get_return_transfer_coupons().filter(coupon_to_mama_id=mama.id)
+        queryset = CouponTransferRecord.objects.get_return_transfer_coupons().filter(coupon_to_mama_id=mama.id).order_by('-created')
         queryset = self.filter_queryset(queryset)
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -446,7 +446,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
             return Response({'code': 2, 'info': '妈妈记录没找到'})
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.filter(coupon_from_mama_id=mama.id,
-                                   transfer_type__in=[CouponTransferRecord.OUT_CASHOUT, CouponTransferRecord.IN_RETURN_COUPON])
+                                   transfer_type__in=[CouponTransferRecord.OUT_CASHOUT, CouponTransferRecord.IN_RETURN_COUPON]).order_by('-created')
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
