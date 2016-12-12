@@ -68,6 +68,19 @@ def get_mamafortune(mama_id):
         raise APIException(u'{0}'.format(exc.message))
     return could_cash_out, active_value_num
 
+def validate_customer_budget(customer):
+    """
+    check user customer budget is validate
+    """
+    from flashsale.pay.models.user import UserBudget
+    budget = UserBudget.objects.filter(user=customer).first()
+    if budget:
+        if budget.amount > 0:
+            return True
+        else:
+            return False
+    else:
+        return False
 
 class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
     """
@@ -918,7 +931,10 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             return Response({"code": 10, "info": info})
 
         if not xlmm.is_cashoutable():
-            return Response({"code": 5, 'msg': '只有正式小鹿妈妈会员才可大额提现！'})
+            return Response({"code": 5, 'info': '只有正式小鹿妈妈会员才可大额提现！'})
+
+        if not validate_customer_budget(customer):
+            return Response({"code": 12, "info": "您的个人账户金额异常，无法提现，请联系管理员或客服！"})
 
         value, msg = self.verify_cashout(cash_type, cashout_amount, customer, xlmm)
         if value <= 0:
@@ -1009,6 +1025,9 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         if not (mama and customer):
             info = u'你的帐号异常，请联系管理员！'
             return Response({"code": 10, "info": info})
+
+        if not validate_customer_budget(customer):
+            return Response({"code": 12, "info": "您的个人账户金额异常，无法提现，请联系管理员或客服！"})
 
         mobile = customer.mobile
         if not (mobile and mobile.isdigit() and len(mobile) == 11):
@@ -1172,6 +1191,9 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         if not xlmm:
             default_return.update({"code": 3, "info": "用户异常"})
             return Response(default_return)
+
+        if not validate_customer_budget(customer):
+            return Response({"code": 12, "info": "您的个人账户金额异常，无法提现，请联系管理员或客服！"})
 
         could_cash_out, _ = get_mamafortune(xlmm.id)  # 可提现的金额
         exchange_amount = int(exchange_num) * tpl.value

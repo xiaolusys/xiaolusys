@@ -242,3 +242,19 @@ def return_transfer_coupon(coupons):
     for mama_id in mama_ids:
         task_calc_xlmm_elite_score(mama_id)  # 重算积分
     return True
+
+
+def unfreeze_user_coupon_by_userbudget(customer_id):
+    from flashsale.pay.models import Customer
+    customer = Customer.objects.normal_customer.filter(id=customer_id).first()
+    if customer:
+        from flashsale.coupon.models.usercoupon import UserCoupon
+        user_coupons = UserCoupon.objects.filter(customer_id=customer.id, coupon_type=UserCoupon.TYPE_TRANSFER,
+                                                 status=UserCoupon.FREEZE)
+        if user_coupons and user_coupons.count() > 0:
+            for coupon in user_coupons:
+                if coupon.extras.has_key("freeze_type") and coupon.extras["freeze_type"] == 1:
+                    coupon.extras.pop('freeze_type')
+                    coupon.status = UserCoupon.UNUSED
+                    coupon.save()
+
