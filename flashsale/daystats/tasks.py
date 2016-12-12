@@ -52,14 +52,18 @@ def task_Push_Sales_To_DailyStat(target_date):
             if last_clicks.count() > 0:
                 total_old_visiter_num += 1
         else:
-            uclicks = UserClicks.objects.filter(unionid=unionid)
+            uclicks = UserClicks.objects.filter(unionid=unionid).only('id','click_start_time')
             if uclicks.exists():
                 if uclicks[0].click_start_time.date() < target_date:
                     total_old_visiter_num += 1
 
     from flashsale.pay.models import SaleTrade
     order_stats = SaleTrade.objects.filter(pay_time__range=(df, dt))
-    total_payment = order_stats.aggregate(total_payment=Sum('payment')).get('total_payment') or 0
+    aggrate_data = order_stats.aggregate(
+        total_payment=Sum('payment'),
+        total_paycash=Sum('pay_cash'),
+        total_discount=Sum('discount_fee')
+    )
     total_order_num = order_stats.count()
     total_buyer_num = order_stats.values('receiver_mobile').distinct().count()
 
@@ -85,7 +89,15 @@ def task_Push_Sales_To_DailyStat(target_date):
     dstat.total_visiter_num = total_user_num
     dstat.total_new_visiter_num = total_user_num - total_old_visiter_num
 
-    dstat.total_payment = total_payment * 100
+    dstat.total_payment = (aggrate_data.get('total_payment') or 0) * 100
+    dstat.total_paycash = (aggrate_data.get('total_paycash') or 0) * 100
+    dstat.total_coupon  = (aggrate_data.get('total_discount') or 0) * 100
+    dstat.total_budget  = dstat.total_payment - dstat.total_paycash
+    dstat.total_boutique = (order_stats.filter(order_type=SaleTrade.ELECTRONIC_GOODS_ORDER)
+                            .aggregate(total_paycash=Sum('pay_cash')).get('total_paycash') or 0 )*100
+    dstat.total_deposite = (order_stats.filter(order_type=SaleTrade.DEPOSITE_ORDER)
+                            .aggregate(total_paycash=Sum('pay_cash')).get('total_paycash') or 0 )*100
+
     dstat.total_order_num = total_order_num
     dstat.total_new_order_num = total_order_num - total_old_order_num
 
