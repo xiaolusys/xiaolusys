@@ -80,7 +80,7 @@ def validate_customer_budget(customer):
         else:
             return False
     else:
-        return False
+        return True
 
 class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
     """

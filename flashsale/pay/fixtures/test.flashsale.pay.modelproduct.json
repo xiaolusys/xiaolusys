@@ -1,0 +1,24 @@
+[
+{
+  "model": "pay.modelproduct",
+  "pk": 11615,
+  "fields": {
+    "created": "2016-04-19T19:04:49",
+    "modified": "2016-12-13T11:19:54",
+    "name": "ddd",
+
+    "lowest_agent_price": 79,
+    "lowest_std_sale_price": 99,
+
+    "shelf_status": "on",
+    "onshelf_time": "2016-12-13T11:19:54",
+    "offshelf_time": "2018-12-13T11:19:54",
+
+    "rebeta_scheme_id": 12,
+
+    "extras": {},
+    "status": "normal",
+    "product_type": 0
+  }
+}
+]
