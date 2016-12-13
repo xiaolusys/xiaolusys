@@ -711,16 +711,18 @@ class BrandProductInline(admin.TabularInline):
 
 
 class ModelProductAdmin(ApproxAdmin):
-    list_display = ('id', 'name', 'sale_time', 'salecategory', 'is_onsale', 'is_recommend', 'is_topic',
+    list_display = ('id', 'name', 'sale_time', 'salecategory', 'product_type', 'is_onsale', 'is_recommend', 'is_topic',
                     'is_flatten', 'is_teambuy', 'product_type', 'status', 'shelf_status', 'onshelf_time', 'offshelf_time',
                     'lowest_agent_price', 'lowest_std_sale_price', 'order_weight', 'created')
 
     list_filter = ('status',
+                   'product_type',
                    'shelf_status',
                    'is_onsale',
                    'is_recommend',
                    'is_topic',
                    'is_flatten',
+                   'is_boutique',
                    ('onshelf_time', DateFieldListFilter),
                    ('created', DateFieldListFilter))
     # -------------- 页面布局 --------------
@@ -729,7 +731,7 @@ class ModelProductAdmin(ApproxAdmin):
                    'fields': (
                        ('name', 'salecategory', 'saleproduct'),
                        ('lowest_agent_price', 'lowest_std_sale_price'),
-                       ('is_onsale', 'is_recommend', 'is_topic', 'is_flatten', 'is_teambuy', 'product_type'),
+                       ('is_onsale', 'is_recommend', 'is_topic', 'is_flatten', 'is_teambuy', 'is_boutique', 'product_type'),
                        ('shelf_status', 'onshelf_time', 'offshelf_time'),
                        ('order_weight', 'rebeta_scheme_id', 'status'),
                        ('head_imgs', 'content_imgs'),

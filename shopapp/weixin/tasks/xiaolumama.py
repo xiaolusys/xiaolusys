@@ -552,6 +552,9 @@ def task_create_mama_and_response_manager_qrcode(wxpubId, openid, event, eventKe
         if not userinfo or not userinfo.get('headimgurl'):
             return
         mama = XiaoluMama.objects.filter(openid=unionid).first()
+        if not mama:
+            raise task_create_mama_and_response_manager_qrcode.retry()
+
         # 获取创建用户小鹿妈妈信息,
         media_id = fetch_wxpub_mama_manager_qrcode_media_id(mama.id, wxpubId)
 

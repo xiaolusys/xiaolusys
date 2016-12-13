@@ -781,7 +781,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         extra_params = {
             'item_ids': item_ids,
             'buyer_id': customer.id,
-            'payment': cart_total_fee - cart_discount,
+            'payment':  cart_total_fee - cart_discount,
             'order_no': tuuid,
         }
 

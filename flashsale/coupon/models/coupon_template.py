@@ -3,6 +3,8 @@ import random
 import datetime
 from core.models import BaseModel
 from django.db import models
+
+from core.utils.unikey import uniqid
 from core.fields import JSONCharMyField
 from .managers.coupon_template import UserCouponTemplateManager
 
@@ -22,9 +24,13 @@ def default_template_extras():
         'templates': {'post_img': ''}  # 优惠券模板
     }
 
+def default_coupon_template_no():
+    return uniqid('%s%s' % (CouponTemplate.PREFIX_NO, datetime.date.today().strftime('%y%m%d')))
 
 class CouponTemplate(BaseModel):
     """ 优惠券模板 """
+
+    PREFIX_NO = 'tcp'
 
     TYPE_NORMAL = 1
     TYPE_ORDER_SHARE = 2
@@ -65,10 +71,15 @@ class CouponTemplate(BaseModel):
     SENDING = 1
     FINISHED = 2
     CANCEL = 3
-    STATUS_CHOICES = ((CREATE, u'未发放'),  # 定义模板后没有发放 待用
-                      (SENDING, u'发放中'),  # 模板正在使用中
-                      (FINISHED, u'已结束'),  # 正常发放后结束发放
-                      (CANCEL, u'已取消'),)  # 发放中到取消状态取消发放
+    STATUS_CHOICES = (
+        (CREATE, u'未发放'),  # 定义模板后没有发放 待用
+        (SENDING, u'发放中'),  # 模板正在使用中
+        (FINISHED, u'已结束'),  # 正常发放后结束发放
+        (CANCEL, u'已取消'),
+    )  # 发放中到取消状态取消发放
+
+    template_no = models.CharField(max_length=64, #unique=True,
+                                   default=default_coupon_template_no, verbose_name=u"优惠券no")  # type: text_type
 
     title = models.CharField(max_length=64, verbose_name=u"优惠券标题")  # type: text_type
     description = models.CharField(max_length=128, verbose_name=u"使用说明")  # type: text_type

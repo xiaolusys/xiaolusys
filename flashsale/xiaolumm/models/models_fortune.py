@@ -109,7 +109,7 @@ class MamaFortune(BaseModel):
         fortune = MamaFortune.objects.filter(mama_id=mama_id).first()
         if fortune:
             return fortune
-        if not XiaoluMama.objects.filter(mama_id).first():
+        if not XiaoluMama.objects.filter(id=mama_id).first():
             raise Exception(u'提供的小鹿妈妈id不存在：' + str(mama_id))
         fortune = MamaFortune(mama_id=mama_id)
         fortune.save()

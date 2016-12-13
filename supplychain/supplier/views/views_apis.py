@@ -419,6 +419,8 @@ class SaleProductViewSet(viewsets.ModelViewSet):
             model_product.update_fields_with_kwargs(**{
                 'name': instance.title,
                 'salecategory': instance.sale_category,
+                'product_type': instance.get_product_type(),
+                'is_boutique': instance.get_boutique_value()
             })
             Product.create_or_update_skus(model_product, request.user)  # 保存saleproduct 之后才做更新
 

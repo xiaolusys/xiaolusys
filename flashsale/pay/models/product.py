@@ -152,8 +152,8 @@ class ModelProduct(BaseTagModel):
         (OFF_SHELF, u'未上架')
     )
 
-    USUAL_TYPE = 0
-    VIRTUAL_TYPE = 1
+    USUAL_TYPE    = 0
+    VIRTUAL_TYPE  = 1
     NOT_SALE_TYPE = 2
     TYPE_CHOICES = (
         (USUAL_TYPE, u'商品'),
@@ -166,7 +166,6 @@ class ModelProduct(BaseTagModel):
     head_imgs = models.TextField(blank=True, verbose_name=u'题头照(多张请换行)')
     content_imgs = models.TextField(blank=True, verbose_name=u'内容照(多张请换行)')
 
-    # TODO@meron　类目根据选品类目更新
     salecategory = models.ForeignKey('supplier.SaleCategory', null=True, default=None,
                                      related_name='modelproduct_set', verbose_name=u'分类')
 
@@ -179,6 +178,7 @@ class ModelProduct(BaseTagModel):
     is_topic     = models.BooleanField(default=False, db_index=True, verbose_name=u'专题商品')
     is_flatten   = models.BooleanField(default=False, db_index=True, verbose_name=u'平铺显示')
     is_watermark = models.BooleanField(default=False, db_index=True, verbose_name=u'图片水印')
+    is_boutique  = models.BooleanField(default=False, db_index=True, verbose_name=u'精品汇')
 
     teambuy_price = models.FloatField(default=0, verbose_name=u'团购价')
     teambuy_person_num = models.IntegerField(default=3, verbose_name=u'团购人数')
@@ -258,6 +258,10 @@ class ModelProduct(BaseTagModel):
                 all_sale_out &= product.is_sale_out()
             self._is_saleout_ = all_sale_out
         return self._is_saleout_
+
+    @property
+    def is_boutique_coupon(self):
+        return int(self.product_type) == ModelProduct.VIRTUAL_TYPE and self.is_boutique
 
     def get_web_url(self):
         return urlparse.urljoin(settings.M_SITE_URL, Product.MALL_PRODUCT_TEMPLATE_URL.format(self.id))
@@ -704,6 +708,25 @@ class ModelProduct(BaseTagModel):
         if self.is_flatten != is_flatten:
             self.is_flatten = is_flatten
             self.save(update_fields=['is_flatten'])
+
+    def set_boutique_coupon_only(self, coupon_tpl_id):
+        self.extras.update({
+            "payinfo": {
+                "use_coupon_only": True,
+                "coupon_template_ids": [int(coupon_tpl_id)]
+            }
+        })
+
+    def as_boutique_coupon_product(self, coupon_tpl_id):
+        sale_infos = self.extras.get('saleinfos', {})
+        sale_infos.update({
+                "is_coupon_deny": True,
+                "per_limit_buy_num": 1000
+            })
+        self.extras.update({
+            "saleinfos": sale_infos,
+            "template_id": int(coupon_tpl_id)
+        })
 
     def sale_num(self):
         return None

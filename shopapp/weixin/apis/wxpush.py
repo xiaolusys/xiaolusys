@@ -658,6 +658,8 @@ class WeixinPush(object):
             return
 
         customer = utils.get_mama_customer(mama_id)
+        if not customer:
+            return
 
         event_type = WeixinPushEvent.COUPON_TRANSFER_AUDIT
         template_id = 'GQqbrGtAmmKdUnknaaIEmW7DakgvQK6apfROTxzYkUs'
@@ -718,7 +720,6 @@ class WeixinPush(object):
         运维状态：{{keyword2.DATA}}
         {{remark.DATA}}
         """
-
         customer = utils.get_mama_customer(mama_id)
 
         if self.need_sms_push(customer):

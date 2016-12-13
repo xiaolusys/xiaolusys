@@ -92,6 +92,8 @@ class SaleProduct(BaseTagModel):
 
     sku_extras = JSONCharMyField(max_length=10240, default=[], verbose_name=u"sku信息")
 
+    extras = JSONCharMyField(max_length=512, default={}, verbose_name=u"附加信息")
+
     class Meta:
         db_table = 'supplychain_supply_product'
         unique_together = [("outer_id", "platform")]
@@ -228,6 +230,17 @@ class SaleProduct(BaseTagModel):
                                  'properties_alias': psku.properties_alias,
                                  'properties_name': psku.properties_name})
         return sku_list
+
+
+    def get_product_type(self):
+        if not self.extras:
+            return 0
+        return self.extras.get('product_type') or 0
+
+    def get_boutique_value(self):
+        if not self.extras:
+            return 0
+        return self.extras.get('is_boutique') or 0
 
 
 def change_saleprodut_by_pre_save(sender, instance, raw, *args, **kwargs):

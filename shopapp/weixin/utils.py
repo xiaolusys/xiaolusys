@@ -34,7 +34,7 @@ DEFAULT_MAMA_THUMBNAIL = 'http://img.xiaolumeimei.com/undefined1472268058597lADO
 def get_mama_customer(mama_id):
     mama = XiaoluMama.objects.filter(id=mama_id).first()
     if mama:
-        return mama.get_customer()
+        return mama.get_mama_customer()
     else:
         return None
 

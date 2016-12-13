@@ -839,6 +839,7 @@ class Product(models.Model):
                 next_id = outerid + str(pro_count)
             return pro_count
 
+        is_boutique_coupon = model_pro.is_boutique_coupon
         saleproduct = model_pro.saleproduct
         skus_list = saleproduct.sku_extras
         cls.handle_delete_sku(model_pro, skus_list)  # 处理删除的sku
@@ -883,10 +884,19 @@ class Product(models.Model):
                 pro_count += 1
             pro_count = _get_valid_procount(inner_outer_id, pro_count, productid_maps)
             pro_dict = productname_maps.get(pro['name'])
-            outer_id = pro_dict and pro_dict['outer_id'] or inner_outer_id + str(pro_count)
+            outer_id = (pro_dict and pro_dict['outer_id'] or inner_outer_id + str(pro_count)).replace('RMB','')
+            color_skus = []
+            for sku in skus_list:
+                if sku['color'] == pro['name']:
+                    color_skus.append(sku)
+
+            s_outer_id = outer_id
+            if is_boutique_coupon and not outer_id.startswith('RMB'):
+                s_outer_id = 'RMB%s' % (outer_id)
+
             kwargs = {'name': pro['name'],
                       'pic_path': pro['pic_path'],
-                      'outer_id': outer_id,
+                      'outer_id': s_outer_id,
                       'model_id': model_pro.id,
                       'sale_charger': creator.username,
                       'category': product_category,
@@ -894,10 +904,6 @@ class Product(models.Model):
                       'sale_product': saleproduct.id,
                       "product_skus_list": []}
             pro_count += 1
-            color_skus = []
-            for sku in skus_list:
-                if sku['color'] == pro['name']:
-                    color_skus.append(sku)
             sku_count = 1
             product_skus_list = []
             for color_sku in color_skus:
@@ -905,6 +911,7 @@ class Product(models.Model):
                 sku_dict = skuname_maps.get('%s-%s' % (pro['name'], color_sku['properties_name']))
                 sku_outer_id = sku_dict and sku_dict['outer_id'] or outer_id + str(sku_count)
                 barcode = sku_dict and sku_dict['barcode'] or '%s%d' % (outer_id, sku_count)
+
                 product_skus_list.append(
                     {'outer_id': sku_outer_id,
                      'remain_num': color_sku['remain_num'],
@@ -912,15 +919,40 @@ class Product(models.Model):
                      'std_sale_price': color_sku['std_sale_price'],
                      'agent_price': color_sku['agent_price'],
                      'supplier_skucode': color_sku.get('supplier_skucode', ''),
-                     'properties_name': color_sku['properties_name'],
+                     'properties_name': color_sku['properties_name'] or pro['name'] ,
                      'properties_alias': color_sku['properties_alias'],
                      'barcode': barcode})
                 sku_count += 1
             kwargs.update({'product_skus_list': product_skus_list})
-
             cls.update_or_create_product_and_skus(model_pro, **kwargs)
+
         model_pro.set_is_flatten()  # 设置平铺字段
         model_pro.set_lowest_price()  # 设置款式最低价格
+        print 'is_boutique_coupon', is_boutique_coupon, model_pro.extras.get('template_id')
+        # 如果时精品券商品
+        if is_boutique_coupon:
+            with transaction.atomic():
+                from flashsale.pay.models import ModelProduct
+                model_pro = ModelProduct.objects.select_for_update().get(id=model_pro.id)
+                if model_pro.extras.get('template_id'):
+                    return
+                from flashsale.coupon.services import get_create_boutique_template
+                product_ids = list(model_pro.products.values_list('id', flat=True))
+                # 创建精品券
+                coupon_template = get_create_boutique_template(
+                    model_pro.id, model_pro.lowest_agent_price, model_title=model_pro.name,
+                    model_product_ids=product_ids, model_img=model_pro.head_img_url)
+                usual_model_id = saleproduct.product_link.split('?')[0].split('/')[-1]
+                usual_modle_product = ModelProduct.objects.filter(id=usual_model_id).first()
+                if not usual_modle_product:
+                    raise ValueError('精品券关联商品款式链接不合法')
+                # 设置精品商品只可使用指定优惠券
+                usual_modle_product.set_boutique_coupon_only(coupon_template.id)
+                usual_modle_product.save(update_fields=['extras'])
+                # 设置精品券商品不不允许使用优惠券
+                model_pro.as_boutique_coupon_product(coupon_template.id)
+                model_pro.save(update_fields=['extras'])
+
 
     def to_apimodel(self):
         from apis.v1.products import Product as APIModel

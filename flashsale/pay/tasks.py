@@ -184,11 +184,12 @@ def notifyTradePayTask(notify):
         if not paid or tcharge.paid == True:
             return
 
-        update_fields = set([
+        update_fields = [
             'paid', 'refunded', 'channel', 'amount', 'currency',
             'transaction_no', 'amount_refunded', 'failure_code', 'failure_msg',
             'time_paid', 'time_expire'
-        ])
+        ]
+        update_fields = set(update_fields)
 
         for k, v in notify.iteritems():
             if k not in update_fields:

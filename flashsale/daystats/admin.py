@@ -46,7 +46,7 @@ class DailyStatAdmin(ApproxAdmin):
         return '%.2f' % (obj.total_coupon / 100.0)
 
     total_coupon_display.allow_tags = True
-    total_coupon_display.short_description = u"优惠券"
+    total_coupon_display.short_description = u"精品/优惠券"
 
     def total_budget_display(self, obj):
         return '%.2f' % (obj.total_budget / 100.0)

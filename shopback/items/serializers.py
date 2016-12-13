@@ -167,6 +167,8 @@ class ModelProductUpdateSerializer(serializers.ModelSerializer):
             'is_teambuy',
             'teambuy_price',
             'teambuy_person_num',
+            'is_boutique',
+            'product_type',
             'status'
         )
 

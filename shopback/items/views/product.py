@@ -464,7 +464,7 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         model_pro.set_lowest_price()  # 设置款式最低价格
         return
 
-    @transaction.atomic()
+    @transaction.atomic
     def create(self, request, *args, **kwargs):
         """ 创建特卖款式 """
         content = request.data
@@ -478,9 +478,14 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         request.data.update({'name': saleproduct.title})
         request.data.update({'head_imgs': saleproduct.pic_url})
 
+        sale_extras = saleproduct.extras
         request.data.update({'extras': extras})
-        request.data.update({'saleproduct': saleproduct.id})
-        request.data.update({'salecategory': saleproduct.sale_category.id})
+        request.data.update({
+            'saleproduct': saleproduct.id,
+            'salecategory': saleproduct.sale_category.id,
+            'is_boutique': sale_extras.get('is_boutique',False),
+            'product_type':sale_extras.get('product_type',False),
+        })
 
         serializer = serializers.ModelProductUpdateSerializer(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
@@ -515,7 +520,11 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
             request.data.update({'extras': extras})
 
         request.data.update({'name': instance and instance.name or saleproduct.title})
-        request.data.update({'salecategory': instance.salecategory.id})  # 类别不予更新（使用原来的类别）
+        request.data.update({
+            'salecategory': instance.salecategory.id,
+            'is_boutique': saleproduct.extras.get('is_boutique', False),
+            'product_type': saleproduct.extras.get('product_type', False),
+        })  # 类别不予更新（使用原来的类别）
         request.data.update({'lowest_agent_price': instance.lowest_agent_price})  # 最低售价（价格由sku决定）
         request.data.update({'lowest_std_sale_price': instance.lowest_std_sale_price})  # 最低吊牌价（价格由sku决定）
         serializer = serializers.ModelProductUpdateSerializer(instance, data=request.data, partial=partial)
