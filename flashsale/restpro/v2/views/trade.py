@@ -362,7 +362,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         """
         tuuid = form.get('uuid')
         assert UUID_RE.match(tuuid), u'订单UUID异常'
-        sale_trade = SaleTrade.objects.select_for_update().filter(tid=tuuid).first()
+        # lock on customer record
+        customer = Customer.objects.select_for_update.get(id=customer.id)
+        sale_trade = SaleTrade.objects.filter(tid=tuuid).first()
         if sale_trade and sale_trade.buyer_id != customer.id:
             raise Exception(u'该订单号被重用: %s'%request.POST.dict())
 
