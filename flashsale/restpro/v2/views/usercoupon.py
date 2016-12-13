@@ -1,5 +1,7 @@
 # coding=utf-8
 from __future__ import unicode_literals, absolute_import
+import datetime
+import calendar
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import list_route
@@ -145,9 +147,22 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
             return Response({'code': 4, 'info': '用户错误'})
         # 判断积分是否可以退券操作
         mama = get_mama_by_openid(customer.unionid)
+        p_records = CouponTransferRecord.objects.filter(coupon_from_mama_id=mama.id,
+                                                        status=CouponTransferRecord.EFFECT,
+                                                        transfer_type__in=[
+                                                            CouponTransferRecord.IN_RETURN_COUPON,  # 退给上级代理
+                                                            CouponTransferRecord.OUT_CASHOUT])  # 退给系统
+        # 判断当前用户 本 月 是否 有生成 退券的记录(待审核或者已经审核掉的) 如果有则不予申请
+        today = datetime.datetime.today()
+        weekday, month_days = calendar.monthrange(today.year, today.month)
+        tf = datetime.datetime(today.year, today.month, 1, 0, 0, 0)  # 这个月第一天开始
+        tt = datetime.datetime(today.year, today.month, month_days, 23, 59, 59)  # 这个月最后一天结束
+        if p_records.filter(created__gte=tf, created__lte=tt).exclude(
+                transfer_status=CouponTransferRecord.CANCELED).exists():  # 排除取消的流通 (退券) 记录
+            return Response({'code': 6, 'info': '您本月已经有退券了,每月只有一天能够退券,请集中到某一天集中申请!'})
+
         can_return_elite = mama.elite_score - mama.get_level_lowest_elite()  # 当前可退回的积分数
-        p_records = CouponTransferRecord.objects.get_return_transfer_coupons().filter(coupon_from_mama_id=mama.id,
-                                                                                      transfer_status=CouponTransferRecord.PENDING)
+        p_records = p_records.filter(transfer_status=CouponTransferRecord.PENDING)  # 待确定的流通记录积分
         p_elite_score = p_records.aggregate(s_elite_score=Sum('elite_score')).get('s_elite_score') or 0
         can_return_elite = can_return_elite - p_elite_score  # 这里的可以退还的积分要减去　待审核的积分数量
         coupon_elite = get_coupons_elite(user_coupons, mama.elite_level)  # 计算优惠券在当前等级的积分
