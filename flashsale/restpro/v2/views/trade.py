@@ -710,7 +710,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             from flashsale.pay.models.product import ModelProduct
             if mp and (mp.product_type == ModelProduct.VIRTUAL_TYPE):
                 virtual_num += 1
-                elite_score = cart.num * mp.elite_score
+                elite_score = cart.num * cart.product.elite_score
                 goods_num += cart.num
 
         if virtual_num > 0:
