@@ -111,6 +111,7 @@ class Bill(BaseModel):
         else:
             status = Bill.STATUS_DEALED
         merged_bill = Bill(
+            receive_name=bills[0].receive_name,
             receive_account=receive_account,
             type=type_,
             pay_method=Bill.TRANSFER_PAY,
