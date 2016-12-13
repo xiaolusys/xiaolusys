@@ -68,5 +68,23 @@
     },
     "model": "pay.customer",
     "pk": 783437
+  },
+    {
+    "fields": {
+      "username": "137392341",
+      "first_name": "",
+      "last_name": "",
+      "is_active": true,
+      "is_superuser": false,
+      "is_staff": false,
+      "last_login": "2016-05-03T21:54:51",
+      "groups": [],
+      "user_permissions": [],
+      "password": "pbkdf2_sha256$20000$qSnHc7ExkpcI$UkwipKYhJ/iNT1BxZOzG0rj0NWc7x7uiTzEMI2td6NI=",
+      "email": "",
+      "date_joined": "2016-02-22T00:59:30"
+    },
+    "model": "auth.user",
+    "pk": 56
   }
 ]

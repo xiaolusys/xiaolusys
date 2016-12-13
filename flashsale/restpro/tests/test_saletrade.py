@@ -19,6 +19,9 @@ class SaletradeTestCase(TestCase):
                 'test.flashsale.pay.useraddress.json',
                 'test.flashsale.pay.saletrade.json',
                 'test.flashsale.pay.modelproduct.json',
+                'test.flashsale.pay.salecategory.json',
+                'test.flashsale.pay.salesupplier.json',
+                'test.flashsale.pay.saleproduct.json',
                 ]
     def setUp(self):
         self.cart_data = {'num': 2, 'item_id': 40874, 'sku_id': 164886}
