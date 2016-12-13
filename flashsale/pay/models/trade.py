@@ -387,29 +387,36 @@ class SaleTrade(BaseModel):
 
     def charge_confirm(self, charge_time=None, charge=charge):
         """ 如果付款期间，订单被订单号任务关闭则不减锁定数量 """
-        trade_close = self.is_closed()
-        self.status = self.WAIT_SELLER_SEND_GOODS
-        self.charge = charge or self.charge
-        self.pay_time = charge_time or datetime.datetime.now()
-        update_model_fields(self, update_fields=['status', 'pay_time', 'charge'])
+        with transaction.atomic():
+            st = SaleTrade.objects.select_for_update().get(id=self.id)
+            if st.status == SaleTrade.WAIT_SELLER_SEND_GOODS:
+                return
 
-        for order in self.sale_orders.all():
+            trade_close = st.is_closed()
+            st.status   = SaleTrade.WAIT_SELLER_SEND_GOODS
+            if charge:
+                st.charge   = charge
+            st.pay_time = charge_time or datetime.datetime.now()
+            update_model_fields(st, update_fields=['status', 'pay_time', 'charge'])
+
+        for order in st.sale_orders.all():
             order.status = order.WAIT_SELLER_SEND_GOODS
-            order.pay_time = self.pay_time
+            order.pay_time = st.pay_time
             order.save()
         # 付款后订单被关闭，则加上锁定数
         if trade_close:
-            self.increase_lock_skunum()
+            st.increase_lock_skunum()
         # 如果使用余额支付,付款成功后则扣除
-        if self.has_budget_paid:
+        if st.has_budget_paid:
             try:
-                user_budget = UserBudget.objects.get(user_id=self.buyer_id)
-                user_budget.charge_confirm(self.id)
+                user_budget = UserBudget.objects.get(user_id=st.buyer_id)
+                user_budget.charge_confirm(st.id)
             except Exception, exc:
                 logger.error(exc.message, exc_info=True)
-        self.confirm_payment()
+
+        st.confirm_payment()
         try:
-            self.set_order_paid()
+            st.set_order_paid()
         except Exception, exc:
             logger.error(str(exc), exc_info=True)
 
@@ -507,21 +514,21 @@ class SaleTrade(BaseModel):
     @transaction.atomic
     def close_trade(self):
         """ 关闭待付款订单 """
-        try:
-            SaleTrade.objects.get(id=self.id, status=SaleTrade.WAIT_BUYER_PAY)
-        except SaleTrade.DoesNotExist:
+        st = SaleTrade.objects.select_for_update().get(id=self.id)
+        if st.status != SaleTrade.WAIT_BUYER_PAY:
             return
-        self.status = SaleTrade.TRADE_CLOSED_BY_SYS
-        self.save()
 
-        for order in self.normal_orders:
+        st.status = SaleTrade.TRADE_CLOSED_BY_SYS
+        st.save()
+
+        for order in st.normal_orders:
             order.close_order()
 
-        if self.has_budget_paid:
-            ubudget = UserBudget.objects.get(user=self.buyer_id)
-            ubudget.charge_cancel(self.id)
+        if st.has_budget_paid:
+            ubudget = UserBudget.objects.get(user=st.buyer_id)
+            ubudget.charge_cancel(st.id)
         # 释放被当前订单使用的优惠券
-        self.release_coupon()
+        st.release_coupon()
 
     def release_coupon(self):
         """ 释放订单对应的优惠券 """
