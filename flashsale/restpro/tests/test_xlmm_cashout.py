@@ -11,6 +11,7 @@ class MamaCahoutTestCase(TestCase):
         'test.flashsale.xiaolumm.cashout.customer.json',
         'test.flashsale.xiaolumm.cashout.xiaolumm.json',
         'test.flashsale.xiaolumm.cashout.cashout.json',
+        'test.flashsale.pay.userbudget.json',
         # 'test.flashsale.xiaolumm.cashout.mamafortune.json', #创建xiaolumama时会触发signal添加mamaforturn
         'test.flashsale.xiaolumm.cashout.usergroup.json',
     ]
