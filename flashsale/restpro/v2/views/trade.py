@@ -696,6 +696,29 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
         return False
 
+    def check_mixed_virtual_goods(self, cart_qs):
+        """
+        检测购买精品券虚拟商品时，不能搭配普通商品，只能全部为虚拟商品，否则返回参数异常
+        """
+
+        virtual_num = 0
+        goods_num = 0
+        elite_score = 0
+        for cart in cart_qs:
+            mp = cart.get_modelproduct()
+            # 包含virtual的商品
+            from flashsale.pay.models.product import ModelProduct
+            if mp and (mp.product_type == ModelProduct.VIRTUAL_TYPE):
+                virtual_num += 1
+                elite_score = cart.num * mp.elite_score
+                goods_num += cart.num
+
+        if virtual_num > 0 and virtual_num != cart_qs.count():
+            return Response({'code': 24, 'info': u'购买精品券或虚拟商品时，只能单独购买，不能与普通商品搭配'})
+        if (goods_num < 5) and (elite_score < 30):
+            return Response({'code': 25, 'info': u'购买精品券最低购买5张或者30积分，您本次购买没有达到要求，请在购物车重新添加精品券'})
+        return False
+
     @list_route(methods=['post'])
     def shoppingcart_create(self, request, *args, **kwargs):
         """
@@ -799,6 +822,11 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'data': '%s' % content
             })
             return Response({'code': 11, 'info': u'付款金额异常'})
+
+        # 检测组合虚拟商品购买时，不能跟普通商品搭配
+        error = self.check_mixed_virtual_goods(cart_qs)
+        if error:
+            return error
 
         # 检测是否只允许优惠券购买商品，参数是否异常
         coupon_ids = self.parse_coupon_ids_from_pay_extras(pay_extras)

@@ -710,12 +710,15 @@ class ShoppingCartSerializer(serializers.HyperlinkedModelSerializer):
     item_weburl = serializers.CharField(source='get_item_weburl', read_only=True)
     model_id = serializers.IntegerField(source='product.model_id', read_only=True)
     is_bonded_goods = serializers.SerializerMethodField('gen_is_bonded_goods', read_only=True)
+    elite_score = serializers.IntegerField(source='product.elite_score', read_only=True)
+    product_type = serializers.IntegerField(source='product.type', read_only=True)
 
     class Meta:
         model = ShoppingCart
         fields = ('id', 'url', 'buyer_id', 'buyer_nick', 'item_id', 'title', 'price',
                   'std_sale_price', 'sku_id', 'num', 'total_fee', 'sku_name', 'model_id',
-                  'pic_path', 'created', 'is_repayable', 'status', 'item_weburl', 'type', 'is_bonded_goods')
+                  'pic_path', 'created', 'is_repayable', 'status', 'item_weburl', 'type', 'is_bonded_goods',
+                  'elite_score', 'product_type')
 
     def gen_is_bonded_goods(self, obj):
         from flashsale.pay.models.product import ModelProduct
