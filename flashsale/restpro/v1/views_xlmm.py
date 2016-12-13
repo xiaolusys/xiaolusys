@@ -75,7 +75,7 @@ def validate_customer_budget(customer):
     from flashsale.pay.models.user import UserBudget
     budget = UserBudget.objects.filter(user=customer).first()
     if budget:
-        if budget.amount > 0:
+        if budget.amount >= 0:
             return True
         else:
             return False
