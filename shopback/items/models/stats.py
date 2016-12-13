@@ -933,7 +933,8 @@ post_save.connect(teambuy_out_sale_check, sender=ProductSkuSaleStats, dispatch_u
 
 
 def gen_productsksalestats_unikey(sku_id):
-    count = ProductSkuSaleStats.objects.filter(sku_id=sku_id, status=ProductSkuSaleStats.ST_FINISH).count()
+    count = ProductSkuSaleStats.objects.filter(sku_id=sku_id, status__in=[ProductSkuSaleStats.ST_FINISH,
+                                                                          ProductSkuSaleStats.ST_DISCARD]).count()
     return "%s-%s" % (sku_id, count)
 
 
