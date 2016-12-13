@@ -511,6 +511,28 @@ class SaleTrade(BaseModel):
         new_sale_order.save()
         new_sale_order.set_psi_paid()
 
+    def reissue_order_by_incomplete_refund(self, old_sale_order, num):
+        # type: (SaleOrder, int) -> SaleOrder
+        """补发 不完全 退款的 订单
+        """
+        from copy import deepcopy
+
+        new_sale_order = deepcopy(old_sale_order)
+        new_sale_order.id = None
+        cnt = self.sale_orders.count()
+        new_sale_order.oid = '%s-%s' % (old_sale_order.oid.split('-')[0], str(cnt))
+        new_sale_order.status = SaleOrder.WAIT_SELLER_SEND_GOODS
+        new_sale_order.num = num
+        payment = float('%.2f' % (old_sale_order.payment / old_sale_order.num)) * num
+        discount_fee = float('%.2f' % (old_sale_order.discount_fee / old_sale_order.num)) * num
+        new_sale_order.payment = payment
+        new_sale_order.discount_fee = discount_fee
+        new_sale_order.refund_id = None
+        new_sale_order.refund_status = 0
+        new_sale_order.refund_fee = 0
+        new_sale_order.save()
+        new_sale_order.set_psi_paid()
+
     @transaction.atomic
     def close_trade(self):
         """ 关闭待付款订单 """

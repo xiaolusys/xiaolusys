@@ -435,13 +435,17 @@ class SaleRefund(PayBaseModel):
         from .trade import SaleOrder, SaleTrade
 
         sorder = SaleOrder.objects.get(id=self.order_id)
+        strade = sorder.sale_trade
+        reissue_num = sorder.num - self.refund_num
+        if sorder.status == SaleTrade.WAIT_SELLER_SEND_GOODS and reissue_num > 0:   #
+            strade.reissue_order_by_incomplete_refund(sorder, num=sorder.num - self.refund_num)  # 补发不完全退款的订单
         sorder.refund_status = SaleRefund.REFUND_SUCCESS
         if sorder.status in (SaleTrade.WAIT_SELLER_SEND_GOODS,
                              SaleTrade.WAIT_BUYER_CONFIRM_GOODS,
                              SaleTrade.TRADE_BUYER_SIGNED):
             sorder.status = SaleTrade.TRADE_CLOSED
         sorder.save(update_fields=['status', 'modified'])
-        strade = sorder.sale_trade
+
         if strade.normal_orders.count() == 0:
             strade.status = SaleTrade.TRADE_CLOSED
             strade.save(update_fields=['status', 'modified'])
