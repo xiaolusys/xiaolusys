@@ -1,0 +1,14 @@
+[
+{
+  "model": "pay.userbudget",
+  "pk": 12308,
+  "fields": {
+    "created": "2016-04-19T19:04:49",
+    "modified": "2016-12-13T11:19:54",
+    "user": 9,
+    "amount": 3034,
+    "total_income": 13894,
+    "total_expense": 10860
+  }
+}
+]
