@@ -3,20 +3,58 @@
   "model": "pay.modelproduct",
   "pk": 11615,
   "fields": {
-    "created": "2016-04-19T19:04:49",
-    "modified": "2016-12-13T11:19:54",
-    "name": "ddd",
-
-    "lowest_agent_price": 79,
-    "lowest_std_sale_price": 99,
-
-    "shelf_status": "on",
-    "onshelf_time": "2016-12-13T11:19:54",
-    "offshelf_time": "2018-12-13T11:19:54",
-
-    "rebeta_scheme_id": 12,
-
-    "extras": {},
+    "created": "2016-04-22T17:14:44",
+    "modified": "2016-09-28T23:26:28",
+    "tags": "",
+    "name": "\u4e03\u5206\u8896\u4f11\u95f2\u9632\u6652\u5916\u5957",
+    "head_imgs": "http://image.xiaolu.so/MG_1461570806893.jpg",
+    "content_imgs": "http://image.xiaolu.so/MG_1461570824268\u6a21\u7248_01.jpg\nhttp://image.xiaolu.so/MG_1461570828204\u6a21\u7248_02.jpg\nhttp://image.xiaolu.so/MG_1461570828466\u6a21\u7248_03.jpg\nhttp://image.xiaolu.so/MG_1461570828551\u6a21\u7248_04.jpg\nhttp://image.xiaolu.so/MG_1461570828656\u6a21\u7248_05.jpg\nhttp://image.xiaolu.so/MG_1461570829050\u6a21\u7248_06.jpg\nhttp://image.xiaolu.so/MG_1461570829209\u6a21\u7248_07.jpg",
+    "salecategory": 59,
+    "lowest_agent_price": 99.9,
+    "lowest_std_sale_price": 299.0,
+    "is_onsale": false,
+    "is_teambuy": false,
+    "is_recommend": false,
+    "is_topic": false,
+    "is_flatten": false,
+    "is_watermark": false,
+    "teambuy_price": 0.0,
+    "teambuy_person_num": 3,
+    "shelf_status": "off",
+    "onshelf_time": "2016-04-26T10:00:00",
+    "offshelf_time": "2016-04-28T00:00:00",
+    "order_weight": 17,
+    "rebeta_scheme_id": 0,
+    "saleproduct": 536011,
+    "extras": {
+      "tables": [
+        {
+          "table": [
+            [
+              "\u5c3a\u7801",
+              "\u8863\u957f",
+              "\u80f8\u56f4",
+              "\u80a9\u5bbd",
+              "\u8896\u957f"
+            ],
+            [
+              "M",
+              "83",
+              "98",
+              "37",
+              "59"
+            ],
+            [
+              "L",
+              "84",
+              "103",
+              "38",
+              "60"
+            ]
+          ]
+        }
+      ]
+    },
     "status": "normal",
     "product_type": 0
   }
