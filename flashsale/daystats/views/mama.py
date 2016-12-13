@@ -32,6 +32,7 @@ from flashsale.daystats.mylib.util import (
 from flashsale.pay.models.user import Customer
 from flashsale.pay.models.trade import SaleTrade, SaleOrder
 from flashsale.coupon.models import OrderShareCoupon
+from flashsale.coupon.models.transfer_coupon import CouponTransferRecord
 from flashsale.xiaolumm.models import XlmmFans, PotentialMama, XiaoluMama, CashOut
 from flashsale.xiaolumm.models.models_fortune import (
     CarryRecord, OrderCarry, ReferalRelationship, ClickCarry, AwardCarry,
@@ -780,7 +781,7 @@ def calc_transfer_coupon_data(date_field):
     elite_mama_ids = CouponTransferRecord.objects.filter(
         date_field=date_field,
         transfer_status=CouponTransferRecord.DELIVERED
-    ).values_list('coupon_to_mama_id',flat=True).distinct()
+    ).values_list('coupon_to_mama_id', flat=True).distinct()
 
     elite_mamas = CouponTransferRecord.objects.filter(
         transfer_status=CouponTransferRecord.DELIVERED,
@@ -798,15 +799,16 @@ def calc_transfer_coupon_data(date_field):
         transfer_status=CouponTransferRecord.DELIVERED
     ).values('coupon_to_mama_id').distinct().count()
     return {
-        'coupon_sale_num':coupon_sale_num,
-        'coupon_sale_amount':coupon_sale_amount,
-        'coupon_used_num':coupon_used_num,
-        'coupon_used_amount':coupon_used_amount,
-        'order_mama_count':order_mama_count,
-        'elite_mama_count':elite_mama_count,
+        'coupon_sale_num': coupon_sale_num,
+        'coupon_sale_amount': coupon_sale_amount,
+        'coupon_used_num': coupon_used_num,
+        'coupon_used_amount': coupon_used_amount,
+        'order_mama_count': order_mama_count,
+        'elite_mama_count': elite_mama_count,
         'new_elite_mama_count': new_active_elite_mama_count,
-        'active_elite_mama_count':active_elite_mama_count
+        'active_elite_mama_count': active_elite_mama_count
     }
+
 
 def transfer_coupon(req):
     p_start_date, p_end_date, start_date, end_date = get_date_from_req(req)
@@ -821,20 +823,54 @@ def transfer_coupon(req):
     name_maps = {
         'coupon_sale_num': u'出券张数',
         'coupon_sale_amount': u'总出券面额',
-        'coupon_used_num':u'兑换买货用券数',
+        'coupon_used_num': u'兑换买货用券数',
         'coupon_used_amount': u'买货券面额',
         'order_mama_count': u'有收益妈妈数',
         'elite_mama_count': u'累计妈妈数',
         'new_elite_mama_count': u'新增妈妈',
         'active_elite_mama_count': u'活跃妈妈数'
     }
-    items_dict = {k:[] for k,v in name_maps.iteritems()}
+    items_dict = {k: [] for k, v in name_maps.iteritems()}
     for stats in stats_list:
-        for k,v in items_dict.iteritems():
+        for k, v in items_dict.iteritems():
             v.append(int(stats[k]))
 
-    items_dict = dict([(name_maps[k], v) for k,v in items_dict.iteritems()])
+    items_dict = dict([(name_maps[k], v) for k, v in items_dict.iteritems()])
 
     charts = [generate_chart(u'精品流通券趋势', x_axis, items_dict, width='1000px')]
 
     return render(req, 'yunying/mama/index.html', locals())
+
+
+def coupon_rank(req):
+    data = {}
+    mamas = XiaoluMama.objects.using('default').order_by('-elite_score')[:100]
+    sql = """
+        SELECT
+            coupon_from_mama_id ,
+            sum(coupon_value * coupon_num) AS val ,
+            sum(elite_score) AS score
+        FROM
+            `xiaoludb`.`flashsale_coupon_transfer_record`
+        WHERE
+            transfer_type = 4
+        AND coupon_to_mama_id IN %s
+        GROUP BY
+            coupon_from_mama_id
+        ORDER BY
+            val DESC
+    """
+    mama_ids = [x.id for x in mamas]
+
+    for item in mamas:
+        data[item.id] = {
+            'mama_id': item.id,
+            'score': item.elite_score,
+            'level': item.elite_level
+        }
+
+    records = execute_sql(get_cursor(), sql, params=[mama_ids])
+    for item in records:
+        data[item['coupon_from_mama_id']].update(item)
+
+    return render(req, 'yunying/mama/coupon_rank.html', locals())

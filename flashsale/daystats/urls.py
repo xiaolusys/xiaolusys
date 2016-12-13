@@ -73,7 +73,8 @@ urlpatterns += [
     url(r'^yunying/mama/click$', mama.click, name='yy-mama-click'),
     url(r'^yunying/mama/score$', mama.score, name='yy-mama-score'),
     url(r'^yunying/mama/rank$', mama.rank, name='yy-mama-rank'),
-    url(r'^yunying/mama/coupon', mama.transfer_coupon, name='yy-mama-coupon'),
+    url(r'^yunying/mama/coupon$', mama.transfer_coupon, name='yy-mama-coupon'),
+    url(r'^yunying/mama/coupon_rank$', mama.coupon_rank, name='yy-mama-coupon_rank'),
 
     url(r'^yunying/money/', money.index, name='yy-money-index'),
 

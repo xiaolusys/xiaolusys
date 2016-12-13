@@ -1,0 +1,44 @@
+{% extends 'layout.html' %}
+
+{% block main %}
+
+<div class="row">
+  <h3>妈妈精品券数量统计</h3>
+  <form action="{{ req.path }}" method="GET">
+    <div class="col-xs-2">
+      <input size="16" type="text" class="form-control datepicker" value="{{ date_field }}" name="day_date">
+    </div>
+    <button type="submit" class="btn btn-default">QUERY</button>
+  </form>
+</div>
+
+<div class="row">
+
+  <table class="table table-bordered">
+    <tr>
+      <th>妈妈ID</th>
+      <th>等级</th>
+      <th>积分</th>
+      <th>上周增长积分</th>
+      <th>买券额</th>
+      <th>出货额</th>
+      <th>转下属额</th>
+      <th>团队情况</th>
+    </tr>
+    {% for item in data.values %}
+    <tr>
+      <td>{{ item.id }}</td>
+      <td>{{ item.elite_level }}</td>
+      <td>{{ item.elite_score }}</td>
+      <td></td>
+      <td>{{ item.val }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+
+{% endblock %}
