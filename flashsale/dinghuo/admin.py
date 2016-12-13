@@ -54,7 +54,7 @@ class OrderListAdmin(BaseModelAdmin):
                    'pay_status', BuyerNameFilter, 'last_pay_date', 'created_by')
     search_fields = ['id', 'supplier__supplier_name', 'supplier_shop', 'note', 'purchase_order_unikey']
     date_hierarchy = 'created'
-
+    readonly_fields = ['status']
     list_per_page = 25
 
     class Media:

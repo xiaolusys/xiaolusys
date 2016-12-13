@@ -110,6 +110,7 @@ class PackageOrder(models.Model):
     # 作废
     type = models.CharField(max_length=32, choices=TRADE_TYPE, db_index=True, default=pcfg.SALE_TYPE,
                             blank=True, verbose_name=u'订单类型')
+
     class Meta:
         db_table = 'flashsale_package'
         app_label = 'trades'
@@ -376,7 +377,7 @@ class PackageOrder(models.Model):
                         self.shipping_type, self.receiver_address).id
             except:
                 from shopback.logistics.models import LogisticsCompany
-                self.logistics_company_id = LogisticsCompany.objects.get_or_create(code='YUNDA_QR')[0].id
+                self.logistics_company_id = LogisticsCompany.objects.get(code='YUNDA_QR')[0].id
             self.save(update_fields=['logistics_company_id'])
 
     def update_relase_package_sku_item(self):
@@ -448,7 +449,6 @@ class PackageOrder(models.Model):
             package_order.set_logistics_company()
         return package_order
 
-
     @staticmethod
     def get_or_create(id, sale_trade):
         if not PackageOrder.objects.filter(id=id).exists():
@@ -474,6 +474,10 @@ class PackageOrder(models.Model):
                 return MergeTrade.objects.filter(tid=self.tid).order_by('-sys_status').first()
         return None
 
+    def add_package_sku_item(self, psi):
+        self.reset_sku_item_num()
+        self.save()
+
     @staticmethod
     def gen_new_package_id(buyer_id, address_id, ware_by_id):
         id = str(buyer_id) + '-' + str(address_id) + '-' + str(ware_by_id)
@@ -494,6 +498,59 @@ class PackageOrder(models.Model):
             else:
                 break
         return res
+
+    @staticmethod
+    def batch_set_operator(package_order_ids, operator):
+        PackageOrder.objects.filter(pid__in=package_order_ids, is_locked=False).update(
+            is_locked=True, operator=operator)
+
+    @staticmethod
+    def batch_revert_status(package_order_ids):
+        for package_order in PackageOrder.objects.filter(pid__in=package_order_ids, is_locked=True):
+            package_order.is_express_print = False
+            package_order.is_picking_print = False
+            package_order.out_sid = ''
+            package_order.save()
+        PackageOrder.objects.filter(pid__in=package_order_ids, is_locked=True).update(
+            is_express_print=False, is_picking_print=False, out_sid=''
+        )
+
+    @staticmethod
+    def batch_set_picking_print(package_order_ids):
+        for po in PackageOrder.objects.filter(pid__in=package_order_ids):
+            po.print_picking()
+
+    def print_picking(self):
+        self.is_picking_print = True
+        self.save()
+        for psi in self.package_sku_items.all():
+            psi.set_status_waitscan()
+
+    def set_out_sid(self, out_sid, is_qrcode, qrcode_msg):
+        self.out_sid = out_sid
+        self.is_qrcode = is_qrcode
+        self.qrcode_msg = qrcode_msg
+        self.save()
+
+    def scancheck(self, user):
+        self.sys_status = PackageOrder.WAIT_SCAN_WEIGHT_STATUS
+        self.scanner = user.username
+        self.save()
+        for psi in self.package_sku_items.all():
+            psi.set_status_waitpost()
+
+    def scanweight(self, user):
+        self.sys_status = PackageOrder.WAIT_CUSTOMER_RECEIVE
+        self.weighter = user.username
+        self.save()
+        for psi in self.package_sku_items.filter(assign_status=1):
+            psi.set_status_sent()
+
+    def finish(self):
+        self.sys_status = PackageOrder.FINISHED_STATUS
+        self.save()
+        for psi in self.package_sku_items.filter(assign_status=2):
+            psi.set_status_finish()
 
 
 def check_package_order_status(sender, instance, created, **kwargs):
@@ -837,34 +894,50 @@ class PackageSkuItem(BaseModel):
         self.save()
         SkuStock.set_psi_prepare_book(self.sku_id, self.num)
 
-    def set_status_booked(self, save=False):
+    def set_status_booked(self, purchase_order_unikey):
         self.status = PSI_STATUS.BOOKED
-        self.book_time = datetime.datetime.now()
-        if save:
-            self.save()
-            SkuStock.set_psi_paid_prepare_book(self.sku_id, self.num)
-
-    def set_status_ready(self,stat=True):
-        ori_status = self.status
-        self.status = PSI_STATUS.READY
-        self.assign_status = 1
-        self.ready_time = datetime.datetime.now()
+        self.booked_time = datetime.datetime.now()
+        self.purchase_order_unikey = purchase_order_unikey
         self.save()
-        if not ori_status:
-            SkuStock.set_psi_init_ready(self.sku_id, self.num,stat=stat)
-        else:
-            SkuStock.set_psi_booked_to_ready(self.sku_id, self.num,stat=stat)
+        SkuStock.set_psi_booked(self.sku_id, self.num)
 
-    def set_status_assigned(self, save=False, stat=True):
+    def set_status_virtual_booked(self, purchase_order_unikey):
+        self.status = PSI_STATUS.BOOKED
+        self.booked_time = datetime.datetime.now()
+        self.assign_status = PackageSkuItem.VIRTUAL_ASSIGNED
+        self.purchase_order_unikey = purchase_order_unikey
+        self.save()
+        self.gen_package()
+        SkuStock.set_psi_booked(self.sku_id, self.num)
+
+    def set_status_booked_2_assigned(self, save=False, stat=True):
         self.status = PSI_STATUS.ASSIGNED
         self.assign_status = 1
         self.assign_time = datetime.datetime.now()
         if save:
             self.save()
-            SkuStock.set_psi_assigned(self.sku_id, self.num, stat=True)
-        pa = self.get_purchase_arrangement()
-        if pa:
+            SkuStock.set_psi_booked_2_assigned(self.sku_id, self.num, stat=True)
+            pa = self.get_purchase_arrangement()
+            if pa and not pa.initial_book:
+                pa.cancel()
+
+    @staticmethod
+    def batch_set_status_assigned(oids, change_stock=False):
+        """
+            批量分配
+        """
+        from flashsale.dinghuo.models_purchase import PurchaseArrangement
+        PackageSkuItem.objects.filter(oid__in=oids).update(status=PSI_STATUS.ASSIGNED,
+                                                           assign_status=PackageSkuItem.ASSIGNED,
+                                                           assign_time=datetime.datetime.now())
+        for pa in PurchaseArrangement.objects.filter(oid__in=oids, initial_book=False):
             pa.cancel()
+        if change_stock:
+            skus = {psi['sku_id']: psi['total'] for psi in
+                    PackageSkuItem.objects.filter(oid__in=oids).values('sku_id').annotate(
+                    total=Sum('num'))}
+            for sku_id in skus:
+                SkuStock.set_psi_booked_2_assigned(sku_id, skus[sku_id], stat=True)
 
     def set_status_init_assigned(self, save=True):
         self.status = PSI_STATUS.ASSIGNED
@@ -878,6 +951,7 @@ class PackageSkuItem(BaseModel):
         self.status = PSI_STATUS.PAID
         self.assign_status = PackageSkuItem.NOT_ASSIGNED
         self.assign_time = datetime.datetime.now()
+        self.purchase_order_unikey = ''
         if save:
             package_order = self.package_order
             self.package_order_id = None
@@ -899,15 +973,15 @@ class PackageSkuItem(BaseModel):
     def merge(self):
         self.status = PSI_STATUS.MERGED
         self.merge_time = datetime.datetime.now()
-        package_order_id = PackageOrder.gen_new_package_id(self)
+        package_order_id = PackageOrder.gen_new_package_id(self.sale_trade.buyer_id, self.sale_trade.user_address_id,
+                                                           self.product_sku.ware_by)
         po = PackageOrder.objects.filter(id=package_order_id).first()
-        if po:
-            self.package_order_id = po.id
-            self.package_order_pid = po.pid
-            po.add_package_sku_item(po)
-        else:
-            PackageOrder.create(id, po.sale_trade)
+        if not po:
+            po = PackageOrder.create(package_order_id, self.sale_trade, PackageOrder.WAIT_PREPARE_SEND_STATUS, self)
+        self.package_order_id = po.id
+        self.package_order_pid = po.pid
         self.save()
+        po.add_package_sku_item(self)
         SkuStock.set_psi_merged(self.sku_id, self.num)
 
     def set_status_waitscan(self,stat=True):
@@ -1104,26 +1178,6 @@ class PackageSkuItem(BaseModel):
         return self.assign_status == PackageSkuItem.FINISHED
 
 
-def update_productskustats(sender, instance, created, **kwargs):
-    """
-    Whenever PackageSkuItem changes, PackageSkuItemStats has to change accordingly.
-    """
-    from shopback.items.tasks_stats import task_packageskuitem_update_productskustats
-    logger = logging.getLogger('service')
-    logger.info({
-        'action': 'skustat.pstat.update_productskustats',
-        'instance': instance.sku_id,
-        'psi_id': instance.id,
-        'assign_status': instance.assign_status,
-    })
-    task_packageskuitem_update_productskustats(instance.sku_id)
-    # task_packageskuitem_update_productskustats.delay(instance.sku_id)
-
-
-# if not settings.CLOSE_CELERY:
-#     post_save.connect(update_productskustats, sender=PackageSkuItem, dispatch_uid='post_save_update_productskustats')
-
-
 def update_productsku_salestats_num(sender, instance, created, **kwargs):
     from shopback.trades.tasks import task_packageskuitem_update_productskusalestats_num
     transaction.on_commit(lambda: task_packageskuitem_update_productskusalestats_num(instance.sku_id, instance.pay_time))
@@ -1140,26 +1194,6 @@ def update_package_order(sender, instance, created, **kwargs):
 
 post_save.connect(update_package_order, sender=PackageSkuItem,
                   dispatch_uid='post_save_update_package_order')
-
-
-def update_purchase_arrangement(sender, instance, created, **kwargs):
-    from flashsale.dinghuo.tasks import task_packageskuitem_update_purchase_arrangement
-    task_packageskuitem_update_purchase_arrangement.delay(instance)
-
-#
-# if not settings.CLOSE_CELERY:
-#     post_save.connect(update_purchase_arrangement, sender=PackageSkuItem,
-#                   dispatch_uid='post_save_update_purchase_record')
-
-
-def check_saleorder_sync(sender, instance, created, **kwargs):
-    if created:
-        from shopback.trades.tasks import task_saleorder_check_packageskuitem
-        task_saleorder_check_packageskuitem.delay()
-
-#
-# post_save.connect(check_saleorder_sync, sender=PackageSkuItem,
-#                   dispatch_uid='post_save_check_saleorder_sync')
 
 
 def get_package_address_dict(package_order):

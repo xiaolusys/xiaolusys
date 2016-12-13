@@ -1,0 +1,48 @@
+[
+  {
+    "model": "pay.saletrade",
+    "pk": 468659,
+    "fields": {
+      "created": "2016-12-14T14:21:21",
+      "modified": "2016-12-14T14:55:19",
+      "tid": "xd1612145850e4db49de8",
+      "buyer_id": 1,
+      "buyer_nick": "meron@\\u5c0f\\u9e7f\\u7f8e\\u7f8e",
+      "channel": "alipay_wap",
+      "payment": 49.9,
+      "pay_cash": 49.9,
+      "post_fee": 0.0,
+      "discount_fee": 0.0,
+      "total_fee": 49.9,
+      "has_budget_paid": false,
+      "is_boutique": false,
+      "buyer_message": "",
+      "seller_memo": "",
+      "pay_time": null,
+      "consign_time": null,
+      "trade_type": 0,
+      "order_type": 0,
+      "out_sid": "",
+      "logistics_company": null,
+      "receiver_name": "\\u6d4b\\u8bd5\\u5730\\u5740\\u4e0d\\u53d1\\u8d27",
+      "receiver_state": "\\u4e0a\\u6d77",
+      "receiver_city": "\\u6768\\u6d66\\u533a",
+      "receiver_district": "\\u5185\\u73af\\u4ee5\\u5185",
+      "receiver_address": "\\u5e73\\u51c9\\u8def988\\u53f7\\u4e1c\\u7eba\\u8c37\\u521b\\u4e1a\\u56ed3\\u53f7\\u697c3241\\u5ba4",
+      "receiver_zip": "",
+      "receiver_mobile": "18621623915",
+      "receiver_phone": "",
+      "user_address_id": 140077,
+      "openid": "our5huIOSuFF5FdojFMFNP5HNOmA",
+      "charge": "166",
+      "extras_info": {
+        "coupon": [],
+        "ufrom": "",
+        "agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/45.0.2454.101 Chrome/45.0.2454.101 Safari/537.36",
+        "pay_extras": "",
+        "mm_linkid": 0
+      },
+      "status": 1
+    }
+  }
+]

@@ -69,8 +69,8 @@ class Bill(BaseModel):
         verbose_name_plural = u'账单列表'
 
     @staticmethod
-    def create(relations, type, status, pay_method, plan_amount, amount,supplier, user_id, receive_account='', receive_name='',
-               pay_taobao_link='',transcation_no='', note=''):
+    def create(relations, type, status, pay_method, plan_amount, amount, supplier, user_id, receive_account='', receive_name='',
+               pay_taobao_link='', transcation_no='', note=''):
         bill = Bill(type=type,
                     status=status,
                     plan_amount=plan_amount,

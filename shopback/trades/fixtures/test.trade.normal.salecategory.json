@@ -1,0 +1,18 @@
+[
+{
+ "model": "supplier.salecategory",
+ "pk": 71,
+ "fields": {
+  "created": "2015-08-27T17:46:54",
+  "modified": "2016-10-13T16:56:32",
+  "cid": "2-71",
+  "parent_cid": "2",
+  "name": "\u5185\u8863",
+  "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/lady/neiyi.png",
+  "grade": 2,
+  "is_parent": false,
+  "sort_order": 98,
+  "status": "normal"
+ }
+}
+]

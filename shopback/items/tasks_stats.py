@@ -183,14 +183,9 @@ def task_orderdetail_update_productskustats_inbound_quantity(instance):
         .aggregate(total=Sum('arrival_quantity'))
     total = sum_res["total"] or 0
     stat = SkuStock.get_by_sku(sku_id)
-    if stat.inbound_quantity < total:
-        stat.inbound_quantity = total
-        stat.save(update_fields=['inbound_quantity', 'modified'])
-        stat.assign(orderlist=instance.orderlist)
-    elif stat.inbound_quantity > total:
-        stat.inbound_quantity = total
-        stat.save(update_fields=['inbound_quantity', 'modified'])
-        stat.relase_assign(orderlist=instance.orderlist)
+    stat.inbound_quantity = total
+    stat.save(update_fields=['inbound_quantity', 'modified'])
+    stat.assign(orderlist=instance.orderlist)
 
 
 @app.task()
