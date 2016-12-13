@@ -452,9 +452,8 @@ class MamaMissionRecord(BaseModel):
 
     def is_finish_status_cancel_need(self, finish_value):
         if self.status == MamaMissionRecord.FINISHED and \
-            self.mission.cat_type == MamaMission.CAT_SALE_MAMA and \
-            finish_value < (1 - 0.06) * self.target_value:
-            return True
+            self.mission.cat_type == MamaMission.CAT_SALE_MAMA :
+            return finish_value < (1 - 0.06) * self.target_value
         return finish_value < self.target_value
 
     def update_mission_value(self, finish_value):
