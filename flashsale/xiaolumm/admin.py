@@ -58,7 +58,7 @@ class XiaoluMamaAdmin(ApproxAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = self.readonly_fields
-        groups = request.user.groups.values_list('name', flat=True)
+        groups = list(request.user.groups.values_list('name', flat=True))
         if not (request.user.is_superuser or groups.__contains__('小鹿推广管理员')):
             readonly_fields = readonly_fields + ('mobile', 'openid', 'lowest_uncoushout', 'charge_time',
                                                  'charge_status', 'referal_from')
