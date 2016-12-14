@@ -373,14 +373,11 @@ class CouponTransferRecord(BaseModel):
 
     @classmethod
     def create_exchg_order_record(cls, customer, coupon_num, sale_order, template_id):
-        from flashsale.xiaolumm.models import XiaoluMama
-        from flashsale.pay.models import Customer
         from flashsale.coupon.models import CouponTemplate
+        from flashsale.coupon.apis.v1.transfer import get_elite_score_by_templateid
 
         from_customer = customer
         from_mama = from_customer.get_charged_mama()
-
-        from_customer_id = from_customer.id
         coupon_from_mama_id = from_mama.id
         from_mama_nick = from_customer.nick
         from_mama_thumbnail = from_customer.thumbnail
@@ -409,21 +406,20 @@ class CouponTransferRecord(BaseModel):
         coupon_value = int(ct.value)
         product_img = ct.extras.get("product_img") or ''
 
-        from flashsale.coupon.apis.v1.transfer import get_elite_score_by_templateid
         product_id, elite_score, _ = get_elite_score_by_templateid(template_id, from_mama)
         elite_score *= int(coupon_num)
 
         transfer_status = cls.DELIVERED
-        coupon = cls(coupon_from_mama_id=coupon_from_mama_id, from_mama_thumbnail=from_mama_thumbnail,
-                     from_mama_nick=from_mama_nick, coupon_to_mama_id=coupon_to_mama_id,
-                     to_mama_thumbnail=to_mama_thumbnail, to_mama_nick=to_mama_nick, coupon_value=coupon_value,
-                     init_from_mama_id=init_from_mama_id, order_no=order_no, template_id=template_id,
-                     product_img=product_img, coupon_num=coupon_num, transfer_type=transfer_type, product_id=product_id,
-                     elite_score=elite_score,
-                     uni_key=uni_key, date_field=date_field, transfer_status=transfer_status)
-        coupon.save()
-        res = {"code": 0, "info": u"成功!"}
-        return res
+        transfer = cls(coupon_from_mama_id=coupon_from_mama_id, from_mama_thumbnail=from_mama_thumbnail,
+                       from_mama_nick=from_mama_nick, coupon_to_mama_id=coupon_to_mama_id,
+                       to_mama_thumbnail=to_mama_thumbnail, to_mama_nick=to_mama_nick, coupon_value=coupon_value,
+                       init_from_mama_id=init_from_mama_id, order_no=order_no, template_id=template_id,
+                       product_img=product_img, coupon_num=coupon_num, transfer_type=transfer_type,
+                       product_id=product_id,
+                       elite_score=elite_score,
+                       uni_key=uni_key, date_field=date_field, transfer_status=transfer_status)
+        transfer.save()
+        return transfer
         
     
     @property
