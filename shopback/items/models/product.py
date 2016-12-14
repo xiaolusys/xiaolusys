@@ -834,7 +834,7 @@ class Product(models.Model):
 
         def _get_valid_procount(outerid, pro_count, id_maps):
             next_id = outerid + str(pro_count)
-            while next_id in id_maps:
+            while next_id in id_maps or 'RMB%s'%next_id in id_maps:
                 pro_count += 1
                 next_id = outerid + str(pro_count)
             return pro_count
