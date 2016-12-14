@@ -709,7 +709,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
         return False
 
-    def check_mixed_virtual_goods(self, cart_qs):
+    def check_mixed_virtual_goods(self, cart_qs, customer):
         """
         检测购买精品券虚拟商品时，不能搭配普通商品，只能全部为虚拟商品，否则返回参数异常
         """
@@ -731,6 +731,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 return Response({'code': 24, 'info': u'购买精品券或虚拟商品时，只能单独购买，不能与普通商品搭配'})
             if (goods_num < 5) and (elite_score < 30):
                 return Response({'code': 25, 'info': u'购买精品券最低购买5张或者30积分，您本次购买没有达到要求，请在购物车重新添加精品券'})
+            mm = customer.getXiaolumm()
+            if not (mm and (mm.referal_from == XiaoluMama.DIRECT)):
+                return Response({'code': 26, 'info': u'您没有直接购券权限，请在购券界面提交申请'})
         return False
 
     @list_route(methods=['post'])
@@ -838,7 +841,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             return Response({'code': 11, 'info': u'付款金额异常'})
 
         # 检测组合虚拟商品购买时，不能跟普通商品搭配
-        error = self.check_mixed_virtual_goods(cart_qs)
+        error = self.check_mixed_virtual_goods(cart_qs, customer)
         if error:
             return error
 
