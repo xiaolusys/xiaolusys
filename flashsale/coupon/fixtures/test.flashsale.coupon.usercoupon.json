@@ -148,5 +148,36 @@
     },
     "model": "coupon.usercoupon",
     "pk": 15
+  },
+  {
+    "model": "coupon.usercoupon",
+    "pk": 866636,
+    "fields": {
+      "created": "2016-12-14T15:29:15",
+      "modified": "2016-12-14T15:29:15",
+      "template_id": 153,
+      "title": "\u8f7b\u76c8\u4e00\u53f7\u7cbe\u54c1\u4e13\u7528\u5238",
+      "coupon_type": 8,
+      "customer_id": 1,
+      "share_user_id": null,
+      "order_coupon_id": null,
+      "coupon_no": "yhq1612145850f4cb1c3a8",
+      "value": 128.0,
+      "trade_tid": null,
+      "finished_time": null,
+      "start_use_time": "2016-12-14T15:29:15",
+      "expires_time": "2021-10-19T19:11:13",
+      "ufrom": "wap",
+      "uniq_id": "153_8_521468_6",
+      "status": 0,
+      "is_pushed": false,
+      "extras": {
+        "user_info": {
+          "nick": "meron@\u5c0f\u9e7f\u7f8e\u7f8e",
+          "id": 1,
+          "thumbnail": "http://wx.qlogo.cn/mmopen/0v06jdfpoVJicdicpGWelGJ20rSRhicwc1J3L0SFLCvVTkAwxVpkdGJyCUAN1uiatZ6lolZiapvPsyib9RjEUy95lYzia18mn5WxQrg/0"
+        }
+      }
+    }
   }
 ]

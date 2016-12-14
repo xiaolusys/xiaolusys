@@ -245,7 +245,7 @@ def return_transfer_coupon(coupons):
     return True
 
 
-def transfer_coupon(coupons, to_customer_id, transfer_record_id, chain):
+def transfer_coupons(coupons, to_customer_id, transfer_record_id, chain):
     # type: (List[UserCoupon], int, int, List[int])
     """转券
     """
