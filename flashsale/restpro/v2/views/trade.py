@@ -397,6 +397,15 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'user_address_id': address.id,
                 'order_type': order_type
             }
+        #　设置订单精品汇参数
+        is_boutique = False
+        for cart in cart_qs:
+            mp = cart.get_modelproduct()
+            if not mp:
+                continue
+            is_boutique |= mp.is_boutique
+            if mp.is_boutique_coupon:
+                order_type = SaleTrade.ELECTRONIC_GOODS_ORDER
 
         if (not address) and (order_type == SaleTrade.ELECTRONIC_GOODS_ORDER):
             params = {
@@ -431,13 +440,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             else:
                 logistic_company = LogisticsCompany.objects.get(code=logistics_company_id)
             tasks_set_address_priority_logistics_code.delay(address.id, logistic_company.id)
-
-        is_boutique = False
-        for cart in cart_qs:
-            mp = cart.get_modelproduct()
-            if not mp:
-                continue
-            is_boutique |= mp.is_boutique
 
         params.update({
             'buyer_nick': customer.nick,
