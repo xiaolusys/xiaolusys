@@ -4,7 +4,8 @@
 
 <div class="row">
   <h3>妈妈精品券查询</h3>
-  <p>找到{{total_count}}个妈妈(积分>0)</p>
+  <p>找到{{total_count}}个妈妈(积分>0) {{ data_levels }}</p>
+
   <form action="{{ req.path }}" method="GET">
     <div class="col-xs-2">
       <!-- <input size="16" type="text" class="form-control datepicker" value="{{ date_field }}" name="day_date"> -->
@@ -16,10 +17,11 @@
 
 <div class="row">
 
-  <table class="table table-bordered">
+  <table class="table table-bordered table-striped table-hover">
     <tr>
       <th></th>
       <th>妈妈ID</th>
+      <th>昵称</th>
       <th>等级</th>
       <th></th>
       <th>积分</th>
@@ -38,6 +40,7 @@
     <tr>
       <td>{{ forloop.counter }}</td>
       <td><a href="{% url 'yy-mama-show'  %}?mama_id={{ item.id }}" target="_blank">{{ item.id }}</a></td>
+      <td>{{ item.customer.nick }}</td>
       <td>{{ item.elite_level }}</td>
       <td>{{ item.referal_from }}</td>
       <td>{{ item.elite_score }}</td>
