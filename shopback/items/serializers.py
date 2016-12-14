@@ -124,6 +124,7 @@ class ModelProductSerializer(serializers.ModelSerializer):
                   'lowest_agent_price',
                   'lowest_std_sale_price',
                   'is_onsale',
+                  'is_boutique',
                   'is_teambuy',
                   'is_recommend',
                   'is_topic',

@@ -300,7 +300,7 @@ class ProductManageViewSet(viewsets.ModelViewSet):
 class ModelProductFilter(filters.FilterSet):
     class Meta:
         model = ModelProduct
-        fields = ['id', 'status', 'saleproduct', 'shelf_status', 'is_onsale', 'is_teambuy']
+        fields = ['id', 'status', 'saleproduct', 'shelf_status', 'is_onsale', 'is_boutique', 'is_teambuy']
 
 
 class ProductManageV2ViewSet(viewsets.ModelViewSet):

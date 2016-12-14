@@ -332,7 +332,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             if not product:
                 continue
             model_product = product.product_model
-            if model_product.is_onsale is True:
+            if model_product.is_boutique is True:
                 return True
         return False
 

@@ -311,6 +311,7 @@ class ModelProductSerializer(serializers.ModelSerializer):
             'head_imgs',
             'content_imgs',
             'is_onsale',
+            'is_boutique',
             'is_teambuy',
             'is_recommend',
             'is_topic',

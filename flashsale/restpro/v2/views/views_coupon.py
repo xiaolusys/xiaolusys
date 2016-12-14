@@ -505,7 +505,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                 # find modelproduct
                 from flashsale.pay.models.product import ModelProduct
 
-                model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id, is_onsale=True).first()
+                model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id, is_boutique=True).first()
                 if model_product and model_product.extras.has_key('payinfo') and model_product.extras['payinfo'].has_key('coupon_template_ids'):
                     if model_product.extras['payinfo']['coupon_template_ids'] and len(model_product.extras['payinfo']['coupon_template_ids']) > 0:
                         template_ids = model_product.extras['payinfo']['coupon_template_ids']

@@ -26,3 +26,19 @@ class ModelProductManager(BaseManager):
         """获取特卖秒杀商品记录
         """
         return self.get_queryset().filter(is_onsale=True, status=self.model.NORMAL)
+
+    def get_boutique_goods(self):
+        # type: () -> Optional[List[ModelProduct]]
+        """ 获取精品商品列表
+        """
+        return self.get_queryset().filter(is_boutique=True,
+                                          product_type=self.model.USUAL_TYPE,
+                                          status=self.model.NORMAL)
+
+    def get_boutique_coupons(self):
+        # type: () -> Optional[List[ModelProduct]]
+        """获取精品商品券列表
+        """
+        return self.get_queryset().filter(is_boutique=True,
+                                          product_type=self.model.VIRTUAL_TYPE,
+                                          status=self.model.NORMAL)
