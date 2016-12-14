@@ -91,7 +91,7 @@ class ReleaseOmissive(APIView):
             with transaction.atomic():
                 cou, code, msg = create_user_coupon(cus.id, template.id, unique_key=unique_key)
                 transf_record = create_present_coupon_transfer_record(cus, template, cou.id, uni_key_prefix=activity_id)
-                create_transfer_coupon_detail(transf_record.id, transf_record.transfer_type, [cou.id])
+                create_transfer_coupon_detail(transf_record.id, [cou.id])
 
             log_action(request.user, cou, ADDITION, u'添加优惠券记录,对应精品券id为%s' % transf_record.id)
             log_action(request.user, transf_record, ADDITION, u'添加精品流通记录,对应优惠券id为%s' % cou.id)

@@ -18,6 +18,7 @@ __ALL__ = [
     'get_user_coupons_by_ids',
     'get_freeze_boutique_coupons_by_transfer',
     'get_will_return_coupons_by_transfer_id',
+    'transfer_coupon',
 ]
 
 
@@ -244,11 +245,31 @@ def return_transfer_coupon(coupons):
     return True
 
 
+def transfer_coupon(coupons, to_customer_id, transfer_record_id, chain):
+    # type: (List[UserCoupon], int, int, List[int])
+    """转券
+    """
+    from .transfercoupondetail import create_transfer_coupon_detail
+    coupon_ids = []
+    for coupon in coupons:
+        coupon.customer_id = to_customer_id
+        coupon.extras.update({"transfer_coupon_pk": str(transfer_record_id)})
+        if not coupon.extras.has_key('chain'):  # 添加流通的上级妈妈　用于　退券　时候　退回上级
+            coupon.extras['chain'] = chain
+        else:
+            coupon.extras['chain'].extend(chain)
+        coupon.save()
+        coupon_ids.append(coupon.id)
+    create_transfer_coupon_detail(transfer_record_id, coupon_ids)
+
+
 def unfreeze_user_coupon_by_userbudget(customer_id):
     from flashsale.pay.models import Customer
+
     customer = Customer.objects.normal_customer.filter(id=customer_id).first()
     if customer:
         from flashsale.coupon.models.usercoupon import UserCoupon
+
         user_coupons = UserCoupon.objects.filter(customer_id=customer.id, coupon_type=UserCoupon.TYPE_TRANSFER,
                                                  status=UserCoupon.FREEZE)
         if user_coupons and user_coupons.count() > 0:

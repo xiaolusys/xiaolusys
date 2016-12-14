@@ -73,7 +73,7 @@ def task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, prod
                                             product_id=product_id, elite_score=elite_score,
                                             uni_key=uni_key, date_field=date_field, transfer_status=transfer_status)
             transfer.save()
-            create_transfer_coupon_detail(transfer.id, transfer.transfer_type, new_coupon_ids)  # 创建明细记录
+            create_transfer_coupon_detail(transfer.id, new_coupon_ids)  # 创建明细记录
         except IntegrityError as e:
             logging.error(e)
     task_calc_xlmm_elite_score(coupon_to_mama_id)  # 计算妈妈积分

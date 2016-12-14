@@ -993,6 +993,23 @@ class ReferalRelationship(BaseModel):
             return customer.mobile
         return None
 
+    @classmethod
+    def get_ship_chain(cls, to_mama_id, from_mama_id):
+        # type: (int, int) -> List[int]
+        """妈妈 推荐 关系链 (上级妈妈 在 列表前面)
+        """
+        chain = []
+        c_count = 0
+        while to_mama_id != from_mama_id:
+            ship = ReferalRelationship.objects.filter(referal_to_mama_id=to_mama_id,
+                                                      status=ReferalRelationship.VALID).first()
+            to_mama_id = ship.referal_from_mama_id
+            chain.insert(0, to_mama_id)
+            c_count += 1
+            if c_count >= 10:
+                break
+        return chain
+
     def is_confirmed(self):
         return self.referal_type == XiaoluMama.FULL or self.referal_type == XiaoluMama.HALF
 
