@@ -584,7 +584,7 @@ class WeixinPush(object):
 
         uni_key = '{mama_id}-{date}-clickcarry-{click_num}-{total_value}'.format(**{
             'mama_id': mama_id,
-            'date': today.strftime('%Y%m%d'),
+            'date': clickcarry.date_field.strftime('%Y%m%d'),
             'click_num': clickcarry.click_num,
             'total_value': clickcarry.total_value
         })
