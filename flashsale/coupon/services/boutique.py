@@ -14,8 +14,8 @@ def get_create_boutique_template(model_id, model_price, model_product_ids=[], mo
         if not ct:
             time_now = datetime.datetime.now()
             ct = CouponTemplate(template_no=boutique_no)
-            ct.title = '精品 | ' + model_title
-            ct.prepare_release_num = 1000
+            ct.title = '精品|' + model_title.split('|')[-1].split('｜')[-1]
+            ct.prepare_release_num = 10000
             ct.value = model_price
             ct.coupon_type = CouponTemplate.TYPE_TRANSFER
             ct.status = CouponTemplate.SENDING

@@ -416,13 +416,17 @@ class SaleProductViewSet(viewsets.ModelViewSet):
         self.set_instance_special_fields(serializer)  # 设置价格等信息
         model_product = instance.model_product
         if model_product:  # 有款式
-            model_product.update_fields_with_kwargs(**{
-                'name': instance.title,
-                'salecategory': instance.sale_category,
-                'product_type': instance.get_product_type(),
-                'is_boutique': instance.get_boutique_value()
-            })
-            Product.create_or_update_skus(model_product, request.user)  # 保存saleproduct 之后才做更新
+            try:
+                model_product.update_fields_with_kwargs(**{
+                    'name': instance.title,
+                    'salecategory': instance.sale_category,
+                    'product_type': instance.get_product_type(),
+                    'is_boutique': instance.get_boutique_value()
+                })
+                Product.create_or_update_skus(model_product, request.user)  # 保存saleproduct 之后才做更新
+            except Exception, exc:
+                logger.error(str(exc), exc_info=True)
+                raise exceptions.APIException(str(exc))
 
         serializer = serializers.RetrieveSaleProductSerializer(instance)
         return Response(serializer.data)

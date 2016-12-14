@@ -928,11 +928,11 @@ class Product(models.Model):
 
         model_pro.set_is_flatten()  # 设置平铺字段
         model_pro.set_lowest_price()  # 设置款式最低价格
-        print 'is_boutique_coupon', is_boutique_coupon, model_pro.extras.get('template_id')
+
+        from flashsale.pay.models import ModelProduct
         # 如果时精品券商品
-        if is_boutique_coupon:
+        if is_boutique_coupon :
             with transaction.atomic():
-                from flashsale.pay.models import ModelProduct
                 model_pro = ModelProduct.objects.select_for_update().get(id=model_pro.id)
                 if model_pro.extras.get('template_id'):
                     return
@@ -943,6 +943,8 @@ class Product(models.Model):
                     model_pro.id, model_pro.lowest_agent_price, model_title=model_pro.name,
                     model_product_ids=product_ids, model_img=model_pro.head_img_url)
                 usual_model_id = saleproduct.product_link.split('?')[0].split('/')[-1]
+                if not usual_model_id.isdigit():
+                    raise ValueError('精品券关联商品款式链接不合法')
                 usual_modle_product = ModelProduct.objects.filter(id=usual_model_id).first()
                 if not usual_modle_product:
                     raise ValueError('精品券关联商品款式链接不合法')
@@ -952,6 +954,10 @@ class Product(models.Model):
                 # 设置精品券商品不不允许使用优惠券
                 model_pro.as_boutique_coupon_product(coupon_template.id)
                 model_pro.save(update_fields=['extras'])
+
+                for product in model_pro.products:
+                    product.shelf_status = Product.UP_SHELF
+                    product.save(update_fields=['shelf_status'])
 
 
     def to_apimodel(self):
