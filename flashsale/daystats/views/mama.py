@@ -883,6 +883,7 @@ def coupon_rank(req):
         mamas = XiaoluMama.objects.using('default').filter(elite_score__gt=0).order_by('-elite_score')
     total_count = mamas.count()
     # mamas = mamas[:100]
+    # data_levels = process(groupby(mamas, lambda x: x.elite_level), len)
 
     p = Paginator(mamas, 50)
     cur_page = p.page(q_page)
@@ -890,24 +891,29 @@ def coupon_rank(req):
     mamas = cur_page.object_list
 
     for item in mamas:
+        customer = Customer.objects.filter(unionid=item.openid).first()
         data[item.id] = {
             'id': int(item.id),
             'elite_score': item.elite_score,
             'elite_level': item.elite_level,
             'referal_from': item.referal_from,
+            'customer': customer
             # 'score': calc_xlmm_elite_score(item.id)
         }
     mama_ids = [int(x.id) for x in mamas]
 
+    def by_level(mm_id):
+        mm = XiaoluMama.objects.using('default').filter(id=mm_id).first()
+        if mm:
+            return mm.elite_level
+        else:
+            return 'nooo'
+
     for item in mamas:
         fans = ReferalRelationship.objects.using('default').filter(
-            referal_from_mama_id=item.id, referal_type=XiaoluMama.ELITE)
+            referal_from_mama_id=item.id, referal_type__in=[XiaoluMama.ELITE, XiaoluMama.HALF, XiaoluMama.FULL])
 
-        def by_level(fan):
-            mm = XiaoluMama.objects.using('default').get(id=fan.referal_to_mama_id)
-            return mm.elite_level
-
-        res = process(groupby(fans, by_level), len)
+        res = process(groupby([fan.referal_to_mama_id for fan in fans], by_level), len)
         data[item.id]['team'] = res
 
     # 买券
