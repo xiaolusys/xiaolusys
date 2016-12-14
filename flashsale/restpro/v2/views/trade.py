@@ -45,6 +45,8 @@ from flashsale.xiaolumm.models import XiaoluMama,CarryLog
 from flashsale.pay.tasks import confirmTradeChargeTask, notifyTradePayTask, tasks_set_address_priority_logistics_code
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 from flashsale.coupon.apis.v1.usercoupon import use_coupon_by_ids
+from flashsale.coupon.apis.v1.transfercoupondetail import create_transfer_coupon_detail
+from flashsale.coupon.models import CouponTransferRecord
 from mall.xiaolupay import apis as xiaolupay
 
 import logging
@@ -193,7 +195,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
     def check_before_charge(self, sale_trade):
         """ 支付前参数检查,如优惠券状态检查 """
-        from flashsale.coupon.models import CouponTransferRecord
         template_id = CouponTransferRecord.TEMPLATE_ID
         coupon_ids = sale_trade.extras_info.get('coupon', [])
         is_transfer_coupon = False
@@ -208,7 +209,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
         if is_transfer_coupon:
             coupon_num = len(coupon_ids)
-            CouponTransferRecord.create_consume_record(coupon_num, sale_trade, template_id)
+            transfer = CouponTransferRecord.create_consume_record(coupon_num, sale_trade, template_id)
+            create_transfer_coupon_detail(transfer.id, coupon_ids)
 
     def wallet_charge(self, sale_trade, check_coupon=True,  **kwargs):
         """ 妈妈钱包支付实现 """

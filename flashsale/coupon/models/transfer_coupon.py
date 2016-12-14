@@ -207,8 +207,7 @@ class CouponTransferRecord(BaseModel):
                      product_img=product_img, coupon_num=coupon_num, transfer_type=transfer_type, product_id=product_id, elite_score=elite_score,
                      uni_key=uni_key, date_field=date_field, transfer_status=transfer_status)
         coupon.save()
-        res = {"code": 0, "info": u"成功!"}
-        return res
+        return coupon
 
     @classmethod
     def init_transfer_record(cls, request_user, coupon_num, template_id, product_id):
@@ -362,14 +361,18 @@ class CouponTransferRecord(BaseModel):
         mama = customer.get_charged_mama()
         product_id, elite_score, _ = get_elite_score_by_templateid(template_id, mama)
         elite_score *= int(coupon_num)
-    
-        coupon = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id, from_mama_thumbnail=from_mama_thumbnail,
-                                      from_mama_nick=from_mama_nick, coupon_to_mama_id=coupon_to_mama_id,
-                                      to_mama_thumbnail=to_mama_thumbnail, to_mama_nick=to_mama_nick,coupon_value=coupon_value,
-                                      init_from_mama_id=init_from_mama_id, order_no=order_no, template_id=template_id,
-                                      product_img=product_img, coupon_num=coupon_num, transfer_type=transfer_type, product_id=product_id, elite_score=elite_score,
-                                      uni_key=uni_key, date_field=date_field, transfer_status=transfer_status)
-        coupon.save()
+
+        transfer = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id,
+                                        from_mama_thumbnail=from_mama_thumbnail,
+                                        from_mama_nick=from_mama_nick, coupon_to_mama_id=coupon_to_mama_id,
+                                        to_mama_thumbnail=to_mama_thumbnail, to_mama_nick=to_mama_nick,
+                                        coupon_value=coupon_value,
+                                        init_from_mama_id=init_from_mama_id, order_no=order_no, template_id=template_id,
+                                        product_img=product_img, coupon_num=coupon_num, transfer_type=transfer_type,
+                                        product_id=product_id, elite_score=elite_score,
+                                        uni_key=uni_key, date_field=date_field, transfer_status=transfer_status)
+        transfer.save()
+        return transfer
 
     @classmethod
     def create_exchg_order_record(cls, customer, coupon_num, sale_order, template_id):

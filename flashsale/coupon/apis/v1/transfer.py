@@ -166,6 +166,7 @@ def saleorder_return_coupon_exchange(salerefund, payment):
 
     # 判断这个退款单对应的订单是曾经兑换过的
     from flashsale.pay.models.trade import SaleOrder
+    from .transfercoupondetail import create_transfer_coupon_detail
 
     sale_order = SaleOrder.objects.filter(id=salerefund.order_id).first()
     if not (sale_order and sale_order.extras.has_key('exchange') and sale_order.extras['exchange'] == True):
@@ -233,6 +234,7 @@ def saleorder_return_coupon_exchange(salerefund, payment):
                 user_coupon.count(), return_coupon_num),
         })
     num = 0
+    coupon_ids = []
     for coupon in user_coupon:
         if num >= return_coupon_num:
             break
@@ -247,15 +249,15 @@ def saleorder_return_coupon_exchange(salerefund, payment):
         else:
             UserCoupon.objects.filter(uniq_id=coupon.uniq_id).update(status=UserCoupon.FREEZE, trade_tid='',
                                                                      finished_time=datetime.datetime.now())
+        coupon_ids.append(coupon.id)
 
     # (4)在精品券流通记录增加退货退券记录
     logger.info({
         'message': u'exchange order:return_coupon_num=%s ' % (return_coupon_num),
     })
-    res = CouponTransferRecord.gen_return_record(customer, return_coupon_num,
-                                                 int(user_coupon[0].template_id), sale_order.sale_trade.tid)
-
-    return res
+    transfer = CouponTransferRecord.gen_return_record(customer, return_coupon_num,
+                                                      int(user_coupon[0].template_id), sale_order.sale_trade.tid)
+    create_transfer_coupon_detail(transfer.id, coupon_ids)
 
 
 @transaction.atomic()
