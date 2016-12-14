@@ -24,6 +24,7 @@ from flashsale.coupon.apis.v1.transfer import agree_apply_transfer_record, rejec
 from flashsale.coupon.apis.v1.usercoupon import return_transfer_coupon
 from flashsale.coupon.apis.v1.transfer import coupon_exchange_saleorder
 
+from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
 from flashsale.xiaolumm.models import ReferalRelationship, XiaoluMama, OrderCarry
 from flashsale.xiaolumm.apis.v1.xiaolumama import get_mama_by_openid
 
@@ -80,8 +81,6 @@ def process_transfer_coupon(customer_id, init_from_customer_id, record):
         else:
             coupon.extras['chain'].extend(chain)
         coupon.save()
-    from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
-
     update_coupons = CouponTransferRecord.objects.filter(order_no=record.order_no)
     for update_coupon in update_coupons:
         task_calc_xlmm_elite_score(update_coupon.coupon_to_mama_id)  # 计算妈妈积分
@@ -256,9 +255,6 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
                     coupon.extras['chain'].extend(chain)
                 coupon.save()
             info = u"发放成功"
-
-            from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
-
             update_coupons = CouponTransferRecord.objects.filter(order_no=record.order_no)
             for update_coupon in update_coupons:
                 task_calc_xlmm_elite_score(update_coupon.coupon_to_mama_id)  # 计算妈妈积分
