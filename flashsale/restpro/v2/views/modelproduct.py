@@ -290,7 +290,7 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         """特价秒杀商品
         """
         order_by = request.GET.get('order_by')
-        queryset = ModelProduct.objects.get_boutique_goods(
+        queryset = ModelProduct.objects.get_boutique_goods.filter(
             shelf_status=ModelProduct.ON_SHELF
         )
         if order_by == u'price':
