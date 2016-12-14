@@ -495,7 +495,11 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         log_action(request.user.id, model_pro, ADDITION, u'新建特卖款式')
         # 生成sku信息
         creator = request.user
-        Product.create_or_update_skus(model_pro, creator)
+        try:
+            Product.create_or_update_skus(model_pro, creator)
+        except Exception, exc:
+            logger.error(str(exc), exc_info=True)
+            raise exceptions.APIException(str(exc))
 
         SaleProductManageDetail.objects.set_material_complete_by_saleproduct(saleproduct)
 

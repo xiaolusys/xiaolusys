@@ -127,7 +127,7 @@ def default_modelproduct_extras_tpl():
     return {
         "saleinfos": {
             "is_product_buy_limit": True,
-            "per_limit_buy_num": 5,
+            "per_limit_buy_num": 20,
         },
         "properties": {},
     }
@@ -258,6 +258,10 @@ class ModelProduct(BaseTagModel):
                 all_sale_out &= product.is_sale_out()
             self._is_saleout_ = all_sale_out
         return self._is_saleout_
+
+    @property
+    def is_boutique_product(self):
+        return int(self.product_type) == ModelProduct.USUAL_TYPE and self.is_boutique
 
     @property
     def is_boutique_coupon(self):
@@ -710,6 +714,7 @@ class ModelProduct(BaseTagModel):
             self.save(update_fields=['is_flatten'])
 
     def set_boutique_coupon_only(self, coupon_tpl_id):
+        # 设置成精品汇商品返利计划
         self.extras.update({
             "payinfo": {
                 "use_coupon_only": True,

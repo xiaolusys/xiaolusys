@@ -146,7 +146,7 @@ class SaleTrade(BaseModel):
     total_fee = models.FloatField(default=0.0, verbose_name=u'总费用')
 
     has_budget_paid = models.BooleanField(default=False, verbose_name=u'使用余额')
-    is_boutique = models.BooleanField(default=False, db_index=True, verbose_name=u'精品汇订单')
+    is_boutique = models.BooleanField(default=False, db_index=True, verbose_name=u'精品订单')
 
     buyer_message = models.TextField(max_length=1000, blank=True, verbose_name=u'买家留言')
     seller_memo = models.TextField(max_length=1000, blank=True, verbose_name=u'卖家备注')

@@ -928,7 +928,6 @@ class Product(models.Model):
 
         model_pro.set_is_flatten()  # 设置平铺字段
         model_pro.set_lowest_price()  # 设置款式最低价格
-
         from flashsale.pay.models import ModelProduct
         # 如果时精品券商品
         if is_boutique_coupon :
@@ -938,27 +937,33 @@ class Product(models.Model):
                     return
                 from flashsale.coupon.services import get_create_boutique_template
                 product_ids = list(model_pro.products.values_list('id', flat=True))
-                # 创建精品券
-                coupon_template = get_create_boutique_template(
-                    model_pro.id, model_pro.lowest_agent_price, model_title=model_pro.name,
-                    model_product_ids=product_ids, model_img=model_pro.head_img_url)
                 usual_model_id = saleproduct.product_link.split('?')[0].split('/')[-1]
                 if not usual_model_id.isdigit():
                     raise ValueError('精品券关联商品款式链接不合法')
                 usual_modle_product = ModelProduct.objects.filter(id=usual_model_id).first()
-                if not usual_modle_product:
-                    raise ValueError('精品券关联商品款式链接不合法')
+                if not usual_modle_product or not usual_modle_product.is_boutique_product:
+                    raise ValueError('请输入正确的精品商品链接(商品需打上精品汇标记)')
+
+                # 创建精品券
+                coupon_template = get_create_boutique_template(
+                    model_pro.id, model_pro.lowest_agent_price, model_title=model_pro.name,
+                    model_product_ids=product_ids, model_img=model_pro.head_img_url)
+
                 # 设置精品商品只可使用指定优惠券
                 usual_modle_product.set_boutique_coupon_only(coupon_template.id)
-                usual_modle_product.save(update_fields=['extras'])
+                usual_modle_product.save()
                 # 设置精品券商品不不允许使用优惠券
                 model_pro.as_boutique_coupon_product(coupon_template.id)
-                model_pro.save(update_fields=['extras'])
+                model_pro.save()
 
                 for product in model_pro.products:
                     product.shelf_status = Product.UP_SHELF
                     product.save(update_fields=['shelf_status'])
-
+        # 如果时精品汇商品 修改商品设置
+        if model_pro.is_boutique_product:
+            model_pro.is_onsale = True
+            model_pro.rebeta_scheme_id = 12
+            model_pro.save(update_fields=['is_onsale', 'rebeta_scheme_id'])
 
     def to_apimodel(self):
         from apis.v1.products import Product as APIModel

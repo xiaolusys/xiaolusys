@@ -371,6 +371,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         if sale_trade:
             return sale_trade, False
 
+        params = {}
         sale_trade = SaleTrade(tid=tuuid, buyer_id=customer.id)
         channel = form.get('channel')
         cart_ids = [i for i in form.get('cart_ids', '').split(',') if i.isdigit()]
@@ -431,6 +432,13 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 logistic_company = LogisticsCompany.objects.get(code=logistics_company_id)
             tasks_set_address_priority_logistics_code.delay(address.id, logistic_company.id)
 
+        is_boutique = False
+        for cart in cart_qs:
+            mp = cart.get_modelproduct()
+            if not mp:
+                continue
+            is_boutique |= mp.is_boutique
+
         params.update({
             'buyer_nick': customer.nick,
             'buyer_message': form.get('buyer_message', ''),
@@ -444,6 +452,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             'logistics_company_id':  logistic_company and logistic_company.id or None,
             'status': SaleTrade.WAIT_BUYER_PAY,
             'openid': buyer_openid,
+            'is_boutique': is_boutique,
             'extras_info': {
                 'coupon': coupon_ids,
                 'pay_extras': pay_extras,
@@ -871,7 +880,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         # 创建订单
         try:
             with transaction.atomic():
-                sale_trade, state = self.create_Saletrade(request, content, address, customer, order_type)
+                sale_trade, state = self.create_Saletrade(request, content, address, customer, order_type=order_type)
                 if state:
                     self.create_Saleorder_By_Shopcart(sale_trade, cart_qs)
         except Exception, exc:

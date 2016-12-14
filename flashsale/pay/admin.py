@@ -112,13 +112,13 @@ admin.site.register(SaleOrder, SaleOrderAdmin)
 
 class SaleTradeAdmin(BaseModelAdmin):
     list_display = (
-        'id_link', 'tid', 'buyer_nick', 'channel', 'order_type', 'total_fee', 'payment', 'pay_time', 'created', 'status',
+        'id_link', 'tid', 'buyer_nick', 'channel', 'order_type', 'is_boutique', 'total_fee', 'payment', 'pay_time', 'created', 'status',
         'buyer_info')
     list_display_links = ('tid', 'buyer_info')
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = (
-        'status', 'channel', 'has_budget_paid', 'order_type', ('pay_time', DateFieldListFilter),
+        'status', 'channel', 'is_boutique', 'has_budget_paid', 'order_type', ('pay_time', DateFieldListFilter),
         ('created', DateFieldListFilter))
     search_fields = ['=tid', '=id', '=receiver_mobile', '=buyer_id']
     list_per_page = 20
@@ -128,7 +128,7 @@ class SaleTradeAdmin(BaseModelAdmin):
     fieldsets = ((u'订单基本信息:', {
         'classes': ('expand',),
         'fields': (('tid', 'buyer_nick', 'channel', 'status')
-                   , ('trade_type', 'order_type', 'pay_cash', 'has_budget_paid')
+                   , ('trade_type', 'order_type', 'pay_cash', 'has_budget_paid', 'is_boutique')
                    , ('total_fee', 'payment', 'post_fee', 'discount_fee')
                    , ('pay_time', 'consign_time', 'charge')
                    , ('buyer_id', 'openid', 'extras_info')
@@ -712,17 +712,17 @@ class BrandProductInline(admin.TabularInline):
 
 class ModelProductAdmin(ApproxAdmin):
     list_display = ('id', 'name', 'sale_time', 'salecategory', 'product_type', 'is_onsale', 'is_recommend', 'is_topic',
-                    'is_flatten', 'is_teambuy', 'product_type', 'status', 'shelf_status', 'onshelf_time', 'offshelf_time',
+                    'is_flatten', 'is_teambuy', 'is_boutique', 'product_type', 'status', 'shelf_status', 'onshelf_time', 'offshelf_time',
                     'lowest_agent_price', 'lowest_std_sale_price', 'order_weight', 'created')
 
     list_filter = ('status',
                    'product_type',
                    'shelf_status',
+                   'is_boutique',
                    'is_onsale',
                    'is_recommend',
                    'is_topic',
                    'is_flatten',
-                   'is_boutique',
                    ('onshelf_time', DateFieldListFilter),
                    ('created', DateFieldListFilter))
     # -------------- 页面布局 --------------
