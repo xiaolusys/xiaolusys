@@ -1,0 +1,34 @@
+[
+{
+  "model": "xiaolumm.referalrelationship",
+  "pk": 406696,
+  "fields": {
+    "created": "2016-10-24T18:04:01",
+    "modified": "2016-10-24T18:04:01",
+    "referal_from_grandma_id": 0,
+    "referal_from_mama_id": 1,
+    "referal_to_mama_id": 44,
+    "referal_to_mama_nick": "",
+    "referal_to_mama_img": "",
+    "order_id": "",
+    "referal_type": 365,
+    "status": 1
+  }
+},
+{
+  "model": "xiaolumm.referalrelationship",
+  "pk": 406697,
+  "fields": {
+    "created": "2016-11-19T15:19:19",
+    "modified": "2016-11-19T17:21:48",
+    "referal_from_grandma_id": 1,
+    "referal_from_mama_id": 44,
+    "referal_to_mama_id": 25839,
+    "referal_to_mama_nick": "\u98ce\u4e91@\u5c0f\u9e7f\u7f8e\u7f8e",
+    "referal_to_mama_img": "http://wx.qlogo.cn/mmopen/n24ek7Oc1iaXyxqzHobN7BibXe74QB700qE66BumtjmBJY3RheuHMVgsGWvAvlh7NckTCTMEFMk5ViaRMJFKTtRotvx2mY5o4Xp/0",
+    "order_id": "xo16081157ac0e57c4d25",
+    "referal_type": 365,
+    "status": 1
+  }
+}
+]

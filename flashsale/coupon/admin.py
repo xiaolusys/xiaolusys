@@ -4,7 +4,8 @@ from django.db.models import Sum
 
 from core.filters import DateFieldListFilter
 from flashsale.xiaolumm.models import MamaDailyAppVisit
-from flashsale.coupon.models import CouponTemplate, OrderShareCoupon, UserCoupon, TmpShareCoupon, CouponTransferRecord
+from flashsale.coupon.models import CouponTemplate, OrderShareCoupon, UserCoupon, TmpShareCoupon, CouponTransferRecord, \
+    TransferCouponDetail
 from flashsale.xiaolumm.apis.v1.xiaolumama import get_mama_by_id
 
 
@@ -143,6 +144,7 @@ class CouponTransferRecordAdmin(admin.ModelAdmin):
             html2 = '<input class="returnT%s" %s onclick="rejectReturnTransfer(%s)" value="拒绝">' % (obj.id, et, obj.id )
             return ''.join([html1, html2])
         return obj.get_transfer_status_display()
+
     transfer_status_show.allow_tags = True
     transfer_status_show.short_description = u"流通状态"
 
@@ -168,3 +170,14 @@ class CouponTransferRecordAdmin(admin.ModelAdmin):
 
 
 admin.site.register(CouponTransferRecord, CouponTransferRecordAdmin)
+
+
+class TransferCouponDetailAdmin(admin.ModelAdmin):
+    list_display = ('id', 'transfer_id', 'coupon_id', 'transfer_type', 'modified', 'created')
+    list_filter = ('transfer_type', )
+    search_fields = ['=transfer_id', '=coupon_id']
+    list_per_page = 50
+
+
+admin.site.register(TransferCouponDetail, TransferCouponDetailAdmin)
+

@@ -113,10 +113,12 @@ def task_return_user_coupon_by_trade(trade_tid, num):
     from ..models.usercoupon import UserCoupon
     from ..models.transfer_coupon import CouponTransferRecord
     from ..apis.v1.usercoupon import rollback_user_coupon_status_2_unused_by_ids
+    from ..apis.v1.transfercoupondetail import create_transfer_coupon_detail
 
     transfer_coupon_num = 0
     template_id = 0
     customer_id = 0
+    transfer_coupon_ids = []
     for i in range(num):
         cou = UserCoupon.objects.filter(trade_tid=trade_tid, status=UserCoupon.USED).first()
         if cou:
@@ -125,11 +127,12 @@ def task_return_user_coupon_by_trade(trade_tid, num):
             transfer_coupon_num += 1
             template_id = cou.template_id
             customer_id = cou.customer_id
+            transfer_coupon_ids.append(cou.id)
 
     if transfer_coupon_num > 0:
         customer = Customer.objects.filter(id=customer_id).first()
-        CouponTransferRecord.gen_return_record(customer, transfer_coupon_num, template_id, trade_tid)
-
+        transfer = CouponTransferRecord.gen_return_record(customer, transfer_coupon_num, template_id, trade_tid)
+        create_transfer_coupon_detail(transfer.id, transfer_coupon_ids)
     return
 
 

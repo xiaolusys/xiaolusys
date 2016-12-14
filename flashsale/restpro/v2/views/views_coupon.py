@@ -2,7 +2,8 @@
 import datetime
 import logging
 
-from django.db import IntegrityError
+from django.db import transaction
+from django.db.models import Q, Sum
 from rest_framework import viewsets
 from rest_framework import authentication
 from rest_framework import permissions
@@ -11,21 +12,25 @@ from rest_framework.decorators import list_route, detail_route
 from rest_framework import exceptions
 from rest_framework import filters
 
-from flashsale.xiaolumm.models import ReferalRelationship, XiaoluMama
-
 from flashsale.restpro import permissions as perms
+from flashsale.restpro.v2.serializers import CouponTransferRecordSerializer
 
 from flashsale.coupon.models import CouponTransferRecord, UserCoupon
-from flashsale.pay.models import Customer
-from flashsale.restpro.v2.serializers import CouponTransferRecordSerializer
+from flashsale.pay.models import Customer, SaleOrder
+from flashsale.pay.models.product import ModelProduct
+from flashsale.pay.apis.v1.customer import get_customer_by_django_user, get_customer_by_id
 
 from flashsale.coupon.apis.v1.transfer import agree_apply_transfer_record, reject_apply_transfer_record, \
     get_freeze_boutique_coupons_by_transfer, cancel_return_2_sys_transfer
-from flashsale.coupon.apis.v1.usercoupon import return_transfer_coupon
-from flashsale.pay.apis.v1.customer import get_customer_by_django_user, get_customer_by_id
+from flashsale.coupon.apis.v1.usercoupon import return_transfer_coupon, transfer_coupons
+from flashsale.coupon.apis.v1.transfer import coupon_exchange_saleorder
+
+from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
+from flashsale.xiaolumm.models import ReferalRelationship, XiaoluMama, OrderCarry
 from flashsale.xiaolumm.apis.v1.xiaolumama import get_mama_by_openid
 
 logger = logging.getLogger(__name__)
+
 
 def get_charged_mama(user):
     customer = Customer.objects.normal_customer.filter(user=user).first()
@@ -44,38 +49,25 @@ def get_referal_from_mama_id(to_mama_id):
 
 
 def process_transfer_coupon(customer_id, init_from_customer_id, record):
-    coupons = UserCoupon.objects.filter(customer_id=customer_id,coupon_type=UserCoupon.TYPE_TRANSFER,status=UserCoupon.UNUSED, template_id=record.template_id)
+    coupons = UserCoupon.objects.filter(customer_id=customer_id, coupon_type=UserCoupon.TYPE_TRANSFER,
+                                        status=UserCoupon.UNUSED, template_id=record.template_id)
     if coupons.count() < record.coupon_num:
         info = u"您的券库存不足，请立即购买!"
-        return {"code":3, "info":info}
+        return {"code": 3, "info": info}
 
     now = datetime.datetime.now()
-    CouponTransferRecord.objects.filter(order_no=record.order_no).update(transfer_status=CouponTransferRecord.DELIVERED,modified=now)
-    coupons = coupons[0:record.coupon_num]
+    with transaction.atomic():
+        trs = CouponTransferRecord.objects.filter(order_no=record.order_no)
+        trs.update(transfer_status=CouponTransferRecord.DELIVERED, modified=now)  # 更新为已经完成
 
-    coupon_from_mama_id = record.coupon_from_mama_id
-    init_customer = get_customer_by_id(init_from_customer_id)
-    init_mama = init_customer.get_xiaolumm()
-    mama_id = init_mama.id
-    chain = []
-    c_count = 0
-    while mama_id != coupon_from_mama_id:
-        ship = ReferalRelationship.objects.filter(referal_to_mama_id=mama_id,
-                                                  status=ReferalRelationship.VALID).first()
-        mama_id = ship.referal_from_mama_id
-        chain.insert(0, mama_id)
-        c_count += 1
-        if c_count >= 10:
-            break
-    for coupon in coupons:
-        coupon.customer_id = init_from_customer_id
-        coupon.extras.update({"transfer_coupon_pk":record.id})
-        if not coupon.extras.has_key('chain'):  # 添加流通的上级妈妈　用于　退券　时候　退回上级
-            coupon.extras['chain'] = chain
-        else:
-            coupon.extras['chain'].extend(chain)
-        coupon.save()
-    from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
+        coupon_from_mama_id = record.coupon_from_mama_id
+        init_customer = get_customer_by_id(init_from_customer_id)
+        init_mama = init_customer.get_xiaolumm()
+        mama_id = init_mama.id
+        chain = ReferalRelationship.get_ship_chain(mama_id, coupon_from_mama_id)  # 获取推荐关系链
+
+        transfer_coupons(coupons[0:record.coupon_num], init_from_customer_id, record.id, chain)  # 转券
+
     update_coupons = CouponTransferRecord.objects.filter(order_no=record.order_no)
     for update_coupon in update_coupons:
         task_calc_xlmm_elite_score(update_coupon.coupon_to_mama_id)  # 计算妈妈积分
@@ -102,7 +94,6 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
     filter_class = CouponTransferRecordFilter
 
-    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
     def list(self, request, *args, **kwargs):
         return exceptions.APIException('METHOD NOT ALLOW')
 
@@ -118,13 +109,10 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
     @list_route(methods=['POST'])
     def start_transfer(self, request, *args, **kwargs):
         content = request.data
-
         coupon_num = content.get("coupon_num") or None
         product_id = content.get("product_id")
         if not (coupon_num and coupon_num.isdigit() and product_id and product_id.isdigit()):
-            res = Response({"code": 1, "info": u"coupon_num或product_id错误！"})
-            #res["Access-Control-Allow-Origin"] = "*"
-            return res
+            return Response({"code": 1, "info": u"coupon_num或product_id错误！"})
 
         from shopback.items.models import Product
         from flashsale.pay.models import ModelProduct
@@ -134,15 +122,9 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
 
         template_id = model_product.extras.get("template_id")
         if not template_id:
-            res = Response({"code": 2, "info": u"template_id错误！"})
-            #res["Access-Control-Allow-Origin"] = "*"
-            return res
-
+            return Response({"code": 2, "info": u"template_id错误！"})
         res = CouponTransferRecord.init_transfer_record(request.user, coupon_num, template_id, product_id)
-        res = Response(res)
-        #res["Access-Control-Allow-Origin"] = "*"
-
-        return res
+        return Response(res)
 
     def start_return_coupon(self, request, *args, **kwargs):
         pass
@@ -160,27 +142,23 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         waiting_in_num = CouponTransferRecord.get_waiting_in_num(mama_id)
         waiting_out_num = CouponTransferRecord.get_waiting_out_num(mama_id)
         is_elite_mama = mama.is_elite_mama
-        direct_buy = mama.can_buy_transfer_coupon() #可否直接购买精品券
+        direct_buy = mama.can_buy_transfer_coupon()  # 可否直接购买精品券
         direct_buy_link = "http://m.xiaolumeimei.com/mall/buycoupon"
         upgrade_score = mama.get_upgrade_score()
         elite_level = mama.elite_level
 
-        res = Response({"mama_id": mama_id, "stock_num": stock_num, "waiting_in_num": waiting_in_num,
-                        "waiting_out_num": waiting_out_num, "bought_num": in_num,"is_elite_mama":is_elite_mama,
-                        "direct_buy": direct_buy, "direct_buy_link": direct_buy_link, "elite_score": mama.elite_score,
-                        "elite_level": elite_level, "upgrade_score": upgrade_score})
-        #res["Access-Control-Allow-Origin"] = "*"
-
-        return res
+        return Response({"mama_id": mama_id, "stock_num": stock_num, "waiting_in_num": waiting_in_num,
+                         "waiting_out_num": waiting_out_num, "bought_num": in_num, "is_elite_mama": is_elite_mama,
+                         "direct_buy": direct_buy, "direct_buy_link": direct_buy_link, "elite_score": mama.elite_score,
+                         "elite_level": elite_level, "upgrade_score": upgrade_score})
 
     @detail_route(methods=['POST'])
     def process_coupon(self, request, pk=None, *args, **kwargs):
         if not (pk and pk.isdigit()):
-            res = {"code":1, "info": u"请求错误"}
+            return Response({"code": 1, "info": u"请求错误"})
 
         mama = get_charged_mama(request.user)
         mama_id = mama.id
-
         record = CouponTransferRecord.objects.filter(id=pk).first()
         res = {"code": 1, "info": u"无记录审核或不能审核"}
 
@@ -189,20 +167,19 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
             if stock_num >= record.coupon_num:
                 customer = Customer.objects.filter(unionid=mama.unionid).first()
                 init_from_mama = XiaoluMama.objects.filter(id=record.init_from_mama_id).first()
-                init_from_customer = Customer.objects.filter(unionid=init_from_mama.unionid,status=Customer.NORMAL).first()
+                init_from_customer = Customer.objects.filter(unionid=init_from_mama.unionid,
+                                                             status=Customer.NORMAL).first()
                 res = process_transfer_coupon(customer.id, init_from_customer.id, record)
             else:
-                record.transfer_status=CouponTransferRecord.PROCESSED
+                record.transfer_status = CouponTransferRecord.PROCESSED
                 record.save(update_fields=['transfer_status'])
                 res = CouponTransferRecord.gen_transfer_record(request.user, record)
-
-        res = Response(res)
-        return res
+        return Response(res)
 
     @detail_route(methods=['POST'])
     def cancel_coupon(self, request, pk=None, *args, **kwargs):
         if not (pk and pk.isdigit()):
-            res = {"code":1, "info": u"请求错误"}
+            return Response({"code": 1, "info": u"请求错误"})
 
         mama = get_charged_mama(request.user)
         mama_id = mama.id
@@ -210,70 +187,45 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         record = CouponTransferRecord.objects.filter(id=pk).first()
         info = u"无取消记录或不能取消"
         if record and record.can_cancel(mama_id):
-            record.transfer_status=CouponTransferRecord.CANCELED
+            record.transfer_status = CouponTransferRecord.CANCELED
             record.save(update_fields=['transfer_status'])
             info = u"取消成功"
-        res = Response({"code": 0, "info": info})
-        #res["Access-Control-Allow-Origin"] = "*"
-        return res
-
+        return Response({"code": 0, "info": info})
 
     @detail_route(methods=['POST'])
     def transfer_coupon(self, request, pk=None, *args, **kwargs):
         if not (pk and pk.isdigit()):
-            res = {"code":1, "info": u"请求错误"}
-
-        customer = Customer.objects.normal_customer.filter(user=request.user).first()
+            return Response({"code": 1, "info": u"请求错误"})
+        customer = get_customer_by_django_user(user=request.user)
         mama = customer.get_charged_mama()
         mama_id = mama.id
-
         info = u"无取消记录或不能取消"
+
         record = CouponTransferRecord.objects.filter(id=pk).first()
         init_from_mama = XiaoluMama.objects.filter(id=record.init_from_mama_id).first()
-        init_from_customer = Customer.objects.filter(unionid=init_from_mama.unionid,status=Customer.NORMAL).first()
+        init_from_customer = Customer.objects.filter(unionid=init_from_mama.unionid, status=Customer.NORMAL).first()
         stock_num = CouponTransferRecord.get_coupon_stock_num(mama_id, record.template_id)
         if stock_num < record.coupon_num:
-            info = u"您的精品券库存不足，请立即购买!"
-            return Response({"code":2, "info":info})
+            return Response({"code": 2, "info": u"您的精品券库存不足，请立即购买!"})
 
         coupon_from_mama_id = record.coupon_from_mama_id
         tmama_id = init_from_mama.id
-        chain = []
-        c_count = 0
-        while tmama_id != coupon_from_mama_id:
-            ship = ReferalRelationship.objects.filter(referal_to_mama_id=tmama_id,
-                                                      status=ReferalRelationship.VALID).first()
-            tmama_id = ship.referal_from_mama_id
-            chain.insert(0, tmama_id)
-            c_count += 1
-            if c_count >= 10:
-                break
+        chain = ReferalRelationship.get_ship_chain(tmama_id, coupon_from_mama_id)
 
         if record and record.can_process(mama_id) and mama.can_buy_transfer_coupon():
-            coupons = UserCoupon.objects.filter(customer_id=customer.id,coupon_type=UserCoupon.TYPE_TRANSFER,status=UserCoupon.UNUSED, template_id=record.template_id)
+            coupons = UserCoupon.objects.filter(customer_id=customer.id, coupon_type=UserCoupon.TYPE_TRANSFER,
+                                                status=UserCoupon.UNUSED, template_id=record.template_id)
             if coupons.count() < record.coupon_num:
-                info = u"您的券库存不足，请立即购买!"
-                return Response({"code":3, "info":info})
+                return Response({"code": 3, "info": u"您的券库存不足，请立即购买!"})
             now = datetime.datetime.now()
-            CouponTransferRecord.objects.filter(order_no=record.order_no).update(transfer_status=CouponTransferRecord.DELIVERED,modified=now)
-            coupons = coupons[0:record.coupon_num]
-            for coupon in coupons:
-                coupon.customer_id = init_from_customer.id
-                coupon.extras.update({"transfer_coupon_pk":pk})
-                if not coupon.extras.has_key('chain'):  # 添加流通的上级妈妈　用于　退券　时候　退回上级
-                    coupon.extras['chain'] = chain
-                else:
-                    coupon.extras['chain'].extend(chain)
-                coupon.save()
+            trds = CouponTransferRecord.objects.filter(order_no=record.order_no)
+            with transaction.atomic():
+                trds.update(transfer_status=CouponTransferRecord.DELIVERED, modified=now)
+                transfer_coupons(coupons[0:record.coupon_num], init_from_customer.id, int(pk), chain)  # 转券
             info = u"发放成功"
-
-            from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
-            update_coupons = CouponTransferRecord.objects.filter(order_no=record.order_no)
-            for update_coupon in update_coupons:
-                task_calc_xlmm_elite_score(update_coupon.coupon_to_mama_id)  # 计算妈妈积分
-        res = Response({"code": 0, "info": info})
-        #res["Access-Control-Allow-Origin"] = "*"
-        return res
+            for tr in trds:
+                task_calc_xlmm_elite_score(tr.coupon_to_mama_id)  # 计算妈妈积分
+        return Response({"code": 0, "info": info})
 
     @list_route(methods=['GET'])
     def list_out_coupons(self, request, *args, **kwargs):
@@ -300,7 +252,6 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
                 entry.update({"is_buyable": False})
 
         res = self.get_paginated_response(data)
-        #res["Access-Control-Allow-Origin"] = "*"
         return res
 
     @list_route(methods=['GET'])
@@ -320,22 +271,19 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         coupons = self.paginate_queryset(coupons)
         serializer = CouponTransferRecordSerializer(coupons, many=True)
         res = self.get_paginated_response(serializer.data)
-        # res["Access-Control-Allow-Origin"] = "*"
         return res
 
     @list_route(methods=['GET'])
     def list_mama_left_coupons(self, request, *args, **kwargs):
-        content = request.GET
-
         mama = get_charged_mama(request.user)
         mama_id = mama.id
 
-        from django.db.models import Q
-        coupons = CouponTransferRecord.objects.filter(Q(transfer_type=CouponTransferRecord.OUT_TRANSFER) | Q(transfer_type=CouponTransferRecord.IN_BUY_COUPON),
-                                       coupon_to_mama_id=mama_id, transfer_status=CouponTransferRecord.DELIVERED).order_by('-created')
+        coupons = CouponTransferRecord.objects.filter(
+            Q(transfer_type=CouponTransferRecord.OUT_TRANSFER) | Q(transfer_type=CouponTransferRecord.IN_BUY_COUPON),
+            coupon_to_mama_id=mama_id, transfer_status=CouponTransferRecord.DELIVERED).order_by('-created')
 
         left_coupons = {"code": 0, "info": "成功", "results": []}
-        from django.db.models import Sum
+
         for one_coupon in coupons:
             has_calc = False
             for one_left_coupon in left_coupons["results"]:
@@ -344,21 +292,21 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
                     break
             if has_calc:
                 break
-
-            res = CouponTransferRecord.objects.filter(template_id=one_coupon.template_id, coupon_from_mama_id=mama_id, transfer_status=CouponTransferRecord.DELIVERED).aggregate(
+            res = CouponTransferRecord.objects.filter(template_id=one_coupon.template_id, coupon_from_mama_id=mama_id,
+                                                      transfer_status=CouponTransferRecord.DELIVERED).aggregate(
                 n=Sum('coupon_num'))
             out_num = res['n'] or 0
 
-            res = CouponTransferRecord.objects.filter(template_id=one_coupon.template_id, coupon_to_mama_id=mama_id, transfer_status=CouponTransferRecord.DELIVERED).aggregate(
+            res = CouponTransferRecord.objects.filter(template_id=one_coupon.template_id, coupon_to_mama_id=mama_id,
+                                                      transfer_status=CouponTransferRecord.DELIVERED).aggregate(
                 n=Sum('coupon_num'))
             in_num = res['n'] or 0
 
             stock_num = in_num - out_num
-            #one_coupon.coupon_num = stock_num
             if stock_num > 0:
-                left_coupons["results"].append({"product_img": one_coupon.product_img, "coupon_num": stock_num, "template_id": one_coupon.template_id,})
-        res = Response(left_coupons)
-        return res
+                left_coupons["results"].append({"product_img": one_coupon.product_img, "coupon_num": stock_num,
+                                                "template_id": one_coupon.template_id, })
+        return Response(left_coupons)
 
     @list_route(methods=['POST'])
     def verify_return_transfer_record(self, request, *args, **kwargs):
@@ -391,7 +339,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         transfer_record_id = request.POST.get('transfer_record_id')
         if not transfer_record_id:
             return Response({'code': 1, 'info': '参数错误'})
-        customer = get_customer_by_django_user(request.user)    # 下属用户返还自己的　券　给上级
+        customer = get_customer_by_django_user(request.user)  # 下属用户返还自己的　券　给上级
         transfer_record_id = int(str(transfer_record_id).strip())
         coupons = get_freeze_boutique_coupons_by_transfer(transfer_record_id, customer.id)
         if not coupons:
@@ -428,7 +376,8 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         mama = get_mama_by_openid(customer.unionid)
         if not mama:
             return Response({'code': 2, 'info': '妈妈记录没找到'})
-        queryset = CouponTransferRecord.objects.get_return_transfer_coupons().filter(coupon_to_mama_id=mama.id).order_by('-created')
+        queryset = CouponTransferRecord.objects.get_return_transfer_coupons().filter(
+            coupon_to_mama_id=mama.id).order_by('-created')
         queryset = self.filter_queryset(queryset)
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -450,7 +399,8 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
             return Response({'code': 2, 'info': '妈妈记录没找到'})
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.filter(coupon_from_mama_id=mama.id,
-                                   transfer_type__in=[CouponTransferRecord.OUT_CASHOUT, CouponTransferRecord.IN_RETURN_COUPON]).order_by('-created')
+                                   transfer_type__in=[CouponTransferRecord.OUT_CASHOUT,
+                                                      CouponTransferRecord.IN_RETURN_COUPON]).order_by('-created')
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -469,27 +419,19 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
     @list_route(methods=['GET'])
     def list_can_exchg_orders(self, request, *args, **kwargs):
         content = request.GET
-
         exchg_orders = None
         customer = Customer.objects.normal_customer.filter(user=request.user).first()
         if customer:
-            customer_id = customer.id
             mama = get_charged_mama(request.user)
             mama_id = mama.id
-
-            from flashsale.xiaolumm.models.models_fortune import OrderCarry
-
             exchg_orders = OrderCarry.objects.filter(mama_id=mama_id,
                                                      carry_type__in=[OrderCarry.WAP_ORDER, OrderCarry.APP_ORDER],
                                                      status__in=[OrderCarry.ESTIMATE, OrderCarry.CONFIRM],
                                                      date_field__gt='2016-11-30')
-
         results = []
         if exchg_orders:
             for entry in exchg_orders:
                 # find sale trade use coupons
-                from flashsale.pay.models.trade import SaleOrder, SaleTrade
-
                 sale_order = SaleOrder.objects.filter(oid=entry.order_id).first()
                 if not sale_order:
                     continue
@@ -503,14 +445,17 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                     use_template_id = None
 
                 # find modelproduct
-                from flashsale.pay.models.product import ModelProduct
 
-                model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id, is_boutique=True).first()
-                if model_product and model_product.extras.has_key('payinfo') and model_product.extras['payinfo'].has_key('coupon_template_ids'):
-                    if model_product.extras['payinfo']['coupon_template_ids'] and len(model_product.extras['payinfo']['coupon_template_ids']) > 0:
+                model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id, is_onsale=True).first()
+                if model_product and model_product.extras.has_key('payinfo')\
+                        and model_product.extras['payinfo'].has_key('coupon_template_ids'):
+                    
+                    if model_product.extras['payinfo']['coupon_template_ids'] and len(
+                            model_product.extras['payinfo']['coupon_template_ids']) > 0:
+
                         template_ids = model_product.extras['payinfo']['coupon_template_ids']
                         template_id = model_product.extras['payinfo']['coupon_template_ids'][0]
-                        #用的券是精品券那就无法兑换
+                        # 用的券是精品券那就无法兑换
                         if template_ids and template_id:
                             if use_template_id and use_template_id in template_ids:
                                 continue
@@ -522,17 +467,18 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                                                     'contributor_nick': entry.contributor_nick, 'status': entry.status,
                                                     'status_display': OrderCarry.STATUS_TYPES[entry.status][1],
                                                     'order_value': entry.order_value, 'date_field': entry.date_field})
-
         logger.info({
             'message': u'list can exchange order:result len=%s ' % (len(results)),
             'data': '%s' % content
         })
-        res = Response(results)
-        return res
+        return Response(results)
 
     @list_route(methods=['POST'])
     def start_exchange(self, request, *args, **kwargs):
         content = request.POST
+        customer = get_customer_by_django_user(request.user)
+        if not customer:
+            return Response({"code": 5, "info": u"没有找到用户！"})
 
         coupon_num = content.get("coupon_num") or None
         order_id = content.get("order_id")
@@ -543,17 +489,11 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                     coupon_num, order_id, exchg_template_id),
                 'data': '%s' % content
             })
-            res = Response({"code": 1, "info": u"coupon_num或exchg_template_id错误！"})
-            # res["Access-Control-Allow-Origin"] = "*"
-            return res
+            return Response({"code": 1, "info": u"coupon_num或exchg_template_id错误！"})
 
         if int(coupon_num) == 0:
-            res = Response({"code": 4, "info": u'兑换精品券数量不能为0!'})
-            return res
+            return Response({"code": 4, "info": u'兑换精品券数量不能为0!'})
 
-        customer = Customer.objects.normal_customer.filter(user=request.user).first()
-        if customer:
-            customer_id = customer.id
         mama = get_charged_mama(request.user)
         mama_id = mama.id
 
@@ -563,8 +503,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                 'message': u'exchange order:stock_num=%s < exchg coupon_num=%s ,order_id=%s templateid=%s' % (
                     stock_num, coupon_num, order_id, exchg_template_id),
             })
-            res = Response({"code": 2, "info": u'您的精品券库存不足，请立即购买!'})
-            return res
+            return Response({"code": 2, "info": u'您的精品券库存不足，请立即购买!'})
 
         user_coupons = UserCoupon.objects.filter(customer_id=customer.id, template_id=int(exchg_template_id),
                                                  status=UserCoupon.UNUSED)
@@ -573,13 +512,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                 'message': u'exchange order:user_coupon=%s < exchg coupon_num=%s ,order_id=%s templateid=%s' % (
                     len(user_coupons), coupon_num, order_id, exchg_template_id),
             })
-            res = Response({"code": 3, "info": u'您的精品券数量不足，请联系微信客服!'})
-            return res
+            return Response({"code": 3, "info": u'您的精品券数量不足，请联系微信客服!'})
 
-        from flashsale.coupon.apis.v1.transfer import coupon_exchange_saleorder
-
-        res = coupon_exchange_saleorder(customer, order_id, mama_id, exchg_template_id, coupon_num)
-        res = Response(res)
-        # res["Access-Control-Allow-Origin"] = "*"
-
-        return res
+        coupon_exchange_saleorder(customer, order_id, mama_id, exchg_template_id, coupon_num)
+        return Response({'code': 0, 'info': '兑换成功'})

@@ -114,39 +114,30 @@ def coupon_exchange_saleorder(customer, order_id, mama_id, exchg_template_id, co
     })
 
     # (1)sale order置为已经兑换
-    from flashsale.pay.models.trade import SaleOrder, SaleTrade
+    from flashsale.pay.models.trade import SaleOrder
+    from .transfercoupondetail import create_transfer_coupon_detail
 
     sale_order = SaleOrder.objects.filter(oid=order_id).first()
     if sale_order:
         if sale_order.status < SaleOrder.WAIT_BUYER_CONFIRM_GOODS:
-            logger.warn({
-                'message': u'exchange order: order_id=%s status=%s' % (order_id, sale_order.status),
-            })
+            logger.warn({'message': u'exchange order: order_id=%s status=%s' % (order_id, sale_order.status)})
             raise exceptions.ValidationError(u'订单记录状态不对，兑换失败!')
         if sale_order and sale_order.extras.has_key('exchange') and sale_order.extras['exchange'] == True:
-            logger.warn({
-                'message': u'exchange order: order_id=%s has already exchg' % (order_id),
-            })
+            logger.warn({'message': u'exchange order: order_id=%s has already exchg' % order_id})
             raise exceptions.ValidationError(u'订单已经被兑换过了，兑换失败!')
         sale_order.extras['exchange'] = True
         SaleOrder.objects.filter(oid=order_id).update(extras=sale_order.extras)
     else:
-        logger.warn({
-            'message': u'exchange order: order_id=%s not exist' % (order_id),
-        })
+        logger.warn({'message': u'exchange order: order_id=%s not exist' % order_id})
         raise exceptions.ValidationError(u'找不到订单记录，兑换失败!')
 
     # (2)用户优惠券需要变成使用状态
-    user_coupons = UserCoupon.objects.filter(customer_id=customer.id, template_id=int(exchg_template_id),
+    user_coupons = UserCoupon.objects.filter(customer_id=customer.id,
+                                             template_id=int(exchg_template_id),
                                              status=UserCoupon.UNUSED)
-    use_num = 0
-    for coupon in user_coupons:
-        if use_num < int(coupon_num):
-            UserCoupon.objects.filter(uniq_id=coupon.uniq_id).update(status=UserCoupon.USED, trade_tid=sale_order.oid,
-                                                                     finished_time=datetime.datetime.now())
-            use_num += 1
-        else:
-            break
+    user_coupons = user_coupons[0: coupon_num]
+    coupon_ids = [c.id for c in user_coupons]
+    user_coupons.update(status=UserCoupon.USED, trade_tid=sale_order.oid, finished_time=datetime.datetime.now())
 
     # (3)在user钱包写收入记录
     from flashsale.pay.models.user import BudgetLog
@@ -161,10 +152,9 @@ def coupon_exchange_saleorder(customer, order_id, mama_id, exchg_template_id, co
     order_log.save()
 
     # (4)在精品券流通记录增加兑换记录
-    res = CouponTransferRecord.create_exchg_order_record(customer, int(coupon_num), sale_order,
-                                                         int(exchg_template_id))
-
-    return res
+    transfer = CouponTransferRecord.create_exchg_order_record(customer, int(coupon_num), sale_order,
+                                                              int(exchg_template_id))
+    create_transfer_coupon_detail(transfer.id, coupon_ids)
 
 
 @transaction.atomic
@@ -176,6 +166,8 @@ def saleorder_return_coupon_exchange(salerefund, payment):
 
     # 判断这个退款单对应的订单是曾经兑换过的
     from flashsale.pay.models.trade import SaleOrder
+    from .transfercoupondetail import create_transfer_coupon_detail
+
     sale_order = SaleOrder.objects.filter(id=salerefund.order_id).first()
     if not (sale_order and sale_order.extras.has_key('exchange') and sale_order.extras['exchange'] == True):
         res = {}
@@ -184,8 +176,10 @@ def saleorder_return_coupon_exchange(salerefund, payment):
     # 找出兑换这个订单的xlmm
     from flashsale.xiaolumm.models import XiaoluMama
     from flashsale.coupon.models.transfer_coupon import CouponTransferRecord
+
     cts = CouponTransferRecord.objects.filter(transfer_type=CouponTransferRecord.OUT_EXCHG_SALEORDER,
-                                              uni_key=sale_order.oid, transfer_status=CouponTransferRecord.DELIVERED).first()
+                                              uni_key=sale_order.oid,
+                                              transfer_status=CouponTransferRecord.DELIVERED).first()
     if cts:
         mama_id = cts.coupon_from_mama_id
         mama = XiaoluMama.objects.filter(id=mama_id).first()
@@ -198,6 +192,7 @@ def saleorder_return_coupon_exchange(salerefund, payment):
         return res
 
     from flashsale.pay.models.user import UserBudget, Customer
+
     not_enough_budget = False
     customer = Customer.objects.normal_customer.filter(unionid=mama.openid).first()
     user_budgets = UserBudget.objects.filter(user=customer)
@@ -208,6 +203,7 @@ def saleorder_return_coupon_exchange(salerefund, payment):
 
     # (1)在user钱包写支出记录，支出不够变成负数
     from flashsale.pay.models.user import BudgetLog
+
     today = datetime.date.today()
     order_log = BudgetLog(customer_id=customer.id, flow_amount=int(payment),
                           budget_type=BudgetLog.BUDGET_OUT,
@@ -238,6 +234,7 @@ def saleorder_return_coupon_exchange(salerefund, payment):
                 user_coupon.count(), return_coupon_num),
         })
     num = 0
+    coupon_ids = []
     for coupon in user_coupon:
         if num >= return_coupon_num:
             break
@@ -246,20 +243,21 @@ def saleorder_return_coupon_exchange(salerefund, payment):
         if not not_enough_budget:
             extras = coupon.extras
             extras['freeze_type'] = 1
-            UserCoupon.objects.filter(uniq_id=coupon.uniq_id).update(status=UserCoupon.UNUSED, trade_tid='', extras=extras,
+            UserCoupon.objects.filter(uniq_id=coupon.uniq_id).update(status=UserCoupon.UNUSED, trade_tid='',
+                                                                     extras=extras,
                                                                      finished_time=datetime.datetime.now())
         else:
             UserCoupon.objects.filter(uniq_id=coupon.uniq_id).update(status=UserCoupon.FREEZE, trade_tid='',
                                                                      finished_time=datetime.datetime.now())
+        coupon_ids.append(coupon.id)
 
     # (4)在精品券流通记录增加退货退券记录
     logger.info({
         'message': u'exchange order:return_coupon_num=%s ' % (return_coupon_num),
     })
-    res = CouponTransferRecord.gen_return_record(customer, return_coupon_num,
-                                                 int(user_coupon[0].template_id), sale_order.sale_trade.tid)
-
-    return res
+    transfer = CouponTransferRecord.gen_return_record(customer, return_coupon_num,
+                                                      int(user_coupon[0].template_id), sale_order.sale_trade.tid)
+    create_transfer_coupon_detail(transfer.id, coupon_ids)
 
 
 @transaction.atomic()
@@ -269,6 +267,8 @@ def apply_pending_return_transfer_coupon(coupon_ids, customer):
     """
     from .coupontemplate import get_coupon_template_by_id
     from flashsale.xiaolumm.apis.v1.xiaolumama import get_mama_by_id
+    from .transfercoupondetail import create_transfer_coupon_detail
+
     coupons = get_user_coupons_by_ids(coupon_ids)
     mama = customer.get_xiaolumm()
     template_ids = set()
@@ -323,6 +323,7 @@ def apply_pending_return_transfer_coupon(coupon_ids, customer):
             transfer_status=CouponTransferRecord.PENDING)
         new_transfer.save()
         freeze_transfer_coupon(coupon_ids, new_transfer.id)  # 冻结优惠券
+        create_transfer_coupon_detail(new_transfer.id, coupon_ids)
     return True
 
 
@@ -333,6 +334,7 @@ def apply_pending_return_transfer_coupon_2_sys(coupon_ids, customer):
     """
     from .coupontemplate import get_coupon_template_by_id
     from flashsale.pay.models import BudgetLog
+    from .transfercoupondetail import create_transfer_coupon_detail
 
     coupons = get_user_coupons_by_ids(coupon_ids)
     mama = customer.get_xiaolumm()
@@ -374,6 +376,7 @@ def apply_pending_return_transfer_coupon_2_sys(coupon_ids, customer):
     transfer.save()
     BudgetLog.create_return_coupon_log(customer.id, transfer.id, flow_amount=int(total_agent_price * 100))  # 生成钱包待确定记录
     freeze_transfer_coupon(coupon_ids, transfer.id)  # 冻结优惠券
+    create_transfer_coupon_detail(transfer.id, coupon_ids)
     return True
 
 

@@ -22,6 +22,7 @@ def task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, prod
     from ..apis.v1.coupontemplate import get_coupon_template_by_id
     from .coupontemplate import task_update_tpl_released_coupon_nums
     from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
+    from ..apis.v1.transfercoupondetail import create_transfer_coupon_detail
 
     customer = get_customer_by_id(customer_id)
     product = Product.objects.filter(id=product_id).first()
@@ -31,10 +32,12 @@ def task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, prod
     template = get_coupon_template_by_id(id=template_id)
     index = 0
     with transaction.atomic():
+        new_coupon_ids = []
         while index < order_num:
             unique_key = template.gen_usercoupon_unikey(order_id, index)
             try:
-                create_user_coupon(customer.id, template.id, unique_key=unique_key)
+                cou, code, msg = create_user_coupon(customer.id, template.id, unique_key=unique_key)
+                new_coupon_ids.append(cou.id)
             except IntegrityError as e:
                 logging.error(e)
             index += 1
@@ -59,18 +62,20 @@ def task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, prod
         elite_score = product.elite_score * (int(order_num))
 
         try:
-            coupon = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id, from_mama_thumbnail=from_mama_thumbnail,
-                                          from_mama_nick=from_mama_nick, coupon_to_mama_id=coupon_to_mama_id,
-                                          to_mama_thumbnail=to_mama_thumbnail, to_mama_nick=to_mama_nick,
-                                          coupon_value=coupon_value,
-                                          init_from_mama_id=init_from_mama_id, order_no=order_oid, template_id=template_id,
-                                          product_img=product_img, coupon_num=order_num, transfer_type=transfer_type,
-                                          product_id=product_id, elite_score=elite_score,
-                                          uni_key=uni_key, date_field=date_field, transfer_status=transfer_status)
-            coupon.save()
+            transfer = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id,
+                                            from_mama_thumbnail=from_mama_thumbnail,
+                                            from_mama_nick=from_mama_nick, coupon_to_mama_id=coupon_to_mama_id,
+                                            to_mama_thumbnail=to_mama_thumbnail, to_mama_nick=to_mama_nick,
+                                            coupon_value=coupon_value,
+                                            init_from_mama_id=init_from_mama_id, order_no=order_oid,
+                                            template_id=template_id,
+                                            product_img=product_img, coupon_num=order_num, transfer_type=transfer_type,
+                                            product_id=product_id, elite_score=elite_score,
+                                            uni_key=uni_key, date_field=date_field, transfer_status=transfer_status)
+            transfer.save()
+            create_transfer_coupon_detail(transfer.id, new_coupon_ids)  # 创建明细记录
         except IntegrityError as e:
             logging.error(e)
-
     task_calc_xlmm_elite_score(coupon_to_mama_id)  # 计算妈妈积分
     task_update_tpl_released_coupon_nums.delay(template.id)  # 统计发放数量
 
