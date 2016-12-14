@@ -269,6 +269,7 @@ def apply_pending_return_transfer_coupon(coupon_ids, customer):
     """
     from .coupontemplate import get_coupon_template_by_id
     from flashsale.xiaolumm.apis.v1.xiaolumama import get_mama_by_id
+    from .transfercoupondetail import create_transfer_coupon_detail
     coupons = get_user_coupons_by_ids(coupon_ids)
     mama = customer.get_xiaolumm()
     template_ids = set()
@@ -323,6 +324,7 @@ def apply_pending_return_transfer_coupon(coupon_ids, customer):
             transfer_status=CouponTransferRecord.PENDING)
         new_transfer.save()
         freeze_transfer_coupon(coupon_ids, new_transfer.id)  # 冻结优惠券
+        create_transfer_coupon_detail(new_transfer.id, coupon_ids)
     return True
 
 
@@ -333,6 +335,7 @@ def apply_pending_return_transfer_coupon_2_sys(coupon_ids, customer):
     """
     from .coupontemplate import get_coupon_template_by_id
     from flashsale.pay.models import BudgetLog
+    from .transfercoupondetail import create_transfer_coupon_detail
 
     coupons = get_user_coupons_by_ids(coupon_ids)
     mama = customer.get_xiaolumm()
@@ -374,6 +377,7 @@ def apply_pending_return_transfer_coupon_2_sys(coupon_ids, customer):
     transfer.save()
     BudgetLog.create_return_coupon_log(customer.id, transfer.id, flow_amount=int(total_agent_price * 100))  # 生成钱包待确定记录
     freeze_transfer_coupon(coupon_ids, transfer.id)  # 冻结优惠券
+    create_transfer_coupon_detail(transfer.id, coupon_ids)
     return True
 
 
