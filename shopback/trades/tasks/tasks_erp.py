@@ -83,6 +83,10 @@ def task_sync_order_to_erp():
                 'Item': []
             }
         }
+
+        if sale_trade.total_fee > 88:
+            wdt_order['Remark'] = '该订单超过88元,快递需要发顺丰'
+
         for sku in parse_sku_code(supplier_sku_code):
             if len(sku) == 1:
                 sku_code = sku[0]
