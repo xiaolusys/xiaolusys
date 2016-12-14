@@ -387,6 +387,7 @@ class SaleTrade(BaseModel):
             if not settings.INGORE_SIGNAL_EXCEPTION:
                 raise exc
 
+    @transaction.atomic
     def charge_confirm(self, charge_time=None, charge=charge):
         """ 如果付款期间，订单被订单号任务关闭则不减锁定数量 """
         with transaction.atomic():
