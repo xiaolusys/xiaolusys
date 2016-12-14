@@ -70,8 +70,8 @@ def task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, prod
             coupon.save()
         except IntegrityError as e:
             logging.error(e)
-        task_calc_xlmm_elite_score(coupon_to_mama_id)  # 计算妈妈积分
 
+    task_calc_xlmm_elite_score(coupon_to_mama_id)  # 计算妈妈积分
     task_update_tpl_released_coupon_nums.delay(template.id)  # 统计发放数量
 
 
