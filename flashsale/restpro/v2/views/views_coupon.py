@@ -461,9 +461,6 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
         if customer:
             mama = get_charged_mama(request.user)
             mama_id = mama.id
-
-
-
             exchg_orders = OrderCarry.objects.filter(mama_id=mama_id,
                                                      carry_type__in=[OrderCarry.WAP_ORDER, OrderCarry.APP_ORDER],
                                                      status__in=[OrderCarry.ESTIMATE, OrderCarry.CONFIRM],
@@ -507,13 +504,11 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                                                     'contributor_nick': entry.contributor_nick, 'status': entry.status,
                                                     'status_display': OrderCarry.STATUS_TYPES[entry.status][1],
                                                     'order_value': entry.order_value, 'date_field': entry.date_field})
-
         logger.info({
             'message': u'list can exchange order:result len=%s ' % (len(results)),
             'data': '%s' % content
         })
-        res = Response(results)
-        return res
+        return Response(results)
 
     @list_route(methods=['POST'])
     def start_exchange(self, request, *args, **kwargs):
