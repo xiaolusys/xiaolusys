@@ -1,4 +1,5 @@
 # encoding=utf8
+from datetime import datetime, timedelta
 from shopmanager import celery_app as app
 from mall.xiaolupay.apis.v1.envelope import WeixinRedEnvelopAPI
 from mall.xiaolupay.models.weixin_red_envelope import WeixinRedEnvelope
@@ -36,6 +37,7 @@ def task_sync_weixin_red_envelope_by_id(envelope_id):
 def task_sync_weixin_red_envelopes():
     """
     定时同步已发送微信红包信息
+    将超过1天未发送的红包进行发送
     """
     envelopes = WeixinRedEnvelope.objects.filter(status__in=[
         WeixinRedEnvelope.SENDING,
@@ -46,5 +48,17 @@ def task_sync_weixin_red_envelopes():
     for envelope in envelopes:
         try:
             task_sync_weixin_red_envelope_by_id(envelope.id)
+        except Exception:
+            pass
+
+    now = datetime.now()
+    t1 = now - timedelta(days=1)
+    envelopes = WeixinRedEnvelope.objects.filter(
+        status=WeixinRedEnvelope.UNSEND,
+        created__lte=t1
+    )
+    for envelope in envelopes:
+        try:
+            task_sent_weixin_red_envelope(envelope.id)
         except Exception:
             pass
