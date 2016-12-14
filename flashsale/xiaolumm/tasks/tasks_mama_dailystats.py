@@ -266,22 +266,30 @@ def task_calc_xlmm_elite_score(mama_id):
     if mama_id <= 0:
         return
     from flashsale.coupon.models.transfer_coupon import CouponTransferRecord
-    res = CouponTransferRecord.objects.filter(coupon_from_mama_id=mama_id, transfer_status=CouponTransferRecord.DELIVERED,
-                                              transfer_type__in=[CouponTransferRecord.OUT_CASHOUT, CouponTransferRecord.IN_RETURN_COUPON]).aggregate(
-        n=Sum('elite_score'))
+    from flashsale.xiaolumm.models.models import XiaoluMama
+
+    res = CouponTransferRecord.objects.filter(
+        coupon_from_mama_id=mama_id,
+        transfer_status=CouponTransferRecord.DELIVERED,
+        transfer_type__in=[CouponTransferRecord.OUT_CASHOUT, CouponTransferRecord.IN_RETURN_COUPON]
+    ).aggregate(n=Sum('elite_score'))
     out_score = res['n'] or 0
 
-    res = CouponTransferRecord.objects.filter(coupon_to_mama_id=mama_id, transfer_status=CouponTransferRecord.DELIVERED, transfer_type=CouponTransferRecord.IN_BUY_COUPON).aggregate(
-        n=Sum('elite_score'))
+    res = CouponTransferRecord.objects.filter(
+        coupon_to_mama_id=mama_id,
+        transfer_status=CouponTransferRecord.DELIVERED,
+        transfer_type=CouponTransferRecord.IN_BUY_COUPON
+    ).aggregate(n=Sum('elite_score'))
     in_buy_score = res['n'] or 0
 
-    res = CouponTransferRecord.objects.filter(coupon_to_mama_id=mama_id, transfer_status=CouponTransferRecord.DELIVERED,
-                                              transfer_type=CouponTransferRecord.OUT_TRANSFER).aggregate(
-        n=Sum('elite_score'))
+    res = CouponTransferRecord.objects.filter(
+        coupon_to_mama_id=mama_id,
+        transfer_status=CouponTransferRecord.DELIVERED,
+        transfer_type=CouponTransferRecord.OUT_TRANSFER
+    ).aggregate(n=Sum('elite_score'))
     in_trans_score = res['n'] or 0
 
     score = in_buy_score + in_trans_score - out_score
-    from flashsale.xiaolumm.models.models import XiaoluMama
     XiaoluMama.objects.filter(id=mama_id).update(elite_score=score)
 
 

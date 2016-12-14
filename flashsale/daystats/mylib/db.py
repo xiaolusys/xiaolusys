@@ -26,7 +26,7 @@ def execute_sql(cursor, sql, params=None):
 
 
 def get_cursor():
-    cursor = connections['default'].cursor()
+    cursor = connections['readonly'].cursor()
     return cursor
 
 INSTANCE = os.environ.get('INSTANCE')
