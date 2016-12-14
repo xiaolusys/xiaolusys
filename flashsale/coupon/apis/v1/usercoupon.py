@@ -172,7 +172,7 @@ def use_coupon_by_ids(ids, tid):
         coupon.status = UserCoupon.USED
         coupon.finished_time = datetime.datetime.now()  # save the finished time
         coupon.trade_tid = tid  # save the trade tid with trade be binding
-        coupon.save(update_fields=['finished_time', 'trade_tid'])
+        coupon.save(update_fields=['finished_time', 'trade_tid', 'status'])
         task_update_coupon_use_count.delay(coupon.template_id, coupon.order_coupon_id)
     return True
 
