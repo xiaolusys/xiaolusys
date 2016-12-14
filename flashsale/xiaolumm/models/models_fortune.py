@@ -381,7 +381,7 @@ post_save.connect(carryrecord_update_mamafortune,
 
 def carryrecord_update_xiaolumama_active_hasale(sender, instance, created, **kwargs):
     from flashsale.xiaolumm.tasks import carryrecord_update_xiaolumama_active_hasale
-    if not instance.mama.active:
+    if instance.mama and (not instance.mama.active):
         carryrecord_update_xiaolumama_active_hasale.delay(instance.mama_id)
 
 
