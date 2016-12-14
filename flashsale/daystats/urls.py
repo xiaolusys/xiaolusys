@@ -21,6 +21,7 @@ from flashsale.daystats.views import (
     database,
     wdt,
     money,
+    shell,
 )
 from .view import popularize_Cost, DailyStatsViewSet
 
@@ -84,6 +85,8 @@ urlpatterns += [
     url(r'^yunying/sql/query$', sql.query, name='yy-sql-query'),
 
     url(r'^yunying/wdt/$', wdt.index, name='yy-wdt-index'),
+
+    url(r'^yunying/shell/$', shell.index, name='yy-shell-index'),
 
     url(r'^yunying/databse/index$', database.index, name='yy-database-index'),
     url(r'^yunying/databse/table/(?P<name>.*)$', database.table, name='yy-database-table'),
