@@ -870,6 +870,7 @@ def calc_xlmm_elite_score(mama_id):
     return score
 
 
+@login_required
 @cache_page(60 * 60)
 def coupon_rank(req):
     mama_id = req.GET.get('mama_id')
@@ -903,11 +904,11 @@ def coupon_rank(req):
     mama_ids = [int(x.id) for x in mamas]
 
     def by_level(mm_id):
-        mm = XiaoluMama.objects.using('default').filter(id=mm_id).first()
+        mm = XiaoluMama.objects.using('default').filter(id=mm_id, referal_from=XiaoluMama.INDIRECT).first()
         if mm:
             return mm.elite_level
         else:
-            return 'nooo'
+            return 'indirect'
 
     for item in mamas:
         fans = ReferalRelationship.objects.using('default').filter(

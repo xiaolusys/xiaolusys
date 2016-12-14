@@ -56,7 +56,9 @@
       <td>
         <ul>
         {% for level, num in item.team %}
+          {% if level != 'indirect' %}
           <li>{{ level }}, {{ num }}</li>
+          {% endif %}
         {% endfor %}
         </ul>
       </td>
