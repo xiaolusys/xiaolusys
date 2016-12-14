@@ -1,5 +1,6 @@
 # coding=utf-8
 from __future__ import absolute_import, unicode_literals
+from django.db import transaction
 from django.db.models import Q
 from rest_framework.views import APIView
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
@@ -77,6 +78,7 @@ class ReleaseOmissive(APIView):
         except:
             return Response({'code': 2, "message": '客户不存在或重复'})
         from ..apis.v1.transfer import create_present_coupon_transfer_record
+        from ..apis.v1.transfercoupondetail import create_transfer_coupon_detail
 
         message = u'发送成功'
         try:
@@ -86,8 +88,11 @@ class ReleaseOmissive(APIView):
             unique_key = template.gen_usercoupon_unikey('gift_transfer_%s_%s' % (cus.id, activity_id), 1)
             if UserCoupon.objects.filter(uniq_id=unique_key).exists():
                 return Response({'code': 0, "message": u'已经发送'})
-            cou, code, msg = create_user_coupon(cus.id, template.id, unique_key=unique_key)
-            transf_record = create_present_coupon_transfer_record(cus, template, cou.id, uni_key_prefix=activity_id)
+            with transaction.atomic():
+                cou, code, msg = create_user_coupon(cus.id, template.id, unique_key=unique_key)
+                transf_record = create_present_coupon_transfer_record(cus, template, cou.id, uni_key_prefix=activity_id)
+                create_transfer_coupon_detail(transf_record.id, transf_record.transfer_type, [cou.id])
+
             log_action(request.user, cou, ADDITION, u'添加优惠券记录,对应精品券id为%s' % transf_record.id)
             log_action(request.user, transf_record, ADDITION, u'添加精品流通记录,对应优惠券id为%s' % cou.id)
         except Exception as e:
