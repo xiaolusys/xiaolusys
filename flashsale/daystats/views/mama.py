@@ -7,7 +7,9 @@ import simplejson
 from django.shortcuts import render
 from django.db import models
 from django.views.decorators.cache import cache_page
+from django.core.paginator import Paginator
 from django.core.cache import cache
+from django.db.models import F, Sum
 from django.contrib.auth.decorators import login_required
 
 from flashsale.daystats.mylib.chart import (
@@ -842,35 +844,195 @@ def transfer_coupon(req):
     return render(req, 'yunying/mama/index.html', locals())
 
 
+def calc_xlmm_elite_score(mama_id):
+    res = CouponTransferRecord.objects.filter(
+        coupon_from_mama_id=mama_id,
+        transfer_status=CouponTransferRecord.DELIVERED,
+        transfer_type__in=[CouponTransferRecord.OUT_CASHOUT, CouponTransferRecord.IN_RETURN_COUPON]
+    ).aggregate(n=Sum('elite_score'))
+    out_score = res['n'] or 0
+
+    res = CouponTransferRecord.objects.filter(
+        coupon_to_mama_id=mama_id,
+        transfer_status=CouponTransferRecord.DELIVERED,
+        transfer_type=CouponTransferRecord.IN_BUY_COUPON
+    ).aggregate(n=Sum('elite_score'))
+    in_buy_score = res['n'] or 0
+
+    res = CouponTransferRecord.objects.filter(
+        coupon_to_mama_id=mama_id,
+        transfer_status=CouponTransferRecord.DELIVERED,
+        transfer_type=CouponTransferRecord.OUT_TRANSFER
+    ).aggregate(n=Sum('elite_score'))
+    in_trans_score = res['n'] or 0
+
+    score = in_buy_score + in_trans_score - out_score
+    return score
+
+
+@cache_page(60 * 60)
 def coupon_rank(req):
+    mama_id = req.GET.get('mama_id')
+    q_page = req.GET.get('page') or 1
+
     data = {}
-    mamas = XiaoluMama.objects.using('default').order_by('-elite_score')[:100]
+
+    if mama_id:
+        mamas = XiaoluMama.objects.using('default').filter(id=mama_id)
+    else:
+        mamas = XiaoluMama.objects.using('default').filter(elite_score__gt=0).order_by('-elite_score')
+    total_count = mamas.count()
+    # mamas = mamas[:100]
+
+    p = Paginator(mamas, 50)
+    cur_page = p.page(q_page)
+    p.show_page_range = [x for x in p.page_range if 10 >= (x-cur_page.number) >= -10]
+    mamas = cur_page.object_list
+
+    for item in mamas:
+        data[item.id] = {
+            'id': int(item.id),
+            'elite_score': item.elite_score,
+            'elite_level': item.elite_level,
+            'referal_from': item.referal_from,
+            # 'score': calc_xlmm_elite_score(item.id)
+        }
+    mama_ids = [int(x.id) for x in mamas]
+
+    for item in mamas:
+        fans = ReferalRelationship.objects.using('default').filter(
+            referal_from_mama_id=item.id, referal_type=XiaoluMama.ELITE)
+
+        def by_level(fan):
+            mm = XiaoluMama.objects.using('default').get(id=fan.referal_to_mama_id)
+            return mm.elite_level
+
+        res = process(groupby(fans, by_level), len)
+        data[item.id]['team'] = res
+
+    # 买券
     sql = """
         SELECT
-            coupon_from_mama_id ,
-            sum(coupon_value * coupon_num) AS val ,
-            sum(elite_score) AS score
+            coupon_to_mama_id ,
+            sum(coupon_value * coupon_num) AS val,
+            sum(coupon_num) AS num
         FROM
             `xiaoludb`.`flashsale_coupon_transfer_record`
         WHERE
             transfer_type = 4
-        AND coupon_to_mama_id IN %s
+        AND coupon_to_mama_id IN (%s)
+            and transfer_status=3
+        GROUP BY
+            coupon_to_mama_id
+        ORDER BY
+            val DESC
+    """ % ','.join(map(str, mama_ids))
+    records = execute_sql(get_cursor(), sql)
+    for item in records:
+        data[int(item['coupon_to_mama_id'])]['in_buy_coupon'] = {
+            'val': item['val'],
+            'num': item['num']
+        }
+
+    # 用券买货
+    sql = """
+        SELECT
+            coupon_from_mama_id ,
+            sum(coupon_value * coupon_num) AS val,
+            sum(coupon_num) AS num
+        FROM
+            `xiaoludb`.`flashsale_coupon_transfer_record`
+        WHERE
+            transfer_type = 3
+        AND coupon_from_mama_id IN (%s)
+            and transfer_status=3
         GROUP BY
             coupon_from_mama_id
         ORDER BY
             val DESC
-    """
-    mama_ids = [x.id for x in mamas]
-
-    for item in mamas:
-        data[item.id] = {
-            'mama_id': item.id,
-            'score': item.elite_score,
-            'level': item.elite_level
+    """ % ','.join(map(str, mama_ids))
+    records = execute_sql(get_cursor(), sql)
+    for item in records:
+        data[int(item['coupon_from_mama_id'])]['out_consumed'] = {
+            'val': item['val'],
+            'num': item['num']
         }
 
-    records = execute_sql(get_cursor(), sql, params=[mama_ids])
+    # 转给下属
+    sql = """
+        SELECT
+            coupon_from_mama_id ,
+            sum(coupon_value * coupon_num) AS val,
+            sum(coupon_num) AS num
+        FROM
+            `xiaoludb`.`flashsale_coupon_transfer_record`
+        WHERE
+            transfer_type = 2
+        AND coupon_from_mama_id IN (%s)
+            and transfer_status=3
+        GROUP BY
+            coupon_from_mama_id
+        ORDER BY
+            val DESC
+    """ % ','.join(map(str, mama_ids))
+    records = execute_sql(get_cursor(), sql)
+
     for item in records:
-        data[item['coupon_from_mama_id']].update(item)
+        data[int(item['coupon_from_mama_id'])]['out_transfer'] = {
+            'val': item['val'],
+            'num': item['num']
+        }
+
+    # 总进券
+    sql = """
+        SELECT
+            coupon_to_mama_id ,
+            sum(coupon_num) AS num
+        FROM
+            `xiaoludb`.`flashsale_coupon_transfer_record`
+        WHERE
+            coupon_to_mama_id IN (%s)
+            and transfer_status=3
+        GROUP BY
+            coupon_to_mama_id
+    """ % ','.join(map(str, mama_ids))
+    records = execute_sql(get_cursor(), sql)
+    for item in records:
+        data[int(item['coupon_to_mama_id'])]['in'] = {
+            # 'val': item['val'],
+            'num': item['num']
+        }
+
+    # 总出券
+    sql = """
+        SELECT
+            coupon_from_mama_id ,
+            sum(coupon_num) AS num
+        FROM
+            `xiaoludb`.`flashsale_coupon_transfer_record`
+        WHERE
+            coupon_from_mama_id IN (%s)
+            and transfer_status=3
+        GROUP BY
+            coupon_from_mama_id
+    """ % ','.join(map(str, mama_ids))
+    records = execute_sql(get_cursor(), sql)
+    for item in records:
+        data[int(item['coupon_from_mama_id'])]['out'] = {
+            # 'val': item['val'],
+            'num': item['num']
+        }
+
+    data = sorted(data.values(), key=lambda x: x['elite_score'], reverse=True)
+
+    # count = total_count
+    # cur_page = {
+    #     'has_previous': '',
+    #     'has_next': '',
+    #     'number': int(page),
+    # }
+    # p = {}
+    # p['show_page_range'] = [x+1 for x in range(count/40+1)]
+    # print count, cur_page, p
 
     return render(req, 'yunying/mama/coupon_rank.html', locals())

@@ -3,10 +3,12 @@
 {% block main %}
 
 <div class="row">
-  <h3>妈妈精品券数量统计</h3>
+  <h3>妈妈精品券查询</h3>
+  <p>找到{{total_count}}个妈妈(积分>0)</p>
   <form action="{{ req.path }}" method="GET">
     <div class="col-xs-2">
-      <input size="16" type="text" class="form-control datepicker" value="{{ date_field }}" name="day_date">
+      <!-- <input size="16" type="text" class="form-control datepicker" value="{{ date_field }}" name="day_date"> -->
+      <input type="text" class="form-control" name="mama_id" placeholder="请输入妈妈ID">
     </div>
     <button type="submit" class="btn btn-default">QUERY</button>
   </form>
@@ -16,28 +18,51 @@
 
   <table class="table table-bordered">
     <tr>
+      <th></th>
       <th>妈妈ID</th>
       <th>等级</th>
+      <th></th>
       <th>积分</th>
       <th>上周增长积分</th>
+      <th>总进券</th>
+      <th>总出券</th>
       <th>买券额</th>
+      <th>买券张数</th>
       <th>出货额</th>
+      <th>出货张数</th>
       <th>转下属额</th>
+      <th>转下属张数</th>
       <th>团队情况</th>
     </tr>
-    {% for item in data.values %}
+    {% for item in data %}
     <tr>
-      <td>{{ item.id }}</td>
+      <td>{{ forloop.counter }}</td>
+      <td><a href="{% url 'yy-mama-show'  %}?mama_id={{ item.id }}" target="_blank">{{ item.id }}</a></td>
       <td>{{ item.elite_level }}</td>
+      <td>{{ item.referal_from }}</td>
       <td>{{ item.elite_score }}</td>
       <td></td>
-      <td>{{ item.val }}</td>
+      <td>{{ item.in.num }}</td>
+      <td>{{ item.out.num }}</td>
+      <td>{{ item.in_buy_coupon.val }}</td>
+      <td>{{ item.in_buy_coupon.num }}</td>
+      <td>{{ item.out_consumed.val }}</td>
+      <td>{{ item.out_consumed.num }}</td>
+      <td>{{ item.out_transfer.val }}</td>
+      <td>{{ item.out_transfer.num }}</td>
+      <td>
+        <ul>
+        {% for level, num in item.team %}
+          <li>{{ level }}, {{ num }}</li>
+        {% endfor %}
+        </ul>
+      </td>
     </tr>
     {% endfor %}
   </table>
 </div>
+{% include 'yunying/_page.html'%}
 {% endblock %}
-
 
 {% block scripts %}
 
