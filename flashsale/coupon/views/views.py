@@ -1,5 +1,6 @@
 # coding=utf-8
 from __future__ import absolute_import, unicode_literals
+import datetime
 from django.db import transaction
 from django.db.models import Q
 from rest_framework.views import APIView
@@ -7,7 +8,9 @@ from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework import permissions
 from rest_framework.response import Response
 from core.options import log_action, CHANGE, ADDITION
-from flashsale.pay.models import SaleTrade, Customer
+from flashsale.pay.models import SaleOrder, Customer, ModelProduct
+from collections import OrderedDict
+
 from ..apis.v1.usercoupon import create_user_coupon
 from ..apis.v1.transfer import agree_apply_transfer_record_2_sys, cancel_return_2_sys_transfer
 from ..models import UserCoupon, CouponTemplate, CouponTransferRecord
@@ -29,43 +32,65 @@ class ReleaseOmissive(APIView):
     permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser)
 
     def get(self, request):
-        content = request.GET
-        buyer_id = content.get("buyer_id")
-        model_ids = content.get("model_ids")
-        time_from = content.get('time_from')
-        time_to = content.get('time_to')
-        sale_orders = []
-        if buyer_id and model_ids:
-            model_ids = [int(i.strip()) for i in model_ids.split(',') if i]
-            from flashsale.pay.models import SaleOrder
-            from shopback.items.models import Product
+        from shopback.items.models import Product
 
-            item_ids = [i['id'] for i in Product.objects.filter(model_id__in=model_ids).values('id')]
-            sale_orders = SaleOrder.objects.filter(item_id__in=item_ids, buyer_id=buyer_id,
-                                                   status=SaleOrder.TRADE_FINISHED)
-        if time_from:
-            sale_orders = sale_orders.filter(pay_time__gte=time_from)
-        if time_to:
-            sale_orders = sale_orders.filter(pay_time__lte=time_to)
-        templates = CouponTemplate.objects.filter(status=CouponTemplate.SENDING,
-                                                  coupon_type=CouponTemplate.TYPE_TRANSFER).order_by("value")
-        usercoupons = []
-        if buyer_id:
-            usercoupons = UserCoupon.objects.filter(customer_id=buyer_id, coupon_type=CouponTemplate.TYPE_TRANSFER)
-        if time_from:
-            usercoupons = usercoupons.filter(created__gte=time_from)
-        if time_to:
-            usercoupons = usercoupons.filter(created__lte=time_to)
-        from flashsale.pay.models import ModelProduct
+        content = request.GET
+        now = datetime.datetime.now()
+        monthago = now - datetime.timedelta(days=30)
+        buyer_id = content.get("buyer_id") or 1
+        time_from = content.get('time_from') or monthago
+        time_to = content.get('time_to') or now
 
         default_modelids = ModelProduct.objects.filter(product_type=1, status=ModelProduct.NORMAL).values('id')
         default_modelids = ','.join([str(m['id']) for m in default_modelids])
+        model_ids = content.get("model_ids") or default_modelids
+        model_ids_list = [int(i.strip()) for i in model_ids.split(',') if i]
+        item_ids = [i['id'] for i in Product.objects.filter(model_id__in=model_ids_list).values('id')]
+        sale_orders = SaleOrder.objects.filter(pay_time__gte=time_from,
+                                               pay_time__lte=time_to,
+                                               buyer_id=buyer_id,
+                                               item_id__in=item_ids,
+                                               status=SaleOrder.TRADE_FINISHED)
+
+        usercoupons = UserCoupon.objects.filter(customer_id=buyer_id,
+                                                created__gte=time_from,
+                                                created__lte=time_to,
+                                                coupon_type=CouponTemplate.TYPE_TRANSFER)
+        templates = CouponTemplate.objects.filter(status=CouponTemplate.SENDING,
+                                                  coupon_type=CouponTemplate.TYPE_TRANSFER).order_by("value")
+
+        templates_data = {
+            50: [],
+            100: [],
+            150: [],
+            200: [],
+            300: [],
+            400: [],
+            'X': [],
+        }
+        for t in templates:
+            if t.value <= 50:
+                templates_data[50].append(t)
+            elif t.value <= 100:
+                templates_data[100].append(t)
+            elif t.value <= 150:
+                templates_data[150].append(t)
+            elif t.value <= 200:
+                templates_data[200].append(t)
+            elif t.value <= 300:
+                templates_data[300].append(t)
+            elif t.value <= 400:
+                templates_data[400].append(t)
+            else:
+                templates_data['X'].append(t)
+
         return Response({'sale_orders': sale_orders,
                          'time_from': time_from,
                          'time_to': time_to,
-                         "templates": templates,
+                         "templates_data": OrderedDict(sorted(templates_data.items(), key=lambda templates_data: templates_data[0])),
+                         'buyer_id': buyer_id,
                          'usercoupons': usercoupons,
-                         'default_modelids': default_modelids})
+                         'model_ids': model_ids})
 
     def post(self, request):
         content = request.POST
