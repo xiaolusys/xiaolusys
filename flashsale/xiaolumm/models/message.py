@@ -97,7 +97,7 @@ def read_stats(sender, instance, created, **kwargs):
     from django_statsd.clients import statsd
     read_count = XlmmMessageRel.objects.filter(message=instance.message).count()
     key = "MamaNotificationMessage.%d" % instance.message.id
-    statsd.timing(key, read_count)
+    statsd.gauge(key, read_count)
     #logger.error("read_stats: %s, %d" % (key, read_count))
 
 post_save.connect(read_stats, sender=XlmmMessageRel, dispatch_uid='post_save_xlmmmessagerel_read_stats')

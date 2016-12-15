@@ -936,8 +936,8 @@ def task_tongji_trade_source():
     all_trades_count = cursor.fetchone()[0]
     direct_count = all_trades_count - share_trades_count - xiaolumm_trades_count
 
-    statsd.timing('xiaolumm.postpay_from_xiaolumama_count', share_trades_count + xiaolumm_trades_count)
-    statsd.timing('xiaolumm.postpay_from_direct_count', direct_count)
+    statsd.gauge('xiaolumm.postpay_from_xiaolumama_count', share_trades_count + xiaolumm_trades_count)
+    statsd.gauge('xiaolumm.postpay_from_direct_count', direct_count)
 
 
 @app.task()

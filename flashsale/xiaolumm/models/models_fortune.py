@@ -864,7 +864,7 @@ def gauge_active_mama(sender, instance, created, **kwargs):
         date_field = datetime.datetime.now().date()
         active_mama_count = ClickCarry.objects.filter(date_field=date_field).count()
         key = "clickcarry.active_mama"
-        statsd.timing(key, active_mama_count)
+        statsd.gauge(key, active_mama_count)
 
 
 post_save.connect(gauge_active_mama, sender=ClickCarry, dispatch_uid='post_save_gauge_active_mama')

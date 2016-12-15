@@ -926,8 +926,7 @@ class Product(models.Model):
             kwargs.update({'product_skus_list': product_skus_list})
             cls.update_or_create_product_and_skus(model_pro, **kwargs)
 
-        if not model_pro.is_boutique:
-            model_pro.set_is_flatten()  # 设置平铺字段
+        model_pro.set_is_flatten()  # 设置平铺字段
         model_pro.set_lowest_price()  # 设置款式最低价格
         from flashsale.pay.models import ModelProduct
         # 如果时精品券商品

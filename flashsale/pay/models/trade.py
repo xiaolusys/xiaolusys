@@ -787,7 +787,7 @@ def tongji_trade_pay_channel(sender, obj, **kwargs):
 
     key = 'xiaolumm.paychannel_from_%s' % channel
     trades_count = SaleTrade.objects.filter(pay_time__gte=today, channel=channel).count()
-    statsd.timing(key, trades_count)
+    statsd.gauge(key, trades_count)
 
 
 signal_saletrade_pay_confirm.connect(tongji_trade_pay_channel, sender=SaleTrade)
@@ -1330,7 +1330,7 @@ def post_save_gauge_data(sender, instance, created, **kwargs):
         if instance.type == SaleOrderSyncLog.PACKAGE_ASSIGN_NUM:
             key = "saleorder_synclog.package_assign_num"
         if key:
-            statsd.timing(key, instance.actual_num)
+            statsd.gauge(key, instance.actual_num)
             # logger.warn("gauge_data|key:%s,completed:%s, actual_num:%s" % (key, instance.is_completed(), instance.actual_num))
 
 

@@ -709,6 +709,8 @@ class ModelProduct(BaseTagModel):
         products = self.products
         flatten_count = ProductSku.objects.filter(product__in=products).count()
         is_flatten = flatten_count in [0, 1]
+        if self.is_boutique:
+            is_flatten = False
         products.update(is_flatten=is_flatten)
         if self.is_flatten != is_flatten:
             self.is_flatten = is_flatten
