@@ -14,86 +14,148 @@
     <script src="https://cdn.bootcss.com/bootstrap-datetimepicker/4.17.37/js/bootstrap-datetimepicker.min.js"></script>
 </head>
 <body class="container" style="background: #F5F5F5">
-<div class="col-xs-12" style="background: white;margin-top: 150px;margin-bottom: 10%">
-    <h1>发放精品优惠券</h1>
+<div class="col-xs-12" style="background: white;margin-top: 70px">
+    <h3>查询条件</h3>
 
     <div class="col-xs-12">
 
         <form role="form">
-            <div class="col-xs-4">
+            <div class="col-xs-6">
                 <div class="form-group">
                     <label for="exampleInputPassword1">开始时间</label>
                     <input type="text" class="form-control date-picker" id="time_from" name="time_from"
                            placeholder="开始时间"
                            value="{{ time_from }}">
                 </div>
+            </div>
+            <div class="col-xs-6">
                 <div class="form-group">
                     <label for="exampleInputPassword1">结束时间</label>
                     <input type="text" class="form-control date-picker" id="time_to" name="time_to" placeholder="截止时间"
                            value="{{ time_to }}">
                 </div>
             </div>
-            <div class="col-xs-6">
-                <div class="form-group">
-                    <label for="exampleInputPassword1">用户id</label>
-                    <input type="number" class="form-control" id="buyer_id" name="buyer_id" placeholder="buyer_id">
-                </div>
+            <div class="col-xs-10">
                 <div class="form-group">
                     <label for="exampleInputPassword2">购买款式id</label>
-                    <input type="text" class="form-control" id="model_ids" name="model_ids" placeholder="model_ids"
-                           value="{{ default_modelids }}">
+                    <input type="text" class="form-control" id="model_ids" name="model_ids" placeholder="款式id"
+                           value="{{ model_ids }}">
                 </div>
             </div>
             <div class="col-xs-2">
-                <button type="submit" class="btn btn-default">查询</button>
+                <div class="form-group">
+                    <label for="exampleInputPassword1">用户id</label>
+                    <input type="number" min="1" class="form-control" id="buyer_id" name="buyer_id"
+                           placeholder="buyer_id"
+                           value="{{ buyer_id }}">
+                </div>
             </div>
+            <div class="col-xs-12" style="margin-bottom: 10px">
+                <button type="submit" class="btn btn-default" style="float: right">查询</button>
+            </div>
+
         </form>
     </div>
-    <h1>订单信息</h1>
+</div>
 
-    <div class="col-xs-12">
-        <ul class="list-group">
+<div class="col-xs-5" style="background: white;margin-top: 10px; margin-right: 40px">
+    <p class="collapsed" data-toggle="collapse"
+       data-target="#demo"
+       aria-controls="demo"
+       aria-expanded="false">订单信息
+        <span class="glyphicon glyphicon-collapse-down"> {{ sale_orders.count }} 个订单</span>
+    </p>
+
+    <div class="col-xs-12 collapse" id="demo" style="margin-top: 5px">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <td>交易id</td>
+                <td>状态</td>
+                <td>订单id</td>
+                <td>状态</td>
+                <td>数量</td>
+                <td>名称</td>
+            </tr>
+            </thead>
+            <tbody>
             {% for order in sale_orders %}
-                <li class="list-group-item">
-                    交易：
-                    <a target="_blank"
-                       href="/admin/pay/saletrade/?id={{ order.sale_trade_id }}">{{ order.sale_trade_id }}</a>
-                    ||
-                    {{ order.sale_trade.get_status_display }}
-                    －－－－　订单：
-                    <a target="_blank" href="/admin/pay/saleorder/?id={{ order.sale_trade_id }}">{{ order.id }}</a>
-                    ||
-                    {{ order.get_status_display }}
-                    [&nbsp;&nbsp; 数量: {{ order.num }} &nbsp;&nbsp;] &nbsp;&nbsp;&nbsp;&nbsp; [名称: {{ order.title }}]
-                </li>
+                <tr>
+                    <td><a target="_blank"
+                           href="/admin/pay/saletrade/?id={{ order.sale_trade_id }}">{{ order.sale_trade_id }}</a></td>
+                    <td>{{ order.sale_trade.get_status_display }}</td>
+                    <td><a target="_blank" href="/admin/pay/saleorder/?id={{ order.sale_trade_id }}">{{ order.id }}</a>
+                    </td>
+                    <td>{{ order.get_status_display }}</td>
+                    <td>{{ order.num }}</td>
+                    <td>{{ order.title }}</td>
+                </tr>
             {% endfor %}
-        </ul>
+            </tbody>
+        </table>
     </div>
+</div>
+<div class="col-xs-6" style="background: white;margin-top: 10px">
+    <p class="collapsed" data-toggle="collapse"
+       data-target="#demo2"
+       aria-controls="demo2"
+       aria-expanded="false">精品券信息
+        <span class="glyphicon glyphicon-collapse-down"> {{ usercoupons.count }} 张</span>
+    </p>
 
-    <h1>精品券信息</h1>
-
-    <div class="col-xs-12">
-        <ul class="list-group">
+    <div class="col-xs-12 collapse" id="demo2" style="margin-top: 5px">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <td>模板id</td>
+                <td>名称</td>
+                <td>券id</td>
+                <td>状态</td>
+                <td>用户id</td>
+            </tr>
+            </thead>
+            <tbody>
             {% for coupon in usercoupons %}
-                <li class="list-group-item">
-                    模板：{{ coupon.self_template.id }} || {{ coupon.self_template.title }} －－－－　id
-                    : {{ coupon.id }}　状态: {{ coupon.get_status_display }} || 用户: {{ coupon.customer_id }}
-                </li>
+                <tr>
+                    <td>{{ coupon.self_template.id }} </td>
+                    <td>{{ coupon.self_template.title }}</td>
+                    <td>{{ coupon.id }}</td>
+                    <td>{{ coupon.get_status_display }}</td>
+                    <td>{{ coupon.customer_id }}</td>
+                </tr>
             {% endfor %}
-        </ul>
+            </tbody>
+        </table>
     </div>
-    <h2>点击按钮发放</h2>
+</div>
+<div class="col-xs-12" style="background: white;margin-top: 10px;margin-bottom: 100px">
+    <h3>点击按钮发放</h3>
 
-    <div class="col-xs-3">
-        <div class="form-group">
+    <div class="col-xs-12 row">
+        <div class="form-group col-xs-3">
             <label for="exampleInputPassword2">活动id</label>
             <input type="text" class="form-control" id="activity_id" value="1">
         </div>
     </div>
-    {% for template in templates %}
-        <button type="button" class="btn btn-info releaseCoupon" style="margin-top: 30px; margin-bottom: 30px"
-                onclick="release_coupon_action({{ template.id }})">{{ template.title }}　
-        </button>
+
+    {% for k, templates in templates_data.iteritems %}
+        <div class="col-xs-12">
+            <p class="collapsed" data-toggle="collapse"
+               data-target="#demo{{ k }}"
+               aria-controls="demo{{ k }}"
+               aria-expanded="false">价值:{{ k }}元
+                <span class="glyphicon glyphicon-collapse-down"></span>
+            </p>
+
+            <div class="col-xs-12 collapse" id="demo{{ k }}" style="margin-top: 5px">
+                <ul class="list-group">
+                    {% for template in templates %}
+                        <li class="list-group-item releaseCoupon"
+                            onclick="release_coupon_action({{ template.id }})">{{ template.id }} : {{ template.title }}   {{ template.value }} 元  点击发放>>> </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
     {% endfor %}
 </div>
 </body>
@@ -114,10 +176,10 @@
         dp.datetimepicker({
             format: 'YYYY-MM-DD HH:mm'
         });
-        var buyer_id = getUrlParam('buyer_id');
-        var model_ids = getUrlParam('model_ids');
-        $('#buyer_id').val(buyer_id);
-        $('#model_ids').val(model_ids);
+        // var buyer_id = getUrlParam('buyer_id');
+        // var model_ids = getUrlParam('model_ids');
+        // $('#buyer_id').val(buyer_id);
+        // $('#model_ids').val(model_ids);
     });
     function release_coupon_action(template_id) {
         var btn = $(".releaseCoupon");
