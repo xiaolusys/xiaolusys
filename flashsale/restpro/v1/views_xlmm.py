@@ -511,6 +511,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
                     'rank': WEEK_RANK_REDIS.get_rank(WeekMamaCarryTotal, 'total', mama.id),
                     'total': fortune.cash_total,
                     'total_display': '%.2f' % fortune.cash_total,
+                    'elite_score': mama.elite_score,
                 }
                 res.append(item)
         return Response(res)
