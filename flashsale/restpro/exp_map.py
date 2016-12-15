@@ -241,7 +241,12 @@ kd100_exp_map = {"韵达":"yunda",'韵达快递':'yunda','韵达速递':'yunda',
                  "安能物流":"annengwuliu","安能":"annengwuliu","安能快递":"annengwuliu","安能速递":"annengwuliu",
                  "优速快递":"youshuwuliu","优速速递":"youshuwuliu","优速":"youshuwuliu",
                  "龙邦快递":"longbanwuliu","龙邦":"longbanwuliu","龙邦速递":"longbanwuliu",
-                 "如风达快递":"rufengda","如风达":"rufengda","如风达速递":"rufengda"}
+                 "如风达快递":"rufengda","如风达":"rufengda","如风达速递":"rufengda",
+                 "全峰快递":"quanfengkuaidi","全峰":"quanfengkuaidi","全峰速递":"quanfengkuaidi",
+                 "德邦快递":"debangwuliu","德邦":"debangwuliu","德邦速递":"debangwuliu",
+                 "宅急送":"zhaijisong",
+                 "全一":"quanyikuaidi","全一快递":"quanyikuaidi","全一速递":"quanyikuaidi"
+                 }
 
 kdn_not_support_exp = ["如风达快递","如风达","如风达速递"]
 
