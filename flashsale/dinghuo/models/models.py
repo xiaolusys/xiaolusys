@@ -1,22 +1,8 @@
 # -*- coding:utf-8 -*-
 from __future__ import unicode_literals
-import datetime
-import re
-import sys
-import copy
-import numpy as np
-from django.db import models
-from django.db.models import Sum, Count, F, Q
-from django.db.models.signals import post_save, pre_save
-from django.contrib.auth.models import User
-from django.db import transaction
 
-from core.utils.modelutils import update_model_fields
-from core.fields import JSONCharMyField
-from core.models import BaseModel
-from shopback.items.models import ProductSku, Product, SkuStock
-from shopback.refunds.models import Refund
-from supplychain.supplier.models import SaleSupplier, SaleProduct
+from django.db import models
+from shopback.items.models import Product
 from .purchase_order import OrderList, OrderDetail
 import logging
 

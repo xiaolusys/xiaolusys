@@ -12,11 +12,9 @@ from django.db.models.signals import post_save
 from django.contrib.auth.models import User
 from core.fields import JSONCharMyField
 from shopback.items.models import ProductSku, Product
-from shopback.refunds.models import Refund
 from supplychain.supplier.models import SaleSupplier, SaleProduct
 from .purchase_order import OrderList, OrderDetail
 from shopback.warehouse import WARE_SH, WARE_CHOICES
-from core.options import log_action, ADDITION, CHANGE
 import logging
 
 logger = logging.getLogger(__name__)
@@ -50,7 +48,7 @@ class InBound(models.Model):
         default=SUPPLIER,
         choices=((SUPPLIER, u'供应商'), (REFUND, u'退货')),
         verbose_name=u'包裹类型')
-    refund = models.ForeignKey(Refund,
+    refund = models.ForeignKey('refunds.Refund',
                                null=True,
                                blank=True,
                                related_name='inbounds',

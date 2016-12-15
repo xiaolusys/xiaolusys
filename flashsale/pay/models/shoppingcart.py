@@ -15,7 +15,7 @@ from .base import PayBaseModel, BaseModel
 from shopback.items.models import Product, ProductSku
 
 from mall.xiaolupay import apis as xiaolupay
-from flashsale.pay.tasks import notifyTradePayTask
+
 
 import logging
 logger = logging.getLogger(__name__)
@@ -133,6 +133,7 @@ from shopback import signals
 def off_the_shelf_func(sender, product_list, *args, **kwargs):
     from core.options import log_action, CHANGE, get_systemoa_user
     from .trade import SaleTrade
+    from flashsale.pay.tasks import notifyTradePayTask
     sysoa_user = get_systemoa_user()
     for pro_bean in product_list:
         all_cart = ShoppingCart.objects.filter(item_id=pro_bean.id, status=ShoppingCart.NORMAL, type=0)
