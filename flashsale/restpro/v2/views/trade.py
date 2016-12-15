@@ -389,7 +389,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         for cart in cart_qs:
             mp = cart.get_modelproduct()
             is_boutique |= mp and mp.is_boutique or False
-            if mp.is_boutique_coupon:
+            if mp and mp.is_boutique_coupon:
                 order_type = SaleTrade.ELECTRONIC_GOODS_ORDER
 
         params = {
