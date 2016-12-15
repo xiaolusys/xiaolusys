@@ -373,7 +373,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         if sale_trade:
             return sale_trade, False
 
-        params = {}
         sale_trade = SaleTrade(tid=tuuid, buyer_id=customer.id)
         channel = form.get('channel')
         cart_ids = [i for i in form.get('cart_ids', '').split(',') if i.isdigit()]
@@ -385,9 +384,21 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         if cart_qs.count() == 1 and cart_qs[0].type == ShoppingCart.TEAMBUY:
             order_type = SaleTrade.TEAMBUY_ORDER
 
+        # 　设置订单精品汇参数
+        is_boutique = False
+        for cart in cart_qs:
+            mp = cart.get_modelproduct()
+            is_boutique |= mp.is_boutique
+            if mp.is_boutique_coupon:
+                order_type = SaleTrade.ELECTRONIC_GOODS_ORDER
+
+        params = {
+            'channel': channel,
+            'order_type': order_type,
+        }
+
         if address:
-            params = {
-                'channel': channel,
+            params.update({
                 'receiver_name': address.receiver_name,
                 'receiver_state': address.receiver_state,
                 'receiver_city': address.receiver_city,
@@ -397,26 +408,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'receiver_phone': address.receiver_phone,
                 'receiver_mobile': address.receiver_mobile,
                 'user_address_id': address.id,
-                'order_type': order_type
-            }
-        #　设置订单精品汇参数
-        is_boutique = False
-        for cart in cart_qs:
-            mp = cart.get_modelproduct()
-            if not mp:
-                continue
-            is_boutique |= mp.is_boutique
-            if mp.is_boutique_coupon:
-                order_type = SaleTrade.ELECTRONIC_GOODS_ORDER
-
-        if (not address) and (order_type == SaleTrade.ELECTRONIC_GOODS_ORDER):
-            params = {
-                'channel': channel,
-                'order_type': order_type
-            }
-        if (address) and (order_type == SaleTrade.ELECTRONIC_GOODS_ORDER):
-            params.update({
-                'order_type': order_type
             })
 
         if order_type == SaleTrade.TEAMBUY_ORDER:
