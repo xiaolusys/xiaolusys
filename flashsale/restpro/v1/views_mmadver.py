@@ -16,6 +16,7 @@ from flashsale.xiaolumm.models import XiaoluMama, MamaTabVisitStats
 from flashsale.xiaolumm.models.models_advertis import XlmmAdvertis, NinePicAdver, MamaVebViewConf
 from flashsale.xiaolumm.tasks import task_mama_daily_tab_visit_stats
 from flashsale.xiaolumm.apis.v1.ninepic import get_nine_pic_by_modelids
+from flashsale.pay.apis.v1.customer import get_customer_by_django_user
 from . import serializers
 
 
@@ -82,8 +83,8 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
 
     def get_xlmm(self):
         if not hasattr(self, '_xlmm_'):
-            customer = Customer.objects.get(user=self.request.user)
-            self._xlmm_ = customer.get_charged_mama()
+            customer = get_customer_by_django_user(self.request.user)
+            self._xlmm_ = customer.get_xiaolumm()
         return self._xlmm_
 
     def get_serializer_context(self):
@@ -92,7 +93,7 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
             'request': self.request,
             'format': self.format_kwarg,
             'view': self,
-            "mama_id": xlmm.id
+            "mama_id": xlmm.id if xlmm else 0
         }
 
     @list_route(methods=['get'])
