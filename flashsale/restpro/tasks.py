@@ -118,7 +118,7 @@ def close_timeout_carts_and_orders():
             continue
         try:
             charge = xiaolupay.Charge.retrieve(trade.tid)
-            if charge.paid:
+            if charge and charge.paid:
                 notifyTradePayTask.delay(charge)
             else:
                 trade.close_trade()
@@ -155,7 +155,7 @@ def close_timeout_carts_and_orders_reset_cart_num(skus=[]):
             continue
         try:
             charge = xiaolupay.Charge.retrieve(trade.tid)
-            if charge.paid:
+            if charge and charge.paid:
                 notifyTradePayTask.delay(charge)
             else:
                 trade.close_trade()

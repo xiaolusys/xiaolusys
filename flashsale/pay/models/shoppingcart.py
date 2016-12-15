@@ -144,7 +144,7 @@ def off_the_shelf_func(sender, product_list, *args, **kwargs):
         for trade in all_trade:
             try:
                 charge = xiaolupay.Charge.retrieve(trade.tid)
-                if charge.paid:
+                if charge and charge.paid:
                     notifyTradePayTask.delay(charge)
                 else:
                     trade.close_trade()
