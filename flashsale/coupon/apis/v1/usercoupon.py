@@ -153,6 +153,41 @@ def create_user_coupon(customer_id, coupon_template_id,
     return cou, 0, u"领取成功"
 
 
+def create_boutique_user_coupon(customer, tpl, unique_key=None,
+                           ufrom='wap', **kwargs):
+
+
+    # type: (int, int, Optional[text_type], Optional[int], Optional[int],
+    # Optional[int], Optional[float], Optional[text_type], **Any) ->Tuple[Optional[UserCoupon], int, text_type]
+    """创建boutique类型优惠券
+    """
+    if not _check_target_user(customer, tpl):
+        return None, 1, '未能领取'
+    if not _check_template(tpl):
+        return None, 2, '无效的优惠券'
+    if not _check_template_release_num(tpl):
+        return None, 3, u'优惠券已经发完了'
+    value, start_use_time, expires_time = tpl.calculate_value_and_time()
+    extras = {'user_info': {'id': customer.id, 'nick': customer.nick, 'thumbnail': customer.thumbnail}}
+    unique_key = tpl.make_uniq_id(customer.id) if not unique_key else unique_key
+
+    cou = UserCoupon.objects.filter(uniq_id=unique_key).first()
+    if cou:
+        return cou, 6, u'已经领取'
+    cou = UserCoupon(template_id=tpl.id,
+                     title=tpl.title,
+                     coupon_type=tpl.coupon_type,
+                     customer_id=customer.id,
+                     value=value,
+                     start_use_time=start_use_time,
+                     expires_time=expires_time,
+                     ufrom=ufrom,
+                     uniq_id=unique_key,
+                     extras=extras)
+    cou.save()
+    return cou, 0, u"领取成功"
+
+
 def rollback_user_coupon_status_2_unused_by_ids(ids):
     # type: (List[int]) -> None
     UserCoupon.objects.filter(id__in=ids).update(status=UserCoupon.UNUSED)
