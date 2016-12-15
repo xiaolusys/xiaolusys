@@ -11,7 +11,8 @@ class SaleTradeResource(resources.ModelResource):
 
     class Meta:
         model = SaleTrade
-        fields = ('tid', 'payment', 'pay_time', 'receiver_name' 'order_title', 'order_num', 'receiver_state', 'receiver_city')
+        fields = ('tid', 'payment', 'pay_time', 'receiver_name', 'order_title', 'order_num', 'receiver_state', 'receiver_city')
+        export_order = fields
 
 
     def dehydrate_order_title(self, obj):

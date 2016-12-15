@@ -282,3 +282,6 @@ class BaseModelAdmin(BaseAdmin):
 
     def detail_view(self, request, object_id, form_url='', extra_context=None):
         return self.detailform_view(request, object_id, form_url, extra_context)
+
+class BaseExportActionModelAdmin(BaseModelAdmin, ExportActionModelAdmin):
+    pass
