@@ -96,7 +96,7 @@ RAVEN_CONFIG = {
 }
 
 ########################### ONEAPM Statsd ##############################
-STATSD_HOST = '10.45.32.34'
+STATSD_HOST = 'localhost'
 STATSD_PORT = 9125
 # STATSD_CLIENT = 'oneapm_statsd.oneapm'
 # STATSD_CELERY_SIGNALS = True
