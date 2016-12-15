@@ -13,11 +13,13 @@ from core.options import log_action, ADDITION, CHANGE
 from flashsale.pay.models import ShoppingCart, SaleTrade, CustomerShops, CuShopPros
 from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import Product, SkuStock
+from flashsale.dinghuo.models_purchase import PurchaseArrangement
 from flashsale.pay.models import SaleRefund
 from shopback.trades.models import TradeWuliu, PackageSkuItem,ReturnWuLiu
 from flashsale.restpro.utils import save_pro_info
 from flashsale.restpro.kdn_wuliu_extra import kdn_subscription,get_reverse_code,kdn_subscription_sub,comfirm_get,get_exp_by_kd100
 from flashsale.restpro import exp_map
+
 
 from mall.xiaolupay import apis as xiaolupay
 from flashsale.pay.tasks import notifyTradePayTask
@@ -448,3 +450,10 @@ def prods_position_handler():
     up_pro_ids = Product.objects.filter(status=Product.NORMAL, shelf_status=Product.UP_SHELF).values('id')
     cu_pros = CuShopPros.objects.all().exclude(id__in=up_pro_ids)
     cu_pros.update(pro_status=CuShopPros.DOWN_SHELF)
+
+@app.task()
+def save_gen_order():
+    pa=PurchaseArrangement.objects.filter(gen_order=False)
+    logger.warn({'action': "PurchaseArrangement", 'info': "run save_gen_order" + pa.count() + "success"})
+    for i in pa:
+        i.generate_order(i)
