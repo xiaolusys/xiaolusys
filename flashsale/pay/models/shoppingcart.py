@@ -14,6 +14,9 @@ from django.db import transaction
 from .base import PayBaseModel, BaseModel
 from shopback.items.models import Product, ProductSku
 
+from mall.xiaolupay import apis as xiaolupay
+from flashsale.pay.tasks import notifyTradePayTask
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -139,8 +142,12 @@ def off_the_shelf_func(sender, product_list, *args, **kwargs):
         all_trade = SaleTrade.objects.filter(sale_orders__item_id=pro_bean.id, status=SaleTrade.WAIT_BUYER_PAY)
         for trade in all_trade:
             try:
-                trade.close_trade()
-                log_action(sysoa_user.id, trade, CHANGE, u'系统更新待付款状态到交易关闭')
+                charge = xiaolupay.Charge.retrieve(trade.tid)
+                if charge.paid:
+                    notifyTradePayTask.delay(charge)
+                else:
+                    trade.close_trade()
+                    log_action(sysoa_user.id, trade, CHANGE, u'系统更新待付款状态到交易关闭')
             except Exception, exc:
                 logger.error(exc.message, exc_info=True)
 
@@ -154,12 +161,16 @@ def shoppingcart_update_productskustats_shoppingcart_num(sender, instance, creat
         # task_add_shoppingcart_num.delay(instance)
         from flashsale.restpro.tasks import close_timeout_carts_and_orders_reset_cart_num
         from shopback.items.models.stats import SkuStock
-        stat = SkuStock.get_by_sku(instance.sku_id)
-        SkuStock.objects.filter(sku_id=stat.sku_id).update(shoppingcart_num=F('shoppingcart_num')+instance.num)
-        return close_timeout_carts_and_orders_reset_cart_num([instance.sku_id])
+        def _update_skustock_and_close_carts(sku_id, sku_num):
+            stat = SkuStock.get_by_sku(sku_id)
+            SkuStock.objects.filter(sku_id=stat.sku_id).update(shoppingcart_num=F('shoppingcart_num') + sku_num)
+            close_timeout_carts_and_orders_reset_cart_num([sku_id])
+
+        transaction.on_commit(lambda : _update_skustock_and_close_carts(instance.sku_id, instance.num))
     else:
         from shopback.items.tasks_stats import task_shoppingcart_update_productskustats_shoppingcart_num
-        task_shoppingcart_update_productskustats_shoppingcart_num(instance.sku_id)
+        transaction.on_commit(lambda: task_shoppingcart_update_productskustats_shoppingcart_num(instance.sku_id))
+
 
 post_save.connect(shoppingcart_update_productskustats_shoppingcart_num, sender=ShoppingCart,
                   dispatch_uid='post_save_shoppingcart_update_productskustats_shoppingcart_num')
