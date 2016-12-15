@@ -18,7 +18,7 @@ def task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, prod
     from shopback.items.models import Product
     from flashsale.pay.models import ModelProduct
     from flashsale.coupon.models import CouponTransferRecord
-    from ..apis.v1.usercoupon import create_user_coupon
+    from ..apis.v1.usercoupon import create_boutique_user_coupon
     from ..apis.v1.coupontemplate import get_coupon_template_by_id
     from .coupontemplate import task_update_tpl_released_coupon_nums
     from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
@@ -45,7 +45,7 @@ def task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, prod
         while index < order_num:
             unique_key = template.gen_usercoupon_unikey(order_id, index)
             try:
-                cou, code, msg = create_user_coupon(customer.id, template.id, unique_key=unique_key)
+                cou, code, msg = create_boutique_user_coupon(customer, template, unique_key=unique_key)
                 new_coupon_ids.append(cou.id)
             except IntegrityError as e:
                 logging.error(e)
