@@ -150,8 +150,8 @@
             <div class="col-xs-12 collapse" id="demo{{ k }}" style="margin-top: 5px">
                 <ul class="list-group">
                     {% for template in templates %}
-                        <li class="list-group-item releaseCoupon"
-                            onclick="release_coupon_action({{ template.id }})">{{ template.id }} : {{ template.title }}   {{ template.value }} 元  点击发放>>> </li>
+                        <li class="list-group-item">{{ template.id }} : {{ template.title }}   {{ template.value }} 元  点击发放
+                            <a class="releaseCoupon" onclick="release_coupon_action({{ template.id }})">>>></a> </li>
                     {% endfor %}
                 </ul>
             </div>
