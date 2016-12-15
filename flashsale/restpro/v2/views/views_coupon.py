@@ -416,6 +416,24 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
 
+    def list(self, request, *args, **kwargs):
+        return exceptions.APIException('METHOD NOT ALLOW')
+
+    def create(self, request, *args, **kwargs):
+        return exceptions.APIException('METHOD NOT ALLOW')
+
+    def update(self, request, *args, **kwargs):
+        return exceptions.APIException('METHOD NOT ALLOW')
+
+    def partial_update(self, request, *args, **kwargs):
+        return exceptions.APIException('METHOD NOT ALLOW')
+
+    def retrieve(self, request, *args, **kwargs):
+        return exceptions.APIException('METHOD NOT ALLOW')
+
+    def destroy(self, request, *args, **kwargs):
+        return exceptions.APIException('METHOD NOT ALLOW')
+
     @list_route(methods=['GET'])
     def list_can_exchg_orders(self, request, *args, **kwargs):
         content = request.GET
@@ -447,9 +465,9 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                 # find modelproduct
 
                 model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id, is_onsale=True).first()
-                if model_product and model_product.extras.has_key('payinfo')\
+                if model_product and model_product.extras.has_key('payinfo') \
                         and model_product.extras['payinfo'].has_key('coupon_template_ids'):
-                    
+
                     if model_product.extras['payinfo']['coupon_template_ids'] and len(
                             model_product.extras['payinfo']['coupon_template_ids']) > 0:
 
