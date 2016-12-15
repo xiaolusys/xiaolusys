@@ -315,9 +315,13 @@ class XlmmFansSerializer(serializers.ModelSerializer):
         fields = ('fans_nick', 'fans_thumbnail', 'fans_description', 'fans_mobile', 'created')
 
     def fans_mobile_display(self, obj):
-        m = obj.getCustomer().mobile
-        if m.strip():
+        fans_customer = obj.getCustomer()
+        m = fans_customer.mobile if fans_customer else ''
+        mobile = m.strip()
+        if len(mobile) == 11:
             m = ''.join([m.strip()[0:3], '****', m.strip()[7::]])
+        else:
+            m = u'异常用户'
         return m
 
 
