@@ -6,6 +6,7 @@ from .managers import ApproxCountQuerySet
 from django.utils.translation import string_concat, ugettext as _, ungettext
 from django.contrib.admin.views.main import ChangeList, ORDER_VAR, SuspiciousOperation, ImproperlyConfigured, \
     IncorrectLookupParameters
+from import_export.admin import ExportMixin, ExportActionModelAdmin
 
 NUMBER_FIELD_TYPES = (
     'AutoField',

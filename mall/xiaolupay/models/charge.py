@@ -118,10 +118,11 @@ class ChargeOrder(BaseModel):
                 'paid': True,
             }
         )
-        signal_charge_success.send_robust(
+        transaction.on_commit(lambda : signal_charge_success.send_robust(
             sender=signal_message['type'],
             message=signal_message
-        )
+        ))
+
 
     def confirm_refund(self, refund_amount, **kwargs):
         self.refunded = True

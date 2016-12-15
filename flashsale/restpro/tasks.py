@@ -3,6 +3,7 @@ from __future__ import absolute_import, unicode_literals
 
 __author__ = 'yann'
 import json
+import datetime,time
 import urllib, urllib2
 
 from shopmanager import celery_app as app
@@ -17,8 +18,11 @@ from shopback.trades.models import TradeWuliu, PackageSkuItem,ReturnWuLiu
 from flashsale.restpro.utils import save_pro_info
 from flashsale.restpro.kdn_wuliu_extra import kdn_subscription,get_reverse_code,kdn_subscription_sub,comfirm_get,get_exp_by_kd100
 from flashsale.restpro import exp_map
+
+from mall.xiaolupay import apis as xiaolupay
+from flashsale.pay.tasks import notifyTradePayTask
+
 import logging
-import datetime,time
 logger = logging.getLogger(__name__)
 
 
@@ -113,8 +117,12 @@ def close_timeout_carts_and_orders():
         if trade.is_payable():
             continue
         try:
-            trade.close_trade()
-            log_action(djuser.id, trade, CHANGE, u'超出待支付时间')
+            charge = xiaolupay.Charge.retrieve(trade.tid)
+            if charge.paid:
+                notifyTradePayTask.delay(charge)
+            else:
+                trade.close_trade()
+                log_action(djuser.id, trade, CHANGE, u'超出待支付时间')
         except Exception, exc:
             logger = logging.getLogger('django.request')
             logger.error(exc.message, exc_info=True)
@@ -146,8 +154,12 @@ def close_timeout_carts_and_orders_reset_cart_num(skus=[]):
         if trade.is_payable():
             continue
         try:
-            trade.close_trade()
-            log_action(djuser.id, trade, CHANGE, u'超出待支付时间')
+            charge = xiaolupay.Charge.retrieve(trade.tid)
+            if charge.paid:
+                notifyTradePayTask.delay(charge)
+            else:
+                trade.close_trade()
+                log_action(djuser.id, trade, CHANGE, u'超出待支付时间')
         except Exception, exc:
             logger = logging.getLogger('django.request')
             logger.error(exc.message, exc_info=True)

@@ -14,6 +14,7 @@ django-celery-beat==1.0.1
 django-celery-results==1.0.1
 django-filter==0.15.3
 django-http-proxy==0.4.3
+django-import-export==0.5.1
 django-jsonfield==1.0.1
 django-mathfilters==0.3.0
 django-oauth-toolkit==0.10.0

@@ -390,17 +390,25 @@ class SaleTrade(BaseModel):
     @transaction.atomic
     def charge_confirm(self, charge_time=None, charge=charge):
         """ 如果付款期间，订单被订单号任务关闭则不减锁定数量 """
-        with transaction.atomic():
-            st = SaleTrade.objects.select_for_update().get(id=self.id)
-            if st.status == SaleTrade.WAIT_SELLER_SEND_GOODS:
-                return
 
-            trade_close = st.is_closed()
-            st.status   = SaleTrade.WAIT_SELLER_SEND_GOODS
-            if charge:
-                st.charge   = charge
-            st.pay_time = charge_time or datetime.datetime.now()
-            update_model_fields(st, update_fields=['status', 'pay_time', 'charge'])
+        logger.info({
+            'action': 'trade_confirm_start',
+            'order_no': self.tid,
+            'charge': charge,
+            'pay_time': charge_time,
+            'action_time': datetime.datetime.now()
+        })
+
+        st = SaleTrade.objects.select_for_update().get(id=self.id)
+        if st.status == SaleTrade.WAIT_SELLER_SEND_GOODS:
+            return
+
+        trade_close = st.is_closed()
+        st.status   = SaleTrade.WAIT_SELLER_SEND_GOODS
+        if charge:
+            st.charge   = charge
+        st.pay_time = charge_time or datetime.datetime.now()
+        update_model_fields(st, update_fields=['status', 'pay_time', 'charge'])
 
         for order in st.sale_orders.all():
             order.status = order.WAIT_SELLER_SEND_GOODS
@@ -422,6 +430,14 @@ class SaleTrade(BaseModel):
             st.set_order_paid()
         except Exception, exc:
             logger.error(str(exc), exc_info=True)
+
+        logger.info({
+            'action': 'trade_confirm_end',
+            'order_no': self.tid,
+            'charge': charge,
+            'pay_time': charge_time,
+            'action_time': datetime.datetime.now()
+        })
 
     def pay_confirm(self):
         # 暂时用此方法替代charge_confirm进行测试

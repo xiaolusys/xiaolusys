@@ -12,11 +12,12 @@ from django.http import HttpResponseRedirect
 
 from core.options import log_action, User, ADDITION, CHANGE
 from core.filters import DateFieldListFilter
-from core.admin import ApproxAdmin, BaseModelAdmin
+from core.admin import ApproxAdmin, BaseModelAdmin, ExportActionModelAdmin
 from core.managers import ApproxCountQuerySet
 from core.upload import upload_public_to_remote, generate_public_url
 from flashsale.pay.filters import MamaCreatedFilter
 from .services import FlashSaleService, get_district_json_data
+from .resources import SaleTradeResource
 from .models import (
     SaleTrade,
     SaleOrder,
@@ -110,7 +111,7 @@ class SaleOrderAdmin(ApproxAdmin):
 admin.site.register(SaleOrder, SaleOrderAdmin)
 
 
-class SaleTradeAdmin(BaseModelAdmin):
+class SaleTradeAdmin(ExportActionModelAdmin):
     list_display = (
         'id_link', 'tid', 'buyer_nick', 'channel', 'order_type', 'is_boutique', 'total_fee', 'payment', 'pay_time', 'created', 'status',
         'buyer_info')
@@ -123,6 +124,7 @@ class SaleTradeAdmin(BaseModelAdmin):
     search_fields = ['=tid', '=id', '=receiver_mobile', '=buyer_id']
     list_per_page = 20
     inlines = [SaleOrderInline]
+    resource_class = SaleTradeResource
 
     # -------------- 页面布局 --------------
     fieldsets = ((u'订单基本信息:', {

@@ -3,6 +3,7 @@ from __future__ import absolute_import, unicode_literals
 
 from django.http import HttpResponse
 
+import datetime
 from ..models.charge import Credential
 from ..libs.wxpay.app import WXPay
 from ..services.charge import retrieve_or_update_order
@@ -19,6 +20,7 @@ def pay_channel_notify(request, channel):
         'action': 'notify',
         'channel': channel,
         'data': content,
+        'action_time': datetime.datetime.now()
     })
     if not content:
         return HttpResponse('no params')

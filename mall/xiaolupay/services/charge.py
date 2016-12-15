@@ -14,6 +14,9 @@ from ..models.charge import ChargeOrder
 from ..apis.v1.exceptions import ChannelNotCompleteException
 from ..utils import get_time_number
 
+import logging
+logger = logging.getLogger(__name__)
+
 def create_credential(
         order_no='',
         amount=0,
@@ -154,6 +157,7 @@ def retrieve_or_update_order(order_no, channel=None, notify_order_info=None):
     transaction_no = ''
     fail_code    = ''
     fail_msg     = ''
+    resp         = {}
 
     if channel in (UnionPayConf.ALIPAY, UnionPayConf.ALIPAY_WAP):
         alipay = AliPay()
@@ -186,6 +190,15 @@ def retrieve_or_update_order(order_no, channel=None, notify_order_info=None):
         transaction_no = resp.get('transaction_id', '')
         if paid_success:
             time_paid = datetime.datetime.strptime(resp['time_end'],'%Y%m%d%H%M%S') or None
+
+    logger.info({
+        'action': 'paid_confirm',
+        'order_no': order_no,
+        'paid_success': paid_success,
+        'channel': channel,
+        'data': resp,
+        'action_time': datetime.datetime.now()
+    })
 
     if paid_success:
         charge_order.confirm_paid(time_paid, channel=channel, transaction_no=transaction_no)
