@@ -116,6 +116,7 @@ def coupon_exchange_saleorder(customer, order_id, mama_id, exchg_template_id, co
     # (1)sale order置为已经兑换
     from flashsale.pay.models.trade import SaleOrder
     from .transfercoupondetail import create_transfer_coupon_detail
+    from .usercoupon import use_coupon_by_ids
 
     sale_order = SaleOrder.objects.filter(oid=order_id).first()
     if sale_order:
@@ -137,7 +138,7 @@ def coupon_exchange_saleorder(customer, order_id, mama_id, exchg_template_id, co
                                              status=UserCoupon.UNUSED)
     user_coupons = user_coupons[0: coupon_num]
     coupon_ids = [c.id for c in user_coupons]
-    user_coupons.update(status=UserCoupon.USED, trade_tid=sale_order.oid, finished_time=datetime.datetime.now())
+    use_coupon_by_ids(coupon_ids, tid=sale_order.oid)   # 改为 使用掉
 
     # (3)在user钱包写收入记录
     from flashsale.pay.models.user import BudgetLog
