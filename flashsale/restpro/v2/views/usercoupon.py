@@ -156,8 +156,8 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         today = datetime.datetime.today()
         weekday, month_days = calendar.monthrange(today.year, today.month)
         tf = datetime.datetime(today.year, today.month, 1, 0, 0, 0)  # 这个月第一天开始
-        tt = datetime.datetime(today.year, today.month, month_days, 23, 59, 59)  # 这个月最后一天结束
-        if p_records.filter(created__gte=tf, created__lte=tt).exclude(
+        tt = datetime.datetime(today.year, today.month, month_days, 0, 0, 0)  # 昨天结束
+        if p_records.filter(created__gte=tf, created__lt=tt).exclude(
                 transfer_status=CouponTransferRecord.CANCELED).exists():  # 排除取消的流通 (退券) 记录
             return Response({'code': 6, 'info': '您本月已经有退券了,每月只有一天能够退券,请集中到某一天集中申请!'})
 
