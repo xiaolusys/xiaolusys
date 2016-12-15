@@ -96,9 +96,9 @@ RAVEN_CONFIG = {
 }
 
 ########################### ONEAPM Statsd ##############################
-STATSD_HOST = '192.168.0.1'
-STATSD_PORT = 8251
-STATSD_CLIENT = 'oneapm_statsd.oneapm'
+STATSD_HOST = '10.45.32.34'
+STATSD_PORT = 9125
+# STATSD_CLIENT = 'oneapm_statsd.oneapm'
 # STATSD_CELERY_SIGNALS = True
 MIDDLEWARE_CLASSES = (
     'django_statsd.middleware.GraphiteRequestTimingMiddleware',
