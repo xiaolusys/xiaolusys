@@ -414,6 +414,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'channel': channel,
                 'order_type': order_type
             }
+        if (address) and (order_type == SaleTrade.ELECTRONIC_GOODS_ORDER):
+            params.update({
+                'order_type': order_type
+            })
 
         if order_type == SaleTrade.TEAMBUY_ORDER:
             try:
