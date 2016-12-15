@@ -13,7 +13,6 @@ from core.options import log_action, CHANGE
 from shopback.orders.models import Trade, Order, STEP_TRADE_STATUS
 from shopback.trades.managers import MergeTradeManager
 from shopback.items.models import Item, Product, ProductSku
-from flashsale.pay.models import SaleOrder, SaleTrade
 from shopback.logistics.models import Logistics, LogisticsCompany
 from shopback.refunds.models import Refund, REFUND_STATUS
 from shopback import paramconfig as pcfg
@@ -21,9 +20,6 @@ from shopback import signals
 from common.utils import (parse_datetime,
                           get_yesterday_interval_time,
                           update_model_fields)
-from flashsale.pay.models import SaleTrade
-from shopback.items.models import SkuStock
-from flashsale import pay
 import logging
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_THIRD, WARE_CHOICES
 
@@ -385,12 +381,13 @@ class MergeTrade(models.Model):
         return self.is_part_consign
 
     def get_sale_trade(self):
+        from flashsale.pay.models import SaleTrade
         if self.type == pcfg.SALE_TYPE:
             return SaleTrade.objects.get(tid=self.tid)
         return None
 
     def get_sale_orders(self):
-        from flashsale.pay.models import SaleOrder, SaleRefund
+        from flashsale.pay.models import SaleOrder, SaleRefund, SaleTrade
         if self.type == pcfg.SALE_TYPE:
             sale_trade_ids = [s.id for s in SaleTrade.objects.filter(tid=self.tid)]
             if self.has_merge:
