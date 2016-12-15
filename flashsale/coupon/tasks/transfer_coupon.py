@@ -23,8 +23,16 @@ def task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, prod
     from .coupontemplate import task_update_tpl_released_coupon_nums
     from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
     from ..apis.v1.transfercoupondetail import create_transfer_coupon_detail
+    from flashsale.pay.models import Customer
 
-    customer = get_customer_by_id(customer_id)
+    logger.info({
+        'action': 'transfer_coupon',
+        'action_time': datetime.datetime.now(),
+        'order_oid': order_oid,
+        'message': u'begin:customer=%s, order_id=%s order_oid=%s order_num=%s product_id=%s' % (
+            customer_id, order_id, order_oid, order_num, product_id),
+    })
+
     product = Product.objects.filter(id=product_id).first()
     model_product = ModelProduct.objects.filter(id=product.model_id).first()
     template_id = model_product.extras.get("template_id")
@@ -32,6 +40,7 @@ def task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, prod
     template = get_coupon_template_by_id(id=template_id)
     index = 0
     with transaction.atomic():
+        customer = Customer.objects.select_for_update().get(id=customer_id)
         new_coupon_ids = []
         while index < order_num:
             unique_key = template.gen_usercoupon_unikey(order_id, index)
@@ -41,6 +50,14 @@ def task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, prod
             except IntegrityError as e:
                 logging.error(e)
             index += 1
+
+        logger.info({
+            'action': 'transfer_coupon',
+            'action_time': datetime.datetime.now(),
+            'order_oid': order_oid,
+            'message': u'end:template_id=%s, index=%s' % (
+                template_id, index),
+        })
 
         to_mama = customer.get_charged_mama()
         to_mama_nick = customer.nick
@@ -78,7 +95,13 @@ def task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, prod
             logging.error(e)
     task_calc_xlmm_elite_score(coupon_to_mama_id)  # 计算妈妈积分
     task_update_tpl_released_coupon_nums.delay(template.id)  # 统计发放数量
-
+    logger.info({
+        'action': 'transfer_coupon',
+        'action_time': datetime.datetime.now(),
+        'order_oid': order_oid,
+        'message': u'end:template_id=%s, order_id=%s order_oid=%s order_num=%s product_id=%s' % (
+            template_id, order_id, order_oid, order_num, product_id),
+    })
 
 def _diff_coupons(mama_id):
     # type: (int) -> List[Dict[*Any]]

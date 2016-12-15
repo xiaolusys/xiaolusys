@@ -16,13 +16,13 @@ def create_transfer_coupon_detail(transfer_id, coupon_ids):
     coupon_ids = set(coupon_ids)
     ds = []
     record = get_transfer_record_by_id(transfer_id)
-    with transaction.atomic():
-        for coupon_id in coupon_ids:
-            d, state = TransferCouponDetail.objects.get_or_create(
-                transfer_id=transfer_id,
-                coupon_id=coupon_id
-            )
-            d.transfer_type = record.transfer_type
-            d.save()
-            ds.append(d)
+
+    for coupon_id in coupon_ids:
+        d, state = TransferCouponDetail.objects.get_or_create(
+            transfer_id=transfer_id,
+            coupon_id=coupon_id
+        )
+        d.transfer_type = record.transfer_type
+        d.save()
+        ds.append(d)
     return ds
