@@ -884,19 +884,18 @@ class Product(models.Model):
                 pro_count += 1
             pro_count = _get_valid_procount(inner_outer_id, pro_count, productid_maps)
             pro_dict = productname_maps.get(pro['name'])
-            outer_id = (pro_dict and pro_dict['outer_id'] or inner_outer_id + str(pro_count)).replace('RMB','')
+            outer_id = pro_dict and pro_dict['outer_id'] or inner_outer_id + str(pro_count)
             color_skus = []
             for sku in skus_list:
                 if sku['color'] == pro['name']:
                     color_skus.append(sku)
 
-            s_outer_id = outer_id
             if is_boutique_coupon and not outer_id.startswith('RMB'):
-                s_outer_id = 'RMB%s' % (outer_id)
+                outer_id = 'RMB%s' % (outer_id)
 
             kwargs = {'name': pro['name'],
                       'pic_path': pro['pic_path'],
-                      'outer_id': s_outer_id,
+                      'outer_id': outer_id,
                       'model_id': model_pro.id,
                       'sale_charger': creator.username,
                       'category': product_category,
@@ -905,6 +904,7 @@ class Product(models.Model):
                       "product_skus_list": []}
             pro_count += 1
             sku_count = 1
+            outer_id = outer_id.replace('RMB','')
             product_skus_list = []
             for color_sku in color_skus:
                 sku_count = _get_valid_procount(outer_id, sku_count, skuid_maps)
@@ -912,16 +912,17 @@ class Product(models.Model):
                 sku_outer_id = sku_dict and sku_dict['outer_id'] or outer_id + str(sku_count)
                 barcode = sku_dict and sku_dict['barcode'] or '%s%d' % (outer_id, sku_count)
 
-                product_skus_list.append(
-                    {'outer_id': sku_outer_id,
-                     'remain_num': color_sku['remain_num'],
-                     'cost': color_sku['cost'],
-                     'std_sale_price': color_sku['std_sale_price'],
-                     'agent_price': color_sku['agent_price'],
-                     'supplier_skucode': color_sku.get('supplier_skucode', ''),
-                     'properties_name': color_sku['properties_name'] or pro['name'] ,
-                     'properties_alias': color_sku['properties_alias'],
-                     'barcode': barcode})
+                product_skus_list.append({
+                    'outer_id': sku_outer_id,
+                    'remain_num': color_sku['remain_num'],
+                    'cost': color_sku['cost'],
+                    'std_sale_price': color_sku['std_sale_price'],
+                    'agent_price': color_sku['agent_price'],
+                    'supplier_skucode': color_sku.get('supplier_skucode', ''),
+                    'properties_name': color_sku['properties_name'] or pro['name'] ,
+                    'properties_alias': color_sku['properties_alias'],
+                    'barcode': barcode
+                })
                 sku_count += 1
             kwargs.update({'product_skus_list': product_skus_list})
             cls.update_or_create_product_and_skus(model_pro, **kwargs)
