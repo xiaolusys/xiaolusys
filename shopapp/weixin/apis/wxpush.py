@@ -578,6 +578,8 @@ class WeixinPush(object):
             delta = datetime.datetime.now() - last_event.created
             if delta.seconds < 60*60*3 and clickcarry.click_num < clickcarry.init_click_limit:
                 return
+            if carry_count < 0 or carry_money < 0:
+                return 
         else:
             carry_count = clickcarry.click_num
             carry_money = clickcarry.total_value
