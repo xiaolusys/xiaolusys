@@ -171,7 +171,26 @@ def send_new_elite_transfer_coupons(customer_id, order_id, order_oid, product_id
                 template_id, index),
         })
 
+        # 购买338变为精英妈妈
+        from flashsale.xiaolumm.models.models import XiaoluMama
         to_mama = customer.get_charged_mama()
+        if to_mama.last_renew_type < XiaoluMama.ELITE:
+            to_mama.last_renew_type = XiaoluMama.ELITE
+            to_mama.charge_status = XiaoluMama.CHARGED
+        if not to_mama.charge_time:
+            to_mama.charge_time = datetime.datetime.now()
+        # 上级在做精英的话，自己为indirect跟着做，否则为direct
+        relation_ship = to_mama.get_refer_to_relationships()
+        if relation_ship:
+            referal_mm = XiaoluMama.objects.filter(id=relation_ship.referal_from_mama_id).first()
+            if referal_mm and (referal_mm.referal_from == XiaoluMama.DIRECT or referal_mm.referal_from == XiaoluMama.INDIRECT):
+                to_mama.referal_from = XiaoluMama.INDIRECT
+            else:
+                to_mama.referal_from = XiaoluMama.DIRECT
+        else:
+            to_mama.referal_from = XiaoluMama.DIRECT
+        to_mama.save()
+
         to_mama_nick = customer.nick
         to_mama_thumbnail = customer.thumbnail
 
