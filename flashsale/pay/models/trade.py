@@ -1103,6 +1103,9 @@ class SaleOrder(PayBaseModel):
     def is_188_deposit(self):
         return self.is_deposit() and self.outer_sku_id == '1'
 
+    def is_new_elite_deposit(self):
+        return self.is_deposit() and self.outer_sku_id == '338'
+
     @property
     def item_product(self):
         if not hasattr(self, '_item_product_'):
@@ -1206,11 +1209,16 @@ def post_save_order_trigger(sender, instance, created, raw, **kwargs):
                 if instance.is_1_deposit():  # 一元开店 不记录推荐关系
                     return
                 if instance.is_transfer_coupon():
-                    from flashsale.coupon.apis.v1.transfer import send_order_transfer_coupons
-
-                    send_order_transfer_coupons(instance.sale_trade.buyer_id, instance.id,
-                                               instance.oid, instance.num, instance.item_id)
-                    return
+                    if instance.is_new_elite_deposit():
+                        from flashsale.coupon.apis.v1.transfer import send_new_elite_transfer_coupons
+                        send_new_elite_transfer_coupons(instance.sale_trade.buyer_id, instance.id,
+                                                    instance.oid, instance.item_id)
+                        return
+                    else:
+                        from flashsale.coupon.apis.v1.transfer import send_order_transfer_coupons
+                        send_order_transfer_coupons(instance.sale_trade.buyer_id, instance.id,
+                                                   instance.oid, instance.num, instance.item_id)
+                        return
 
                 from flashsale.xiaolumm.tasks import task_update_referal_relationship
                 task_update_referal_relationship.delay(instance)

@@ -105,6 +105,115 @@ def send_order_transfer_coupons(customer_id, order_id, order_oid, order_num, pro
 
     task_send_transfer_coupons.delay(customer_id, order_id, order_oid, order_num, product_id)
 
+def send_new_elite_transfer_coupons(customer_id, order_id, order_oid, product_id):
+    # type: (int, int, text_type, int, int) -> None
+    """创建new elite精品券记录　和　优惠券记录
+    """
+    from flashsale.pay.apis.v1.customer import get_customer_by_id
+    from shopback.items.models import Product
+    from flashsale.pay.models import ModelProduct
+    from flashsale.coupon.models import CouponTransferRecord
+    from flashsale.coupon.apis.v1.usercoupon import create_boutique_user_coupon
+    from flashsale.coupon.apis.v1.coupontemplate import get_coupon_template_by_id
+    from flashsale.coupon.tasks.coupontemplate import task_update_tpl_released_coupon_nums
+    from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
+    from flashsale.coupon.apis.v1.transfercoupondetail import create_transfer_coupon_detail
+    from flashsale.pay.models import Customer
+
+    logger.info({
+        'action': 'send_new_elite_transfer_coupons',
+        'action_time': datetime.datetime.now(),
+        'order_oid': order_oid,
+        'message': u'begin:customer=%s, order_id=%s order_oid=%s product_id=%s' % (
+            customer_id, order_id, order_oid, product_id),
+    })
+
+    #product = Product.objects.filter(id=product_id).first()
+    #model_product = ModelProduct.objects.filter(id=product.model_id).first()
+    #template_id = model_product.extras.get("template_id")
+    template_id = 156
+    coupon_num = 5
+
+    template = get_coupon_template_by_id(id=template_id)
+    index = 0
+    with transaction.atomic():
+        customer = Customer.objects.select_for_update().get(id=customer_id)
+        value, start_use_time, expires_time = template.calculate_value_and_time()
+        extras = {'user_info': {'id': customer.id, 'nick': customer.nick, 'thumbnail': customer.thumbnail}}
+        new_coupon_ids = []
+        while index < coupon_num:
+            unique_key = template.gen_usercoupon_unikey('gift_transfer_%s' % (order_id), index)
+            try:
+                cou = UserCoupon.objects.filter(uniq_id=unique_key).first()
+                if cou:
+                    return cou, 6, u'已经领取'
+                cou = UserCoupon(template_id=template.id,
+                                 title=template.title,
+                                 coupon_type=template.coupon_type,
+                                 customer_id=customer.id,
+                                 value=value,
+                                 start_use_time=start_use_time,
+                                 expires_time=expires_time,
+                                 ufrom='wap',
+                                 uniq_id=unique_key,
+                                 extras=extras)
+                cou.save()
+                new_coupon_ids.append(cou.id)
+            except IntegrityError as e:
+                logging.error(e)
+            index += 1
+
+        logger.info({
+            'action': 'send_new_elite_transfer_coupons',
+            'action_time': datetime.datetime.now(),
+            'order_oid': order_oid,
+            'message': u'process:template_id=%s, index=%s' % (
+                template_id, index),
+        })
+
+        to_mama = customer.get_charged_mama()
+        to_mama_nick = customer.nick
+        to_mama_thumbnail = customer.thumbnail
+
+        coupon_to_mama_id = to_mama.id
+        init_from_mama_id = to_mama.id
+
+        coupon_from_mama_id = 0
+        from_mama_thumbnail = 'http://7xogkj.com2.z0.glb.qiniucdn.com/222-ohmydeer.png?imageMogr2/thumbnail/60/format/png'
+        from_mama_nick = 'SYSTEM'
+
+        transfer_type = CouponTransferRecord.IN_BUY_COUPON
+        date_field = datetime.date.today()
+        transfer_status = CouponTransferRecord.DELIVERED
+        uni_key = "%s-%s" % (to_mama.id, order_id)
+        coupon_value = int(template.value)
+        product_img = template.extras.get("product_img") or ''
+        elite_score = 50
+
+        try:
+            transfer = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id,
+                                            from_mama_thumbnail=from_mama_thumbnail,
+                                            from_mama_nick=from_mama_nick, coupon_to_mama_id=coupon_to_mama_id,
+                                            to_mama_thumbnail=to_mama_thumbnail, to_mama_nick=to_mama_nick,
+                                            coupon_value=coupon_value,
+                                            init_from_mama_id=init_from_mama_id, order_no=order_oid,
+                                            template_id=template_id,
+                                            product_img=product_img, coupon_num=coupon_num, transfer_type=transfer_type,
+                                            product_id=product_id, elite_score=elite_score,
+                                            uni_key=uni_key, date_field=date_field, transfer_status=transfer_status)
+            transfer.save()
+            create_transfer_coupon_detail(transfer.id, new_coupon_ids)  # 创建明细记录
+        except IntegrityError as e:
+            logging.error(e)
+    task_calc_xlmm_elite_score(coupon_to_mama_id)  # 计算妈妈积分
+    task_update_tpl_released_coupon_nums.delay(template.id)  # 统计发放数量
+    logger.info({
+        'action': 'send_new_elite_transfer_coupons',
+        'action_time': datetime.datetime.now(),
+        'order_oid': order_oid,
+        'message': u'end:template_id=%s, order_id=%s order_oid=%s product_id=%s' % (
+            template_id, order_id, order_oid, product_id),
+    })
 
 @transaction.atomic
 def coupon_exchange_saleorder(customer, order_id, mama_id, exchg_template_id, coupon_num):
