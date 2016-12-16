@@ -11,7 +11,7 @@ from ..libs.wxpay import WXPay, WXPayUtil, WXPayConf
 from ..libs.alipay.exceptions import AliPayAPIError
 from ..libs.wxpay.exceptions import WxPayException
 from ..models.charge import ChargeOrder
-from ..apis.v1.exceptions import ChannelNotCompleteException
+from ..apis.v1.exceptions import XiaoluPayException, ChannelNotCompleteException
 from ..utils import get_time_number
 
 import logging
@@ -114,6 +114,8 @@ def create_charge(
     with transaction.atomic():
         charge = ChargeOrder.objects.select_for_update().filter(order_no=order_no).first()
         if not charge:
+            if channel == ChargeOrder.WX_PUB and not extra.get('open_id'):
+                raise XiaoluPayException('wx_pub channel need open_id')
             try:
                 charge = ChargeOrder.objects.create(
                     order_no  = order_no,

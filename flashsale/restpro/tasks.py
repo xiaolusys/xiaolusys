@@ -149,20 +149,22 @@ def close_timeout_carts_and_orders_reset_cart_num(skus=[]):
     all_product_in_cart.update(status=ShoppingCart.CANCEL)
     for sku in skus + extend_skus:
         task_shoppingcart_update_productskustats_shoppingcart_num(sku)
-    all_trade = SaleTrade.objects.filter(status=SaleTrade.WAIT_BUYER_PAY)
-    for trade in all_trade:
-        if trade.is_payable():
-            continue
-        try:
-            charge = xiaolupay.Charge.retrieve(trade.tid)
-            if charge and charge.paid:
-                notifyTradePayTask.delay(charge)
-            else:
-                trade.close_trade()
-                log_action(djuser.id, trade, CHANGE, u'超出待支付时间')
-        except Exception, exc:
-            logger = logging.getLogger('django.request')
-            logger.error(exc.message, exc_info=True)
+
+    if not skus:
+        all_trade = SaleTrade.objects.filter(status=SaleTrade.WAIT_BUYER_PAY)
+        for trade in all_trade:
+            if trade.is_payable():
+                continue
+            try:
+                charge = xiaolupay.Charge.retrieve(trade.tid)
+                if charge and charge.paid:
+                    notifyTradePayTask.delay(charge)
+                else:
+                    trade.close_trade()
+                    log_action(djuser.id, trade, CHANGE, u'超出待支付时间')
+            except Exception, exc:
+                logger = logging.getLogger('django.request')
+                logger.error(exc.message, exc_info=True)
 
 
 @app.task()

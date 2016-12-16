@@ -193,12 +193,13 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         new_shop_cart.sku_name = sku.name
         new_shop_cart.pic_path = product.pic_path
         new_shop_cart.title = product.name
-        new_shop_cart.remain_time = datetime.datetime.now() + datetime.timedelta(minutes=20)
+
+        latest_remain_time = datetime.datetime.now() + datetime.timedelta(minutes=20)
+        new_shop_cart.remain_time = latest_remain_time
         new_shop_cart.save()
 
-        for cart in queryset:
-            cart.remain_time = datetime.datetime.now() + datetime.timedelta(minutes=20)
-            cart.save(update_fields=['remain_time'])
+        queryset.update(remain_time=latest_remain_time)
+
         return Response({"code": 0, "info": u"添加成功"})  # 购物车没有
 
     def update(self, request, *args, **kwargs):

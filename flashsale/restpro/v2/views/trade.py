@@ -325,6 +325,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                         sale_trade.tid, sale_trade.payment, sale_trade.budget_payment))
                     raise Exception(u'钱包余额不足')
 
+        if channel == SaleTrade.WX_PUB or not buyer_openid:
+            raise ValueError(u'请先微信授权登陆后再使用微信支付')
+
         extra = {}
         if channel == SaleTrade.WX_PUB:
             extra = {'open_id': buyer_openid, 'trade_type': 'JSAPI'}
