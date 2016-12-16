@@ -70,3 +70,35 @@ class BaseTagModel(BaseModel):
     def __unicode__(self):
         return str(self.id)
 
+
+def multi_update(model_class, key_attr, value_attr, res, where=''):
+    """
+        批量更新数据
+        至多一次更新2000W,更多要更新数据库架构啦
+    :param model_class: 对应model
+    :param key_attr: 识别记录的字段（需要唯一）
+    :param value_attr: 要改值的字段
+    :param res: 设置的值字典
+    :param where: 额外限定条件
+    :return:
+    """
+    from django.db import connection, transaction
+    if not res:
+        raise Exception('set values res empty')
+    sql_begin = 'UPDATE %s SET %s = CASE %s ' % (model_class._meta.db_table, value_attr, key_attr)
+    sql_when_str = lambda key: 'WHEN %s THEN %s' % (key, res[key])
+    sql_whens_list = []
+    SLICE_LEN = 20000
+    res_keys = res.keys()
+    for i in range(0, 1000):
+        slice = res_keys[i * SLICE_LEN: i * SLICE_LEN + SLICE_LEN]
+        sql_whens_list.append(slice)
+    for item in sql_whens_list:
+        if item:
+            sql_end = ' END where %s in (%s)' % (key_attr, ','.join([str(i) for i in item]))
+            if where:
+                sql_end = sql_end + ' AND ' + where
+            sql = sql_begin + ' '.join([sql_when_str(key) for key in item]) + sql_end
+            cursor = connection.cursor()
+            cursor.execute(sql)
+            cursor.close()

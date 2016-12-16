@@ -959,6 +959,9 @@ class SaleOrder(PayBaseModel):
         oid = self.oid.split('-')[0] # 应对重新发货
         return TeamBuyDetail.objects.get(oid=oid).teambuy.status == 1
 
+    def can_refund(self):
+        return self.get_refundable()
+
     def get_refundable(self):
         # return self.sale_trade.status in SaleTrade.REFUNDABLE_STATUS?
         if self.status not in (SaleOrder.WAIT_SELLER_SEND_GOODS, SaleOrder.TRADE_BUYER_SIGNED):
