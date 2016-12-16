@@ -24,8 +24,9 @@ def default_template_extras():
         'templates': {'post_img': ''}  # 优惠券模板
     }
 
-def default_coupon_template_no():
-    return uniqid('%s%s' % (CouponTemplate.PREFIX_NO, datetime.date.today().strftime('%y%m%d')))
+def default_coupon_template_no(date=None):
+    dt = date or datetime.date.today()
+    return uniqid('%s%s' % (CouponTemplate.PREFIX_NO, dt.strftime('%y%m%d')))
 
 class CouponTemplate(BaseModel):
     """ 优惠券模板 """
@@ -78,7 +79,7 @@ class CouponTemplate(BaseModel):
         (CANCEL, u'已取消'),
     )  # 发放中到取消状态取消发放
 
-    template_no = models.CharField(max_length=64, #unique=True,
+    template_no = models.CharField(max_length=64, unique=True,
                                    default=default_coupon_template_no, verbose_name=u"优惠券no")  # type: text_type
 
     title = models.CharField(max_length=64, verbose_name=u"优惠券标题")  # type: text_type
@@ -117,6 +118,10 @@ class CouponTemplate(BaseModel):
     def __unicode__(self):
         # type: () -> text_type
         return '<%s,%s>' % (self.id, self.title)
+
+    @classmethod
+    def gen_default_template_no(cls, date=None):
+        return default_coupon_template_no(date=date)
 
     @property
     def share_times_limit(self):
