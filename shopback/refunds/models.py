@@ -343,7 +343,7 @@ class RefundProduct(models.Model):
         if not self.can_reuse:
             return
         from shopback.items.models import SkuStock
-        SkuStock.add_return_quantity(self.sku_id, self.num)   
+        SkuStock.add_return_quantity(self.sku_id, self.num, stat=True)
         SkuStock.get_by_sku(self.sku_id).assign()
 
 
@@ -365,14 +365,14 @@ def update_productskustats_refund_quantity(sender, instance, created, **kwargs):
     from shopback.items.tasks import task_update_inferiorsku_return_quantity
 
     from shopback.items.models import ProductSku
-    sku_id = ProductSku.get_by_outer_id(instance.outer_id,instance.outer_sku_id).id
-
-    if sku_id:
+    if not instance.sku_id:
+        sku_id = ProductSku.get_by_outer_id(instance.outer_id, instance.outer_sku_id).id
         RefundProduct.objects.filter(id=instance.id).update(sku_id=sku_id)
-        if not instance.in_stock:
-            instance.add_into_stock()
-            instance.in_stock = True
-            instance.save()
+        instance.sku_id = sku_id
+    if instance.sku_id:
+        instance.add_into_stock()
+        instance.in_stock = True
+        instance.save()
         task_update_inferiorsku_return_quantity.delay(sku_id)
     else:
         logger.warn({"action": "buy_rf", "info": "RefundProduct update_productskustats_refund_quantity error :" + str(RefundProduct.id)})
