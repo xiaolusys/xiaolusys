@@ -147,76 +147,76 @@ class TradeNormalTestCase(TestCase):
         self.assertEqual(SkuStock.get_by_sku(self.sku_id).restat(), [])
 
 
-class TradeHasStockTestCase(TestCase):
-    """
-       常规流程测试
-        用户支付／订货／入库／分配／打单／扫描／称重
-    """
-    fixtures = [
-        "test.trade.hasstock.shopbackuser.json",
-        "test.trade.hasstock.salesupplier.json",
-        "test.trade.hasstock.logisticscompany.json",
-        "test.trade.hasstock.user.json",
-        "test.trade.hasstock.customer.json",
-        "test.trade.hasstock.productcategory.json",
-        "test.trade.hasstock.salecategory.json",
-        "test.trade.hasstock.product.json",
-        "test.trade.hasstock.productsku.json",
-        "test.trade.hasstock.skustock.json",
-        "test.trade.hasstock.saleorder.json",
-        "test.trade.hasstock.saletrade.json",
-        "test.trade.hasstock.saleproduct.json",
-    ]
-
-    def setUp(self):
-        self.username = '13739234188'
-        self.password = '123456'
-        self.client.login(username=self.username, password=self.password)
-        self.sale_trade_id = 468659
-        self.sale_order_id = 521465
-        self.sku_id = 280052
-        self.user_id = 923802
-
-    def test_hasstock_process(self):
-        """用户支付"""
-        stock = SkuStock.get_by_sku(self.sku_id)
-        print stock.__dict__
-        stock.restat()
-        print stock.__dict__
-        self.assertEqual(SkuStock.get_by_sku(self.sku_id).restat(), [])
-        sale_trade = SaleTrade.objects.get(id=self.sale_trade_id)
-        sale_trade.pay_confirm()
-        sku = ProductSku.objects.get(id=self.sku_id)
-        so = SaleOrder.objects.get(id=self.sale_order_id)
-        self.assertEqual(so.status, SaleOrder.WAIT_SELLER_SEND_GOODS)
-        self.assertEqual(so.package_sku.pay_time, so.pay_time)
-        pa = so.package_sku.get_purchase_arrangement()
-        stock = SkuStock.get_by_sku(self.sku_id)
-        self.assertEqual(stock.restat(), [])
-        self.assertEqual(pa, None)
-        self.assertEqual(SkuStock.get_by_sku(self.sku_id).restat(), [])
-        """合单"""
-        psi = PackageSkuItem.objects.get(oid=so.oid)
-        psi.merge()
-        self.assertEqual(psi.assign_status, 1)
-        self.assertEqual(SkuStock.get_by_sku(self.sku_id).restat(), [])
-        """打单"""
-        psi = PackageSkuItem.objects.get(oid=so.oid)
-        PackageOrder.batch_set_operator([psi.package_order_pid], 'yanhuang')
-        po = psi.package_order
-        out_sid = '123456789'
-        po.set_out_sid(out_sid, False, 'test')
-        self.assertEqual(SkuStock.get_by_sku(self.sku_id).restat(), [])
-        """打单称重"""
-        po.print_picking()
-        user = DjUser.objects.get(id=self.user_id)
-        po.scancheck(user)
-        self.assertEqual(SkuStock.get_by_sku(self.sku_id).restat(), [])
-        po.scanweight(user)
-        self.assertEqual(SkuStock.get_by_sku(self.sku_id).restat(), [])
-        po.finish()
-        self.assertEqual(SkuStock.get_by_sku(self.sku_id).restat(), [])
-        print SkuStock.get_by_sku(self.sku_id).__dict__
+# class TradeHasStockTestCase(TestCase):
+#     """
+#        常规流程测试
+#         用户支付／订货／入库／分配／打单／扫描／称重
+#     """
+#     fixtures = [
+#         "test.trade.hasstock.shopbackuser.json",
+#         "test.trade.hasstock.salesupplier.json",
+#         "test.trade.hasstock.logisticscompany.json",
+#         "test.trade.hasstock.user.json",
+#         "test.trade.hasstock.customer.json",
+#         "test.trade.hasstock.productcategory.json",
+#         "test.trade.hasstock.salecategory.json",
+#         "test.trade.hasstock.product.json",
+#         "test.trade.hasstock.productsku.json",
+#         "test.trade.hasstock.skustock.json",
+#         "test.trade.hasstock.saleorder.json",
+#         "test.trade.hasstock.saletrade.json",
+#         "test.trade.hasstock.saleproduct.json",
+#     ]
+#
+#     def setUp(self):
+#         self.username = '13739234188'
+#         self.password = '123456'
+#         self.client.login(username=self.username, password=self.password)
+#         self.sale_trade_id = 468659
+#         self.sale_order_id = 521465
+#         self.sku_id = 280052
+#         self.user_id = 923802
+#
+#     def test_hasstock_process(self):
+#         """用户支付"""
+#         stock = SkuStock.get_by_sku(self.sku_id)
+#         print stock.__dict__
+#         stock.restat()
+#         print stock.__dict__
+#         self.assertEqual(SkuStock.get_by_sku(self.sku_id).restat(), [])
+#         sale_trade = SaleTrade.objects.get(id=self.sale_trade_id)
+#         sale_trade.pay_confirm()
+#         sku = ProductSku.objects.get(id=self.sku_id)
+#         so = SaleOrder.objects.get(id=self.sale_order_id)
+#         self.assertEqual(so.status, SaleOrder.WAIT_SELLER_SEND_GOODS)
+#         self.assertEqual(so.package_sku.pay_time, so.pay_time)
+#         pa = so.package_sku.get_purchase_arrangement()
+#         stock = SkuStock.get_by_sku(self.sku_id)
+#         self.assertEqual(stock.restat(), [])
+#         self.assertEqual(pa, None)
+#         self.assertEqual(SkuStock.get_by_sku(self.sku_id).restat(), [])
+#         """合单"""
+#         psi = PackageSkuItem.objects.get(oid=so.oid)
+#         psi.merge()
+#         self.assertEqual(psi.assign_status, 1)
+#         self.assertEqual(SkuStock.get_by_sku(self.sku_id).restat(), [])
+#         """打单"""
+#         psi = PackageSkuItem.objects.get(oid=so.oid)
+#         PackageOrder.batch_set_operator([psi.package_order_pid], 'yanhuang')
+#         po = psi.package_order
+#         out_sid = '123456789'
+#         po.set_out_sid(out_sid, False, 'test')
+#         self.assertEqual(SkuStock.get_by_sku(self.sku_id).restat(), [])
+#         """打单称重"""
+#         po.print_picking()
+#         user = DjUser.objects.get(id=self.user_id)
+#         po.scancheck(user)
+#         self.assertEqual(SkuStock.get_by_sku(self.sku_id).restat(), [])
+#         po.scanweight(user)
+#         self.assertEqual(SkuStock.get_by_sku(self.sku_id).restat(), [])
+#         po.finish()
+#         self.assertEqual(SkuStock.get_by_sku(self.sku_id).restat(), [])
+#         print SkuStock.get_by_sku(self.sku_id).__dict__
 
 
 class PSIThirdSendTestCase(TestCase):
