@@ -387,10 +387,9 @@ class SaleTrade(BaseModel):
             if not settings.INGORE_SIGNAL_EXCEPTION:
                 raise exc
 
-    @transaction.atomic
+
     def charge_confirm(self, charge_time=None, charge=charge):
         """ 如果付款期间，订单被订单号任务关闭则不减锁定数量 """
-
         logger.info({
             'action': 'trade_confirm_start',
             'order_no': self.tid,
@@ -398,25 +397,26 @@ class SaleTrade(BaseModel):
             'pay_time': charge_time,
             'action_time': datetime.datetime.now()
         })
+        with transaction.atomic():
+            st = SaleTrade.objects.select_for_update().get(id=self.id)
+            if st.status != SaleTrade.WAIT_BUYER_PAY:
+                return
 
-        st = SaleTrade.objects.select_for_update().get(id=self.id)
-        if st.status == SaleTrade.WAIT_SELLER_SEND_GOODS:
-            return
+            st.status   = SaleTrade.WAIT_SELLER_SEND_GOODS
+            if charge:
+                st.charge   = charge
+            st.pay_time = charge_time or datetime.datetime.now()
+            st.save(update_fields=['status', 'pay_time', 'charge'])
 
-        trade_close = st.is_closed()
-        st.status   = SaleTrade.WAIT_SELLER_SEND_GOODS
-        if charge:
-            st.charge   = charge
-        st.pay_time = charge_time or datetime.datetime.now()
-        update_model_fields(st, update_fields=['status', 'pay_time', 'charge'])
+            for order in st.sale_orders.all():
+                order.status = order.WAIT_SELLER_SEND_GOODS
+                order.pay_time = st.pay_time
+                order.save()
 
-        for order in st.sale_orders.all():
-            order.status = order.WAIT_SELLER_SEND_GOODS
-            order.pay_time = st.pay_time
-            order.save()
         # 付款后订单被关闭，则加上锁定数
-        if trade_close:
-            st.increase_lock_skunum()
+        # if trade_close:
+        #     st.increase_lock_skunum()
+
         # 如果使用余额支付,付款成功后则扣除
         if st.has_budget_paid:
             try:

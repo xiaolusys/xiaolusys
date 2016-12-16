@@ -9,9 +9,9 @@ from django.db.models.signals import post_save
 
 
 class XiaoluAdministrator(BaseModel):
-    user_id = models.IntegerField(verbose_name=u'后台用户id')
-    username = models.CharField(max_length=64, verbose_name=u'管理员后台用户名')
-    nick = models.CharField(max_length=64, verbose_name=u'管理员昵称', null=True, default=None)
+    user_id = models.IntegerField(verbose_name=u'管理员用户id')
+    username = models.CharField(max_length=64, verbose_name=u'管理员用户名')
+    nick = models.CharField(max_length=64, verbose_name=u'二维码归属人昵称', null=True, default=None)
     head_img_url = models.CharField(max_length=256, null=True, default=None, verbose_name=u'管理员头像')
     weixin_qr_img = models.CharField(max_length=255, verbose_name=u'管理员二维码')
     STATUS_CHOICES = ((0, u'初始'),
