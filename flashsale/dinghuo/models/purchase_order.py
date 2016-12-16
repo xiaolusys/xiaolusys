@@ -359,7 +359,8 @@ class OrderList(models.Model):
     @property
     def purchase_order(self):
         from flashsale.dinghuo.models_purchase import PurchaseOrder
-        return PurchaseOrder.objects.get(uni_key=self.purchase_order_unikey)
+        if self.purchase_order_unikey:
+            return PurchaseOrder.objects.get(uni_key=self.purchase_order_unikey)
 
     @property
     def package_sku_items(self):
