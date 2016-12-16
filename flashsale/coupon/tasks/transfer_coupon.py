@@ -150,6 +150,30 @@ def _send_msg_ding_talk(msg):
         dd.sendMsg(msg, touser)
 
 
+def _check_virtual_trade_status(time_from=None, time_to=None):
+    # type: (Optional[datetime], Optional[datetime]) -> Dict[str, List[int]]
+    """检查 已付款单 电子商品  交易成功没有精品券的商品
+    """
+    from flashsale.pay.models import SaleOrder, SaleTrade
+    from flashsale.coupon.models import CouponTransferRecord
+
+    tt = time_to or datetime.datetime.now()
+    tf = time_from or (tt - datetime.timedelta(days=2))
+    orders = SaleOrder.objects.filter(
+                                      sale_trade__order_type=SaleTrade.ELECTRONIC_GOODS_ORDER,
+                                      status__in=[SaleOrder.TRADE_FINISHED, SaleOrder.WAIT_SELLER_SEND_GOODS])
+    ordersv = orders.values('id', 'status', 'oid')
+    paid = []
+    success_no_transfer = []
+    for order in ordersv:
+        if order['status'] == SaleOrder.WAIT_SELLER_SEND_GOODS:
+            paid.append(order['id'])
+        if order['status'] == SaleOrder.TRADE_FINISHED:
+            if not CouponTransferRecord.objects.filter(order_no=order['oid']).exists():
+                success_no_transfer.append(order['id'])
+    return paid, success_no_transfer
+
+
 @app.task()
 def task_check_transfer_coupon_record():
     """定时检查　流通记录　是否有　异常记录　有则发送　钉钉消息给　后台同事
@@ -178,3 +202,12 @@ def task_check_transfer_coupon_record():
         return
     msg = '--------------'.join(data)
     _send_msg_ding_talk(msg)
+    paid, success_no_transfer = _check_virtual_trade_status()
+    paid = [str(i) for i in paid]
+    success_no_transfer = [str(j) for j in success_no_transfer]
+    if not (paid or success_no_transfer):
+        return
+    msg2 = '\n电子商品订单检查 :\n' \
+           '1. 已付款状态id:\n%s' \
+           '\n2. 交易成功没有流通记录id:\n%s' % ('\n'.join(paid), '\n'.join(success_no_transfer))
+    _send_msg_ding_talk(msg2)
