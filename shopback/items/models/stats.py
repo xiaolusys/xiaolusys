@@ -462,6 +462,7 @@ class SkuStock(models.Model):
         SkuStock.stat_warning(sku_id, change_fields, warning, stat)
 
     @staticmethod
+    @transaction.atomic
     def add_inbound_quantity(sku_id, num, stat=STAT_SIGN, warning=WARNING):
         stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
         stock.return_quantity += num
@@ -469,6 +470,7 @@ class SkuStock(models.Model):
         stock.stat_save(change_fields, stat=stat, warning=warning)
 
     @staticmethod
+    @transaction.atomic
     def add_return_quantity(sku_id, num, stat=STAT_SIGN, warning=WARNING):
         stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
         stock.return_quantity += num
@@ -476,6 +478,7 @@ class SkuStock(models.Model):
         stock.stat_save(change_fields, stat=stat, warning=warning)
 
     @staticmethod
+    @transaction.atomic
     def add_shoppingcart_num(sku_id, num, stat=STAT_SIGN, warning=WARNING):
         stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
         stock.shoppingcart_num += num
@@ -483,6 +486,7 @@ class SkuStock(models.Model):
         stock.stat_save(change_fields, stat=stat, warning=warning)
 
     @staticmethod
+    @transaction.atomic
     def add_waitingpay_num(sku_id, num, stat=STAT_SIGN, warning=WARNING):
         stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
         stock.waitingpay_num += num
@@ -490,6 +494,7 @@ class SkuStock(models.Model):
         stock.stat_save(change_fields, stat=stat, warning=warning)
 
     @staticmethod
+    @transaction.atomic
     def set_order_paid_num(sku_id, num, stat=STAT_SIGN, warning=WARNING):
         stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
         stock.paid_num += num
