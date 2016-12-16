@@ -744,7 +744,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         """
         购物车订单支付接口
         """
-
         self.logger_request(request)
         user_agent = request.META.get('HTTP_USER_AGENT')
         content = request.data
@@ -905,44 +904,44 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             })
             return Response({'code': 8, 'info': u'订单创建异常'})
 
-        # try:
-        if channel == SaleTrade.WALLET:
-            # 妈妈钱包支付 2016-4-23 关闭代理钱包支付功能
-            return Response({'code': 10, 'info': u'妈妈钱包支付功能已取消'})
-            # response_charge = self.wallet_charge(sale_trade)
-        elif channel == SaleTrade.BUDGET:
-            # 小鹿钱包
-            response_charge = self.budget_charge(sale_trade)
-        else:
-            # pingpp 支付
-            response_charge = self.pingpp_charge(sale_trade)
-        if sale_trade.order_type == 3:
-            order_success_url = CONS.TEAMBUY_SUCCESS_URL.format(order_tid=sale_trade.tid) \
-                                + '?from_page=order_commit'
-        else:
-            order_success_url = CONS.MALL_PAY_SUCCESS_URL.format(order_id=sale_trade.id, order_tid=sale_trade.tid)
-        # except IntegrityError, exc:
-        #     logger.error({
-        #         'code': 9,
-        #         'message': u'订单重复提交:%s' % exc,
-        #         'channel': channel,
-        #         'user_agent': user_agent,
-        #         'stype': 'restpro.trade',
-        #         'tid': tuuid,
-        #         'data': '%s' % content
-        #     }, exc_info=True)
-        #     return Response({'code': 9, 'info': u'订单重复提交'})
-        # except Exception, exc:
-        #     logger.error({
-        #         'code': 6,
-        #         'message': u'未知支付异常:%s' % exc,
-        #         'channel': channel,
-        #         'user_agent': user_agent,
-        #         'stype': 'restpro.trade',
-        #         'tid': tuuid,
-        #         'data': '%s' % content
-        #     }, exc_info=True)
-        #     return Response({'code': 6, 'info': str(exc) or u'未知支付异常'})
+        try:
+            if channel == SaleTrade.WALLET:
+                # 妈妈钱包支付 2016-4-23 关闭代理钱包支付功能
+                return Response({'code': 10, 'info': u'妈妈钱包支付功能已取消'})
+                # response_charge = self.wallet_charge(sale_trade)
+            elif channel == SaleTrade.BUDGET:
+                # 小鹿钱包
+                response_charge = self.budget_charge(sale_trade)
+            else:
+                # pingpp 支付
+                response_charge = self.pingpp_charge(sale_trade)
+            if sale_trade.order_type == 3:
+                order_success_url = CONS.TEAMBUY_SUCCESS_URL.format(order_tid=sale_trade.tid) \
+                                    + '?from_page=order_commit'
+            else:
+                order_success_url = CONS.MALL_PAY_SUCCESS_URL.format(order_id=sale_trade.id, order_tid=sale_trade.tid)
+        except IntegrityError, exc:
+            logger.error({
+                'code': 9,
+                'message': u'订单重复提交:%s' % exc,
+                'channel': channel,
+                'user_agent': user_agent,
+                'stype': 'restpro.trade',
+                'tid': tuuid,
+                'data': '%s' % content
+            }, exc_info=True)
+            return Response({'code': 9, 'info': u'订单重复提交'})
+        except Exception, exc:
+            logger.error({
+                'code': 6,
+                'message': u'未知支付异常:%s' % exc,
+                'channel': channel,
+                'user_agent': user_agent,
+                'stype': 'restpro.trade',
+                'tid': tuuid,
+                'data': '%s' % content
+            }, exc_info=True)
+            return Response({'code': 6, 'info': str(exc) or u'未知支付异常'})
 
         return Response({
             'code': 0,
