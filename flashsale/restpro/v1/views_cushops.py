@@ -19,6 +19,7 @@ from flashsale.xiaolumm.models.models_rebeta import AgencyOrderRebetaScheme
 from flashsale.xiaolumm.models import XiaoluMama, MamaTabVisitStats
 from flashsale.pay.models import Customer, CustomerShops, CuShopPros
 from flashsale.restpro import permissions as perms
+from common.urlutils import replace_domain
 from . import serializers
 
 
@@ -77,7 +78,7 @@ class CustomerShopsViewSet(viewsets.ModelViewSet):
 
             preview_link = urlparse.urljoin('http://m.xiaolumeimei.com', preview_link)
             first_pro_pic = customer.thumbnail
-            shop_info['shop_link'] = link
+            shop_info['shop_link'] = replace_domain(link)
             shop_info['thumbnail'] = first_pro_pic  # customer.thumbnail  # 提供用户头像
             shop_info['desc'] = '{0}の精品店铺'.format(customer.nick) + random.choice(decs)
             shop_info['preview_shop_link'] = preview_link  # 预览链接http
