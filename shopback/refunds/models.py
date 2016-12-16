@@ -371,12 +371,11 @@ def update_productskustats_refund_quantity(sender, instance, created, **kwargs):
         instance.sku_id = sku_id
     if instance.sku_id:
         instance.add_into_stock()
-        instance.in_stock = True
-        instance.save()
-        task_update_inferiorsku_return_quantity.delay(sku_id)
+        RefundProduct.objects.filter(id=instance.id).update(in_stock=True)
+        task_update_inferiorsku_return_quantity.delay(instance.sku_id)
     else:
         logger.warn({"action": "buy_rf", "info": "RefundProduct update_productskustats_refund_quantity error :" + str(RefundProduct.id)})
 
 
-# post_save.connect(update_productskustats_refund_quantity, sender=RefundProduct, dispatch_uid='post_save_update_productskustats_refund_quantity')
+post_save.connect(update_productskustats_refund_quantity, sender=RefundProduct, dispatch_uid='post_save_update_productskustats_refund_quantity')
 
