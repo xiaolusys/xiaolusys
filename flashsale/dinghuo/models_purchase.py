@@ -380,6 +380,8 @@ class PurchaseArrangement(BaseModel):
         # 已执行过本方法的再次执行没有问题 应该注意 initial_book为True和status为１正常不该执行此方法
         if pa.purchase_order_unikey == 's0':
             return
+        pa.gen_order = True
+        pa.save()
         uni_key = utils.gen_purchase_detail_unikey(pa)
         pd = PurchaseDetail.objects.filter(uni_key=uni_key).first()
         if not pd:
@@ -394,8 +396,6 @@ class PurchaseArrangement(BaseModel):
                     pa.generate_order(retry=False)
                 else:
                     raise Exception(u'PA(%s)对应的订货单(%s)已订货无法再订' % (pa.oid, pa.purchase_order_unikey))
-        pa.gen_order = True
-        pa.save()
         pa.skuitem.set_status_prepare_book()
 
     def get_purchase_detail_unikey(pa):

@@ -1412,6 +1412,12 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
+    u'每10分钟定时订货':{
+        'task': 'flashsale.dinghuo.tasks.task_purchase_arrangement_gen_order',
+        'schedule': crontab(minute="*/10"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
     u'每日统计订单延时发货数量': {
         'task': 'flashsale.dinghuo.tasks.task_save_package_backorder_stats',
         'schedule': crontab(minute="30", hour="23"),
