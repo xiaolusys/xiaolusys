@@ -153,12 +153,9 @@ def create_user_coupon(customer_id, coupon_template_id,
     return cou, 0, u"领取成功"
 
 
-def create_boutique_user_coupon(customer, tpl, unique_key=None,
-                           ufrom='wap', **kwargs):
-
-
-    # type: (int, int, Optional[text_type], Optional[int], Optional[int],
-    # Optional[int], Optional[float], Optional[text_type], **Any) ->Tuple[Optional[UserCoupon], int, text_type]
+def create_boutique_user_coupon(customer, tpl, unique_key=None, ufrom='wap', **kwargs):
+    # type: (Customer, CouponTemplate, Optional[text_type], text_type, **Any) ->
+    # Tuple[Optional[UserCoupon], int, text_type]
     """创建boutique类型优惠券
     """
     if not _check_target_user(customer, tpl):
@@ -285,6 +282,7 @@ def transfer_coupons(coupons, to_customer_id, transfer_record_id, chain):
     """转券
     """
     from .transfercoupondetail import create_transfer_coupon_detail
+
     coupon_ids = []
     for coupon in coupons:
         coupon.customer_id = to_customer_id
