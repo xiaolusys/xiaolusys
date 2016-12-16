@@ -103,6 +103,7 @@ def task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, prod
             template_id, order_id, order_oid, order_num, product_id),
     })
 
+
 def _diff_coupons(mama_id):
     # type: (int) -> List[Dict[*Any]]
     """妈妈流通记录检查不一致的数据输出

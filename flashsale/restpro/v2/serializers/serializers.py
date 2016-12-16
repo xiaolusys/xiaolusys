@@ -320,8 +320,8 @@ class XlmmFansSerializer(serializers.ModelSerializer):
         mobile = m.strip()
         if len(mobile) == 11:
             m = ''.join([m.strip()[0:3], '****', m.strip()[7::]])
-        else:
-            m = u'异常用户'
+        # else:
+        #     m = u'异常用户'
         return m
 
 

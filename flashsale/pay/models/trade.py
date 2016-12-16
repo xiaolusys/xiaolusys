@@ -1205,7 +1205,13 @@ def post_save_order_trigger(sender, instance, created, raw, **kwargs):
     """
     SaleOrder save triggers adding carry to OrderCarry.
     """
-    if raw: return
+    if raw:
+        return
+
+    from flashsale.coupon.apis.v1.transfer import send_order_transfer_coupons
+    from flashsale.xiaolumm.tasks import task_update_referal_relationship, task_order_trigger
+    from flashsale.coupon.apis.v1.transfer import send_new_elite_transfer_coupons
+
     def _order_trigger(instance):
         if instance.is_deposit():
             if instance.is_confirmed():
@@ -1213,23 +1219,18 @@ def post_save_order_trigger(sender, instance, created, raw, **kwargs):
                     return
                 if instance.is_transfer_coupon():
                     if instance.is_new_elite_deposit():
-                        from flashsale.coupon.apis.v1.transfer import send_new_elite_transfer_coupons
                         send_new_elite_transfer_coupons(instance.sale_trade.buyer_id, instance.id,
-                                                    instance.oid, instance.item_id)
+                                                        instance.oid, instance.item_id)
                         return
                     else:
-                        from flashsale.coupon.apis.v1.transfer import send_order_transfer_coupons
                         send_order_transfer_coupons(instance.sale_trade.buyer_id, instance.id,
-                                                   instance.oid, instance.num, instance.item_id)
+                                                    instance.oid, instance.num, instance.item_id)
                         return
-
-                from flashsale.xiaolumm.tasks import task_update_referal_relationship
                 task_update_referal_relationship.delay(instance)
         else:
-            from flashsale.xiaolumm.tasks import task_order_trigger
             task_order_trigger.delay(instance)
 
-    transaction.on_commit(lambda :_order_trigger(instance))
+    transaction.on_commit(lambda: _order_trigger(instance))
 
 post_save.connect(post_save_order_trigger, sender=SaleOrder, dispatch_uid='post_save_order_trigger')
 
