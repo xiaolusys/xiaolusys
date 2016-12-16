@@ -323,8 +323,8 @@ class UserBudget(PayBaseModel):
     class Meta:
         db_table = 'flashsale_userbudget'
         app_label = 'pay'
-        verbose_name = u'特卖/用户钱包'
-        verbose_name_plural = u'特卖/用户钱包列表'
+        verbose_name = u'特卖/用户零钱'
+        verbose_name_plural = u'特卖/用户零钱列表'
 
     user = models.OneToOneField(Customer, verbose_name=u'原始用户')
     amount = models.IntegerField(default=0, verbose_name=u'账户余额(分)')

@@ -227,10 +227,12 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         xlmm = XiaoluMama.objects.get(openid=buyer_unionid)
         urows = XiaoluMama.objects.filter(
             openid=buyer_unionid,
-            cash__gte=payment).update(cash=models.F('cash')-payment)
+            cash__gte=payment
+        ).update(cash=models.F('cash') - payment)
         logger.info('wallet charge:saletrade=%s, updaterows=%d'%(sale_trade, urows))
         if urows == 0 :
             raise Exception(u'妈妈钱包余额不足')
+
         CarryLog.objects.create(xlmm=xlmm.id,
                                 order_num=strade_id,
                                 buyer_nick=buyer_nick,
@@ -241,41 +243,44 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         confirmTradeChargeTask.delay(strade_id)
         return {'channel':channel,'success':True,'id':sale_trade.id,'info':'订单支付成功', 'from_page': 'order_commit'}
 
-    @transaction.atomic
     def budget_charge(self, sale_trade, check_coupon=True, **kwargs):
         """
         小鹿钱包支付实现
         """
-        if check_coupon:
-            self.check_before_charge(sale_trade)
+        with transaction.atomic():
+            buyer = Customer.objects.select_for_update().get(pk=sale_trade.buyer_id)
+            if check_coupon:
+                self.check_before_charge(sale_trade)
 
-        buyer = Customer.objects.get(pk=sale_trade.buyer_id)
-        payment = round(sale_trade.payment * 100)
-        strade_id = sale_trade.id
-        channel = sale_trade.channel
+            payment = round(sale_trade.payment * 100)
+            strade_id = sale_trade.id
+            channel = sale_trade.channel
 
-        if payment > 0:
-            user_budget = UserBudget.objects.filter(user=buyer, amount__gte=payment).first()
-            if not user_budget:
-                raise Exception(u'小鹿钱包余额不足')
-
-            BudgetLog.objects.create(
-                customer_id=buyer.id,
-                referal_id=strade_id,
-                flow_amount=payment,
-                budget_log_type=BudgetLog.BG_CONSUM,
-                budget_type=BudgetLog.BUDGET_OUT,
-                status=BudgetLog.CONFIRMED
-            )
+            if payment > 0:
+                user_budget = UserBudget.objects.filter(user=buyer, amount__gte=payment).first()
+                if not user_budget:
+                    raise Exception(u'小鹿钱包余额不足')
+                try:
+                    BudgetLog.objects.create(
+                        customer_id=buyer.id,
+                        referal_id=strade_id,
+                        flow_amount=payment,
+                        budget_log_type=BudgetLog.BG_CONSUM,
+                        budget_type=BudgetLog.BUDGET_OUT,
+                        status=BudgetLog.CONFIRMED,
+                        uni_key='st_%s'%sale_trade.id
+                    )
+                except IntegrityError, exc:
+                    logger.error(str(exc), exc_info=True)
 
         # 确认付款后保存
         confirmTradeChargeTask(strade_id)
 
-        if sale_trade.order_type == 3:
+        if sale_trade.order_type == SaleTrade.TEAMBUY_ORDER:
             success_url = CONS.TEAMBUY_SUCCESS_URL.format(order_tid=sale_trade.tid) + '?from_page=order_commit'
         else:
-            success_url = CONS.MALL_PAY_SUCCESS_URL.format(order_id=sale_trade.id, order_tid=sale_trade.tid) \
-                          + '?from_page=order_commit'
+            success_url = CONS.MALL_PAY_SUCCESS_URL.format(order_id=sale_trade.id, order_tid=sale_trade.tid)
+            success_url += '?from_page=order_commit'
 
         return {
             'channel': channel,
