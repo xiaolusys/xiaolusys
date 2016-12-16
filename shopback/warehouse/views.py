@@ -30,8 +30,7 @@ class PackagOrderOperateView(APIView):
         package_order_ids = content.get('package_order_ids')
         operator = content.get('operator', '')
         package_order_ids = package_order_ids.split(',')
-        PackageOrder.objects.filter(pid__in=package_order_ids, is_locked=False).update(
-            is_locked=True, operator=operator)
+        PackageOrder.batch_set_operator(package_order_ids, operator)
         return Response({'isSuccess': True})
 
     get = post
@@ -54,11 +53,7 @@ class PackagOrderRevertView(APIView):
             content[k] = v
 
         package_order_ids = content.get('package_order_ids')
-        for package_order in PackageOrder.objects.filter(pid__in=package_order_ids.split(','), is_locked=True):
-            package_order.is_express_print = False
-            package_order.is_picking_print = False
-            package_order.out_sid = ''
-            package_order.save()
+        PackageOrder.batch_revert_status(package_order_ids.split(','))
         return Response({'isSuccess': True})
 
     get = post
@@ -68,7 +63,6 @@ class PackagOrderExpressView(APIView):
     """ 订单打单 """
 
     def post(self, request, *args, **kwargs):
-        # def setOutSid(package_order_id, out_sid, is_qrcode=False, qrcode_msg=''):
         content = request.data.copy()
         for k, v in request.GET.iteritems():
             content[k] = v
@@ -77,19 +71,17 @@ class PackagOrderExpressView(APIView):
         out_sid = content.get('out_sid', '')
         is_qrcode = content.get('is_qrcode', False)
         qrcode_msg = content.get('qrcode_msg', '')
-
-        PackageOrder.objects.filter(pid=package_order_id).update(out_sid=out_sid, is_qrcode=is_qrcode,
-                                                                 qrcode_msg=qrcode_msg)
-        package_order = PackageOrder.objects.get(pid=package_order_id)
-        from shopback.trades.models import MergeOrder
-        for package_sku_item in PackageSkuItem.objects.filter(package_order_id=package_order.id, assign_status=1):
-            MergeOrder.objects.filter(sale_order_id=package_sku_item.sale_order_id).update(sys_status=MergeOrder.DELETE)
+        po = PackageOrder.objects.get(pid=package_order_id)
+        po.set_out_sid(out_sid=out_sid, is_qrcode=is_qrcode, qrcode_msg=qrcode_msg)
+        # PackageOrder.objects.filter(pid=package_order_id).update(out_sid=out_sid, is_qrcode=is_qrcode,
+        #                                                          qrcode_msg=qrcode_msg)
         return Response({'isSuccess': True})
 
     get = post
 
     def printPicking(self, package_order_id):
-        PackageOrder.objects.filter(pid=package_order_id).update(is_picking_print=True)
+        PackageOrder.objects.filter(pid=package_order_id).first().print_picking()
+        # PackageOrder.batch_set_picking_print([package_order_id])
         return Response({'isSuccess': True})
 
 
@@ -181,6 +173,7 @@ class PackageScanCheckView(APIView):
         package_order.sys_status = PackageOrder.WAIT_SCAN_WEIGHT_STATUS
         package_order.scanner = request.user.username
         package_order.save()
+        # package_order.scancheck(request.user)
         return Response({'isSuccess': True})
 
     @staticmethod
@@ -198,7 +191,6 @@ class PackageScanCheckView(APIView):
         except:
             return False
 
-from flashsale.dinghuo.tasks import task_stats_paytopack
 
 
 ########################## 订单重量入库 ###########################

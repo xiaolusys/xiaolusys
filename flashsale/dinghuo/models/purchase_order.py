@@ -420,7 +420,7 @@ class OrderList(models.Model):
         self.third_package = True
         self.bill_method = OrderList.PC_COD_TYPE
         self.is_postpay = True
-        self.purchase_order.book()
+        self.purchase_order.book(third_package=True)
         self.ware_by = self.supplier.ware_by
         _now = datetime.datetime.now()
         self.add_note(u'-->%s:审核第三方发货订货单' % _now.strftime('%m月%d %H:%M'), save=False)
@@ -510,6 +510,7 @@ class OrderList(models.Model):
         _now = datetime.datetime.now()
         self.add_note(u'-->%s:审核订货单' % _now.strftime('%m月%d %H:%M'), save=False)
         self.save(update_fields=['stage', 'status', 'is_postpay', 'checked_time', 'ware_by', 'note'])
+        self.purchase_order.book()
         try:
             from flashsale.forecast.models.forecast import ForecastInbound
             ForecastInbound.reset_forecast(self.id)
@@ -694,7 +695,7 @@ class OrderList(models.Model):
                      saleproduct.supplier_sku if saleproduct else '', str(p.sale_trade.buyer_nick),
                      str(p.product_sku.product.name), str(p.product_sku.properties_name),
                      str(p.product_sku.cost), str(p.num), '0', '0', '0', '0', '', str(p.sale_trade.receiver_name),
-                     str(o.user_address.identification_no) if o and o.user_address else '',
+                     '\'' + str(o.user_address.identification_no) if o and o.user_address else '',
                      str(o.receiver_state), str(o.receiver_city), str(o.receiver_district),
                               str(o.receiver_address), '', p.sale_trade.receiver_mobile, '', '', '', '',
                      p.sale_trade.created.strftime('%Y-%m-%D %H:%M:%S'),

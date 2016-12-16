@@ -43,19 +43,21 @@ class PurchaseOrder(BaseModel):
         verbose_name_plural = u'v2/订货表'
 
     @transaction.atomic
-    def book(self):
+    def book(self, third_package=False):
         from shopback.trades.models import PackageSkuItem
         self.status = PurchaseOrder.BOOKED
         self.save()
-        PurchaseDetail.objects.filter(purchase_order_unikey=self.uni_key).update(status=PurchaseOrder.BOOKED)
-        pas = PurchaseArrangement.objects.filter(purchase_order_unikey=self.uni_key, status=PurchaseArrangement.EFFECT)
-        oids = [p.oid for p in pas]
-        pas.update(purchase_order_status=self.status, initial_book=True)
-        ps = PackageSkuItem.objects.filter(oid__in=oids)
-        ps.update(purchase_order_unikey=self.uni_key, assign_status=PackageSkuItem.VIRTUAL_ASSIGNED,
-                  status=PSI_STATUS.BOOKED, book_time=datetime.datetime.now())
-        for p in ps:
-            p.gen_package()
+        self.details.update(status=PurchaseOrder.BOOKED)
+        self.arrangements.filter(status=PurchaseArrangement.EFFECT).update(purchase_order_status=self.status, initial_book=True)
+        oids = [pa.oid for pa in self.arrangements.filter(status=PurchaseArrangement.EFFECT)]
+        book_time = datetime.datetime.now()
+        # PackageSkuItem.objects.filter(oid__in=oids).update(purchase_order_unikey=self.uni_key, booked_time=book_time)
+        if not third_package:
+            for p in PackageSkuItem.objects.filter(oid__in=oids):
+                p.set_status_booked(self.uni_key)
+        else:
+            for p in PackageSkuItem.objects.filter(oid__in=oids):
+                p.set_status_virtual_booked(self.uni_key)
 
     @staticmethod
     def gen_purchase_order_unikey(psi):
@@ -376,8 +378,6 @@ class PurchaseArrangement(BaseModel):
 
     def generate_order(pa, retry=False):
         # 已执行过本方法的再次执行没有问题 应该注意 initial_book为True和status为１正常不该执行此方法
-        # if pa.gen_order:
-        #    return
         if pa.purchase_order_unikey == 's0':
             return
         uni_key = utils.gen_purchase_detail_unikey(pa)
@@ -393,9 +393,10 @@ class PurchaseArrangement(BaseModel):
                     pa.save()
                     pa.generate_order(retry=False)
                 else:
-                    raise Exception(u'PA(%s)对应的订货单()已订货无法再订' % (pa.oid, pa.purchase_order_unikey))
+                    raise Exception(u'PA(%s)对应的订货单(%s)已订货无法再订' % (pa.oid, pa.purchase_order_unikey))
         pa.gen_order = True
         pa.save()
+        pa.skuitem.set_status_prepare_book()
 
     def get_purchase_detail_unikey(pa):
         sku_id = pa.sku_id

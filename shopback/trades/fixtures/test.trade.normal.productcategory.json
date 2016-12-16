@@ -1,0 +1,16 @@
+[
+{
+ "model": "categorys.productcategory",
+ "pk": 27,
+ "fields": {
+  "created": "2016-07-24T16:59:05",
+  "modified": "2016-07-24T16:59:05",
+  "parent_cid": 8,
+  "name": "\u5185\u8863",
+  "grade": 0,
+  "is_parent": false,
+  "status": "normal",
+  "sort_order": 100
+ }
+}
+]

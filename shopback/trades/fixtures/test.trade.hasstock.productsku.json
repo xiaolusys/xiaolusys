@@ -1,0 +1,39 @@
+[
+  {
+    "model": "items.productsku",
+    "pk": 280052,
+    "fields": {
+      "outer_id": "8272874107311",
+      "supplier_skucode": "",
+      "barcode": "8272874107311",
+      "product": 75471,
+      "quantity": 0,
+      "warn_num": 0,
+      "remain_num": 20,
+      "wait_post_num": 0,
+      "sale_num": 0,
+      "reduce_num": 0,
+      "lock_num": 0,
+      "sku_inferior_num": 0,
+      "cost": 25.0,
+      "std_purchase_price": 0.0,
+      "std_sale_price": 398.0,
+      "agent_price": 49.9,
+      "staff_price": 0.0,
+      "weight": "",
+      "properties_name": "70A",
+      "properties_alias": "70A",
+      "is_split": false,
+      "is_match": false,
+      "sync_stock": true,
+      "is_assign": false,
+      "post_check": false,
+      "created": "2016-10-18T11:23:54",
+      "modified": "2016-10-18T11:23:54",
+      "status": "normal",
+      "match_reason": "",
+      "buyer_prompt": "",
+      "memo": ""
+    }
+  }
+]

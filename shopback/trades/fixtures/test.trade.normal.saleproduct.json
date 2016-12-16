@@ -1,0 +1,38 @@
+[
+{
+ "model": "supplier.saleproduct",
+ "pk": 556629,
+ "fields": {
+  "created": "2016-10-17T18:34:00",
+  "modified": "2016-10-17T18:34:00",
+  "tags": "",
+  "outer_id": "OO1476700440",
+  "title": "\u4e30\u6e21\u6587\u80f8\u79cb\u51ac\u5c0f\u80f8\u5973\u58eb\u5185\u8863\u805a\u62e2\u80f8\u7f69\u6536\u526f\u4e73\u900f\u6c14\u6df1V\u8c03\u6574\u578b\u6587\u80f88516-tmall.com\u5929\u732b",
+  "price": 0.0,
+  "pic_url": "//img.alicdn.com/bao/uploaded/i3/TB1cy4gJVXXXXbxXVXXXXXXXXXX_!!0-item_pic.jpg",
+  "product_link": "https://detail.tmall.com/item.htm?spm=a1z10.1-b.w5003-12599846069.8.W4K3PA&id=522710635541&rn=47d44e3aa9f9525ecbbb2555862939c4&abbucket=6&scene=taobao_shop&sku_properties=1627207:28341",
+  "sale_supplier": 28741,
+  "sale_category": 71,
+  "platform": "manual",
+  "hot_value": 0,
+  "stocking_mode": 0,
+  "voting": false,
+  "sale_price": 25.0,
+  "on_sale_price": 49.9,
+  "std_sale_price": 398.0,
+  "product_material": "",
+  "memo": "",
+  "is_changed": false,
+  "status": "passed",
+  "contactor": 923802,
+  "librarian": null,
+  "buyer": null,
+  "sale_time": "2016-10-20T00:00:00",
+  "reserve_time": null,
+  "supplier_sku": "8516",
+  "orderlist_show_memo": false,
+  "sku_extras": [],
+  "extras": {}
+ }
+}
+]

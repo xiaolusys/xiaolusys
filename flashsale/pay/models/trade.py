@@ -402,17 +402,14 @@ class SaleTrade(BaseModel):
             if st.status != SaleTrade.WAIT_BUYER_PAY:
                 return
 
-            st.status   = SaleTrade.WAIT_SELLER_SEND_GOODS
+            st.status = SaleTrade.WAIT_SELLER_SEND_GOODS
             if charge:
-                st.charge   = charge
+                st.charge = charge
             st.pay_time = charge_time or datetime.datetime.now()
             st.save(update_fields=['status', 'pay_time', 'charge'])
 
             for order in st.sale_orders.all():
-                order.status = order.WAIT_SELLER_SEND_GOODS
-                order.pay_time = st.pay_time
-                order.save()
-
+                order.set_status_paid(st.pay_time)
         # 付款后订单被关闭，则加上锁定数
         # if trade_close:
         #     st.increase_lock_skunum()
@@ -445,13 +442,9 @@ class SaleTrade(BaseModel):
         self.status = self.WAIT_SELLER_SEND_GOODS
         self.pay_time = datetime.datetime.now()
         self.save()
-        create_psi = (self.trade_type != SaleTrade.TEAMBUY_ORDER)
         for so in self.sale_orders.all():
-            so.status = so.WAIT_SELLER_SEND_GOODS
-            so.pay_time = self.pay_time
-            so.save()
-            if create_psi:
-                so.set_psi_paid()
+            so.set_status_paid(self.pay_time)
+        self.set_order_paid()
 
     def set_order_paid(self):
         if self.order_type == SaleTrade.SALE_ORDER:
@@ -936,13 +929,23 @@ class SaleOrder(PayBaseModel):
     def refundable(self):
         return self.get_refundable()
 
+    def set_status_paid(self, pay_time):
+        from shopback.trades.models import SkuStock
+        waitpay = self.status == SaleOrder.WAIT_BUYER_PAY
+        self.status = self.WAIT_SELLER_SEND_GOODS
+        self.pay_time = pay_time
+        self.save()
+        if waitpay:
+            SkuStock.set_order_paid_num(self.sku_id, self.num)
+
     def set_psi_paid(self):
         from shopback.trades.models import PackageSkuItem
         if self.sale_trade.order_type in [SaleTrade.RESERVE_ORDER, SaleTrade.DEPOSITE_ORDER, SaleTrade.ELECTRONIC_GOODS_ORDER]:
             return
         if self.is_teambuy() and not self.teambuy_can_send():
             return
-        psi = PackageSkuItem.create(self)
+        if not PackageSkuItem.objects.filter(sale_order_id=self.id).exists():
+            psi = PackageSkuItem.create(self)
 
     def set_psi_cancel(self):
         if self.package_sku:
@@ -1246,7 +1249,7 @@ def update_package_sku_item(sender, instance, created, **kwargs):
 def saleorder_update_productskustats_waitingpay_num(sender, instance, *args, **kwargs):
 
     from shopback.items.tasks_stats import task_saleorder_update_productskustats_waitingpay_num
-    transaction.on_commit(lambda :task_saleorder_update_productskustats_waitingpay_num(instance.sku_id))
+    transaction.on_commit(lambda:task_saleorder_update_productskustats_waitingpay_num(instance.sku_id))
 
 
 if not settings.CLOSE_CELERY:
