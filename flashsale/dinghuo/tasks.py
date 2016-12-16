@@ -1863,3 +1863,9 @@ def task_save_package_backorder_stats():
 
     logger.info('task_save_package_backorder_stats end')
 
+
+@app.task()
+def task_purchase_arrangement_gen_order():
+    pas = PurchaseArrangement.objects.filter(gen_order=False)
+    for pa in pas:
+        pa.generate_order()
