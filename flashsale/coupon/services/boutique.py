@@ -6,7 +6,7 @@ from django.db import transaction, IntegrityError
 from flashsale.coupon.models import CouponTemplate
 
 @transaction.atomic
-def get_create_boutique_template(model_id, model_price, model_product_ids=[], model_title='', model_img=''):
+def get_or_create_boutique_template(model_id, model_price, model_product_ids=[], model_title='', model_img=''):
 
     boutique_no = '%s-boutique-%s'%(CouponTemplate.PREFIX_NO, model_id)
     ct = CouponTemplate.objects.select_for_update().filter(template_no=boutique_no).first()

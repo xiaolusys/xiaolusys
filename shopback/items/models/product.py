@@ -809,19 +809,41 @@ class Product(models.Model):
         return
 
     @classmethod
-    def handle_delete_sku(cls, model_pro, skus_list):
+    def handle_delete_sku(cls, model_pro, skus_list, action_user_id):
         """
         处理删除的ｓｋｕ方法
         # 如果　已经当前已经存在的sku　不在变更后 skus_list 中则 设置　product_sku instance 预留为0
         """
-        products = Product.objects.filter(model_id=model_pro.id)
+        from flashsale.pay.models import ModelProduct
+        from core.options import get_systemoa_user, log_action, CHANGE
+
+        sku_names_set = set()
+        products = Product.objects.filter(model_id=model_pro.id).only('id', 'name', 'status')
         for product in products:
-            for sku in product.normal_skus.all():
-                sku.remain_num = 0
-                sku.status = ProductSku.DELETE
-                sku.save(update_fields=['remain_num', 'status'])
-            product.status = Product.DELETE
-            product.save()
+            sku_valuelist = product.normal_skus.all().values(
+                'product__name', 'properties_name', 'properties_alias')
+            for item in sku_valuelist:
+                sku_names_set.add('%s-%s'%(item['product__name'].split('/')[-1].strip(),
+                                           (item['properties_name'] or item['properties_alias']).strip()))
+
+        new_sku_names_set = set()
+        for sku in skus_list:
+            new_sku_names_set.add('%s-%s'%(sku['color'].strip(), sku['properties_name'].strip()))
+        #已在上架状态的商品直接通过该接口修改规格名称, 如果商品已上架则不能将商品状态改成作废
+        if model_pro.shelf_status == ModelProduct.ON_SHELF and len(sku_names_set - new_sku_names_set) > 0:
+            raise ValueError('商品已上架，若要修改商品及规格名称请到库存商品页修改！！！')
+
+        if model_pro.shelf_status != ModelProduct.ON_SHELF:
+            for product in products:
+                for sku in product.normal_skus.all():
+                    sku.remain_num = 0
+                    sku.status = ProductSku.DELETE
+                    sku.save(update_fields=['remain_num', 'status'])
+                product.status = Product.DELETE
+                product.save()
+
+        if len(new_sku_names_set - sku_names_set) > 0:
+            log_action(action_user_id, model_pro, CHANGE, u'修改商品规格名称')
 
     @classmethod
     @transaction.atomic()
@@ -842,7 +864,7 @@ class Product(models.Model):
         is_boutique_coupon = model_pro.is_boutique_coupon
         saleproduct = model_pro.saleproduct
         skus_list = saleproduct.sku_extras
-        cls.handle_delete_sku(model_pro, skus_list)  # 处理删除的sku
+        cls.handle_delete_sku(model_pro, skus_list, creator.id)  # 处理删除的sku
         colors = set()  # 防止颜色重复
         products_list = []
         for x in skus_list:
@@ -936,7 +958,7 @@ class Product(models.Model):
                 model_pro = ModelProduct.objects.select_for_update().get(id=model_pro.id)
                 if model_pro.extras.get('template_id'):
                     return
-                from flashsale.coupon.services import get_create_boutique_template
+                from flashsale.coupon.services import get_or_create_boutique_template
                 product_ids = list(model_pro.products.values_list('id', flat=True))
                 usual_model_id = saleproduct.product_link.split('?')[0].split('/')[-1]
                 if not usual_model_id.isdigit():
@@ -946,7 +968,7 @@ class Product(models.Model):
                     raise ValueError('请输入正确的精品商品链接(商品需打上精品汇标记)')
 
                 # 创建精品券
-                coupon_template = get_create_boutique_template(
+                coupon_template = get_or_create_boutique_template(
                     model_pro.id, model_pro.lowest_agent_price, model_title=model_pro.name,
                     model_product_ids=product_ids, model_img=model_pro.head_img_url)
 
