@@ -380,19 +380,22 @@ class PurchaseArrangement(BaseModel):
         # 已执行过本方法的再次执行没有问题 应该注意 initial_book为True和status为１正常不该执行此方法
         if pa.purchase_order_unikey == 's0':
             return
-        pa.gen_order = True
-        pa.save()
+        PurchaseArrangement.objects.filter(id=pa.id).update(gen_order=True)
         uni_key = utils.gen_purchase_detail_unikey(pa)
         pd = PurchaseDetail.objects.filter(uni_key=uni_key).first()
         if not pd:
-            PurchaseDetail.create(pa)  # , uni_key)
+            PurchaseDetail.create(pa)
         else:
             if pd.is_open():
                 pd.restat()
             else:
                 if retry:
                     pa.reset_purchase_order()
-                    pa.save()
+                    # pa.save() 防止死循环
+                    PurchaseArrangement.objects.filter(id=pa.id).update(purchase_order_unikey=pa.purchase_order_unikey,
+                                                                        uni_key=pa.uni_key,
+                                                                        status=pa.status)
+                    pa = PurchaseArrangement.objects.get(id=pa.id)
                     pa.generate_order(retry=False)
                 else:
                     raise Exception(u'PA(%s)对应的订货单(%s)已订货无法再订' % (pa.oid, pa.purchase_order_unikey))
