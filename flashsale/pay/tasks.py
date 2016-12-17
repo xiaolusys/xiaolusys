@@ -16,8 +16,10 @@ from flashsale.pay.models import CustomerShops, CuShopPros
 from flashsale.pay.models import TradeCharge, SaleTrade, SaleOrder, SaleRefund, Customer,UserAddress, TeamBuy
 from flashsale.pay.models.score import IntegralLog, Integral
 from shopapp.weixin.models import WeiXinUser
+from shopback.trades.models import MergeTrade
 from .options import get_user_unionid
 from .services import FlashSaleService
+from .signals import signal_saleorder_post_update
 
 from shopapp.smsmgr.apis import send_sms_message, SMS_TYPE
 from django.contrib.admin.models import CHANGE
@@ -126,7 +128,7 @@ def task_Merge_Sale_Customer(user, code):
         logger.debug(exc.message, exc_info=True)
 
 
-from shopback.trades.models import MergeTrade
+
 
 
 @app.task()
@@ -158,6 +160,26 @@ def task_Push_SaleTrade_Finished(pre_days=10):
             strade.status = SaleTrade.TRADE_FINISHED
             strade.save(update_fields=['status'])
 
+@app.task(max_retries=3, default_retry_delay=5)
+def task_saleorder_post_update_send_signal(saleorder_id, created, raw):
+    try:
+        saleorder = SaleOrder.objects.get(id=saleorder_id)
+
+        logger.info({
+            'action': 'saleorder_update',
+            'action_time': datetime.datetime.now(),
+            'order_oid': saleorder.oid,
+            'order_status': saleorder.status
+        })
+
+        signal_saleorder_post_update.send_robust(
+            sender=SaleOrder,
+            instance=saleorder,
+            created=created,
+            raw=raw
+        )
+    except SaleOrder.DoesNotExist, exc:
+        raise task_saleorder_post_update_send_signal.retry(exc=exc)
 
 @app.task(max_retries=3, default_retry_delay=60)
 def confirmTradeChargeTask(sale_trade_id, charge_time=None, charge=None):
@@ -179,32 +201,30 @@ def notifyTradePayTask(notify):
         charge = notify['id']
         paid = notify['paid']
 
-        tcharge, state = TradeCharge.objects.get_or_create(order_no=order_no,
-                                                           charge=charge)
-        if not paid or tcharge.paid == True:
+
+        if not paid :
             return
 
-        update_fields = [
-            'paid', 'refunded', 'channel', 'amount', 'currency',
-            'transaction_no', 'amount_refunded', 'failure_code', 'failure_msg',
-            'time_paid', 'time_expire'
-        ]
-        update_fields = set(update_fields)
+        tcharge, state = TradeCharge.objects.get_or_create(order_no=order_no,
+                                                           charge=charge)
 
-        for k, v in notify.iteritems():
-            if k not in update_fields:
-                continue
-            if k in ('time_paid', 'time_expire'):
-                v = v and datetime.datetime.fromtimestamp(v)
-            if k in ('failure_code', 'failure_msg'):
-                v = v or ''
-            hasattr(tcharge, k) and setattr(tcharge, k, v)
-        tcharge.save()
+        if not tcharge.paid:
+            update_fields = [
+                'paid', 'refunded', 'channel', 'amount', 'currency',
+                'transaction_no', 'amount_refunded', 'failure_code', 'failure_msg',
+                'time_paid', 'time_expire'
+            ]
+            update_fields = set(update_fields)
 
-        #         order_no_tuple  = order_no.split('-')
-        #         is_post_confirm = False
-        #         if len(order_no_tuple) > 1:
-        #             is_post_confirm = True
+            for k, v in notify.iteritems():
+                if k not in update_fields:
+                    continue
+                if k in ('time_paid', 'time_expire'):
+                    v = v and datetime.datetime.fromtimestamp(v)
+                if k in ('failure_code', 'failure_msg'):
+                    v = v or ''
+                hasattr(tcharge, k) and setattr(tcharge, k, v)
+            tcharge.save()
 
         charge_time = tcharge.time_paid
         strade = SaleTrade.objects.get(tid=order_no)
@@ -304,7 +324,7 @@ def pull_Paid_SaleTrade(pre_day=1, interval=2):
     for order_no in unfinish_orderqs.values_list('tid', flat=True):
         try:
             charge_notify = xiaolupay.Charge.retrieve(order_no)
-            if charge_notify:
+            if charge_notify :
                 notifyTradePayTask(charge_notify)
         except Exception, exc:
             logger.error(exc.message, exc_info=True)

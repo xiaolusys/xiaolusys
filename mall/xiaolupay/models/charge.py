@@ -47,8 +47,8 @@ class ChargeOrder(BaseModel):
     transaction_no = models.CharField(max_length=64, blank=True, verbose_name=u'支付渠道流水单号')
 
     amount_refunded = models.IntegerField(default=0, verbose_name=u'退款金额(分)')
-    failure_code = models.CharField(max_length=32, blank=True, verbose_name=u'错误编码')
-    failure_msg  = models.CharField(max_length=32, blank=True, verbose_name=u'错误编码')
+    failure_code = models.CharField(max_length=64, blank=True, verbose_name=u'错误编码')
+    failure_msg  = models.CharField(max_length=512, blank=True, verbose_name=u'错误描述')
     description = models.CharField(max_length=256, blank=True, verbose_name=u'备注')
 
     extra   = JSONCharMyField(max_length=512, default={}, verbose_name=u'附加参数')
@@ -66,8 +66,11 @@ class ChargeOrder(BaseModel):
 
     @property
     def credential(self):
-        results = self.get_or_create_credential()
-        return results[0]
+        credent = Credential.objects.filter(
+                order_no=self.order_no,
+                channel=self.channel
+            ).first()
+        return credent and credent.extra or {}
 
     def get_or_create_credential(self):
         Credential.objects.get_or_create(
@@ -80,17 +83,27 @@ class ChargeOrder(BaseModel):
                 channel=self.channel
             )
             if not credent.extra:
-                from ..services.charge import create_credential
-                credential = create_credential(
-                    order_no=self.order_no,
-                    amount=self.amount,
-                    channel=self.channel,
-                    currency=self.currency,
-                    subject=self.subject,
-                    body=self.body,
-                    extra=self.extra,
-                    client_ip=self.client_ip,
-                )
+                try:
+                    from ..services.charge import create_credential
+                    credential = create_credential(
+                        order_no=self.order_no,
+                        amount=self.amount,
+                        channel=self.channel,
+                        currency=self.currency,
+                        subject=self.subject,
+                        body=self.body,
+                        extra=self.extra,
+                        client_ip=self.client_ip,
+                    )
+                except Exception, exc:
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.error(str(exc), exc_info=True)
+
+                    self.failure_code = 'credential_create_error'
+                    self.failure_msg  = str(exc)
+                    self.save(update_fields=['failure_code', 'failure_msg'])
+                    return {}, False
                 credent.extra = credential
                 credent.save()
                 return credent.extra, True

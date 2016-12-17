@@ -783,6 +783,10 @@ CELERY_ROUTES = {
         'queue': 'notify',
         'routing_key': 'notify.confirm_trade_charge',
     },  # 小鹿订单确认支付
+    'flashsale.pay.tasks.task_saleorder_post_update_send_signal': {
+        'queue': 'notify',
+        'routing_key': 'notify.task_saleorder_post_update_send_signal',
+    },  # 小鹿特卖平台订单更新事件通知
     'flashsale.xiaolumm.tasks.tasks_mama_push.task_push_ninpic_remind': {
         'queue': 'notify',
         'routing_key': 'notify.task_push_ninpic_remind',

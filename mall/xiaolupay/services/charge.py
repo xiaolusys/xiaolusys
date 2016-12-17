@@ -55,6 +55,8 @@ def create_credential(
                 'trade_type': 'APP',
                 'nonce_str': credential['nonceStr'],
             })
+            if 'prepay_id' not in resp:
+                raise XiaoluPayException('%s'%resp)
             credential.update({
                 "timeStamp": get_time_number(),
                 "partnerId": wxpay.mch_id,
@@ -82,6 +84,9 @@ def create_credential(
                 'openid': extra['open_id'],
                 'nonce_str': credential['nonceStr'],
             })
+            if 'prepay_id' not in resp:
+                raise XiaoluPayException('%s' % resp)
+
             credential.update({
                 "timeStamp": '%s' % get_time_number(),
                 'package': 'prepay_id=%s' % resp['prepay_id']

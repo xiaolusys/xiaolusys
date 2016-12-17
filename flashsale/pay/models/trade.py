@@ -10,6 +10,7 @@ from django.db.models import F
 from django.shortcuts import get_object_or_404
 from django.db.models.signals import post_save, pre_save
 from django.db import transaction
+from django.dispatch import receiver
 
 from .base import PayBaseModel, BaseModel
 from shopback.logistics.models import LogisticsCompany
@@ -17,7 +18,7 @@ from shopback.items.models import Product, ProductSku
 from shopback.users.models import User
 from flashsale.pay import constants as CONST
 
-from ..signals import signal_saletrade_pay_confirm, signal_saletrade_refund_post
+from ..signals import signal_saletrade_pay_confirm, signal_saleorder_post_update
 from core.utils.unikey import uniqid
 from core.fields import JSONCharMyField
 from core.utils.modelutils import update_model_fields
@@ -1044,8 +1045,8 @@ class SaleOrder(PayBaseModel):
 
         self.status = self.TRADE_CLOSED_BY_SYS
         self.save()
-        sku = get_object_or_404(ProductSku, pk=self.sku_id)
-        Product.objects.releaseLockQuantity(sku, self.num)
+        # sku = get_object_or_404(ProductSku, pk=self.sku_id)
+        # Product.objects.releaseLockQuantity(sku, self.num)
 
     def confirm_sign_order(self):
         """确认签收 修改该订单状态到 确认签收状态"""
@@ -1203,7 +1204,16 @@ class SaleOrder(PayBaseModel):
     def product(self):
         return self.product_sku.product
 
+@receiver(post_save, sender=SaleOrder, dispatch_uid='post_save_saleorder_notify_update')
+def saleorder_notify_update(sender, instance, created, raw, **kwargs):
+    from flashsale.pay.tasks import task_saleorder_post_update_send_signal
+    transaction.on_commit(lambda :task_saleorder_post_update_send_signal.delay(
+        instance.id,
+        created,
+        raw
+     ))
 
+@receiver(signal_saleorder_post_update, sender=SaleOrder, dispatch_uid='post_save_order_trigger')
 def post_save_order_trigger(sender, instance, created, raw, **kwargs):
     """
     SaleOrder save triggers adding carry to OrderCarry.
@@ -1235,9 +1245,7 @@ def post_save_order_trigger(sender, instance, created, raw, **kwargs):
 
     transaction.on_commit(lambda: _order_trigger(instance))
 
-post_save.connect(post_save_order_trigger, sender=SaleOrder, dispatch_uid='post_save_order_trigger')
-
-
+# @receiver(signal_saleorder_post_update, sender=SaleOrder, dispatch_uid='post_save_update_package_sku_item')
 def update_package_sku_item(sender, instance, created, **kwargs):
     """ 更新PackageSkuItem状态 """
     if instance.created > datetime.datetime(2016, 4, 21) and instance.status >= SaleOrder.WAIT_SELLER_SEND_GOODS and \
@@ -1257,7 +1265,7 @@ def saleorder_update_productskustats_waitingpay_num(sender, instance, *args, **k
 
 
 if not settings.CLOSE_CELERY:
-    post_save.connect(saleorder_update_productskustats_waitingpay_num, sender=SaleOrder,
+    signal_saleorder_post_update.connect(saleorder_update_productskustats_waitingpay_num, sender=SaleOrder,
                       dispatch_uid='post_save_aleorder_update_productskustats_waitingpay_num')
 
 
@@ -1267,7 +1275,7 @@ def saleorder_update_saletrade_status(sender, instance, *args, **kwargs):
         transaction.on_commit(lambda :tasks_update_sale_trade_status(instance.sale_trade_id))
 
 
-post_save.connect(saleorder_update_saletrade_status, sender=SaleOrder,
+signal_saleorder_post_update.connect(saleorder_update_saletrade_status, sender=SaleOrder,
                   dispatch_uid='post_save_saleorder_update_saletrade_status')
 
 
@@ -1275,7 +1283,7 @@ def saleorder_update_stats_record(sender, instance, *args, **kwargs):
     from statistics.tasks import task_update_sale_order_stats_record
     transaction.on_commit(lambda :task_update_sale_order_stats_record.delay(instance))
 
-post_save.connect(saleorder_update_stats_record, sender=SaleOrder,
+signal_saleorder_post_update.connect(saleorder_update_stats_record, sender=SaleOrder,
                   dispatch_uid='post_save_saleorder_update_stats_record')
 
 
@@ -1349,7 +1357,7 @@ def post_save_gauge_data(sender, instance, created, **kwargs):
             # logger.warn("gauge_data|key:%s,completed:%s, actual_num:%s" % (key, instance.is_completed(), instance.actual_num))
 
 
-post_save.connect(post_save_gauge_data, sender=SaleOrderSyncLog, dispatch_uid='post_save_gauge_data')
+signal_saleorder_post_update.connect(post_save_gauge_data, sender=SaleOrderSyncLog, dispatch_uid='post_save_gauge_data')
 
 
 def add_order_integral(sender, instance, created, **kwargs):
@@ -1357,4 +1365,4 @@ def add_order_integral(sender, instance, created, **kwargs):
     transaction.on_commit(lambda :task_add_user_order_integral.delay(instance))
 
 
-post_save.connect(add_order_integral, sender=SaleOrder, dispatch_uid='post_save_add_order_integral')
+signal_saleorder_post_update.connect(add_order_integral, sender=SaleOrder, dispatch_uid='post_save_add_order_integral')
