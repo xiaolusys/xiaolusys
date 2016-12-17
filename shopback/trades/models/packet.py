@@ -971,20 +971,31 @@ class PackageSkuItem(BaseModel):
                     pa.generate_order(retry=True)
 
     def merge(self):
-        self.status = PSI_STATUS.MERGED
-        self.merge_time = datetime.datetime.now()
-        package_order_id = PackageOrder.gen_new_package_id(self.sale_trade.buyer_id, self.sale_trade.user_address_id,
-                                                           self.product_sku.ware_by)
-        po = PackageOrder.objects.filter(id=package_order_id).first()
-        if not po:
-            po = PackageOrder.create(package_order_id, self.sale_trade, PackageOrder.WAIT_PREPARE_SEND_STATUS, self)
-        self.package_order_id = po.id
-        self.package_order_pid = po.pid
-        self.save()
-        po.add_package_sku_item(self)
-        SkuStock.set_psi_merged(self.sku_id, self.num)
+        if self.status == PSI_STATUS.ASSIGNED:
+            self.status = PSI_STATUS.MERGED
+            self.merge_time = datetime.datetime.now()
+            package_order_id = PackageOrder.gen_new_package_id(self.sale_trade.buyer_id, self.sale_trade.user_address_id,
+                                                               self.product_sku.ware_by)
+            po = PackageOrder.objects.filter(id=package_order_id).first()
+            if not po:
+                po = PackageOrder.create(package_order_id, self.sale_trade, PackageOrder.WAIT_PREPARE_SEND_STATUS, self)
+            self.package_order_id = po.id
+            self.package_order_pid = po.pid
+            self.save()
+            po.add_package_sku_item(self)
+            SkuStock.set_psi_merged(self.sku_id, self.num)
 
-    def set_status_waitscan(self,stat=True):
+    @staticmethod
+    def batch_merge():
+        psi_ids = PackageSkuItem.objects.filter(status=PSI_STATUS.ASSIGNED).values_list('id', flat=True)
+        psi_ids = list(psi_ids)
+        for psi_id in psi_ids:
+            with transaction.atomic():
+                psi = PackageSkuItem.objects.select_for_update().filter(id=psi_id, status=PSI_STATUS.ASSIGNED).first()
+                if psi:
+                    psi.merge()
+
+    def set_status_waitscan(self, stat=True):
         self.status = PSI_STATUS.WAITSCAN
         self.scan_time = datetime.datetime.now()
         self.save()
