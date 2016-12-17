@@ -282,6 +282,7 @@ class RefundView(APIView):
                 if k == 'can_reuse':
                     v = v == "true" and True or False
                 hasattr(rf, k) and setattr(rf, k, v)
+        rf.num = int(rf.num)
         rf.sku_id = pksi.sku_id
         rf.save()
         logger.warn({"action": "buy_rf", "info": rf.id})
