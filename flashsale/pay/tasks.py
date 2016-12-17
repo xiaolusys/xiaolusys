@@ -172,12 +172,19 @@ def task_saleorder_post_update_send_signal(saleorder_id, created, raw):
             'order_status': saleorder.status
         })
 
-        signal_saleorder_post_update.send_robust(
+        resp = signal_saleorder_post_update.send_robust(
             sender=SaleOrder,
             instance=saleorder,
             created=created,
             raw=raw
         )
+
+        logger.info({
+            'action': 'saleorder_update_end',
+            'action_time': datetime.datetime.now(),
+            'order_oid': saleorder.oid,
+            'signal_data': resp,
+        })
     except SaleOrder.DoesNotExist, exc:
         raise task_saleorder_post_update_send_signal.retry(exc=exc)
 
