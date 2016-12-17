@@ -661,8 +661,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             'channel': data.get('channel'),
             'user_agent': request.META.get('HTTP_USER_AGENT'),
             'cookies': cookies,
-            'stype': 'restpro.trade',
-            'tid': data.get('uuid'),
+            'action':'trade_create',
+            'order_no': data.get('uuid'),
             'data': str(data)
         })
 
@@ -760,8 +760,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             logger.warn({
                 'code': 1,
                 'message': u'购物车已结算',
-                'stype': 'restpro.trade',
-                'tid': tuuid,
+                'action':'trade_create',
+                'order_no': tuuid,
                 'data': '%s' % content
             })
             return Response({'code': 1, 'info': u'购物车已结算'})
@@ -787,9 +787,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 logger.warn({
                     'code': 2,
                     'message': u'商品刚被抢光了',
-                    'stype': 'restpro.trade',
+                    'action':'trade_create',
                     'user_agent': user_agent,
-                    'tid': tuuid,
+                    'order_no': tuuid,
                     'data': '%s' % content
                 })
                 return Response({'code': 2, 'info': u'商品刚被抢光了'})
@@ -810,9 +810,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             logger.warn({
                 'code': 3,
                 'message': exc,
-                'stype': 'restpro.trade',
+                'action':'trade_create',
                 'user_agent': user_agent,
-                'tid': tuuid,
+                'order_no': tuuid,
                 'data': '%s' % content
             })
             return Response({'code': 3, 'info': exc.message})
@@ -823,8 +823,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'code': 4,
                 'message': u'优惠金额异常:discount_fee=%s, cart_discount=%s' % (discount_fee, cart_discount),
                 'user_agent': user_agent,
-                'stype': 'restpro.trade',
-                'tid': tuuid,
+                'action':'trade_create',
+                'order_no': tuuid,
                 'data': '%s' % content
             })
             return Response({'code': 4, 'info': u'优惠金额异常'})
@@ -836,8 +836,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'code': 11,
                 'message': u'付款金额异常:payment=%s, cart_payment=%s' % (payment, cart_payment),
                 'user_agent': user_agent,
-                'stype': 'restpro.trade',
-                'tid': tuuid,
+                'action':'trade_create',
+                'order_no': tuuid,
                 'data': '%s' % content
             })
             return Response({'code': 11, 'info': u'付款金额异常'})
@@ -864,8 +864,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                     'code': 7,
                     'message': u'请选择收货地址',
                     'user_agent': user_agent,
-                    'stype': 'restpro.trade',
-                    'tid': tuuid,
+                    'action':'trade_create',
+                    'order_no': tuuid,
                     'data': '%s' % content
                 })
                 return Response({'code': 7, 'info': u'请选择收货地址'})
@@ -880,8 +880,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'message': u'付款方式有误',
                 'channel': channel,
                 'user_agent': user_agent,
-                'stype': 'restpro.trade',
-                'tid': tuuid,
+                'action':'trade_create',
+                'order_no': tuuid,
                 'data': '%s' % content
             })
             return Response({'code': 5, 'info': u'付款方式有误'})
@@ -898,8 +898,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'message': u'订单创建异常:%s' % exc,
                 'channel': channel,
                 'user_agent': user_agent,
-                'stype': 'restpro.trade',
-                'tid': tuuid,
+                'action':'trade_create',
+                'order_no': tuuid,
                 'data': '%s' % content
             })
             return Response({'code': 8, 'info': u'订单创建异常'})
@@ -926,8 +926,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'message': u'订单重复提交:%s' % exc,
                 'channel': channel,
                 'user_agent': user_agent,
-                'stype': 'restpro.trade',
-                'tid': tuuid,
+                'action':'trade_create',
+                'order_no': tuuid,
                 'data': '%s' % content
             }, exc_info=True)
             return Response({'code': 9, 'info': u'订单重复提交'})
@@ -937,8 +937,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'message': u'未知支付异常:%s' % exc,
                 'channel': channel,
                 'user_agent': user_agent,
-                'stype': 'restpro.trade',
-                'tid': tuuid,
+                'action':'trade_create',
+                'order_no': tuuid,
                 'data': '%s' % content
             }, exc_info=True)
             return Response({'code': 6, 'info': str(exc) or u'未知支付异常'})
@@ -989,9 +989,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             logger.warn({
                 'code': 12,
                 'message': u'该商品已限购',
-                'stype': 'restpro.trade',
+                'action':'trade_create',
                 'user_agent': user_agent,
-                'tid': tuuid,
+                'order_no': tuuid,
                 'data': '%s' % CONTENT
             })
             return Response({'code': 2, 'info': u'该商品已限购'})
@@ -1001,9 +1001,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             logger.warn({
                 'code': 2,
                 'message': u'商品刚被抢光了',
-                'stype': 'restpro.trade',
+                'action':'trade_create',
                 'user_agent': user_agent,
-                'tid': tuuid,
+                'order_no': tuuid,
                 'data': '%s' % CONTENT
             })
             return Response({'code': 2, 'info': u'商品刚被抢光了'})
@@ -1023,9 +1023,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             logger.warn({
                 'code': 3,
                 'message': exc,
-                'stype': 'restpro.trade',
+                'action':'trade_create',
                 'user_agent': user_agent,
-                'tid': tuuid,
+                'order_no': tuuid,
                 'data': '%s' % CONTENT
             })
             return Response({'code': 3, 'info': exc.message})
@@ -1036,8 +1036,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'code': 4,
                 'message': u'优惠金额异常:discount_fee=%s, cart_discount=%s' % (discount_fee, bn_discount),
                 'user_agent': user_agent,
-                'stype': 'restpro.trade',
-                'tid': tuuid,
+                'action':'trade_create',
+                'order_no': tuuid,
                 'data': '%s' % CONTENT
             })
             return Response({'code': 4, 'info': u'优惠金额异常'})
@@ -1049,8 +1049,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'code': 11,
                 'message': u'付款金额异常:payment=%s, cart_payment=%s' % (payment, bn_payment),
                 'user_agent': user_agent,
-                'stype': 'restpro.trade',
-                'tid': tuuid,
+                'action':'trade_create',
+                'order_no': tuuid,
                 'data': '%s' % CONTENT
             })
             return Response({'code': 11, 'info': u'付款金额异常'})
@@ -1072,8 +1072,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                     'code': 7,
                     'message': u'请选择收货地址',
                     'user_agent': user_agent,
-                    'stype': 'restpro.trade',
-                    'tid': tuuid,
+                    'action':'trade_create',
+                    'order_no': tuuid,
                     'data': '%s' % CONTENT
                 })
                 return Response({'code': 7, 'info': u'请选择收货地址'})
@@ -1087,8 +1087,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'message': u'付款方式有误',
                 'channel': channel,
                 'user_agent': user_agent,
-                'stype': 'restpro.trade',
-                'tid': tuuid,
+                'action':'trade_create',
+                'order_no': tuuid,
                 'data': '%s' % CONTENT
             })
             return Response({'code': 5, 'info': u'付款方式有误'})
@@ -1099,9 +1099,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 logger.warn({
                     'code': 2,
                     'message': u'商品刚被抢光了',
-                    'stype': 'restpro.trade',
+                    'action':'trade_create',
                     'user_agent': user_agent,
-                    'tid': tuuid,
+                    'order_no': tuuid,
                     'data': '%s' % CONTENT
                 })
                 return Response({'code': 2, 'info': u'商品刚被抢光了'})
@@ -1119,8 +1119,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'message': u'订单创建异常:%s' % exc,
                 'channel': channel,
                 'user_agent': user_agent,
-                'stype': 'restpro.trade',
-                'tid': tuuid,
+                'action':'trade_create',
+                'order_no': tuuid,
                 'data': '%s' % CONTENT
             })
             return Response({'code': 8, 'info': u'订单创建异常'})
@@ -1148,8 +1148,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'message': u'订单重复提交:%s' % exc,
                 'channel': channel,
                 'user_agent': user_agent,
-                'stype': 'restpro.trade',
-                'tid': tuuid,
+                'action':'trade_create',
+                'order_no': tuuid,
                 'data': '%s' % CONTENT
             }, exc_info=True)
             return Response({'code': 9, 'info': u'订单重复提交'})
@@ -1159,8 +1159,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'message': u'未知支付异常:%s' % exc,
                 'channel': channel,
                 'user_agent': user_agent,
-                'stype': 'restpro.trade',
-                'tid': tuuid,
+                'action':'trade_create',
+                'order_no': tuuid,
                 'data': '%s' % CONTENT
             }, exc_info=True)
             return Response({'code': 6, 'info': str(exc) or u'未知支付异常'})
