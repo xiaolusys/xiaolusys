@@ -377,7 +377,7 @@ class PackageOrder(models.Model):
                         self.shipping_type, self.receiver_address).id
             except:
                 from shopback.logistics.models import LogisticsCompany
-                self.logistics_company_id = LogisticsCompany.objects.get(code='YUNDA_QR')[0].id
+                self.logistics_company_id = LogisticsCompany.objects.get(code='YUNDA_QR').id # -2
             self.save(update_fields=['logistics_company_id'])
 
     def update_relase_package_sku_item(self):
