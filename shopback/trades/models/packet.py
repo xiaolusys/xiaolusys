@@ -1013,7 +1013,6 @@ class PackageSkuItem(BaseModel):
         self.status = PSI_STATUS.SENT
         self.assign_status = 2
         self.weight_time = datetime.datetime.now()
-        self.sent
         self.save()
         SkuStock.set_psi_sent(self.sku_id, self.num, stat=stat)
 
