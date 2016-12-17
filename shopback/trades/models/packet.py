@@ -641,6 +641,8 @@ class PackageSkuItem(BaseModel):
     title = models.CharField(max_length=128, blank=True, verbose_name=u'商品标题')
     sku_properties_name = models.CharField(max_length=256, blank=True, verbose_name=u'购买规格')
     pic_path = models.CharField(max_length=512, blank=True, verbose_name=u'商品图片')
+    init_assigned = models.BooleanField(default=False, verbose_name=u'初始即分配')
+    is_boutique = models.BooleanField(default=False, db_index=True, verbose_name=u'精品订单')
 
     pay_time = models.DateTimeField(db_index=True, verbose_name=u'付款时间')
     book_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'准备订货时间')
@@ -863,13 +865,13 @@ class PackageSkuItem(BaseModel):
         sku_item.receiver_mobile = sale_order.sale_trade.receiver_mobile
         sku_item.sale_trade_id = sale_order.sale_trade.tid
         sku_item.sku_properties_name = sale_order.sku_name
+        sku_item.is_boutique = sale_order.sale_trade.is_boutique
         sku_stock = SkuStock.get_by_sku(sale_order.sku_id)
         assigned = sku_stock.can_assign(sku_item)
         if assigned:
             sku_item.set_status_init_assigned()
         else:
-            sku_item.set_status_paid()
-        sku_item.save()
+            sku_item.set_status_init_paid()
         if not assigned:
             sku_item.gen_arrangement()
         return sku_item
@@ -882,7 +884,7 @@ class PackageSkuItem(BaseModel):
         from flashsale.dinghuo.models_purchase import PurchaseArrangement
         return PurchaseArrangement.create(self)
 
-    def set_status_paid(self):
+    def set_status_init_paid(self):
         self.status = PSI_STATUS.PAID
         self.assign_status = 0
         self.save()
@@ -939,13 +941,13 @@ class PackageSkuItem(BaseModel):
             for sku_id in skus:
                 SkuStock.set_psi_booked_2_assigned(sku_id, skus[sku_id], stat=True)
 
-    def set_status_init_assigned(self, save=True):
+    def set_status_init_assigned(self):
         self.status = PSI_STATUS.ASSIGNED
         self.assign_status = 1
+        self.init_assigned = True
         self.assign_time = datetime.datetime.now()
-        if save:
-            self.save()
-            SkuStock.set_psi_init_assigned(self.sku_id, self.num)
+        self.save()
+        SkuStock.set_psi_init_assigned(self.sku_id, self.num)
 
     def set_status_not_assigned(self, stat=True, save=True, rebook=True):
         self.status = PSI_STATUS.PAID
