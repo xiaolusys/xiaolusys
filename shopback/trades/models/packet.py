@@ -650,7 +650,6 @@ class PackageSkuItem(BaseModel):
     ready_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'分配时间')
     assign_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'分配SKU时间')
     merge_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'合单时间')
-    merge_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'合单时间')
     scan_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'扫描时间')
     weight_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'称重时间')
     finish_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'完成时间')
@@ -1013,12 +1012,15 @@ class PackageSkuItem(BaseModel):
     def set_status_sent(self,stat=True):
         self.status = PSI_STATUS.SENT
         self.assign_status = 2
+        self.weight_time = datetime.datetime.now()
+        self.sent
         self.save()
         SkuStock.set_psi_sent(self.sku_id, self.num, stat=stat)
 
     def set_status_finish(self,stat=True):
         self.status = PSI_STATUS.FINISH
         self.assign_status = 2
+        self.finish_time = datetime.datetime.now()
         self.save()
         SkuStock.set_psi_finish(self.sku_id, self.num,stat=stat)
 
