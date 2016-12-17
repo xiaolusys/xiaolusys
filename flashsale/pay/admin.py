@@ -5,10 +5,12 @@ import hashlib
 from cStringIO import StringIO
 from django.contrib import admin
 from django.db import models
+from django.contrib import messages
 from django.conf import settings
 from django.contrib.admin.views.main import ChangeList
 from django.forms import TextInput, Textarea, FloatField
 from django.http import HttpResponseRedirect
+from django.utils.translation import ugettext_lazy as _
 
 from core.options import log_action, User, ADDITION, CHANGE
 from core.filters import DateFieldListFilter
@@ -17,7 +19,7 @@ from core.managers import ApproxCountQuerySet
 from core.upload import upload_public_to_remote, generate_public_url
 from flashsale.pay.filters import MamaCreatedFilter
 from .services import FlashSaleService, get_district_json_data
-from .resources import SaleTradeResource
+from .resources import SaleOrderResource
 from .models import (
     SaleTrade,
     SaleOrder,
@@ -124,7 +126,7 @@ class SaleTradeAdmin(BaseExportActionModelAdmin):
     search_fields = ['=tid', '=id', '=receiver_mobile', '=buyer_id']
     list_per_page = 20
     inlines = [SaleOrderInline]
-    resource_class = SaleTradeResource
+    resource_class = SaleOrderResource
 
     # -------------- 页面布局 --------------
     fieldsets = ((u'订单基本信息:', {
@@ -197,12 +199,23 @@ class SaleTradeAdmin(BaseExportActionModelAdmin):
             saleservice.payTrade()
 
         self.message_user(request, u'已更新%s个订单到订单总表!' % queryset.count())
-
         origin_url = request.get_full_path()
 
         return redirect(origin_url)
 
     push_mergeorder_action.short_description = u"更新订单到订单总表"
+
+    def get_export_data(self, file_format, queryset, *args, **kwargs):
+        """
+        Returns file_format representation for given queryset.
+        """
+        request = kwargs.pop("request")
+        resource_class = self.get_export_resource_class()
+        trade_ids = list(queryset.values_list('id', flat=True))
+        order_qs  = SaleOrder.objects.filter(sale_trade__in=trade_ids).select_related('sale_trade')
+        data = resource_class(**self.get_export_resource_kwargs(request)).export(order_qs, *args, **kwargs)
+        export_data = file_format.export_data(data)
+        return export_data
 
     actions = ['push_mergeorder_action']
 

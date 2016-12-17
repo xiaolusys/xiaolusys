@@ -750,7 +750,8 @@ class Product(models.Model):
         count = cls.objects.filter(outer_id__startswith=outer_id).count() or 1
         inner_outer_id = outer_id + "%03d" % count
         while True:
-            product_ins = cls.objects.filter(outer_id__startswith=inner_outer_id).count()
+            product_ins = cls.objects.filter(
+                models.Q(outer_id__startswith=inner_outer_id)|models.Q(outer_id__startswith='RMB%s'%inner_outer_id)).count()
             if not product_ins or count > 998:
                 break
             count += 1

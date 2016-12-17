@@ -209,7 +209,7 @@ class MamaSaleGrade(BaseModel):
                 target_stage = max(finish_stage + delta_stage / 2, finish_stage + 1)
         else:
             target_stage = finish_stage + 1
-        target_stage = max(target_stage, 2) #周销售最低目标等级为2
+        target_stage = max(target_stage, 3) #周销售最低目标等级为2
         target_amount = utils.get_mama_stage_target(target_stage)
         return target_amount
 

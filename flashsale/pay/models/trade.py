@@ -396,38 +396,45 @@ class SaleTrade(BaseModel):
             'order_no': self.tid,
             'charge': charge,
             'pay_time': charge_time,
+            'status': self.get_status_display(),
             'action_time': datetime.datetime.now()
         })
-        with transaction.atomic():
-            st = SaleTrade.objects.select_for_update().get(id=self.id)
-            if st.status != SaleTrade.WAIT_BUYER_PAY:
-                return
-
-            st.status = SaleTrade.WAIT_SELLER_SEND_GOODS
-            if charge:
-                st.charge = charge
-            st.pay_time = charge_time or datetime.datetime.now()
-            st.save(update_fields=['status', 'pay_time', 'charge'])
-
-            for order in st.sale_orders.all():
-                order.set_status_paid(st.pay_time)
-        # 付款后订单被关闭，则加上锁定数
-        # if trade_close:
-        #     st.increase_lock_skunum()
-
-        # 如果使用余额支付,付款成功后则扣除
-        if st.has_budget_paid:
-            try:
-                user_budget = UserBudget.objects.get(user_id=st.buyer_id)
-                user_budget.charge_confirm(st.id)
-            except Exception, exc:
-                logger.error(exc.message, exc_info=True)
-
-        st.confirm_payment()
         try:
+            with transaction.atomic():
+                st = SaleTrade.objects.select_for_update().get(id=self.id)
+                if st.status != SaleTrade.WAIT_BUYER_PAY:
+                    return
+
+                st.status = SaleTrade.WAIT_SELLER_SEND_GOODS
+                if charge:
+                    st.charge = charge
+                st.pay_time = charge_time or datetime.datetime.now()
+                st.save(update_fields=['status', 'pay_time', 'charge'])
+
+                for order in st.sale_orders.all():
+                    order.set_status_paid(st.pay_time)
+            # 付款后订单被关闭，则加上锁定数
+            # if trade_close:
+            #     st.increase_lock_skunum()
+
+            # 如果使用余额支付,付款成功后则扣除
+            if st.has_budget_paid:
+                try:
+                    user_budget = UserBudget.objects.get(user_id=st.buyer_id)
+                    user_budget.charge_confirm(st.id)
+                except Exception, exc:
+                    logger.error(exc.message, exc_info=True)
+
+            st.confirm_payment()
             st.set_order_paid()
         except Exception, exc:
-            logger.error(str(exc), exc_info=True)
+            logger.info({
+                'action': 'trade_confirm_error',
+                'action_time': datetime.datetime.now(),
+                'order_no': self.tid,
+                'message': str(exc),
+            })
+            raise exc
 
         logger.info({
             'action': 'trade_confirm_end',
