@@ -455,11 +455,13 @@ class SaleTrade(BaseModel):
     def pay_confirm(self):
         # 暂时用此方法替代charge_confirm进行测试
         # 测试时忽略了charge
+        from shopback.trades.models import SkuStock
         self.status = self.WAIT_SELLER_SEND_GOODS
         self.pay_time = datetime.datetime.now()
         self.save()
         for so in self.sale_orders.all():
             so.set_status_paid(self.pay_time)
+            SkuStock.set_order_paid_num(so.sku_id, so.num)
         self.set_order_paid()
 
     def set_order_paid(self):
