@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import uuid
 import datetime
 import urlparse
+import traceback
 from django.db import models
 from django.conf import settings
 from django.db.models import F
@@ -382,7 +383,13 @@ class SaleTrade(BaseModel):
                     order.status = SaleTrade.TRADE_FINISHED
                     order.save(update_fields=['status'])
             strade = self
-            transaction.on_commit(lambda: signal_saletrade_pay_confirm.send(sender=SaleTrade, obj=strade))
+            resp = signal_saletrade_pay_confirm.send_robust(sender=SaleTrade, obj=strade)
+            logger.info({
+                'action': 'trade_confirm_signal',
+                'order_no': self.tid,
+                'action_time': datetime.datetime.now(),
+                'signal_data': resp,
+            })
         except Exception, exc:
             logger.error(str(exc), exc_info=True)
             if not settings.INGORE_SIGNAL_EXCEPTION:
@@ -413,17 +420,17 @@ class SaleTrade(BaseModel):
 
                 for order in st.sale_orders.all():
                     order.set_status_paid(st.pay_time)
-            # 付款后订单被关闭，则加上锁定数
-            # if trade_close:
-            #     st.increase_lock_skunum()
+                # 付款后订单被关闭，则加上锁定数
+                # if trade_close:
+                #     st.increase_lock_skunum()
 
-            # 如果使用余额支付,付款成功后则扣除
-            if st.has_budget_paid:
-                try:
-                    user_budget = UserBudget.objects.get(user_id=st.buyer_id)
-                    user_budget.charge_confirm(st.id)
-                except Exception, exc:
-                    logger.error(exc.message, exc_info=True)
+                # 如果使用余额支付,付款成功后则扣除
+                if st.has_budget_paid:
+                    try:
+                        user_budget = UserBudget.objects.get(user_id=st.buyer_id)
+                        user_budget.charge_confirm(st.id)
+                    except Exception, exc:
+                        logger.error(exc.message, exc_info=True)
 
             st.confirm_payment()
             st.set_order_paid()
@@ -433,6 +440,7 @@ class SaleTrade(BaseModel):
                 'action_time': datetime.datetime.now(),
                 'order_no': self.tid,
                 'message': str(exc),
+                'traceback': traceback.format_exc(),
             })
             raise exc
 
@@ -747,6 +755,16 @@ def update_customer_first_paytime(sender, obj, **kwargs):
 signal_saletrade_pay_confirm.connect(update_customer_first_paytime, sender=SaleTrade)
 
 
+def update_skustock_paid_num(sender, obj, **kwargs):
+    """
+    订单支付后，检测用户是否第一次购买，如果是，更新用户第一次购买时间
+    """
+    from shopback.trades.models import SkuStock
+    for order in st.sale_orders.all():
+        SkuStock.set_order_paid_num(order.sku_id, order.num)
+
+signal_saletrade_pay_confirm.connect(update_skustock_paid_num, sender=SaleTrade)
+
 def push_trade_pay_notify(sender, obj, **kwargs):
     """
     订单支付成功推送
@@ -939,12 +957,9 @@ class SaleOrder(PayBaseModel):
 
     def set_status_paid(self, pay_time):
         from shopback.trades.models import SkuStock
-        waitpay = self.status == SaleOrder.WAIT_BUYER_PAY
         self.status = self.WAIT_SELLER_SEND_GOODS
         self.pay_time = pay_time
         self.save()
-        if waitpay:
-            SkuStock.set_order_paid_num(self.sku_id, self.num)
 
     def set_psi_paid(self):
         from shopback.trades.models import PackageSkuItem
