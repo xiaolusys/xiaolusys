@@ -755,12 +755,12 @@ def update_customer_first_paytime(sender, obj, **kwargs):
 signal_saletrade_pay_confirm.connect(update_customer_first_paytime, sender=SaleTrade)
 
 
-def update_skustock_paid_num(sender, instance, **kwargs):
+def update_skustock_paid_num(sender, obj, **kwargs):
     """
     订单支付后，检测用户是否第一次购买，如果是，更新用户第一次购买时间
     """
     from shopback.trades.models import SkuStock
-    for order in instance.sale_orders.all():
+    for order in obj.sale_orders.all():
         SkuStock.set_order_paid_num(order.sku_id, order.num)
 
 signal_saletrade_pay_confirm.connect(update_skustock_paid_num, sender=SaleTrade)
