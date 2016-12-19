@@ -1334,18 +1334,18 @@ class CarryLog(models.Model):
     value = models.IntegerField(default=0, verbose_name=u"金额")
 
     log_type = models.CharField(max_length=8, blank=True,
-                                choices=LOG_TYPE_CHOICES,
+                                choices=LOG_TYPE_CHOICES, db_index=True,
                                 default=ORDER_REBETA, verbose_name=u"类型")
 
     carry_type = models.CharField(max_length=8, blank=True,
-                                  choices=CARRY_TYPE_CHOICES,
+                                  choices=CARRY_TYPE_CHOICES, db_index=True,
                                   default=CARRY_OUT, verbose_name=u"盈负")
 
     status = models.CharField(max_length=16, blank=True,
-                              choices=STATUS_CHOICES,
+                              choices=STATUS_CHOICES, db_index=True,
                               default=CONFIRMED, verbose_name=u'状态')
 
-    carry_date = models.DateField(default=datetime.date.today, verbose_name=u'业务日期')
+    carry_date = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'业务日期')
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建时间')
 
     class Meta:
