@@ -150,7 +150,6 @@ def task_check_xlmm_exchg_order():
     exchg_orders = OrderCarry.objects.filter(carry_type__in=[OrderCarry.WAP_ORDER, OrderCarry.APP_ORDER],
                                          status__in=[OrderCarry.CONFIRM, OrderCarry.CANCEL],
                                          date_field__gt='2016-11-30')
-
     order_num = 0
     succ_coupon_record_num = 0
     succ_exchg_coupon_num = 0
@@ -180,13 +179,17 @@ def task_check_xlmm_exchg_order():
                     if user_coupons:
                         succ_coupon_record_num += 1
                         succ_exchg_coupon_num += user_coupons.count()
-
+                    else:
+                        print 'error', sale_order.oid
+                else:
+                    print sale_order.oid
     from flashsale.pay.models.user import BudgetLog
     budget_log1 = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_IN,
                                           budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED)
     budget_log2 = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_OUT,
                                            budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED)
     budget_num = budget_log1.count() - budget_log2.count()
+    budget_oids = [i['uni_key'] for i in budget_log1.values('uni_key')]
     res1 = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_IN,
                                    budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED).aggregate(
         n=Sum('flow_amount'))
@@ -194,15 +197,17 @@ def task_check_xlmm_exchg_order():
     res2 = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_OUT,
                                    budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED).aggregate(
         n=Sum('flow_amount'))
-
     exchg_budget_sum2 = res2['n'] or 0
     exchg_budget_sum = exchg_budget_sum1 - exchg_budget_sum2
-
     from flashsale.coupon.models.transfer_coupon import CouponTransferRecord
     trans_num = CouponTransferRecord.objects.filter(transfer_type=CouponTransferRecord.OUT_EXCHG_SALEORDER, transfer_status=CouponTransferRecord.DELIVERED).count()
     res = CouponTransferRecord.objects.filter(transfer_type=CouponTransferRecord.OUT_EXCHG_SALEORDER, transfer_status=CouponTransferRecord.DELIVERED).aggregate(
         n=Sum('coupon_num'))
     exchg_trancoupon_num = res['n'] or 0
+    retD = list(set(results).difference(set(budget_oids)))
+    print "results more is: ", retD
+    retD = list(set(budget_oids).difference(set(results)))
+    print "budget_oids more is: ", retD
 
     logger.info({'message': u'check exchg order | order_num=%s == budget_num=%s == trans_num=%s ?' % (order_num,budget_log1.count(),trans_num),
                  'message2': u' exchg_goods_num=%s == exchg_trancoupon_num=%s' % (exchg_goods_num, exchg_trancoupon_num),
@@ -239,6 +244,7 @@ def task_check_xlmm_return_exchg_order():
                 return_order_num += 1
     budget_log = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_OUT, budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED)
     budget_num = budget_log.count()
+    budget_oids = [i['uni_key'] for i in budget_log.values('uni_key')]
     res = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_OUT, budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED).aggregate(n=Sum('flow_amount'))
     exchg_budget_sum = res['n'] or 0
     from flashsale.coupon.models.transfer_coupon import CouponTransferRecord
@@ -248,8 +254,12 @@ def task_check_xlmm_return_exchg_order():
         if record.order_no in results:
             trans_num += 1
             exchg_trancoupon_num += record.coupon_num
+    retD = list(set(results).difference(set(budget_oids)))
+    print "results more is: ", retD
+    retD = list(set(budget_oids).difference(set(results)))
+    print "budget_oids more is: ", retD
 
-    logger.info({'message': u'check return exchg order | order_num=%s == budget_num=%s == trans_num=%s == return_order_num %s?' % (order_num,budget_num,trans_num,return_order_num),
+    logger.info({'message': u'check return exchg order | order_num=%s == budget_num=%s == trans_num=%s maybe!= return_order_num(include not finish refund) %s?' % (order_num,budget_num,trans_num,return_order_num),
                  'message2': u' exchg_goods_num=%s == exchg_trancoupon_num=%s' % (exchg_goods_num, exchg_trancoupon_num),
                  'message3': u'exchg_goods_payment=%s == exchg_budget_sum=%s' % (exchg_goods_payment, exchg_budget_sum)
                 })
