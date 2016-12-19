@@ -302,6 +302,8 @@ def task_weixinfans_create_subscribe_awardcarry(unionid):
         # We get here too fast that WeixinUserInfo objects have not been created yet,
         # and when we try to access, error comes.        
         userinfo = WeixinUserInfo.objects.filter(unionid=unionid).first()
+        if not userinfo:
+            raise WeixinUserInfo.DoesNotExist()
 
         uni_key = AwardCarry.gen_uni_key(mama_id, carry_type)
         ac = AwardCarry.objects.filter(uni_key=uni_key).first()
