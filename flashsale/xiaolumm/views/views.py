@@ -685,8 +685,8 @@ def manage_Summar(date_time):
         sum_user_num = clickcounts.aggregate(total_user_num=Sum('user_num')).get('total_user_num') or 0  # 总点击人数
 
         active_num = clickcounts.filter(user_num__gt=4).count()  # 点击人数大于4即纳入活跃代理
-        activity_func = lambda acti, total: 0 if total == 0 else round(float(acti) / total,
-                                                                       3)  # 活跃度 点击人数大于4的妈妈个数／总的妈妈个数
+        # 活跃度 点击人数大于4的妈妈个数／总的妈妈个数
+        activity_func = lambda acti, total: 0 if total == 0 else round(float(acti) / total,3)
         activity = activity_func(active_num, xlmm_num)
 
         xlmm_lit = [val.id for val in xlmms]  # 代理id列表

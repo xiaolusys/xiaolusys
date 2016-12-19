@@ -1,4 +1,5 @@
 # coding=utf-8
+from __future__ import unicode_literals
 import re
 import time
 import datetime
@@ -383,19 +384,31 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
         sale_trade = SaleTrade(tid=tuuid, buyer_id=customer.id)
         channel = form.get('channel')
-        cart_ids = [i for i in form.get('cart_ids', '').split(',') if i.isdigit()]
-        cart_qs = ShoppingCart.objects.filter(
-            id__in=cart_ids,
-            buyer_id=customer.id
-        )
 
-        if cart_qs.count() == 1 and cart_qs[0].type == ShoppingCart.TEAMBUY:
-            order_type = SaleTrade.TEAMBUY_ORDER
-
-        # 　设置订单精品汇参数
         is_boutique = False
-        for cart in cart_qs:
-            mp = cart.get_modelproduct()
+        cart_ids = form.get('cart_ids', '')
+        if cart_ids:
+            cart_ids = [i for i in cart_ids.split(',') if i.isdigit()]
+            cart_qs = ShoppingCart.objects.filter(
+                id__in=cart_ids,
+                buyer_id=customer.id
+            )
+
+            if cart_qs.count() == 1 and cart_qs[0].type == ShoppingCart.TEAMBUY:
+                order_type = SaleTrade.TEAMBUY_ORDER
+
+            # 　设置订单精品汇参数
+
+            for cart in cart_qs:
+                mp = cart.get_modelproduct()
+                if mp and mp.is_boutique:
+                    is_boutique = True
+                if mp and mp.is_boutique_coupon:
+                    order_type = SaleTrade.ELECTRONIC_GOODS_ORDER
+
+        item_id = form.get('item_id')
+        if item_id:
+            mp = Product.objects.get(id=item_id).product_model
             if mp and mp.is_boutique:
                 is_boutique = True
             if mp and mp.is_boutique_coupon:
@@ -654,7 +667,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         return budget_amount
 
     def logger_request(self, request):
-        data = request.data
+        data = request.POST.dict()
         cookies = dict([(k, v) for k, v in request.COOKIES.items() if k in ('mm_linkid', 'ufrom')])
         logger.info({
             'info': u'付款请求v2', 
@@ -962,6 +975,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     @list_route(methods=['post'])
     def buynow_create(self, request, *args, **kwargs):
         """ 立即购买订单支付接口 """
+        self.logger_request(request)
         CONTENT  = request.POST.dict()
         user_agent = request.META.get('HTTP_USER_AGENT')
         tuuid = CONTENT.get('uuid')
@@ -983,7 +997,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         bn_totalfee     = round(product_sku.agent_price * sku_num * 100)
 
         xlmm            = self.get_xlmm(request)
-
         user_skunum = get_user_skunum_by_last24hours(customer, product_sku)
         lockable = Product.objects.isQuantityLockable(product_sku, sku_num + user_skunum)
         if not lockable:
@@ -1095,7 +1108,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             return Response({'code': 5, 'info': u'付款方式有误'})
         sku = ProductSku.objects.get(id=sku_id)
         try:
-            lock_success =  Product.objects.lockQuantity(product_sku,sku_num)
+            # lock_success =  Product.objects.lockQuantity(product_sku,sku_num)
             if sku_num > sku.free_num:
                 logger.warn({
                     'code': 2,
