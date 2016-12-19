@@ -822,6 +822,8 @@ def set_coupon_2_use_by_trade_confirm(sender, obj, **kwargs):
         logger.warn({
             'action': 'set_coupon_2_use_by_trade_confirm',
             'coupon_ids': ','.join([str(i) for i in coupon_ids]),
+            'tid': obj.tid,
+            'action_time': datetime.datetime.now()
         })
         if not coupon_ids:
             return
@@ -830,7 +832,14 @@ def set_coupon_2_use_by_trade_confirm(sender, obj, **kwargs):
 
         use_coupon_by_ids(coupon_ids, obj.tid)
     except Exception as e:
-        logger.error(e)
+        print e.message
+        logger.warn({
+            'action': 'set_coupon_2_use_by_trade_confirm',
+            'coupon_ids': ','.join([str(i) for i in coupon_ids]),
+            'tid': obj.tid,
+            'action_time': datetime.datetime.now(),
+            'except_msg': e.message
+        })
 
 signal_saletrade_pay_confirm.connect(set_coupon_2_use_by_trade_confirm, sender=SaleTrade,
                                      dispatch_uid='signal_set_coupon_2_use_by_trade_confirm')
