@@ -235,7 +235,7 @@ def task_check_xlmm_return_exchg_order():
                 order_num += 1
                 exchg_goods_num += sale_order.payment / sale_order.price
                 exchg_goods_payment += round(sale_order.payment * 100)
-                results.append(entry.order_id)
+                results.append(entry.uni_key)
             if sale_order and (sale_order.status == SaleOrder.TRADE_CLOSED or sale_order.refund_status != SaleRefund.NO_REFUND):
                 return_order_num += 1
 
