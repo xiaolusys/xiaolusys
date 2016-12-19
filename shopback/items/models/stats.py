@@ -310,11 +310,6 @@ class SkuStock(models.Model):
             stock2 = deepcopy(stock)
             diff_fields = stock.restat()
             stock.save(update_fields=update_fields)
-            if warning:
-                if diff_fields:
-                    db_data = {attr: getattr(stock, attr) for attr in diff_fields}
-                    stat_data = {attr: getattr(stock2, attr) for attr in diff_fields}
-                    s = ';'.join(['%s:stat:%s,db:%s' % (attr, stat_data[attr], db_data[attr],) for attr in diff_fields])
         if s:
             logging.error(u'统计库存与当前库存不相符合:sku_id:%s;info:%s' % (sku_id, s))
 
@@ -335,36 +330,40 @@ class SkuStock(models.Model):
     # 原因是一个操作修改字段过多时，难以用add_xxx方式命名，只得以业务来命名
     # ------------------------------------------------------------------------------------------------------------
     @staticmethod
-    @transaction.atomic
+    # @transaction.atomic
     def set_psi_init_paid(sku_id, num, stat=STAT_SIGN, warning=WARNING):
-        stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
+        # stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
+        stock = SkuStock._objects.get(sku_id=sku_id)
         stock.sold_num += num
         stock.psi_paid_num += num
         change_fields = ['sold_num', 'psi_paid_num']
         stock.stat_save(change_fields, stat=stat, warning=warning)
 
     @staticmethod
-    @transaction.atomic
+    # @transaction.atomic
     def set_psi_prepare_book(sku_id, num, stat=STAT_SIGN, warning=WARNING):
-        stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
+        # stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
+        stock = SkuStock._objects.get(sku_id=sku_id)
         stock.psi_paid_num -= num
         stock.psi_prepare_book_num += num
         change_fields = ['psi_paid_num', 'psi_prepare_book_num']
         stock.stat_save(change_fields, stat=stat, warning=warning)
 
     @staticmethod
-    @transaction.atomic
+    # @transaction.atomic
     def set_psi_booked(sku_id, num, stat=STAT_SIGN, warning=WARNING):
-        stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
+        # stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
+        stock = SkuStock._objects.get(sku_id=sku_id)
         stock.psi_booked_num += num
         stock.psi_prepare_book_num -= num
         change_fields = ['psi_booked_num', 'psi_prepare_book_num']
         stock.stat_save(change_fields, stat=stat, warning=warning)
 
     @staticmethod
-    @transaction.atomic
+    # @transaction.atomic
     def set_psi_booked_to_ready(sku_id, num, stat=STAT_SIGN, warning=WARNING):
-        stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
+        # stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
+        stock = SkuStock._objects.get(sku_id=sku_id)
         stock.psi_ready_num += num
         stock.psi_booked_num -= num
         change_fields = ['psi_booked_num', 'psi_ready_num']
@@ -373,9 +372,10 @@ class SkuStock(models.Model):
 
 
     @staticmethod
-    @transaction.atomic
+    # @transaction.atomic
     def set_psi_init_assigned(sku_id, num, stat=STAT_SIGN, warning=WARNING):
-        stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
+        # stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
+        stock = SkuStock._objects.get(sku_id=sku_id)
         stock.sold_num += num
         stock.psi_assigned_num += num
         stock.assign_num += num
@@ -383,9 +383,10 @@ class SkuStock(models.Model):
         stock.stat_save(change_fields, stat=stat, warning=warning)
 
     @staticmethod
-    @transaction.atomic
+    # @transaction.atomic
     def set_psi_booked_2_assigned(sku_id, num, stat=STAT_SIGN, warning=WARNING):
-        stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
+        # stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
+        stock = SkuStock._objects.get(sku_id=sku_id)
         stock.assign_num += num
         stock.psi_booked_num -= num
         stock.psi_assigned_num += num
@@ -393,9 +394,10 @@ class SkuStock(models.Model):
         stock.stat_save(change_fields, stat=stat, warning=warning)
 
     @staticmethod
-    @transaction.atomic
+    # @transaction.atomic
     def set_psi_not_assigned(sku_id, num, stat=STAT_SIGN, warning=WARNING):
-        stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
+        # stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
+        stock = SkuStock._objects.get(sku_id=sku_id)
         stock.assign_num -= num
         stock.psi_paid_num += num
         stock.psi_assigned_num -= num
@@ -403,36 +405,40 @@ class SkuStock(models.Model):
         stock.stat_save(change_fields, stat=stat, warning=warning)
 
     @staticmethod
-    @transaction.atomic
+    # @transaction.atomic
     def set_psi_merged(sku_id, num, stat=STAT_SIGN, warning=WARNING):
-        stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
+        # stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
+        stock = SkuStock._objects.get(sku_id=sku_id)
         stock.psi_assigned_num -= num
         stock.psi_merged_num += num
         change_fields = ['psi_merged_num', 'psi_assigned_num']
         stock.stat_save(change_fields, stat=stat, warning=warning)
 
     @staticmethod
-    @transaction.atomic
+    # @transaction.atomic
     def set_psi_waitscan(sku_id, num, stat=STAT_SIGN, warning=WARNING):
-        stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
+        # stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
+        stock = SkuStock._objects.get(sku_id=sku_id)
         stock.psi_merged_num -= num
         stock.psi_waitscan_num += num
         change_fields = ['psi_merged_num', 'psi_waitscan_num']
         stock.stat_save(change_fields, stat=stat, warning=warning)
 
     @staticmethod
-    @transaction.atomic
+    # @transaction.atomic
     def set_psi_waitpost(sku_id, num, stat=STAT_SIGN, warning=WARNING):
-        stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
+        # stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
+        stock = SkuStock._objects.get(sku_id=sku_id)
         stock.psi_waitscan_num -= num
         stock.psi_waitpost_num += num
         change_fields = ['psi_waitscan_num', 'psi_waitpost_num']
         stock.stat_save(change_fields, stat=stat, warning=warning)
 
     @staticmethod
-    @transaction.atomic
+    # @transaction.atomic
     def set_psi_sent(sku_id, num, stat=STAT_SIGN, warning=WARNING):
-        stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
+        # stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
+        stock = SkuStock._objects.get(sku_id=sku_id)
         stock.psi_waitpost_num -= num
         stock.psi_sent_num += num
         stock.post_num += num
@@ -441,16 +447,17 @@ class SkuStock(models.Model):
         stock.stat_save(change_fields, stat=stat, warning=warning)
 
     @staticmethod
-    @transaction.atomic
+    # @transaction.atomic
     def set_psi_finish(sku_id, num, stat=STAT_SIGN, warning=WARNING):
-        stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
+        # stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
+        stock = SkuStock._objects.get(sku_id=sku_id)
         stock.psi_finish_num += num
         stock.psi_sent_num -= num
         change_fields = ['psi_finish_num', 'psi_sent_num']
         stock.stat_save(change_fields, stat=stat, warning=warning)
 
     @staticmethod
-    @transaction.atomic
+    # @transaction.atomic
     def set_psi_cancel(sku_id, num, status, stat=STAT_SIGN, warning=WARNING):
         if status == PSI_STATUS.CANCEL:
             return
@@ -462,41 +469,46 @@ class SkuStock(models.Model):
         SkuStock.stat_warning(sku_id, change_fields, warning, stat)
 
     @staticmethod
-    @transaction.atomic
+    # @transaction.atomic
     def add_inbound_quantity(sku_id, num, stat=STAT_SIGN, warning=WARNING):
-        stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
+        # stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
+        stock = SkuStock._objects.get(sku_id=sku_id)
         stock.return_quantity += num
         change_fields = ['inbund_quantity']
         stock.stat_save(change_fields, stat=stat, warning=warning)
 
     @staticmethod
-    @transaction.atomic
+    # @transaction.atomic
     def add_return_quantity(sku_id, num, stat=STAT_SIGN, warning=WARNING):
-        stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
+        # stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
+        stock = SkuStock._objects.get(sku_id=sku_id)
         stock.return_quantity += num
         change_fields = ['return_quantity']
         stock.stat_save(change_fields, stat=stat, warning=warning)
 
     @staticmethod
-    @transaction.atomic
+    # @transaction.atomic
     def add_shoppingcart_num(sku_id, num, stat=STAT_SIGN, warning=WARNING):
-        stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
+        # stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
+        stock = SkuStock._objects.get(sku_id=sku_id)
         stock.shoppingcart_num += num
         change_fields = ['shoppingcart_num']
         stock.stat_save(change_fields, stat=stat, warning=warning)
 
     @staticmethod
-    @transaction.atomic
+    # @transaction.atomic
     def add_waitingpay_num(sku_id, num, stat=STAT_SIGN, warning=WARNING):
-        stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
+        # stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
+        stock = SkuStock._objects.get(sku_id=sku_id)
         stock.waitingpay_num += num
         change_fields = ['waitingpay_num']
         stock.stat_save(change_fields, stat=stat, warning=warning)
 
     @staticmethod
-    @transaction.atomic
+    # @transaction.atomic
     def set_order_paid_num(sku_id, num, stat=STAT_SIGN, warning=WARNING):
-        stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
+        # stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
+        stock = SkuStock._objects.get(sku_id=sku_id)
         stock.paid_num += num
         stock.waitingpay_num -= num
         change_fields = ['paid_num', 'waitingpay_num']
