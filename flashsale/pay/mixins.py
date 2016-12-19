@@ -8,7 +8,7 @@ from mall.xiaolupay import apis as xiaolupay
 from rest_framework import exceptions
 
 from . import constants
-from .models import Customer, SaleTrade, SaleOrder, genTradeUniqueid
+from .models import Customer, ShoppingCart, SaleTrade, SaleOrder, genTradeUniqueid
 from shopback.items.models import ProductSku
 from flashsale.xiaolumm.models import XiaoluMama
 
@@ -110,6 +110,9 @@ class PayInfoMethodMixin(object):
         buyer_openid = sale_trade.openid
         order_no = sale_trade.tid
         channel = sale_trade.channel
+        if channel == SaleTrade.WX_PUB and not buyer_openid:
+            raise ValueError(u'请先微信授权登陆后再使用微信支付')
+        
         success_url = urlparse.urljoin(settings.M_SITE_URL,
                                        kwargs.get('success_url', constants.MALL_PAY_SUCCESS_URL))
         cancel_url = urlparse.urljoin(settings.M_SITE_URL,
@@ -145,11 +148,13 @@ class PayInfoMethodMixin(object):
         tuuid = form.get('uuid')
         if not self.is_valid_uuid(tuuid):
             raise exceptions.APIException(u'订单UUID异常')
-        sale_trade, state = SaleTrade.objects.get_or_create(tid=tuuid,
-                                                            buyer_id=customer.id)
+        sale_trade, state = SaleTrade.objects.get_or_create(
+            tid=tuuid, buyer_id=customer.id)
+
         if sale_trade.status not in (SaleTrade.WAIT_BUYER_PAY,
                                      SaleTrade.TRADE_NO_CREATE_PAY):
             raise exceptions.APIException(u'订单不可支付')
+
         params = {'channel': form.get('channel')}
         if address:
             params.update({
@@ -162,10 +167,26 @@ class PayInfoMethodMixin(object):
                 'receiver_phone': address.receiver_phone,
                 'receiver_mobile': address.receiver_mobile,
             })
+
         if state:
+            cart_ids = [i for i in form.get('cart_ids', '').split(',') if i.isdigit()]
+            cart_qs = ShoppingCart.objects.filter(
+                id__in=cart_ids,
+                buyer_id=customer.id
+            )
+
+            is_boutique = False
+            for cart in cart_qs:
+                mp = cart.get_modelproduct()
+                if mp and mp.is_boutique:
+                    is_boutique = True
+                if mp and mp.is_boutique_coupon:
+                    order_type = SaleTrade.ELECTRONIC_GOODS_ORDER
+
             from shopapp.weixin.options import get_openid_by_unionid
             openid = get_openid_by_unionid(customer.unionid, settings.WX_PUB_APPID)
             params.update({
+                'is_boutique': is_boutique,
                 'order_type': order_type,
                 'buyer_nick': customer.nick,
                 'buyer_message': form.get('buyer_message', ''),

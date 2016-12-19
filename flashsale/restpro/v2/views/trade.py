@@ -310,6 +310,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         channel = sale_trade.channel
         order_success_url = CONS.MALL_PAY_SUCCESS_URL.format(order_id=sale_trade.id, order_tid=sale_trade.tid)
 
+        if channel == SaleTrade.WX_PUB and not buyer_openid:
+            raise ValueError(u'请先微信授权登陆后再使用微信支付')
+
         if sale_trade.order_type == SaleTrade.TEAMBUY_ORDER:
             order_success_url = CONS.TEAMBUY_SUCCESS_URL.format(order_tid=sale_trade.tid) + '?from_page=order_commit'
 
@@ -324,9 +327,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                     logger.error('budget payment err:tid=%s, payment=%s, budget_payment=%s' % (
                         sale_trade.tid, sale_trade.payment, sale_trade.budget_payment))
                     raise Exception(u'钱包余额不足')
-
-        if channel == SaleTrade.WX_PUB and not buyer_openid:
-            raise ValueError(u'请先微信授权登陆后再使用微信支付')
 
         extra = {}
         if channel == SaleTrade.WX_PUB:
@@ -396,7 +396,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         is_boutique = False
         for cart in cart_qs:
             mp = cart.get_modelproduct()
-            is_boutique |= mp and mp.is_boutique or False
+            if mp and mp.is_boutique:
+                is_boutique = True
             if mp and mp.is_boutique_coupon:
                 order_type = SaleTrade.ELECTRONIC_GOODS_ORDER
 
@@ -656,14 +657,14 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         data = request.data
         cookies = dict([(k, v) for k, v in request.COOKIES.items() if k in ('mm_linkid', 'ufrom')])
         logger.info({
-            'code': 0,
-            'message': u'付款请求v1',
+            'info': u'付款请求v2', 
             'channel': data.get('channel'),
-            'user_agent': request.META.get('HTTP_USER_AGENT'),
-            'cookies': cookies,
-            'action':'trade_create',
-            'order_no': data.get('uuid'),
-            'data': str(data)
+            'http_referal': request.META.get('HTTP_REFERER'),
+            'user_agent':request.META.get('HTTP_USER_AGENT'), 
+            'action': 'trade_create', 
+            'order_no': data.get('uuid'), 
+            'data': str(data),
+            'cookies':cookies,
         })
 
     def check_use_coupon_only_buynow(self, product, cart_discount, cart_total_fee, coupon_template_id):

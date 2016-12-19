@@ -764,7 +764,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             'receiver_mobile': address.receiver_mobile,
             'user_address_id': address.id
         }
-
+        
         buyer_openid = options.get_openid_by_unionid(customer.unionid, settings.WX_PUB_APPID)
         buyer_openid = buyer_openid or customer.openid
         payment = float(form.get('payment'))
@@ -895,9 +895,16 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     def logger_request(self, request):
         data = request.data
         cookies = dict([(k, v) for k, v in request.COOKIES.items() if k in ('mm_linkid', 'ufrom')])
-        logger.info({'code': 0, 'info': u'付款请求v2', 'channel': data.get('channel'),
-                     'user_agent':request.META.get('HTTP_USER_AGENT'), 'cookies':cookies,
-                     'stype': 'restpro.trade', 'tid': data.get('uuid'), 'data': str(data)})
+        logger.info({
+            'info': u'付款请求v1', 
+            'channel': data.get('channel'),
+            'http_referal': request.META.get('HTTP_REFERER'),
+            'user_agent':request.META.get('HTTP_USER_AGENT'), 
+            'action': 'trade_create', 
+            'order_no': data.get('uuid'), 
+            'data': str(data),
+            'cookies':cookies,
+        })
 
     @list_route(methods=['post'])
     def shoppingcart_create(self, request, *args, **kwargs):
