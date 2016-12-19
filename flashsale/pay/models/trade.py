@@ -818,17 +818,17 @@ def set_coupon_2_use_by_trade_confirm(sender, obj, **kwargs):
     """订单支付成功设置优惠券为使用状态
     """
     try:
-        coupon_ids = obj.extras_info.get('coupon')
+        coupon_ids = obj.extras_info.get('coupon') or []
+        logger.warn({
+            'action': 'set_coupon_2_use_by_trade_confirm',
+            'coupon_ids': ','.join([str(i) for i in coupon_ids]),
+        })
         if not coupon_ids:
             return
         coupon_ids = [int(c) for c in coupon_ids]
         from flashsale.coupon.apis.v1.usercoupon import use_coupon_by_ids
 
         use_coupon_by_ids(coupon_ids, obj.tid)
-        logger.warn({
-            'action': 'set_coupon_2_use_by_trade_confirm',
-            'coupon_ids': ','.join([str(i) for i in coupon_ids]),
-        })
     except Exception as e:
         logger.error(e)
 
