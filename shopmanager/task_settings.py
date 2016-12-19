@@ -1122,12 +1122,12 @@ SHOP_APP_SCHEDULE = {
     #     'args': (),
     #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     # },
-    # u'定时更新特卖及微信订单状态': {
-    #     'task': 'flashsale.xiaolumm.tasks.base.task_Update_Sale_And_Weixin_Order_Status',
-    #     'schedule': crontab(minute="0", hour="6"),
-    #     'args': (),
-    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    # },
+    u'定时更新特卖订单状态': {
+        'task': 'flashsale.pay.tasks.task_Push_SaleTrade_Finished',
+        'schedule': crontab(minute="0", hour="6"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
     u'定时短信通知微信用户': {
         'task': 'shopapp.weixin_sales.tasks.task_notify_parent_award',
         'schedule': crontab(minute="*/5", ),

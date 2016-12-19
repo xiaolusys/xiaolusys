@@ -128,9 +128,6 @@ def task_Merge_Sale_Customer(user, code):
         logger.debug(exc.message, exc_info=True)
 
 
-
-
-
 @app.task()
 def task_Push_SaleTrade_Finished(pre_days=10):
     """
