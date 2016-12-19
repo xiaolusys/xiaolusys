@@ -832,7 +832,6 @@ def set_coupon_2_use_by_trade_confirm(sender, obj, **kwargs):
 
         use_coupon_by_ids(coupon_ids, obj.tid)
     except Exception as e:
-        print e.message
         logger.warn({
             'action': 'set_coupon_2_use_by_trade_confirm',
             'coupon_ids': ','.join([str(i) for i in coupon_ids]),
