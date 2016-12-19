@@ -464,7 +464,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
 
                 # find modelproduct
 
-                model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id, is_onsale=True).first()
+                model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id, is_boutique=True).first()
                 if model_product and model_product.extras.has_key('payinfo') \
                         and model_product.extras['payinfo'].has_key('coupon_template_ids'):
 
