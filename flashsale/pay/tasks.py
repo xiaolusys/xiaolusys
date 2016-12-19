@@ -756,13 +756,23 @@ def tasks_update_sale_trade_status(sale_trade_id):
     elif SaleOrder.TRADE_FINISHED in sale_order_status:
         all_finish = True
         for status in sale_order_status:
-            if status != SaleOrder.TRADE_FINISHED:
+            if status != SaleOrder.TRADE_FINISHED and status != SaleOrder.TRADE_CLOSED_BY_SYS:
                 all_finish = False
                 break
         if all_finish:
             logger.warn(
                 'tasks_update_sale_trade_status right now:%s %s' % (sale_trade_id, SaleTrade.TRADE_FINISHED))
             SaleTrade.objects.filter(id=sale_trade_id).update(status=SaleTrade.TRADE_FINISHED)
+    elif SaleOrder.TRADE_CLOSED_BY_SYS in sale_order_status:
+        all_finish = True
+        for status in sale_order_status:
+            if status != SaleOrder.TRADE_CLOSED_BY_SYS:
+                all_finish = False
+                break
+        if all_finish:
+            logger.warn(
+                'tasks_update_sale_trade_status right now:%s %s' % (sale_trade_id, SaleTrade.TRADE_CLOSED_BY_SYS))
+            SaleTrade.objects.filter(id=sale_trade_id).update(status=SaleTrade.TRADE_CLOSED_BY_SYS)
 
 
 @app.task()
