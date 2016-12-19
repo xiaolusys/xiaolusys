@@ -169,7 +169,7 @@ def task_check_xlmm_exchg_order():
                 continue
             if sale_order and sale_order.extras.has_key('exchange'):
                 order_num += 1
-                exchg_goods_num += sale_order.payment / sale_order.price
+                exchg_goods_num += round(sale_order.payment / sale_order.price)
                 exchg_goods_payment += round(sale_order.payment * 100)
                 results.append(entry.order_id)
                 if sale_order.extras['exchange'] == True:
@@ -207,7 +207,7 @@ def task_check_xlmm_exchg_order():
     logger.info({'message': u'check exchg order | order_num=%s == budget_num=%s == trans_num=%s ?' % (order_num,budget_log1.count(),trans_num),
                  'message2': u' exchg_goods_num=%s == exchg_trancoupon_num=%s' % (exchg_goods_num, exchg_trancoupon_num),
                  'message3': u'succ_coupon_record_num=%s == succ budget_num=%s' % (succ_coupon_record_num, budget_num),
-                 'message4': u'exchg_goods_payment=%s == exchg_budget_sum=%s , succ_exchg_goods_payment=%s == exchg_budget_sum=%s' % (exchg_goods_payment, exchg_budget_sum1, succ_exchg_goods_payment, exchg_budget_sum)
+                 'message4': u'exchged_goods_payment(include return exchg)=%s == exchg_budget_sum=%s , succ_exchg_goods_payment=%s == exchg_budget_sum=%s' % (exchg_goods_payment, exchg_budget_sum1, succ_exchg_goods_payment, exchg_budget_sum)
                 })
 
 
