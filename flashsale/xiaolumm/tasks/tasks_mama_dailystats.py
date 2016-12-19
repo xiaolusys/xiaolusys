@@ -215,7 +215,6 @@ def task_check_xlmm_exchg_order():
 def task_check_xlmm_return_exchg_order():
     from flashsale.pay.models.user import BudgetLog
     exchg_orders = BudgetLog.objects.filter(budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED)
-
     order_num = 0
     exchg_goods_num = 0
     exchg_goods_payment = 0
@@ -235,23 +234,18 @@ def task_check_xlmm_return_exchg_order():
                 order_num += 1
                 exchg_goods_num += sale_order.payment / sale_order.price
                 exchg_goods_payment += round(sale_order.payment * 100)
-                results.append(entry.uni_key)
+                results.append(sale_order.sale_trade.tid)
             if sale_order and (sale_order.status == SaleOrder.TRADE_CLOSED or sale_order.refund_status != SaleRefund.NO_REFUND):
                 return_order_num += 1
-
-    budget_log = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_OUT,
-                                          budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED)
+    budget_log = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_OUT, budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED)
     budget_num = budget_log.count()
-    res = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_OUT,
-                                   budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED).aggregate(
-        n=Sum('flow_amount'))
+    res = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_OUT, budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED).aggregate(n=Sum('flow_amount'))
     exchg_budget_sum = res['n'] or 0
-
     from flashsale.coupon.models.transfer_coupon import CouponTransferRecord
     trans_records = CouponTransferRecord.objects.filter(transfer_type=CouponTransferRecord.IN_RETURN_GOODS, transfer_status=CouponTransferRecord.DELIVERED)
     trans_num = 0
     for record in trans_records:
-        if record.uni_key in results:
+        if record.order_no in results:
             trans_num += 1
             exchg_trancoupon_num += record.coupon_num
 
