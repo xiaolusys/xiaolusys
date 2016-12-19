@@ -50,7 +50,7 @@ class ActivitySerializer(serializers.ModelSerializer):
 
     def get_memo_display(self, obj):
         # type: (ActivityEntry) -> text_type
-        if obj.act_type == ActivityEntry.ACT_TOPIC:  # 专题类型则获取该专题对应排期的供应商名称
+        if obj.act_type in [ActivityEntry.ACT_TOPIC, ActivityEntry.ACT_JINGPIN]:  # 专题类型则获取该专题对应排期的供应商名称
             suppliers = obj.get_schedule_suppliers()
             if suppliers:
                 return '&'.join([i['supplier_name'] for i in suppliers.values('supplier_name')])
