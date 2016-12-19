@@ -970,7 +970,7 @@ class Product(models.Model):
 
                 # 创建精品券
                 coupon_template = get_or_create_boutique_template(
-                    model_pro.id, model_pro.lowest_agent_price, model_title=model_pro.name,
+                    model_pro.id, usual_modle_product.lowest_agent_price, model_title=model_pro.name,
                     model_product_ids=product_ids, model_img=model_pro.head_img_url)
 
                 # 设置精品商品只可使用指定优惠券
