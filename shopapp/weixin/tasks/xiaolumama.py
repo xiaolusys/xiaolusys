@@ -314,8 +314,8 @@ def task_weixinfans_create_subscribe_awardcarry(unionid):
         carry_description = u'谢谢关注！每天分享好东西，赚佣么么哒！'
         carry_plan_name = u'小鹿千万粉丝计划'
         contributor_mama_id = mama_id
-        contributor_nick = userinfo.nick
-        contributor_img = userinfo.thumbnail
+        contributor_nick = userinfo and userinfo.nick or '匿名'
+        contributor_img  = userinfo and userinfo.thumbnail or '匿名'
     
         ac = AwardCarry(mama_id=mama_id,carry_num=carry_num, carry_type=carry_type, carry_description=carry_description,
                         contributor_nick=contributor_nick, contributor_img=contributor_img,
