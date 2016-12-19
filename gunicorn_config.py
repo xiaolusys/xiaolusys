@@ -12,7 +12,7 @@ timeout = 20
 worker_connections = multiprocessing.cpu_count() * 250  # all worker handle max connects a time
 # The maximum number of requests a worker will process before restarting.
 # This is a simple method to help limit the damage of memory leaks
-max_requests = 4000
+# max_requests = 4000
 # The maximum number of pending connections.
 # Exceeding this number results in the client getting an error when attempting to connect.
 # It should only affect servers under significant load.
