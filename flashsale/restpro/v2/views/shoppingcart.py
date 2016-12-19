@@ -347,13 +347,17 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         # APP减两元
         if not is_in_wap:
             # 精品汇商品没有app减２元优惠, 需要返回pid, value=0防止app出错
-            if self.has_jingpinquan_product(product_ids):
-                app_cut = CONS.PAY_EXTRAS.get(CONS.ETS_APPCUT)
-                app_cut.update(value=0)
-                extras.append(app_cut)
-            else:
-                app_cut = CONS.PAY_EXTRAS.get(CONS.ETS_APPCUT)
-                extras.append(app_cut)
+            # if self.has_jingpinquan_product(product_ids):
+            #     app_cut = CONS.PAY_EXTRAS.get(CONS.ETS_APPCUT)
+            #     app_cut.update(value=0)
+            #     extras.append(app_cut)
+            # else:
+            #     app_cut = CONS.PAY_EXTRAS.get(CONS.ETS_APPCUT)
+            #     extras.append(app_cut)
+            # 2016-12-19 不再有app支付立减2元
+            app_cut = CONS.PAY_EXTRAS.get(CONS.ETS_APPCUT)
+            app_cut.update(value=0)
+            extras.append(app_cut)
         # 余额
         total_payment = resp['total_payment']
         customer = self.get_customer(request)
