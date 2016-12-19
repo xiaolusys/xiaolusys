@@ -77,7 +77,7 @@ CACHES = {
             'PASSWORD': REDIS_AUTH,
             "SOCKET_CONNECT_TIMEOUT": 5,  # in seconds
             "SOCKET_TIMEOUT": 5,  # in seconds
-            # 'PARSER_CLASS': 'redis.connection.HiredisParser',
+            'PARSER_CLASS': 'redis.connection.HiredisParser',
             'PICKLE_VERSION': 2,
             # 'CONNECTION_POOL_CLASS': 'redis.BlockingConnectionPool',
             'CONNECTION_POOL_CLASS_KWARGS': {
@@ -90,9 +90,9 @@ CACHES = {
 
 ##########################CELERY TASK##########################
 CLOSE_CELERY = False
-# CELERY_BROKER_URL = 'redis://:{0}@{1}:6379/29'.format(REDIS_AUTH, REDIS_HOST)
-CELERY_BROKER_URL = 'redis://10.45.32.34:6379/9'
-CELERY_RESULT_BACKEND = CELERY_BROKER_URL #'redis://:{0}@{1}:6379/28'.format(REDIS_AUTH, REDIS_HOST)
+CELERY_BROKER_URL = 'redis://:{0}@{1}:6379/9'.format(REDIS_AUTH, REDIS_HOST)
+# CELERY_BROKER_URL = 'redis://10.45.32.34:6379/9'
+CELERY_RESULT_BACKEND = 'redis://:{0}@{1}:6379/8'.format(REDIS_AUTH, REDIS_HOST)
 
 ##########################SENTRY RAVEN##########################
 import raven

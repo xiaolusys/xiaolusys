@@ -1,5 +1,5 @@
 build:
-  image: registry.aliyuncs.com/xiaolu-img/xiaolusys-base:7894575a315e92ddfa99fdbd350c30c8cd61802f
+  image: registry.aliyuncs.com/xiaolu-img/xiaolusys-base:c28f155281c4b1b9451e0a767d461da764446e92
   environment:
     - TARGET=staging
     - REDIS_AUTH=$$REDIS_AUTH
@@ -54,7 +54,7 @@ deploy:
     commands:
       - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
       - docker rm -f gunicorn
-      - docker run --name=gunicorn --restart=always --log-opt max-file=1 --log-opt max-size=1m
+      - docker run --name=gunicorn --restart=always --log-opt max-file=1 --log-opt max-size=1m --memory=6144m
         -e TARGET=production -e INSTANCE=admin -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
         -v /var/data:/data -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9000:9000
         registry.aliyuncs.com/xiaolu-img/xiaolusys:latest gunicorn -k gevent -c gunicorn_config.py -w 4 shopmanager.wsgi
@@ -131,6 +131,7 @@ deploy:
     host:
       - sale.xiaolumm.com
       - sale5.xiaolumm.com
+      - sale8.xiaolumm.com
     user: root
     when:
       branch: master
@@ -156,12 +157,6 @@ deploy:
         -v /var/data:/data -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9004:9000
         registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
         gunicorn -k gevent -w 1 -c gunicorn_config.py shopmanager.wsgi
-      - docker rm -f gunicorn
-      - docker run --name=gunicorn --restart=always --log-opt max-file=1 --log-opt max-size=1m --memory=14336m
-        -e INSTANCE=mall -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
-        -v /var/data:/data -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9000:9000
-        registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
-        gunicorn -k gevent -c gunicorn_config.py shopmanager.wsgi
   ssh:
     host:
       - sale.xiaolumm.com
