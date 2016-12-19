@@ -814,6 +814,28 @@ def tongji_trade_pay_channel(sender, obj, **kwargs):
 signal_saletrade_pay_confirm.connect(tongji_trade_pay_channel, sender=SaleTrade)
 
 
+def set_coupon_2_use_by_trade_confirm(sender, obj, **kwargs):
+    """订单支付成功设置优惠券为使用状态
+    """
+    try:
+        coupon_ids = obj.extras_info.get('coupon')
+        if not coupon_ids:
+            return
+        coupon_ids = [int(c) for c in coupon_ids]
+        from flashsale.coupon.apis.v1.usercoupon import use_coupon_by_ids
+
+        use_coupon_by_ids(coupon_ids, obj.tid)
+        logger.warn({
+            'action': 'set_coupon_2_use_by_trade_confirm',
+            'coupon_ids': ','.join([str(i) for i in coupon_ids]),
+        })
+    except Exception as e:
+        logger.error(e)
+
+signal_saletrade_pay_confirm.connect(set_coupon_2_use_by_trade_confirm, sender=SaleTrade,
+                                     dispatch_uid='signal_set_coupon_2_use_by_trade_confirm')
+
+
 def update_teambuy(sender, instance, created, **kwargs):
     transaction.on_commit(lambda :instance.update_teambuy())
 
