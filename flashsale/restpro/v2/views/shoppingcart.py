@@ -458,6 +458,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             'cart_list': cart_serializers.data,
             'logistics_companys': selectable_logistics
         }
+        
         response.update({'pay_extras': self.get_payextras(request, response, item_ids)})
         return Response(response)
 
