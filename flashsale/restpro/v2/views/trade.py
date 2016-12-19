@@ -203,7 +203,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             user_coupon = UserCoupon.objects.get(id=coupon_id, customer_id=sale_trade.buyer_id)
             if sale_trade.tid != user_coupon.trade_tid:
                 user_coupon.coupon_basic_check()  # 优惠券基础检查
-                use_coupon_by_ids([user_coupon.id], sale_trade.tid)
                 template_id = user_coupon.template_id
                 if user_coupon.is_transfer_coupon():
                     is_transfer_coupon = True
