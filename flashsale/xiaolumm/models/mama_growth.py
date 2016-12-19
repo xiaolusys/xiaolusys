@@ -480,15 +480,15 @@ class MamaMissionRecord(BaseModel):
                 # self.finish_time = datetime.datetime.now()
                 self.save(update_fields=['finish_value', 'status'])
 
-            if self.mission.kpi_type == MamaMission.KPI_AMOUNT \
-                    or self.mission.target == MamaMission.TARGET_GROUP:
-                from flashsale.xiaolumm.tasks import task_cancel_mama_weekly_award, \
-                    task_push_mission_state_msg_to_weixin_user
-                task_cancel_mama_weekly_award.delay(self.mama_id, self.id)
+                if self.mission.kpi_type == MamaMission.KPI_AMOUNT \
+                        or self.mission.target == MamaMission.TARGET_GROUP:
+                    from flashsale.xiaolumm.tasks import task_cancel_mama_weekly_award, \
+                        task_push_mission_state_msg_to_weixin_user
+                    task_cancel_mama_weekly_award.delay(self.mama_id, self.id)
 
-                # 通知妈妈奖励取消
-                if has_old_finished:
-                    task_push_mission_state_msg_to_weixin_user.delay(self.id, MamaMissionRecord.CANCEL)
+                    # 通知妈妈奖励取消
+                    if has_old_finished:
+                        task_push_mission_state_msg_to_weixin_user.delay(self.id, MamaMissionRecord.CANCEL)
 
         if cur_year_week > self.year_week and self.is_staging():
             self.status = self.CLOSE
