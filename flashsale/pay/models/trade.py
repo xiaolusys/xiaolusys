@@ -584,16 +584,16 @@ class SaleTrade(BaseModel):
 
     def release_coupon(self):
         """ 释放订单对应的优惠券 """
-        from flashsale.coupon.apis.v1.usercoupon import rollback_user_coupon_status_2_unused_by_ids
+        # from flashsale.coupon.apis.v1.usercoupon import rollback_user_coupon_status_2_unused_by_ids
         from flashsale.coupon.apis.v1.transfer import cancel_transfer_record_by_trade
 
-        coupon_ids = self.extras_info.get("coupon") or []
-        if isinstance(coupon_ids, str):
-            coupon_ids = coupon_ids.strip()
-            coupon_ids = [int(coupon_ids)] if coupon_ids.isdigit() else []
-        coupon_ids = [int(i) for i in coupon_ids]
-        if coupon_ids:
-            rollback_user_coupon_status_2_unused_by_ids(coupon_ids) # 修改该优惠券的状态到未使用
+        # coupon_ids = self.extras_info.get("coupon") or []
+        # if isinstance(coupon_ids, str):
+        #     coupon_ids = coupon_ids.strip()
+        #     coupon_ids = [int(coupon_ids)] if coupon_ids.isdigit() else []
+        # coupon_ids = [int(i) for i in coupon_ids]
+        # if coupon_ids:
+        # rollback_user_coupon_status_2_unused_by_ids(coupon_ids) # 修改该优惠券的状态到未使用
         cancel_transfer_record_by_trade(self.tid)  # 将对应的流通券记录取消掉
 
     @property
