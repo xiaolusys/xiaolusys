@@ -129,7 +129,7 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         order_by = request.GET.get('order_by')
         queryset = self.filter_queryset(self.get_queryset())
         queryset = self.order_queryset(queryset, order_by=order_by)
-        onshelf_qs = queryset.filter(shelf_status=ModelProduct.ON_SHELF)
+        onshelf_qs = queryset.filter(shelf_status=ModelProduct.ON_SHELF, product_type=ModelProduct.USUAL_TYPE)
         q_filter = Q()
         cids = [c for c in cid_str.split(',') if c]
         for cid in cids:
@@ -158,6 +158,7 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
                 onshelf_time__range=date_range
             )
         # queryset = self.order_queryset(request, tal_queryset, order_by=self.INDEX_ORDER_BY)
+        queryset = queryset.filter(product_type=ModelProduct.USUAL_TYPE)
 
         page_ids = self.paginate_pks(queryset)
         modelproducts = ModelProductCtl.multiple(ids=page_ids)
@@ -242,6 +243,7 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         #     customer=customer.id,
         #     pro_status=CuShopPros.UP_SHELF).values_list("model", flat=True))
         queryset = self.queryset.filter(shelf_status=ModelProduct.ON_SHELF,
+                                        product_type=ModelProduct.USUAL_TYPE,
                                         status=ModelProduct.NORMAL)
         if parent_cid:
             queryset = queryset.filter(salecategory__parent_cid=parent_cid)
