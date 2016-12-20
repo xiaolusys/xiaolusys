@@ -432,7 +432,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         for cart in queryset:
             total_fee += cart.price * cart.num
             discount_fee += cart.calc_discount_fee(xlmm=xlmm)
-            item_ids.append(cart.item_id)
+            item_ids.append(str(cart.item_id))
 
         discount_fee = min(discount_fee, total_fee)
         total_payment = total_fee + post_fee - discount_fee
