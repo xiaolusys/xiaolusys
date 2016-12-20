@@ -1,5 +1,5 @@
 build:
-  image: registry.aliyuncs.com/xiaolu-img/xiaolusys-base:c28f155281c4b1b9451e0a767d461da764446e92
+  image: registry.aliyuncs.com/xiaolu-img/xiaolusys-base:edc05bc17dfd735e56ffa91dedec27ec74c3403b
   environment:
     - TARGET=staging
     - REDIS_AUTH=$$REDIS_AUTH
@@ -186,25 +186,25 @@ deploy:
       - docker run  --name=celery1 --restart=always -d --log-opt max-file=1 --log-opt max-size=1m --memory=1024m
         -e INSTANCE=celery-gevent -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
         -v /var/data:/data -e C_FORCE_ROOT=1 registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
-        celery worker -P gevent -A shopmanager --loglevel=ERROR -c 200 --time-limit=300
+        celery worker -P gevent -A shopmanager --loglevel=ERROR -c 200 --time-limit=1800
         -Q notify,frency,mama,coupon,activevalue,mamafortune,relationship,carryrecord,logistics,weixin,xiaolupay
       - docker rm -f celery2
       - docker run --name=celery2 --restart=always -d --log-opt max-file=1 --log-opt max-size=1m --memory=1024m
         -e INSTANCE=celery-gevent -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
         -v /var/data:/data -e C_FORCE_ROOT=1 registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
-        celery worker -P gevent -A shopmanager --loglevel=ERROR -c 200 --time-limit=300
+        celery worker -P gevent -A shopmanager --loglevel=ERROR -c 200 --time-limit=1800
         -Q notify,frency,mama,coupon,activevalue,mamafortune,relationship,carryrecord,logistics,qrcode,weixin
       - docker rm -f celery3
       - docker run --name=celery3 --restart=always -d --log-opt max-file=1 --log-opt max-size=1m --memory=1024m
         -e INSTANCE=celery-gevent -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
         -v /var/data:/data -e C_FORCE_ROOT=1 registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
-        celery worker -P gevent -A shopmanager --loglevel=ERROR -c 200 --time-limit=300
+        celery worker -P gevent -A shopmanager --loglevel=ERROR -c 200 --time-limit=1800
         -Q notify,frency,mama,coupon,activevalue,mamafortune,relationship,carryrecord,logistics,qrcode
       - docker rm -f celery4
       - docker run --name=celery4 --restart=always -d --log-opt max-file=1 --log-opt max-size=1m --memory=1024m
         -e INSTANCE=celery-gevent -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
         -v /var/data:/data -e C_FORCE_ROOT=1 registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
-        celery worker -P gevent -A shopmanager --loglevel=ERROR -c 200 --time-limit=300
+        celery worker -P gevent -A shopmanager --loglevel=ERROR -c 200 --time-limit=1800
         -Q notify,frency,mama,coupon,activevalue,mamafortune,relationship,carryrecord,logistics,qrcode
   ssh:
     host:

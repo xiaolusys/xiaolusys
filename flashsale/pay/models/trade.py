@@ -819,25 +819,32 @@ def set_coupon_2_use_by_trade_confirm(sender, obj, **kwargs):
     """
     try:
         coupon_ids = obj.extras_info.get('coupon') or []
-        logger.warn({
-            'action': 'set_coupon_2_use_by_trade_confirm',
+        logger.info({
+            'action': 'set_coupon_2_use_by_trade_confirm_start',
             'coupon_ids': ','.join([str(i) for i in coupon_ids]),
-            'tid': obj.tid,
+            'order_no': obj.tid,
             'action_time': datetime.datetime.now()
         })
         if not coupon_ids:
             return
         coupon_ids = [int(c) for c in coupon_ids]
-        from flashsale.coupon.apis.v1.usercoupon import use_coupon_by_ids
+        from flashsale.coupon.apis.v1.usercoupon import use_coupon_by_ids, get_user_coupons_by_ids
 
         use_coupon_by_ids(coupon_ids, obj.tid)
+
+        coupons = get_user_coupons_by_ids(coupon_ids)
+        logger.info({
+            'action': 'set_coupon_2_use_by_trade_confirm_end',
+            'action_time': datetime.datetime.now(),
+            'coupons': coupons.values('id','status'),
+            'order_no': obj.tid,
+        })
     except Exception as e:
         logger.warn({
-            'action': 'set_coupon_2_use_by_trade_confirm',
-            'coupon_ids': ','.join([str(i) for i in coupon_ids]),
-            'tid': obj.tid,
+            'action': 'set_coupon_2_use_by_trade_confirm_error',
+            'order_no': obj.tid,
             'action_time': datetime.datetime.now(),
-            'except_msg': e.message
+            'traceback': traceback.format_exc(),
         })
 
 signal_saletrade_pay_confirm.connect(set_coupon_2_use_by_trade_confirm, sender=SaleTrade,

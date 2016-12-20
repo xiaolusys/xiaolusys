@@ -30,11 +30,11 @@ if os.environ.get('INSTANCE') == 'celery-gevent':
 # 某个程序中出现的队列，在broker中不存在，则立刻创建它
 # CELERY_CREATE_MISSING_QUEUES = True
 # 每个worker最多执行40个任务就会被销毁，可防止内存泄露
-CELERY_WORKER_MAX_TASKS_PER_CHILD = 500
+CELERY_WORKER_MAX_TASKS_PER_CHILD = 300
 
 # 任务发出后，经过一段时间还未收到acknowledge , 就将任务重新交给其他worker执行
 CELERY_BROKER_TRANSPORT_OPTIONS = {
-    'visibility_timeout': 3600,
+    'visibility_timeout': 1800,
     # 'max_connections': 8,
 }
 
@@ -55,6 +55,7 @@ CELERY_TASK_RESULT_EXPIRES = 24 * 60 * 60  # half hour
 
 # Set redis as celery result backend
 CELERY_REDIS_MAX_CONNECTIONS = 8
+CELERY_REDIS_SOCKET_CONNECT_TIMEOUT = 30
 
 # Don't use pickle as serializer, json is much safer
 CELERY_TASK_SERIALIZER = "pickle"
