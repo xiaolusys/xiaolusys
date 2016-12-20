@@ -40,7 +40,8 @@ def zero_tradewuliu(logistics_company,out_sid,tradewuliu):
         kd100_search.delay(expName=logistics_company, expNo=out_sid)
     else:
         kdn_sub.delay(rid=None, expName=logistics_company, expNo=out_sid)
-        kdn_search.delay(rid=None, expName=logistics_company, expNo=out_sid)
+        kd100_search(expName=logistics_company, expNo=out_sid)
+        # kdn_search.delay(rid=None, expName=logistics_company, expNo=out_sid)
     return "物流信息暂未获得"
 
 result_choice = {1:one_tradewuliu,0:zero_tradewuliu}
