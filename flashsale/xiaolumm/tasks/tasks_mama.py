@@ -157,6 +157,7 @@ def task_update_ordercarry(mama_id, order, customer_pk, carry_amount, agency_lev
     uni_key = util_unikey.gen_ordercarry_unikey(carry_type, order_id)
 
     order_carry = OrderCarry.objects.filter(uni_key=uni_key).first()
+
     if order_carry:
         logger.info({
             'action': 'ordercarry',
@@ -169,23 +170,14 @@ def task_update_ordercarry(mama_id, order, customer_pk, carry_amount, agency_lev
             'carry_type': carry_type,
             'status': status,
         })
+
         update_fields = []
+
         if order_carry.status != status:
-            # We only update status change. We assume no price/value change.
-            # We dont do updates on changes other than status change.
             order_carry.status = status
             update_fields.append('status')
-        if order_carry.carry_type != carry_type:
-            order_carry.carry_type = carry_type
-            update_fields.append('carry_type')
-        if order_carry.carry_num != carry_num:
-            order_carry.carry_num = carry_num
-            update_fields.append('carry_num')
-        if order_carry.carry_description != carry_description:
-            order_carry.carry_description = carry_description
-            update_fields.append('carry_description')
+
         if update_fields:
-            update_fields.append('modified')
             order_carry.save(update_fields=update_fields)
         return
 
