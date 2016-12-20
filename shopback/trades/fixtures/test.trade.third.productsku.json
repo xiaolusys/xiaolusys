@@ -1,0 +1,39 @@
+[
+{
+ "model": "items.productsku",
+ "pk": 259156,
+ "fields": {
+  "outer_id": "5552964402811",
+  "supplier_skucode": "",
+  "barcode": "5552964402811",
+  "product": 69571,
+  "quantity": -2,
+  "warn_num": 0,
+  "remain_num": 50,
+  "wait_post_num": 0,
+  "sale_num": 0,
+  "reduce_num": 0,
+  "lock_num": 2,
+  "sku_inferior_num": 0,
+  "cost": 12.0,
+  "std_purchase_price": 0.0,
+  "std_sale_price": 56.0,
+  "agent_price": 29.9,
+  "staff_price": 0.0,
+  "weight": "",
+  "properties_name": "A\u6b3e",
+  "properties_alias": "A\u6b3e",
+  "is_split": false,
+  "is_match": false,
+  "sync_stock": true,
+  "is_assign": false,
+  "post_check": false,
+  "created": "2016-09-18T20:04:21",
+  "modified": "2016-10-14T05:59:09",
+  "status": "normal",
+  "match_reason": "",
+  "buyer_prompt": "",
+  "memo": ""
+ }
+}
+]

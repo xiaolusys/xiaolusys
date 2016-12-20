@@ -1373,6 +1373,13 @@ SHOP_APP_SCHEDULE = {
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
 
+    # u"save gen_order为false":{
+    #     'task':'flashsale.restpro.tasks.save_gen_order',
+    #     'schedule': crontab(minute='*/10'),
+    #     'args': (),
+    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    # },
+
     u'删除数据库中三个月前的物流数据' :{
         'task': 'flashsale.restpro.tasks.delete_logistics_three_month_ago',
         'schedule': crontab(minute="0", hour="2"),
