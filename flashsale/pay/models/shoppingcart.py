@@ -34,12 +34,12 @@ class ShoppingCart(BaseModel):
     buyer_id = models.BigIntegerField(null=False, db_index=True, verbose_name=u'买家ID')
     buyer_nick = models.CharField(max_length=64, blank=True, verbose_name=u'买家昵称')
 
-    item_id = models.CharField(max_length=64, blank=True, verbose_name=u'商品ID')
+    item_id = models.IntegerField(db_index=True, null=False, verbose_name=u'商品ID')
     title = models.CharField(max_length=128, blank=True, verbose_name=u'商品标题')
     price = models.FloatField(default=0.0, verbose_name=u'单价')
     std_sale_price = models.FloatField(default=0.0, verbose_name=u'标准售价')
 
-    sku_id = models.CharField(max_length=20, blank=True, verbose_name=u'规格ID')
+    sku_id = models.IntegerField(db_index=True, null=False, verbose_name=u'规格ID')
     num = models.IntegerField(null=True, default=0, verbose_name=u'商品数量')
 
     total_fee = models.FloatField(default=0.0, verbose_name=u'总费用')

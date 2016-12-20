@@ -207,17 +207,15 @@ def task_update_product_sku_stat_rg_quantity(sku_id):
 
 
 @app.task(max_retries=3, default_retry_delay=6)
-@transaction.atomic
 def task_shoppingcart_update_productskustats_shoppingcart_num(sku_id):
     """
     Recalculate and update shoppingcart_num.
     """
     from flashsale.pay.models import ShoppingCart
     try:
-        product_id = ProductSku.objects.get(id=sku_id).product.id
-        shoppingcart_num_res = ShoppingCart.objects.filter(item_id=product_id, sku_id=sku_id,
-                                                           status=ShoppingCart.NORMAL).aggregate(
-            Sum('num'))
+        # product_id = ProductSku.objects.get(id=sku_id).product.id
+        shoppingcart_num_res = ShoppingCart.objects.filter(
+            sku_id=sku_id, status=ShoppingCart.NORMAL).aggregate(Sum('num'))
         total = shoppingcart_num_res['num__sum'] or 0
         stat = SkuStock.get_by_sku(sku_id)
         if stat.shoppingcart_num != total:

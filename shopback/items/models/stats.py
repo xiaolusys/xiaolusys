@@ -7,8 +7,9 @@ from django.db import models
 from django.db.models import Sum
 from django.db.models.signals import pre_save, post_save
 from django.db.models import F
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.core.cache import cache
+
 from shopback.trades.constants import PSI_STATUS
 from shopback.warehouse import WARE_SH, WARE_CHOICES, WARE_NONE
 from django.db.models import Manager
@@ -120,16 +121,18 @@ class SkuStock(models.Model):
         return '<%s,%s:%s>' % (self.id, self.product_id, self.sku_id)
 
     @staticmethod
-    @transaction.atomic
     def get_by_sku(sku_id):
         stat = SkuStock._objects.filter(sku_id=sku_id).first()
         if stat:
             return stat
         else:
-            from shopback.items.models import ProductSku
-            sku = ProductSku.objects.get(id=sku_id)
-            stat = SkuStock(sku_id=sku.id, product_id=sku.product_id)
-            stat.save()
+            try:
+                from shopback.items.models import ProductSku
+                sku = ProductSku.objects.get(id=sku_id)
+                stat = SkuStock(sku_id=sku.id, product_id=sku.product_id)
+                stat.save()
+            except IntegrityError:
+                stat = SkuStock._objects.filter(sku_id=sku_id).first()
             return stat
 
     @property

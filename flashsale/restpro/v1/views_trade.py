@@ -1,4 +1,5 @@
 # -*- coding:utf8 -*-
+from __future__ import unicode_literals
 import time
 import datetime
 from django.db.models import F
@@ -896,6 +897,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         data = request.data
         cookies = dict([(k, v) for k, v in request.COOKIES.items() if k in ('mm_linkid', 'ufrom')])
         logger.info({
+            'code': 0,
             'info': u'付款请求v1', 
             'channel': data.get('channel'),
             'http_referal': request.META.get('HTTP_REFERER'),
