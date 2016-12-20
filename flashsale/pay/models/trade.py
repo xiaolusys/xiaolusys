@@ -1138,6 +1138,9 @@ class SaleOrder(PayBaseModel):
         else:
             return self.status == SaleOrder.WAIT_SELLER_SEND_GOODS and self.refund_status <= SaleRefund.REFUND_REFUSE_BUYER
 
+    def is_finished(self):
+        return self.status == SaleOrder.TRADE_FINISHED
+
     def is_confirmed(self):
         return self.status >= SaleOrder.WAIT_BUYER_CONFIRM_GOODS and \
                self.status <= SaleOrder.TRADE_FINISHED and \

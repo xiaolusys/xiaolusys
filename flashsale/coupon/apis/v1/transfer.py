@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 from .usercoupon import get_user_coupons_by_ids, freeze_transfer_coupon, get_freeze_boutique_coupons_by_transfer, \
     rollback_user_coupon_status_2_unused_by_ids
 from flashsale.pay.apis.v1.customer import get_customer_by_django_user
-from flashsale.pay.models import BudgetLog
+from flashsale.pay.models import BudgetLog, SaleOrder
 
 __ALL__ = [
     'create_coupon_transfer_record',
@@ -131,13 +131,17 @@ def send_new_elite_transfer_coupons(customer_id, order_id, order_oid, product_id
     #product = Product.objects.filter(id=product_id).first()
     #model_product = ModelProduct.objects.filter(id=product.model_id).first()
     #template_id = model_product.extras.get("template_id")
+    customer = Customer.objects.get(id=customer_id)
     template_id = 156
     coupon_num = 5
 
     template = get_coupon_template_by_id(id=template_id)
     index = 0
     with transaction.atomic():
-        customer = Customer.objects.select_for_update().get(id=customer_id)
+        so = SaleOrder.objects.select_for_update().get(id=order_id)
+        if not so.is_finished():
+            return
+
         value, start_use_time, expires_time = template.calculate_value_and_time()
         extras = {'user_info': {'id': customer.id, 'nick': customer.nick, 'thumbnail': customer.thumbnail}}
         new_coupon_ids = []

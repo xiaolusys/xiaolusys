@@ -23,7 +23,7 @@ def task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, prod
     from .coupontemplate import task_update_tpl_released_coupon_nums
     from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
     from ..apis.v1.transfercoupondetail import create_transfer_coupon_detail
-    from flashsale.pay.models import Customer
+    from flashsale.pay.models import Customer, SaleOrder
 
     logger.info({
         'action': 'transfer_coupon',
@@ -33,6 +33,7 @@ def task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, prod
             customer_id, order_id, order_oid, order_num, product_id),
     })
 
+    customer = Customer.objects.get(id=customer_id)
     product = Product.objects.filter(id=product_id).first()
     model_product = ModelProduct.objects.filter(id=product.model_id).first()
     template_id = model_product.extras.get("template_id")
@@ -40,7 +41,11 @@ def task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, prod
     template = get_coupon_template_by_id(id=template_id)
     index = 0
     with transaction.atomic():
-        customer = Customer.objects.select_for_update().get(id=customer_id)
+        # 对saleorder加锁防止多次进入
+        so = SaleOrder.objects.select_for_update().get(id=order_id)
+        if not so.is_finished():
+            return
+
         new_coupon_ids = []
         while index < order_num:
             unique_key = template.gen_usercoupon_unikey(order_id, index)
