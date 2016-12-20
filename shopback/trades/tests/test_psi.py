@@ -50,6 +50,7 @@ class TradeNormalTestCase(TestCase):
         stock.restat()
         self.assertEqual(SkuStock.get_by_sku(self.sku_id).restat(), [])
         sale_trade = SaleTrade.objects.get(id=self.sale_trade_id)
+        stock = SkuStock.get_by_sku(self.sku_id)
         sale_trade.pay_confirm()
         sku = ProductSku.objects.get(id=self.sku_id)
         so = SaleOrder.objects.get(id=self.sale_order_id)
@@ -120,6 +121,7 @@ class TradeNormalTestCase(TestCase):
         inbound.update_orderlist_arrival_process()
         # InBoundDetail.objects.filter(inbound_id=inbound.id).first().save()
         self.assertEqual(SkuStock.get_by_sku(self.sku_id).restat(), [])
+
         """分配"""
         orderdetail = ol.order_list.filter(chichu_id=self.sku_id).first()
         orderdetail.save()
@@ -224,4 +226,82 @@ class PSIThirdSendTestCase(TestCase):
         第三方发货流程测试
         用户支付/订货/导入/
     """
-    pass
+
+
+    fixtures = [
+            "test.trade.third.user.json",
+            "test.trade.third.users.json",
+            "test.trade.third.salesupplier.json",
+            "test.trade.third.salecategory.json",
+            "test.trade.third.saleproduct.json",
+            "test.trade.third.logisticscompany.json",
+            "test.trade.third.customer.json",
+            "test.trade.third.productcategory.json",
+            "test.trade.third.skustock.json",
+            "test.trade.third.product.json",
+            "test.trade.third.productsku.json",
+            "test.trade.third.saletrade.json",
+            "test.trade.third.saleorder.json"
+        ]
+
+
+    def setUp(self):
+        self.username = '13739234188'
+        self.password = '123456'
+        self.client.login(username=self.username, password=self.password)
+        self.sale_trade_id = 468098
+        self.sale_order_id = 520706
+        self.sku_id = 259156
+        self.user_id = 923802
+
+    def test_third_process(self):
+        stock = SkuStock.get_by_sku(self.sku_id)
+        print stock.__dict__
+        stock.restat()
+        print stock.__dict__
+        self.assertEqual(SkuStock.get_by_sku(self.sku_id).restat(), [])
+        sale_trade = SaleTrade.objects.get(id=self.sale_trade_id)
+        sale_trade.pay_confirm()
+        sku = ProductSku.objects.get(id=self.sku_id)
+        so = SaleOrder.objects.get(id=self.sale_order_id)
+        self.assertEqual(so.status, SaleOrder.WAIT_SELLER_SEND_GOODS)
+        self.assertEqual(so.package_sku.pay_time,so.pay_time)
+        pa = so.package_sku.get_purchase_arrangement()
+        logger.warn(pa.id)
+        stock = SkuStock.get_by_sku(self.sku_id)
+        self.assertEqual(pa.status, 1)
+        stock = SkuStock.get_by_sku(self.sku_id)
+        print stock.paid_num,stock.modified,stock.sold_num
+        self.assertEqual(stock.restat(), [])
+        """准备订货"""
+        pa.generate_order()
+        logger.warn(pa.purchase_order_unikey)
+        ol = OrderList.objects.get(purchase_order_unikey=pa.purchase_order_unikey)
+        self.assertEqual(ol.check_by_package_skuitem(), [])
+        self.assertEqual(SkuStock.get_by_sku(self.sku_id).restat(), [])
+
+        """订货 审核 付款"""
+        ol.begin_third_package()
+        pa = PurchaseArrangement.objects.get(id=pa.id)
+        self.assertEqual(pa.initial_book, True)
+        self.assertEqual(ol.purchase_order.status, PurchaseOrder.BOOKED)
+        self.assertEqual(SkuStock.get_by_sku(self.sku_id).restat(), [])
+        status = Bill.STATUS_DELAY
+        pay_method = Bill.SELF_PAY
+        plan_amount = ol.order_amount
+        bill = Bill.create([ol], Bill.PAY, status, pay_method, plan_amount, 0, ol.supplier,
+                               user_id=self.user_id, receive_account='', receive_name='',
+                               pay_taobao_link='', transcation_no='', note='')
+        ol.set_stage_receive(Bill.PC_COD_TYPE)
+
+        """导入"""
+        psi = PackageSkuItem.objects.get(sku_id=self.sku_id)
+        package_order = PackageOrder.objects.get(receiver_mobile=13911394224)
+        order_list = OrderList.objects.get(supplier_id=29644)
+        if not package_order.package_sku_items.filter(purchase_order_unikey=order_list.purchase_order_unikey):
+            logger.error("cuole")
+        if package_order.sys_status not in [PackageOrder.WAIT_CUSTOMER_RECEIVE, PackageOrder.FINISHED_STATUS]:
+            package_order.out_sid = "123123123123"
+            logistics_company = LogisticsCompany.objects.get(id=-2)
+            package_order.finish_third_package("123123123123", logistics_company)
+            logger.warn("finish_third_package success")

@@ -1,0 +1,20 @@
+[
+{
+ "model": "pay.customer",
+ "pk": 1,
+ "fields": {
+  "created": "2015-04-09T11:08:12",
+  "modified": "2016-11-13T18:14:06",
+  "user": 1,
+  "nick": "meron@\u5c0f\u9e7f\u7f8e\u7f8e",
+  "thumbnail": "http://wx.qlogo.cn/mmopen/0v06jdfpoVJicdicpGWelGJ20rSRhicwc1J3L0SFLCvVTkAwxVpkdGJyCUAN1uiatZ6lolZiapvPsyib9RjEUy95lYzia18mn5WxQrg/0",
+  "mobile": "18621623915",
+  "email": "",
+  "phone": "",
+  "openid": "our5huIOSuFF5FdojFMFNP5HNOmA",
+  "unionid": "o29cQs4zgDoYxmSO3pH-x4A7O8Sk",
+  "status": 1,
+  "first_paytime": "2015-04-29T15:56:37"
+ }
+}
+]

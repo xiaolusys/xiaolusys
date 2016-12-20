@@ -1,0 +1,48 @@
+[
+{
+ "model": "pay.saletrade",
+ "pk": 468098,
+ "fields": {
+  "created": "2016-10-21T06:50:53",
+  "modified": "2016-10-21T07:16:39",
+  "tid": "xd16102158094a3b40e16",
+  "buyer_id": 1,
+  "buyer_nick": "Liang \u8273\u513f(\u2022\u0e34_\u2022\u0e34)",
+  "channel": "wx",
+  "payment": 60.3,
+  "pay_cash": 60.3,
+  "post_fee": 0.0,
+  "discount_fee": 8.6,
+  "total_fee": 68.9,
+  "has_budget_paid": false,
+  "is_boutique": false,
+  "buyer_message": "",
+  "seller_memo": "",
+  "pay_time": null,
+  "consign_time": null,
+  "trade_type": 0,
+  "order_type": 0,
+  "out_sid": "",
+  "logistics_company": null,
+  "receiver_name": "\u8bb8\u826f\u8273",
+  "receiver_state": "\u5317\u4eac",
+  "receiver_city": "\u6d77\u6dc0\u533a",
+  "receiver_district": "\u4e09\u73af\u4ee5\u5185",
+  "receiver_address": "\u5317\u4eac\u5e02\u6d77\u6dc0\u533a\u5317\u4eac\u5e08\u8303\u5927\u5b66\u5170\u60e0\u516c\u5bd3600",
+  "receiver_zip": "",
+  "receiver_mobile": "13911394224",
+  "receiver_phone": "",
+  "user_address_id": 142607,
+  "openid": "our5huGJGosH8eLzrj5z_ZVqVgzY",
+  "charge": "ch_KiL8uT8OajDSTS4i1GzvXP0O",
+  "extras_info": {
+   "coupon": "850589",
+   "ufrom": "",
+   "agent": "Android/5.1.1 xlmmApp/20161009 Mobile/OPPO R9 Plustm A NetType/3G",
+   "pay_extras": "pid:2:couponid:850589:value:6.6;pid:1:value:2.0;",
+   "mm_linkid": 0
+  },
+  "status": 7
+ }
+}
+]

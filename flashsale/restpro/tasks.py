@@ -451,9 +451,9 @@ def prods_position_handler():
     cu_pros = CuShopPros.objects.all().exclude(id__in=up_pro_ids)
     cu_pros.update(pro_status=CuShopPros.DOWN_SHELF)
 
-@app.task()
-def save_gen_order():
-    pa=PurchaseArrangement.objects.filter(gen_order=False)
-    logger.warn({'action': "PurchaseArrangement", 'info': "run save_gen_order" + pa.count() + "success"})
-    for i in pa:
-        i.generate_order(i)
+# @app.task()
+# def save_gen_order():
+#     pa=PurchaseArrangement.objects.filter(gen_order=False)
+#     logger.warn({'action': "PurchaseArrangement", 'info': "run save_gen_order" + pa.count() + "success"})
+#     for i in pa:
+#         i.generate_order(i)
