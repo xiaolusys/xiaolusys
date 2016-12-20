@@ -126,7 +126,7 @@ deploy:
         -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH -e FLOWER_BASIC_AUTH=xiaolu:2016xiaoluyear
         -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:5555:5555
         -v /var/data:/data  -e C_FORCE_ROOT=1 registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
-        flower -A shopmanager --log_file_max_size = 1073741824 --conf=shopmanager/task_settings.py
+        flower -A shopmanager --log_file_max_size=1073741824 --conf=shopmanager/task_settings.py
   ssh:
     host:
       - sale.xiaolumm.com

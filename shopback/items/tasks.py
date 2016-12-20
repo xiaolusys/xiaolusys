@@ -116,9 +116,9 @@ def updateAllUserItemsTask():
 @app.task()
 def updateUserProductSkuTask(user_id=None, outer_ids=None, force_update_num=False):
     """ 更新用户商品SKU规格信息任务 """
-
+    return # FIXME this will not used in future
     user = Seller.getSellerByVisitorId(user_id)
-    items = user.items.filter(status=pcfg.NORMAL)
+    items = user.items.filter(status=True)
     if outer_ids:
         items = items.filter(outer_id__in=outer_ids)
 

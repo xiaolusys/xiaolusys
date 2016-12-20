@@ -106,6 +106,7 @@ class Item(models.Model):
     @classmethod
     def save_item_through_dict(cls, user_id, item_dict):
         from shopback.categorys.models import Category
+        from shopback.users.models import User
         from .product import Product
         category = Category.get_or_create(user_id, item_dict['cid'])
         if item_dict.has_key('outer_id') and item_dict['outer_id']:
