@@ -913,11 +913,10 @@ class SaleOrder(PayBaseModel):
     outer_sku_id = models.CharField(max_length=32, blank=True, verbose_name=u'规格外部编码')
 
     total_fee = models.FloatField(default=0.0, verbose_name=u'总费用')
-    payment = models.FloatField(default=0.0, verbose_name=u'实付款')
+    payment   = models.FloatField(default=0.0, verbose_name=u'实付款')
     discount_fee = models.FloatField(default=0.0, verbose_name=u'优惠金额')
 
-    sku_name = models.CharField(max_length=256, blank=True,
-                                verbose_name=u'购买规格')
+    sku_name = models.CharField(max_length=256, blank=True, verbose_name=u'购买规格')
     pic_path = models.CharField(max_length=512, blank=True, verbose_name=u'商品图片')
 
     pay_time = models.DateTimeField(db_index=True, null=True, blank=True, verbose_name=u'付款日期')

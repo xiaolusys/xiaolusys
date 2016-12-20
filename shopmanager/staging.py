@@ -82,9 +82,9 @@ CLOSE_CELERY = False
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
 
-CELERY_BROKER_URL = 'redis://:{0}@{1}:6379/19'.format(REDIS_AUTH, REDIS_HOST)
-# CELERY_BROKER_URL = 'redis://10.45.32.34:6379/19'
-CELERY_RESULT_BACKEND = 'redis://:{0}@{1}:6379/18'.format(REDIS_AUTH, REDIS_HOST)
+# CELERY_BROKER_URL = 'redis://:{0}@{1}:6379/19'.format(REDIS_AUTH, REDIS_HOST)
+CELERY_BROKER_URL = 'redis://10.45.32.34:6379/19'
+CELERY_RESULT_BACKEND = 'redis://10.45.32.34:6379/18'
 
 ##########################SENTRY RAVEN##########################
 import raven
