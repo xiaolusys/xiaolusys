@@ -120,7 +120,7 @@ class UserCoupon(BaseModel):
 
     @property
     def is_gift_transfer_coupon(self):
-        return 'gift_transfer' in self.uniq_id
+        return 'gift' in self.uniq_id
 
     def self_template(self):
         # type: () -> CouponTemplate
