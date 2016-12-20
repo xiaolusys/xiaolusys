@@ -2,6 +2,7 @@
 import datetime
 import logging
 import os
+import random
 import re
 import time
 import urlparse
@@ -883,7 +884,22 @@ class MamaAdministratorViewSet(APIView):
 
         mama = customer.get_xiaolumm()
         if not mama:
-            return Response({"code": 1, "info": u'没有这个妈妈'})
+            return Response({"code": 2, "info": u'没有这个妈妈'})
+
+        if mama.last_renew_type < XiaoluMama.ELITE:
+            # 非正式妈妈，从公众号进来，那么现在随机从100个团队选一个2016-12-20
+            from games.weixingroup.models import XiaoluAdministrator
+            administrators = XiaoluAdministrator.objects.filter(id__gte=18, status=1)
+            if administrators.count() > 0:
+                num = random.randint(1, administrators.count())
+                administrator = administrators[num - 1]
+
+                return Response({
+                    'mama_id': mama.id,
+                    'qr_img': administrator.weixin_qr_img,
+                    'referal_mama_nick': administrator.nick,
+                    'referal_mama_avatar': administrator.head_img_url,
+                })
 
         referal_mama_ids = mama.get_parent_mama_ids()
         if referal_mama_ids:
@@ -904,7 +920,6 @@ class MamaAdministratorViewSet(APIView):
             'referal_mama_nick': referal_mama_nick,
             'referal_mama_avatar': referal_mama_avatar,
         })
-
 
 
 class ActivateMamaView(APIView):
