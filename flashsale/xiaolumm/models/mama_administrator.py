@@ -2,6 +2,8 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from django.db.models import Q
+
 from core.models import BaseModel
 from flashsale.xiaolumm.models.models import XiaoluMama
 
@@ -24,7 +26,7 @@ class MamaAdministrator(BaseModel):
         if item:
             administrator = item.administrator
         else:
-            administrators = XiaoluAdministrator.objects.filter(id__gte=11)
+            administrators = XiaoluAdministrator.objects.filter(Q(id__gte=11) & Q(id__lte=18))
             num = mama.id % administrators.count()
             administrator = administrators[num]
 
