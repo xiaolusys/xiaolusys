@@ -90,9 +90,9 @@ CACHES = {
 
 ##########################CELERY TASK##########################
 CLOSE_CELERY = False
-CELERY_BROKER_URL = 'redis://:{0}@{1}:6379/9'.format(REDIS_AUTH, REDIS_HOST)
-# CELERY_BROKER_URL = 'redis://10.45.32.34:6379/9'
-CELERY_RESULT_BACKEND = 'redis://:{0}@{1}:6379/8'.format(REDIS_AUTH, REDIS_HOST)
+# CELERY_BROKER_URL = 'redis://:{0}@{1}:6379/9'.format(REDIS_AUTH, REDIS_HOST)
+CELERY_BROKER_URL = 'redis://10.45.32.34:6379/9'
+CELERY_RESULT_BACKEND = CELERY_BROKER_URL#'redis://:{0}@{1}:6379/8'.format(REDIS_AUTH, REDIS_HOST)
 
 ##########################SENTRY RAVEN##########################
 import raven
