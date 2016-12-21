@@ -403,14 +403,13 @@ def saleorder_return_coupon_exchange(salerefund, payment):
             break
         else:
             num += 1
-        if not not_enough_budget:
+        if not_enough_budget:
             extras = coupon.extras
             extras['freeze_type'] = 1
-            UserCoupon.objects.filter(uniq_id=coupon.uniq_id).update(status=UserCoupon.UNUSED, trade_tid='',
-                                                                     extras=extras,
+            UserCoupon.objects.filter(uniq_id=coupon.uniq_id).update(status=UserCoupon.FREEZE, trade_tid='',
                                                                      finished_time=datetime.datetime.now())
         else:
-            UserCoupon.objects.filter(uniq_id=coupon.uniq_id).update(status=UserCoupon.FREEZE, trade_tid='',
+            UserCoupon.objects.filter(uniq_id=coupon.uniq_id).update(status=UserCoupon.UNUSED, trade_tid='',
                                                                      finished_time=datetime.datetime.now())
         coupon_ids.append(coupon.id)
 
