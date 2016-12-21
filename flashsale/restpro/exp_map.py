@@ -248,7 +248,8 @@ kd100_exp_map = {"韵达":"yunda",'韵达快递':'yunda','韵达速递':'yunda',
                  "全一":"quanyikuaidi","全一快递":"quanyikuaidi","全一速递":"quanyikuaidi"
                  }
 
-kdn_not_support_exp = ["如风达快递","如风达","如风达速递"]
+kdn_not_support_exp = ["如风达快递","如风达","如风达速递",
+                       "顺丰","顺丰快递","顺丰速递"]
 
 def reverse_map():
     return dict(zip(exp_map.values(),exp_map.keys()))
