@@ -259,6 +259,8 @@ def kd100_search(expName, expNo):  #expName是拼音
     logging.warn("快递100开始查询了")
     logger.warn({'action': "kdn", 'info': "kd100_search:" + str(expNo)})
     write_info = get_exp_by_kd100(str(expName),expNo)
+    if not write_info:
+        return
     kdn_get_push(**write_info)
     time.sleep(2)
     # if str(expName) in exp_map.kdn_not_support_exp:
