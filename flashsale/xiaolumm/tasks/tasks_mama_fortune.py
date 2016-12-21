@@ -148,14 +148,14 @@ def task_activevalue_update_mamafortune(mama_id):
 
 @app.task(max_retries=3, default_retry_delay=6)
 def task_update_mamafortune_invite_num(mama_id):
-    #print "%s, mama_id: %s" % (get_cur_info(), mama_id)
     from flashsale.xiaolumm.models import XiaoluMama
+    
     res = ReferalRelationship.objects.filter(referal_from_mama_id=mama_id).values('referal_type').annotate(num=Count('*'))
 
     invite_num, invite_trial_num = 0,0
     for entry in res:
         num = entry['num'] or 0
-        if entry['referal_type'] < XiaoluMama.HALF:
+        if entry['referal_type'] < XiaoluMama.ELITE:
             invite_trial_num += num
         else:
             invite_num += num
