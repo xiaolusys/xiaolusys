@@ -24,3 +24,14 @@ class TransferCouponDetail(BaseModel):
     def __unicode__(self):
         # type: () -> text_type
         return '%s-%s' % (self.transfer_id, self.coupon_id)
+
+    @property
+    def usercoupon(self):
+        from ..apis.v1.usercoupon import get_user_coupon_by_id
+
+        return get_user_coupon_by_id(self.coupon_id)
+
+    @property
+    def transfer(self):
+        from ..apis.v1.transfer import get_transfer_record_by_id
+        return get_transfer_record_by_id(self.transfer_id)
