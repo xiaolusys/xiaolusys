@@ -52,7 +52,7 @@ def task_sync_weixin_red_envelopes():
             pass
 
     now = datetime.now()
-    t1 = now - timedelta(days=1)
+    t1 = now - timedelta(hours=1)
     envelopes = WeixinRedEnvelope.objects.filter(
         status=WeixinRedEnvelope.UNSEND,
         created__lte=t1
