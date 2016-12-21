@@ -468,7 +468,7 @@ def get_exp_by_kd100(company_name,out_sid):
         "time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "content": all_info
     }
-    logger.warn({'action': "kdn100", 'info': "get_exp_by_kd100:" + json.dumps(write_info)})
+    logger.warn({'action': "kdn100", 'info': "get_exp_by_kd100:" + type +":" + postid + json.dumps(write_info)})
     return write_info
 
 
