@@ -556,8 +556,7 @@ class PackageOrder(models.Model):
 def check_package_order_status(sender, instance, created, **kwargs):
     from shopback.logistics.tasks import task_get_logistics_company
     if instance.sys_status == PackageOrder.WAIT_PREPARE_SEND_STATUS and not instance.logistics_company:
-        # task_get_logistics_company.delay(instance)
-        task_get_logistics_company.apply_async(args=[instance.id], countdown=3)
+        transaction.on_commit(lambda : task_get_logistics_company.delay(instance.id))
 
 
 post_save.connect(check_package_order_status, sender=PackageOrder)
@@ -992,7 +991,7 @@ class PackageSkuItem(BaseModel):
         psi_ids = list(psi_ids)
         for psi_id in psi_ids:
             with transaction.atomic():
-                psi = PackageSkuItem.objects.select_for_update().filter(id=psi_id, status=PSI_STATUS.ASSIGNED).first()
+                psi = PackageSkuItem.objects.filter(id=psi_id, status=PSI_STATUS.ASSIGNED).first()
                 if psi:
                     psi.merge()
 
@@ -1037,6 +1036,7 @@ class PackageSkuItem(BaseModel):
         ori_status = self.status
         self.status = PSI_STATUS.CANCEL
         self.assign_status = 3
+        self.cancel_time=datetime.datetime.now()
         self.save()
         SkuStock.set_psi_cancel(self.sku_id, self.num, ori_status, stat=stat)
     # -----------------------------------
