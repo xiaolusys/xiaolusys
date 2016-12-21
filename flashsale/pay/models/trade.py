@@ -832,12 +832,21 @@ def set_coupon_2_use_by_trade_confirm(sender, obj, **kwargs):
         from flashsale.coupon.models import CouponTransferRecord
         from flashsale.coupon.apis.v1.transfercoupondetail import create_transfer_coupon_detail
 
+        use_coupon_by_ids(coupon_ids, obj.tid)
+
+        coupons = get_user_coupons_by_ids(coupon_ids)
+        logger.info({
+            'action': 'set_coupon_2_use_by_trade_confirm_end',
+            'action_time': datetime.datetime.now(),
+            'coupons': coupons.values('id','status'),
+            'order_no': obj.tid,
+        })
+
         use_coupon_by_ids(coupon_ids, obj.tid)  # 使用优惠券
 
         # 创建 消费流通记录 如果是流通券类型的话
-        usercoupons = get_user_coupons_by_ids(coupon_ids)
         template_id = None
-        for coupon in usercoupons:
+        for coupon in coupons:
             if coupon.is_transfer_coupon():
                 template_id = coupon.template_id
                 break
@@ -845,7 +854,6 @@ def set_coupon_2_use_by_trade_confirm(sender, obj, **kwargs):
             coupon_num = len(coupon_ids)
             transfer = CouponTransferRecord.create_consume_record(coupon_num, obj, template_id)
             create_transfer_coupon_detail(transfer.id, coupon_ids)
-
     except Exception as e:
         logger.warn({
             'action': 'set_coupon_2_use_by_trade_confirm_error',
