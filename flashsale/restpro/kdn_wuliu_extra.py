@@ -387,7 +387,8 @@ def kdn_get_push(*args, **kwargs):
 def get_exp_by_kd100(company_name,out_sid):
     type = str(company_name)
     postid=str(out_sid)
-    kd100_url = 'http://www.kuaidi100.com/query?type=%s&postid=%s&id=1&valicode='
+    # kd100_url = 'http://www.kuaidi100.com/query?type=%s&postid=%s&id=1&valicode='
+    kd100_url = "http://baidu.kuaidi100.com/query?type=%s&postid=%s"
     rq_url = kd100_url % (type,postid)
     res = requests.get(rq_url).text
     res = json.loads(res)
