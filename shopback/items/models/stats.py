@@ -303,15 +303,14 @@ class SkuStock(models.Model):
         if not stat:
             if warning:
                 stock2 = deepcopy(stock)
-                diff_fields = stock2.restat()
+                diff_fields = stock2.restat(update_fields)
                 if diff_fields:
                     db_data = {attr: getattr(stock, attr) for attr in diff_fields}
                     stat_data = {attr: getattr(stock2, attr) for attr in diff_fields}
                     s = ';'.join(['%s:stat:%s,db:%s' % (attr, stat_data[attr], db_data[attr],) for attr in diff_fields])
             stock.save(update_fields=update_fields)
         else:
-            stock2 = deepcopy(stock)
-            diff_fields = stock.restat()
+            stock.restat(update_fields)
             stock.save(update_fields=update_fields)
         if s:
             logging.error(u'统计库存与当前库存不相符合:sku_id:%s;info:%s' % (sku_id, s))
@@ -689,10 +688,10 @@ class SkuStock(models.Model):
         PackageSkuItem.batch_merge()
 
     def can_assign(self, sku_item):
-        from shopback.trades.models import PackageSkuItem
-        if PackageSkuItem.objects.filter(  # status=PSI_STATUS.READY,
-                sku_id=self.sku_id, assign_status=PackageSkuItem.NOT_ASSIGNED).exists():
-            self.assign()
+        # from shopback.trades.models import PackageSkuItem
+        # # if PackageSkuItem.objects.filter(  # status=PSI_STATUS.READY,
+        # #         sku_id=self.sku_id, assign_status=PackageSkuItem.NOT_ASSIGNED).exists():
+        # #     self.assign()
         now_num = self.realtime_quantity - self.assign_num
         return now_num >= sku_item.num
 

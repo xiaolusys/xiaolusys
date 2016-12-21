@@ -130,7 +130,7 @@ class SaleSupplier(models.Model):
     stocking_mode = models.IntegerField(default=0, choices=STOCKING_MODE_CHOICES, db_index=True, verbose_name=u'存货模式')
     buyer = models.ForeignKey('auth.User', null=True, related_name='buyers', verbose_name=u'买手')
     ware_by = models.SmallIntegerField(default=WARE_SH, choices=WARE_CHOICES, verbose_name=u'所属仓库')
-    return_ware_by = models.SmallIntegerField(default=WARE_NONE, choices=WARE_CHOICES, verbose_name=u'退货仓库')
+    return_ware_by = models.SmallIntegerField(default=WARE_SH, choices=WARE_CHOICES, verbose_name=u'退货仓库')
 
     delta_arrive_days = models.IntegerField(default=3, verbose_name=u'预计到货天数')
 

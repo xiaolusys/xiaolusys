@@ -50,8 +50,6 @@ class PurchaseOrder(BaseModel):
         self.details.update(status=PurchaseOrder.BOOKED)
         self.arrangements.filter(status=PurchaseArrangement.EFFECT).update(purchase_order_status=self.status, initial_book=True)
         oids = [pa.oid for pa in self.arrangements.filter(status=PurchaseArrangement.EFFECT)]
-        book_time = datetime.datetime.now()
-        # PackageSkuItem.objects.filter(oid__in=oids).update(purchase_order_unikey=self.uni_key, booked_time=book_time)
         if not third_package:
             for p in PackageSkuItem.objects.filter(oid__in=oids):
                 p.set_status_booked(self.uni_key)
