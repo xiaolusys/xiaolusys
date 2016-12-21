@@ -117,9 +117,11 @@ class KdnView(APIView):
         if not Traces:
             natural_name = write_info['logistics_company']
             kd100_type = exp_map.kd100_exp_map[natural_name]
+            logger.warn({'action': "kdn", 'info': "prepare_kd00_search:" + LogisticCode})
             write_info = kdn_wuliu_extra.get_exp_by_kd100(company_name=kd100_type,out_sid=LogisticCode)
         try:
-            kdn_get_push.delay(**write_info)
+            if write_info:
+                kdn_get_push.delay(**write_info)
         except Exception, e:
             print Exception,e
             return Response({"Success": False, "EBusinessID": str(1264368),

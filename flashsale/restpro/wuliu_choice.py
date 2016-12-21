@@ -43,8 +43,9 @@ def zero_tradewuliu(logistics_company,out_sid,tradewuliu):
         kd100_search(expName=logistics_company, expNo=out_sid)
     else:
         kdn_sub.delay(rid=None, expName=logistics_company, expNo=out_sid)
-        kd100_search(expName=logistics_company, expNo=out_sid)
-        # kdn_search.delay(rid=None, expName=logistics_company, expNo=out_sid)
+        # logistics_company = exp_map.kd100_exp_map[str(logistics_company)]
+        # kd100_search(expName=logistics_company, expNo=out_sid)
+        kdn_search(rid=None, expName=logistics_company, expNo=out_sid)
     tradewuliu = TradeWuliu.objects.filter(out_sid=out_sid).order_by("-id").first()
 
     if not tradewuliu:

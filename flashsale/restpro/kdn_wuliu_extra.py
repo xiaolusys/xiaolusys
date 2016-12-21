@@ -435,8 +435,15 @@ def kdn_get_push(*args, **kwargs):
 
 
 def get_exp_by_kd100(company_name,out_sid):
+
     type = str(company_name)
     postid=str(out_sid)
+    tradewuliu = TradeWuliu.objects.filter(out_sid=postid).first()
+    four = datetime.timedelta(hours=4)
+    if tradewuliu and tradewuliu.created:
+        if datetime.datetime.now()-four < tradewuliu.created:
+            return False
+    cookie = 'inputpostid='+postid+";"+"comcode="+type
     r=random.randint(30000000000000000, 99999999999999999)
     r="0."+str(r)
     # kd100_url = 'http://www.kuaidi100.com/query?type=%s&postid=%s&id=1&valicode='
@@ -448,12 +455,21 @@ def get_exp_by_kd100(company_name,out_sid):
         "Connection": "keep-alive",
         "User-Agent": get_random_ua(ua),
         "X-Forwarded-For": get_random_ip(),
+        "Cookie":cookie
     }
     rq_url = kd100_url % (type,postid,r)
     print rq_url
     res = requests.get(rq_url,headers=headers).text
+    print res
     res = json.loads(res)
     all_info = list()
+    if not res.get("data"):
+        write_info = {
+            "out_sid":postid,
+            "logistics_company":type,
+            "created":datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
+        return write_info
     for i in res['data']:
         each_info = dict()
         each_info['AcceptTime'] = i['ftime']
