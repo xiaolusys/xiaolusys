@@ -260,7 +260,7 @@ def kd100_search(expName, expNo):  #expName是拼音
     logger.warn({'action': "kdn", 'info': "kd100_search:" + str(expNo)})
     write_info = get_exp_by_kd100(str(expName),expNo)
     kdn_get_push(**write_info)
-    time.sleep(2)
+    time.sleep(1)
     # if str(expName) in exp_map.kdn_not_support_exp:
     #     write_info = get_exp_by_kd100(str(expName),expNo)
     #     kdn_get_push(**write_info)
