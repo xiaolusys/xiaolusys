@@ -303,6 +303,13 @@ class SaleTrade(BaseModel):
         status_list = MergeTrade.TAOBAO_TRADE_STATUS
         return status_list[index][0]
 
+    @property
+    def is_paid(self):
+        return self.pay_time is not None and \
+               self.status not in (SaleTrade.TRADE_CLOSED,
+                                   SaleTrade.TRADE_NO_CREATE_PAY,
+                                   SaleTrade.WAIT_BUYER_PAY)
+
     def is_paid_via_app(self):
         """
         Roughly check whether order is paid via app, should be revised later.
@@ -1113,11 +1120,6 @@ class SaleOrder(PayBaseModel):
 
     def close_order(self):
         """ 待付款关闭订单 """
-        try:
-            SaleOrder.objects.get(id=self.id, status=SaleOrder.WAIT_BUYER_PAY)
-        except SaleOrder.DoesNotExist, exc:
-            return
-
         self.status = self.TRADE_CLOSED_BY_SYS
         self.save()
         # sku = get_object_or_404(ProductSku, pk=self.sku_id)

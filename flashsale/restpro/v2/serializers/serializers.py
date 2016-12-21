@@ -883,6 +883,7 @@ class SaleTradeDetailSerializer(serializers.HyperlinkedModelSerializer):
     # url = serializers.HyperlinkedIdentityField(view_name='rest_v2:saletrade-detail')
     orders = serializers.SerializerMethodField('gen_sale_orders', read_only=True)
     # TODO 根据订单信息，显示未分包商品及已分包商品列表
+    is_paid = serializers.SerializerMethodField(read_only=True)
     channel = serializers.ChoiceField(choices=SaleTrade.CHANNEL_CHOICES)
     trade_type = serializers.ChoiceField(choices=SaleTrade.TRADE_TYPE_CHOICES)
     logistics_company = LogisticsCompanySerializer(read_only=True)
@@ -897,7 +898,7 @@ class SaleTradeDetailSerializer(serializers.HyperlinkedModelSerializer):
                   'post_fee', 'total_fee', 'discount_fee', 'has_budget_paid', 'status', 'status_display',
                   'buyer_message', 'trade_type', 'created', 'pay_time', 'consign_time', 'out_sid',
                   'logistics_company', 'user_adress', 'package_orders', 'extras', 'order_type', 'can_refund',
-                  'can_change_address')
+                  'can_change_address', 'is_paid')
 
     def gen_sale_orders(self, obj):
         order_data_list = SaleOrderSerializer(obj.sale_orders, many=True).data
@@ -934,6 +935,13 @@ class SaleTradeDetailSerializer(serializers.HyperlinkedModelSerializer):
     def gen_extras_info(self, obj):
         refund_dict = generate_refund_choices(obj)
         return refund_dict or {}
+
+    def get_is_paid(self, obj):
+        if self.context.has_key('is_paid'):
+            return self.context['is_paid']
+        else:
+            return obj.is_paid
+
 
 
 class SaleRefundSerializer(serializers.HyperlinkedModelSerializer):

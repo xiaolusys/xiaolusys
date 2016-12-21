@@ -145,14 +145,17 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         """ 获取用户订单及订单明细列表 """
         instance   = self.get_object()
+        is_paid    = instance.is_paid
         if instance.is_payable() and instance.charge:
             try:
                 charge = xiaolupay.Charge.retrieve(instance.tid)
-                notifyTradePayTask.delay(charge)
+                if charge and charge.paid:
+                    is_paid = True
+                    notifyTradePayTask.delay(charge)
             except Exception,exc:
                 logger.error('%s'%exc, exc_info=True)
 
-        data = serializers.SaleTradeDetailSerializer(instance,context={'request': request}).data
+        data = serializers.SaleTradeDetailSerializer(instance, context={'request': request, 'is_paid': is_paid}).data
         data['extras'].update(channels=get_channel_list(request, self.get_customer(request)))
         return Response(data)
 
