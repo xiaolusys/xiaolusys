@@ -171,9 +171,13 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
                                                              status=Customer.NORMAL).first()
                 res = process_transfer_coupon(customer.id, init_from_customer.id, record)
             else:
-                record.transfer_status = CouponTransferRecord.PROCESSED
-                record.save(update_fields=['transfer_status'])
-                res = CouponTransferRecord.gen_transfer_record(request.user, record)
+                # record.transfer_status = CouponTransferRecord.PROCESSED
+                # record.save(update_fields=['transfer_status'])
+                # res = CouponTransferRecord.gen_transfer_record(request.user, record)
+                # 2016-12-21 中间的妈妈券不够的话，进行提示，自己找上级申请，不自动跟她们申请，以免她们混乱
+                info = u"您的券库存不足，请立即购买!"
+                res = {"code": 3, "info": info}
+
         return Response(res)
 
     @detail_route(methods=['POST'])
