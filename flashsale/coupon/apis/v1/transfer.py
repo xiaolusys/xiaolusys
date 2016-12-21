@@ -146,7 +146,7 @@ def send_new_elite_transfer_coupons(customer_id, order_id, order_oid, product_id
         extras = {'user_info': {'id': customer.id, 'nick': customer.nick, 'thumbnail': customer.thumbnail}}
         new_coupon_ids = []
         while index < coupon_num:
-            unique_key = template.gen_usercoupon_unikey('gift_transfer_%s' % (order_id), index)
+            unique_key = template.gen_usercoupon_unikey('gift_newelite_%s' % (customer_id), index)
             try:
                 cou = UserCoupon.objects.filter(uniq_id=unique_key).first()
                 if cou:
