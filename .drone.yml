@@ -122,7 +122,7 @@ deploy:
     commands:
       - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
       - docker rm -f celery-flower
-      - docker run --name=celery-flower --restart=always -e TARGET=production
+      - docker run --name=celery-flower --restart=always -e TARGET=production --memory=1024m
         -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH -e FLOWER_BASIC_AUTH=xiaolu:2016xiaoluyear
         -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:5555:5555
         -v /var/data:/data  -e C_FORCE_ROOT=1 registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
@@ -152,7 +152,7 @@ deploy:
     commands:
       - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
       - docker rm -f gunicorn-prometheus
-      - docker run --name=gunicorn-prometheus --restart=always --log-opt max-file=1 --log-opt max-size=1m --memory=1024m
+      - docker run --name=gunicorn-prometheus --restart=always --log-opt max-file=1 --log-opt max-size=1m --memory=600m
         -e INSTANCE=mall -e TARGET=prometheus -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
         -v /var/data:/data -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9004:9000
         registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
