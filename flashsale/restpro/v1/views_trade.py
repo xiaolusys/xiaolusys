@@ -41,9 +41,6 @@ from common.utils import update_model_fields
 from flashsale.restpro import constants as CONS
 import logging
 import decimal
-from flashsale.coupon.apis.v1.usercoupon import use_coupon_by_ids
-
-from shopback.logistics.models import LogisticsCompany
 
 logger = logging.getLogger(__name__)
 
