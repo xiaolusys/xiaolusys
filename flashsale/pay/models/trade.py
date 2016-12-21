@@ -839,8 +839,6 @@ def set_coupon_2_use_by_trade_confirm(sender, obj, **kwargs):
         from flashsale.coupon.models import CouponTransferRecord
         from flashsale.coupon.apis.v1.transfercoupondetail import create_transfer_coupon_detail
 
-        use_coupon_by_ids(coupon_ids, obj.tid)
-
         coupons = get_user_coupons_by_ids(coupon_ids)
         logger.info({
             'action': 'set_coupon_2_use_by_trade_confirm_end',
@@ -848,7 +846,6 @@ def set_coupon_2_use_by_trade_confirm(sender, obj, **kwargs):
             'coupons': coupons.values('id','status'),
             'order_no': obj.tid,
         })
-
         use_coupon_by_ids(coupon_ids, obj.tid)  # 使用优惠券
 
         # 创建 消费流通记录 如果是流通券类型的话
