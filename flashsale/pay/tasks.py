@@ -483,9 +483,9 @@ def task_budgetlog_update_userbudget(budget_log):
             out_amount += entry["total"]
     cash = in_amount - out_amount
 
-    # cash >0,unfreeze some user coupn 2016-12-12
+    # cash >=0,unfreeze some user coupn 2016-12-12
     from flashsale.coupon.apis.v1.usercoupon import unfreeze_user_coupon_by_userbudget
-    if cash > 0:
+    if cash >= 0:
         unfreeze_user_coupon_by_userbudget(customer_id)
 
     customers = Customer.objects.normal_customer.filter(id=customer_id)
