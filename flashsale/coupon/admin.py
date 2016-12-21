@@ -173,10 +173,30 @@ admin.site.register(CouponTransferRecord, CouponTransferRecordAdmin)
 
 
 class TransferCouponDetailAdmin(admin.ModelAdmin):
-    list_display = ('id', 'transfer_id', 'coupon_id', 'transfer_type', 'modified', 'created')
+    list_display = ('id', 'transfer_id', 'transfer_type', 'from_to_mama_id', 'coupon_id', 'template_id',
+                    'current_customer',
+                    'modified', 'created')
     list_filter = ('transfer_type', )
     search_fields = ['=transfer_id', '=coupon_id']
     list_per_page = 50
+
+    def from_to_mama_id(self, obj):
+        return u'%s => %s' % (obj.transfer.coupon_from_mama_id, obj.transfer.coupon_to_mama_id)
+
+    from_to_mama_id.allow_tags = True
+    from_to_mama_id.short_description = u"From => To"
+
+    def current_customer(self, obj):
+        return obj.usercoupon.customer_id
+
+    current_customer.allow_tags = True
+    current_customer.short_description = u"优惠券当前用户"
+
+    def template_id(self, obj):
+        return obj.usercoupon.template_id
+
+    template_id.allow_tags = True
+    template_id.short_description = u"模板id"
 
 
 admin.site.register(TransferCouponDetail, TransferCouponDetailAdmin)
