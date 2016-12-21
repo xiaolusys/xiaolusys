@@ -645,7 +645,7 @@ class XiaoluMama(BaseModel):
     def customer_id(self):
         from flashsale.pay.models import Customer
 
-        c = Customer.objects.filter(unionid=self.openid, status=XiaoluMama.NORMAL).first()
+        c = Customer.objects.filter(unionid=self.openid, status=Customer.NORMAL).first()
         if c:
             return c.id
         return 0
