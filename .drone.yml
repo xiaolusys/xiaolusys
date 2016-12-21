@@ -131,7 +131,6 @@ deploy:
     host:
       - sale.xiaolumm.com
       - sale5.xiaolumm.com
-      - sale8.xiaolumm.com
     user: root
     when:
       branch: master
@@ -151,6 +150,12 @@ deploy:
       branch: [master, prometheus]
     commands:
       - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
+      - docker rm -f gunicorn
+      - docker run --name=gunicorn --restart=always --log-opt max-file=1 --log-opt max-size=1m --memory=6144m
+        -e INSTANCE=mall -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
+        -v /var/data:/data -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9000:9000
+        registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
+        gunicorn -k gevent -w 10 -c gunicorn_config.py shopmanager.wsgi
       - docker rm -f gunicorn-prometheus
       - docker run --name=gunicorn-prometheus --restart=always --log-opt max-file=1 --log-opt max-size=1m --memory=600m
         -e INSTANCE=mall -e TARGET=prometheus -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
