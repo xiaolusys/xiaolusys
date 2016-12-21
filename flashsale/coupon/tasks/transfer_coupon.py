@@ -165,8 +165,8 @@ def _check_virtual_trade_status(time_from=None, time_to=None):
     tt = time_to or datetime.datetime.now()
     tf = time_from or (tt - datetime.timedelta(days=2))
     orders = SaleOrder.objects.filter(
-                                      sale_trade__order_type=SaleTrade.ELECTRONIC_GOODS_ORDER,
-                                      status__in=[SaleOrder.TRADE_FINISHED, SaleOrder.WAIT_SELLER_SEND_GOODS])
+        sale_trade__order_type=SaleTrade.ELECTRONIC_GOODS_ORDER,
+        status__in=[SaleOrder.TRADE_FINISHED, SaleOrder.WAIT_SELLER_SEND_GOODS])
     ordersv = orders.values('id', 'status', 'oid')
     paid = []
     success_no_transfer = []
@@ -187,7 +187,8 @@ def task_check_transfer_coupon_record():
 
     mama_ids = CouponTransferRecord.objects.filter(
         transfer_status=CouponTransferRecord.DELIVERED).values('coupon_to_mama_id').distinct()
-    data = ['定时检查流通记录任务--->异常数据:\n']
+    title = '%s定时检查流通记录任务--->异常数据:\n' % datetime.datetime.now()
+    data = [title]
     t = Template('\n妈妈id  :{{mama_id}}\n'
                  '客户id  :{{customer_id}}\n'
                  '模板id  :{{template_id}}\n'
@@ -212,7 +213,7 @@ def task_check_transfer_coupon_record():
     success_no_transfer = [str(j) for j in success_no_transfer]
     if not (paid or success_no_transfer):
         return
-    msg2 = '\n电子商品订单检查 :\n' \
+    msg2 = '\n%s电子商品订单检查 :\n' \
            '1. 已付款状态id:\n%s' \
-           '\n2. 交易成功没有流通记录id:\n%s' % ('\n'.join(paid), '\n'.join(success_no_transfer))
+           '\n2. 交易成功没有流通记录id:\n%s' % (datetime.datetime.now(), '\n'.join(paid), '\n'.join(success_no_transfer))
     _send_msg_ding_talk(msg2)
