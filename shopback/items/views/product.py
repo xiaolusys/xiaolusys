@@ -527,7 +527,7 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         request.data.update({
             'salecategory': instance.salecategory.id,
             'is_boutique': saleproduct.extras.get('is_boutique', False),
-            'product_type': saleproduct.extras.get('product_type', False),
+            'product_type': saleproduct.extras.get('product_type', instance.product_type),
         })  # 类别不予更新（使用原来的类别）
         request.data.update({'lowest_agent_price': instance.lowest_agent_price})  # 最低售价（价格由sku决定）
         request.data.update({'lowest_std_sale_price': instance.lowest_std_sale_price})  # 最低吊牌价（价格由sku决定）
