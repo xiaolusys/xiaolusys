@@ -383,8 +383,9 @@ class SaleTrade(BaseModel):
     def confirm_payment(self):
         try:
             from django_statsd.clients import statsd
-            statsd.incr('xiaolumm.postpay_count')
-            statsd.incr('xiaolumm.postpay_amount', self.payment)
+            dt_str = self.pay_time.strftime('%Y-%m-%d')
+            statsd.incr('xiaolumm.postpay_count.%s'%dt_str)
+            statsd.incr('xiaolumm.postpay_amount.%s'%dt_str, self.payment)
             for order in self.sale_orders.all():
                 if order.is_deposit() and order.status == SaleTrade.WAIT_SELLER_SEND_GOODS:
                     order.status = SaleTrade.TRADE_FINISHED

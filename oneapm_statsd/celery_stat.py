@@ -36,6 +36,7 @@ def on_task_failure_count(sender=None, task_id=None, task=None, **kwds):
 
 def register_celery_events():
     pass
+    # new celery version not support well
     # try:
     #     from celery import signals
     # except ImportError:
