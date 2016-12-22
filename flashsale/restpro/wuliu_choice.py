@@ -36,7 +36,7 @@ def one_tradewuliu(logistics_company,out_sid,tradewuliu):
     return format_content(**format_exp_info)
 
 def zero_tradewuliu(logistics_company,out_sid,tradewuliu):
-    logger.warn({'action': "kdn", 'info': "zero_tradewuliu"})
+    logger.warn({'action': "kdn", 'info': "zero_tradewuliu"+str(logistics_company)})
     wuliu_info = {"expName": logistics_company, "expNo": out_sid}
     if str(logistics_company) in exp_map.kdn_not_support_exp:
         logistics_company = exp_map.kd100_exp_map[str(logistics_company)]
