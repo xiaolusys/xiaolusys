@@ -35,13 +35,12 @@ def on_task_failure_count(sender=None, task_id=None, task=None, **kwds):
 
 
 def register_celery_events():
-    pass
-    # try:
-    #     from celery import signals
-    # except ImportError:
-    #     pass
-    # else:
-    #     signals.task_sent.connect(on_task_sent_count)
-    #     signals.task_prerun.connect(on_task_prerun_count)
-    #     signals.task_postrun.connect(on_task_postrun_count)
-    #     signals.task_failure.connect(on_task_failure_count)
+    try:
+        from celery import signals
+    except ImportError:
+        pass
+    else:
+        signals.task_sent.connect(on_task_sent_count)
+        signals.task_prerun.connect(on_task_prerun_count)
+        signals.task_postrun.connect(on_task_postrun_count)
+        signals.task_failure.connect(on_task_failure_count)
