@@ -275,7 +275,7 @@ def task_calc_xlmm_elite_score(mama_id):
     res = CouponTransferRecord.objects.filter(
         coupon_from_mama_id=mama_id,
         transfer_status=CouponTransferRecord.DELIVERED,
-        transfer_type__in=[CouponTransferRecord.OUT_CASHOUT, CouponTransferRecord.OUT_CASHOUT]
+        transfer_type__in=[CouponTransferRecord.OUT_CASHOUT, CouponTransferRecord.IN_RETURN_COUPON]
     ).aggregate(n=Sum('elite_score'))
     out_score = res['n'] or 0
 
