@@ -41,4 +41,5 @@ class ModelProductManager(BaseManager):
         """
         return self.get_queryset().filter(is_boutique=True,
                                           product_type=self.model.VIRTUAL_TYPE,
+                                          shelf_status=self.model.ON_SHELF,
                                           status=self.model.NORMAL)
