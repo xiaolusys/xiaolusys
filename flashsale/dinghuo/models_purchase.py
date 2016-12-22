@@ -92,16 +92,17 @@ class PurchaseOrder(BaseModel):
     @staticmethod
     def restat(purchase_order_unikey):
         res = PurchaseDetail.objects.filter(purchase_order_unikey=purchase_order_unikey). \
-            aggregate(b_num=Sum('book_num'), n_num=Sum('need_num'), a_num=Sum('arrival_num'))
+            aggregate(b_num=Sum('book_num'), n_num=Sum('need_num'), a_num=Sum('arrival_num'), total_price=Sum('total_price'))
         book_num = res['b_num'] or 0
         need_num = res['n_num'] or 0
         arrival_num = res['a_num'] or 0
+        total_price = res['total_price'] or 0
         supplier = PurchaseOrder.get_supplier(purchase_order_unikey)
         po = PurchaseOrder.objects.filter(uni_key=purchase_order_unikey).first()
         if not po:
             po = PurchaseOrder(uni_key=purchase_order_unikey, supplier_id=supplier.id,
-                               supplier_name=supplier.supplier_name,
-                               book_num=book_num, need_num=need_num, arrival_num=arrival_num)
+                               supplier_name=supplier.supplier_name, book_num=book_num,
+                               need_num=need_num, arrival_num=arrival_num, total_price=total_price)
             po.save()
         else:
             if po.status == PurchaseOrder.OPEN:
@@ -133,6 +134,7 @@ class PurchaseOrder(BaseModel):
                 if ol.is_open():
                     ol.order_amount = self.total_price
                     ol.purchase_total_num = self.book_num
+                    ol.total_price = self.total_price
                     ol.save(update_fields=['order_amount', 'updated', 'purchase_total_num'])
                 else:
                     logger.error("HY error: trying to modify booked order_list| ol.id: %s" % (ol.id,))

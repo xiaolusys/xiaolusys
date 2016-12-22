@@ -377,7 +377,7 @@ class PackageOrder(models.Model):
                         self.shipping_type, self.receiver_address).id
             except:
                 from shopback.logistics.models import LogisticsCompany
-                self.logistics_company_id = LogisticsCompany.objects.get(code='YUNDA_QR').id # -2
+                self.logistics_company_id = LogisticsCompany.objects.get(code='YUNDA_QR').id  # -2
             self.save(update_fields=['logistics_company_id'])
 
     def update_relase_package_sku_item(self):
@@ -556,7 +556,7 @@ class PackageOrder(models.Model):
 def check_package_order_status(sender, instance, created, **kwargs):
     from shopback.logistics.tasks import task_get_logistics_company
     if instance.sys_status == PackageOrder.WAIT_PREPARE_SEND_STATUS and not instance.logistics_company:
-        transaction.on_commit(lambda : task_get_logistics_company.delay(instance.id))
+        transaction.on_commit(lambda: task_get_logistics_company.delay(instance.id))
 
 
 post_save.connect(check_package_order_status, sender=PackageOrder)
@@ -626,7 +626,8 @@ class PackageSkuItem(BaseModel):
     outer_sku_id = models.CharField(max_length=20, blank=True, verbose_name=u'规格ID')
 
     num = models.IntegerField(default=0, verbose_name=u'数量')
-    status = models.CharField(max_length=32, choices=PSI_STATUS.CHOICES, db_index=True, default=PSI_STATUS.PAID, blank=True, verbose_name=u'订单状态')
+    status = models.CharField(max_length=32, choices=PSI_STATUS.CHOICES, db_index=True, default=PSI_STATUS.PAID,
+                              blank=True, verbose_name=u'订单状态')
     assign_status = models.IntegerField(choices=ASSIGN_STATUS, default=NOT_ASSIGNED, db_index=True, verbose_name=u'状态')
     sys_status = models.CharField(max_length=32, choices=SYS_ORDER_STATUS, blank=True, default=IN_EFFECT,
                                   verbose_name=u'系统状态')
@@ -689,6 +690,7 @@ class PackageSkuItem(BaseModel):
     gift_type = models.IntegerField(choices=GIFT_TYPE, default=REAL_ORDER_GIT_TYPE, verbose_name=u'类型')
     _objects = Manager()
     objects = Manager()
+
     #    bobjects = PackageSkuItemManager()
     class Meta:
         db_table = 'flashsale_package_sku_item'
@@ -935,7 +937,7 @@ class PackageSkuItem(BaseModel):
         if change_stock:
             skus = {psi['sku_id']: psi['total'] for psi in
                     PackageSkuItem.objects.filter(oid__in=oids).values('sku_id').annotate(
-                    total=Sum('num'))}
+                        total=Sum('num'))}
             for sku_id in skus:
                 SkuStock.set_psi_booked_2_assigned(sku_id, skus[sku_id], stat=True)
 
@@ -974,7 +976,8 @@ class PackageSkuItem(BaseModel):
         if self.status == PSI_STATUS.ASSIGNED:
             self.status = PSI_STATUS.MERGED
             self.merge_time = datetime.datetime.now()
-            package_order_id = PackageOrder.gen_new_package_id(self.sale_trade.buyer_id, self.sale_trade.user_address_id,
+            package_order_id = PackageOrder.gen_new_package_id(self.sale_trade.buyer_id,
+                                                               self.sale_trade.user_address_id,
                                                                self.product_sku.ware_by)
             po = PackageOrder.objects.filter(id=package_order_id).first()
             if not po:
@@ -999,30 +1002,30 @@ class PackageSkuItem(BaseModel):
         self.status = PSI_STATUS.WAITSCAN
         self.scan_time = datetime.datetime.now()
         self.save()
-        SkuStock.set_psi_waitscan(self.sku_id, self.num,stat=stat)
+        SkuStock.set_psi_waitscan(self.sku_id, self.num, stat=stat)
 
-    def set_status_waitpost(self,stat=True):
+    def set_status_waitpost(self, stat=True):
         self.status = PSI_STATUS.WAITPOST
         self.assign_status = 1
         self.scan_time = datetime.datetime.now()
         self.save()
         SkuStock.set_psi_waitpost(self.sku_id, self.num, stat=stat)
 
-    def set_status_sent(self,stat=True):
+    def set_status_sent(self, stat=True):
         self.status = PSI_STATUS.SENT
         self.assign_status = 2
         self.weight_time = datetime.datetime.now()
         self.save()
         SkuStock.set_psi_sent(self.sku_id, self.num, stat=stat)
 
-    def set_status_finish(self,stat=True):
+    def set_status_finish(self, stat=True):
         self.status = PSI_STATUS.FINISH
         self.assign_status = 2
         self.finish_time = datetime.datetime.now()
         self.save()
-        SkuStock.set_psi_finish(self.sku_id, self.num,stat=stat)
+        SkuStock.set_psi_finish(self.sku_id, self.num, stat=stat)
 
-    def set_status_cancel(self,stat=True):
+    def set_status_cancel(self, stat=True):
         """
             已产生Pa但未审核　直接取消并关pa
         """
@@ -1036,9 +1039,10 @@ class PackageSkuItem(BaseModel):
         ori_status = self.status
         self.status = PSI_STATUS.CANCEL
         self.assign_status = 3
-        self.cancel_time=datetime.datetime.now()
+        self.cancel_time = datetime.datetime.now()
         self.save()
         SkuStock.set_psi_cancel(self.sku_id, self.num, ori_status, stat=stat)
+
     # -----------------------------------
 
     def reset_status(self):
@@ -1071,7 +1075,7 @@ class PackageSkuItem(BaseModel):
                 self.status = PSI_STATUS.PREPARE_BOOK
         else:
             self.status = PSI_STATUS.PAID
-            
+
     @staticmethod
     def unsend_orders_cnt(buyer_id):
         payed_counts = SaleOrder.objects.filter(buyer_id=buyer_id, status=SaleOrder.WAIT_SELLER_SEND_GOODS).count()
@@ -1182,7 +1186,7 @@ class PackageSkuItem(BaseModel):
     @staticmethod
     def get_need_purchase(condition_add={}):
         condition = {
-            'purchase_order_unikey':'',
+            'purchase_order_unikey': '',
             'assign_status': PackageSkuItem.NOT_ASSIGNED
         }
         condition.update(condition_add)
@@ -1194,7 +1198,8 @@ class PackageSkuItem(BaseModel):
 
 def update_productsku_salestats_num(sender, instance, created, **kwargs):
     from shopback.trades.tasks import task_packageskuitem_update_productskusalestats_num
-    transaction.on_commit(lambda: task_packageskuitem_update_productskusalestats_num(instance.sku_id, instance.pay_time))
+    transaction.on_commit(
+        lambda: task_packageskuitem_update_productskusalestats_num(instance.sku_id, instance.pay_time))
 
 
 post_save.connect(update_productsku_salestats_num, sender=PackageSkuItem,
