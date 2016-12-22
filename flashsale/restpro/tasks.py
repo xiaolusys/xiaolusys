@@ -275,9 +275,10 @@ def kdn_get_push(*args, **kwargs):
         TradeWuliu.objects.create(**kwargs)
         comfirm_get(kwargs["out_sid"], kwargs["status"])
     else:
-        tradewuliu.update(**kwargs)
-        logger.warn({'action': "kdn", 'info': "tradewuliu_first_update:"+kwargs['out_sid']})
-        comfirm_get(kwargs["out_sid"], kwargs["status"])
+        if kwargs.get("content"):
+            tradewuliu.update(**kwargs)
+            logger.warn({'action': "kdn", 'info': "tradewuliu_first_update:"+kwargs['out_sid']})
+            comfirm_get(kwargs["out_sid"], kwargs["status"])
 
 
 @app.task(max_retries=3, default_retry_delay=5)
