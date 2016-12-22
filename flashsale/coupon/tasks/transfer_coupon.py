@@ -204,8 +204,8 @@ def task_check_transfer_coupon_record():
             c = Context(item)
             x = t.render(c)
             data.append(x)
-    if len(data) == 1:
-        return
+    # if len(data) == 1:
+    #     return
     msg = '--------------'.join(data)
     _send_msg_ding_talk(msg)
     paid, success_no_transfer = _check_virtual_trade_status()
