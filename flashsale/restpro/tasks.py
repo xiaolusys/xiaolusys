@@ -273,7 +273,8 @@ def kdn_get_push(*args, **kwargs):
     if tradewuliu.first() is None:
         logger.warn({'action': "kdn", 'info': "tradewuliu_first_is_None:"+kwargs['out_sid']})
         TradeWuliu.objects.create(**kwargs)
-        comfirm_get(kwargs["out_sid"], kwargs["status"])
+        if kwargs.get("content"):
+            comfirm_get(kwargs["out_sid"], kwargs["status"])
     else:
         if kwargs.get("content"):
             tradewuliu.update(**kwargs)
