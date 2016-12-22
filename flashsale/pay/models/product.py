@@ -40,7 +40,7 @@ class Productdetail(PayBaseModel):
     TWENTY_PERCENT = 20
     THIRTY_PERCENT = 30
 
-    WEIGHT_CHOICE = ((i, i) for i in range(1, 101)[::-1])
+    WEIGHT_CHOICE = ((i, i) for i in range(1, 201)[::-1])
     DISCOUNT_CHOICE = ((i, i) for i in range(1, 101)[::-1])
     BUY_LIMIT_CHOICE = ((i, i) for i in range(1, 21))
 
