@@ -154,7 +154,9 @@ class Envelop(PayBaseModel):
             self.status = Envelop.CONFIRM_SEND
 
             if self.subject == Envelop.XLAPP_CASHOUT:
-                BudgetLog.objects.filter(id=self.referal_id).update(status=BudgetLog.CONFIRMED, modified=now)
+                bg = BudgetLog.objects.filter(id=self.referal_id).first()
+                if bg:
+                    bg.confirm_budget_log()
             elif self.subject == Envelop.CASHOUT:
                 CashOut.objects.filter(id=self.referal_id).update(status=CashOut.APPROVED, modified=now)
         elif status in (WeixinRedEnvelope.FAILED, WeixinRedEnvelope.REFUND):
