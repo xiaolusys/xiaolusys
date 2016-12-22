@@ -265,7 +265,7 @@ def task_check_xlmm_return_exchg_order():
                 })
 
 
-@app.task()
+@app.task(max_retries=3, default_retry_delay=6)
 def task_calc_xlmm_elite_score(mama_id):
     if mama_id <= 0:
         return
@@ -275,25 +275,18 @@ def task_calc_xlmm_elite_score(mama_id):
     res = CouponTransferRecord.objects.filter(
         coupon_from_mama_id=mama_id,
         transfer_status=CouponTransferRecord.DELIVERED,
-        transfer_type__in=[CouponTransferRecord.OUT_CASHOUT, CouponTransferRecord.IN_RETURN_COUPON]
+        transfer_type__in=[CouponTransferRecord.OUT_CASHOUT, CouponTransferRecord.OUT_CASHOUT]
     ).aggregate(n=Sum('elite_score'))
     out_score = res['n'] or 0
 
     res = CouponTransferRecord.objects.filter(
         coupon_to_mama_id=mama_id,
         transfer_status=CouponTransferRecord.DELIVERED,
-        transfer_type=CouponTransferRecord.IN_BUY_COUPON
+        transfer_type__in=[CouponTransferRecord.IN_BUY_COUPON, CouponTransferRecord.OUT_TRANSFER, CouponTransferRecord.IN_GIFT_COUPON]
     ).aggregate(n=Sum('elite_score'))
-    in_buy_score = res['n'] or 0
+    in_score = res['n'] or 0
 
-    res = CouponTransferRecord.objects.filter(
-        coupon_to_mama_id=mama_id,
-        transfer_status=CouponTransferRecord.DELIVERED,
-        transfer_type=CouponTransferRecord.OUT_TRANSFER
-    ).aggregate(n=Sum('elite_score'))
-    in_trans_score = res['n'] or 0
-
-    score = in_buy_score + in_trans_score - out_score
+    score = in_score - out_score
     XiaoluMama.objects.filter(id=mama_id).update(elite_score=score)
 
 
