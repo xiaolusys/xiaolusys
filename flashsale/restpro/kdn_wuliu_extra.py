@@ -75,7 +75,7 @@ def get_random_ip():                                                     #生成
   return socket.inet_ntoa(struct.pack('>I', random.randint(ip_addr_min, ip_addr_max)))
 
 def get_random_ua(ua):
-    num = random.randint(0, len(ua))
+    num = random.randint(0, len(ua)-1)
     return ua[num]
 
 #老版本物流查询接口的方法
