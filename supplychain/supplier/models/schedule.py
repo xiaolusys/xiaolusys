@@ -185,7 +185,7 @@ class SaleProductManageDetail(models.Model):
         (SP_SALE, u'特卖'),
     )
 
-    WEIGHT_CHOICE = ((i, i) for i in range(1, 101)[::-1])
+    WEIGHT_CHOICE = ((i, i) for i in range(1, 201)[::-1])
 
     schedule_type = models.CharField(max_length=16, default=SP_SALE,
                                      choices=SP_TYPE_CHOICES, db_index=True, verbose_name=u'排期类型')
