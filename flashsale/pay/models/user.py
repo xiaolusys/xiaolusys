@@ -7,9 +7,9 @@ import random
 
 from django.conf import settings
 from django.contrib.auth.models import User as DjangoUser
-from django.db import models
+from django.db import models, transaction
 from django.db.models.signals import post_save
-from django.db.models import Sum
+from django.db.models import Sum, F
 
 from core.models import BaseModel
 from .base import PayBaseModel
@@ -423,8 +423,6 @@ class UserBudget(PayBaseModel):
         from flashsale.restpro.v2.views.verifycode_login import validate_code
         if not validate_code(mobile, verify_code):
             return 9, '验证码不对或已过期，请重新发送验证码！'
-            #return 9, '提现功能休整中，请等待粉丝活动开始！'
-
 
         if not isinstance(cash_out_amount, int):  # 参数类型错误(如果不是整型)
             return 3, '参数错误'
@@ -464,26 +462,23 @@ class UserBudget(PayBaseModel):
         if bl:
             return 7, '您两次提交间隔太短，稍等下再试哦！'
 
-        # 创建钱包提现记录
-        budgetlog = BudgetLog(customer_id=customer_id,
-                              flow_amount=cash_out_amount,
-                              budget_type=BudgetLog.BUDGET_OUT,
-                              budget_log_type=BudgetLog.BG_CASHOUT,
-                              budget_date=datetime.date.today(),
-                              status=BudgetLog.PENDING,
-                              uni_key=uni_key)
-        budgetlog.save()
+        with transaction.atomic():
+            # 创建钱包提现记录
+            budget_log = BudgetLog.create(customer_id, BudgetLog.BUDGET_OUT, cash_out_amount, BudgetLog.BG_CASHOUT,
+                                          status=BudgetLog.PENDING, uni_key=uni_key)
 
-        envelop = Envelop.objects.create(
-            amount=cash_out_amount,
-            platform=Envelop.WXPUB,
-            recipient=recipient,
-            subject=Envelop.XLAPP_CASHOUT,
-            body=body,
-            receiver=self.user.mobile,
-            description=description,
-            referal_id=budgetlog.id
-        )
+            envelop = Envelop.objects.create(
+                amount=cash_out_amount,
+                platform=Envelop.WXPUB,
+                recipient=recipient,
+                subject=Envelop.XLAPP_CASHOUT,
+                body=body,
+                receiver=self.user.mobile,
+                description=description,
+                referal_id=budget_log.id
+            )
+            budget_log.referal_id = envelop.id
+            budget_log.save()
 
         # 通过微信公众号小额提现，直接发红包，无需审核，一天限制2次
         if cash_out_amount <= audit_cashout_amount and cash_out_amount >= min_cashout_amount:
@@ -521,16 +516,19 @@ class BudgetLog(PayBaseModel):
     BG_RETURN_COUPON = 'rtcoup'
 
     BUDGET_LOG_CHOICES = (
-        (BG_ENVELOPE, u'红包'),
+        # 收入
         (BG_REFUND, u'退款'),
         (BG_REFUND_POSTAGE, u'退款补邮费'),
-        (BG_CONSUM, u'消费'),
-        (BG_CASHOUT, u'提现'),
         (BG_MAMA_CASH, u'代理提现至余额'),
         (BG_REFERAL_FANS, u'推荐粉丝'),
         (BG_SUBSCRIBE, u'关注'),
-        (BG_EXCHG_ORDER, u'兑换订单'),
         (BG_RETURN_COUPON, u'退精品券'),
+        (BG_ENVELOPE, u'红包'),
+        # 支出
+        (BG_CONSUM, u'消费'),
+        (BG_CASHOUT, u'提现'),
+        # 收入 or 支出
+        (BG_EXCHG_ORDER, u'兑换订单'),
     )
 
     CONFIRMED = 0
@@ -559,6 +557,9 @@ class BudgetLog(PayBaseModel):
 
     @classmethod
     def gen_uni_key(cls, customer_id, budget_type, budget_log_type):
+        """
+        budget_log_type-budget_type-customer_id-count|budget_date
+        """
         budget_date = datetime.date.today()
         count = cls.objects.filter(customer_id=customer_id, budget_type=budget_type, budget_log_type=budget_log_type, budget_date=budget_date).count()
         return '%s-%s-%d-%d|%s' % (budget_log_type, budget_type, customer_id, count+1, budget_date)
@@ -581,6 +582,45 @@ class BudgetLog(PayBaseModel):
         if mama:
             return mama.id
         return ''
+
+    @classmethod
+    def create(cls, customer_id, budget_type, flow_amount, budget_log_type,
+               budget_date=datetime.date.today(), referal_id='', status=None, uni_key=None):
+        """
+        创建收支记录
+        """
+        status = status or BudgetLog.CONFIRMED
+        customer = Customer.objects.get(id=customer_id)
+
+        with transaction.atomic():
+            # 创建收支记录 BudgetLog
+            budget_log = cls(
+                customer_id=customer_id,
+                flow_amount=flow_amount,
+                budget_type=budget_type,
+                budget_log_type=budget_log_type,
+                budget_date=budget_date,
+                referal_id=referal_id,
+                status=status,
+                uni_key=uni_key
+            )
+            budget_log.save()
+
+            # 更新钱包余额 UserBudget
+            budget, created = UserBudget.objects.get_or_create(user=customer, defaults={
+                'amount': 0,
+                'total_income': 0,
+                'total_expense': 0
+            })
+            if budget_type == BudgetLog.BUDGET_IN:
+                budget.amount = F('amount') + flow_amount
+                budget.total_income = F('total_income') + flow_amount
+            elif budget_type == BudgetLog.BUDGET_OUT:
+                budget.amount = F('amount') - flow_amount
+                budget.total_expense = F('total_expense') + flow_amount
+            budget.save()
+
+        return budget_log
 
     @classmethod
     def create_salerefund_log(cls, refund, flow_amount):
