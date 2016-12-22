@@ -793,7 +793,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         sale_trade.save()
         # record prepay stats
         from django_statsd.clients import statsd
-        dt_str = datetime.datetime.now().strftime('%Y-%m-%d')
+        dt_str = datetime.datetime.now().strftime('%Y.%m.%d')
         statsd.incr('xiaolumm.prepay_count.%s'%dt_str)
         statsd.incr('xiaolumm.prepay_amount.%s'%dt_str, sale_trade.payment)
 

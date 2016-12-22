@@ -383,7 +383,7 @@ class SaleTrade(BaseModel):
     def confirm_payment(self):
         try:
             from django_statsd.clients import statsd
-            dt_str = self.pay_time.strftime('%Y-%m-%d')
+            dt_str = self.pay_time.strftime('%Y.%m.%d')
             statsd.incr('xiaolumm.postpay_count.%s'%dt_str)
             statsd.incr('xiaolumm.postpay_amount.%s'%dt_str, self.payment)
             for order in self.sale_orders.all():
