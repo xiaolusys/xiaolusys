@@ -887,13 +887,17 @@ class MamaAdministratorViewSet(APIView):
             return Response({"code": 2, "info": u'没有这个妈妈'})
 
         if mama.last_renew_type < XiaoluMama.ELITE:
-            # 非正式妈妈，从公众号进来，那么现在随机从100个团队选一个2016-12-20
+            # 非正式妈妈，从公众号进来，那么现在随机从100个团队hash 2个，随机选一个2016-12-20
             from games.weixingroup.models import XiaoluAdministrator
             administrators = XiaoluAdministrator.objects.filter(id__gte=18, status=1)
             if administrators.count() > 0:
-                num = random.randint(1, administrators.count())
-                administrator = administrators[num - 1]
-
+                index = mama.id % administrators.count()
+                back_index = (index + 1) % administrators.count()
+                num = random.randint(1, 2)
+                if num == 1:
+                    administrator = administrators[index]
+                else:
+                    administrator = administrators[back_index]
                 return Response({
                     'mama_id': mama.id,
                     'qr_img': administrator.weixin_qr_img,
