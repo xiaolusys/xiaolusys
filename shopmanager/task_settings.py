@@ -1550,9 +1550,9 @@ WDT_SCHEDULE = {
     }
 
 }
-
+# 业务指数据标监控任务
 STATSD_SCHEDULE = {
-    u'每分钟发送任务队列待处理消息数量': {  # by huazi
+    u'每分钟发送任务队列待处理消息数量': {
         'task': 'celery_statsd.tasks.task_celery_queue_message_statsd',
         'schedule': crontab(minute="*/1"),
         'args': (),
@@ -1576,6 +1576,6 @@ CELERYBEAT_SCHEDULE = {}
 CELERYBEAT_SCHEDULE.update(SYNC_MODEL_SCHEDULE)
 CELERYBEAT_SCHEDULE.update(SHOP_APP_SCHEDULE)
 CELERYBEAT_SCHEDULE.update(WDT_SCHEDULE)
-
+CELERYBEAT_SCHEDULE.update(STATSD_SCHEDULE)
 
 CELERY_BEAT_SCHEDULE = CELERYBEAT_SCHEDULE
