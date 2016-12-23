@@ -1578,30 +1578,30 @@ def task_update_purchasearrangement_initial_book(po):
         PackageSkuItem.objects.filter(oid=pa.oid).update(purchase_order_unikey=po.uni_key, book_time=book_time)
 
 
-@app.task()
-def task_check_with_purchase_order(ol):
-    res = OrderDetail.objects.filter(orderlist=ol).aggregate(total=Sum('buy_quantity'))
-    total = res['total'] or 0
-
-    if not ol.supplier:
-        logging.error('no supplier, order_list id: %s' % ol.id)
-        return
-
-    supplier_id = ol.supplier.id
-    po = PurchaseOrder.objects.filter(supplier_id=supplier_id).order_by('-created').first()
-
-    if not po:
-        logging.error('supplier_id:%s, no book_num, %s' % (supplier_id, total))
-        return
-
-    if po.book_num != total:
-        logging.error('supplier_id:%s, book_num:%s-%s' % (supplier_id, po.book_num, total))
-
-    po.status = PurchaseOrder.BOOKED
-    po.save()
-
-    task_update_purchasearrangement_status.delay(po)
-    task_update_purchasearrangement_initial_book.delay(po)
+# @app.task()
+# def task_check_with_purchase_order(ol):
+#     res = OrderDetail.objects.filter(orderlist=ol).aggregate(total=Sum('buy_quantity'))
+#     total = res['total'] or 0
+#
+#     if not ol.supplier:
+#         logging.error('no supplier, order_list id: %s' % ol.id)
+#         return
+#
+#     supplier_id = ol.supplier.id
+#     po = PurchaseOrder.objects.filter(supplier_id=supplier_id).order_by('-created').first()
+#
+#     if not po:
+#         logging.error('supplier_id:%s, no book_num, %s' % (supplier_id, total))
+#         return
+#
+#     if po.book_num != total:
+#         logging.error('supplier_id:%s, book_num:%s-%s' % (supplier_id, po.book_num, total))
+#
+#     po.status = PurchaseOrder.BOOKED
+#     po.save()
+#
+#     task_update_purchasearrangement_status.delay(po)
+#     task_update_purchasearrangement_initial_book.delay(po)
 
 
 from flashsale.pay.models import SaleOrderSyncLog
