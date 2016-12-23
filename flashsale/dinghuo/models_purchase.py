@@ -110,7 +110,8 @@ class PurchaseOrder(BaseModel):
                     po.book_num = book_num
                     po.need_num = need_num
                     po.arrival_num = arrival_num
-                    po.save(update_fields=['book_num', 'need_num', 'arrival_num', 'modified'])
+                    po.total_price = total_price
+                    po.save(update_fields=['book_num', 'need_num', 'arrival_num', 'modified', 'total_price'])
         po.sync_order_list()
 
     def restatall(self):
@@ -132,9 +133,8 @@ class PurchaseOrder(BaseModel):
         else:
             if ol.order_amount != self.total_price or ol.purchase_total_num != self.book_num:
                 if ol.is_open():
-                    ol.order_amount = self.total_price
+                    ol.order_amount = self.total_price * 1.0 / 100
                     ol.purchase_total_num = self.book_num
-                    ol.total_price = self.total_price
                     ol.save(update_fields=['order_amount', 'updated', 'purchase_total_num'])
                 else:
                     logger.error("HY error: trying to modify booked order_list| ol.id: %s" % (ol.id,))

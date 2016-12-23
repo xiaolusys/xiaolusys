@@ -847,42 +847,42 @@ def update_orderdetail_relationship(sender, instance, created, **kwargs):
 post_save.connect(update_orderdetail_relationship, sender=OrderList,
                   dispatch_uid='post_save_update_orderdetail_relationship')
 
+#
+# def update_purchaseorder_status(sender, instance, created, **kwargs):
+#     if instance.third_package:
+#         return
+#     logger.info('post_save update_purchaseorder_status: %s' % instance)
+#     from flashsale.dinghuo.models_purchase import PurchaseOrder
+#     status = None
+#     if instance.is_open():
+#         status = PurchaseOrder.OPEN
+#     elif instance.is_booked():
+#         status = PurchaseOrder.BOOKED
+#     elif instance.is_finished():
+#         status = PurchaseOrder.FINISHED
+#     elif instance.is_canceled():
+#         status = PurchaseOrder.CANCELED
+#     else:
+#         return
+#
+#     po = PurchaseOrder.objects.filter(uni_key=instance.purchase_order_unikey).first()
+#     if po and po.status != status:
+#         po.status = status
+#         po.save(update_fields=['status', 'modified'])
+#
+#         from flashsale.dinghuo.tasks import task_update_purchasedetail_status, \
+#             task_update_purchasearrangement_initial_book, task_update_purchasearrangement_status
+#
+#         task_update_purchasedetail_status.delay(po)
+#         if status in [PurchaseOrder.BOOKED, PurchaseOrder.FINISHED]:
+#             task_update_purchasearrangement_initial_book.delay(po)
+#         elif status == PurchaseOrder.BOOKED:
+#             task_update_purchasearrangement_initial_book.delay(po)
+#         else:
+#             task_update_purchasearrangement_status.delay(po)
 
-def update_purchaseorder_status(sender, instance, created, **kwargs):
-    if instance.third_package:
-        return
-    logger.info('post_save update_purchaseorder_status: %s' % instance)
-    from flashsale.dinghuo.models_purchase import PurchaseOrder
-    status = None
-    if instance.is_open():
-        status = PurchaseOrder.OPEN
-    elif instance.is_booked():
-        status = PurchaseOrder.BOOKED
-    elif instance.is_finished():
-        status = PurchaseOrder.FINISHED
-    elif instance.is_canceled():
-        status = PurchaseOrder.CANCELED
-    else:
-        return
 
-    po = PurchaseOrder.objects.filter(uni_key=instance.purchase_order_unikey).first()
-    if po and po.status != status:
-        po.status = status
-        po.save(update_fields=['status', 'modified'])
-
-        from flashsale.dinghuo.tasks import task_update_purchasedetail_status, \
-            task_update_purchasearrangement_initial_book, task_update_purchasearrangement_status
-
-        task_update_purchasedetail_status.delay(po)
-        if status in [PurchaseOrder.BOOKED, PurchaseOrder.FINISHED]:
-            task_update_purchasearrangement_initial_book.delay(po)
-        elif status == PurchaseOrder.BOOKED:
-            task_update_purchasearrangement_initial_book.delay(po)
-        else:
-            task_update_purchasearrangement_status.delay(po)
-
-
-post_save.connect(update_purchaseorder_status, sender=OrderList, dispatch_uid='post_save_update_purchaseorder_status')
+# post_save.connect(update_purchaseorder_status, sender=OrderList, dispatch_uid='post_save_update_purchaseorder_status')
 
 
 # def orderlist_create_forecast_inbound(sender, instance, raw, **kwargs):
