@@ -151,7 +151,7 @@ INSTALLED_APPS =[
 
     'core',
     'django_statsd',
-    'oneapm_statsd',
+    'celery_statsd',
 
     'shopback.amounts',
     'shopback.categorys',

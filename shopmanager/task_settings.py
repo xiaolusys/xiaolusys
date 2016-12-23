@@ -1551,6 +1551,16 @@ WDT_SCHEDULE = {
 
 }
 
+STATSD_SCHEDULE = {
+    u'每分钟发送任务队列待处理消息数量': {  # by huazi
+        'task': 'celery_statsd.tasks.task_celery_queue_message_statsd',
+        'schedule': crontab(minute="*/1"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_celery_queue_message_statsd'}
+    }
+}
+
+
 # nihao = {
 #     u'定时更新订阅客户退货的物流信息通过快递鸟': {  # by huazi
 #         'task': 'flashsale.restpro.tasks.update_all_return_logistics_bykdn',

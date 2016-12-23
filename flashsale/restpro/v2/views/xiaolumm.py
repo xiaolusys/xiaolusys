@@ -462,7 +462,8 @@ class ActiveValueViewSet(viewsets.ModelViewSet):
         return qset.order_by('-date_field', '-created')
 
     def list(self, request, *args, **kwargs):
-        statsd.incr('xiaolumm.mama_active_count')
+        dt_str = datetime.datetime.now().strftime('%Y-%m-%d')
+        statsd.incr('xiaolumm.mama_active_count.%s'%dt_str)
 
         exclude_statuses = [3, ]
         datalist = self.get_owner_queryset(request, exclude_statuses=exclude_statuses)
@@ -586,7 +587,8 @@ class UniqueVisitorViewSet(viewsets.ModelViewSet):
             return self.queryset.filter(mama_id=mama_id, date_field=date_field).order_by('-created')
 
     def list(self, request, *args, **kwargs):
-        statsd.incr('xiaolumm.mama_uniquevisitor_count')
+        dt_str = datetime.datetime.now().strftime('%Y-%m-%d')
+        statsd.incr('xiaolumm.mama_uniquevisitor_count.%s'%dt_str)
 
         datalist = self.get_owner_queryset(request)
         datalist = self.paginate_queryset(datalist)
@@ -624,7 +626,8 @@ class XlmmFansViewSet(viewsets.ModelViewSet):
         return self.queryset.filter(xlmm_cusid=customer_id).order_by('-created')
 
     def list(self, request, *args, **kwargs):
-        statsd.incr('xiaolumm.mama_fans_count')
+        dt_str = datetime.datetime.now().strftime('%Y-%m-%d')
+        statsd.incr('xiaolumm.mama_fans_count.%s'%dt_str)
 
         datalist = self.get_owner_queryset(request)
         datalist = self.paginate_queryset(datalist)

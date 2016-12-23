@@ -407,7 +407,7 @@ admin.site.register(XlmmFans, XlmmFansAdmin)
 
 class FansNumberRecordAdmin(admin.ModelAdmin):
     list_display = ('id', 'xlmm', 'xlmm_cusid', 'fans_num')
-    search_fields = ['xlmm', 'xlmm_cusid']
+    search_fields = ['=lmm', '=xlmm_cusid']
 
 
 admin.site.register(FansNumberRecord, FansNumberRecordAdmin)
@@ -427,6 +427,8 @@ class MamaFortuneAdmin(OrderModelAdmin):
                                    F('carry_pending') + F('carry_confirmed') + F('history_pending') + F(
                                        'history_confirmed') + F('history_cashout'))
                     }
+
+    list_filter = ('mama_level', 'mama_agency_level', ('created', DateFieldListFilter))
 
     def mama_agency_level(self, obj):
         """ show XiaoluMama agencylevel """
