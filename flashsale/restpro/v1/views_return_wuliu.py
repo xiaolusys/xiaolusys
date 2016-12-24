@@ -16,7 +16,8 @@ from shopback.trades.models import TradeWuliu
 from flashsale.restpro import wuliu_choice
 import logging
 from shopback.logistics.models import LogisticsCompany
-from flashsale.restpro import kdn_wuliu_extra
+from flashsale.restpro import kdn_wuliu_extra,exp_map
+
 
 logger = logging.getLogger('lacked_wuliu_company_name')
 class ReturnWuliuViewSet(viewsets.ModelViewSet):
