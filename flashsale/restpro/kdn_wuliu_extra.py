@@ -317,7 +317,8 @@ def format_content(**kwargs):
     try:
         content = json.loads(content)
     except:
-        content = eval(content)
+        if content:
+            content = eval(content)
     all_data = {"status":kwargs["status"],
                 "name":kwargs["name"],
                 "errcode":kwargs["errcode"],
