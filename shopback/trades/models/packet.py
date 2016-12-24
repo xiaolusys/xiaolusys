@@ -1206,13 +1206,13 @@ post_save.connect(update_productsku_salestats_num, sender=PackageSkuItem,
                   dispatch_uid='post_save_update_productsku_salestats_num')
 
 
-def update_package_order(sender, instance, created, **kwargs):
-    from shopback.trades.tasks import task_update_package_order
-    transaction.on_commit(lambda: task_update_package_order.delay(instance.id))
-
-
-post_save.connect(update_package_order, sender=PackageSkuItem,
-                  dispatch_uid='post_save_update_package_order')
+# def update_package_order(sender, instance, created, **kwargs):
+#     from shopback.trades.tasks import task_update_package_order
+#     transaction.on_commit(lambda: task_update_package_order.delay(instance.id))
+#
+#
+# post_save.connect(update_package_order, sender=PackageSkuItem,
+#                   dispatch_uid='post_save_update_package_order')
 
 
 def get_package_address_dict(package_order):
