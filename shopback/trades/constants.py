@@ -53,3 +53,15 @@ class PO_STATUS:
         (FINISHED_STATUS, u'已到货'),
         (DELETE, u'已作废')
     )
+
+
+class PSI_TYPE:
+    NORMAL = 0
+    CHOICES = (
+        (0, u'普通订单'),
+        (1, u'手工发件'),
+        (2, u'清库存'),
+        (3, u'退多货'),
+        (4, u'退次品'),
+        (5, u'天猫商城单')
+    )

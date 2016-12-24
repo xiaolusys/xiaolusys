@@ -367,10 +367,11 @@ class OrderList(models.Model):
         """
 
         """
-        from shopback.trades.models import PackageSkuItem
+        from shopback.trades.models import PackageSkuItem, PSI_TYPE
         if self.stage == OrderList.STAGE_DRAFT:
             sku_ids = list(self.purchase_order.arrangements.values_list('sku_id', flat=True))
             psis = PackageSkuItem.objects.filter(
+                type=PSI_TYPE.NORMAL,
                 sku_id__in=sku_ids,
                 assign_status__in=[PackageSkuItem.NOT_ASSIGNED],
                 purchase_order_unikey=''
@@ -621,9 +622,9 @@ class OrderList(models.Model):
                 self.save()
 
     def check_by_package_skuitem(self):
-        from shopback.trades.models import PackageSkuItem
+        from shopback.trades.models import PackageSkuItem, PSI_TYPE
         sku_ids = list(self.purchase_order.arrangements.values_list('sku_id', flat=True))
-        psis = PackageSkuItem.objects.filter(sku_id__in=sku_ids, assign_status=PackageSkuItem.NOT_ASSIGNED,
+        psis = PackageSkuItem.objects.filter(type=PSI_TYPE.NORMAL, sku_id__in=sku_ids, assign_status=PackageSkuItem.NOT_ASSIGNED,
                                              purchase_order_unikey='')
         sku_nums = {i['sku_id']: i['total'] for i in psis.values('sku_id').annotate(total=Sum('num'))}
         err_skus = []

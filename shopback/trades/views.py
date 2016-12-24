@@ -1616,7 +1616,7 @@ class TradeSearchView(APIView):
             # trades = MergeTrade.objects.filter(Q(id=q) | Q(tid=q) | Q(
             #     buyer_nick=q) | Q(receiver_mobile=q))
             # print PackageSkuItem.objects.filter(outer_id = 822289700121).count()
-            trades = PackageSkuItem.objects.filter(Q(receiver_mobile=q) | Q(package_order_pid=q) | Q(outer_id=q))
+            trades = PackageSkuItem.objects.filter(Q(receiver_mobile=q) | Q(package_order_pid=q) | Q(outer_id=q), type=0)
         else:
             return Response(trade_list)
 

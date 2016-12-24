@@ -15,7 +15,7 @@ from shopback.items.models import SkuStock
 from flashsale import pay
 import logging
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_THIRD, WARE_CHOICES
-from shopback.trades.constants import PSI_STATUS, SYS_ORDER_STATUS, IN_EFFECT, PO_STATUS
+from shopback.trades.constants import PSI_STATUS, SYS_ORDER_STATUS, IN_EFFECT, PO_STATUS, PSI_TYPE
 #
 from shopback import paramconfig as pcfg
 from models import TRADE_TYPE, TAOBAO_TRADE_STATUS
@@ -29,8 +29,12 @@ class PackageOrder(models.Model):
     WARE_CHOICES = WARE_CHOICES
     pid = models.AutoField(verbose_name=u'包裹单号', primary_key=True)
     id = models.CharField(max_length=100, verbose_name=u'包裹码', unique=True)
-    tid = models.CharField(max_length=32, verbose_name=u'参考交易单号')
+    tid = models.CharField(max_length=32, verbose_name=u'退货单号|参考交易单号')#rg6689
+    ACTION_TYPE_CHOICES = ((0, u'普通发货'), (1, u'特殊发货'))
+    action_type = models.IntegerField(choices=ACTION_TYPE_CHOICES, default=0, verbose_name=u'发货类型',
+                               help_text=u'发货类型指定仓库查看到包裹后进行的动作')
     ware_by = models.IntegerField(default=WARE_SH, db_index=True, choices=WARE_CHOICES, verbose_name=u'所属仓库')
+    # 暂时无效
     status = models.CharField(max_length=32, db_index=True,
                               choices=TAOBAO_TRADE_STATUS, blank=True,
                               default=pcfg.TRADE_NO_CREATE_PAY, verbose_name=u'系统状态')
@@ -83,6 +87,8 @@ class PackageOrder(models.Model):
     qrcode_msg = models.CharField(max_length=32, blank=True, verbose_name=u'打印信息')
     can_review = models.BooleanField(default=False, verbose_name=u'复审')
     priority = models.IntegerField(default=0, verbose_name=u'作废字段')
+    buyer_id = models.CharField(null=True, max_length=32, blank=True, verbose_name=u'采购员')
+    supplier_id = models.CharField(null=True,max_length=32, blank=True, verbose_name=u'供应商id')
     operator = models.CharField(max_length=32, blank=True, verbose_name=u'打单员')
     scanner = models.CharField(max_length=64, blank=True, verbose_name=u'扫描员')
     weighter = models.CharField(max_length=64, blank=True, verbose_name=u'称重员')
@@ -138,6 +144,15 @@ class PackageOrder(models.Model):
     def user_address(self):
         from flashsale.pay.models.address import UserAddress
         return UserAddress.objects.get(id=self.user_address_id)
+
+    @property
+    def return_goods_id(self):
+        return self.tid.replace('rg')
+
+    def set_return_goods_id(self, return_goods_id):
+        # '退货类都需要特殊处理，算作特殊发货（退库存要检查库存，退次品要从次品区取货）'
+        self.action_type = 1
+        self.tid = 'rg' + str(return_goods_id)
 
     def copy_order_info(self, sale_trade):
         """从package_order或者sale_trade复制信息"""
@@ -617,21 +632,27 @@ class PackageSkuItem(BaseModel):
         (VIRTUAL_ASSIGNED, u'厂家备货中'),
         (CANCELED, u'已取消')
     )
-    sale_order_id = models.IntegerField(unique=True, verbose_name=u'SKU订单编码')
-    oid = models.CharField(max_length=40, null=True, db_index=True, verbose_name=u'SKU交易单号')
-    sale_trade_id = models.CharField(max_length=40, null=True, db_index=True, verbose_name=u'交易单号')  # tid
+
+    sale_order_id = models.IntegerField(unique=True, null=True, verbose_name=u'SKU订单ID')
+    # 退货单直接用sale_order_id来存rg_detail_id （性能考虑，不加过多的索引）rd+rg_detail_id
+    oid = models.CharField(max_length=40, null=True, db_index=True, verbose_name=u'SKU交易单号|退货详单ID')
+    # 退货单直接用sale_trade_id来存return_goods_id rg + sale_trade_id
+    sale_trade_id = models.CharField(max_length=40, null=True, db_index=True, verbose_name=u'交易单号|退货单号')  # tid
 
     sku_id = models.CharField(max_length=20, blank=True, db_index=True, verbose_name=u'SKUID')
     outer_id = models.CharField(max_length=20, blank=True, verbose_name=u'商品编码')
+    product = models.ForeignKey(Product, null=True, db_index=True, verbose_name=u'Product')
     outer_sku_id = models.CharField(max_length=20, blank=True, verbose_name=u'规格ID')
 
     num = models.IntegerField(default=0, verbose_name=u'数量')
     status = models.CharField(max_length=32, choices=PSI_STATUS.CHOICES, db_index=True, default=PSI_STATUS.PAID,
                               blank=True, verbose_name=u'订单状态')
     assign_status = models.IntegerField(choices=ASSIGN_STATUS, default=NOT_ASSIGNED, db_index=True, verbose_name=u'状态')
+    # 无效字段 待删
     sys_status = models.CharField(max_length=32, choices=SYS_ORDER_STATUS, blank=True, default=IN_EFFECT,
                                   verbose_name=u'系统状态')
 
+    type = models.IntegerField(default=0, choices=PSI_TYPE.CHOICES, verbose_name=u'类型')
     package_order_id = models.CharField(max_length=100, blank=True, db_index=True, null=True, verbose_name=u'包裹码')
     package_order_pid = models.IntegerField(db_index=True, null=True, verbose_name=u'包裹单号')
     ware_by = models.IntegerField(default=WARE_SH, choices=WARE_CHOICES, db_index=True, verbose_name=u'所属仓库')
@@ -644,7 +665,7 @@ class PackageSkuItem(BaseModel):
     init_assigned = models.BooleanField(default=False, verbose_name=u'初始即分配')
     is_boutique = models.BooleanField(default=False, db_index=True, verbose_name=u'精品订单')
 
-    pay_time = models.DateTimeField(db_index=True, verbose_name=u'付款时间')
+    pay_time = models.DateTimeField(db_index=True, verbose_name=u'确认要发时间（付款时间|天猫成交时间|退货审核时间|该时间决定发货顺序）')
     book_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'准备订货时间')
     booked_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'订下货时间')
     ready_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'分配时间')
@@ -708,6 +729,7 @@ class PackageSkuItem(BaseModel):
 
     @staticmethod
     def get_failed_express():
+        # TODO　这些同时取了意味着数十万的数据，确认一下
         ps = PackageSkuItem.objects.exclude(failed_retrieve_time=None)
         return ps
 
@@ -723,6 +745,30 @@ class PackageSkuItem(BaseModel):
     @staticmethod
     def get_by_tid(tid):
         return PackageSkuItem.objects.filter(sale_trade_id=tid)
+
+    @property
+    def return_goods_id(self):
+        if self.type in [2, 3, 4]:
+            return self.sale_trade_id.replace('rg', '')
+
+    @property
+    def rg_detail_id(self):
+        if self.type in [2, 3, 4]:
+            return self.sale_order_id.replace('rd', '')
+
+    def set_return_goods_id(self, return_goods_id):
+        self.sale_trade_id = 'rg' + str(return_goods_id)
+
+    @staticmethod
+    def get_by_return_goods_id(return_goods_id):
+        return PackageSkuItem.objects.filter(sale_trade_id='rg'+str(return_goods_id))
+
+    def set_rg_detail_id(self, rg_detail_id):
+        self.sale_order_id = 'rd' + str(rg_detail_id)
+
+    @staticmethod
+    def get_by_rg_detail_id(rg_detail_id):
+        return PackageSkuItem.objects.filter(sale_trade_id='rd'+str(rg_detail_id)).first()
 
     def get_supplier_product_info(self):
         """
@@ -990,7 +1036,7 @@ class PackageSkuItem(BaseModel):
 
     @staticmethod
     def batch_merge():
-        psi_ids = PackageSkuItem.objects.filter(status=PSI_STATUS.ASSIGNED).values_list('id', flat=True)
+        psi_ids = PackageSkuItem.objects.filter(status=PSI_STATUS.ASSIGNED, type=PSI_TYPE.NORMAL).values_list('id', flat=True)
         psi_ids = list(psi_ids)
         for psi_id in psi_ids:
             with transaction.atomic():
@@ -1201,10 +1247,8 @@ def update_productsku_salestats_num(sender, instance, created, **kwargs):
     transaction.on_commit(
         lambda: task_packageskuitem_update_productskusalestats_num(instance.sku_id, instance.pay_time))
 
-
 post_save.connect(update_productsku_salestats_num, sender=PackageSkuItem,
                   dispatch_uid='post_save_update_productsku_salestats_num')
-
 
 # def update_package_order(sender, instance, created, **kwargs):
 #     from shopback.trades.tasks import task_update_package_order

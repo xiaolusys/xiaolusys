@@ -1681,7 +1681,7 @@ from shopback.trades.models import PackageSkuItem
 
 
 def create_purchaseorder_booknum_check_log(time_from, type, uni_key):
-    res = PackageSkuItem.objects.filter(assign_status=PackageSkuItem.NOT_ASSIGNED, purchase_order_unikey='').aggregate(
+    res = PackageSkuItem.objects.filter(assign_status=PackageSkuItem.NOT_ASSIGNED, purchase_order_unikey='', type=0).aggregate(
         total=Sum('num'))
     target_num = res['total'] or 0
 
@@ -1720,7 +1720,7 @@ def task_check_purchaseorder_booknum():
         create_purchaseorder_booknum_check_log(time_from, type, uni_key)
     elif not log.is_completed():
         res = PackageSkuItem.objects.filter(assign_status=PackageSkuItem.NOT_ASSIGNED,
-                                            purchase_order_unikey='').aggregate(total=Sum('num'))
+                                            purchase_order_unikey='', type=0).aggregate(total=Sum('num'))
         target_num = res['total'] or 0
 
         pos = PurchaseOrder.objects.filter(status=PurchaseOrder.OPEN)
@@ -1835,7 +1835,7 @@ def task_save_package_backorder_stats():
     purchaser_map = get_orderdetail_buyer_maping(now - datetime.timedelta(days=max([ds[0] for ds in stats_day_list])) , now)
 
     q = PackageSkuItem.objects.filter(
-        assign_status__in=[PackageSkuItem.NOT_ASSIGNED, PackageSkuItem.ASSIGNED]
+        assign_status__in=[PackageSkuItem.NOT_ASSIGNED, PackageSkuItem.ASSIGNED], type=0
     )
     for day, day_field in stats_day_list:
         day_dt = now - datetime.timedelta(days=day)

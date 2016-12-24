@@ -10,7 +10,7 @@ from django.db.models import F
 from django.db import transaction, IntegrityError
 from django.core.cache import cache
 
-from shopback.trades.constants import PSI_STATUS
+from shopback.trades.constants import PSI_STATUS, PSI_TYPE
 from shopback.warehouse import WARE_SH, WARE_CHOICES, WARE_NONE
 from django.db.models import Manager
 import logging
@@ -205,28 +205,28 @@ class SkuStock(models.Model):
         for attr in need_stat:
             if attr in psi_attrs_dict:
                 status = psi_attrs_dict[attr]
-                params[attr] = PackageSkuItem.objects.filter(sku_id=self.sku_id,
+                params[attr] = PackageSkuItem.objects.filter(sku_id=self.sku_id, type=PSI_TYPE.NORMAL,
                                                              pay_time__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME,
                                                              status=status). \
                                    exclude(status=PSI_STATUS.CANCEL).aggregate(total=Sum('num')).get(
                     'total') or 0
             if attr == 'assign_num':
-                params[attr] = PackageSkuItem.objects.filter(sku_id=self.sku_id,
+                params[attr] = PackageSkuItem.objects.filter(sku_id=self.sku_id, type=PSI_TYPE.NORMAL,
                                                              pay_time__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME,
                                                              assign_status=1).values(
                     'sku_id').aggregate(total=Sum('num')).get('total') or 0
             if attr == 'inbound_quantity':
-                params[attr] = OrderDetail.objects.filter(chichu_id=str(self.sku_id),
+                params[attr] = OrderDetail.objects.filter(chichu_id=str(self.sku_id), type=PSI_TYPE.NORMAL,
                                                           arrival_time__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME) \
                                    .aggregate(total=Sum('arrival_quantity')).get('total') or 0
             if attr == 'sold_num':
-                params[attr] = PackageSkuItem.objects.filter(sku_id=self.sku_id,
+                params[attr] = PackageSkuItem.objects.filter(sku_id=self.sku_id, type=PSI_TYPE.NORMAL,
                                                              pay_time__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME,
                                                              assign_status__in=[2, 0, 1, 4]).aggregate(
                     total=Sum('num')).get(
                     'total') or 0
             if attr == 'post_num':
-                params[attr] = PackageSkuItem.objects.filter(sku_id=self.sku_id,
+                params[attr] = PackageSkuItem.objects.filter(sku_id=self.sku_id, type=PSI_TYPE.NORMAL,
                                                              pay_time__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME,
                                                              assign_status=2).aggregate(total=Sum('num')).get(
                     'total') or 0
@@ -652,7 +652,7 @@ class SkuStock(models.Model):
         elif orderlist:
             oids = []
             new_assign_num = 0
-            for psi in PackageSkuItem.objects.filter(sku_id=self.sku_id,
+            for psi in PackageSkuItem.objects.filter(sku_id=self.sku_id, type=PSI_TYPE.NORMAL,
                                                      purchase_order_unikey=orderlist.purchase_order_unikey,
                                                      assign_status=PackageSkuItem.NOT_ASSIGNED):
                 if now_num >= psi.num:
@@ -671,7 +671,7 @@ class SkuStock(models.Model):
         else:
             oids = []
             new_assign_num = 0
-            for psi in PackageSkuItem.objects.filter(sku_id=self.sku_id,
+            for psi in PackageSkuItem.objects.filter(sku_id=self.sku_id, type=PSI_TYPE.NORMAL,
                                                      assign_status=PackageSkuItem.NOT_ASSIGNED).order_by('pay_time'):
                 if now_num >= psi.num:
                     now_num -= psi.num
@@ -712,7 +712,7 @@ class SkuStock(models.Model):
             else:
                 SkuStock.set_psi_not_assigned(self.sku_id, 0, stat=True, warning=True)
         elif orderlist:
-            psi = PackageSkuItem.objects.filter(sku_id=self.sku_id,
+            psi = PackageSkuItem.objects.filter(sku_id=self.sku_id, type=PSI_TYPE.NORMAL,
                                                 purchase_order_unikey=orderlist.purchase_order_unikey,
                                                 # status=PSI_STATUS.ASSIGNED,
                                                 assign_status=PackageSkuItem.ASSIGNED).first()
@@ -721,7 +721,7 @@ class SkuStock(models.Model):
             else:
                 SkuStock.set_psi_not_assigned(self.sku_id, 0, stat=True, warning=True)
         else:
-            psi = PackageSkuItem.objects.filter(sku_id=self.sku_id,
+            psi = PackageSkuItem.objects.filter(sku_id=self.sku_id, type=PSI_TYPE.NORMAL,
                                                 # status=PSI_STATUS.ASSIGNED,
                                                 assign_status=PackageSkuItem.ASSIGNED).order_by(
                 '-pay_time').first()
@@ -738,28 +738,6 @@ def invalid_apiskustat_cache(sender, instance, *args, **kwargs):
 
 
 post_save.connect(invalid_apiskustat_cache, sender=SkuStock, dispatch_uid='post_save_invalid_apiskustat_cache')
-
-
-#
-# def assign_stock_to_package_sku_item(sender, instance, created, **kwargs):
-#     from shopback.items.tasks import task_assign_stock_to_package_sku_item
-#     if not created:
-#         logger = logging.getLogger('service')
-#         logger.info({
-#             'action': 'skustat.pstat.assign_stock_to_package_sku_item',
-#             'instance': instance.sku_id,
-#             'realtime_quantity': instance.realtime_quantity,
-#             'assign_num': instance.assign_num,
-#             'sold_num': instance.sold_num,
-#             'post_num': instance.post_num,
-#             'not_assign_num': instance.not_assign_num,
-#         })
-#         task_assign_stock_to_package_sku_item.delay(instance)
-#
-# from shopmanager.celery_settings import CLOSE_CELERY
-# if not CLOSE_CELERY:
-#     post_save.connect(assign_stock_to_package_sku_item, sender=SkuStock,
-#                   dispatch_uid='post_save_assign_stock_to_package_sku_item')
 
 
 def product_sku_stats_agg(sender, instance, created, **kwargs):
@@ -904,7 +882,7 @@ class ProductSkuSaleStats(models.Model):
 
     def get_sold_num(self):
         from shopback.trades.models import PackageSkuItem
-        total = PackageSkuItem.objects.filter(sku_id=self.sku_id, pay_time__gte=self.sale_start_time,
+        total = PackageSkuItem.objects.filter(sku_id=self.sku_id, type=PSI_TYPE.NORMAL, pay_time__gte=self.sale_start_time,
                                               pay_time__lte=self.sale_end_time, assign_status__in=[0, 1, 2, 4]). \
                     aggregate(total=Sum('num')).get('total') or 0
         return total

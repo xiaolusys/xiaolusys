@@ -910,13 +910,14 @@ def task_packageskuitem_update_productskusalestats_num(sku_id, pay_time):
     Recalculate and update skustats_num.
     """
     from shopback.items.models import SkuStock, ProductSkuSaleStats
+    from shopback.trades.constants import PSI_TYPE
     sale_stat = ProductSkuSaleStats.get_by_sku(sku_id)
     if not sale_stat:
         return
     if (sale_stat.sale_start_time and pay_time < sale_stat.sale_start_time) \
             or (sale_stat.sale_end_time and pay_time > sale_stat.sale_end_time):
         return
-    assign_num_res = PackageSkuItem.objects.filter(sku_id=sku_id, pay_time__gte=sale_stat.sale_start_time,
+    assign_num_res = PackageSkuItem.objects.filter(sku_id=sku_id, type=PSI_TYPE.NORMAL, pay_time__gte=sale_stat.sale_start_time,
                                                    pay_time__lte=sale_stat.sale_end_time). \
         values('assign_status').annotate(total=Sum('num'))
     total = sum([line['total'] for line in assign_num_res if line['assign_status'] != 3])
@@ -1033,7 +1034,7 @@ def create_packageskuitem_check_log(time_from, type, uni_key):
                                    pay_time__lte=time_to)
     target_num = sos.count()
     actual_num = PackageSkuItem.objects.filter(pay_time__gt=time_from, pay_time__lte=time_to,
-                                               assign_status__lt=PackageSkuItem.FINISHED).count()
+                                               assign_status__lt=PackageSkuItem.FINISHED, type=0).count()
     log = SaleOrderSyncLog(time_from=time_from, time_to=time_to, uni_key=uni_key, type=type, target_num=target_num,
                            actual_num=actual_num)
     if target_num == actual_num:
@@ -1071,12 +1072,12 @@ def task_saleorder_check_packageskuitem():
             if so.is_teambuy() and not so.teambuy_can_send():
                 teambuy_count += 1
                 continue
-            psi = PackageSkuItem.objects.filter(oid=so.oid).exclude(assign_status=PackageSkuItem.CANCELED).first()
+            psi = PackageSkuItem.objects.filter(oid=so.oid).exclude(assign_status=PackageSkuItem.CANCELED, type=0).first()
             if not psi:
                 so.save()
         target_num = sos.count() - deposit_count - teambuy_count
         actual_num = PackageSkuItem.objects.filter(pay_time__gt=time_from, pay_time__lte=time_to,
-                                                   assign_status__lt=PackageSkuItem.FINISHED).count()
+                                                   assign_status__lt=PackageSkuItem.FINISHED, type=0).count()
 
         update_fields = []
         if log.target_num != target_num:
@@ -1103,11 +1104,11 @@ def create_packageorder_finished_check_log(time_from, uni_key):
     """
     time_to = time_from + datetime.timedelta(hours=1)
     actual_num = PackageSkuItem.objects.filter(finish_time__gt=time_from, finish_time__lte=time_to,
-                                               assign_status=PackageSkuItem.FINISHED).count()
+                                               assign_status=PackageSkuItem.FINISHED, type=0).count()
     target_num = PackageOrder.objects.filter(weight_time__gt=time_from, weight_time__lte=time_to,
                                              sys_status__in=[PackageOrder.WAIT_CUSTOMER_RECEIVE,
                                                              PackageOrder.FINISHED_STATUS]).aggregate(
-        n=Sum('sku_num')).get('n', 0) or 0
+        n=Sum('sku_num'), type=0).get('n', 0) or 0
     log = SaleOrderSyncLog(time_from=time_from, time_to=time_to, uni_key=uni_key,
                            type=SaleOrderSyncLog.PACKAGE_SKU_FINISH_NUM, target_num=target_num,
                            actual_num=actual_num)
@@ -1163,7 +1164,7 @@ def create_waitingpay_cnt_check_log(time_from, uni_key):
 
 def create_assign_check_log(time_from, uni_key):
     from shopback.items.models import SkuStock
-    actual_num = PackageSkuItem.objects.filter(assign_status=1).aggregate(n=Sum('num')).get('n') or 0
+    actual_num = PackageSkuItem.objects.filter(assign_status=1, type=0).aggregate(n=Sum('num')).get('n') or 0
     target_num = SkuStock.objects.aggregate(n=Sum('assign_num')).get('n') or 0
     time_to = time_from + datetime.timedelta(hours=1)
     log = SaleOrderSyncLog(time_from=time_from, time_to=time_to, uni_key=uni_key,
@@ -1212,7 +1213,7 @@ def create_packageorder_realtime_check_log(time_from, uni_key):
         确保已备货的PackageSkuItem数量等于待发货PackageOrder关联的PackageSkuItem的数量，
         同时等于每个PackageOrder的sku_num等于其关联的PackageSkuItem的数量
     """
-    target_num = PackageSkuItem.objects.filter(assign_status=1).count()
+    target_num = PackageSkuItem.objects.filter(assign_status=1, type=0).count()
     sku_item_total = PackageOrder.objects.filter(sys_status__in=[PackageOrder.WAIT_PREPARE_SEND_STATUS,
                                                                  PackageOrder.WAIT_CHECK_BARCODE_STATUS,
                                                                  PackageOrder.WAIT_SCAN_WEIGHT_STATUS]).aggregate(
