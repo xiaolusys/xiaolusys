@@ -216,7 +216,7 @@ class SkuStock(models.Model):
                                                              assign_status=1).values(
                     'sku_id').aggregate(total=Sum('num')).get('total') or 0
             if attr == 'inbound_quantity':
-                params[attr] = OrderDetail.objects.filter(chichu_id=str(self.sku_id), type=PSI_TYPE.NORMAL,
+                params[attr] = OrderDetail.objects.filter(chichu_id=str(self.sku_id),
                                                           arrival_time__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME) \
                                    .aggregate(total=Sum('arrival_quantity')).get('total') or 0
             if attr == 'sold_num':
