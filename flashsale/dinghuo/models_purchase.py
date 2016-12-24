@@ -126,7 +126,7 @@ class PurchaseOrder(BaseModel):
             if not supplier:
                 return
             now = datetime.datetime.now()
-            ol = OrderList(purchase_order_unikey=self.uni_key, order_amount=self.total_price,
+            ol = OrderList(purchase_order_unikey=self.uni_key, order_amount=self.total_price * 1.0/100,
                            supplier_id=supplier.id, created_by=OrderList.CREATED_BY_MACHINE,
                            status=OrderList.SUBMITTING, note=u'-->%s:动态生成订货单' % now.strftime('%m月%d %H:%M'))
             ol.save()
