@@ -12,8 +12,9 @@ from core.upload.xqrcode import push_qrcode_to_remote
 from .models import XiaoluAdministrator, GroupMamaAdministrator, GroupFans, ActivityUsers
 from .serializers import XiaoluAdministratorSerializers, GroupMamaAdministratorSerializers, GroupFansSerializers, \
     MamaGroupsSerializers
+from flashsale.xiaolumm.tasks import task_mama_daily_tab_visit_stats
 from flashsale.promotion.models import ActivityEntry
-from flashsale.xiaolumm.models import XiaoluMama
+from flashsale.xiaolumm.models import XiaoluMama, MamaTabVisitStats
 from flashsale.xiaolumm.serializers import XiaoluMamaSerializer
 from flashsale.pay.models import Customer
 from shopapp.weixin.models import WeixinUserInfo
@@ -50,8 +51,12 @@ class XiaoluAdministratorViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
                     redirect_url = self.get_snsuserinfo_redirct_url(request)
                     return redirect(redirect_url)
             xiaoumama = XiaoluMama.objects.filter(openid=unionid).first()
+
         if not xiaoumama:
             raise exceptions.ValidationError(u'您不是小鹿妈妈或者你的微信号未和小鹿妈妈账号绑定')
+
+        task_mama_daily_tab_visit_stats.delay(xiaoumama.id, MamaTabVisitStats.TAB_MAMA_BOUTIQUE_FAQ)
+        
         mama_id = xiaoumama.id
         administrastor_id = request.POST.get('administrastor_id') or request.GET.get('administrastor_id')
         if GroupMamaAdministrator.objects.filter(mama_id=mama_id).exists():
