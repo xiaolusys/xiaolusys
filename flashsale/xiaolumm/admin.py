@@ -428,7 +428,7 @@ class MamaFortuneAdmin(OrderModelAdmin):
                                        'history_confirmed') + F('history_cashout'))
                     }
 
-    list_filter = ('mama_level', 'mama_agency_level', ('created', DateFieldListFilter))
+    list_filter = ('mama_level', ('created', DateFieldListFilter))
 
     def mama_agency_level(self, obj):
         """ show XiaoluMama agencylevel """
