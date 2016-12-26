@@ -67,7 +67,7 @@ class PackageOrder(models.Model):
 
     user_address_id = models.BigIntegerField(null=False, db_index=True, verbose_name=u'地址ID')
     # 物流信息
-    buyer_id = models.BigIntegerField(db_index=True, verbose_name=u'买家ID')
+    buyer_id = models.BigIntegerField(db_index=True, null=True, verbose_name=u'买家ID')
     buyer_nick = models.CharField(max_length=64, blank=True, verbose_name=u'买家昵称')
 
     buyer_message = models.TextField(max_length=1000, blank=True, verbose_name=u'买家留言')
@@ -87,7 +87,7 @@ class PackageOrder(models.Model):
     qrcode_msg = models.CharField(max_length=32, blank=True, verbose_name=u'打印信息')
     can_review = models.BooleanField(default=False, verbose_name=u'复审')
     priority = models.IntegerField(default=0, verbose_name=u'作废字段')
-    buyer_id = models.CharField(null=True, max_length=32, blank=True, verbose_name=u'采购员')
+    purchaser = models.CharField(null=True, max_length=32, blank=True, verbose_name=u'采购员')
     supplier_id = models.CharField(null=True,max_length=32, blank=True, verbose_name=u'供应商id')
     operator = models.CharField(max_length=32, blank=True, verbose_name=u'打单员')
     scanner = models.CharField(max_length=64, blank=True, verbose_name=u'扫描员')
