@@ -308,6 +308,10 @@ def unfreeze_user_coupon_by_userbudget(customer_id):
         if user_coupons and user_coupons.count() > 0:
             for coupon in user_coupons:
                 if coupon.extras.has_key("freeze_type") and coupon.extras["freeze_type"] == 1:
+                    logger.info({
+                        'action': u'unfreeze_user_coupon_by_userbudget',
+                        'message': u'unfreeze coupon:customerid=%s couponid=%s template_id=%s' % (customer.id, coupon.id, coupon.template_id),
+                    })
                     coupon.extras.pop('freeze_type')
                     coupon.status = UserCoupon.UNUSED
                     coupon.save()

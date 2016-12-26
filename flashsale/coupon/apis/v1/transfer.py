@@ -320,7 +320,6 @@ def coupon_exchange_saleorder(customer, order_id, mama_id, exchg_template_id, co
     create_transfer_coupon_detail(transfer.id, coupon_ids)
 
 
-@transaction.atomic
 def saleorder_return_coupon_exchange(salerefund, payment):
     logger.info({
         'message': u'return exchange order:customer=%s, payment=%s refundid=%s' % (
@@ -361,65 +360,64 @@ def saleorder_return_coupon_exchange(salerefund, payment):
     user_budgets = UserBudget.objects.filter(user=customer)
     if user_budgets.exists():
         user_budget = user_budgets[0]
-        if user_budget.budget_cash < int(payment):
+        if user_budget.amount < int(payment):
             not_enough_budget = True
 
-    # (1)在user钱包写支出记录，支出不够变成负数
-    from flashsale.pay.models.user import BudgetLog
+    with transaction.atomic():
+        # (1)在user钱包写支出记录，支出不够变成负数
+        from flashsale.pay.models.user import BudgetLog
+        today = datetime.date.today()
+        order_log = BudgetLog(customer_id=customer.id, flow_amount=int(payment),
+                              budget_type=BudgetLog.BUDGET_OUT,
+                              budget_log_type=BudgetLog.BG_EXCHG_ORDER, referal_id=salerefund.id,
+                              uni_key=salerefund.refund_no, status=BudgetLog.CONFIRMED,
+                              budget_date=today)
+        order_log.save()
 
-    today = datetime.date.today()
-    order_log = BudgetLog(customer_id=customer.id, flow_amount=int(payment),
-                          budget_type=BudgetLog.BUDGET_OUT,
-                          budget_log_type=BudgetLog.BG_EXCHG_ORDER, referal_id=salerefund.id,
-                          uni_key=salerefund.refund_no, status=BudgetLog.CONFIRMED,
-                          budget_date=today)
-
-    order_log.save()
-
-    # (2)sale order置为已经取消兑换
-    if sale_order:
-        sale_order.extras['exchange'] = False
-        SaleOrder.objects.filter(id=salerefund.order_id).update(extras=sale_order.extras)
-    else:
-        logger.warn({
-            'message': u'return exchange order: order_id=%s not exist' % (salerefund.order_id),
-        })
-        raise exceptions.ValidationError(u'找不到订单记录，取消兑换失败!')
-
-    # (3)用户优惠券需要变成未使用状态,如果零钱不够扣则变为冻结,优惠券扣除张数等于退款金额除商品价格；有可能买了多件商品，只退部分，那么
-    # 只能修改部分优惠券的状态
-    user_coupon = UserCoupon.objects.filter(trade_tid=sale_order.oid,
-                                            status=UserCoupon.USED)
-    return_coupon_num = round(payment / round(sale_order.price * 100))
-    if user_coupon.count() < return_coupon_num:
-        logger.warn({
-            'message': u'return exchange order: user_coupon.count() %s < return_coupon_num %s' % (
-                user_coupon.count(), return_coupon_num),
-        })
-    num = 0
-    coupon_ids = []
-    for coupon in user_coupon:
-        if num >= return_coupon_num:
-            break
+        # (2)sale order置为已经取消兑换
+        if sale_order:
+            sale_order.extras['exchange'] = False
+            SaleOrder.objects.filter(id=salerefund.order_id).update(extras=sale_order.extras)
         else:
-            num += 1
-        if not_enough_budget:
-            extras = coupon.extras
-            extras['freeze_type'] = 1
-            UserCoupon.objects.filter(uniq_id=coupon.uniq_id).update(status=UserCoupon.FREEZE, trade_tid='',
-                                                                     finished_time=datetime.datetime.now())
-        else:
-            UserCoupon.objects.filter(uniq_id=coupon.uniq_id).update(status=UserCoupon.UNUSED, trade_tid='',
-                                                                     finished_time=datetime.datetime.now())
-        coupon_ids.append(coupon.id)
+            logger.warn({
+                'message': u'return exchange order: order_id=%s not exist' % (salerefund.order_id),
+            })
+            raise exceptions.ValidationError(u'找不到订单记录，取消兑换失败!')
 
-    # (4)在精品券流通记录增加退货退券记录
-    logger.info({
-        'message': u'exchange order:return_coupon_num=%s ' % (return_coupon_num),
-    })
-    transfer = CouponTransferRecord.gen_return_record(customer, return_coupon_num,
-                                                      int(user_coupon[0].template_id), sale_order.sale_trade.tid)
-    create_transfer_coupon_detail(transfer.id, coupon_ids)
+        # (3)用户优惠券需要变成未使用状态,如果零钱不够扣则变为冻结,优惠券扣除张数等于退款金额除商品价格；有可能买了多件商品，只退部分，那么
+        # 只能修改部分优惠券的状态
+        user_coupon = UserCoupon.objects.filter(trade_tid=sale_order.oid,
+                                                status=UserCoupon.USED)
+        return_coupon_num = round(payment / round(sale_order.price * 100))
+        if user_coupon.count() < return_coupon_num:
+            logger.warn({
+                'message': u'return exchange order: user_coupon.count() %s < return_coupon_num %s' % (
+                    user_coupon.count(), return_coupon_num),
+            })
+        num = 0
+        coupon_ids = []
+        for coupon in user_coupon:
+            if num >= return_coupon_num:
+                break
+            else:
+                num += 1
+            if not_enough_budget:
+                extras = coupon.extras
+                extras['freeze_type'] = 1
+                UserCoupon.objects.filter(uniq_id=coupon.uniq_id).update(status=UserCoupon.FREEZE, trade_tid='',
+                                                                         finished_time=datetime.datetime.now())
+            else:
+                UserCoupon.objects.filter(uniq_id=coupon.uniq_id).update(status=UserCoupon.UNUSED, trade_tid='',
+                                                                         finished_time=datetime.datetime.now())
+            coupon_ids.append(coupon.id)
+
+        # (4)在精品券流通记录增加退货退券记录
+        logger.info({
+            'message': u'exchange order:return_coupon_num=%s ' % (return_coupon_num),
+        })
+        transfer = CouponTransferRecord.gen_return_record(customer, return_coupon_num,
+                                                          int(user_coupon[0].template_id), sale_order.sale_trade.tid)
+        create_transfer_coupon_detail(transfer.id, coupon_ids)
 
 
 @transaction.atomic()
