@@ -203,6 +203,7 @@ def send_new_elite_transfer_coupons(customer_id, order_id, order_oid, product_id
                                 relation_ship.referal_from_grandma_id = real_referal_mm.id
                             else:
                                 relation_ship.referal_from_grandma_id = 0
+                            relation_ship.order_id = so.oid
                             relation_ship.save()
                             logger.info({
                                 'action': 'send_new_elite_transfer_coupons',
@@ -268,7 +269,7 @@ def send_new_elite_transfer_coupons(customer_id, order_id, order_oid, product_id
             template_id, order_id, order_oid, product_id),
     })
 
-@transaction.atomic
+
 def coupon_exchange_saleorder(customer, order_id, mama_id, exchg_template_id, coupon_num):
     logger.info({
         'message': u'exchange order:customer=%s, mama_id=%s coupon_num=%s order_id=%s templateid=%s' % (
@@ -281,43 +282,43 @@ def coupon_exchange_saleorder(customer, order_id, mama_id, exchg_template_id, co
     from .usercoupon import use_coupon_by_ids
 
     sale_order = SaleOrder.objects.filter(oid=order_id).first()
-    if sale_order:
-        if sale_order.status < SaleOrder.WAIT_BUYER_CONFIRM_GOODS:
-            logger.warn({'message': u'exchange order: order_id=%s status=%s' % (order_id, sale_order.status)})
-            raise exceptions.ValidationError(u'订单记录状态不对，兑换失败!')
-        if sale_order and sale_order.extras.has_key('exchange') and sale_order.extras['exchange'] == True:
-            logger.warn({'message': u'exchange order: order_id=%s has already exchg' % order_id})
-            raise exceptions.ValidationError(u'订单已经被兑换过了，兑换失败!')
-        sale_order.extras['exchange'] = True
-        SaleOrder.objects.filter(oid=order_id).update(extras=sale_order.extras)
-    else:
-        logger.warn({'message': u'exchange order: order_id=%s not exist' % order_id})
-        raise exceptions.ValidationError(u'找不到订单记录，兑换失败!')
+    with transaction.atomic():
+        if sale_order:
+            if sale_order.status < SaleOrder.WAIT_BUYER_CONFIRM_GOODS:
+                logger.warn({'message': u'exchange order: order_id=%s status=%s' % (order_id, sale_order.status)})
+                raise exceptions.ValidationError(u'订单记录状态不对，兑换失败!')
+            if sale_order and sale_order.extras.has_key('exchange') and sale_order.extras['exchange'] == True:
+                logger.warn({'message': u'exchange order: order_id=%s has already exchg' % order_id})
+                raise exceptions.ValidationError(u'订单已经被兑换过了，兑换失败!')
+            sale_order.extras['exchange'] = True
+            SaleOrder.objects.filter(oid=order_id).update(extras=sale_order.extras)
+        else:
+            logger.warn({'message': u'exchange order: order_id=%s not exist' % order_id})
+            raise exceptions.ValidationError(u'找不到订单记录，兑换失败!')
 
-    # (2)用户优惠券需要变成使用状态
-    user_coupons = UserCoupon.objects.filter(customer_id=customer.id,
-                                             template_id=int(exchg_template_id),
-                                             status=UserCoupon.UNUSED)
-    user_coupons = user_coupons[0: coupon_num]
-    coupon_ids = [c.id for c in user_coupons]
-    use_coupon_by_ids(coupon_ids, tid=sale_order.oid)   # 改为 使用掉
+        # (2)用户优惠券需要变成使用状态
+        user_coupons = UserCoupon.objects.filter(customer_id=customer.id,
+                                                 template_id=int(exchg_template_id),
+                                                 status=UserCoupon.UNUSED)
+        user_coupons = user_coupons[0: coupon_num]
+        coupon_ids = [c.id for c in user_coupons]
+        use_coupon_by_ids(coupon_ids, tid=sale_order.oid)   # 改为 使用掉
 
-    # (3)在user钱包写收入记录
-    from flashsale.pay.models.user import BudgetLog
+        # (3)在user钱包写收入记录
+        from flashsale.pay.models.user import BudgetLog
+        today = datetime.date.today()
+        order_log = BudgetLog(customer_id=customer.id, flow_amount=round(sale_order.payment * 100),
+                              budget_type=BudgetLog.BUDGET_IN,
+                              budget_log_type=BudgetLog.BG_EXCHG_ORDER, referal_id=sale_order.id,
+                              uni_key=sale_order.oid, status=BudgetLog.CONFIRMED,
+                              budget_date=today)
 
-    today = datetime.date.today()
-    order_log = BudgetLog(customer_id=customer.id, flow_amount=round(sale_order.payment * 100),
-                          budget_type=BudgetLog.BUDGET_IN,
-                          budget_log_type=BudgetLog.BG_EXCHG_ORDER, referal_id=sale_order.id,
-                          uni_key=sale_order.oid, status=BudgetLog.CONFIRMED,
-                          budget_date=today)
+        order_log.save()
 
-    order_log.save()
-
-    # (4)在精品券流通记录增加兑换记录
-    transfer = CouponTransferRecord.create_exchg_order_record(customer, int(coupon_num), sale_order,
-                                                              int(exchg_template_id))
-    create_transfer_coupon_detail(transfer.id, coupon_ids)
+        # (4)在精品券流通记录增加兑换记录
+        transfer = CouponTransferRecord.create_exchg_order_record(customer, int(coupon_num), sale_order,
+                                                                  int(exchg_template_id))
+        create_transfer_coupon_detail(transfer.id, coupon_ids)
 
 
 def saleorder_return_coupon_exchange(salerefund, payment):
