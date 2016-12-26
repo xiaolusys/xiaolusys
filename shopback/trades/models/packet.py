@@ -1028,6 +1028,8 @@ class PackageSkuItem(BaseModel):
             po = PackageOrder.objects.filter(id=package_order_id).first()
             if not po:
                 po = PackageOrder.create(package_order_id, self.sale_trade, PackageOrder.WAIT_PREPARE_SEND_STATUS, self)
+                po.set_redo_sign(save_data=False)
+                po.reset_package_address()
             self.package_order_id = po.id
             self.package_order_pid = po.pid
             self.save()
