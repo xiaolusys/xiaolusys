@@ -96,8 +96,14 @@ class UserAddress(BaseModel):
     STATUS_CHOICES = ((NORMAL, u'正常'),
                       (DELETE, u'删除'))
 
-    cus_uid = models.BigIntegerField(db_index=True, verbose_name=u'客户ID')
 
+    CUS = 1
+    SUPPLIER = 2
+    TYPE_CHOICES = ((CUS,u'用户'),
+                   (SUPPLIER,u'供应商'))
+
+    cus_uid = models.BigIntegerField(db_index=True, null=True, verbose_name=u'客户ID')
+    supplier_id = models.IntegerField(db_index=True, null=True, verbose_name=u"供应商ID")
     receiver_name = models.CharField(max_length=25,
                                      blank=True, verbose_name=u'收货人姓名')
     receiver_state = models.CharField(max_length=16, blank=True, verbose_name=u'省')
@@ -111,7 +117,7 @@ class UserAddress(BaseModel):
 
     default = models.BooleanField(default=False, verbose_name=u'默认地址')
     logistic_company_code = models.CharField(max_length=16, blank=True, verbose_name=u'优先快递编码')
-
+    type = models.IntegerField(default=1, choices=TYPE_CHOICES, verbose_name=u'类型')
     status = models.CharField(max_length=8, blank=True, db_index=True, default=NORMAL,
                               choices=STATUS_CHOICES, verbose_name=u'状态')
     identification_no = models.CharField(max_length=32, blank=True, verbose_name=u'身份证号码')  # type : text_type
