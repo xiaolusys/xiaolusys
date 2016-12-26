@@ -120,7 +120,7 @@ def task_packageskuitem_update_productskustats(sku_id):
     """
     from shopback.trades.models import PackageSkuItem
     logger.info("%s -sku_id:%s" % (get_cur_info(), sku_id))
-    sum_res = PackageSkuItem.objects.filter(sku_id=sku_id, pay_time__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME). \
+    sum_res = PackageSkuItem.objects.filter(sku_id=sku_id, pay_time__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME, type=0). \
         exclude(assign_status=PackageSkuItem.CANCELED).values("assign_status").annotate(total=Sum('num'))
     wait_assign_num, assign_num, post_num, third_assign_num = 0, 0, 0, 0
 

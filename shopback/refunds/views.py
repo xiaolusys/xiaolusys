@@ -263,7 +263,7 @@ class RefundView(APIView):
                                                      title=content['title'],
                                                      outer_id=content['outer_id']).first()
         if content['outer_id'] and content['outer_sku_id']:
-            pksi = PackageSkuItem.objects.filter(outer_id=content['outer_id'],outer_sku_id=content['outer_sku_id']).first()
+            pksi = PackageSkuItem.objects.filter(outer_id=content['outer_id'],outer_sku_id=content['outer_sku_id'], type=0).first()
             if not pksi:
                 logger.warn({'action': "RefundView_post", 'info': 'PackageSkuItem is not exist'})
         else:

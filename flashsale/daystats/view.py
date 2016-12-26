@@ -87,7 +87,7 @@ class DailyStatsViewSet(viewsets.GenericViewSet):
         threshold3 = now - datetime.timedelta(days=15)
         if type_ == 1:
             q = PackageSkuItem.objects.filter(
-                assign_status__in=[PackageSkuItem.NOT_ASSIGNED, PackageSkuItem.ASSIGNED, PackageSkuItem.VIRTUAL_ASSIGNED]
+                assign_status__in=[PackageSkuItem.NOT_ASSIGNED, PackageSkuItem.ASSIGNED, PackageSkuItem.VIRTUAL_ASSIGNED], type=0
             )
             n_total = q.only('id').count()
             n_delay = q.filter(pay_time__lte=threshold).only('id').count()
@@ -142,7 +142,7 @@ class DailyStatsViewSet(viewsets.GenericViewSet):
             else:
                 data = cache_value
         elif type_ == 7:
-            q = PackageSkuItem.objects.filter(assign_status=0, purchase_order_unikey='')
+            q = PackageSkuItem.objects.filter(assign_status=0, purchase_order_unikey='', type=0)
             q.filter(pay_time__lt=now - datetime.timedelta(days=1))
             n_total = q.count()
             n_delay = q.filter(pay_time__lt=now - datetime.timedelta(days=1)).only('id').count()
