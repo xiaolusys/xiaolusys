@@ -457,7 +457,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                 sale_order = SaleOrder.objects.filter(oid=entry.order_id).first()
                 if not sale_order:
                     continue
-                if sale_order and sale_order.extras.has_key('exchange') and sale_order.extras['exchange'] == True:
+                if sale_order and sale_order.extras.has_key('exchange'):
                     continue
 
                 user_coupon = UserCoupon.objects.filter(trade_tid=sale_order.sale_trade.tid).first()
@@ -488,6 +488,20 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                                                 'contributor_nick': entry.contributor_nick, 'status': entry.status,
                                                 'status_display': OrderCarry.STATUS_TYPES[entry.status][1],
                                                 'order_value': entry.order_value, 'date_field': entry.date_field})
+
+        #从relationship推荐人中找出购买rmb338的新精英妈妈订单
+        from flashsale.xiaolumm.models.models_fortune import ReferalRelationship
+        ships = ReferalRelationship.objects.filter(referal_from_mama_id=mama.id, referal_type=XiaoluMama.ELITE, status=ReferalRelationship.VALID)
+        for ship in ships:
+            if ship.order_id and ship.order_id.length > 0:
+                rmb338_order = SaleOrder.objects.filter(oid=ship.order_id).first()
+                if rmb338_order and (not rmb338_order.extras.has_key('exchange')):
+                    results.append({'exchg_template_id': 156,
+                                    'num': 5,
+                                    'order_id': ship.order_id, 'sku_img': rmb338_order.pic_path,
+                                    'contributor_nick': customer.nick, 'status': 2,
+                                    'status_display': u'确定收益',
+                                    'order_value': rmb338_order.payment, 'date_field': rmb338_order.pay_time})
         logger.info({
             'message': u'list can exchange order:result len=%s ' % (len(results)),
             'data': '%s' % content
