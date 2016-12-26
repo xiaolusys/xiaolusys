@@ -17,7 +17,16 @@ def save_pro_info(product, user):
         shop.name = customer.nick  # 保存店铺名称
         shop.save()
 
-    shop_pro, pro_state = CuShopPros.objects.get_or_create(customer=customer.id, shop=shop.id, product=pro.id)
+    shop_pro = CuShopPros.objects.filter(customer=customer.id, shop=shop.id, product=pro.id).first()
+    pro_state = False
+    if not shop_pro:
+        pro_state = True
+        shop_pro = CuShopPros(
+            customer=customer.id,
+            shop=shop.id,
+            product=pro.id
+        )
+        shop_pro.save()
     kwargs = {'agencylevel': xlmm.agencylevel,
               'product_price_yuan': float(pro.agent_price)} if xlmm and pro.agent_price else {}
     rebet_amount = rebt.calculate_carry(**kwargs) if kwargs else 0  # 计算佣金
