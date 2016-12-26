@@ -50,7 +50,7 @@ class XiaoluMamaAdmin(ApproxAdmin):
                     'progress', 'hasale', 'charge_time', 'status', 'refer_to_mama', 'deposit_infos',
                     'weikefu', 'manager_info')
     list_filter = (
-        'progress', 'agencylevel', 'last_renew_type', 'manager', 'status', 'charge_status', 'hasale',
+        'progress', 'agencylevel', 'last_renew_type', 'referal_from', 'manager', 'status', 'charge_status', 'hasale',
         ('charge_time', DateFieldListFilter),)
     list_display_links = ('id',)
     search_fields = ['=id', '=mobile', '=manager', 'weikefu', '=openid', '=referal_from']
@@ -61,7 +61,7 @@ class XiaoluMamaAdmin(ApproxAdmin):
         groups = list(request.user.groups.values_list('name', flat=True))
         if not (request.user.is_superuser or groups.__contains__('小鹿推广管理员')):
             readonly_fields = readonly_fields + ('mobile', 'openid', 'lowest_uncoushout', 'charge_time',
-                                                 'charge_status', 'referal_from')
+                                                 'charge_status')
         return readonly_fields
 
     def get_changelist(self, request, **kwargs):

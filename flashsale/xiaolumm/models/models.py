@@ -38,6 +38,11 @@ class XiaoluMama(BaseModel):
     DIRECT = 'DIRECT'
     INDIRECT = 'INDIRECT'
 
+    ELITE_TYPE_CHOICES = (
+        (DIRECT, u'DIRECT'),
+        (INDIRECT, 'INDIRECT')
+    )
+
     EFFECT = 'effect'
     FROZEN = 'forzen'
     CANCEL = 'cancel'
@@ -104,7 +109,8 @@ class XiaoluMama(BaseModel):
     province = models.CharField(max_length=24, blank=True, verbose_name=u"省份")
     city = models.CharField(max_length=24, blank=True, verbose_name=u"城市")
     address = models.CharField(max_length=256, blank=True, verbose_name=u"地址")
-    referal_from = models.CharField(max_length=11, db_index=True, blank=True, verbose_name=u"推荐人", help_text=u"妈妈的id")
+    referal_from = models.CharField(max_length=11, choices=ELITE_TYPE_CHOICES,
+                                    db_index=True, blank=True, verbose_name=u"精英妈妈类型")
 
     qrcode_link = models.CharField(max_length=256, blank=True, verbose_name=u"二维码")
     weikefu = models.CharField(max_length=11, db_index=True, blank=True, verbose_name=u"微客服")
