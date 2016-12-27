@@ -240,7 +240,7 @@ class SkuStock(models.Model):
                                                        return_goods__status__in=[ReturnGoods.DELIVER_RG,
                                                                                  ReturnGoods.REFUND_RG,
                                                                                  ReturnGoods.SUCCEED_RG,
-                                                                                 ReturnGoods.OBSOLETE_RG],
+                                                                                 ReturnGoods.FAILED_RG],
                                                        type=RGDetail.TYPE_REFUND).\
                                    aggregate(total=Sum('num')).get('total') or 0
             if attr == 'shoppingcart_num':
