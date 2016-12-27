@@ -5,10 +5,8 @@ import time
 import json
 import datetime
 from django.db import models
-from core.models import BaseModel
 from django.contrib.auth.models import User as DjangoUser
 from shopback.signals import user_logged_in
-from shopback import paramconfig as pcfg
 import logging
 
 logger = logging.getLogger('django.request')
