@@ -495,7 +495,8 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
         for ship in ships:
             if ship.order_id and len(ship.order_id) > 0:
                 rmb338_order = SaleOrder.objects.filter(oid=ship.order_id).first()
-                if rmb338_order and (not rmb338_order.extras.has_key('exchange')) and (int(rmb338_order.payment) == 338):
+                if rmb338_order and (not rmb338_order.extras.has_key('exchange')) \
+                        and rmb338_order.is_new_elite_deposit():
                     buyer_customer = Customer.objects.normal_customer.filter(id=rmb338_order.buyer_id).first()
                     results.append({'exchg_template_id': 156,
                                     'num': 5,
