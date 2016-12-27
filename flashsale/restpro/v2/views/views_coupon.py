@@ -503,7 +503,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                                     'order_id': ship.order_id, 'sku_img': rmb338_order.pic_path,
                                     'contributor_nick': buyer_customer.nick, 'status': 2,
                                     'status_display': u'确定收益',
-                                    'order_value': rmb338_order.payment, 'date_field': rmb338_order.pay_time})
+                                    'order_value': round(rmb338_order.payment * 100), 'date_field': rmb338_order.pay_time})
         logger.info({
             'message': u'list can exchange order:result len=%s ' % (len(results)),
             'data': '%s' % content
