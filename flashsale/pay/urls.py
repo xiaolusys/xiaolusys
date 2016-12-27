@@ -36,6 +36,8 @@ urlpatterns = [
     # address urls
     url(r'^addr/list/$', sale_buyer_required(views.AddressList.as_view()), name="address_list"),
     url(r'^addr/$', sale_buyer_required(views.UserAddressDetail.as_view()), name="address_ins"),
+    url(r'^add_supplier_addr/$', views.add_supplier_addr, name="add_supplier_addr"),
+    url(r'^get_supplier_name/$', views.get_supplier_name, name="get_supplier_name"),
     url(r'^addr/area/$', cache_page(24 * 60 * 60)(views.DistrictList.as_view()), name="address_area"),
 
     # envelop urls

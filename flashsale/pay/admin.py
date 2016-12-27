@@ -312,11 +312,11 @@ admin.site.register(DistrictVersion, DistrictVersionAdmin)
 
 
 class UserAddressAdmin(admin.ModelAdmin):
-    list_display = ('id', 'cus_uid', 'receiver_name', 'receiver_state',
-                    'receiver_city', 'receiver_mobile', 'default', 'status')
+    list_display = ('id', "supplier_id",'cus_uid', 'receiver_name', 'receiver_state',
+                    'receiver_city', 'receiver_address','receiver_mobile', 'default', 'status','type')
     search_fields = ['=cus_uid', '^receiver_mobile']
 
-    list_filter = ('default', 'status')
+    list_filter = ('default', 'status','type')
 
 
 admin.site.register(UserAddress, UserAddressAdmin)

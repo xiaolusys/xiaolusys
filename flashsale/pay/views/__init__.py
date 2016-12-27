@@ -15,3 +15,4 @@ from .poster import PostGoodShelf
 from .zoneanalysis import show_Zone_Page, by_zone_Province, by_zone_City
 
 from .extras import QiniuAPIView
+from .address import add_supplier_addr,get_supplier_name
