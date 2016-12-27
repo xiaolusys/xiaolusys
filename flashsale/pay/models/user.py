@@ -342,7 +342,6 @@ class UserBudget(PayBaseModel):
             return mama.id
         return ''
 
-
     @property
     def budget_cash(self):
         return float('%.2f' % (self.amount * 0.01))
@@ -370,12 +369,13 @@ class UserBudget(PayBaseModel):
             ).update(amount=models.F('amount') - payment)
             if urows == 0:
                 return False
-            BudgetLog.objects.create(customer_id=self.user.id,
-                                     referal_id=strade_id,
-                                     flow_amount=payment,
-                                     budget_log_type=BudgetLog.BG_CONSUM,
-                                     budget_type=BudgetLog.BUDGET_OUT,
-                                     status=BudgetLog.PENDING)
+            BudgetLog.create(customer_id=self.user.id,
+                             budget_type=BudgetLog.BUDGET_OUT,
+                             flow_amount=payment,
+                             referal_id=strade_id,
+                             budget_log_type=BudgetLog.BG_CONSUM,
+                             uni_key='st_%s' % strade_id,
+                             status=BudgetLog.PENDING)
             return True
         return True
 
@@ -388,8 +388,8 @@ class UserBudget(PayBaseModel):
             logger.error('budget payment log not found: customer=%s, trade_id=%s'%(self.user.id,strade_id))
             return False
 
-        #如果订单超时关闭又支付成功,则余额支付状态页需要改回
-        if blog.status ==  BudgetLog.CANCELED:
+        #  如果订单超时关闭又支付成功,则余额支付状态页需要改回
+        if blog.status == BudgetLog.CANCELED:
             blog.status = BudgetLog.PENDING
         return blog.push_pending_to_confirm()
 
@@ -629,15 +629,13 @@ class BudgetLog(PayBaseModel):
         :arg  refund:SaleRefund instance,  flow_amount:退款金额(分)
         """
         uni_key = cls.gen_uni_key(refund.buyer_id, BudgetLog.BUDGET_IN, BudgetLog.BG_REFUND)
-        budget_log = cls(customer_id=refund.buyer_id,
-                         flow_amount=flow_amount,
-                         budget_type=BudgetLog.BUDGET_IN,
-                         budget_log_type=BudgetLog.BG_REFUND,
-                         budget_date=datetime.date.today(),
-                         referal_id=refund.id,
-                         status=BudgetLog.CONFIRMED,
-                         uni_key=uni_key)
-        budget_log.save()
+        budget_log = cls.create(customer_id=refund.buyer_id,
+                                budget_type=BudgetLog.BUDGET_IN,
+                                flow_amount=flow_amount,
+                                budget_log_type=BudgetLog.BG_REFUND,
+                                referal_id=refund.id,
+                                status=BudgetLog.CONFIRMED,
+                                uni_key=uni_key)
         return budget_log
 
     @classmethod
@@ -647,15 +645,13 @@ class BudgetLog(PayBaseModel):
         :arg  refund:SaleRefund instance,  flow_amount:退款金额(分)
         """
         uni_key = cls.gen_uni_key(refund.buyer_id, BudgetLog.BUDGET_IN, BudgetLog.BG_REFUND_POSTAGE)
-        budget_log = cls(customer_id=refund.buyer_id,
-                         flow_amount=flow_amount,
-                         budget_type=BudgetLog.BUDGET_IN,
-                         budget_log_type=BudgetLog.BG_REFUND_POSTAGE,
-                         budget_date=datetime.date.today(),
-                         referal_id=refund.id,
-                         status=BudgetLog.CONFIRMED,
-                         uni_key=uni_key)
-        budget_log.save()
+        budget_log = cls.create(customer_id=refund.buyer_id,
+                                flow_amount=flow_amount,
+                                budget_type=BudgetLog.BUDGET_IN,
+                                budget_log_type=BudgetLog.BG_REFUND_POSTAGE,
+                                referal_id=refund.id,
+                                status=BudgetLog.CONFIRMED,
+                                uni_key=uni_key)
         return budget_log
 
     @classmethod
@@ -664,15 +660,13 @@ class BudgetLog(PayBaseModel):
         """用户退还优惠券　兑换　金额 给用户
         """
         uni_key = cls.gen_uni_key(customer_id, BudgetLog.BUDGET_IN, BudgetLog.BG_RETURN_COUPON)
-        budget_log = cls(customer_id=customer_id,
-                         flow_amount=flow_amount,
-                         budget_type=BudgetLog.BUDGET_IN,
-                         budget_log_type=BudgetLog.BG_RETURN_COUPON,
-                         budget_date=datetime.date.today(),
-                         referal_id=quote_id,
-                         status=BudgetLog.PENDING,
-                         uni_key=uni_key)
-        budget_log.save()
+        budget_log = cls.create(customer_id=customer_id,
+                                flow_amount=flow_amount,
+                                budget_type=BudgetLog.BUDGET_IN,
+                                budget_log_type=BudgetLog.BG_RETURN_COUPON,
+                                referal_id=quote_id,
+                                status=BudgetLog.PENDING,
+                                uni_key=uni_key)
         return budget_log
 
     @classmethod

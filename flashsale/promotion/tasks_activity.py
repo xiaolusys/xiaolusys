@@ -124,11 +124,15 @@ def task_envelope_create_budgetlog(envelope):
     budget_type = BudgetLog.BUDGET_IN
     budget_log_type = BudgetLog.BG_ENVELOPE
     status = BudgetLog.CANCELED  # initially we put the status as "canceled"
-    budget_date = datetime.datetime.now().date()
 
-    budget_log = BudgetLog(customer_id=envelope.customer_id, flow_amount=envelope.value, budget_type=budget_type,
-                           budget_log_type=budget_log_type, budget_date=budget_date, referal_id=envelope.uni_key,
-                           status=status)
+    uni_key = BudgetLog.gen_uni_key(envelope.customer_id, budget_type, budget_log_type)
+    budget_log = BudgetLog.create(customer_id=envelope.customer_id,
+                                  budget_type=budget_type,
+                                  flow_amount=envelope.value,
+                                  budget_log_type=budget_log_type,
+                                  referal_id=envelope.uni_key,
+                                  uni_key=uni_key,
+                                  status=status)
     budget_log.save()
 
 
@@ -140,8 +144,7 @@ def task_envelope_update_budgetlog(envelope):
     budget_logs = BudgetLog.objects.filter(customer_id=envelope.customer_id, referal_id=envelope.uni_key)
     if budget_logs.count() > 0:
         budget_log = budget_logs[0]
-        budget_log.status = BudgetLog.CONFIRMED
-        budget_log.save()
+        budget_log.confirm_budget_log()  # 确定红包
         # 拆红包推送
         push_activity.activity_open_red_packet_push(envelope.customer_id)
 

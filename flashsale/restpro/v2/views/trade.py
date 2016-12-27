@@ -250,12 +250,12 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 if not user_budget:
                     raise Exception(u'小鹿钱包余额不足')
                 try:
-                    BudgetLog.objects.create(
+                    BudgetLog.create(
                         customer_id=buyer.id,
-                        referal_id=strade_id,
+                        budget_type=BudgetLog.BUDGET_OUT,
                         flow_amount=payment,
                         budget_log_type=BudgetLog.BG_CONSUM,
-                        budget_type=BudgetLog.BUDGET_OUT,
+                        referal_id=strade_id,
                         status=BudgetLog.CONFIRMED,
                         uni_key='st_%s'%sale_trade.id
                     )
