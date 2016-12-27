@@ -279,7 +279,13 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
     @list_route(methods=['get'])
     def electronic_goods(self, request, *args, **kwargs):
         """ electronic商品列表分页接口 """
+        cid_str = request.GET.get('cid', '')
+        q_filter = Q()
+        cids = [c for c in cid_str.split(',') if c]
+        for cid in cids:
+            q_filter = q_filter | Q(salecategory__cid__startswith=cid)
         queryset = ModelProduct.objects.get_boutique_coupons()
+        queryset = queryset.filter(q_filter)
         ids = [i['id'] for i in queryset.values('id')]
         queryset = ModelProductCtl.multiple(ids=ids)
         object_list = serializers_v2.ElectronicProductSerializer(queryset, context={}, many=True).data
@@ -289,7 +295,7 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
     @list_route(methods=['get'])
     def boutique(self, request, *args, **kwargs):
         # type : (HttpRequest, *Any, **Any) -> HttpResponse
-        """特价秒杀商品
+        """精品汇商品
         """
         order_by = request.GET.get('order_by')
         queryset = ModelProduct.objects.get_boutique_goods().filter(
