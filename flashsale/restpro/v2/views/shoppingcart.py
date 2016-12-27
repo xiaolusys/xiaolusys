@@ -213,7 +213,11 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def show_carts_num(self, request, *args, **kwargs):
         """显示购物车的数量和保留时间"""
-        queryset = self.filter_queryset(self.get_owner_queryset(request).filter(type=0))
+        try:
+            type = int(request.GET.get('type', 0))
+        except:
+            type = 0
+        queryset = self.filter_queryset(self.get_owner_queryset(request).filter(type=type))
         queryset = queryset.order_by('-created')
         count = 0
         last_created = 0
