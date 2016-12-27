@@ -1,0 +1,305 @@
+<script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js"></script>
+<div class="container-fluid">
+<div class="list-panel panel-default ">
+  <div class="panel-heading">{% if pk %}编辑收货地址{% else %}新增供应商地址{% endif %}</div>
+	<div>
+		<label>供应商ID:</label>
+		<input type="text" placeholder="请输入供应商ID" onblur="get_supplier_name(this)" id="supplier_id"/>
+		<label>供应商名字:</label>
+		<label id="supplier_name"></label>
+	</div>
+  <div class="panel-body list-row-border">
+	<form id="address-form" action="{{ form_action }}" class="form-horizontal" method="POST">
+	  {% csrf_token %}
+	  <input type="hidden" name="pk" value="{{ pk }}">
+	  <div class="form-group">
+	    <label for="inputReceiverName" class="col-xs-3 control-label">收货人</label>
+	    <div class="col-xs-9">
+	      <input type="text" name="receiver_name" class="form-control" id="inputReceiverName" value="{{ receiver_name }}">
+	    </div>
+	  </div>
+	  <div class="form-group">
+	    <label for="inputReceiverMobile" class="col-xs-3 control-label">手机号码</label>
+	    <div class="col-xs-9">
+	      <input type="text" name="receiver_mobile" class="form-control" id="inputReceiverMobile" value="{{ receiver_mobile }}">
+	    </div>
+	  </div>
+	  <div class="form-group">
+	    <label for="inputReceiverState" class="col-xs-3 control-label">省份</label>
+	    <div class="col-xs-9">
+		  <input id="shen" list="inputReceiverState" />
+	      <datalist name="receiver_state" class="form-control" id="inputReceiverState">
+	      <option value="" >请选择</option>
+	      {% for province in province_list %}
+	      <option value="{{ province.name }}">{{ province.name }}</option>
+	      {% endfor %}
+	      </datalist>
+	    </div>
+	  </div>
+	  <div class="form-group">
+	    <label for="inputReceiverCity" class="col-xs-3 control-label">城市</label>
+	    <div class="col-xs-9">
+			<input id="shi" list="inputReceiverCity"/>
+	      <datalist name="receiver_city" class="form-control" id="inputReceiverCity" >
+	      <option value="" >请选择</option>
+	      </datalist>
+	    </div>
+	  </div>
+	  <div class="form-group">
+	    <label for="inputReceiverDistrict" class="col-xs-3 control-label">地区</label>
+	    <div class="col-xs-9">
+			<input id="qu" list="inputReceiverDistrict"/>
+	      <datalist type="text" name="receiver_district" class="form-control" id="inputReceiverDistrict" >
+	      <option value="" >请选择</option>
+	      </datalist>
+	    </div>
+	  </div>
+	  <div class="form-group">
+	    <label for="inputReceiverAddress" class="col-xs-3 control-label">详细地址</label>
+	    <div class="col-xs-9">
+	      <textarea class="form-control" name="receiver_address" id="inputReceiverAddress" row="2" >{{ receiver_address }}</textarea>
+	    </div>
+	  </div>
+	  {% comment %}
+	  <div class="form-group">
+	    <label for="inputReceiverZipCode" class="col-xs-3 control-label">邮政编码</label>
+	    <div class="col-xs-9">
+	      <input type="text" name="receiver_zip" class="form-control" id="inputReceiverZipCode" value="{{ receiver_zip }}">
+	    </div>
+	  </div>
+	  {% endcomment %}
+	  <div class="form-group">
+	    <div class="col-xs-offset-3 col-xs-9">
+	      <!--<div class="checkbox">-->
+	        <!--<label>-->
+	          <!--<input id="checkboxDefault" name="default" type="checkbox" {% if default %}checked{% endif %}> 设为默认地址-->
+	        <!--</label>-->
+	      <!--</div>-->
+	    </div>
+	  </div>
+	  <div class="form-group">
+	  	<div id="err_msg" style="text-align:center;margin-bottom:10px;"></div>
+	    <div class="col-xs-12">
+	      <button type="submit" class="btn btn-default btn-rowfull">保存</button>
+	    </div>
+	  </div>
+  	</form>
+  </div>
+</div>
+ <style style="text/css">
+	  .wrap{ background:#b81b22;color:white; }
+	  form .form-group{margin-bottom:5px;}
+	  form .form-group label {text-align:right;}
+ </style>
+<script type="text/javascript">
+
+var area_list = [];
+
+var Get_area_tree = function(province){
+
+	var area_tree = null
+	$(area_list).each(function(i,d) {
+		if(d[0] == province){
+			area_tree = d[1];
+			return
+		}
+	});
+
+	return area_tree;
+}
+
+var Set_area_tree = function(province,area_tree){
+	area_list.push([province,area_tree]);
+}
+
+var Build_select = function(j_select,addr_list){
+
+	if (!$.isArray(addr_list)){
+		console.log('debug addrlist error:',addr_list);
+		return
+	}
+
+	j_select.empty();
+
+	$(addr_list).each(function(i,d) {
+		j_select.append('<option value="'+ d.name +'" >'+ d.name +'</option>');
+	});
+}
+
+function get_supplier_name(obj){
+	$("#supplier_name").html("无");
+	$("#supplier_name").val("无");
+	$('#shen').val("");
+	$('#shi').val("");
+	$('#qu').val("");
+	$('#inputReceiverName').val("");
+	$('#inputReceiverMobile').val("");
+	$('#inputReceiverAddress').val("");
+	supplier_id = obj.value;
+    var url = "/mm/get_supplier_name/";
+    var data = {"supplier_id": supplier_id};
+    $.ajax({"url": url, "data": data, "type": "get", "success": callback});
+        function callback(res) {
+			if(res.status==true){
+			$("#supplier_name").html(res.data[0]);
+			$("#supplier_name").val(res.data[0]);
+			console.log($("#supplier_name").val());
+			if(res.data[1]!=null){
+				$('#shen').val(res.data[1].shen);
+				$('#shi').val(res.data[1].shi);
+				$('#qu').val(res.data[1].qu);
+				$('#inputReceiverName').val(res.data[1].receiver_name);
+				$('#inputReceiverMobile').val(res.data[1].receiver_mobile);
+				$('#inputReceiverAddress').val(res.data[1].receiver_address);
+				console.log(res.data[1]);
+				}
+			}
+            }
+        }
+
+
+
+
+</script>
+
+<script type="text/javascript">
+$("#address-form").submit(function (res) {
+	var jform       = $(this);
+	var action_url  = jform.attr('action');
+	var receiver_name    = $('#inputReceiverName').val();
+	var receiver_mobile  = $('#inputReceiverMobile').val();
+	var receiver_state   = $('#shen').val();
+	var receiver_city    = $('#shi').val();
+	var receiver_district = $('#qu').val();
+	var receiver_address  = $('#inputReceiverAddress').val();
+	var receiver_zip      = $('#inputReceiverZipCode').val();
+	var checkboxDefault	  = $('#checkboxDefault').val();
+	var supplier_name = $('#supplier_name').val();
+	var supplier_id = $('#supplier_id').val();
+
+	if (supplier_name == '无'){
+			$('#err_msg').html('<span class="label label-warning">请填写供应商信息</span>');
+		return false
+	}
+
+	if (receiver_name == ''){
+		$('#err_msg').html('<span class="label label-warning">请填写收货人姓名</span>');
+		return false
+	}
+	if (receiver_mobile == '' || !/^1[0-9]{10}$/.test(receiver_mobile)){
+		$('#err_msg').html('<span class="label label-warning">请填写正确的收货人手机</span>');
+		return false
+	}
+	if (receiver_state == ''){
+		$('#err_msg').html('<span class="label label-warning">请选择省份</span>');
+		return false
+	}
+	if (receiver_city == ''){
+		$('#err_msg').html('<span class="label label-warning">请选择城市</span>');
+		return false
+	}
+	var district_options = $('#inputReceiverDistrict option');
+	if (receiver_district == '' && district_options.length != 0){
+		$('#err_msg').html('<span class="label label-warning">请选择地区</span>');
+		return false
+	}
+	if (receiver_address == ''){
+		$('#err_msg').html('<span class="label label-warning">请填写收货详细地址</span>');
+		return false
+	}
+
+	var params 	 = jform.serialize();
+	var callback = function(resp){
+	try{
+		var order_url = $('#history-url').attr('href');
+		var ht = '<div id="addrid-'+resp.id+'" class="well well-sm row list-row-border address">';
+	    ht += '<a class="well-link" href="'+order_url+'&addrid='+resp.id+'" target="_self">';
+	    ht += '<div class=" col-xs-offset-1 col-xs-9 ">';
+	    ht += '<div><font class="bold">'+resp.receiver_name+'</font>';
+	    ht += '&nbsp;&nbsp;&nbsp;'+resp.receiver_state+'&nbsp;'+resp.receiver_city+'&nbsp;'+resp.receiver_district+'</div>';
+	    ht += '<div>'+resp.receiver_address+'</div></div></a>';
+	    ht += '<div class="opt-link"><a class="well-link" href="#"></a><a class="glyphicon "></a>';
+	    ht += '<a href="javascript:void(0);" addr_id="'+resp.id+'" class="del-link glyphicon glyphicon-trash"></a></div></div>';
+	    $('#address_list').prepend(ht);
+
+		var addBtnLink = $('#address_plus_link');
+		if (addBtnLink.hasClass('glyphicon-menu-up')){
+			$('#address_plus_module').slideUp(1000);
+			addBtnLink.removeClass('glyphicon-menu-up').addClass('glyphicon-plus');
+		}
+
+	}catch(exc){
+		alert('错误:'+exc);
+	}
+	};
+	action_url = "/mm/add_supplier_addr/";
+	params = {"shen":receiver_state,
+				"shi":receiver_city,
+				"qu":receiver_district,
+				"receiver_address":receiver_address,
+				"receiver_name":receiver_name,
+				"receiver_mobile":receiver_mobile,
+				"supplier_id":supplier_id,
+				"supplier_name":supplier_name
+				}
+	console.log(params);
+	var cfm = confirm("是否把地址:"+params['shen']+"/"+params['shi']+"/"+params['qu']+"/"+params['receiver_address']+"/"+params['receiver_name']+params['receiver_mobile']+"作为供应商:"+params["supplier_name"]+"的地址信息");
+	if(cfm==true)
+		$.post(action_url,params,callback2,'json');
+        function callback2(res) {
+			if(res.status==true){
+				alert(res.data[0]);
+			}
+            }
+	return false;
+});
+
+
+$("#shen").blur(function(event){
+
+	var	province = $(this).val();
+	var js_city = $('#inputReceiverCity');
+	var j_district = $('#inputReceiverDistrict');
+
+	$('#inputReceiverDistrict').empty();
+	var area_tree = Get_area_tree(province);
+
+	if (area_tree != null){
+		Build_select(js_city,area_tree.childs);
+		return
+	}
+
+	var get_area_url = '/mm/addr/area/';
+	var params 	= {'p':province};
+	var callback = function(resp){
+		var key=resp[0],value=resp[1][0];
+		Set_area_tree(key,value);
+		console.log(value.childs);
+		Build_select(js_city,value.childs);
+
+		if (value.childs.length == 0){return}
+
+		var first_child = value.childs[0];
+		Build_select(j_district,first_child.childs);
+	};
+
+	$.get(get_area_url,params,callback,'json');
+});
+
+$("#shi").blur(function(event){
+	var	city = $(this).val();
+	var j_district = $('#inputReceiverDistrict');
+	var province   = $('#shen').val();
+	console.log(province);
+	var area_tree = Get_area_tree(province);
+	console.log(area_tree);
+	if (area_tree != null){
+		$(area_tree.childs).each(function(i,c) {
+			if (c.name == city){
+				Build_select(j_district,c.childs);
+			}
+		});
+	}
+});
+</script>
+</div>
