@@ -54,11 +54,13 @@ class ShoppingCart(BaseModel):
     TEAMBUY = 3
     SECONDBUY = 4
     COUPONBUY = 5
+    VIRTUALBUY = 6
     TYPE_CHOICES = (
         (0, u'特卖订单'),
         (TEAMBUY, u'团购订单'),
         (SECONDBUY, u'秒杀订单'),
         (COUPONBUY, u'优惠券订单'),  # 只能使用优惠券购买
+        (VIRTUALBUY, u'券商品订单'),  # 主要指精品券
     )
     type = models.IntegerField(choices=TYPE_CHOICES, default=0)
 
