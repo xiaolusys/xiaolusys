@@ -2,7 +2,6 @@
 from __future__ import division, absolute_import, unicode_literals
 
 import datetime
-import logging
 from calendar import monthrange
 
 from shopmanager import celery_app as app
@@ -21,8 +20,11 @@ from flashsale.xiaolumm.models.models_fortune import CarryRecord
 from shopapp.weixin.options import get_unionid_by_openid
 from shopback.categorys.models import ProductCategory
 from supplychain.supplier.models import SaleProduct, SaleSupplier, SupplierCharge, SaleCategory
-from .models import DailyStat, PopularizeCost
 
+from ..models import DailyStat, PopularizeCost
+from ..constants import SWITCH_CARRYLOG_TIME
+
+import logging
 logger = logging.getLogger('celery.handler')
 
 
@@ -120,7 +122,6 @@ def carrylog_Handler_By_Log_Type(date, log_type=CarryLog.ORDER_REBETA):
     carry = carry / 100.0
     return carry
 
-from .constants import SWITCH_CARRYLOG_TIME
 
 def carrylogs_By_Date(date):
     carrylog_order = carrylog_Handler_By_Log_Type(date=date, log_type=CarryLog.ORDER_REBETA)  # 订单返现

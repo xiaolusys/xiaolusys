@@ -2,12 +2,6 @@
 __author__ = 'yann'
 from django.views.generic import View
 from django.shortcuts import HttpResponse, render, HttpResponseRedirect
-from flashsale.dinghuo.tasks import task_stats_product, task_stats_daily_product, task_stats_daily_order_by_group, \
-    task_send_daily_message, task_write_supply_name
-from django.template import RequestContext
-import time
-from shopback.items.models import Product
-from django.db import connection
 import datetime
 from calendar import monthrange
 from flashsale.daystats.tasks import task_calc_hot_sale, task_calc_stock_top, task_calc_sale_bad

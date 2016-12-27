@@ -3,16 +3,9 @@ from __future__ import division
 
 from django.views.generic import View
 from django.shortcuts import render
-from django.template import RequestContext
-from django.db import connection
 import datetime
 from calendar import monthrange
-from flashsale.clickrebeta.models import StatisticsShopping
-from django.db.models import Sum
-from flashsale.xiaolumm.models import XiaoluMama
-from django.conf import settings
-from shopapp.weixin.models import get_Unionid
-from flashsale.daystats.tasks import task_calc_xlmm, task_calc_new_user_repeat, task_calc_package
+from flashsale.daystats.tasks import task_calc_xlmm, task_calc_package
 from flashsale.pay.models.user import Customer
 from flashsale.pay.models.trade import SaleTrade
 
