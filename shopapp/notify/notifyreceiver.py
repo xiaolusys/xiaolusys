@@ -1,18 +1,18 @@
-# -*- coding:utf8 -*-
-import os
-import sys
+# coding=utf-8
+# !/usr/bin/env python
 import time
-import datetime
 import json
 import urllib
 import pycurl
-
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shopmanager.settings")
-
-from shopback.users.models import User
+from global_setup import setup_djagno_environ
+setup_djagno_environ()
+import django
+django.setup()
+from shopback.users.models import User as ShopUser
 from shopapp.notify.models import ItemNotify, TradeNotify, RefundNotify
 from common.utils import getSignatureTaoBao
 from shopapp.notify.tasks import process_discard_notify_task
+from django.conf import settings
 import logging
 
 logger = logging.getLogger('notifyserver.handler')
@@ -27,7 +27,7 @@ class Command():
 
     def handle_daemon(self, *args, **options):
 
-        users = User.objects.all()
+        users = ShopUser.objects.all()
         if users.count() == 0:
             return
 
