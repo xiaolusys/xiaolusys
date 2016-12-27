@@ -11,6 +11,7 @@ from flashsale.xiaolumm.views import views_rank, views_message, award, week_rank
 from flashsale.pay.views import teambuy
 from flashsale.restpro.v1 import views_coupon_new
 from flashsale.restpro.v2.views import usercoupon
+from flashsale.restpro.v2.views import mmcashout
 
 v2_router = routers.DefaultRouter(trailing_slash=False)
 v2_router.register(r'categorys', views.SaleCategoryViewSet)
@@ -54,6 +55,7 @@ v2_router.register(r'message', views_message.XlmmMessageViewSet)
 v2_router.register(r'award', award.PotentialMamaAwardViewset)
 v2_router.register(r'mission', views.MamaMissionRecordViewset)
 v2_router.register(r'trancoupon', views.CouponTransferRecordViewSet)
+v2_router.register(r'mmcashout', mmcashout.CashOutViewSet)
 
 v2_router_urls = v2_router.urls
 v2_router_urls += format_suffix_patterns([

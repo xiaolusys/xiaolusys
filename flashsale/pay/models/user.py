@@ -675,6 +675,24 @@ class BudgetLog(PayBaseModel):
         budget_log.save()
         return budget_log
 
+    @classmethod
+    def create_mm_cash_out_2_budget(cls, customer_id, value, referal_id):
+        # type: (int, int, int) -> BudgetLog
+        """妈妈从 妈妈钱包 提现到 小鹿钱包创建小鹿钱包记录
+        """
+        budget_type = BudgetLog.BUDGET_IN
+        budget_log_type = BudgetLog.BG_MAMA_CASH
+        uni_key = BudgetLog.gen_uni_key(customer_id, budget_type, budget_log_type)
+        bl = BudgetLog(customer_id=customer_id,
+                       flow_amount=value,
+                       budget_type=budget_type,
+                       referal_id=referal_id,
+                       budget_log_type=budget_log_type,
+                       status=BudgetLog.CONFIRMED,
+                       uni_key=uni_key)
+        bl.save()
+        return bl
+
     def get_flow_amount_display(self):
         """ 返回金额　"""
         return self.flow_amount / 100.0
