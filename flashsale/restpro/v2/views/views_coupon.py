@@ -493,7 +493,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
         from flashsale.xiaolumm.models.models_fortune import ReferalRelationship
         ships = ReferalRelationship.objects.filter(referal_from_mama_id=mama.id, referal_type=XiaoluMama.ELITE, status=ReferalRelationship.VALID)
         for ship in ships:
-            if ship.order_id and ship.order_id.length > 0:
+            if ship.order_id and len(ship.order_id) > 0:
                 rmb338_order = SaleOrder.objects.filter(oid=ship.order_id).first()
                 if rmb338_order and (not rmb338_order.extras.has_key('exchange')):
                     results.append({'exchg_template_id': 156,
