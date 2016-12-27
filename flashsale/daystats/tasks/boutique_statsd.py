@@ -45,7 +45,7 @@ def task_transfer_coupon_order_statsd():
     exchg_order_num = ctr_qs.filter(transfer_type=CouponTransferRecord.OUT_EXCHG_SALEORDER).aggregate(
         exchg_amounts=Sum(F('coupon_num') * F('coupon_value'))).get('transfer_amounts') or 0
 
-    dt_str = datetime.datetime.now().strftime('%Y-%m-%d')
+    dt_str = datetime.datetime.now().strftime('%Y.%m.%d')
     statsd.gauge('xiaolumm.boutique.coupon.sale_num.%s'%dt_str, coupon_sale_num)
     statsd.gauge('xiaolumm.boutique.coupon.sale_amount.%s'% dt_str, coupon_sale_amount)
     statsd.gauge('xiaolumm.boutique.coupon.used_num.%s'% dt_str, coupon_used_num)
@@ -79,7 +79,7 @@ def task_boutique_mama_statsd():
         mama_id__gt=0
     ).values_list('mama_id', flat=True).distinct().count()
 
-    dt_str = dt.strftime('%Y-%m-%d')
+    dt_str = dt.strftime('%Y.%m.%d')
     statsd.gauge('xiaolumm.boutique.mama.elite_count.%s'% dt_str, elite_mama_count)
     statsd.gauge('xiaolumm.boutique.mama.active_count.%s'% dt_str, active_elite_mama_count)
     statsd.gauge('xiaolumm.boutique.mama.ordered_count.%s'% dt_str, order_mama_count)
