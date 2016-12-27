@@ -495,7 +495,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
         for ship in ships:
             if ship.order_id and len(ship.order_id) > 0:
                 rmb338_order = SaleOrder.objects.filter(oid=ship.order_id).first()
-                if rmb338_order and (not rmb338_order.extras.has_key('exchange')):
+                if rmb338_order and (not rmb338_order.extras.has_key('exchange')) and (int(rmb338_order.payment) == 338):
                     results.append({'exchg_template_id': 156,
                                     'num': 5,
                                     'order_id': ship.order_id, 'sku_img': rmb338_order.pic_path,
