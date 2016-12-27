@@ -346,7 +346,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         return charge
 
     def get_mama_referal_params(self, request):
-        form = request.GET
+        form = request.data
         mama_linkid = form.get('mm_linkid', None)
         ufrom = form.get('ufrom', '0')
         if not mama_linkid:
@@ -966,7 +966,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     def buynow_create(self, request, *args, **kwargs):
         """ 立即购买订单支付接口 """
         self.logger_request(request)
-        CONTENT  = request.POST.dict()
+        CONTENT  = request.data
         user_agent = request.META.get('HTTP_USER_AGENT')
         tuuid = CONTENT.get('uuid')
         item_id  = CONTENT.get('item_id')
