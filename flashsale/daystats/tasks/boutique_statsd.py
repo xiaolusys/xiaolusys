@@ -80,9 +80,10 @@ def task_boutique_mama_statsd():
     ).values_list('mama_id', flat=True).distinct().count()
 
     dt_str = dt.strftime('%Y-%m-%d')
-    statsd.incr('xiaolumm.boutique.mama.elite_count.%s'% dt_str, elite_mama_count)
-    statsd.incr('xiaolumm.boutique.mama.active_count.%s'% dt_str, active_elite_mama_count)
-    statsd.incr('xiaolumm.boutique.mama.ordered_count.%s'% dt_str, order_mama_count)
+    statsd.gauge('xiaolumm.boutique.mama.elite_count.%s'% dt_str, elite_mama_count)
+    statsd.gauge('xiaolumm.boutique.mama.active_count.%s'% dt_str, active_elite_mama_count)
+    statsd.gauge('xiaolumm.boutique.mama.ordered_count.%s'% dt_str, order_mama_count)
+
 
 
 
