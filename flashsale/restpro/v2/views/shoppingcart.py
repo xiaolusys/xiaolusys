@@ -163,9 +163,9 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         lockable = Product.objects.isQuantityLockable(sku, sku_num + user_skunum)
         if not lockable:
             return Response({"code": 4, "info": u'该商品已限购'})
-        if type == 0:
+        if (type == 0) or (type == ShoppingCart.VIRTUALBUY):
             shop_cart = ShoppingCart.objects.filter(item_id=product_id, buyer_id=customer.id,
-                                                    sku_id=sku_id, status=ShoppingCart.NORMAL, type=0).first()
+                                                    sku_id=sku_id, status=ShoppingCart.NORMAL, type=type).first()
             if shop_cart:
                 # shop_cart_temp = shop_cart
                 # shop_cart_temp.num = sku_num
