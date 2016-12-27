@@ -2,6 +2,8 @@
 from rest_framework import serializers
 
 from flashsale.pay.models import Favorites, Customer
+from flashsale.pay.models.product import ModelProduct
+
 
 class APISKUSerializer(serializers.Serializer):
     sku_id = serializers.SerializerMethodField()
@@ -227,6 +229,8 @@ class APIMamaProductListSerializer(serializers.Serializer):
     sale_num_desc = serializers.SerializerMethodField()
     rebet_amount_desc = serializers.SerializerMethodField()
     next_rebet_amount_desc = serializers.SerializerMethodField()
+    is_boutique = serializers.SerializerMethodField()
+    elite_level_prices = serializers.SerializerMethodField()
 
     class Meta:
         fields = (
@@ -243,7 +247,9 @@ class APIMamaProductListSerializer(serializers.Serializer):
             'rebet_amount_desc',
             'next_rebet_amount_desc',
             'next_rebet_amount',
-            'level_info'
+            'level_info',
+            'is_boutique',
+            'elite_level_prices'
         )
 
     def get_id(self, obj):
@@ -289,9 +295,39 @@ class APIMamaProductListSerializer(serializers.Serializer):
         return u'{0}人在卖'.format(obj.sale_num)
 
     def get_rebet_amount_desc(self, obj):
-        return u'佣{0}￥'.format(obj.rebet_amount)
+        return u'佣￥{0}'.format(obj.rebet_amount)
 
     def get_next_rebet_amount_desc(self, obj):
-        return u'佣{0}￥'.format(obj.next_rebet_amount)
+        return u'佣￥{0}'.format(obj.next_rebet_amount)
 
+    def get_is_boutique(self, obj):
+        return obj.detail_content['is_boutique']
 
+    def get_elite_level_prices(self, obj):
+        """下个 精品汇积分 等级 价格
+        """
+        if not obj.detail_content['is_boutique']:
+            return {}
+        mama = self.context['mama']
+        if not mama:
+            return {}
+        try:
+            templateid = obj.extras['payinfo']['coupon_template_ids'][0]
+        except:
+            return {}
+        find_mp = None
+        virtual_model_products = ModelProduct.objects.get_virtual_modelproducts()  # 虚拟商品
+        for md in virtual_model_products:
+            md_bind_tpl_id = md.extras.get('template_id')
+            if not md_bind_tpl_id:
+                continue
+            if templateid == md_bind_tpl_id:
+                find_mp = md
+                break
+        item = {'elite_level_price': '', 'next_elite_level_price': ''}
+        for product in find_mp.products:
+            if mama.elite_level in product.name:
+                item['elite_level_price'] = '￥%s' % product.agent_price
+            elif mama.next_elite_level in product.name:
+                item['next_elite_level_price'] = '升级后￥%s' % product.agent_price
+        return item
