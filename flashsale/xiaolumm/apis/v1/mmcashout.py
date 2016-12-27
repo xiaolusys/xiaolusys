@@ -47,8 +47,8 @@ def _verify_cash_out_value(mama_fortune, value):
     could_cash_out = mama_fortune.cash_num_display() if mama_fortune else 0
     if could_cash_out < value * 0.01:  # 如果可以提现金额不足
         raise Exception('余额不足!')
-    elif value == 0:
-        raise Exception('提现金额不能为0!')
+    elif value <= 0:
+        raise Exception('提现金额不能小于0!')
 
 
 def _verify_cash_out_2_budget(mama, value):
@@ -62,7 +62,6 @@ def _verify_cash_out_2_budget(mama, value):
     return
 
 
-@transaction.atomic()
 def cash_out_2_budget(mama, value):
     # type: (XiaoluMama, int) -> None
     """妈妈钱包 提现到 小鹿钱包
@@ -74,13 +73,16 @@ def cash_out_2_budget(mama, value):
     uni_key = CashOut.gen_uni_key(mama.id, cash_out_type)
     date_field = datetime.date.today()
     customer = mama.get_customer()
-    cash_out = CashOut(xlmm=mama.id,
-                       value=value,
-                       cash_out_type=CashOut.USER_BUDGET,
-                       approve_time=datetime.datetime.now(),
-                       status=CashOut.APPROVED,
-                       date_field=date_field,
-                       uni_key=uni_key)
-    cash_out.save()
+
+    with transaction.atomic():
+        cash_out = CashOut(xlmm=mama.id,
+                           value=value,
+                           cash_out_type=CashOut.USER_BUDGET,
+                           approve_time=datetime.datetime.now(),
+                           status=CashOut.APPROVED,
+                           date_field=date_field,
+                           uni_key=uni_key)
+        cash_out.save()
+        BudgetLog.create_mm_cash_out_2_budget(customer.id, value, cash_out.id)
+
     log_action(customer.user.id, cash_out, ADDITION, '代理提现到余额')
-    BudgetLog.create_mm_cash_out_2_budget(customer.id, value, cash_out.id)

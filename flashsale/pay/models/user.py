@@ -683,14 +683,8 @@ class BudgetLog(PayBaseModel):
         budget_type = BudgetLog.BUDGET_IN
         budget_log_type = BudgetLog.BG_MAMA_CASH
         uni_key = BudgetLog.gen_uni_key(customer_id, budget_type, budget_log_type)
-        bl = BudgetLog(customer_id=customer_id,
-                       flow_amount=value,
-                       budget_type=budget_type,
-                       referal_id=referal_id,
-                       budget_log_type=budget_log_type,
-                       status=BudgetLog.CONFIRMED,
-                       uni_key=uni_key)
-        bl.save()
+        bl = cls.create(customer_id, budget_type, value, budget_log_type,
+                        referal_id=referal_id, status=cls.CONFIRMED, uni_key=uni_key)
         return bl
 
     def get_flow_amount_display(self):
