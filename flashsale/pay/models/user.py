@@ -619,7 +619,6 @@ class BudgetLog(PayBaseModel):
                 budget.amount = F('amount') - flow_amount
                 budget.total_expense = F('total_expense') + flow_amount
             budget.save()
-        transaction.on_commit(lambda: confirmTradeChargeTask.delay(strade_id))
 
         return budget_log
 
