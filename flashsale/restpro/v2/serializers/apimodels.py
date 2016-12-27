@@ -309,6 +309,8 @@ class APIMamaProductListSerializer(serializers.Serializer):
         if not obj.detail_content['is_boutique']:
             return {}
         mama = self.context['mama']
+        if not mama:
+            return {}
         try:
             templateid = obj.extras['payinfo']['coupon_template_ids'][0]
         except:
