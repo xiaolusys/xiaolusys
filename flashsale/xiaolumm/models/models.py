@@ -866,6 +866,17 @@ class XiaoluMama(BaseModel):
 
         return 'Associate'
 
+    @property
+    def next_elite_level(self):
+        elite_level_map = {
+            'Associate': 'Director',
+            'Director': 'VP',
+            'VP': 'Partner',
+            'Partner': 'SP',
+            'SP': 'SP'
+        }
+        return elite_level_map[self.elite_level]
+
     def get_level_lowest_elite(self):
         # type: (text_type) -> int
         """妈妈积分等级 对应　最低积分数值

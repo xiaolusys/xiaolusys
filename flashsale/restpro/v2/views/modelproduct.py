@@ -226,12 +226,10 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         data = serializers_v2.APIModelProductListSerializer(obj).data
         return Response([data])
 
-
     @list_route(methods=['get'])
     def product_choice(self, request, *args, **kwargs):
         if not request.user.is_authenticated():
             raise Http404
-
         sort_field = request.GET.get('sort_field') or 'id'  # 排序字段
         parent_cid = request.GET.get('cid') or 0
         reverse = request.GET.get('reverse') or 0
@@ -239,9 +237,6 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         mama = customer.get_charged_mama()
 
         reverse = int(reverse) if str(reverse).isdigit() else 0
-        # model_ids = list(CuShopPros.objects.filter(
-        #     customer=customer.id,
-        #     pro_status=CuShopPros.UP_SHELF).values_list("model", flat=True))
         queryset = self.queryset.filter(shelf_status=ModelProduct.ON_SHELF,
                                         product_type=ModelProduct.USUAL_TYPE,
                                         status=ModelProduct.NORMAL)
@@ -255,12 +250,16 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         for md in model_products:
             rebate_scheme = md.get_rebetaschema()
             lowest_agent_price = md.detail_content['lowest_agent_price']
-            rebet_amount = rebate_scheme.calculate_carry(mama.agencylevel, lowest_agent_price)
+            if md.detail_content['is_boutique']:  # 精品汇商品没有佣金
+                rebet_amount = 0
+                next_rebet_amount = 0
+            else:
+                rebet_amount = rebate_scheme.calculate_carry(mama.agencylevel, lowest_agent_price)
+                next_rebet_amount = rebate_scheme.calculate_carry(next_mama_level_info[0], lowest_agent_price) or 0.0
 
             total_remain_num = sum([len(p.sku_ids) for p in md.get_products()]) * 30
             sale_num = total_remain_num * 19 + random.randint(1,19)
 
-            next_rebet_amount = rebate_scheme.calculate_carry(next_mama_level_info[0], lowest_agent_price) or 0.0
             md.sale_num = sale_num
             md.rebet_amount = rebet_amount
             md.next_rebet_amount = next_rebet_amount
