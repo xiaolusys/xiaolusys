@@ -353,6 +353,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             cookies = request.COOKIES
             mama_linkid = cookies.get('mm_linkid', 0)
             ufrom = cookies.get('ufrom', '')
+        # 由于老版本原因，可能mmlinkdid传的是null或undefined，那么需要容错
+        import types
+        if (type(mama_linkid) is types.StringType) and (not mama_linkid.isdigit()):
+            mama_linkid = 0
         return {'mm_linkid': mama_linkid, 'ufrom': ufrom}
 
     def create_Saletrade(self, request, form, address, customer, order_type=SaleTrade.SALE_ORDER):
