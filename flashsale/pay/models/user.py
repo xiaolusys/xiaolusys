@@ -563,6 +563,10 @@ class BudgetLog(PayBaseModel):
         count = cls.objects.filter(customer_id=customer_id, budget_type=budget_type, budget_log_type=budget_log_type, budget_date=budget_date).count()
         return '%s-%s-%d-%d|%s' % (budget_log_type, budget_type, customer_id, count+1, budget_date)
 
+    @property
+    def user_budget(self):
+        return UserBudget.objects.get(user__id=self.customer_id)
+
     @classmethod
     def create(cls, customer_id, budget_type, flow_amount, budget_log_type,
                budget_date=datetime.date.today(), referal_id='', status=None, uni_key=None):
@@ -571,6 +575,9 @@ class BudgetLog(PayBaseModel):
         """
         status = status or BudgetLog.CONFIRMED
         customer = Customer.objects.get(id=customer_id)
+
+        if status == BudgetLog.CANCELED:
+            raise Exception('取消状态不予创建!')
 
         with transaction.atomic():
             # 创建收支记录 BudgetLog
@@ -592,7 +599,7 @@ class BudgetLog(PayBaseModel):
                 'total_income': 0,
                 'total_expense': 0
             })
-            if budget_type == BudgetLog.BUDGET_IN:
+            if budget_type == BudgetLog.BUDGET_IN and status == BudgetLog.CONFIRMED:
                 budget.amount = F('amount') + flow_amount
                 budget.total_income = F('total_income') + flow_amount
             elif budget_type == BudgetLog.BUDGET_OUT:
@@ -669,11 +676,25 @@ class BudgetLog(PayBaseModel):
         # type: () -> bool
         """确定钱包记录
         """
-        if self.status != BudgetLog.CONFIRMED:
+        if self.status == BudgetLog.CONFIRMED:
+            return False
+        user_budget = self.user_budget  # 小鹿钱包
+
+        with transaction.atomic():
+            if self.budget_type == BudgetLog.BUDGET_IN:  # 收如前提下改到确定状态
+                if self.status in [BudgetLog.PENDING, BudgetLog.CANCELED]:  # 待确定 取消  变确定 余额增加
+                    user_budget.amount = F('amount') + self.flow_amount
+                    user_budget.total_income = F('total_income') + self.flow_amount  # 加小鹿钱包总收入
+            if self.budget_type == BudgetLog.BUDGET_OUT:  # 支出前提下改到确定状态
+                if self.status == BudgetLog.CANCELED:  # 从取消 变确定 则 余额减少
+                    user_budget.amount = F('amount') - self.flow_amount
+                    user_budget.total_expense = F('total_expense') + self.flow_amount   # 加小鹿钱包总支出
+            user_budget.save()  # 保存用户钱包
+
             self.status = BudgetLog.CONFIRMED
             self.save(update_fields=['status', 'modified'])
-            return True
-        return False
+
+        return True
 
     def cancel_budget_log(self):
         # type: () -> bool
@@ -681,8 +702,22 @@ class BudgetLog(PayBaseModel):
         """
         if self.status == BudgetLog.CANCELED:
             return False
-        self.status = BudgetLog.CANCELED
-        self.save(update_fields=['status', 'modified'])
+        user_budget = self.user_budget  # 小鹿钱包
+
+        with transaction.atomic():
+            if self.budget_type == BudgetLog.BUDGET_IN:  # 收如前提下改到取消状态
+                if self.status == BudgetLog.CONFIRMED:  # 确定的收入  取消 余额减少
+                    user_budget.amount = F('amount') - self.flow_amount
+                    user_budget.total_income = F('total_income') - self.flow_amount  # 减小鹿钱包总收入
+            if self.budget_type == BudgetLog.BUDGET_OUT:  # 支出前提下改到取消状态
+                if self.status in [BudgetLog.CONFIRMED, BudgetLog.PENDING]:  # 确定 待确定 支出 到取消状态
+                    user_budget.amount = F('amount') + self.flow_amount  # 收入增加
+                    user_budget.total_expense = F('total_expense') - self.flow_amount  # 支出取消 收入增加 总支出 减少
+            user_budget.save()  # 保存用户钱包
+
+            self.status = BudgetLog.CANCELED
+            self.save(update_fields=['status', 'modified'])
+
         return True
 
     @classmethod
