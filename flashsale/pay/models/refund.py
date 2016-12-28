@@ -340,8 +340,6 @@ class SaleRefund(PayBaseModel):
         from .user import BudgetLog
 
         sorder = self.saleorder
-        self.update_good_status(sorder.is_post())  # 更新退货状态字段
-
         payment = round(self.refund_fee * 100, 0)
         total_refund = BudgetLog.objects.filter(
             customer_id=self.buyer_id,
@@ -352,6 +350,7 @@ class SaleRefund(PayBaseModel):
             raise Exception(u'超过订单实际支付金额 !')
 
         with transaction.atomic():
+            self.update_good_status(sorder.is_post())  # 更新退货状态字段
             if payment > 0:  # 有退款金额才生成退款余额记录
                 BudgetLog.create_salerefund_log(self, payment)
             self.refund_confirm()
@@ -363,7 +362,6 @@ class SaleRefund(PayBaseModel):
         from flashsale.coupon.apis.v1.transfer import saleorder_return_coupon_exchange
         saleorder_return_coupon_exchange(self, payment)
 
-    @transaction.atomic
     def refund_fast_approve(self):
         # type: () -> None
         """　极速退款审核确认 """
