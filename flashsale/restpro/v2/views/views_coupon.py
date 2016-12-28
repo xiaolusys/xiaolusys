@@ -123,6 +123,17 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         template_id = model_product.extras.get("template_id")
         if not template_id:
             return Response({"code": 2, "info": u"template_id错误！"})
+        # 判断是否已经有此template的申请了，如有，那么给出用户提示20161228
+        to_customer = Customer.objects.normal_customer.filter(user=request.user).first()
+        to_mama = to_customer.get_charged_mama()
+        apply_records = CouponTransferRecord.objects.filter(coupon_to_mama_id=to_mama.id,
+                                                            template_id=template_id,
+                                                            transfer_type=CouponTransferRecord.OUT_TRANSFER,
+                                                            transfer_status__in=[CouponTransferRecord.PENDING,
+                                                                                 CouponTransferRecord.PROCESSED],
+                                                            status=CouponTransferRecord.EFFECT)
+        if apply_records and apply_records.count() > 0:
+            res = {"code": 3, "info": u"您已经有相同的精品券申请待上级处理，请处理完后再提交此申请"}
         res = CouponTransferRecord.init_transfer_record(request.user, coupon_num, template_id, product_id)
         return Response(res)
 
@@ -160,7 +171,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         mama = get_charged_mama(request.user)
         mama_id = mama.id
         record = CouponTransferRecord.objects.filter(id=pk).first()
-        res = {"code": 1, "info": u"无记录审核或不能审核"}
+        res = {"code": 2, "info": u"无记录审核或不能审核"}
 
         if record and record.can_process(mama_id):
             stock_num = CouponTransferRecord.get_coupon_stock_num(mama_id, record.template_id)
@@ -171,12 +182,18 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
                                                              status=Customer.NORMAL).first()
                 res = process_transfer_coupon(customer.id, init_from_customer.id, record)
             else:
-                # record.transfer_status = CouponTransferRecord.PROCESSED
-                # record.save(update_fields=['transfer_status'])
-                # res = CouponTransferRecord.gen_transfer_record(request.user, record)
-                # 2016-12-21 中间的妈妈券不够的话，进行提示，自己找上级申请，不自动跟她们申请，以免她们混乱
-                info = u"您的券库存不足，请立即购买!"
-                res = {"code": 3, "info": info}
+                # 判断是否已经有此template的申请了，如有，那么给出用户提示
+                apply_records = CouponTransferRecord.objects.filter(coupon_to_mama_id=mama_id,
+                                                                    template_id=record.template_id,
+                                                                    transfer_type=CouponTransferRecord.OUT_TRANSFER,
+                                                                    transfer_status__in=[CouponTransferRecord.PENDING, CouponTransferRecord.PROCESSED],
+                                                                    status=CouponTransferRecord.EFFECT)
+                if apply_records and apply_records.count() > 0:
+                    res = {"code": 3, "info": u"您已经有相同的精品券申请待上级处理，请处理完后再提交此申请"}
+                else:
+                    record.transfer_status = CouponTransferRecord.PROCESSED
+                    record.save(update_fields=['transfer_status'])
+                    res = CouponTransferRecord.gen_transfer_record(request.user, record)
 
         return Response(res)
 
