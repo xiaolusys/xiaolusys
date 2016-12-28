@@ -391,8 +391,7 @@ class UserBudget(PayBaseModel):
         #  如果订单超时关闭又支付成功,则余额支付状态页需要改回
         if blog.status == BudgetLog.CANCELED:
             blog.status = BudgetLog.PENDING
-        return blog.push_pending_to_confirm()
-
+        return blog.confirm_budget_log()
 
     def charge_cancel(self, strade_id):
         """ 支付取消 """
@@ -400,7 +399,7 @@ class UserBudget(PayBaseModel):
                                          referal_id=strade_id,
                                          budget_log_type=BudgetLog.BG_CONSUM)
         if blogs.exists():
-            return blogs[0].cancel_and_return()
+            return blogs[0].cancel_budget_log()
 
     def is_could_cashout(self):
         """ 设置普通用户钱包是否可以提现控制字段 """
@@ -666,11 +665,13 @@ class BudgetLog(PayBaseModel):
         """ 返回金额　"""
         return self.flow_amount / 100.0
 
-    def push_pending_to_confirm(self):
-        """ 确认待确认钱包收支记录 """
-        if self.status == BudgetLog.PENDING:
+    def confirm_budget_log(self):
+        # type: () -> bool
+        """确定钱包记录
+        """
+        if self.status != BudgetLog.CONFIRMED:
             self.status = BudgetLog.CONFIRMED
-            self.save()
+            self.save(update_fields=['status', 'modified'])
             return True
         return False
 
@@ -683,25 +684,6 @@ class BudgetLog(PayBaseModel):
         self.status = BudgetLog.CANCELED
         self.save(update_fields=['status', 'modified'])
         return True
-
-    def confirm_budget_log(self):
-        # type: () -> bool
-        """确定钱包记录
-        """
-        if self.status != BudgetLog.CONFIRMED:
-            self.status = BudgetLog.CONFIRMED
-            self.save(update_fields=['status', 'modified'])
-            return True
-        return False
-
-    def cancel_and_return(self):
-        """ 将待确认或已确认的支出取消并返还小鹿账户 """
-        if self.status not in (self.CONFIRMED, self.PENDING):
-            return False
-        if self.budget_type == self.BUDGET_OUT:
-            self.status = self.CANCELED
-            self.save()
-            return True
 
     @classmethod
     def is_cashout_limited(cls, customer_id):
