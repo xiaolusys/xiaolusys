@@ -32,9 +32,19 @@ class XiaoluMamaManager(BaseManager):
         extra = sale_trade.extras_info
         mm_linkid = 0
         if 'mm_linkid' in extra:
-            mm_linkid = int(extra['mm_linkid'] or '0')
+            # 由于老版本原因，可能mmlinkdid传的是null或undefined，那么需要容错
+            import types
+            if (type(extra['mm_linkid']) is types.StringType) and (not extra['mm_linkid'].isdigit()):
+                mm_linkid = 0
+            else:
+                mm_linkid = int(extra['mm_linkid'] or '0')
         elif 'mama_linkid' in extra:
-            mm_linkid = int(extra['mama_linkid'] or '0')
+            # 由于老版本原因，可能mmlinkdid传的是null或undefined，那么需要容错
+            import types
+            if (type(extra['mama_linkid']) is types.StringType) and (not extra['mama_linkid'].isdigit()):
+                mm_linkid = 0
+            else:
+                mm_linkid = int(extra['mama_linkid'] or '0')
         qs = self.filter(id=mm_linkid)
         if qs.exists():
             return qs[0]
