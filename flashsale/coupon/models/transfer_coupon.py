@@ -262,7 +262,7 @@ class CouponTransferRecord(BaseModel):
 
         coupon = CouponTransferRecord.objects.filter(uni_key=uni_key).first()
         if coupon:
-            res = {"code": 3, "info": u"记录已存在！"}
+            res = {"code": 3, "info": u"同样的精品券申请记录已存在！"}
             return res
         coupon = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id, from_mama_thumbnail=from_mama_thumbnail,
                                       from_mama_nick=from_mama_nick, coupon_to_mama_id=coupon_to_mama_id,
@@ -323,7 +323,7 @@ class CouponTransferRecord(BaseModel):
 
         coupon = CouponTransferRecord.objects.filter(uni_key=uni_key).first()
         if coupon:
-            res = {"code": 3, "info": u"记录已存在！"}
+            res = {"code": 3, "info": u"同样的精品券申请记录已存在！"}
             return res
 
         coupon = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id, from_mama_thumbnail=from_mama_thumbnail,

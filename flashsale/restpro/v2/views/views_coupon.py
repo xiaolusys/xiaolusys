@@ -134,7 +134,8 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
                                                             status=CouponTransferRecord.EFFECT)
         if apply_records and apply_records.count() > 0:
             res = {"code": 3, "info": u"您已经有相同的精品券申请待上级处理，请处理完后再提交此申请"}
-        res = CouponTransferRecord.init_transfer_record(request.user, coupon_num, template_id, product_id)
+        else:
+            res = CouponTransferRecord.init_transfer_record(request.user, coupon_num, template_id, product_id)
         return Response(res)
 
     def start_return_coupon(self, request, *args, **kwargs):
