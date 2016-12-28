@@ -43,7 +43,7 @@ def task_transfer_coupon_order_statsd():
         transfer_amounts=Sum(F('coupon_num') * F('coupon_value'))).get('transfer_amounts') or 0
 
     exchg_order_num = ctr_qs.filter(transfer_type=CouponTransferRecord.OUT_EXCHG_SALEORDER).aggregate(
-        exchg_amounts=Sum(F('coupon_num') * F('coupon_value'))).get('transfer_amounts') or 0
+        exchg_amounts=Sum(F('coupon_num') * F('coupon_value'))).get('exchg_amounts') or 0
 
     dt_str = datetime.datetime.now().strftime('%Y.%m.%d')
     statsd.gauge('xiaolumm.boutique.coupon.sale_num.%s'%dt_str, coupon_sale_num)
