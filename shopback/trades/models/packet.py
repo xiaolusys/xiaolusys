@@ -1027,7 +1027,8 @@ class PackageSkuItem(BaseModel):
                                                                self.sale_trade.user_address_id,
                                                                self.product_sku.ware_by)
             po = PackageOrder.objects.filter(id=package_order_id).first()
-            logger.warn({'action': "packageskuitem_merge_1",'info': "packageskuitem_id:" + str(self.id) + " package_order_id:" + str(po.id)})
+            if po:
+                logger.warn({'action': "packageskuitem_merge_1",'info': "packageskuitem_id:" + str(self.id) + " package_order_id:" + str(po.id)})
             if not po:
                 po = PackageOrder.create(package_order_id, self.sale_trade, PackageOrder.WAIT_PREPARE_SEND_STATUS, self)
                 logger.warn({'action': "packageskuitem_merge_2",'info': "packageskuitem_id:" + str(self.id) + " package_order_id:" + str(po.id)})
