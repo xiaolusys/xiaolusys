@@ -565,25 +565,6 @@ class BudgetLog(PayBaseModel):
         return '%s-%s-%d-%d|%s' % (budget_log_type, budget_type, customer_id, count+1, budget_date)
 
     @classmethod
-    def is_cashout_limited(cls, customer_id):
-        from flashsale.restpro.v2.views.xiaolumm import CashOutPolicyView
-        CASHOUT_NUM_LIMIT = CashOutPolicyView.DAILY_CASHOUT_TRIES
-        budget_date = datetime.date.today()
-        cnt = cls.objects.filter(customer_id=customer_id, budget_type=cls.BUDGET_OUT, budget_log_type=cls.BG_CASHOUT, budget_date=budget_date).exclude(status=cls.CANCELED).count()
-        if cnt < CASHOUT_NUM_LIMIT and cnt >= 0:
-            return False
-        return True
-
-    @property
-    def mama_id(self):
-        from flashsale.xiaolumm.models import XiaoluMama
-        c = Customer.objects.filter(id=self.customer_id).first()
-        mama = XiaoluMama.objects.filter(openid=c.unionid).first()
-        if mama:
-            return mama.id
-        return ''
-
-    @classmethod
     def create(cls, customer_id, budget_type, flow_amount, budget_log_type,
                budget_date=datetime.date.today(), referal_id='', status=None, uni_key=None):
         """
@@ -693,12 +674,6 @@ class BudgetLog(PayBaseModel):
             return True
         return False
 
-    def log_desc(self):
-        """ 预留记录的描述字段 """
-        return '您通过{0}{1}{2}元.'.format(self.get_budget_log_type_display(),
-                                       self.get_budget_type_display(),
-                                       self.flow_amount * 0.01)
-
     def cancel_budget_log(self):
         # type: () -> bool
         """取消 钱包记录
@@ -727,6 +702,29 @@ class BudgetLog(PayBaseModel):
             self.status = self.CANCELED
             self.save()
             return True
+
+    @classmethod
+    def is_cashout_limited(cls, customer_id):
+        from flashsale.restpro.v2.views.xiaolumm import CashOutPolicyView
+
+        limit_of_cash_out = CashOutPolicyView.DAILY_CASHOUT_TRIES
+        budget_date = datetime.date.today()
+        cnt = cls.objects.filter(customer_id=customer_id,
+                                 budget_type=cls.BUDGET_OUT,
+                                 budget_log_type=cls.BG_CASHOUT,
+                                 budget_date=budget_date).exclude(status=cls.CANCELED).count()
+        if limit_of_cash_out > cnt >= 0:
+            return False
+        return True
+
+    @property
+    def mama_id(self):
+        from flashsale.xiaolumm.models import XiaoluMama
+        c = Customer.objects.filter(id=self.customer_id).first()
+        mama = XiaoluMama.objects.filter(openid=c.unionid).first()
+        if mama:
+            return mama.id
+        return ''
 
 
 def budgetlog_update_userbudget(sender, instance, created, **kwargs):
