@@ -6,7 +6,7 @@ import logging
 
 from django.db import models
 from django.db import transaction
-from django.db.models import F
+from django.db.models import F, Sum
 from django.db.models.signals import post_save
 
 from common.modelutils import update_model_fields
@@ -336,7 +336,6 @@ class SaleRefund(PayBaseModel):
             self.good_status = SaleRefund.BUYER_RETURNED_GOODS  # 买家已经退货
         self.save(update_fields=['good_status'])
 
-    @transaction.atomic
     def refund_payment_2_budget(self):
         from .user import BudgetLog
 
@@ -344,31 +343,25 @@ class SaleRefund(PayBaseModel):
         self.update_good_status(sorder.is_post())  # 更新退货状态字段
 
         payment = round(self.refund_fee * 100, 0)
-        blog = BudgetLog.objects.filter(customer_id=self.buyer_id,
-                                        referal_id=self.id,  # 以退款单
-                                        budget_log_type=BudgetLog.BG_REFUND).first()
-        if blog:
-            total_refund = blog.flow_amount + payment  # 总的退款金额　等于已经退的金额　加上　现在要退的金额
-            if total_refund > round(sorder.payment * 100, 0):
-                # 如果钱包总的退款记录数值大于子订单的实际支付额　抛出异常
-                raise Exception(u'超过订单实际支付金额 !')
-            else:  # 如果退款总额不大于该笔子订单的实际支付金额　则予以退款操作
-                blog.flow_amount = total_refund
-                blog.save(update_fields=['flow_amount'])
-        else:
-            if payment > round(sorder.payment * 100, 0):
-                raise Exception(u'超过订单实际支付金额!')
+        total_refund = BudgetLog.objects.filter(
+            customer_id=self.buyer_id,
+            referal_id=self.id,  # 以退款单
+            budget_log_type=BudgetLog.BG_REFUND).aggregate(t_flow=Sum('flow_amount')).get('t_flow') or 0
+        total_refund += payment  # 总退款费用(分)
+        if total_refund > round(sorder.payment * 100, 0):  # 如果钱包总的退款记录数值大于子订单的实际支付额　抛出异常
+            raise Exception(u'超过订单实际支付金额 !')
+
+        with transaction.atomic():
             if payment > 0:  # 有退款金额才生成退款余额记录
                 BudgetLog.create_salerefund_log(self, payment)
-        self.refund_confirm()
+            self.refund_confirm()
         self.send_refund_success_weixin_message()  # 退款成功推送
 
-        #对于已经兑换精品券的订单，那么还需要扣除妈妈的零钱、取消订单兑换记录、退回她的券、新增券退货流通记录，如果零钱不足，只扣除
-        #零钱（扣为负数），其它3步不做，写入一条退款欠款记录。待妈妈补足欠款后做后3步
+        #  对于已经兑换精品券的订单，那么还需要扣除妈妈的零钱、取消订单兑换记录、退回她的券、新增券退货流通记录，如果零钱不足，只扣除
+        #  零钱（扣为负数），其它3步不做，写入一条退款欠款记录。待妈妈补足欠款后做后3步
 
         from flashsale.coupon.apis.v1.transfer import saleorder_return_coupon_exchange
         saleorder_return_coupon_exchange(self, payment)
-
 
     @transaction.atomic
     def refund_fast_approve(self):

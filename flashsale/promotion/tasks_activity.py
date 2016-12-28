@@ -126,14 +126,13 @@ def task_envelope_create_budgetlog(envelope):
     status = BudgetLog.CANCELED  # initially we put the status as "canceled"
 
     uni_key = BudgetLog.gen_uni_key(envelope.customer_id, budget_type, budget_log_type)
-    budget_log = BudgetLog.create(customer_id=envelope.customer_id,
-                                  budget_type=budget_type,
-                                  flow_amount=envelope.value,
-                                  budget_log_type=budget_log_type,
-                                  referal_id=envelope.uni_key,
-                                  uni_key=uni_key,
-                                  status=status)
-    budget_log.save()
+    BudgetLog.create(customer_id=envelope.customer_id,
+                     budget_type=budget_type,
+                     flow_amount=envelope.value,
+                     budget_log_type=budget_log_type,
+                     referal_id=envelope.uni_key,
+                     uni_key=uni_key,
+                     status=status)
 
 
 @app.task()
