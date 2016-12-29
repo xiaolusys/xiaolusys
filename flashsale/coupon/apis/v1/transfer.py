@@ -133,7 +133,6 @@ def send_new_elite_transfer_coupons(customer_id, order_id, order_oid, product_id
     #template_id = model_product.extras.get("template_id")
     customer = Customer.objects.get(id=customer_id)
     template_id = 156
-    coupon_num = 5
 
     template = get_coupon_template_by_id(id=template_id)
     index = 0
@@ -142,6 +141,7 @@ def send_new_elite_transfer_coupons(customer_id, order_id, order_oid, product_id
         if not so.is_finished():
             return
 
+        coupon_num = round(so.payment / 68)
         value, start_use_time, expires_time = template.calculate_value_and_time()
         extras = {'user_info': {'id': customer.id, 'nick': customer.nick, 'thumbnail': customer.thumbnail}}
         new_coupon_ids = []
