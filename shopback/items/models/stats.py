@@ -686,7 +686,6 @@ class SkuStock(models.Model):
             self.psi_booked_num -= new_assign_num
             self.save()
             PackageSkuItem.batch_set_status_assigned(oids)
-        PackageSkuItem.batch_merge()
 
     def can_assign(self, sku_item):
         # from shopback.trades.models import PackageSkuItem

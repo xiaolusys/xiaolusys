@@ -1266,3 +1266,7 @@ def realtime_check(type, func):
         return  # celery schedule中每半小时启动一次
     uni_key = "%s|%s" % (type, time_from)
     func(time_from, uni_key)
+
+@app.task()
+def task_trade_merge():
+    PackageSkuItem.batch_merge()

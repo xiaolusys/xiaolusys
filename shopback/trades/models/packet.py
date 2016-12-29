@@ -987,6 +987,8 @@ class PackageSkuItem(BaseModel):
                         total=Sum('num'))}
             for sku_id in skus:
                 SkuStock.set_psi_booked_2_assigned(sku_id, skus[sku_id], stat=True)
+        from shopback.trades.tasks import task_trade_merge
+        transaction.on_commit(lambda: task_trade_merge.delay())
 
     def set_status_init_assigned(self):
         self.status = PSI_STATUS.ASSIGNED
@@ -995,6 +997,8 @@ class PackageSkuItem(BaseModel):
         self.assign_time = datetime.datetime.now()
         self.save()
         SkuStock.set_psi_init_assigned(self.sku_id, self.num)
+        from shopback.trades.tasks import task_trade_merge
+        transaction.on_commit(lambda: task_trade_merge.delay())
 
     def set_status_not_assigned(self, stat=True, save=True, rebook=True):
         self.status = PSI_STATUS.PAID
@@ -1021,22 +1025,22 @@ class PackageSkuItem(BaseModel):
 
     def merge(self):
         if self.status == PSI_STATUS.ASSIGNED:
+            if self.package_order_pid:
+                # 避免一些异常
+                PackageSkuItem.objects.filter(id=self.id).update(status=PSI_STATUS.MERGED)
+                return
             self.status = PSI_STATUS.MERGED
             self.merge_time = datetime.datetime.now()
             package_order_id = PackageOrder.gen_new_package_id(self.sale_trade.buyer_id,
                                                                self.sale_trade.user_address_id,
                                                                self.product_sku.ware_by)
             po = PackageOrder.objects.filter(id=package_order_id).first()
-            if po:
-                logger.warn({'action': "packageskuitem_merge_1",'info': "packageskuitem_id:" + str(self.id) + " package_order_id:" + str(po.id)})
             if not po:
                 po = PackageOrder.create(package_order_id, self.sale_trade, PackageOrder.WAIT_PREPARE_SEND_STATUS, self)
-                logger.warn({'action': "packageskuitem_merge_2",'info': "packageskuitem_id:" + str(self.id) + " package_order_id:" + str(po.id)})
                 if po.sys_status == PackageOrder.PKG_NEW_CREATED:
                     po.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS
                 po.set_redo_sign(save_data=False)
                 po.reset_package_address()
-            logger.warn({'action': "packageskuitem_merge_3", 'info': "packageskuitem_id:"+str(self.id)+" package_order_id:" + str(po.id)})
             self.package_order_id = po.id
             self.package_order_pid = po.pid
             self.save()
