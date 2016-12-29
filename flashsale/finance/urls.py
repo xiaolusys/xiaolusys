@@ -16,6 +16,7 @@ router_urls += ([
     url(r'^cost_stats$', stats.FinanceCostApiView.as_view(), name='v1-finance-cost-stats'),
     url(r'^stock_stats$', stats.FinanceStockApiView.as_view(), name='v1-finance-stock-stats'),
     url(r'^mama_order_carry_stats$', stats.MamaOrderCarryStatApiView.as_view(), name='v1-finance-carry-stats'),
+    url(r'^boutique_coupon_stat$', stats.BoutiqueCouponStatApiView.as_view(), name='v1-finance-boutique-coupon'),
 ])
 
 urlpatterns = [
