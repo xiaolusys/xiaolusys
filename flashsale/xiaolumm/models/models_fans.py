@@ -128,11 +128,12 @@ def xlmmfans_xlmm_newtask(sender, instance, **kwargs):
 
     fans_record = XlmmFans.objects.filter(xlmm=xlmm_id).exists()
 
-    if not fans_record:
-        task_push_new_mama_task.delay(xlmm, NewMamaTask.TASK_FIRST_FANS)
+    # 20161229 delete new mama task
+    # if not fans_record:
+        # task_push_new_mama_task.delay(xlmm, NewMamaTask.TASK_FIRST_FANS)
 
-pre_save.connect(xlmmfans_xlmm_newtask,
-                 sender=XlmmFans, dispatch_uid='pre_save_xlmmfans_xlmm_newtask')
+# pre_save.connect(xlmmfans_xlmm_newtask,
+#                  sender=XlmmFans, dispatch_uid='pre_save_xlmmfans_xlmm_newtask')
 
 
 class FansNumberRecord(BaseModel):

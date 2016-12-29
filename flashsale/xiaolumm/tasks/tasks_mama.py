@@ -283,6 +283,9 @@ def task_referal_update_awardcarry(relationship):
     if relationship.is_confirmed():
         status = 2  # confirmed
         carry_description = util_description.get_awardcarry_description(carry_type)
+    else:
+        # 20161229 delete试用3的邀请奖励预计收益，只有正式的才有
+        return
 
     award_carry = AwardCarry.objects.filter(uni_key=uni_key).first()
     if award_carry:
@@ -339,6 +342,9 @@ def task_update_group_awardcarry(relationship):
     if relationship.is_confirmed():
         status = 2  # confirmed
         carry_description = util_description.get_awardcarry_description(carry_type)
+    else:
+        # 20161229 delete试用3的邀请奖励预计收益，只有正式的才有
+        return
 
     direct_referal_num = ReferalRelationship.objects.filter(referal_from_mama_id=from_mama_id, referal_type__gte=XiaoluMama.HALF).count()
     group_referal_num = ReferalRelationship.objects.filter(referal_from_grandma_id=from_mama_id, referal_type__gte=XiaoluMama.HALF).exclude(referal_to_mama_id=to_mama_id).count()
