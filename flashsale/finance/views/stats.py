@@ -401,7 +401,7 @@ class BoutiqueCouponStatApiView(APIView):
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
     sql = "SELECT COUNT(id), SUM(value), status, DATE(created) AS date_field FROM flashsale_user_coupon " \
           "WHERE created >= '{0}' AND created <= '{1}' AND coupon_type = 8 AND status IN (0 , 1, 2) " \
-          "GROUP BY date_field , status;"
+          "GROUP BY date_field , status ORDER BY date_field;"
 
     def get(self, request):
         date_from, date_to, date_from_time, date_to_time = date_handler(request)
