@@ -306,14 +306,14 @@ def coupon_exchange_saleorder(customer, order_id, mama_id, exchg_template_id, co
 
         # (3)在user钱包写收入记录
         from flashsale.pay.models.user import BudgetLog
-        today = datetime.date.today()
-        order_log = BudgetLog(customer_id=customer.id, flow_amount=round(sale_order.payment * 100),
-                              budget_type=BudgetLog.BUDGET_IN,
-                              budget_log_type=BudgetLog.BG_EXCHG_ORDER, referal_id=sale_order.id,
-                              uni_key=sale_order.oid, status=BudgetLog.CONFIRMED,
-                              budget_date=today)
 
-        order_log.save()
+        BudgetLog.create(customer_id=customer.id,
+                         budget_type=BudgetLog.BUDGET_IN,
+                         flow_amount=round(sale_order.payment * 100),
+                         budget_log_type=BudgetLog.BG_EXCHG_ORDER,
+                         referal_id=sale_order.id,
+                         uni_key=sale_order.oid,
+                         status=BudgetLog.CONFIRMED)
 
         # (4)在精品券流通记录增加兑换记录
         transfer = CouponTransferRecord.create_exchg_order_record(customer, int(coupon_num), sale_order,
@@ -367,13 +367,14 @@ def saleorder_return_coupon_exchange(salerefund, payment):
     with transaction.atomic():
         # (1)在user钱包写支出记录，支出不够变成负数
         from flashsale.pay.models.user import BudgetLog
-        today = datetime.date.today()
-        order_log = BudgetLog(customer_id=customer.id, flow_amount=int(payment),
-                              budget_type=BudgetLog.BUDGET_OUT,
-                              budget_log_type=BudgetLog.BG_EXCHG_ORDER, referal_id=salerefund.id,
-                              uni_key=salerefund.refund_no, status=BudgetLog.CONFIRMED,
-                              budget_date=today)
-        order_log.save()
+
+        BudgetLog.create(customer_id=customer.id,
+                         budget_type=BudgetLog.BUDGET_OUT,
+                         flow_amount=int(payment),
+                         budget_log_type=BudgetLog.BG_EXCHG_ORDER,
+                         referal_id=salerefund.id,
+                         uni_key=salerefund.refund_no,
+                         status=BudgetLog.CONFIRMED)
 
         # (2)sale order置为已经取消兑换
         if sale_order:

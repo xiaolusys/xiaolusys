@@ -1137,13 +1137,13 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         budget_type = BudgetLog.BUDGET_IN
         budget_log_type = BudgetLog.BG_MAMA_CASH
         uni_key = BudgetLog.gen_uni_key(customer.id, budget_type, budget_log_type)
-        BudgetLog.objects.create(customer_id=customer.id,
-                                 flow_amount=value,
-                                 budget_type=budget_type,
-                                 referal_id=cashout.id,
-                                 budget_log_type=budget_log_type,
-                                 status=BudgetLog.CONFIRMED,
-                                 uni_key=uni_key)
+        BudgetLog.create(customer_id=customer.id,
+                         budget_type=budget_type,
+                         flow_amount=value,
+                         budget_log_type=budget_log_type,
+                         referal_id=cashout.id,
+                         status=BudgetLog.CONFIRMED,
+                         uni_key=uni_key)
         info = '提交成功'
         return Response({"code": 0, 'msg': info, 'info': info})
 

@@ -6,7 +6,6 @@ import datetime
 from django.contrib.auth.models import User
 from flashsale.pay.models import Customer
 from flashsale.xiaolumm.models import XiaoluMama, PotentialMama, XlmmFans, AwardCarry, WeixinPushEvent
-from flashsale.pay.models import BudgetLog
 from shopback.monitor.models import XiaoluSwitch
 
 from ..apis import WeiXinAPI
@@ -221,11 +220,7 @@ def task_activate_xiaolumama(openid, wx_pubid):
 
     potential_mama_unionid = unionid
     task_create_scan_potential_mama.delay(referal_from_mama_id, potential_mama_id, potential_mama_unionid)
-    
-    #referal_mama = XiaoluMama.objects.filter(id=referal_from_mama_id).first()
-    #if referal_mama and referal_mama.openid:
-    #    task_weixinfans_create_budgetlog.delay(referal_mama.openid, potential_mama_unionid, BudgetLog.BG_REFERAL_FANS)
-    
+
 
 @app.task(max_retries=3, default_retry_delay=6)
 def task_weixinfans_update_xlmmfans(referal_from_mama_id, referal_to_unionid):

@@ -342,7 +342,6 @@ class UserBudget(PayBaseModel):
             return mama.id
         return ''
 
-
     @property
     def budget_cash(self):
         return float('%.2f' % (self.amount * 0.01))
@@ -370,12 +369,13 @@ class UserBudget(PayBaseModel):
             ).update(amount=models.F('amount') - payment)
             if urows == 0:
                 return False
-            BudgetLog.objects.create(customer_id=self.user.id,
-                                     referal_id=strade_id,
-                                     flow_amount=payment,
-                                     budget_log_type=BudgetLog.BG_CONSUM,
-                                     budget_type=BudgetLog.BUDGET_OUT,
-                                     status=BudgetLog.PENDING)
+            BudgetLog.create(customer_id=self.user.id,
+                             budget_type=BudgetLog.BUDGET_OUT,
+                             flow_amount=payment,
+                             referal_id=strade_id,
+                             budget_log_type=BudgetLog.BG_CONSUM,
+                             uni_key='st_%s' % strade_id,
+                             status=BudgetLog.PENDING)
             return True
         return True
 
@@ -388,11 +388,10 @@ class UserBudget(PayBaseModel):
             logger.error('budget payment log not found: customer=%s, trade_id=%s'%(self.user.id,strade_id))
             return False
 
-        #如果订单超时关闭又支付成功,则余额支付状态页需要改回
-        if blog.status ==  BudgetLog.CANCELED:
+        #  如果订单超时关闭又支付成功,则余额支付状态页需要改回
+        if blog.status == BudgetLog.CANCELED:
             blog.status = BudgetLog.PENDING
-        return blog.push_pending_to_confirm()
-
+        return blog.confirm_budget_log()
 
     def charge_cancel(self, strade_id):
         """ 支付取消 """
@@ -400,7 +399,7 @@ class UserBudget(PayBaseModel):
                                          referal_id=strade_id,
                                          budget_log_type=BudgetLog.BG_CONSUM)
         if blogs.exists():
-            return blogs[0].cancel_and_return()
+            return blogs[0].cancel_budget_log()
 
     def is_could_cashout(self):
         """ 设置普通用户钱包是否可以提现控制字段 """
@@ -564,24 +563,9 @@ class BudgetLog(PayBaseModel):
         count = cls.objects.filter(customer_id=customer_id, budget_type=budget_type, budget_log_type=budget_log_type, budget_date=budget_date).count()
         return '%s-%s-%d-%d|%s' % (budget_log_type, budget_type, customer_id, count+1, budget_date)
 
-    @classmethod
-    def is_cashout_limited(cls, customer_id):
-        from flashsale.restpro.v2.views.xiaolumm import CashOutPolicyView
-        CASHOUT_NUM_LIMIT = CashOutPolicyView.DAILY_CASHOUT_TRIES
-        budget_date = datetime.date.today()
-        cnt = cls.objects.filter(customer_id=customer_id, budget_type=cls.BUDGET_OUT, budget_log_type=cls.BG_CASHOUT, budget_date=budget_date).exclude(status=cls.CANCELED).count()
-        if cnt < CASHOUT_NUM_LIMIT and cnt >= 0:
-            return False
-        return True
-
     @property
-    def mama_id(self):
-        from flashsale.xiaolumm.models import XiaoluMama
-        c = Customer.objects.filter(id=self.customer_id).first()
-        mama = XiaoluMama.objects.filter(openid=c.unionid).first()
-        if mama:
-            return mama.id
-        return ''
+    def user_budget(self):
+        return UserBudget.objects.get(user__id=self.customer_id)
 
     @classmethod
     def create(cls, customer_id, budget_type, flow_amount, budget_log_type,
@@ -591,6 +575,9 @@ class BudgetLog(PayBaseModel):
         """
         status = status or BudgetLog.CONFIRMED
         customer = Customer.objects.get(id=customer_id)
+
+        if status == BudgetLog.CANCELED:
+            raise Exception('取消状态不予创建!')
 
         with transaction.atomic():
             # 创建收支记录 BudgetLog
@@ -612,7 +599,7 @@ class BudgetLog(PayBaseModel):
                 'total_income': 0,
                 'total_expense': 0
             })
-            if budget_type == BudgetLog.BUDGET_IN:
+            if budget_type == BudgetLog.BUDGET_IN and status == BudgetLog.CONFIRMED:
                 budget.amount = F('amount') + flow_amount
                 budget.total_income = F('total_income') + flow_amount
             elif budget_type == BudgetLog.BUDGET_OUT:
@@ -629,15 +616,13 @@ class BudgetLog(PayBaseModel):
         :arg  refund:SaleRefund instance,  flow_amount:退款金额(分)
         """
         uni_key = cls.gen_uni_key(refund.buyer_id, BudgetLog.BUDGET_IN, BudgetLog.BG_REFUND)
-        budget_log = cls(customer_id=refund.buyer_id,
-                         flow_amount=flow_amount,
-                         budget_type=BudgetLog.BUDGET_IN,
-                         budget_log_type=BudgetLog.BG_REFUND,
-                         budget_date=datetime.date.today(),
-                         referal_id=refund.id,
-                         status=BudgetLog.CONFIRMED,
-                         uni_key=uni_key)
-        budget_log.save()
+        budget_log = cls.create(customer_id=refund.buyer_id,
+                                budget_type=BudgetLog.BUDGET_IN,
+                                flow_amount=flow_amount,
+                                budget_log_type=BudgetLog.BG_REFUND,
+                                referal_id=refund.id,
+                                status=BudgetLog.CONFIRMED,
+                                uni_key=uni_key)
         return budget_log
 
     @classmethod
@@ -647,15 +632,13 @@ class BudgetLog(PayBaseModel):
         :arg  refund:SaleRefund instance,  flow_amount:退款金额(分)
         """
         uni_key = cls.gen_uni_key(refund.buyer_id, BudgetLog.BUDGET_IN, BudgetLog.BG_REFUND_POSTAGE)
-        budget_log = cls(customer_id=refund.buyer_id,
-                         flow_amount=flow_amount,
-                         budget_type=BudgetLog.BUDGET_IN,
-                         budget_log_type=BudgetLog.BG_REFUND_POSTAGE,
-                         budget_date=datetime.date.today(),
-                         referal_id=refund.id,
-                         status=BudgetLog.CONFIRMED,
-                         uni_key=uni_key)
-        budget_log.save()
+        budget_log = cls.create(customer_id=refund.buyer_id,
+                                flow_amount=flow_amount,
+                                budget_type=BudgetLog.BUDGET_IN,
+                                budget_log_type=BudgetLog.BG_REFUND_POSTAGE,
+                                referal_id=refund.id,
+                                status=BudgetLog.CONFIRMED,
+                                uni_key=uni_key)
         return budget_log
 
     @classmethod
@@ -664,15 +647,13 @@ class BudgetLog(PayBaseModel):
         """用户退还优惠券　兑换　金额 给用户
         """
         uni_key = cls.gen_uni_key(customer_id, BudgetLog.BUDGET_IN, BudgetLog.BG_RETURN_COUPON)
-        budget_log = cls(customer_id=customer_id,
-                         flow_amount=flow_amount,
-                         budget_type=BudgetLog.BUDGET_IN,
-                         budget_log_type=BudgetLog.BG_RETURN_COUPON,
-                         budget_date=datetime.date.today(),
-                         referal_id=quote_id,
-                         status=BudgetLog.PENDING,
-                         uni_key=uni_key)
-        budget_log.save()
+        budget_log = cls.create(customer_id=customer_id,
+                                flow_amount=flow_amount,
+                                budget_type=BudgetLog.BUDGET_IN,
+                                budget_log_type=BudgetLog.BG_RETURN_COUPON,
+                                referal_id=quote_id,
+                                status=BudgetLog.PENDING,
+                                uni_key=uni_key)
         return budget_log
 
     @classmethod
@@ -691,19 +672,29 @@ class BudgetLog(PayBaseModel):
         """ 返回金额　"""
         return self.flow_amount / 100.0
 
-    def push_pending_to_confirm(self):
-        """ 确认待确认钱包收支记录 """
-        if self.status == BudgetLog.PENDING:
-            self.status = BudgetLog.CONFIRMED
-            self.save()
-            return True
-        return False
+    def confirm_budget_log(self):
+        # type: () -> bool
+        """确定钱包记录
+        """
+        if self.status == BudgetLog.CONFIRMED:
+            return False
+        user_budget = self.user_budget  # 小鹿钱包
 
-    def log_desc(self):
-        """ 预留记录的描述字段 """
-        return '您通过{0}{1}{2}元.'.format(self.get_budget_log_type_display(),
-                                       self.get_budget_type_display(),
-                                       self.flow_amount * 0.01)
+        with transaction.atomic():
+            if self.budget_type == BudgetLog.BUDGET_IN:  # 收如前提下改到确定状态
+                if self.status in [BudgetLog.PENDING, BudgetLog.CANCELED]:  # 待确定 取消  变确定 余额增加
+                    user_budget.amount = F('amount') + self.flow_amount
+                    user_budget.total_income = F('total_income') + self.flow_amount  # 加小鹿钱包总收入
+            if self.budget_type == BudgetLog.BUDGET_OUT:  # 支出前提下改到确定状态
+                if self.status == BudgetLog.CANCELED:  # 从取消 变确定 则 余额减少
+                    user_budget.amount = F('amount') - self.flow_amount
+                    user_budget.total_expense = F('total_expense') + self.flow_amount   # 加小鹿钱包总支出
+            user_budget.save()  # 保存用户钱包
+
+            self.status = BudgetLog.CONFIRMED
+            self.save(update_fields=['status', 'modified'])
+
+        return True
 
     def cancel_budget_log(self):
         # type: () -> bool
@@ -711,28 +702,46 @@ class BudgetLog(PayBaseModel):
         """
         if self.status == BudgetLog.CANCELED:
             return False
-        self.status = BudgetLog.CANCELED
-        self.save(update_fields=['status', 'modified'])
+        user_budget = self.user_budget  # 小鹿钱包
+
+        with transaction.atomic():
+            if self.budget_type == BudgetLog.BUDGET_IN:  # 收如前提下改到取消状态
+                if self.status == BudgetLog.CONFIRMED:  # 确定的收入  取消 余额减少
+                    user_budget.amount = F('amount') - self.flow_amount
+                    user_budget.total_income = F('total_income') - self.flow_amount  # 减小鹿钱包总收入
+            if self.budget_type == BudgetLog.BUDGET_OUT:  # 支出前提下改到取消状态
+                if self.status in [BudgetLog.CONFIRMED, BudgetLog.PENDING]:  # 确定 待确定 支出 到取消状态
+                    user_budget.amount = F('amount') + self.flow_amount  # 收入增加
+                    user_budget.total_expense = F('total_expense') - self.flow_amount  # 支出取消 收入增加 总支出 减少
+            user_budget.save()  # 保存用户钱包
+
+            self.status = BudgetLog.CANCELED
+            self.save(update_fields=['status', 'modified'])
+
         return True
 
-    def confirm_budget_log(self):
-        # type: () -> bool
-        """确定钱包记录
-        """
-        if self.status != BudgetLog.CONFIRMED:
-            self.status = BudgetLog.CONFIRMED
-            self.save(update_fields=['status', 'modified'])
-            return True
-        return False
+    @classmethod
+    def is_cashout_limited(cls, customer_id):
+        from flashsale.restpro.v2.views.xiaolumm import CashOutPolicyView
 
-    def cancel_and_return(self):
-        """ 将待确认或已确认的支出取消并返还小鹿账户 """
-        if self.status not in (self.CONFIRMED, self.PENDING):
+        limit_of_cash_out = CashOutPolicyView.DAILY_CASHOUT_TRIES
+        budget_date = datetime.date.today()
+        cnt = cls.objects.filter(customer_id=customer_id,
+                                 budget_type=cls.BUDGET_OUT,
+                                 budget_log_type=cls.BG_CASHOUT,
+                                 budget_date=budget_date).exclude(status=cls.CANCELED).count()
+        if limit_of_cash_out > cnt >= 0:
             return False
-        if self.budget_type == self.BUDGET_OUT:
-            self.status = self.CANCELED
-            self.save()
-            return True
+        return True
+
+    @property
+    def mama_id(self):
+        from flashsale.xiaolumm.models import XiaoluMama
+        c = Customer.objects.filter(id=self.customer_id).first()
+        mama = XiaoluMama.objects.filter(openid=c.unionid).first()
+        if mama:
+            return mama.id
+        return ''
 
 
 def budgetlog_update_userbudget(sender, instance, created, **kwargs):

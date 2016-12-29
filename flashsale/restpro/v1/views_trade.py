@@ -676,12 +676,14 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         urows = UserBudget.objects.filter(user=buyer, amount__gte=payment)
         if not urows.exists():
             return {'channel': channel, 'success': False, 'id': sale_trade.id, 'info': u'小鹿钱包余额不足'}
-        BudgetLog.objects.create(customer_id=buyer.id,
-                                 referal_id=strade_id,
-                                 flow_amount=payment,
-                                 budget_log_type=BudgetLog.BG_CONSUM,
-                                 budget_type=BudgetLog.BUDGET_OUT,
-                                 status=BudgetLog.CONFIRMED)
+        BudgetLog.create(customer_id=buyer.id,
+                         budget_type=BudgetLog.BUDGET_OUT,
+                         flow_amount=payment,
+                         budget_log_type=BudgetLog.BG_CONSUM,
+                         referal_id=strade_id,
+                         status=BudgetLog.CONFIRMED,
+                         uni_key='st_%s' % sale_trade.id
+                         )
         # 确认付款后保存
         transaction.on_commit(lambda: confirmTradeChargeTask.delay(strade_id))
         return {'channel': channel, 'success': True, 'id': sale_trade.id, 'info': '订单支付成功'}

@@ -122,7 +122,8 @@ class Envelop(PayBaseModel):
             self.status = Envelop.CONFIRM_SEND
 
             if self.subject == Envelop.XLAPP_CASHOUT:
-                BudgetLog.objects.filter(id=self.referal_id).update(status=BudgetLog.CONFIRMED, modified=now)
+                blog = BudgetLog.objects.filter(id=self.referal_id)
+                blog.confirm_budget_log()
             elif self.subject == Envelop.CASHOUT:
                 CashOut.objects.filter(id=self.referal_id).update(status=CashOut.APPROVED, modified=now)
 

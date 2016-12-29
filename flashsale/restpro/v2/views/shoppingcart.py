@@ -23,7 +23,6 @@ from flashsale.pay.models import (
     SaleOrder,
     Customer,
     UserBudget,
-    BudgetLog,
     ShoppingCart,
     UserAddress,
     gen_uuid_trade_tid,
