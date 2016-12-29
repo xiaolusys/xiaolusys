@@ -1,6 +1,7 @@
 # coding=utf-8
 import datetime
 from django.db import connection, transaction
+from django.db.models import Sum
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import authentication
@@ -385,6 +386,102 @@ class MamaOrderCarryStatApiView(APIView):
                     'total_order_value': total_order_value
                 },
                 'sql': sql,
+                'items_data': items_data
+            }
+        )
+
+
+class BoutiqueCouponStatApiView(APIView):
+    """1. 精品券销售情况统计  : 指定日期的 每天 销售 张数 券额  状态 和 总全额 总张数 不同状态总券额 总张数
+       2. 精品商品销售情况统计: 指定日期内的 销售总额 总件数 退精品订单总额
+    """
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser)
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+    sql = "SELECT COUNT(id), SUM(value), status, DATE(created) AS date_field FROM flashsale_user_coupon " \
+          "WHERE created >= '{0}' AND created <= '{1}' AND coupon_type = 8 AND status IN (0 , 1, 2) " \
+          "GROUP BY date_field , status;"
+
+    def get(self, request):
+        date_from, date_to, date_from_time, date_to_time = date_handler(request)
+        sql = self.sql.format(date_from_time, date_to_time)
+        cursor = connection.cursor()
+        cursor.execute(sql)
+        raw = cursor.fetchall()
+        items_data = []
+        total_status_0_count = 0
+        total_status_0_value = 0
+        total_status_1_count = 0
+        total_status_1_value = 0
+        total_status_2_count = 0
+        total_status_2_value = 0
+        total_count = 0
+        total_value = 0
+        for i in raw:
+            total_count += i[0]
+            total_value += i[1]
+            status = i[2]
+            if status == 0:
+                total_status_0_count += i[0]
+                total_status_0_value += i[1]
+            if status == 1:
+                total_status_1_count += i[0]
+                total_status_1_value += i[1]
+            if status == 2:
+                total_status_2_count += i[0]
+                total_status_2_value += i[1]
+            items_data.append({
+                'count': i[0],
+                'sum_value': i[1],
+                'status': status,
+                'date': i[3]
+            })
+        # 计算精品券订单金额和件数 # 交易成功状态 电子商品订单
+        from flashsale.pay.models import SaleOrder
+
+        orders_sum = SaleOrder.objects.filter(pay_time__gte=date_from_time,
+                                              pay_time__lte=date_to_time,
+                                              sale_trade__order_type=4,
+                                              status=SaleOrder.TRADE_FINISHED).aggregate(s_num=Sum('num'),
+                                                                                         s_payment=Sum('payment'))
+        orders_s_num = orders_sum.get('s_num') or 0  # 件数
+        orders_s_payment = orders_sum.get('s_payment') or 0  # 交易金额
+
+        # 精品汇商品订单
+        boutique_orders = SaleOrder.objects.filter(pay_time__gte=date_from_time,
+                                                   pay_time__lte=date_to_time,
+                                                   sale_trade__order_type=0,
+                                                   sale_trade__is_boutique=1,
+                                                   payment=0,
+                                                   status__gte=SaleOrder.WAIT_SELLER_SEND_GOODS,
+                                                   status__lte=SaleOrder.TRADE_CLOSED)
+        refund_boutique_orders = boutique_orders.filter(refund_status__gt=0)
+        sum_boutique = boutique_orders.aggregate(bs_num=Sum('num'), bs_payment=Sum('payment'))
+        total_boutique_num = sum_boutique.get('bs_num') or 0
+        total_boutique_payment = sum_boutique.get('bs_payment') or 0
+        total_refund_boutique_fee = refund_boutique_orders.aggregate(brf=Sum('refund_fee')).get('brf') or 0
+        return Response(
+            {
+                'code': 0,
+                'info': 'success',
+                'desc': u'<h3>精品券/精品商品订单统计:</h3> <p>%s</p>' % self.__doc__,
+                'aggregate_data': {
+                    'total_count': total_count,
+                    'total_value': total_value,
+                    'total_status_0_count': total_status_0_count,
+                    'total_status_0_value': total_status_0_value,
+                    'total_status_1_count': total_status_1_count,
+                    'total_status_1_value': total_status_1_value,
+                    'total_status_2_count': total_status_2_count,
+                    'total_status_2_value': total_status_2_value,
+                    'orders_s_num': orders_s_num,
+                    'orders_s_payment': orders_s_payment,
+
+                    'total_boutique_num': total_boutique_num,
+                    'total_boutique_payment': total_boutique_payment,
+                    'total_refund_boutique_fee': total_refund_boutique_fee,
+                },
+                'sql': sql + '不包含订单统计sql',
                 'items_data': items_data
             }
         )
