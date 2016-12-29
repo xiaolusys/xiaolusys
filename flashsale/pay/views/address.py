@@ -176,7 +176,8 @@ def get_supplier_name(request):
 
 def add_supplier_addr(request):
     if request.method == 'GET':
-        return render(request, "pay/add_supplier_addr.html")
+        prov_list = District.objects.filter(grade=District.FIRST_STAGE)
+        return render(request, "pay/add_supplier_addr.html",{"province_list":prov_list})
     shen = request.POST.get("shen")
     shi = request.POST.get("shi")
     qu = request.POST.get("qu")
