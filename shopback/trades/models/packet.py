@@ -727,17 +727,17 @@ class PackageSkuItem(BaseModel):
     def cancel_failed_time(self):
         if self.failed_retrieve_time:
             PackageSkuItem.objects.filter(out_sid=self.out_sid).update(failed_retrieve_time=None)
-
-    @staticmethod
-    def get_failed_express():
-        # TODO　这些同时取了意味着数十万的数据，确认一下
-        ps = PackageSkuItem.objects.exclude(failed_retrieve_time=None)
-        return ps
-
-    @staticmethod
-    def get_failed_oneday():
-        expire_time = datetime.datetime.now() - datetime.timedelta(days=1)
-        return [i for i in PackageSkuItem.get_failed_express() if i.failed_retrieve_time < expire_time]
+    #
+    # @staticmethod
+    # def get_failed_express():
+    #     # TODO　这些同时取了意味着数十万的数据，确认一下
+    #     ps = PackageSkuItem.objects.exclude(failed_retrieve_time=None)
+    #     return ps
+    #
+    # @staticmethod
+    # def get_failed_oneday():
+    #     expire_time = datetime.datetime.now() - datetime.timedelta(days=1)
+    #     return [i for i in PackageSkuItem.get_failed_express() if i.failed_retrieve_time < expire_time]
 
     @staticmethod
     def get_by_oid(oid):
@@ -1000,7 +1000,7 @@ class PackageSkuItem(BaseModel):
         self.status = PSI_STATUS.PAID
         self.assign_status = PackageSkuItem.NOT_ASSIGNED
         self.assign_time = datetime.datetime.now()
-        self.purchase_order_unikey = ''
+
         if save:
             package_order = self.package_order
             self.package_order_id = None
