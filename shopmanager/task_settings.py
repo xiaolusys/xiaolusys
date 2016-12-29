@@ -228,6 +228,11 @@ SKU_STATS_ROUTES = {
         'queue': 'skustats',
         'routing_key': 'skustats.task_packageskuitem_update_productskusalestats_num',
     },
+    'shopback.trades.tasks.tasks.task_trade_merge': {
+        'queue': 'skustats',
+        'routing_key': 'skustats.task_trade_merge',
+    },
+
     'shopback.items.tasks_stats.task_product_downshelf_update_productskusalestats': {
         'queue': 'skustats',
         'routing_key': 'skustats.task_product_downshelf_update_productskusalestats',
