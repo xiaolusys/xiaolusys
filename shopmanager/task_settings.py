@@ -1354,7 +1354,12 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
-
+    u'每10分钟定时检查告警':{
+        'task': 'shopback.trades.tasks.tasks_alarm.alarms_shopback_trades',
+        'schedule': crontab(minute="*/10"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
     u'定时更新全部未收到货包裹的物流信息': {
         'task': 'flashsale.restpro.tasks.update_all_logistics',
         'schedule': crontab(minute="0", hour="1"),
