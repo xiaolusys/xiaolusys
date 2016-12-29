@@ -1,7 +1,7 @@
 # coding=utf-8
 import datetime
 from django.db import connection, transaction
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import authentication
@@ -394,6 +394,7 @@ class MamaOrderCarryStatApiView(APIView):
 class BoutiqueCouponStatApiView(APIView):
     """1. 精品券销售情况统计  : 指定日期的 每天 销售 张数 券额  状态 和 总全额 总张数 不同状态总券额 总张数
        2. 精品商品销售情况统计: 指定日期内的 销售总额 总件数 退精品订单总额
+       3. 注意: (1) 精品券有赠送的情况(没有精品券订单) . (2) 这里的精品商品订单仅仅包含用券购买的订单(排除直接付款 但包含 兑换订单)
     """
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser)
@@ -448,13 +449,14 @@ class BoutiqueCouponStatApiView(APIView):
         orders_s_payment = orders_sum.get('s_payment') or 0  # 交易金额
 
         # 精品汇商品订单
-        boutique_orders = SaleOrder.objects.filter(pay_time__gte=date_from_time,
+        boutique_orders = SaleOrder.objects.filter(Q(payment=0) | Q(extras__contains='"exchange": true'),
+                                                   pay_time__gte=date_from_time,
                                                    pay_time__lte=date_to_time,
                                                    sale_trade__order_type=0,
                                                    sale_trade__is_boutique=1,
-                                                   payment=0,
                                                    status__gte=SaleOrder.WAIT_SELLER_SEND_GOODS,
                                                    status__lte=SaleOrder.TRADE_CLOSED)
+
         refund_boutique_orders = boutique_orders.filter(refund_status__gt=0)
         sum_boutique = boutique_orders.aggregate(bs_num=Sum('num'), bs_payment=Sum('payment'))
         total_boutique_num = sum_boutique.get('bs_num') or 0
@@ -464,7 +466,7 @@ class BoutiqueCouponStatApiView(APIView):
             {
                 'code': 0,
                 'info': 'success',
-                'desc': u'<h3>精品券/精品商品订单统计:</h3> <p>%s</p>' % self.__doc__,
+                'desc': u'<h3>精品券/精品商品订单统计:</h3> <p>%s</p>' % self.__doc__.replace('\n', '</br>'),
                 'aggregate_data': {
                     'total_count': total_count,
                     'total_value': total_value,
