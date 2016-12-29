@@ -458,9 +458,13 @@ class BoutiqueCouponStatApiView(APIView):
                                                    status__lte=SaleOrder.TRADE_CLOSED)
 
         refund_boutique_orders = boutique_orders.filter(refund_status__gt=0)
-        sum_boutique = boutique_orders.aggregate(bs_num=Sum('num'), bs_payment=Sum('payment'))
+        sum_boutique = boutique_orders.aggregate(bs_num=Sum('num'),
+                                                 bs_discount_fee=Sum('discount_fee'),
+                                                 bs_payment=Sum('payment'))
         total_boutique_num = sum_boutique.get('bs_num') or 0
-        total_boutique_payment = sum_boutique.get('bs_payment') or 0
+        total_boutique_discount_fee = sum_boutique.get('bs_discount_fee') or 0
+        total_boutique_payment = total_boutique_discount_fee + (sum_boutique.get('bs_payment') or 0)
+
         total_refund_boutique_fee = refund_boutique_orders.aggregate(brf=Sum('refund_fee')).get('brf') or 0
         return Response(
             {
