@@ -517,7 +517,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                         and rmb338_order.is_new_elite_deposit():
                     buyer_customer = Customer.objects.normal_customer.filter(id=rmb338_order.buyer_id).first()
                     results.append({'exchg_template_id': 156,
-                                    'num': 5,
+                                    'num': round(rmb338_order.payment / 68),
                                     'order_id': ship.order_id, 'sku_img': rmb338_order.pic_path,
                                     'contributor_nick': buyer_customer.nick, 'status': 2,
                                     'status_display': u'确定收益',
