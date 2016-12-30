@@ -494,8 +494,8 @@ def task_repair_mama_wallet(hour=2):
 
     t = datetime.datetime.now() - datetime.timedelta(hours=hour)
 
-    carrys = CarryRecord.objects.filter(Q(created__gte=t) | Q(modified__gte=t)).values('mama_id')
-    cashouts = CashOut.objects.filter(Q(created__gte=t) | Q(modified__gte=t)).values('xlmm')
+    carrys = CarryRecord.objects.filter(Q(created__gte=t) | Q(modified__gte=t)).values('mama_id').distinct()
+    cashouts = CashOut.objects.filter(Q(created__gte=t) | Q(modified__gte=t)).values('xlmm').distinct()
 
     lg.info({
         'action': 'mama_period_wallet_repair',
