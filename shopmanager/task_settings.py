@@ -1543,6 +1543,12 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_sync_weixin_red_envelopes'}
     },
+    u'定时检查修复妈妈钱包余额不一致问题': {
+        'task': 'flashsale.xiaolumm.tasks.tasks_mama_fortune.task_repair_mama_wallet',
+        'schedule': crontab(minute="0"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_repair_mama_wallet'}
+    },
 }
 
 WDT_SCHEDULE = {

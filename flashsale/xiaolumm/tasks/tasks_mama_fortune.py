@@ -1,10 +1,10 @@
-# -*- encoding:utf-8 -*-
+# coding=utf-8
 from __future__ import absolute_import, unicode_literals
 from shopmanager import celery_app as app
 
 import sys, datetime
 from django.db import IntegrityError
-from django.db.models import Sum, Count, F
+from django.db.models import Sum, Count, F, Q
 from common.utils import update_model_fields
 
 from flashsale.xiaolumm.models.models_fortune import MamaFortune, ActiveValue, OrderCarry, ReferalRelationship, \
@@ -479,3 +479,33 @@ def task_mama_daily_tab_visit_stats(mama_id, stats_tab):
             pass
     else:
         md.save(update_fields=['modified'])
+
+
+@app.task
+def task_repair_mama_wallet(hour=2):
+    # type: (int) -None
+    """修复妈妈钱包余额不一致问题定时任务,等修改signal代码后删除 2016-12-30
+    """
+    # todo: remove this func after replace signal mechanism
+
+    from flashsale.xiaolumm.tasks import task_cashout_update_mamafortune
+
+    lg = logging.getLogger(__name__)
+
+    t = datetime.datetime.now() - datetime.timedelta(hours=hour)
+
+    carrys = CarryRecord.objects.filter(Q(created__gte=t) | Q(modified__gte=t)).values('mama_id')
+    cashouts = CashOut.objects.filter(Q(created__gte=t) | Q(modified__gte=t)).values('xlmm')
+
+    lg.info({
+        'action': 'mama_period_wallet_repair',
+        'time': datetime.datetime.now(),
+        'carry_count': carrys.count(),
+        'cashout_count': cashouts.count()
+    })
+
+    for carry in carrys:
+        task_carryrecord_update_mamafortune(carry['mama_id'])
+
+    for cashout in cashouts:
+        task_cashout_update_mamafortune(cashout['xlmm'])
