@@ -64,7 +64,7 @@ class CouponTemplate(BaseModel):
     SCOPE_OVERALL = 1
     SCOPE_CATEGORY = 2
     SCOPE_PRODUCT = 3
-    SCOPE_TYPES = ((SCOPE_OVERALL, u"全场通用"),
+    SCOPE_TYPES = ((SCOPE_OVERALL, u"特卖商品通用"),
                    (SCOPE_CATEGORY, u"类目专用"),
                    (SCOPE_PRODUCT, u"商品专用"))
 
