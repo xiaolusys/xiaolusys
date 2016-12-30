@@ -1189,7 +1189,7 @@ class SaleOrder(PayBaseModel):
         return self.is_deposit() and self.outer_sku_id == '1'
 
     def is_new_elite_deposit(self):
-        return self.is_deposit() and self.outer_sku_id == '338'
+        return self.is_deposit() and (self.outer_sku_id == '338' or self.outer_sku_id == '216')
 
     @property
     def item_product(self):
