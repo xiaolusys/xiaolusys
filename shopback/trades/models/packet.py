@@ -357,13 +357,24 @@ class PackageOrder(models.Model):
             self.save()
             return self
 
-    def set_logistics_company(self):
+    def set_logistics_company(self, logistics_company_id=None):
         """
             如果已经有物流单号，设置公司和重打
             如果没有物流单号，直接改上sale_trade的物流公司
             如果sale_trade里没有指定，那自己设
         :return:
         """
+        if logistics_company_id and not self.logistics_company_id:
+            self.logistics_company_id = logistics_company_id
+            self.save()
+            return
+        if logistics_company_id and self.logistics_company_id:
+            self.logistics_company_id = logistics_company_id
+            if self.is_express_print:
+                self.is_express_print = False
+                self.redo_sign = True
+            self.save(update_fields=['logistics_company_id', 'is_express_print', 'redo_sign'])
+            return
         old_logistics_company_id = None
         if self.logistics_company_id:
             old_logistics_company_id = self.logistics_company_id
@@ -428,7 +439,7 @@ class PackageOrder(models.Model):
             self.ready_completion = ready_completion
             return change
 
-    def refresh(self):
+    def refresh(self, logistics_company_id=None):
         """
             刷新包裹，重新从sale_trade里取一次数据
         :return:
@@ -438,7 +449,7 @@ class PackageOrder(models.Model):
                 self.set_redo_sign(save_data=False, action='is_picking_print')
                 self.reset_sku_item_num()
                 self.set_package_address()
-                self.set_logistics_company()
+                self.set_logistics_company(logistics_company_id=logistics_company_id)
             else:
                 self.reset_to_new_create()
 
@@ -1035,12 +1046,15 @@ class PackageSkuItem(BaseModel):
                                                                self.sale_trade.user_address_id,
                                                                self.product_sku.ware_by)
             po = PackageOrder.objects.filter(id=package_order_id).first()
-            if not po:
-                po = PackageOrder.create(package_order_id, self.sale_trade, PackageOrder.WAIT_PREPARE_SEND_STATUS, self)
+            if po:
                 if po.sys_status == PackageOrder.PKG_NEW_CREATED:
                     po.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS
                 po.set_redo_sign(save_data=False)
                 po.reset_package_address()
+                po.set_logistics_company(self.sale_trade.logistics_company_id)
+            else:
+                po = PackageOrder.create(package_order_id, self.sale_trade, PackageOrder.WAIT_PREPARE_SEND_STATUS, self)
+
             self.package_order_id = po.id
             self.package_order_pid = po.pid
             self.save()
@@ -1099,7 +1113,14 @@ class PackageSkuItem(BaseModel):
         self.status = PSI_STATUS.CANCEL
         self.assign_status = 3
         self.cancel_time = datetime.datetime.now()
+        package = None
+        if self.package_order:
+            package = self.package_order
+            self.package_order_id = None
+            self.package_order_pid = None
         self.save()
+        if package:
+            package.refresh()
         SkuStock.set_psi_cancel(self.sku_id, self.num, ori_status, stat=stat)
 
     # -----------------------------------

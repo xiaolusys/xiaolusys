@@ -158,6 +158,7 @@ class UserAddress(BaseModel):
                 setattr(self, attr, val.strip())
         return changed
 
+
 class UserSingleAddress(BaseModel):
     receiver_state = models.CharField(max_length=16, blank=True,verbose_name=u'省')
     receiver_city = models.CharField(max_length=16, blank=True,verbose_name=u'市')
@@ -173,7 +174,6 @@ class UserSingleAddress(BaseModel):
         app_label = 'pay'
         verbose_name=u'特卖用户/唯一地址'
         verbose_name_plural = u'特卖用户/唯一地址列表'
-
 
 
 class UserAddressChange(BaseModel):
@@ -238,9 +238,11 @@ class UserAddressChange(BaseModel):
             for attrname in update_fields:
                 setattr(strade, attrname, getattr(new_address, attrname))
             try:
+                logistics_company_id = None
                 if new_address.logistic_company_code:
                     from shopback.logistics.models import LogisticsCompany
                     logistics_company = LogisticsCompany.objects.get(code=new_address.logistic_company_code)
+                    logistics_company_id = logistics_company.id
                     strade.logistics_company = logistics_company
                 strade.user_address_id = new_address.id
                 strade.save(update_fields=update_fields + ['user_address_id', 'logistics_company'])
@@ -249,7 +251,7 @@ class UserAddressChange(BaseModel):
                 for pid in self.package_order_ids.split(','):
                     if pid:
                         package = PackageOrder.objects.get(pid=int(pid))
-                        package.refresh()
+                        package.refresh(logistics_company_id)
                 self.status = 1
             except Exception, ex:
                 logger.error(str(u'用户修改地址出错:') + str(ex))
