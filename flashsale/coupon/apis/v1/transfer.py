@@ -195,6 +195,7 @@ def send_new_elite_transfer_coupons(customer_id, order_id, order_oid, product_id
                     strade = so.sale_trade
                     if strade and strade.extras_info and strade.extras_info.has_key('mm_linkid'):
                         if strade.extras_info['mm_linkid'] != 0 and strade.extras_info['mm_linkid'] != to_mama.id:
+                            to_mama.referal_from = XiaoluMama.INDIRECT
                             #modify relation ship
                             relation_ship.referal_type = XiaoluMama.ELITE
                             relation_ship.referal_from_mama_id = strade.extras_info['mm_linkid']
