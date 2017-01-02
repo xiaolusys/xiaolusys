@@ -141,7 +141,6 @@ STATSD_CLIENT = 'django_statsd.clients.normal'
 #         ) + MIDDLEWARE_CLASSES
 
 ######################## WEIXIN CONFIG ########################
-
 WX_NOTIFY_URL = 'http://i.xiaolumm.com/rest/notify/wxpay/'
 WX_JS_API_CALL_URL ='http://i.xiaolumm.com/pay/?showwxpaytitle=1'
 
@@ -172,6 +171,10 @@ WX_CERT_PEM_PATH = '/data/certs/wx/apiclient_cert.pem'
 WX_KEY_PEM_PATH = '/data/certs/wx/apiclient_key.pem'
 
 WX_REFUND_USER_ID = 'refundem2'
+
+# 微信小程序
+WEAPP_APPID = 'wxea4fd45c52e4a20e'
+WEAPP_SECRET = '123456'
 
 ################### PING++ SETTINGS ##################
 
