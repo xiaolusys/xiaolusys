@@ -911,7 +911,8 @@ class NinePicAdverSerialize(serializers.ModelSerializer):
         """
         mama_id = self.context['mama_id']
         mama_link = get_mama_link(mama_id, obj)
-        return util_emoji.match_emoji(obj.description) + mama_link
+        data = [obj.title, mama_link, util_emoji.match_emoji(obj.description)]
+        return '\n'.join(data)
 
 
 class ModifyTimesNinePicAdverSerialize(serializers.ModelSerializer):

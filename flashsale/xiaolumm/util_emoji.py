@@ -78,7 +78,7 @@ def get_emoji(key):
     all_emoji = get_all_emoji()
     if key in all_emoji:
         return all_emoji[key]
-    return None
+    return ''
 
 
 def gen_random_emoji():
