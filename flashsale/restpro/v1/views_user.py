@@ -25,6 +25,7 @@ from rest_framework import renderers
 from rest_framework import authentication
 from rest_framework import exceptions
 
+from common.auth import WeAppAuthentication
 from core.options import log_action, ADDITION, CHANGE, get_systemoa_user
 from core.weixin.options import gen_weixin_redirect_url
 from core.weixin.options import gen_wxlogin_sha1_sign
@@ -485,7 +486,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
     """
     queryset = Customer.objects.all()
     serializer_class = serializers.CustomerSerializer
-    #authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 

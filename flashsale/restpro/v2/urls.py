@@ -78,6 +78,9 @@ v2_router_urls += format_suffix_patterns([
     url(r'^enable_elite_coupon', views.xiaolumm.EnableEliteCouponView.as_view()),
     url(r'^urlredirect', views.URLRedirectViewSet.as_view({'get': 'redirect'})),
     url(r'^wdt/logistics', views.WangDianTongViewSet.as_view({'post': 'logistics'})),
+
+    url(r'^weapp/login', views.WeAppViewSet.as_view({'get': 'login'})),
+    url(r'^weapp/user_info', views.WeAppViewSet.as_view({'post': 'post_user_info'})),
 ])
 
 lesson_router = routers.DefaultRouter(trailing_slash=False)
