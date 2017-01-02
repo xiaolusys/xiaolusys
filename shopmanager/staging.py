@@ -134,6 +134,10 @@ WX_KEY   = "t5UXHfwR7QEv2jMLFuZm8DdqnAT0ON9a" #支付密钥
 WX_CERT_PEM_PATH = '/data/certs/wx/apiclient_cert.pem'
 WX_KEY_PEM_PATH = '/data/certs/wx/apiclient_key.pem'
 
+# 微信小程序
+WEAPP_APPID = 'wxea4fd45c52e4a20e'
+WEAPP_SECRET = '1246301cdb41c6336d82a12600189283'
+
 ################### ALIPAY SETTINGS ##################
 ALIPAY_MCHID     = '2088911223385116'
 ALIAPY_APPID     = '2016012701123211'
