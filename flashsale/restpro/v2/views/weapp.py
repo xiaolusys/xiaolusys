@@ -109,7 +109,7 @@ class WeAppViewSet(viewsets.ViewSet):
 
         return:
         {
-            'code': 1
+            'code': 0
             'msg': ''
         }
         """
