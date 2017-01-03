@@ -458,6 +458,40 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
         return exceptions.APIException('METHOD NOT ALLOW')
 
     @list_route(methods=['GET'])
+    def list_exchanged_orders(self, request, *args, **kwargs):
+        content = request.GET
+        exchg_orders = None
+        customer = Customer.objects.normal_customer.filter(user=request.user).first()
+        if customer:
+            mama = get_charged_mama(request.user)
+            mama_id = mama.id
+            exchg_orders = CouponTransferRecord.objects.filter(coupon_from_mama_id=mama_id,
+                                                               transfer_type=CouponTransferRecord.OUT_EXCHG_SALEORDER,
+                                                               transfer_status=CouponTransferRecord.DELIVERED,
+                                                               status=CouponTransferRecord.EFFECT)
+        results = []
+        if exchg_orders:
+            for entry in exchg_orders:
+                # find sale trade use coupons
+                sale_order = SaleOrder.objects.filter(oid=entry.uni_key).first()
+                if not sale_order:
+                    continue
+                if sale_order and sale_order.extras.has_key('exchange') and (sale_order.extras['exchange'] == True):
+                    buyer_customer = Customer.objects.normal_customer.filter(id=sale_order.buyer_id).first()
+                    results.append({'exchg_template_id': entry.template_id,
+                                    'num': entry.coupon_num,
+                                    'order_id': entry.uni_key, 'sku_img': sale_order.pic_path,
+                                    'contributor_nick': buyer_customer.nick, 'status': 2,
+                                    'status_display': u'确定收益',
+                                    'order_value': round(sale_order.payment * 100), 'date_field': entry.create_time})
+
+        logger.info({
+            'message': u'list has exchanged order:result len=%s ' % (len(results)),
+            'data': '%s' % content
+        })
+        return Response(results)
+
+    @list_route(methods=['GET'])
     def list_can_exchg_orders(self, request, *args, **kwargs):
         content = request.GET
         exchg_orders = None
