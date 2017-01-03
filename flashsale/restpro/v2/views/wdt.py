@@ -13,7 +13,7 @@ from common.wdt import WangDianTong
 
 class WangDianTongViewSet(viewsets.ViewSet):
     """
-    ## GET /rest/v2/wdt/logistics
+    GET /rest/v2/wdt/logistics
     """
 
     def logistics(self, request, *args, **kwargs):
