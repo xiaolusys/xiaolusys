@@ -445,9 +445,9 @@ def apply_pending_return_transfer_coupon(coupon_ids, customer):
         chain = coupon.return_mama_chain
         upmm = chain[-1]
         if upmm not in upper_mamas:
-            upper_mamas[upmm] = 1
+            upper_mamas[upmm] = [coupon.id]
         else:
-            upper_mamas[upmm] += 1
+            upper_mamas[upmm].append(coupon.id)
     if len(template_ids) != 1:
         raise Exception('多种券不支持同时退券')
 
@@ -457,9 +457,9 @@ def apply_pending_return_transfer_coupon(coupon_ids, customer):
     coupon_value = int(template.value)
     product_img = template.extras.get("product_img") or ''
 
-    for upper_mama_id, num in upper_mamas.iteritems():
+    for upper_mama_id, cou_ids in upper_mamas.iteritems():
         # 生成 带审核 流通记录
-        total_elite_score = elite_score * num
+        total_elite_score = elite_score * len(cou_ids)
         count = CouponTransferRecord.objects.filter(transfer_type=CouponTransferRecord.IN_RETURN_COUPON,
                                                     uni_key__contains='return-upper-%s-%s-' % (
                                                         upper_mama_id, template.id)).count()
@@ -477,7 +477,7 @@ def apply_pending_return_transfer_coupon(coupon_ids, customer):
             template_id=template_id,
             order_no=uni_key,
             product_img=product_img,
-            coupon_num=num,
+            coupon_num=len(cou_ids),
             transfer_type=CouponTransferRecord.IN_RETURN_COUPON,
             uni_key=uni_key,
             date_field=datetime.date.today(),
@@ -485,8 +485,8 @@ def apply_pending_return_transfer_coupon(coupon_ids, customer):
             elite_score=total_elite_score,
             transfer_status=CouponTransferRecord.PENDING)
         new_transfer.save()
-        freeze_transfer_coupon(coupon_ids, new_transfer.id)  # 冻结优惠券
-        create_transfer_coupon_detail(new_transfer.id, coupon_ids)
+        freeze_transfer_coupon(cou_ids, new_transfer.id)  # 冻结优惠券
+        create_transfer_coupon_detail(new_transfer.id, cou_ids)
     return True
 
 
