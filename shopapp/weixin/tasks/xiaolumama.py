@@ -123,10 +123,10 @@ def task_create_or_update_weixinfans_upon_subscribe_or_scan(openid, wx_pubid, ev
     try:
         qrscene = eventkey.lower().replace('qrscene_', '')
         subscribe_time = datetime.datetime.now()
-        logger.info({
-            'message': u'scan:result qrscene=%s openid=%s' % (qrscene,  openid),
-            'date': '%s' % subscribe_time
-        })
+        # logger.info({
+        #     'message': u'scan:result qrscene=%s openid=%s' % (qrscene,  openid),
+        #     'date': '%s' % subscribe_time
+        # })
 
         wx_api = WeiXinAPI(wxpubId=wx_pubid)
         app_key = wx_api.getAppKey()
