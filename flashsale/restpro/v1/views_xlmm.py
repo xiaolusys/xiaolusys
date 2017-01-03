@@ -18,6 +18,8 @@ from rest_framework import renderers
 from rest_framework import viewsets
 from rest_framework.decorators import list_route, detail_route
 from rest_framework.exceptions import APIException
+
+from common.auth import WeAppAuthentication
 from flashsale.restpro import permissions as perms
 from rest_framework.response import Response
 from core.options import log_action, ADDITION, CHANGE
@@ -112,7 +114,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
     """
     queryset = XiaoluMama.objects.all()
     serializer_class = serializers.XiaoluMamaSerialize
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.AllowAny, )
     # permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     MM_LINKID_PATH = 'qrcode/xiaolumm'
@@ -614,7 +616,7 @@ class CarryLogViewSet(viewsets.ModelViewSet):
     """
     queryset = CarryLog.objects.all().order_by('-carry_date')
     serializer_class = serializers.CarryLogSerialize
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
@@ -716,7 +718,7 @@ class ClickCountViewSet(viewsets.ModelViewSet):
     """
     queryset = ClickCount.objects.all()
     serializer_class = serializers.ClickCountSerialize
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
@@ -757,7 +759,7 @@ class StatisticsShoppingViewSet(viewsets.ModelViewSet):
     """
     queryset = StatisticsShopping.objects.all()
     serializer_class = serializers.StatisticsShoppingSerialize
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
@@ -858,7 +860,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
     """
     queryset = CashOut.objects.all().order_by('-created')
     serializer_class = serializers.CashOutSerialize
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
     cashout_type = {"c1": 10000, "c2": 20000}
@@ -1299,7 +1301,7 @@ class ClickViewSet(viewsets.ModelViewSet):
     """
     queryset = Clicks.objects.all()
     serializer_class = serializers.ClickSerialize
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 

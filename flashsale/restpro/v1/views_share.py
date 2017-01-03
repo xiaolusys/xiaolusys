@@ -16,6 +16,7 @@ from rest_framework import status
 from rest_framework import exceptions
 from rest_framework.views import APIView
 
+from common.auth import WeAppAuthentication
 from flashsale.pay.models import CustomShare, Customer, ModelProduct
 from flashsale.xiaolumm.models import XiaoluMama
 from shopback.items.models import Product
@@ -40,7 +41,7 @@ class CustomShareViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = CustomShare.objects.filter(status=True)
     serializer_class = serializers.CustomShareSerializer
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     # permission_classes = (permissions.IsAuthenticated,)
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 

@@ -23,6 +23,7 @@ from flashsale.coupon import constants
 from flashsale.pay.models import SaleTrade
 from flashsale.coupon.apis.v1.ordersharecoupon import get_share_coupon_by_tid, create_share_coupon
 from flashsale.coupon.apis.v1.usercoupon import create_user_coupon
+from common.auth import WeAppAuthentication
 
 from mall.xiaolupay import apis as xiaolupay
 
@@ -123,7 +124,7 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
 
     queryset = UserCoupon.objects.all()
     serializer_class = serializers.UserCouponSerialize
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
 
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
@@ -458,7 +459,7 @@ def get_customer(request):
 class OrderShareCouponViewSet(viewsets.ModelViewSet):
     queryset = OrderShareCoupon.objects.all()
     serializer_class = serializers.OrderShareCouponSerialize
-    authentication_classes = (authentication.SessionAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)

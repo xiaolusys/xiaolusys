@@ -5,6 +5,8 @@ from rest_framework import permissions
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer, BrowsableAPIRenderer
 from rest_framework.views import APIView
 from rest_framework import authentication
+
+from common.auth import WeAppAuthentication
 from shopback.base.new_renders import new_BaseJSONRenderer
 from django.http import HttpResponse
 from rest_framework.response import Response
@@ -77,7 +79,7 @@ class WuliuView(APIView):
     0007     查询服务器返回错误
     '"""
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication,)
     renderer_classes = (new_BaseJSONRenderer, BrowsableAPIRenderer,)
 
     def get(self, request, *args, **kwargs):

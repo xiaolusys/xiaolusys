@@ -13,6 +13,8 @@ from django.db.models import Sum, Count
 from django_statsd.clients import statsd
 from django.shortcuts import get_object_or_404
 from rest_framework import authentication
+
+from common.auth import WeAppAuthentication
 from core import xlmm_rest_exceptions as exceptions
 from rest_framework import permissions
 from rest_framework import renderers
@@ -99,7 +101,7 @@ class MamaFortuneViewSet(viewsets.ModelViewSet):
     """
     queryset = MamaFortune.objects.all()
     serializer_class = serializers.MamaFortuneSerializer
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
 
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
@@ -226,7 +228,7 @@ class CarryRecordViewSet(viewsets.ModelViewSet):
 
     queryset = CarryRecord.objects.all()
     serializer_class = serializers.CarryRecordSerializer
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
 
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
@@ -289,7 +291,7 @@ class OrderCarryViewSet(viewsets.ModelViewSet):
     queryset = OrderCarry.objects.all()
     page_size = 10
     serializer_class = serializers.OrderCarrySerializer
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
 
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
@@ -367,7 +369,7 @@ class ClickCarryViewSet(viewsets.ModelViewSet):
 
     queryset = ClickCarry.objects.all()
     serializer_class = serializers.ClickCarrySerializer
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
 
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
@@ -413,7 +415,7 @@ class AwardCarryViewSet(viewsets.ModelViewSet):
 
     queryset = AwardCarry.objects.all()
     serializer_class = serializers.AwardCarrySerializer
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
 
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
@@ -447,7 +449,7 @@ class ActiveValueViewSet(viewsets.ModelViewSet):
 
     queryset = ActiveValue.objects.all()
     serializer_class = serializers.ActiveValueSerializer
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
 
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
@@ -492,7 +494,7 @@ class ReferalRelationshipViewSet(viewsets.ModelViewSet):
 
     queryset = ReferalRelationship.objects.all()
     serializer_class = serializers.ReferalRelationshipSerializer
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
 
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
@@ -533,7 +535,7 @@ class GroupRelationshipViewSet(viewsets.ModelViewSet):
 
     queryset = GroupRelationship.objects.all()
     serializer_class = serializers.GroupRelationshipSerializer
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
 
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
@@ -566,7 +568,7 @@ class UniqueVisitorViewSet(viewsets.ModelViewSet):
 
     queryset = UniqueVisitor.objects.all()
     serializer_class = serializers.UniqueVisitorSerializer
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
 
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
@@ -616,7 +618,7 @@ class XlmmFansViewSet(viewsets.ModelViewSet):
 
     queryset = XlmmFans.objects.all()
     serializer_class = serializers.XlmmFansSerializer
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
 
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
@@ -711,7 +713,7 @@ class OrderCarryVisitorView(APIView):
     queryset = UniqueVisitor.objects.all()
     page_size = 10
     serializer_class = serializers.UniqueVisitorSerializer
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
 
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
@@ -769,7 +771,7 @@ class DailyStatsViewSet(viewsets.ModelViewSet):
 
     queryset = DailyStats.objects.all()
     serializer_class = serializers.DailyStatsSerializer
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
 
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
@@ -818,7 +820,7 @@ class ModelProductViewSet(viewsets.ModelViewSet):
 
     queryset = ModelProduct.objects.all()
     serializer_class = ModelProductSerializer
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
 
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
@@ -879,7 +881,7 @@ class MamaAdministratorViewSet(APIView):
     ## GET /rest/v2/mama/administrator
     """
 
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, *args, **kwargs):
@@ -938,7 +940,7 @@ class ActivateMamaView(APIView):
     GET /rest/v2/mama/activate
     """
 
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
 
 
@@ -958,7 +960,7 @@ class CashOutToAppView(APIView):
     """
     GET /rest/v2/mama/cashout_to_app
     """
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, *args, **kwargs):
@@ -979,7 +981,7 @@ class RedirectActivityEntryView(APIView):
     """
     GET /rest/v2/mama/redirect_activity_entry?activity_id=xx
     """
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, *args, **kwargs):
@@ -1060,7 +1062,7 @@ class CashOutPolicyView(APIView):
     GET /rest/v2/mama/cashout_policy
     """
 
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
 
     MIN_CASHOUT_AMOUNT = 200   #分
@@ -1080,7 +1082,7 @@ class RecruitEliteMamaView(APIView):
     """
     POST /rest/v2/mama/recruit_elite_mama
     """
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
 
     throttle_scope = 'auth'
@@ -1146,7 +1148,7 @@ class EnableEliteCouponView(APIView):
     """
     POST /rest/v2/mama/enable_elite_coupon
     """
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
     
     def post(self, request, *args, **kwargs):

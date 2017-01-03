@@ -12,6 +12,7 @@ from rest_framework.decorators import list_route, detail_route
 from rest_framework import exceptions
 from rest_framework import filters
 
+from common.auth import WeAppAuthentication
 from flashsale.restpro import permissions as perms
 from flashsale.restpro.v2.serializers import CouponTransferRecordSerializer
 
@@ -89,7 +90,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
     queryset = CouponTransferRecord.objects.all()
     serializer_class = CouponTransferRecordSerializer
 
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
     filter_class = CouponTransferRecordFilter

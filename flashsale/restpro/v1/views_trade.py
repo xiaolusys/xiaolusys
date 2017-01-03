@@ -18,6 +18,7 @@ from rest_framework import authentication
 from rest_framework import status
 from rest_framework import exceptions
 
+from common.auth import WeAppAuthentication
 from flashsale.pay.models import (
     SaleTrade,
     SaleOrder,
@@ -75,7 +76,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     """
     queryset = ShoppingCart.objects.all()
     serializer_class = serializers.ShoppingCartSerializer
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer, renderers.TemplateHTMLRenderer)
     template_name = 'homeback.html'
@@ -462,7 +463,7 @@ class SaleOrderViewSet(viewsets.ModelViewSet):
     """
     queryset = SaleOrder.objects.all()
     serializer_class = serializers.SaleOrderSerializer  # Create your views here.
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
@@ -561,7 +562,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     """
     queryset = SaleTrade.objects.all()
     serializer_class = serializers.SaleTradeSerializer  # Create your views here.
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
@@ -1141,7 +1142,7 @@ class WXOrderViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = WXOrder.objects.all()
     serializer_class = serializers.WXOrderSerializer
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 

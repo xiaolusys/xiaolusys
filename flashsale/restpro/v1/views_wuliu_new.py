@@ -4,6 +4,8 @@ import urllib, urllib2
 from rest_framework import permissions
 from rest_framework import authentication
 from rest_framework.response import Response
+
+from common.auth import WeAppAuthentication
 from shopback.trades.models import TradeWuliu
 from shopback.items.models import Product
 import datetime
@@ -33,7 +35,7 @@ class WuliuViewSet(viewsets.ModelViewSet):
     """
     queryset = TradeWuliu.objects.all()
     serializer_class = serializers.TradeWuliuSerializer
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
     gap_time = 7200  # 查询间隔时间
