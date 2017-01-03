@@ -477,6 +477,8 @@ class SaleTrade(BaseModel):
             for so in self.sale_orders.all():
                 so.set_psi_paid()
         self.update_teambuy()
+        from shopback.trades.apis.v1.packet import packing_skus
+        packing_skus()
 
     def redeliver_sku_item(self, old_sale_order):
         sku = ProductSku.objects.get(id=old_sale_order.sku_id)

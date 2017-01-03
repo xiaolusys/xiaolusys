@@ -110,7 +110,7 @@ class TradeNormalTestCase(TestCase):
         inbound.save()
         """质检"""
         ibd = inbound.details.first()
-        ibd.finish_check2()
+        ibd.finish_check_direct()
         ibd.save()
         ibd.sync_order_detail()
         inbound.status = InBound.COMPLETED

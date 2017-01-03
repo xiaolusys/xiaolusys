@@ -1040,18 +1040,35 @@ class OrderDetail(models.Model):
             stat.save(update_fields=['inbound_quantity', 'modified'])
             stat.relase_assign(orderlist=self.orderlist)
 
-def update_productskustats_inbound_quantity(sender, instance, created,
-                                            **kwargs):
-    # instance.reset_sku_stock()
-    # Note: chichu_id is actually the id of related ProductSku record.
-    from shopback.items.tasks_stats import task_orderdetail_update_productskustats_inbound_quantity
-    task_orderdetail_update_productskustats_inbound_quantity(instance)
+    def sync_stock(self):
+        ori_arrival_quantity = self.arrival_quantity
+        self.arrival_quantity = self.records.filter(
+            inbounddetail__checked=True).aggregate(
+            n=Sum('arrival_quantity')).get('n') or 0
+        self.inferior_quantity = self.records.filter(
+            inbounddetail__checked=True).aggregate(
+            n=Sum('inferior_quantity')).get('n') or 0
+        self.non_arrival_quantity = self.buy_quantity - self.arrival_quantity \
+                                           - self.inferior_quantity
+        self.arrival_time = self.records.order_by('-created').first().created
+        self.save()
+        now_add = self.arrival_quantity - ori_arrival_quantity
+        SkuStock.add_inbound_quantity(self.chichu_id, now_add)
+        SkuStock.get_by_sku(self.chichu_id).assign(orderlist=self.orderlist)
 
 
-post_save.connect(
-    update_productskustats_inbound_quantity,
-    sender=OrderDetail,
-    dispatch_uid='post_save_update_productskustats_inbound_quantity')
+# def update_productskustats_inbound_quantity(sender, instance, created,
+#                                             **kwargs):
+#     # instance.reset_sku_stock()
+#     # Note: chichu_id is actually the id of related ProductSku record.
+#     from shopback.items.tasks_stats import task_orderdetail_update_productskustats_inbound_quantity
+#     task_orderdetail_update_productskustats_inbound_quantity(instance)
+
+
+# post_save.connect(
+#     update_productskustats_inbound_quantity,
+#     sender=OrderDetail,
+#     dispatch_uid='post_save_update_productskustats_inbound_quantity')
 
 
 def update_orderlist(sender, instance, created, **kwargs):
