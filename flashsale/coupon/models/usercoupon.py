@@ -88,6 +88,8 @@ class UserCoupon(BaseModel):
                                verbose_name=u"优惠券唯一标识")  # type: text_type
     status = models.IntegerField(default=UNUSED, choices=USER_COUPON_STATUS, verbose_name=u"使用状态")  # type: int
     is_pushed = models.BooleanField(default=False, db_index=True, verbose_name=u'是否推送')  # type: bool
+    is_chained = models.BooleanField(default=False, db_index=True, verbose_name=u'是否转手')  # type: bool
+
     extras = JSONCharMyField(max_length=1024, default=default_coupon_extras, blank=True, null=True,
                              verbose_name=u"附加信息")  # type: text_type
     objects = UserCouponManager()

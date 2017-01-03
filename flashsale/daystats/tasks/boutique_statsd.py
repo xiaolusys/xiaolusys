@@ -7,7 +7,7 @@ from django.db.models import Sum, F, Count
 
 from shopmanager import celery_app as app
 
-from flashsale.coupon.models import CouponTransferRecord, TransferCouponDetail
+from flashsale.coupon.models import CouponTransferRecord, TransferCouponDetail, UserCoupon
 from flashsale.xiaolumm.models import OrderCarry
 
 
@@ -45,6 +45,9 @@ def task_transfer_coupon_order_statsd():
     exchg_order_num = ctr_qs.filter(transfer_type=CouponTransferRecord.OUT_EXCHG_SALEORDER).aggregate(
         exchg_amounts=Sum(F('coupon_num') * F('coupon_value'))).get('exchg_amounts') or 0
 
+    coupon_chained_detail = UserCoupon.objects.filter(is_chained=True, status=UserCoupon.CANCEL).aggregate(
+        chained_num=Count('id'), chained_amount=Sum('value'))
+
     dt_str = datetime.datetime.now().strftime('%Y.%m.%d')
     statsd.gauge('xiaolumm.boutique.coupon.sale_num.%s'%dt_str, coupon_sale_num)
     statsd.gauge('xiaolumm.boutique.coupon.sale_amount.%s'% dt_str, coupon_sale_amount)
@@ -53,6 +56,8 @@ def task_transfer_coupon_order_statsd():
     statsd.gauge('xiaolumm.boutique.coupon.refund_over_amount.%s'% dt_str, refund_return_num)
     statsd.gauge('xiaolumm.boutique.coupon.exchg_order_amount.%s'% dt_str, exchg_order_num)
 
+    statsd.gauge('xiaolumm.boutique.coupon.chained_num.%s' % dt_str, coupon_chained_detail.get('chained_num') or 0)
+    statsd.gauge('xiaolumm.boutique.coupon.chained_amount.%s' % dt_str, coupon_chained_detail.get('chained_amount') or 0)
     statsd.gauge('xiaolumm.boutique.coupon.transfer_count.%s' % dt_str, transfer_details.get('transfer_count') or 0)
     statsd.gauge('xiaolumm.boutique.coupon.transfer_nums.%s' % dt_str, transfer_details.get('transfer_nums') or 0)
     statsd.gauge('xiaolumm.boutique.coupon.transfer_amounts.%s' % dt_str, transfer_details.get('transfer_amounts') or 0)

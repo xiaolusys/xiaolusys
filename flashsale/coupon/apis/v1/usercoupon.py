@@ -291,6 +291,7 @@ def transfer_coupons(coupons, to_customer_id, transfer_record_id, chain):
             coupon.extras['chain'] = chain
         else:
             coupon.extras['chain'].extend(chain)
+        coupon.is_chained = True
         coupon.save()
         coupon_ids.append(coupon.id)
     create_transfer_coupon_detail(transfer_record_id, coupon_ids)
