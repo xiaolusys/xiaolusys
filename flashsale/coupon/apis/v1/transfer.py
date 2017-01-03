@@ -177,7 +177,7 @@ def send_new_elite_transfer_coupons(customer_id, order_id, order_oid, product_id
 
         # 购买338变为精英妈妈
         from flashsale.xiaolumm.models.models import XiaoluMama
-        to_mama = customer.get_charged_mama()
+        to_mama = customer.get_xiaolumm()
         if to_mama.last_renew_type < XiaoluMama.ELITE:
             to_mama.last_renew_type = XiaoluMama.ELITE
             to_mama.charge_status = XiaoluMama.CHARGED
@@ -243,7 +243,7 @@ def send_new_elite_transfer_coupons(customer_id, order_id, order_oid, product_id
         uni_key = "%s-%s" % (to_mama.id, order_id)
         coupon_value = int(template.value)
         product_img = template.extras.get("product_img") or ''
-        elite_score = 50
+        elite_score = coupon_num * 10
 
         try:
             transfer = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id,
