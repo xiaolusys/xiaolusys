@@ -16,6 +16,9 @@ from flashsale.pay.models.user import Customer
 from shopapp.weixin.models.base import WeixinUnionID
 
 
+TOKEN_TIMEOUT = 60 * 60 * 2  # token 2小时过期
+
+
 class WXBizDataCrypt:
     def __init__(self, appId, sessionKey):
         self.appId = appId
@@ -90,7 +93,7 @@ class WeAppViewSet(viewsets.ViewSet):
             data['customer_id'] = customer.id
 
         token = 'weapp' + os.urandom(24).encode('hex')
-        cache.set(token, data)
+        cache.set(token, data, TOKEN_TIMEOUT)
         resp = {
             'token': token,
             'unionid': unionid,
@@ -155,6 +158,6 @@ class WeAppViewSet(viewsets.ViewSet):
 
         token_value['customer_id'] = customer.id
         token_value['unionid'] = unionid
-        cache.set(token, token_value)
+        cache.set(token, token_value, TOKEN_TIMEOUT)
         return Response({'code': 0, 'mgs': 'OK'})
 
