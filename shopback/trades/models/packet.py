@@ -366,7 +366,7 @@ class PackageOrder(models.Model):
         """
         if logistics_company_id and not self.logistics_company_id:
             self.logistics_company_id = logistics_company_id
-            self.save()
+            self.save(update_fields=['logistics_company_id'])
             return
         if logistics_company_id and self.logistics_company_id:
             self.logistics_company_id = logistics_company_id
@@ -677,7 +677,7 @@ class PackageSkuItem(BaseModel):
     init_assigned = models.BooleanField(default=False, verbose_name=u'初始即分配')
     is_boutique = models.BooleanField(default=False, db_index=True, verbose_name=u'精品订单')
 
-    pay_time = models.DateTimeField(db_index=True, verbose_name=u'确认要发时间（付款时间|天猫成交时间|退货审核时间|该时间决定发货顺序）')
+    pay_time = models.DateTimeField(db_index=True, verbose_name=u'确认要发时间',help_text=u'付款时间|天猫成交时间|退货审核时间|该时间决定发货顺序')
     book_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'准备订货时间')
     booked_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'订下货时间')
     ready_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'分配时间')
@@ -998,8 +998,6 @@ class PackageSkuItem(BaseModel):
                         total=Sum('num'))}
             for sku_id in skus:
                 SkuStock.set_psi_booked_2_assigned(sku_id, skus[sku_id], stat=True)
-        from shopback.trades.tasks import task_trade_merge
-        transaction.on_commit(lambda: task_trade_merge.delay())
 
     def set_status_init_assigned(self):
         self.status = PSI_STATUS.ASSIGNED
@@ -1008,8 +1006,6 @@ class PackageSkuItem(BaseModel):
         self.assign_time = datetime.datetime.now()
         self.save()
         SkuStock.set_psi_init_assigned(self.sku_id, self.num)
-        from shopback.trades.tasks import task_trade_merge
-        transaction.on_commit(lambda: task_trade_merge.delay())
 
     def set_status_not_assigned(self, stat=True, save=True, rebook=True):
         self.status = PSI_STATUS.PAID
@@ -1274,6 +1270,11 @@ class PackageSkuItem(BaseModel):
 
     def is_finished(self):
         return self.assign_status == PackageSkuItem.FINISHED
+
+    @staticmethod
+    def packing_skus_delay():
+        from shopback.trades.tasks import task_trade_merge
+        transaction.on_commit(lambda: task_trade_merge.delay())
 
 
 def update_productsku_salestats_num(sender, instance, created, **kwargs):

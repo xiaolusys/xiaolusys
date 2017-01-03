@@ -14,7 +14,8 @@ from core.options import log_action, ADDITION, CHANGE
 from flashsale.dinghuo.models import (OrderDraft, OrderDetail, OrderList,
                                       InBound, InBoundDetail,
                                       OrderDetailInBoundDetail)
-from shopback.items.models import Product,ProductSku
+from shopback.items.models import Product, ProductSku
+from shopback.trades.apis.v1.packet import packing_skus
 from supplychain.supplier.models import SaleProduct, SaleSupplier
 from .. import forms, functions, functions2view, models
 from django.shortcuts import get_object_or_404
@@ -391,6 +392,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
         inbound_detail = get_object_or_404(InBoundDetail, id=inbound_detail_id)
         try:
             inbound_detail.change_total_quantity(num)
+            inbound_detail.sync_order_detail()
             return Response({'res': True})
         except Exception, e0:
             raise exceptions.ParseError(e0.message)
@@ -407,7 +409,8 @@ class InBoundViewSet(viewsets.GenericViewSet):
             if relation:
                 relation.change_arrival_quantity(num)
             else:
-                relation = inbound.add_order_detail(orderdetail, num)
+                # relation = inbound.add_order_detail(orderdetail, num)
+                relation = inbound.add_allocate_order_detail(orderdetail, num)
             return Response({'res': True, 'data': {'sku': relation.inbounddetail.sku_id,
                                                    'status_info': relation.inbounddetail.get_status_info()}})
         except Exception, e0:
@@ -420,6 +423,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
         sku_data = json.loads(inferior_data)
         try:
             inbound.finish_check(sku_data)
+            packing_skus()
             return Response({'res': True})
         except Exception, e0:
             raise exceptions.ParseError(e0.message)
@@ -431,7 +435,8 @@ class InBoundViewSet(viewsets.GenericViewSet):
         arrival_quantity = int(request.POST.get("arrival_quantity"))
         inferior_quantity = int(request.POST.get("inferior_quantity"))
         try:
-            inbound_detail.finish_change_inferior(arrival_quantity, inferior_quantity)
+            inbound_detail.finish_check(arrival_quantity, inferior_quantity)
+            packing_skus()
             return Response({'res': True})
         except Exception, e0:
             raise exceptions.ParseError(e0.message)

@@ -477,7 +477,7 @@ class SkuStock(models.Model):
         # stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
         stock = SkuStock._objects.get(sku_id=sku_id)
         stock.return_quantity += num
-        change_fields = ['inbund_quantity']
+        change_fields = ['inbound_quantity']
         stock.stat_save(change_fields, stat=stat, warning=warning)
 
     @staticmethod
