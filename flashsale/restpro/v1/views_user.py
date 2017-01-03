@@ -486,7 +486,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
     """
     queryset = Customer.objects.all()
     serializer_class = serializers.CustomerSerializer
-    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication)
+    # authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication, )
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
