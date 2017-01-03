@@ -740,11 +740,11 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         if virtual_num > 0:
             if virtual_num != cart_qs.count():
                 return Response({'code': 24, 'info': u'购买精品券或虚拟商品时，只能单独购买，不能与普通商品搭配'})
-            if (goods_num < 5) and (elite_score < 30):
-                return Response({'code': 25, 'info': u'购买精品券最低购买5张或者30积分，您本次购买没有达到要求，请在购物车重新添加精品券'})
             mm = customer.getXiaolumm()
             if not (mm and (mm.referal_from == XiaoluMama.DIRECT)):
                 return Response({'code': 26, 'info': u'您没有直接购券权限，请在购券界面提交申请'})
+            if mm and (mm.elite_level != 'Associate') and (goods_num < 5) and (elite_score < 30):
+                return Response({'code': 25, 'info': u'购买精品券最低购买5张或者30积分，您本次购买没有达到要求，请在购物车重新添加精品券'})
         return False
 
     @list_route(methods=['post'])
