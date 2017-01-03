@@ -15,6 +15,8 @@ from rest_framework import renderers
 from rest_framework import authentication
 from rest_framework import status
 from rest_framework import exceptions
+
+from common.auth import WeAppAuthentication
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 
 
@@ -87,7 +89,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     """
     queryset = ShoppingCart.objects.all()
     serializer_class = serializers.ShoppingCartSerializer
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 

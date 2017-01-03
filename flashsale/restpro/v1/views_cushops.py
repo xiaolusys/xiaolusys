@@ -20,6 +20,7 @@ from flashsale.xiaolumm.models import XiaoluMama, MamaTabVisitStats
 from flashsale.pay.models import Customer, CustomerShops, CuShopPros
 from flashsale.restpro import permissions as perms
 from common.urlutils import replace_domain
+from common.auth import WeAppAuthentication
 from . import serializers
 
 
@@ -30,7 +31,7 @@ class CustomerShopsViewSet(viewsets.ModelViewSet):
     """
     queryset = CustomerShops.objects.all()
     serializer_class = serializers.CustomerShopsSerialize
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
@@ -109,7 +110,7 @@ class CuShopProsViewSet(viewsets.ModelViewSet):
     child_queryset = CuShopPros.objects.child_query()
     female_queryset = CuShopPros.objects.female_query()
     serializer_class = serializers.CuShopProsSerialize
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 

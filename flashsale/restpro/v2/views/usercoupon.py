@@ -10,6 +10,7 @@ from rest_framework import permissions
 from rest_framework import filters
 from django.db.models import Sum
 
+from common.auth import WeAppAuthentication
 from flashsale.pay.models import ModelProduct
 from shopback.items.models import Product
 from flashsale.pay.apis.v1.customer import get_customer_by_django_user
@@ -56,7 +57,7 @@ class UserCouponsFilter(filters.FilterSet):
 class UserCouponsViewSet(viewsets.ModelViewSet):
     queryset = UserCoupon.objects.all()
     serializer_class = serializers.UserCouponSerialize
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
     filter_class = UserCouponsFilter

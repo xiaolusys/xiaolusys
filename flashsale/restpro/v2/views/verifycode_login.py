@@ -14,6 +14,7 @@ from rest_framework.response import Response
 from rest_framework import authentication
 from rest_framework import permissions
 
+from common.auth import WeAppAuthentication
 from core.weixin.options import gen_wxlogin_sha1_sign
 from core.utils.regex import REGEX_MOBILE
 from flashsale.pay.models import Register, Customer
@@ -271,7 +272,7 @@ class RequestCashoutVerifyCode(views.APIView):
     /rest/v2/request_cashout_verify_code
     """
 
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
     throttle_scope = 'auth'
 

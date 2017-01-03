@@ -20,6 +20,8 @@ from rest_framework import renderers
 from rest_framework import authentication
 from rest_framework import status
 from rest_framework import exceptions
+
+from common.auth import WeAppAuthentication
 from flashsale.pay.apis.v1.order import get_user_skunum_by_last24hours
 from flashsale.pay.models import (
     SaleTrade,
@@ -105,7 +107,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     """
     queryset = SaleTrade.objects.all()
     serializer_class = serializers.SaleTradeSerializer# Create your views here.
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     # renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
 
@@ -1306,7 +1308,7 @@ class SaleOrderViewSet(viewsets.ModelViewSet):
     """
     queryset = SaleOrder.objects.all()
     serializer_class = serializers.SaleOrderSerializer  # Create your views here.
-    authentication_classes = (authentication.BasicAuthentication, authentication.SessionAuthentication)
+    authentication_classes = (authentication.BasicAuthentication, WeAppAuthentication, authentication.SessionAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 

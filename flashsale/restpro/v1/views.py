@@ -15,6 +15,8 @@ from rest_framework import renderers
 from rest_framework import authentication
 from rest_framework import status
 from rest_framework import exceptions
+
+from common.auth import WeAppAuthentication
 from flashsale.apprelease.models import AppRelease
 from .views_refund import refund_Handler
 
@@ -84,7 +86,7 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
     """
     queryset = SaleRefund.objects.all()
     serializer_class = serializers.SaleRefundSerializer
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
@@ -189,7 +191,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
     """
     queryset = UserAddress.objects.all()
     serializer_class = serializers.UserAddressSerializer  # Create your views here.
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 

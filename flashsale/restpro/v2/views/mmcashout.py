@@ -16,6 +16,7 @@ from rest_framework.decorators import detail_route, list_route
 from rest_framework.decorators import parser_classes
 from rest_framework.response import Response
 
+from common.auth import WeAppAuthentication
 from flashsale.pay.apis.v1.customer import get_customer_by_django_user
 from flashsale.xiaolumm.models import CashOut
 from flashsale.xiaolumm.apis.v1.xiaolumama import get_mama_by_openid
@@ -37,7 +38,7 @@ class CashOutViewSet(viewsets.ModelViewSet):
     """
     queryset = CashOut.objects.all()
     serializer_class = mmcashout.CashOueSerializer
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication, )
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication, )
     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer, )
     filter_backends = (filters.DjangoFilterBackend,)
