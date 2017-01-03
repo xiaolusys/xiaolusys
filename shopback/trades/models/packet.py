@@ -473,7 +473,7 @@ class PackageOrder(models.Model):
             PackageSkuItem.objects.filter(id=psi.id).update(package_order_id=package_order.id,
                                                             package_order_pid=package_order.pid)
         if package_order.sys_status == 'WAIT_PREPARE_SEND_STATUS':
-            package_order.set_logistics_company()
+            package_order.set_logistics_company(sale_trade.logistics_company_id)
         return package_order
 
     @staticmethod
@@ -580,13 +580,13 @@ class PackageOrder(models.Model):
             psi.set_status_finish()
 
 
-def check_package_order_status(sender, instance, created, **kwargs):
-    from shopback.logistics.tasks import task_get_logistics_company
-    if instance.sys_status == PackageOrder.WAIT_PREPARE_SEND_STATUS and not instance.logistics_company:
-        transaction.on_commit(lambda: task_get_logistics_company.delay(instance.id))
-
-
-post_save.connect(check_package_order_status, sender=PackageOrder)
+# def check_package_order_status(sender, instance, created, **kwargs):
+#     from shopback.logistics.tasks import task_get_logistics_company
+#     if instance.sys_status == PackageOrder.WAIT_PREPARE_SEND_STATUS and not instance.logistics_company:
+#         transaction.on_commit(lambda: task_get_logistics_company.delay(instance.id))
+#
+#
+# post_save.connect(check_package_order_status, sender=PackageOrder)
 
 
 def is_merge_trade_package_order_diff(package):
