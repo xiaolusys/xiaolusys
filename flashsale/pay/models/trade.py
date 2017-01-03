@@ -1306,24 +1306,35 @@ def post_save_order_trigger(sender, instance, created, raw, **kwargs):
     from flashsale.coupon.apis.v1.transfer import send_new_elite_transfer_coupons
 
     def _order_trigger(instance):
-        if instance.is_deposit():
-            if instance.is_confirmed():
-                if instance.is_1_deposit():  # 一元开店 不记录推荐关系
-                    return
-                if instance.is_transfer_coupon():
-                    if instance.is_new_elite_deposit():
-                        send_new_elite_transfer_coupons(instance.sale_trade.buyer_id, instance.id,
-                                                        instance.oid, instance.item_id)
+        message = 'oK'
+        try:
+            if instance.is_deposit():
+                if instance.is_confirmed():
+                    if instance.is_1_deposit():  # 一元开店 不记录推荐关系
                         return
-                    else:
-                        send_order_transfer_coupons(instance.sale_trade.buyer_id, instance.id,
-                                                    instance.oid, instance.num, instance.item_id)
-                        return
-                task_update_referal_relationship.delay(instance)
-        else:
-            task_order_trigger.delay(instance)
+                    if instance.is_transfer_coupon():
+                        if instance.is_new_elite_deposit():
+                            send_new_elite_transfer_coupons(instance.sale_trade.buyer_id, instance.id,
+                                                            instance.oid, instance.item_id)
+                            return
+                        else:
+                            send_order_transfer_coupons(instance.sale_trade.buyer_id, instance.id,
+                                                        instance.oid, instance.num, instance.item_id)
+                            return
+                    task_update_referal_relationship(instance)
+            else:
+                task_order_trigger(instance)
+        except Exception, exc:
+            message = traceback.format_exc(),
+        logger.info({
+            'action': 'task_order_trigger',
+            'action_time': datetime.datetime.now(),
+            'order_oid': instance.oid,
+            'traceback': message,
+        })
 
     transaction.on_commit(lambda: _order_trigger(instance))
+
 
 # @receiver(signal_saleorder_post_update, sender=SaleOrder, dispatch_uid='post_save_update_package_sku_item')
 def update_package_sku_item(sender, instance, created, **kwargs):
