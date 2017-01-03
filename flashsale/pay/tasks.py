@@ -985,3 +985,50 @@ def task_schedule_check_teambuy():
             teambuy.set_status_success()
         else:
             teambuy.set_status_failed()
+
+
+@app.task()
+def task_schedule_check_user_budget(days=1):
+    # type: (int) -> None
+    """定时检查用户钱包，异常发送dingding通知
+    """
+    from common.dingding import DingDingAPI
+
+    def _check_user_budget(customer_id):
+        # type: (int) -> bool
+        bglogs = BudgetLog.objects.filter(customer_id=customer_id).exclude(status=BudgetLog.CANCELED)
+        records = bglogs.values('budget_type', 'status').annotate(total=Sum('flow_amount'))
+
+        in_amount, out_amount = 0, 0
+        for entry in records:
+            if entry["budget_type"] == BudgetLog.BUDGET_IN and entry["status"] == BudgetLog.CONFIRMED:
+                # 收入只计算confirmed
+                in_amount += entry["total"]
+            if entry["budget_type"] == BudgetLog.BUDGET_OUT:
+                # 只出计算confirmed+pending
+                out_amount += entry["total"]
+        cash = in_amount - out_amount
+        budget = UserBudget.objects.filter(user=customer_id).first()
+        if budget.amount != cash:
+            return False
+        return True
+
+    now = datetime.datetime.now()
+    today = datetime.datetime(now.year, now.month, now.day) - datetime.timedelta(days=days)
+    bgs = BudgetLog.objects.filter(created__gt=today).values('customer_id')
+
+    customer_ids = set([x['customer_id'] for x in bgs])
+    errors = []
+    for i, customer_id in enumerate(customer_ids):
+        if not _check_user_budget(customer_id):
+            errors.append(str(customer_id))
+
+    tousers = [
+        '02401336675559',  # 伍磊
+        '01591912287010',  # 林杰
+    ]
+    msg = '定时检查用户钱包数据:\n时间: %s \n历史天数:%s\n钱包记录条数:%s\n错误用户有:%s' % \
+          (str(datetime.datetime.now()), str(days), str(bgs.count()), '[%s]' % ','.join(errors))
+    dd = DingDingAPI()
+    for touser in tousers:
+        dd.sendMsg(msg, touser)

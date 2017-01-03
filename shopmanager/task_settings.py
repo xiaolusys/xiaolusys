@@ -1549,6 +1549,12 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_repair_mama_wallet'}
     },
+    u'定时检查用户钱包不一致问题': {
+        'task': 'flashsale.pay.tasks.task_schedule_check_user_budget',
+        'schedule': crontab(hour="10"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_schedule_check_user_budget'}
+    },
 }
 
 WDT_SCHEDULE = {
