@@ -483,7 +483,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                                     'order_id': entry.uni_key, 'sku_img': sale_order.pic_path,
                                     'contributor_nick': buyer_customer.nick, 'status': 2,
                                     'status_display': u'确定收益',
-                                    'order_value': round(sale_order.payment * 100), 'date_field': entry.create_time})
+                                    'order_value': round(sale_order.payment * 100), 'date_field': entry.created})
 
         logger.info({
             'message': u'list has exchanged order:result len=%s ' % (len(results)),
