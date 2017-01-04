@@ -993,6 +993,14 @@ class ReferalRelationship(BaseModel):
             return customer.mobile
         return None
 
+    def is_confirmed(self):
+        return self.referal_type == XiaoluMama.FULL or self.referal_type == XiaoluMama.HALF
+
+    def referal_to_mama_nick_display(self):
+        if self.referal_to_mama_nick == "":
+            return u"匿名用户"
+        return self.referal_to_mama_nick
+
     @classmethod
     def get_ship_chain(cls, to_mama_id, from_mama_id):
         # type: (int, int) -> List[int]
@@ -1010,13 +1018,13 @@ class ReferalRelationship(BaseModel):
                 break
         return chain
 
-    def is_confirmed(self):
-        return self.referal_type == XiaoluMama.FULL or self.referal_type == XiaoluMama.HALF
-
-    def referal_to_mama_nick_display(self):
-        if self.referal_to_mama_nick == "":
-            return u"匿名用户"
-        return self.referal_to_mama_nick
+    @staticmethod
+    def get_referal_dict(mama_ids):
+        rr = ReferalRelationship.objects.filter(referal_from_mama_id__in=mama_ids).values_list('referal_from_mama_id', 'referal_to_mama_id')
+        res = {}
+        for line in rr:
+            res[line[0]] = res.get(line[0], []) + [line[1]]
+        return res
 
     def get_referal_award(self):
         """ 获取妈妈的推荐红包 """
@@ -1067,14 +1075,6 @@ class ReferalRelationship(BaseModel):
             return True
         return False
 
-    @staticmethod
-    def get_referal_dict(mama_ids):
-        rr = ReferalRelationship.objects.filter(referal_from_mama_id__in=mama_ids).values_list('referal_from_mama_id', 'referal_to_mama_id')
-        res = {}
-        for line in rr:
-            res[line[0]] = res.get(line[0], []) + [line[1]]
-        return res
-
     @classmethod
     def create_relationship_by_potential(cls, potential_record):
         """ 通过潜在妈妈列表中的记录创建推荐关系 """
@@ -1099,6 +1099,31 @@ class ReferalRelationship(BaseModel):
                    referal_to_mama_img=potential_record.thumbnail)
         ship.save()
         return ship
+
+    def change_referal_mama(self, upper_mama_id, is_elite=False):
+        # type: (int) -> bool
+        """更换上级妈妈
+        """
+        from ..apis.v1.relationship import get_relationship_by_mama_id
+        update_fields = []
+        if self.referal_from_mama_id != upper_mama_id:
+            self.referal_from_mama_id = upper_mama_id
+            update_fields.append('referal_from_mama_id')
+
+        upper_mama_relationship = get_relationship_by_mama_id(upper_mama_id)
+        grand_mama_id = upper_mama_relationship.referal_from_mama_id if upper_mama_relationship else 0
+        if self.referal_from_grandma_id != grand_mama_id:
+            self.referal_from_grandma_id = grand_mama_id
+            update_fields.append('referal_from_grandma_id')
+
+        if update_fields:  # 说明有更换上级
+            if is_elite:  # 是否是更新为精英妈妈
+                self.referal_type = XiaoluMama.ELITE
+                update_fields.append('referal_type')
+            update_fields.append('modified')
+            self.save(update_fields=update_fields)
+            return True
+        return False
 
 
 def referalrelationship_xlmm_newtask(sender, instance, **kwargs):

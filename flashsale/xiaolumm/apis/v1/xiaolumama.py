@@ -1,5 +1,6 @@
 # coding=utf-8
 from __future__ import unicode_literals, absolute_import
+from django.db import transaction
 from core.options import get_systemoa_user
 from core.options import log_action, CHANGE
 from flashsale.coupon.apis.v1.usercoupon import release_coupon_for_deposit
@@ -12,7 +13,8 @@ __ALL__ = [
     'get_mama_by_id',
     'mama_pay_deposit',
     'set_mama_manager_by_mama_id',
-    'get_mama_by_openid'
+    'get_mama_by_openid',
+    'change_mama_follow_elite_mama'
 ]
 
 
@@ -67,3 +69,31 @@ def set_mama_manager_by_mama_id(mama_id, manager_id):
         mm.manager = manager_id
         mm.save(update_fields=['manager'])
     return mm
+
+
+def change_mama_follow_elite_mama(mama_id, upper_mama_id, direct_info):
+    # type: (int, int, text_type) -> bool
+    """修改推荐关系的上级,修改该妈妈的上级为指定的精英妈妈
+    """
+    from .relationship import get_relationship_by_mama_id
+
+    mm = get_mama_by_id(mama_id)
+    upper_elite_mama = get_mama_by_id(upper_mama_id)
+
+    if upper_elite_mama.last_renew_type < XiaoluMama.ELITE:
+        raise Exception('指定的上级妈妈不是精英妈妈')
+
+    relationship = get_relationship_by_mama_id(mm.id)  # 获取当前妈妈的推荐关系
+    if not relationship:
+        raise Exception('推荐关系没有找到')
+
+    with transaction.atomic():
+        if mm.charge_status != XiaoluMama.CHARGED:
+            mm.chargemama()  # 没有接管的话 要接管下
+
+        if mm.last_renew_type in [XiaoluMama.TRIAL, XiaoluMama.SCAN]:  # 试用的情况要修改该
+            mm.last_renew_type = XiaoluMama.ELITE  # 修改为精英妈妈
+        mm.referal_from = direct_info
+        mm.save()
+
+        relationship.change_referal_mama(upper_mama_id, is_elite=True)  # 修改该推荐关系的上级
