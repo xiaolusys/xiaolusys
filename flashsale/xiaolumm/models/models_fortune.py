@@ -201,7 +201,7 @@ class MamaFortune(BaseModel):
 
     @property
     def customer_id(self):
-        return self.xlmm.customer_id
+        return self.xlmm and self.xlmm.customer_id or None
 
     @property
     def xlmm(self):
