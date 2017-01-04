@@ -147,9 +147,15 @@ def task_xlmm_score():
 
 @app.task()
 def task_check_xlmm_exchg_order():
-    exchg_orders = OrderCarry.objects.filter(carry_type__in=[OrderCarry.WAP_ORDER, OrderCarry.APP_ORDER],
+    queryset = OrderCarry.objects.filter(carry_type__in=[OrderCarry.WAP_ORDER, OrderCarry.APP_ORDER],
                                          status__in=[OrderCarry.CONFIRM, OrderCarry.CANCEL],
                                          date_field__gt='2016-11-30')
+    exchg_orders = [i['order_id'] for i in queryset.values('order_id')]
+    from flashsale.pay.models.trade import SaleOrder
+    new_elite_queryset = SaleOrder.objects.filter(item_id='80281', status=SaleOrder.TRADE_FINISHED)
+    new_elite_orders = [i['oid'] for i in new_elite_queryset.values('oid')]
+    exchg_orders = set(exchg_orders) | set(new_elite_orders)
+
     order_num = 0
     succ_coupon_record_num = 0
     succ_exchg_coupon_num = 0
@@ -160,36 +166,36 @@ def task_check_xlmm_exchg_order():
     exchg_trancoupon_num = 0
     results = []
     if exchg_orders:
-        for entry in exchg_orders:
+        for order_id in exchg_orders:
             # find sale trade use coupons
-            from flashsale.pay.models.trade import SaleOrder, SaleTrade
-            sale_order = SaleOrder.objects.filter(oid=entry.order_id).first()
+            sale_order = SaleOrder.objects.filter(oid=order_id).first()
             if not sale_order:
                 continue
-            if sale_order and sale_order.extras.has_key('exchange'):
+            if sale_order and sale_order.extras.has_key('exchange') \
+                    and (sale_order.status not in [SaleOrder.TRADE_CLOSED, SaleOrder.TRADE_CLOSED_BY_SYS]):
                 order_num += 1
                 exchg_goods_num += round(sale_order.payment / sale_order.price)
                 exchg_goods_payment += round(sale_order.payment * 100)
-                results.append(entry.order_id)
+                results.append(order_id)
                 if sale_order.extras['exchange'] == True:
                     succ_exchg_goods_payment += round(sale_order.payment * 100)
                     from flashsale.coupon.models.usercoupon import UserCoupon
-                    user_coupons = UserCoupon.objects.filter(trade_tid=entry.order_id,
+                    user_coupons = UserCoupon.objects.filter(trade_tid=order_id,
                                                              status=UserCoupon.USED)
                     if user_coupons:
                         succ_coupon_record_num += 1
                         succ_exchg_coupon_num += user_coupons.count()
                     else:
                         # 可能有物流丢单破损等重新发货的场景，那么需要更新usercoupon oid
-                        if '-' in entry.order_id:
-                            oid = entry.order_id.split('-')
+                        if '-' in order_id:
+                            oid = order_id.split('-')
                             user_coupons = UserCoupon.objects.filter(trade_tid=oid[0],
                                                                      status=UserCoupon.USED)
                             if user_coupons:
                                 succ_coupon_record_num += 1
                                 succ_exchg_coupon_num += user_coupons.count()
                                 for special_coupon in user_coupons:
-                                    special_coupon.trade_tid = entry.order_id
+                                    special_coupon.trade_tid = order_id
                                     special_coupon.save()
                             else:
                                 print 'error1', sale_order.oid
@@ -227,6 +233,17 @@ def task_check_xlmm_exchg_order():
                  'message3': u'succ_coupon_record_num=%s == succ budget_num=%s' % (succ_coupon_record_num, budget_num),
                  'message4': u'exchged_goods_payment(include return exchg)=%s == exchg_budget_sum=%s , succ_exchg_goods_payment=%s == exchg_budget_sum=%s' % (exchg_goods_payment, exchg_budget_sum1, succ_exchg_goods_payment, exchg_budget_sum)
                 })
+    if order_num != budget_log1.count() or order_num != trans_num:
+        from common.dingding import DingDingAPI
+        tousers = [
+            '02401336675559',  # 伍磊
+            '01591912287010',  # 林杰
+        ]
+        msg = '定时检查boutique exchange数据:\n时间: %s \norder_num=%s == budget_num=%s == trans_num=%s\n' % \
+              (str(datetime.datetime.now()), order_num, budget_log1.count(), trans_num)
+        dd = DingDingAPI()
+        for touser in tousers:
+            dd.sendMsg(msg, touser)
 
 
 @app.task()
@@ -274,6 +291,17 @@ def task_check_xlmm_return_exchg_order():
                  'message2': u' exchg_goods_num=%s == exchg_trancoupon_num=%s' % (exchg_goods_num, exchg_trancoupon_num),
                  'message3': u'exchg_goods_payment=%s == exchg_budget_sum=%s' % (exchg_goods_payment, exchg_budget_sum)
                 })
+    if order_num != budget_num or order_num != trans_num:
+        from common.dingding import DingDingAPI
+        tousers = [
+            '02401336675559',  # 伍磊
+            '01591912287010',  # 林杰
+        ]
+        msg = '定时检查boutique return exchange数据:\n时间: %s \norder_num=%s == budget_num=%s == trans_num=%s\n' % \
+              (str(datetime.datetime.now()), order_num, budget_num, trans_num)
+        dd = DingDingAPI()
+        for touser in tousers:
+            dd.sendMsg(msg, touser)
 
 
 @app.task(max_retries=3, default_retry_delay=6)
