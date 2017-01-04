@@ -1,7 +1,15 @@
 # encoding=utf8
+"""
+计算精品汇返点, 并发放到个人钱包
+
+执行本程序前,请注意填写月份
+"""
+from decimal import Decimal
 from datetime import datetime
 from django.db.models import F, Sum, Q
 from django.core.management.base import BaseCommand
+
+from flashsale.pay.models import BudgetLog
 from flashsale.pay.models.trade import SaleOrder
 from flashsale.xiaolumm.models.models import XiaoluMama
 from flashsale.coupon.models.transfer_coupon import CouponTransferRecord
@@ -10,20 +18,34 @@ from flashsale.coupon.models.transfer_coupon import CouponTransferRecord
 class Command(BaseCommand):
     def handle(self, *args, **options):
         """
-        计算精品汇返点
+        计算精品汇返点, 并发放
         """
-        start_date = datetime(2016, 12, 1)
-        end_date = datetime(2017, 1, 1)
+
+        month = 12  # 哪个月的返点, 需要你自己填
+        start_date = datetime(2016, 12, 1)  # 这里要改
+        end_date = datetime(2017, 1, 1)  # 这里也要改
 
         mamas = self.get_mamas_score_gte()
 
         for mama in mamas:
             res = self.cal_mama_score(mama.id, start_date, end_date)
+            fd = res['fd']
             if res['fd'] > 0:
                 print '---'
                 print res['start_date'], res['end_date']
                 print mama.id
                 print u'返点:{fd}, 买券额: {payment}, 积分: {score} \n'.format(**res)
+
+                customer_id = mama.customer_id
+                flow_amount = int(Decimal(str(fd)) * 100)
+                uni_key = 'fd-{month}-{mama_id}'.format(month=12, mama_id=mama.id)
+                try:
+                    # 创建待确定收入
+                    BudgetLog.create(customer_id, BudgetLog.BUDGET_IN, flow_amount, BudgetLog.BG_FANDIAN,
+                         status=BudgetLog.PENDING, uni_key=uni_key)
+                except Exception:
+                    print u'{mama_id}在{month}月的返点已经发过了'.format(mama_id=mama.id, month=month)
+                    continue
 
 
     def task_calc_xlmm_elite_score(self, mama_id):
