@@ -32,7 +32,8 @@ def recursive_appendchilds(node, node_maps, gradient):
 
 
 def get_referalrelationship_maps():
-    referals = ReferalRelationship.objects.filter(status=ReferalRelationship.VALID).order_by('referal_from_mama_id')
+    referals = ReferalRelationship.objects.filter(
+        referal_type__gte=XiaoluMama.ELITE, status=ReferalRelationship.VALID).order_by('referal_from_mama_id')
     referals_value = referals.values('referal_to_mama_id', 'referal_from_mama_id')
 
     tree_nodes = defaultdict(list)
@@ -65,8 +66,8 @@ class Command(BaseCommand):
                 flashsale_xlmm_referal_relationship xr
                     ON fr.referal_from_mama_id = xr.referal_to_mama_id
             WHERE
-                fr. and xr.referal_from_mama_id IS NULL;
-            """
+                fr.referal_type >= %s AND (xr.referal_from_mama_id IS NULL or xr.referal_type < %s);
+            """%(XiaoluMama.ELITE, XiaoluMama.ELITE)
 
         cursor = connections['default'].cursor()
         cursor.execute(sql)
@@ -92,7 +93,6 @@ class Command(BaseCommand):
             count += 1
             if count % 100 == 0:
                 print 'save mama referal count:', count, datetime.datetime.now()
-                break
 
         cursor.close()
 

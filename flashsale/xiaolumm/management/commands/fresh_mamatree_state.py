@@ -16,8 +16,8 @@ class Command(BaseCommand):
 
         agg_mama_ids = list(MamaReferalTree.objects.values_list('referal_to_mama_id', flat=True))
 
-        referal_values_list = ReferalRelationship.objects.filter(referal_to_mama_id__in=agg_mama_ids)\
-            .values_list('referal_to_mama_id','referal_type')
+        referal_values_list = XiaoluMama.objects.filter(id__in=agg_mama_ids)\
+            .values_list('id','last_renew_type')
         referal_type_maps = dict(referal_values_list)
 
         active_values_list = ActiveValue.objects.filter(mama_id__in=agg_mama_ids) \
