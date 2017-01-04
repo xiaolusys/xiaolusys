@@ -8,11 +8,12 @@ from django.conf import settings
 
 from shopback.users.models import User
 from shopback.items.models import Item, Product, ProductSku
-from flashsale.pay.models import SaleOrder, SaleTrade
+from flashsale.pay.models import SaleOrder, SaleTrade,UserAddress
 from shopback.logistics.models import Logistics, LogisticsCompany
 from flashsale.pay.models import SaleTrade
 from shopback.items.models import SkuStock
 from flashsale import pay
+from flashsale.dinghuo.models import ReturnGoods
 import logging
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_THIRD, WARE_CHOICES
 from shopback.trades.constants import PSI_STATUS, SYS_ORDER_STATUS, IN_EFFECT, PO_STATUS, PSI_TYPE
@@ -341,6 +342,22 @@ class PackageOrder(models.Model):
             self.receiver_zip = st.receiver_zip
             self.receiver_phone = st.receiver_phone
             self.receiver_mobile = st.receiver_mobile
+
+    def reset_return_address(self):
+        item = self.package_sku_items.filter(assign_status=PackageSkuItem.ASSIGNED).order_by('-id').first()
+        if item and item.sale_trade_id:
+            st = ReturnGoods.objects.filter(id=item.sale_trade_id).first()
+            ua = UserAddress.objects.filter(supplier_id=st.supplier.id).first()
+            self.buyer_id = ua.receiver_mobile
+            self.receiver_name = ua.receiver_name
+            self.receiver_state = ua.receiver_state
+            self.receiver_city = ua.receiver_city
+            self.receiver_district = ua.receiver_district
+            self.receiver_address = ua.receiver_address
+            self.receiver_zip = ua.receiver_zip
+            self.receiver_phone = ua.receiver_phone
+            self.receiver_mobile = ua.receiver_mobile
+
 
     def set_package_address(self):
         item = self.package_sku_items.filter(assign_status=PackageSkuItem.ASSIGNED).order_by('-id').first()
@@ -1054,6 +1071,66 @@ class PackageSkuItem(BaseModel):
             else:
                 po = PackageOrder.create(package_order_id, self.sale_trade, PackageOrder.WAIT_PREPARE_SEND_STATUS, self)
 
+            self.package_order_id = po.id
+            self.package_order_pid = po.pid
+            self.save()
+            po.add_package_sku_item(self)
+            SkuStock.set_psi_merged(self.sku_id, self.num)
+
+    def get_return_address_id(self):
+        supplier_id = ReturnGoods.objects.filter(self.sale_trade_id).first().supplier.id
+        user_address = UserAddress.objects.filter(supplier_id=supplier_id).first()
+        return user_address.id
+
+    def get_return_user_id(self):
+        supplier_id = ReturnGoods.objects.filter(self.sale_trade_id).first().supplier.id
+        user_address = UserAddress.objects.filter(supplier_id=supplier_id).first()
+        if all(user_address.supplier_id,user_address.receiver_name,user_address.receiver_state,
+               user_address.receiver_city,user_address.receiver_district,user_address.receiver_address,user_address.receiver_mobile):
+            self.receiver_mobile = user_address.receiver_mobile
+            self.save()
+            return user_address.id
+        else:
+            return
+
+    def is_supplier_addr(self):
+        supplier_id = ReturnGoods.objects.filter(self.sale_trade_id).first().supplier.id
+        user_address = UserAddress.objects.filter(supplier_id=supplier_id).first()
+        if user_address:
+            return True
+        else:
+            return False
+
+    def is_supplier_addr_incomplete(self):
+        supplier_id = ReturnGoods.objects.filter(self.sale_trade_id).first().supplier.id
+        user_address = UserAddress.objects.filter(supplier_id=supplier_id).first()
+        if all(user_address.supplier_id,user_address.receiver_name,user_address.receiver_state,
+               user_address.receiver_city,user_address.receiver_district,user_address.receiver_address,user_address.receiver_mobile):
+            return True
+        else:
+            return False
+
+    def return_merge(self):
+        if self.status == PSI_STATUS.ASSIGNED:
+            self.status = PSI_STATUS.MERGED
+            self.merge_time = datetime.datetime.now()
+            return_addr_id = self.get_return_address_id()
+            return_user_id = self.get_return_user_id()
+            return_user_id = "sp:" + return_user_id
+            package_order_id = PackageOrder.gen_new_package_id(return_user_id,
+                                                               return_addr_id,
+                                                               self.product_sku.ware_by)
+            po = PackageOrder.objects.filter(id=package_order_id).first()
+            if po:
+                logger.warn({'action': "packageskuitem_merge_1",'info': "packageskuitem_id:" + str(self.id) + " package_order_id:" + str(po.id)})
+            if not po:
+                po = PackageOrder.create(package_order_id, self.sale_trade, PackageOrder.WAIT_PREPARE_SEND_STATUS, self)
+                logger.warn({'action': "packageskuitem_merge_2",'info': "packageskuitem_id:" + str(self.id) + " package_order_id:" + str(po.id)})
+                if po.sys_status == PackageOrder.PKG_NEW_CREATED:
+                    po.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS
+                po.set_redo_sign(save_data=False)
+                po.reset_return_address()
+            logger.warn({'action': "packageskuitem_merge_3", 'info': "packageskuitem_id:"+str(self.id)+" package_order_id:" + str(po.id)})
             self.package_order_id = po.id
             self.package_order_pid = po.pid
             self.save()

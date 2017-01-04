@@ -11,6 +11,7 @@ from core.models import BaseModel
 from shopback.items.models import ProductSku, Product, SkuStock
 from supplychain.supplier.models import SaleSupplier, SaleProduct
 from .purchase_order import OrderList
+from flashsale.pay.models import UserAddress
 import logging
 
 logger = logging.getLogger(__name__)
@@ -78,6 +79,23 @@ class ReturnGoods(models.Model):
         if not hasattr(self, '_sku_ids_'):
             self._sku_ids_ = [i['skuid'] for i in self.rg_details.values('skuid')]
         return self._sku_ids_
+
+    def is_supplier_addr(self):
+        supplier_id = self.supplier.id
+        user_address = UserAddress.objects.filter(supplier_id=supplier_id).first()
+        if user_address:
+            return True
+        else:
+            return False
+
+    def is_supplier_addr_incomplete(self):
+        supplier_id = self.supplier.id
+        user_address = UserAddress.objects.filter(supplier_id=supplier_id).first()
+        if all([user_address.supplier_id,user_address.receiver_name,user_address.receiver_state,
+               user_address.receiver_city,user_address.receiver_district,user_address.receiver_address,user_address.receiver_mobile]):
+            return True
+        else:
+            return False
 
     @property
     def product_skus(self):

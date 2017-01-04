@@ -85,7 +85,7 @@
                 <label class="col-md-1" for="id_returngoods_id">退货单ID:</label>
                 <label class="col-md-1" id="id_returngoods_id">{{original.id}}</label>
                 <label class="col-md-1" for="supplier">供应商:</label>
-                <label class="col-md-3" id="supplier">{{original.supplier.supplier_name}}</label>
+                <a class="col-md-3" id="supplier" href ="/mm/add_supplier_addr/?id={{original.supplier.id}}">{{original.supplier.supplier_name}}</a>
                 <label class="col-md-1" for="type">类型:</label>
                 <label class="col-md-1" id="type">{{original.get_type_display}}</label>
             </div>
@@ -128,11 +128,19 @@
                 {%elif original.status == 3%}
                 <input type="button" class="btn-mini btn-success" id="id_btn_success" value="已经收款"/>&nbsp;&nbsp;
                 <input type="button" class="btn-mini btn-success" id="id_btn_error" value="退货失败"/>&nbsp;&nbsp;
-                <input type="button" class="btn-mini btn-success" id="id_btn_destroy" value="作废退货单"/>&nbsp;&nbsp;
+                <input type="button" class="btn-mini btn-success" id="id_btn_destroy" value="作废退货单"/>
+                &nbsp;&nbsp;
                 {%if original.type == 1%}
                     <input type="button" class="btn-mini btn-success" id="id_btn_finished" value="已经完成"/>&nbsp;&nbsp;
                 {%endif%}
                 {%endif%}
+                <select id="pksi_type">
+                <option value="---">退货类型</option>
+                    <option value=2>清库存</option>
+                    <option value=3>退多货</option>
+                    <option value=4>退次品</option>
+                </select>
+                <input type="button" class="btn-mini btn-success" id="id_btn_pksi" value="生成退货商品包裹" onclick="create_pksi(this)" disabled="true"/>
                 <input type="button" class="btn-mini btn-success" id="change_to_refund" value="换货变退货回款" onclick="change_become_refund(this)" disabled="true"/>
 
             </div>
@@ -162,10 +170,10 @@
                         {%for products_item in original.products_item_sku%}
                         {%for detail in products_item.detail_items%}
                         <tr>
-                        <td class="action-checkbox"><input class="action-select" name="_selected_action" type="checkbox" value={{detail.skuid}} onclick="can_change(this)"/></td>
+                        <td class="action-checkbox"><input class="action-select" name="_selected_action" type="checkbox" value={{detail.skuid}} data-id={{detail.id}} onclick="can_change(this)"/></td>
                         {%if forloop.first%}
 
-                        <td rowspan={{products_item.detail_length}}><a href="/admin/items/product?id={{products_item.id}}" target="_blank">{{products_item.id}}</a></td>
+                        <td rowspan={{products_item.detail_length}}><a href="/admin/items/product?id={{products_item.id}}" target="_blank" id="products_item_id">{{products_item.id}}</a></td>
                         <td rowspan="{{products_item.detail_length}}">{{products_item.title}}</td>
                         <td rowspan="{{products_item.detail_length}}">
                             {%if detail.wrong_desc %}
@@ -385,6 +393,20 @@
 <script src="{{ STATIC_URL }}wap/js/sweet-alert.min.js"></script>
 <script src="/static/wap/js/template.js"></script>
 <script type="text/javascript">
+
+$(document).ready(function() {
+    var url = "/sale/dinghuo/returngoods/pksi_is_pid/";
+    var data = {returngoods_id:{{original.id}}};
+    $.ajax({"url":url,"data":data,"type":"post",dataType:"json","success":callback});
+    function callback(res){
+                console.log(res);
+        if(res.status==true){
+        $("#id_btn_pksi").val("更新packageskuitem");
+        }
+        }
+});
+
+
     var id = {{original.id|default_if_none:"0"}};
     function post_data_to_server(act, dom, id) {
         if (dom.hasClass("loading")) {
@@ -410,6 +432,7 @@
     		for(var i=0;i<as.length;i++){
     			as[i].checked=true;
     			document.getElementById("change_to_refund").disabled=false;
+                                      document.getElementById("id_btn_pksi").disabled=false;
     		}
     	}
     	else{
@@ -417,12 +440,14 @@
     		for(var i=0;i<as.length;i++){
     			as[i].checked=false;
     			document.getElementById("change_to_refund").disabled=true;
+                                      document.getElementById("id_btn_pksi").disabled=true;
     		}
     	}
     }
     function can_change(obj){
     if(obj.checked==true){
     	document.getElementById("change_to_refund").disabled=false;
+            document.getElementById("id_btn_pksi").disabled=false;
     }
     else{
     	var as = $(".action-select");
@@ -434,9 +459,11 @@
     	}
     	if(flag==1){
     		document.getElementById("change_to_refund").disabled=false;
+                          document.getElementById("id_btn_pksi").disabled=false;
     	}
     	else{
     		document.getElementById("change_to_refund").disabled=true;
+                         document.getElementById("id_btn_pksi").disabled=true;
     	}
     }
     }
@@ -461,6 +488,48 @@
 	    		alert("移除的货物在新的订货单:"+new_returngoods_id+"中");
     	}
     	}
+    }
+
+    function create_pksi(obj){
+        // var products_items = new Array();
+        // var data = {returngoods_id:{{original.id}}}
+        var supplier_id = {{original.supplier.id}};
+        var returngoods_id = $("#action-toggle").attr("value");
+        var as = $(".action-select");
+        var type = $('#pksi_type  option:selected').val();  
+        if(type=="---"){
+            alert("请选择退货商品类型");
+            return
+        } 
+        var RGdetail_ids = [];
+        for (var i=0;i<as.length;i++){
+            if(as[i].checked==true){
+            RGdetail_ids.push(as[i].dataset.id);
+        }
+        }
+        var cfm = confirm("是否把这些:"+RGdetail_ids+"    生成退货商品包裹");
+        if(cfm==true){
+        var data = {"returngoods_id":{{original.id}},"RGdetail_ids":JSON.stringify(RGdetail_ids),"supplier_id":supplier_id,"type":type}
+        var url = "/sale/dinghuo/returngoods/create_pksi_by_RGDetail/";
+        $.ajax({"url":url,"data":data,"type":"post",dataType:"json","success":callback,"error":callback2});
+        function callback(res){
+            if(res.status==true){
+                alert("成功生成退货包裹商品:"+res.pksi_id);
+            }
+            else{
+                alert("无法生成退货包裹商品 "+res.reason);
+            }
+        }
+        function callback2(XMLHttpRequest, textStatus, errorThrown){
+             console.log(XMLHttpRequest.status);
+            console.log(XMLHttpRequest.readyState);
+            console.log(textStatus);
+            alert("无法生成退货包裹商品");
+        }
+        console.log(data);
+        }
+
+
     }
 
     function modify_return_goods_sku(sku, id, num, price){
