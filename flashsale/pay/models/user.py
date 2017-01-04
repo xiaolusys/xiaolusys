@@ -513,6 +513,7 @@ class BudgetLog(PayBaseModel):
     BG_SUBSCRIBE = 'subs'
     BG_EXCHG_ORDER = 'exchg'
     BG_RETURN_COUPON = 'rtcoup'
+    BG_FANDIAN = 'fandian'
 
     BUDGET_LOG_CHOICES = (
         # 收入
@@ -523,6 +524,7 @@ class BudgetLog(PayBaseModel):
         (BG_SUBSCRIBE, u'关注'),
         (BG_RETURN_COUPON, u'退精品券'),
         (BG_ENVELOPE, u'红包'),
+        (BG_FANDIAN, u'精品汇返点'),
         # 支出
         (BG_CONSUM, u'消费'),
         (BG_CASHOUT, u'提现'),
@@ -569,10 +571,11 @@ class BudgetLog(PayBaseModel):
 
     @classmethod
     def create(cls, customer_id, budget_type, flow_amount, budget_log_type,
-               budget_date=datetime.date.today(), referal_id='', status=None, uni_key=None):
+               budget_date=None, referal_id='', status=None, uni_key=None):
         """
         创建收支记录
         """
+        budget_date = budget_date or datetime.date.today()
         status = status or BudgetLog.CONFIRMED
         customer = Customer.objects.get(id=customer_id)
 
