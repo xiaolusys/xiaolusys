@@ -180,7 +180,7 @@ def task_saleorder_post_update_send_signal(saleorder_id, created, raw):
             'action': 'saleorder_update_end',
             'action_time': datetime.datetime.now(),
             'order_oid': saleorder.oid,
-            'signal_data': resp,
+            'signal_data': '%s'%resp,
         })
     except SaleOrder.DoesNotExist, exc:
         raise task_saleorder_post_update_send_signal.retry(exc=exc)

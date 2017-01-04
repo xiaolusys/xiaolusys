@@ -396,7 +396,7 @@ class SaleTrade(BaseModel):
                 'action': 'trade_confirm_signal',
                 'order_no': self.tid,
                 'action_time': datetime.datetime.now(),
-                'signal_data': resp,
+                'signal_data': '%s'%resp,
             })
         except Exception, exc:
             logger.error(str(exc), exc_info=True)
