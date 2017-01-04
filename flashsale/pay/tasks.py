@@ -1035,7 +1035,7 @@ def task_schedule_check_user_budget(days=1):
 
 
 @app.task()
-def task_schedule_check_boutique_modelproduct():
+def task_schedule_check_boutique_modelproduct(days=1):
     from flashsale.coupon.models.coupon_template import CouponTemplate
     templates_qs = CouponTemplate.objects.filter(coupon_type=CouponTemplate.TYPE_TRANSFER)
     templates = []
