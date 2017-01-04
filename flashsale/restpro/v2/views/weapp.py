@@ -62,6 +62,7 @@ class WeApp(object):
 class WeAppViewSet(viewsets.ViewSet):
     """
     """
+    authentication_classes = ()
 
     def login(self, request, *args, **kwargs):
         """
