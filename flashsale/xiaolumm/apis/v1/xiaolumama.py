@@ -97,3 +97,4 @@ def change_mama_follow_elite_mama(mama_id, upper_mama_id, direct_info):
         mm.save()
 
         relationship.change_referal_mama(upper_mama_id, is_elite=True)  # 修改该推荐关系的上级
+    return True

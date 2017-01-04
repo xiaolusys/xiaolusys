@@ -58,6 +58,7 @@ urlpatterns = [
     url(r'^charge/(?P<pk>\d+)/$', staff_member_required(views.chargeWXUser)),
     url(r'^xlmm/(?P<pk>\d+)/$', staff_member_required(views.XiaoluMamaModelView.as_view())),
     url(r'^set_mama_manager$', staff_member_required(xiaolumama.SetMamaManager.as_view())),  #
+    url(r'^change_upper_mama$', staff_member_required(xiaolumama.ChangeUpperMama.as_view())),  #
 
     url(r'^cash_out_verify$', staff_member_required(views.CashOutVerify.as_view())),  #
     url(r'^stats_summary/$', staff_member_required(views.stats_summary), name="stats_summary"),
