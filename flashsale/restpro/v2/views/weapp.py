@@ -119,7 +119,7 @@ class WeAppViewSet(viewsets.ViewSet):
         """
         encrypted_data = request.POST.get('encryptedData')
         iv = request.POST.get('iv')
-        token = request.POST.get('token')
+        token = request.POST.get('x-token')
         user_info = request.POST.get('rawData')
 
         token_value = cache.get(token)

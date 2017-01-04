@@ -15,6 +15,7 @@ from django.db import IntegrityError
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User as DjangoUser
 from django.core.cache import cache
+from oauth2_provider.ext.rest_framework import OAuth2Authentication
 
 from rest_framework import mixins
 from rest_framework import viewsets
@@ -486,7 +487,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
     """
     queryset = Customer.objects.all()
     serializer_class = serializers.CustomerSerializer
-    # authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication, )
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, OAuth2Authentication, authentication.BasicAuthentication, )
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 

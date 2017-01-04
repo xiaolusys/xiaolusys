@@ -9,7 +9,7 @@ from flashsale.pay.models.user import Customer
 
 class WeAppAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
-        token = request.GET.get('token') or request.POST.get('token')
+        token = request.GET.get('x-token') or request.POST.get('x-token')
         if not token:
             return None
 
