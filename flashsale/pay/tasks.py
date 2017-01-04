@@ -1086,7 +1086,7 @@ def task_schedule_check_boutique_modelproduct(days=1):
             elif not (mp.extras['saleinfos'].has_key('is_coupon_deny') and
                     mp.extras['saleinfos']['is_coupon_deny'] == True):
                 right = False
-        if not right:
+        if (not right) and (mp.id != 25115):
             wrong_product.append(mp.id)
 
     from common.dingding import DingDingAPI
