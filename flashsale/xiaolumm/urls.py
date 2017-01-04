@@ -1,3 +1,4 @@
+# coding=utf-8
 from django.conf.urls import url, include
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.cache import cache_page
@@ -16,7 +17,10 @@ from views import views, views_duokefu, views_xlmminfo, views_order_percent, vie
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'ninepic', views_advertis.NinePicAdverViewSet)
 router_urls = router.urls
-router_urls += ([])
+router_urls += ([
+    url(r'^change_upper_mama$', staff_member_required(xiaolumama.ChangeUpperMama.as_view())),  # 更换上级妈妈
+])
+
 
 
 urlpatterns = [
