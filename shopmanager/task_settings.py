@@ -1555,6 +1555,12 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_schedule_check_user_budget'}
     },
+    u'定时检查boutique product配置问题': {
+        'task': 'flashsale.pay.tasks.task_schedule_check_boutique_modelproduct',
+        'schedule': crontab(minute="0", hour="12"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_schedule_check_boutique_modelproduct'}
+    },
 }
 
 WDT_SCHEDULE = {

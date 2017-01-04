@@ -1032,3 +1032,70 @@ def task_schedule_check_user_budget(days=1):
     dd = DingDingAPI()
     for touser in tousers:
         dd.sendMsg(msg, touser)
+
+
+@app.task()
+def task_schedule_check_boutique_modelproduct(days=1):
+    from flashsale.coupon.models.coupon_template import CouponTemplate
+    templates_qs = CouponTemplate.objects.filter(coupon_type=CouponTemplate.TYPE_TRANSFER)
+    templates = []
+    for template in templates_qs:
+        templates.append(template.id)
+
+    from flashsale.pay.models import ModelProduct
+    from flashsale.pay.apis.v1.product import get_boutique_goods, get_virtual_modelproducts
+    from apis.v1.products import ModelProductCtl
+    queryset = get_boutique_goods().filter(shelf_status=ModelProduct.ON_SHELF)
+    ids = [i['id'] for i in queryset.values('id')]
+    queryset = ModelProductCtl.multiple(ids=ids)
+
+    wrong_product = []
+    # 先检查精品汇商品的字段设置对不对
+    for mp in queryset:
+        right = False
+        if mp.detail_content['is_boutique'] or (
+            mp.extras.has_key('payinfo') and mp.extras['payinfo'].has_key('use_coupon_only')):
+            right = True
+            if not mp.detail_content['is_boutique']:
+                right = False
+            elif not (mp.rebeta_scheme_id == 12):
+                right = False
+            elif not mp.extras['payinfo']['use_coupon_only']:
+                right = False
+            elif not (mp.extras['payinfo'].has_key('coupon_template_ids') and len(
+                    mp.extras['payinfo']['coupon_template_ids']) > 0):
+                right = False
+        if not right:
+            wrong_product.append(mp.id)
+
+    # 再检查精品汇的券字段配置对不对
+    coupon_queryset = get_virtual_modelproducts()
+    ids = [i['id'] for i in coupon_queryset.values('id')]
+    coupon_queryset = ModelProductCtl.multiple(ids=ids)
+    for mp in coupon_queryset:
+        right = False
+        if mp.detail_content['is_boutique'] or (
+                    mp.extras.has_key('saleinfos') and mp.extras['saleinfos'].has_key('is_coupon_deny')):
+            right = True
+            if not mp.detail_content['is_boutique']:
+                right = False
+            elif not (mp.rebeta_scheme_id == 12 or mp.rebeta_scheme_id == 0):
+                right = False
+            elif not (mp.extras.has_key('template_id') and (mp.extras['template_id'] > 0)):
+                right = False
+            elif not (mp.extras['saleinfos'].has_key('is_coupon_deny') and
+                    mp.extras['saleinfos']['is_coupon_deny'] == True):
+                right = False
+        if not right:
+            wrong_product.append(mp.id)
+
+    from common.dingding import DingDingAPI
+    tousers = [
+        '02401336675559',  # 伍磊
+        '01591912287010',  # 林杰
+    ]
+    msg = '定时检查boutique product数据:\n时间: %s \nerror记录条数:%s\n' % \
+          (str(datetime.datetime.now()), str(wrong_product))
+    dd = DingDingAPI()
+    for touser in tousers:
+        dd.sendMsg(msg, touser)

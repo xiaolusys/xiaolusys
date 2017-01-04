@@ -16,7 +16,7 @@ def get_modelproduct_by_id(id):
 
 def get_virtual_modelproducts():
     # type: () -> Optional[List[ModelProduct]]
-    """获取虚拟款式列表记录
+    """获取虚拟款式列表记录,boutique coupon
     """
     return ModelProduct.objects.get_virtual_modelproducts()
 
@@ -26,3 +26,9 @@ def get_is_onsale_modelproducts():
     """获取特卖秒杀商品
     """
     return ModelProduct.objects.get_is_onsale_modelproducts()
+
+def get_boutique_goods():
+    # type: () -> Optional[List[ModelProduct]]
+    """获取boutique商品
+    """
+    return ModelProduct.objects.get_boutique_goods()
