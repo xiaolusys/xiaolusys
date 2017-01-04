@@ -180,9 +180,22 @@ def task_check_xlmm_exchg_order():
                         succ_coupon_record_num += 1
                         succ_exchg_coupon_num += user_coupons.count()
                     else:
-                        print 'error', sale_order.oid
-                else:
-                    print sale_order.oid
+                        # 可能有物流丢单破损等重新发货的场景，那么需要更新usercoupon oid
+                        if '-' in entry.order_id:
+                            oid = entry.order_id.split('-')
+                            user_coupons = UserCoupon.objects.filter(trade_tid=oid[0],
+                                                                     status=UserCoupon.USED)
+                            if user_coupons:
+                                succ_coupon_record_num += 1
+                                succ_exchg_coupon_num += user_coupons.count()
+                                for special_coupon in user_coupons:
+                                    special_coupon.trade_tid = entry.order_id
+                                    special_coupon.save()
+                            else:
+                                print 'error1', sale_order.oid
+                        else:
+                            print 'error2', sale_order.oid
+
     from flashsale.pay.models.user import BudgetLog
     budget_log1 = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_IN,
                                           budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED)
@@ -255,9 +268,7 @@ def task_check_xlmm_return_exchg_order():
             trans_num += 1
             exchg_trancoupon_num += record.coupon_num
     retD = list(set(results).difference(set(budget_oids)))
-    print "results more is: ", retD
     retD = list(set(budget_oids).difference(set(results)))
-    print "budget_oids more is: ", retD
 
     logger.info({'message': u'check return exchg order | order_num=%s == budget_num=%s == trans_num=%s maybe!= return_order_num(include not finish refund) %s?' % (order_num,budget_num,trans_num,return_order_num),
                  'message2': u' exchg_goods_num=%s == exchg_trancoupon_num=%s' % (exchg_goods_num, exchg_trancoupon_num),
