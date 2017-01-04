@@ -292,15 +292,18 @@ def task_calc_xlmm_elite_score(mama_id):
 
 @app.task()
 def task_calc_all_xlmm_elite_score():
-    from flashsale.xiaolumm.models.models import XiaoluMama
-    elite_mamas = XiaoluMama.objects.filter(status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED,
-                                            referal_from__in=[XiaoluMama.DIRECT, XiaoluMama.INDIRECT])
+    from flashsale.coupon.models.transfer_coupon import CouponTransferRecord
+    import datetime
+    yesterday = datetime.date.today() - datetime.timedelta(days=1)
+    records = CouponTransferRecord.objects.filter(status=CouponTransferRecord.EFFECT, date_field__gte=yesterday)
+    to_mms = [c['coupon_to_mama_id'] for c in records.values('coupon_to_mama_id')]
+    from_mms = [c['coupon_from_mama_id'] for c in records.values('coupon_from_mama_id')]
+    elite_mamas = set(to_mms) | set(from_mms)
 
     mama_count = 0
     for mama in elite_mamas:
-        is_elite = (mama.referal_from == XiaoluMama.DIRECT) or (mama.referal_from == XiaoluMama.INDIRECT)
-        if is_elite:
-            task_calc_xlmm_elite_score.delay(mama.id)
+        if mama > 0:
+            task_calc_xlmm_elite_score.delay(mama)
             mama_count += 1
     logger.info({'message': u'cacl elite score | mama count=%s' % (mama_count), })
 
