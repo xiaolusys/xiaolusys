@@ -18,7 +18,7 @@ router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'ninepic', views_advertis.NinePicAdverViewSet)
 router_urls = router.urls
 router_urls += ([
-    url(r'^change_upper_mama$', staff_member_required(xiaolumama.ChangeUpperMama.as_view())),  # 更换上级妈妈
+    url(r'^mm/change_upper_mama$', staff_member_required(xiaolumama.ChangeUpperMama.as_view())),  # 更换上级妈妈
 ])
 
 

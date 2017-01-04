@@ -43,17 +43,20 @@ class ChangeUpperMama(APIView):
         return Response({'direct_info': [XiaoluMama.ELITE_TYPE_CHOICES]})
 
     def post(self, request):
-        mama_id = request.POST.get('mama_id') or 0
-        upper_mama_id = request.POST.get('upper_mama_id') or 0
-        direct_info = request.POST.get('direct_info') or ''
-
+        content = request.POST or request.data
+        mama_id = content.get('mama_id') or 0
+        upper_mama_id = content.get('upper_mama_id') or 0
+        direct_info = content.get('direct_info') or ''
         if not (mama_id and upper_mama_id and direct_info):
             return Response({'code': 1, 'info': '参数错误'})
 
         mm = get_mama_by_id(mama_id)
-        state = change_mama_follow_elite_mama(mama_id=int(mama_id),
-                                              upper_mama_id=int(upper_mama_id),
-                                              direct_info=direct_info)
-        if state:
-            log_action(request.user, mm, CHANGE, '修改上级妈妈信息')
+        try:
+            state = change_mama_follow_elite_mama(mama_id=int(mama_id),
+                                                  upper_mama_id=int(upper_mama_id),
+                                                  direct_info=direct_info)
+            if state:
+                log_action(request.user, mm, CHANGE, '修改上级妈妈信息')
+        except Exception as e:
+            return Response({'code': 2, 'info': e.message})
         return Response({'code': 0, 'info': '设置成功'})
