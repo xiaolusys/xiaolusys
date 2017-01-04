@@ -153,7 +153,7 @@ class CouponTransferRecordAdmin(admin.ModelAdmin):
         if not obj.coupon_to_mama_id:
             return u''
         mm = get_mama_by_id(obj.coupon_to_mama_id)
-        if not mm.mama_manager:
+        if not mm or not mm.mama_manager:
             return u''
         return mm.mama_manager.last_name + mm.mama_manager.first_name
 

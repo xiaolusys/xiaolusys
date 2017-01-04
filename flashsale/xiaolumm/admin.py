@@ -33,7 +33,8 @@ from .models import (
     MamaMissionRecord,
     RankActivity,
     MamaAdministrator,
-    WeixinPushEvent
+    WeixinPushEvent,
+    MamaReferalTree
 )
 from .models.models_rebeta import AgencyOrderRebetaScheme
 from .filters import UserNameFilter
@@ -881,3 +882,34 @@ class XlmmTeamEffScoreAdmin(admin.ModelAdmin):
     search_fields = ('mama_id', )
 
 admin.site.register(XlmmTeamEffScore, XlmmTeamEffScoreAdmin)
+
+
+class MamaReferalTreeAdmin(admin.ModelAdmin):
+    list_display = ('id','referal_to_mama_id_link', 'referal_from_mama_id_link', 'direct_invite_num', 'indirect_invite_num',
+                    'gradient', 'is_elite', 'is_vip', 'last_active_time', 'mama_info_link')
+    list_filter = ('is_elite', 'is_vip', ('created', DateFieldListFilter), ('last_active_time', DateFieldListFilter), 'gradient')
+    search_fields = ('=referal_to_mama_id', '=referal_from_mama_id')
+
+    def referal_to_mama_id_link(self, obj):
+        return '<a href="./?q=%s">%s&nbsp;&gt;&gt;</a>'%(obj.referal_to_mama_id, obj.referal_to_mama_id)
+
+    referal_to_mama_id_link.allow_tags = True
+    referal_to_mama_id_link.short_description = u'被邀请妈妈ID'
+
+    def referal_from_mama_id_link(self, obj):
+        return '<a href="./?q=%s">%s&nbsp;&gt;&gt;</a>' % (obj.referal_from_mama_id, obj.referal_from_mama_id)
+
+    referal_from_mama_id_link.allow_tags = True
+    referal_from_mama_id_link.short_description = u'邀请妈妈ID'
+
+    def mama_info_link(self, obj):
+        return '<a target="_blank" href="/sale/daystats/yunying/mama/show?mama_id=%s">查看明细</a>' % (obj.referal_from_mama_id,)
+
+    mama_info_link.allow_tags = True
+    mama_info_link.short_description = u'妈妈信息'
+
+
+admin.site.register(MamaReferalTree, MamaReferalTreeAdmin)
+
+
+
