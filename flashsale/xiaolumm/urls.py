@@ -1,3 +1,4 @@
+# coding=utf-8
 from django.conf.urls import url, include
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.cache import cache_page
@@ -16,7 +17,10 @@ from views import views, views_duokefu, views_xlmminfo, views_order_percent, vie
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'ninepic', views_advertis.NinePicAdverViewSet)
 router_urls = router.urls
-router_urls += ([])
+router_urls += ([
+    url(r'^mm/change_upper_mama$', staff_member_required(xiaolumama.ChangeUpperMama.as_view())),  # 更换上级妈妈
+])
+
 
 
 urlpatterns = [
@@ -58,6 +62,7 @@ urlpatterns = [
     url(r'^charge/(?P<pk>\d+)/$', staff_member_required(views.chargeWXUser)),
     url(r'^xlmm/(?P<pk>\d+)/$', staff_member_required(views.XiaoluMamaModelView.as_view())),
     url(r'^set_mama_manager$', staff_member_required(xiaolumama.SetMamaManager.as_view())),  #
+    url(r'^change_upper_mama$', staff_member_required(xiaolumama.ChangeUpperMama.as_view())),  #
 
     url(r'^cash_out_verify$', staff_member_required(views.CashOutVerify.as_view())),  #
     url(r'^stats_summary/$', staff_member_required(views.stats_summary), name="stats_summary"),
