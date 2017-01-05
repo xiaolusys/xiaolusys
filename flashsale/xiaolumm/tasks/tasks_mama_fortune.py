@@ -510,5 +510,5 @@ def task_repair_mama_wallet(hour=2):
     for carry in carrys:
         task_carryrecord_update_mamafortune(carry['mama_id'])
 
-    for cashout in cashouts:
-        task_cashout_update_mamafortune(cashout['xlmm'])
+    # for cashout in cashouts:
+    #     task_cashout_update_mamafortune(cashout['xlmm'])
