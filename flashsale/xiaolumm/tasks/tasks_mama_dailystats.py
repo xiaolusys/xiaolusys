@@ -174,7 +174,10 @@ def task_check_xlmm_exchg_order():
             if sale_order and sale_order.extras.has_key('exchange') \
                     and (sale_order.status not in [SaleOrder.TRADE_CLOSED_BY_SYS]):
                 order_num += 1
-                exchg_goods_num += round(sale_order.payment / sale_order.price)
+                if sale_order.item_id == '80281':
+                    exchg_goods_num += round(sale_order.payment / 68)
+                else:
+                    exchg_goods_num += round(sale_order.payment / sale_order.price)
                 exchg_goods_payment += round(sale_order.payment * 100)
                 results.append(order_id)
                 if sale_order.extras['exchange'] == True:
