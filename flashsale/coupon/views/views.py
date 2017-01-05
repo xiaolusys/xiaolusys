@@ -21,10 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class ReleaseOmissive(APIView):
-    """
-    补发遗漏的优惠券
-    参数：优惠券模板
-    用户：客户信息(用户手机号，或者用户id)
+    """发放 赠送精品券
     """
     usercoupons = UserCoupon.objects.all()
     renderer_classes = (JSONRenderer, )
