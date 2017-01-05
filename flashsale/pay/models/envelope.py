@@ -125,7 +125,8 @@ class Envelop(PayBaseModel):
                 blog = BudgetLog.objects.filter(id=self.referal_id)
                 blog.confirm_budget_log()
             elif self.subject == Envelop.CASHOUT:
-                CashOut.objects.filter(id=self.referal_id).update(status=CashOut.APPROVED, modified=now)
+                cashout = CashOut.objects.filter(id=self.referal_id).first()
+                cashout.approve_cashout() if cashout else None
 
         elif status in (self.SEND_FAILED, self.REFUND):
             self.status = Envelop.FAIL
