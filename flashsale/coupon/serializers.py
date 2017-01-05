@@ -107,6 +107,9 @@ class ShareUserCouponSerialize(serializers.ModelSerializer):
 # v2　用户接口　加　serialize
 
 class UserCouponListSerialize(serializers.ModelSerializer):
+    pros_desc = serializers.CharField(source='scope_type_desc', read_only=True)
+    use_fee = serializers.FloatField(source='min_payment', read_only=True)
+
     class Meta:
         model = UserCoupon
         fields = (
@@ -125,6 +128,8 @@ class UserCouponListSerialize(serializers.ModelSerializer):
             'start_use_time',
             'expires_time',
             'status',
-            'get_status_display'
+            'get_status_display',
+            'pros_desc',
+            'use_fee',
         )
 
