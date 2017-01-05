@@ -1,6 +1,8 @@
 # coding=utf-8
 
 from rest_framework import viewsets
+
+from common.auth import WeAppAuthentication
 from . import serializers
 from rest_framework import authentication
 from rest_framework import permissions
@@ -15,7 +17,7 @@ from flashsale.pay.models import IntegralLog, Integral
 class UserIntegralViewSet(viewsets.ModelViewSet):
     queryset = Integral.objects.all()
     serializer_class = serializers.UserIntegralSerializer
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
@@ -46,7 +48,7 @@ class UserIntegralViewSet(viewsets.ModelViewSet):
 class UserIntegralLogViewSet(viewsets.ModelViewSet):
     queryset = IntegralLog.objects.all()
     serializer_class = serializers.UserIntegralLogSerializer
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
