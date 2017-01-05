@@ -69,20 +69,11 @@ def cash_out_2_budget(mama, value):
     if not isinstance(value, int):
         raise Exception('参数错误!')
     _verify_cash_out_2_budget(mama, value)
-    cash_out_type = CashOut.USER_BUDGET
-    uni_key = CashOut.gen_uni_key(mama.id, cash_out_type)
-    date_field = datetime.date.today()
     customer = mama.get_customer()
 
     with transaction.atomic():
-        cash_out = CashOut(xlmm=mama.id,
-                           value=value,
-                           cash_out_type=CashOut.USER_BUDGET,
-                           approve_time=datetime.datetime.now(),
-                           status=CashOut.APPROVED,
-                           date_field=date_field,
-                           uni_key=uni_key)
-        cash_out.save()
-        BudgetLog.create_mm_cash_out_2_budget(customer.id, value, cash_out.id)
+        cashout = CashOut.create(mama.id, value, CashOut.USER_BUDGET)
+        cashout.approve_cashout()
+        BudgetLog.create_mm_cash_out_2_budget(customer.id, value, cashout.id)
 
-    log_action(customer.user.id, cash_out, ADDITION, '代理提现到余额')
+    log_action(customer.user.id, cashout, ADDITION, '代理提现到余额')

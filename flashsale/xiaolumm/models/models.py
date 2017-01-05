@@ -6,8 +6,8 @@ from random import choice
 
 from django.conf import settings
 from django.contrib.auth.models import User as DjangoUser
-from django.db import models
-from django.db.models import Sum
+from django.db import models, transaction
+from django.db.models import Sum, F
 from flashsale.xiaolumm.managers import XiaoluMamaManager
 
 # Create your models here.
@@ -1201,7 +1201,6 @@ class CashOut(BaseModel):
     value = models.IntegerField(default=0, verbose_name=u"金额(分)")
     status = models.CharField(max_length=16, blank=True, choices=STATUS_CHOICES, default=PENDING, verbose_name=u'状态')
     approve_time = models.DateTimeField(blank=True, null=True, verbose_name=u'审核时间')
-    # created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建时间')
     cash_out_type = models.CharField(max_length=8, choices=TYPE_CHOICES, default=RED_PACKET, verbose_name=u'提现类型')
     date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
     uni_key = models.CharField(max_length=128, blank=True, null=True, unique=True, verbose_name=u'唯一ID')
@@ -1222,6 +1221,30 @@ class CashOut(BaseModel):
     get_value_display.allow_tags = True
     get_value_display.admin_order_field = 'value'
     get_value_display.short_description = u"提现金额"
+
+
+    @classmethod
+    def create(cls, mama_id, value, cash_out_type, uni_key=None):
+        """
+        创建时状态必须为待审核
+
+        params:
+        - value 金额(分)
+        """
+        from flashsale.xiaolumm.models import MamaFortune
+
+        status = CashOut.PENDING
+        uni_key = uni_key or CashOut.gen_uni_key(mama_id, cash_out_type)
+
+        with transaction.atomic():
+            cashout = CashOut(xlmm=mama_id, value=value, cash_out_type=cash_out_type,
+                status=status, uni_key=uni_key)
+            cashout.save()
+
+            fortune = MamaFortune.objects.filter(mama_id=mama_id).first()
+            fortune.carry_cashout = F('carry_cashout') + value
+            fortune.save()
+        return cashout
 
     @classmethod
     def is_cashout_limited(cls, mama_id):
@@ -1247,35 +1270,66 @@ class CashOut(BaseModel):
 
     def cancel_cashout(self):
         """取消提现"""
-        if self.status == CashOut.PENDING:  # 待审核状态才允许取消
+        from flashsale.xiaolumm.models import MamaFortune
+
+        if self.status != CashOut.PENDING:  # 待审核状态才允许取消
+            return False
+
+        with transaction.atomic():
             self.status = CashOut.CANCEL
             self.save()
-            return True
-        return False
+
+            fortune = MamaFortune.objects.filter(mama_id=self.xlmm).first()
+            fortune.carry_cashout = F('carry_cashout') - self.value
+            fortune.save()
+
+        return True
 
     def reject_cashout(self):
         """拒绝提现"""
-        if self.status == CashOut.PENDING:  # 待审核状态才允许拒绝
+        from flashsale.xiaolumm.models import MamaFortune
+
+        if self.status != CashOut.PENDING:  # 待审核状态才允许拒绝
+            return False
+
+        with transaction.atomic():
             self.status = CashOut.REJECTED
             self.save()
-            return True
-        return False
+
+            fortune = MamaFortune.objects.filter(mama_id=self.xlmm).first()
+            fortune.carry_cashout = F('carry_cashout') - self.value
+            fortune.save()
+
+        return True
 
     def approve_cashout(self):
         """同意提现"""
-        if self.status == CashOut.PENDING:  # 待审核状态才允许同意
-            self.status = CashOut.APPROVED
-            self.approve_time = datetime.datetime.now()  # 通过时间
-            self.save()
-            return True
-        return False
+        if self.status != CashOut.PENDING:  # 待审核状态才允许同意
+            return False
+
+        self.status = CashOut.APPROVED
+        self.approve_time = datetime.datetime.now()  # 通过时间
+        self.save()
+        return True
 
     def fail_and_return(self):
-        if self.status == CashOut.APPROVED:
+        """
+        提现失败
+        """
+        from flashsale.xiaolumm.models import MamaFortune
+
+        if self.status != CashOut.APPROVED:  # 审核通过才能提现失败
+            return False
+
+        with transaction.atomic():
             self.status = CashOut.SENDFAIL
             self.save()
-            return True
-        return False
+
+            fortune = MamaFortune.objects.filter(mama_id=self.xlmm).first()
+            fortune.carry_cashout = F('carry_cashout') - self.value
+            fortune.save()
+
+        return True
 
     def is_confirmed(self):
         return self.status == CashOut.APPROVED
@@ -1284,8 +1338,10 @@ class CashOut(BaseModel):
 def cashout_update_mamafortune(sender, instance, created, **kwargs):
     from flashsale.xiaolumm.tasks import task_cashout_update_mamafortune
 
-    task_cashout_update_mamafortune.delay(instance.xlmm)
-
+    try:
+        transaction.on_commit(lambda: task_cashout_update_mamafortune(instance.xlmm))
+    except Exception, exc:
+        logger.error('cashout error: %s' % exc, exc_info=True)
 
 post_save.connect(cashout_update_mamafortune,
                   sender=CashOut, dispatch_uid='post_save_cashout_update_mamafortune')

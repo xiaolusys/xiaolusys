@@ -743,9 +743,6 @@ from rest_framework.response import Response
 
 class CashOutVerify(APIView):
     """
-    补发遗漏的优惠券
-    参数：优惠券模板
-    用户：客户信息(用户手机号，或者用户id)
     """
     queryset = CashOut.objects.all()
     renderer_classes = (JSONRenderer,)
@@ -765,8 +762,7 @@ class CashOutVerify(APIView):
             return Response({'code': 2, 'info': '审核状态错误！'})
 
         if action == CashOut.REJECTED:
-            cashout.status = CashOut.REJECTED
-            cashout.save()
+            cashout.reject_cashout()
             return Response({'code': 0, 'info': '拒绝成功'})
         if action == CashOut.APPROVED:
             mama_id = cashout.xlmm
@@ -777,30 +773,19 @@ class CashOutVerify(APIView):
             if not xiaolumama.is_cashoutable():
                 return Response({'code': 3, 'info': '该妈妈不予提现!'})
             if pre_cash * 100 >= cashout.value:
-                cashout.status = CashOut.APPROVED
-                cashout.approve_time = datetime.datetime.now()
-                cashout.save()
+                cashout.approve_cashout()
                 logger.warn('cashout save approved: cash_d:%s mama_id:'
                             '%s pre_cash:%s cashout_value:%s' % (cash_out_id, mama_id, pre_cash, cashout.value))
-                today_dt = datetime.date.today()
-                CarryLog.objects.get_or_create(xlmm=mama_id,
-                                               order_num=cash_out_id,
-                                               log_type=CarryLog.CASH_OUT,
-                                               value=cashout.value,
-                                               carry_date=today_dt,
-                                               carry_type=CarryLog.CARRY_OUT,
-                                               status=CarryLog.CONFIRMED)
+
                 wx_union = WeixinUnionID.objects.get(app_key=settings.WX_PUB_APPID, unionid=xiaolumama.openid)
-                mama_memo = u"小鹿妈妈编号:{0},提现前:{1}"
-                Envelop.objects.get_or_create(referal_id=cashout.id,
-                                              amount=cashout.value,
-                                              recipient=wx_union.openid,
-                                              platform=Envelop.WXPUB,
-                                              subject=Envelop.CASHOUT,
-                                              status=Envelop.WAIT_SEND,
-                                              receiver=mama_id,
-                                              body=u'一份耕耘，一份收获，谢谢你的努力！',
-                                              description=mama_memo.format(str(mama_id), pre_cash))
+                mama_memo = u"小鹿妈妈编号:{0},提现前:{1}".format(str(mama_id), pre_cash)
+                body=u'一份耕耘，一份收获，谢谢你的努力！'
+
+                en = Envelop(referal_id=cashout.id, amount=cashout.value, recipient=wx_union.openid,
+                             platform=Envelop.WXPUB, subject=Envelop.CASHOUT, status=Envelop.WAIT_SEND,
+                             receiver=mama_id, body=body, description=mama_memo)
+                en.save()
+                en.send_envelop()
                 log_action(request.user.id, cashout, CHANGE, u'提现审核通过')
                 return Response({'code': 0, 'info': '审核成功'})
             return Response({'code': 4, 'info': '金额不足'})

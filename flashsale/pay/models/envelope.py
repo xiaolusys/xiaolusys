@@ -125,7 +125,8 @@ class Envelop(PayBaseModel):
                 blog = BudgetLog.objects.filter(id=self.referal_id)
                 blog.confirm_budget_log()
             elif self.subject == Envelop.CASHOUT:
-                CashOut.objects.filter(id=self.referal_id).update(status=CashOut.APPROVED, modified=now)
+                cashout = CashOut.objects.filter(id=self.referal_id).first()
+                cashout.approve_cashout() if cashout else None
 
         elif status in (self.SEND_FAILED, self.REFUND):
             self.status = Envelop.FAIL
@@ -156,10 +157,12 @@ class Envelop(PayBaseModel):
 
             if self.subject == Envelop.XLAPP_CASHOUT:
                 bg = BudgetLog.objects.filter(id=self.referal_id).first()
-                if bg:
-                    bg.confirm_budget_log()
-            elif self.subject == Envelop.CASHOUT:
-                CashOut.objects.filter(id=self.referal_id).update(status=CashOut.APPROVED, modified=now)
+                bg.confirm_budget_log() if bg else None
+
+            if self.subject == Envelop.CASHOUT:
+                cashout = CashOut.objects.filter(id=self.referal_id).first()
+                cashout.approve_cashout() if cashout else None
+
         elif status in (WeixinRedEnvelope.FAILED, WeixinRedEnvelope.REFUND):
             self.status = Envelop.FAIL
             self.refund_envelop()

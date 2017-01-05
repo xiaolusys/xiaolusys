@@ -292,11 +292,10 @@ class CashOutAdmin(ApproxAdmin):
         """批量处理拒绝提现记录
         """
         count = 0
-        for pending in queryset.filter(status=CashOut.PENDING):
-            pending.status = CashOut.REJECTED
-            pending.save()
+        for cashout in queryset.filter(status=CashOut.PENDING):
+            cashout.reject_cashout()
             count += 1
-            log_action(request.user, pending, CHANGE, u'批量处理待审核状态到拒绝提现状态')
+            log_action(request.user, cashout, CHANGE, u'批量处理待审核状态到拒绝提现状态')
         return self.message_user(request, '共拒绝%s条记录' % count)
 
     reject_cash_out.short_description = '批量拒绝用户提现'

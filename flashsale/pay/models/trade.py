@@ -682,19 +682,12 @@ def add_renew_deposit_record(sender, obj, **kwargs):
     cash = deposit_price - order.payment
     if cash <= 0:
         return
+
     cash_value = cash * 100
-    cash = CashOut(xlmm=xlmm.id,
-                   value=0,
-                   approve_time=datetime.datetime.now(),
-                   status=CashOut.APPROVED)
-    cash.save()
-    cash.value = cash_value
-    cash.cash_out_type = CashOut.MAMA_RENEW
-    from core.utils.modelutils import update_model_fields
-    update_model_fields(cash, update_fields=['value', 'cash_out_type'])
-    f = MamaFortune.objects.get(mama_id=xlmm.id)
-    f.carry_cashout += cash_value
-    f.save(update_fields=['carry_cashout'])
+
+    cash = CashOut.create(xlmm.id, cash_value, CashOut.MAMA_RENEW)
+    cash.approve_cashout()
+
     log_action(customer.user, cash, ADDITION, u'用户妈妈钱包兑换代理续费')
 
 
