@@ -56,12 +56,23 @@ def task_transfer_coupon_order_statsd():
     statsd.gauge('xiaolumm.boutique.coupon.used_amount.%s'% dt_str, coupon_used_amount)
     statsd.gauge('xiaolumm.boutique.coupon.refund_over_amount.%s'% dt_str, refund_return_num)
     statsd.gauge('xiaolumm.boutique.coupon.exchg_order_amount.%s'% dt_str, exchg_order_num)
-
     statsd.gauge('xiaolumm.boutique.coupon.chained_num.%s' % dt_str, coupon_chained_detail.get('chained_num') or 0)
     statsd.gauge('xiaolumm.boutique.coupon.chained_amount.%s' % dt_str, coupon_chained_detail.get('chained_amount') or 0)
     statsd.gauge('xiaolumm.boutique.coupon.transfer_count.%s' % dt_str, transfer_details.get('transfer_count') or 0)
     statsd.gauge('xiaolumm.boutique.coupon.transfer_nums.%s' % dt_str, transfer_details.get('transfer_nums') or 0)
     statsd.gauge('xiaolumm.boutique.coupon.transfer_amounts.%s' % dt_str, transfer_details.get('transfer_amounts') or 0)
+
+    statsd.gauge('xiaolumm.boutique.coupon.sale_num', coupon_sale_num)
+    statsd.gauge('xiaolumm.boutique.coupon.sale_amount', coupon_sale_amount)
+    statsd.gauge('xiaolumm.boutique.coupon.used_num', coupon_used_num)
+    statsd.gauge('xiaolumm.boutique.coupon.used_amount', coupon_used_amount)
+    statsd.gauge('xiaolumm.boutique.coupon.refund_over_amount', refund_return_num)
+    statsd.gauge('xiaolumm.boutique.coupon.exchg_order_amount', exchg_order_num)
+    statsd.gauge('xiaolumm.boutique.coupon.chained_num', coupon_chained_detail.get('chained_num') or 0)
+    statsd.gauge('xiaolumm.boutique.coupon.chained_amount', coupon_chained_detail.get('chained_amount') or 0)
+    statsd.gauge('xiaolumm.boutique.coupon.transfer_count', transfer_details.get('transfer_count') or 0)
+    statsd.gauge('xiaolumm.boutique.coupon.transfer_nums', transfer_details.get('transfer_nums') or 0)
+    statsd.gauge('xiaolumm.boutique.coupon.transfer_amounts', transfer_details.get('transfer_amounts') or 0)
 
 
 @app.task
@@ -89,6 +100,10 @@ def task_boutique_mama_statsd():
     statsd.gauge('xiaolumm.boutique.mama.elite_count.%s'% dt_str, elite_mama_count)
     statsd.gauge('xiaolumm.boutique.mama.active_count.%s'% dt_str, active_elite_mama_count)
     statsd.gauge('xiaolumm.boutique.mama.ordered_count.%s'% dt_str, order_mama_count)
+
+    statsd.gauge('xiaolumm.boutique.mama.elite_count', elite_mama_count)
+    statsd.gauge('xiaolumm.boutique.mama.active_count', active_elite_mama_count)
+    statsd.gauge('xiaolumm.boutique.mama.ordered_count', order_mama_count)
 
 
 
