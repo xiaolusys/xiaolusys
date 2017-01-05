@@ -93,11 +93,13 @@ class ReleaseOmissive(APIView):
                 templates_data[400].append(t)
             else:
                 templates_data['X'].append(t)
+        templates_data = OrderedDict(
+                 sorted(templates_data.items(), key=lambda templates_data: templates_data[0]))
         x = {'sale_orders': sale_orders,
              'time_from': time_from,
              'time_to': time_to,
-             "templates_data": OrderedDict(
-                 sorted(templates_data.items(), key=lambda templates_data: templates_data[0])),
+             "templates_data": templates_data,
+             "templates": templates,
              'buyer_id': buyer_id,
              'usercoupons': usercoupons,
              'model_ids': model_ids}
