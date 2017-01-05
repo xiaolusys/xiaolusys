@@ -923,7 +923,11 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         return value, {"code": 0, 'msg': '提交成功'}
 
     def create(self, request, *args, **kwargs):
-        """代理提现"""
+        """
+        代理提现(需要审核)
+
+        /rest/v1/pmt/cashout
+        """
         content = request.data
         cash_type = content.get('choice', None)
         cashout_amount = content.get('cashout_amount', None)
@@ -944,13 +948,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             return Response(msg)
 
         # 满足提现请求　创建提现记录
-        cash_out_type = CashOut.RED_PACKET
-        uni_key = CashOut.gen_uni_key(xlmm.id, cash_out_type)
-        date_field = datetime.date.today()
-
-        cashout = CashOut(xlmm=xlmm.id, value=value, cash_out_type=cash_out_type,
-                          approve_time=datetime.datetime.now(), date_field=date_field, uni_key=uni_key)
-        cashout.save()
+        cashout = CashOut.create(xlmm.id, value, CashOut.RED_PACKET)
 
         log_action(request.user, cashout, ADDITION, u'{0}用户提交提现申请！'.format(customer.id))
         return Response(msg)
@@ -1007,7 +1005,10 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
     @list_route(methods=['post', 'get'])
     def noaudit_cashout(self, request):
         """
+        小额提现, 无需审核
+
         /rest/v1/pmt/cashout/noaudit_cashout
+
         amount=1.5 #金额1.5元
         verify_code=123456 #验证码123456
         """
@@ -1071,18 +1072,12 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             info = u'今日提现次数已达上限，请明天再来哦！'
             return Response({"code": 6, "info": info})
 
-        cash_out_type = CashOut.RED_PACKET
-        cash_out_time = datetime.datetime.now()
-        uni_key = CashOut.gen_uni_key(mama_id, cash_out_type)
-        date_field = datetime.date.today()
         wx_union = WeixinUnionID.objects.get(app_key=settings.WX_PUB_APPID, unionid=mama.openid)
         mama_memo = u"小鹿妈妈编号:{mama_id},提现前:{pre_cash}".format(mama_id=mama_id, pre_cash=pre_cash)
         body = u'一份耕耘，一份收获，谢谢你的努力！'
 
         with transaction.atomic():
-            cashout = CashOut(xlmm=mama_id, value=amount, cash_out_type=cash_out_type, approve_time=cash_out_time,
-                              date_field=date_field, uni_key=uni_key)
-            cashout.save()
+            cashout = CashOut.create(mama_id, amount, CashOut.RED_PACKET)
             logger.info({
                 'action': 'xlmm.cashout',
                 'mama_id': mama_id,
@@ -1122,30 +1117,14 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             return Response(msg)
 
         # 创建Cashout
-        cash_out_type = CashOut.USER_BUDGET
-        uni_key = CashOut.gen_uni_key(xlmm.id, cash_out_type)
-        date_field = datetime.date.today()
+        with transaction.atomic():
+            cashout = CashOut.create(xlmm.id, value, CashOut.USER_BUDGET)
+            cashout.approve_cashout()
+            log_action(request.user.id, cashout, ADDITION, '代理提现到余额')
 
-        cashout = CashOut(xlmm=xlmm.id,
-                          value=value,
-                          cash_out_type=CashOut.USER_BUDGET,
-                          approve_time=datetime.datetime.now(),
-                          status=CashOut.APPROVED,
-                          date_field=date_field,
-                          uni_key=uni_key)
-        cashout.save()
-        log_action(request.user.id, cashout, ADDITION, '代理提现到余额')
+            BudgetLog.create(customer_id=customer.id, budget_type=BudgetLog.BUDGET_IN,
+                 flow_amount=value, budget_log_type=BudgetLog.BG_MAMA_CASH, referal_id=cashout.id)
 
-        budget_type = BudgetLog.BUDGET_IN
-        budget_log_type = BudgetLog.BG_MAMA_CASH
-        uni_key = BudgetLog.gen_uni_key(customer.id, budget_type, budget_log_type)
-        BudgetLog.create(customer_id=customer.id,
-                         budget_type=budget_type,
-                         flow_amount=value,
-                         budget_log_type=budget_log_type,
-                         referal_id=cashout.id,
-                         status=BudgetLog.CONFIRMED,
-                         uni_key=uni_key)
         info = '提交成功'
         return Response({"code": 0, 'msg': info, 'info': info})
 
@@ -1159,9 +1138,8 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
     def cancal_cashout(self, request):
         """ 取消提现 接口 """
         pk = request.data.get("id", None)
-        queryset = self.get_owner_queryset(request).filter(id=pk)
-        if queryset.exists():
-            cashout = queryset[0]
+        cashout = self.get_owner_queryset(request).filter(id=pk).first()
+        if cashout:
             result = cashout.cancel_cashout()
             code = 0 if result else 1
             return Response({"code": code})  # 0　体现取消成功　1　失败
@@ -1205,23 +1183,13 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             return Response(default_return)
 
         def exchange_one_coupon():
-            cash_out_type = CashOut.EXCHANGE_COUPON
-            uni_key = CashOut.gen_uni_key(xlmm.id, cash_out_type)
-            date_field = datetime.date.today()
-
-            cash = CashOut(xlmm=xlmm.id,
-                           value=tpl.value * 100,
-                           cash_out_type=cash_out_type,
-                           approve_time=datetime.datetime.now(),
-                           status=CashOut.APPROVED,
-                           date_field=date_field,
-                           uni_key=uni_key)
-            cash.save()
+            cash = CashOut.create(xlmm.id, tpl.value * 100, CashOut.EXCHANGE_COUPON)
+            cash.approve_cashout()
             log_action(request.user, cash, ADDITION, u'用户现金兑换优惠券添加提现记录')
+
             cou, co, ms = create_user_coupon(customer_id=customer.id, coupon_template_id=tpl.id, cash_out_id=cash.id)
             if co != 0:
-                cash.status = CashOut.CANCEL
-                cash.save(update_fields=['status'])
+                cash.cancel_cashout()
                 log_action(request.user, cash, CHANGE, u'优惠券兑换失败，自动取消提现记录')
             return cash.id, cou, co, ms
 
@@ -1267,12 +1235,8 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         if deposit > could_cash_out:
             default_return.update({"code": 2, "info": "余额不足"})
             return Response(default_return)
-        cash = CashOut(xlmm=xlmm.id,
-                       value=deposit * 100,
-                       cash_out_type=CashOut.MAMA_RENEW,
-                       approve_time=datetime.datetime.now(),
-                       status=CashOut.APPROVED)
-        cash.save()
+        cash = CashOut.create(xlmm.id, deposit * 100, CashOut.MAMA_RENEW)
+        cash.approve_cashout()
         try:
             from flashsale.coupon.apis.v1.usercoupon import release_coupon_for_deposit
 

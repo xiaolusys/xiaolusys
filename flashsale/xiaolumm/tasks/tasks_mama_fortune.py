@@ -64,20 +64,23 @@ CASHOUT_HISTORY_LAST_DAY_TIME = datetime.datetime(2016, 3, 30, 23, 59, 59)
 
 @app.task(max_retries=3, default_retry_delay=6)
 def task_cashout_update_mamafortune(mama_id):
-    cashout_sum = CashOut.objects.filter(xlmm=mama_id, approve_time__gt=CASHOUT_HISTORY_LAST_DAY_TIME).values(
-        'status').annotate(total=Sum('value'))
+    cashout_sum = CashOut.objects.filter(
+        xlmm=mama_id, created__gt=CASHOUT_HISTORY_LAST_DAY_TIME
+    ).values('status').annotate(total=Sum('value'))
+
     approved_total, pending_total = 0, 0
     for record in cashout_sum:
         if record['status'] == CashOut.APPROVED:
             approved_total = record['total']
         if record['status'] == CashOut.PENDING:
             pending_total = record['total']
-
     effect_cashout = approved_total + pending_total
 
     logger.warn("%s - mama_id: %s, effect_cashout: %s|pending:%s,approved:%s" % (
         get_cur_info(), mama_id, effect_cashout, pending_total, approved_total))
+
     fortunes = MamaFortune.objects.filter(mama_id=mama_id)
+
     if fortunes.count() > 0:
         fortune = fortunes[0]
         if fortune.carry_cashout != effect_cashout:

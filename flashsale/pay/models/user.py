@@ -578,6 +578,7 @@ class BudgetLog(PayBaseModel):
         budget_date = budget_date or datetime.date.today()
         status = status or BudgetLog.CONFIRMED
         customer = Customer.objects.get(id=customer_id)
+        uni_key = uni_key or BudgetLog.gen_uni_key(customer_id, budget_type, budget_log_type)
 
         if status == BudgetLog.CANCELED:
             raise Exception('取消状态不予创建!')
