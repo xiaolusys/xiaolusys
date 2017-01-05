@@ -474,6 +474,14 @@ class CouponTransferRecord(BaseModel):
         return (self.transfer_type == self.OUT_TRANSFER and self.transfer_status == self.PENDING and \
                 self.coupon_from_mama_id == mama_id)
 
+    def set_transfer_status_cancel(self):
+        # type:() -> None
+        """取消流通记录
+        """
+        self.transfer_status = CouponTransferRecord.CANCELED
+        self.save()
+        return
+
 
 def push_mama_coupon_audit(sender, instance, created, **kwargs):
     from flashsale.xiaolumm.tasks import task_weixin_push_mama_coupon_audit
