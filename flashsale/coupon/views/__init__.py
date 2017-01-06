@@ -1,1 +1,1 @@
-from .views import ReleaseOmissive, VerifyReturnSysTransfer
+from .views import ReleaseOmissive, VerifyReturnSysTransfer, SendTransferEliteScore
