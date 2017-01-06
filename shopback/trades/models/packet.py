@@ -1078,15 +1078,15 @@ class PackageSkuItem(BaseModel):
             SkuStock.set_psi_merged(self.sku_id, self.num)
 
     def get_return_address_id(self):
-        supplier_id = ReturnGoods.objects.filter(self.sale_trade_id).first().supplier.id
+        supplier_id = ReturnGoods.objects.filter(id=self.sale_trade_id).first().supplier.id
         user_address = UserAddress.objects.filter(supplier_id=supplier_id).first()
         return user_address.id
 
     def get_return_user_id(self):
-        supplier_id = ReturnGoods.objects.filter(self.sale_trade_id).first().supplier.id
+        supplier_id = ReturnGoods.objects.filter(id = self.sale_trade_id).first().supplier.id
         user_address = UserAddress.objects.filter(supplier_id=supplier_id).first()
-        if all(user_address.supplier_id,user_address.receiver_name,user_address.receiver_state,
-               user_address.receiver_city,user_address.receiver_district,user_address.receiver_address,user_address.receiver_mobile):
+        if all([user_address.supplier_id,user_address.receiver_name,user_address.receiver_state,
+               user_address.receiver_city,user_address.receiver_district,user_address.receiver_address,user_address.receiver_mobile]):
             self.receiver_mobile = user_address.receiver_mobile
             self.save()
             return user_address.id
@@ -1116,7 +1116,7 @@ class PackageSkuItem(BaseModel):
             self.merge_time = datetime.datetime.now()
             return_addr_id = self.get_return_address_id()
             return_user_id = self.get_return_user_id()
-            return_user_id = "sp:" + return_user_id
+            return_user_id = return_user_id
             package_order_id = PackageOrder.gen_new_package_id(return_user_id,
                                                                return_addr_id,
                                                                self.product_sku.ware_by)
@@ -1135,7 +1135,8 @@ class PackageSkuItem(BaseModel):
             self.package_order_pid = po.pid
             self.save()
             po.add_package_sku_item(self)
-            SkuStock.set_psi_merged(self.sku_id, self.num)
+            if self.type==2:
+                SkuStock.set_psi_merged(self.sku_id, self.num)
 
     @staticmethod
     def batch_merge():

@@ -80,13 +80,10 @@ class ReturnGoods(models.Model):
             self._sku_ids_ = [i['skuid'] for i in self.rg_details.values('skuid')]
         return self._sku_ids_
 
-    def is_supplier_addr(self):
+    def get_supplier_addr(self):
         supplier_id = self.supplier.id
         user_address = UserAddress.objects.filter(supplier_id=supplier_id).first()
-        if user_address:
-            return True
-        else:
-            return False
+        return user_address
 
     def is_supplier_addr_incomplete(self):
         supplier_id = self.supplier.id

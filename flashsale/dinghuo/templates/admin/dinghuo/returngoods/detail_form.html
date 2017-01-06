@@ -134,13 +134,13 @@
                     <input type="button" class="btn-mini btn-success" id="id_btn_finished" value="已经完成"/>&nbsp;&nbsp;
                 {%endif%}
                 {%endif%}
-                <select id="pksi_type">
+<!--                 <select id="pksi_type">
                 <option value="---">退货类型</option>
                     <option value=2>清库存</option>
                     <option value=3>退多货</option>
                     <option value=4>退次品</option>
-                </select>
-                <input type="button" class="btn-mini btn-success" id="id_btn_pksi" value="生成退货商品包裹" onclick="create_pksi(this)" disabled="true"/>
+                </select> -->
+                <input type="button" class="btn-mini btn-success" id="id_btn_pksi" value="生成退货商品包裹" onclick="create_pksi(this)"/>
                 <input type="button" class="btn-mini btn-success" id="change_to_refund" value="换货变退货回款" onclick="change_become_refund(this)" disabled="true"/>
 
             </div>
@@ -395,7 +395,7 @@
 <script type="text/javascript">
 
 $(document).ready(function() {
-    var url = "/sale/dinghuo/returngoods/pksi_is_pid/";
+    var url = "/sale/dinghuo/purchase_return/"+{{ original.id }}+"/psi_has_pid";
     var data = {returngoods_id:{{original.id}}};
     $.ajax({"url":url,"data":data,"type":"post",dataType:"json","success":callback});
     function callback(res){
@@ -432,7 +432,6 @@ $(document).ready(function() {
     		for(var i=0;i<as.length;i++){
     			as[i].checked=true;
     			document.getElementById("change_to_refund").disabled=false;
-                                      document.getElementById("id_btn_pksi").disabled=false;
     		}
     	}
     	else{
@@ -440,14 +439,12 @@ $(document).ready(function() {
     		for(var i=0;i<as.length;i++){
     			as[i].checked=false;
     			document.getElementById("change_to_refund").disabled=true;
-                                      document.getElementById("id_btn_pksi").disabled=true;
     		}
     	}
     }
     function can_change(obj){
     if(obj.checked==true){
     	document.getElementById("change_to_refund").disabled=false;
-            document.getElementById("id_btn_pksi").disabled=false;
     }
     else{
     	var as = $(".action-select");
@@ -459,11 +456,9 @@ $(document).ready(function() {
     	}
     	if(flag==1){
     		document.getElementById("change_to_refund").disabled=false;
-                          document.getElementById("id_btn_pksi").disabled=false;
     	}
     	else{
     		document.getElementById("change_to_refund").disabled=true;
-                         document.getElementById("id_btn_pksi").disabled=true;
     	}
     }
     }
@@ -493,24 +488,14 @@ $(document).ready(function() {
     function create_pksi(obj){
         // var products_items = new Array();
         // var data = {returngoods_id:{{original.id}}}
+       
         var supplier_id = {{original.supplier.id}};
-        var returngoods_id = $("#action-toggle").attr("value");
-        var as = $(".action-select");
-        var type = $('#pksi_type  option:selected').val();  
-        if(type=="---"){
-            alert("请选择退货商品类型");
-            return
-        } 
         var RGdetail_ids = [];
-        for (var i=0;i<as.length;i++){
-            if(as[i].checked==true){
-            RGdetail_ids.push(as[i].dataset.id);
-        }
-        }
         var cfm = confirm("是否把这些:"+RGdetail_ids+"    生成退货商品包裹");
         if(cfm==true){
-        var data = {"returngoods_id":{{original.id}},"RGdetail_ids":JSON.stringify(RGdetail_ids),"supplier_id":supplier_id,"type":type}
-        var url = "/sale/dinghuo/returngoods/create_pksi_by_RGDetail/";
+        var data = {"supplier_id":supplier_id}
+        var url = "/sale/dinghuo/purchase_return/"+{{ original.id }}+"/create_psi_by_rgdetail";
+        console.log(url);
         $.ajax({"url":url,"data":data,"type":"post",dataType:"json","success":callback,"error":callback2});
         function callback(res){
             if(res.status==true){
@@ -528,6 +513,7 @@ $(document).ready(function() {
         }
         console.log(data);
         }
+        console.log("ngfa");
 
 
     }

@@ -10,7 +10,7 @@ from .point_every_day import RecordPointView
 from .views_sale_status import EntranceView, SaleHotView, TopStockView, SaleBadView
 from .view_refund_supplier import (
     StatisRefundSupView, change_duihuo_status, change_sum_price,
-    change_return_goods_memo, modify_return_goods_sku, delete_return_goods_sku,replace_become_refund,create_pksi_by_RGDetail,pksi_is_pid,
+    change_return_goods_memo, modify_return_goods_sku, delete_return_goods_sku,replace_become_refund,create_pksi_by_rgdetail,
     set_return_goods_sku_send, set_transactor, export_return_goods,
     mark_unreturn, returngoods_add_sku, set_return_goods_failed,
     returngoods_deal, ReturnGoodsViewSet)
