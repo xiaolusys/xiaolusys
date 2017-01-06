@@ -132,8 +132,8 @@ def create_activity(title, act_type, start_time, end_time, **kwargs):
     _validate_start_end_time(start_time, end_time)
     activity = activity.create()
     if act_type == ActivityEntry.ACT_TOPIC:
-        activity.act_link = 'http://m.xiaolumeimei.com/mall/activity/topTen/model/2?id={0}'.format(activity.id)
-    activity.share_link = 'http://m.xiaolumeimei.com/m/{mama_id}?next=' + activity.act_link
+        activity.act_link = 'https://m.xiaolumeimei.com/mall/activity/topTen/model/2?id={0}'.format(activity.id)
+    activity.share_link = 'https://m.xiaolumeimei.com/m/{mama_id}?next=' + activity.act_link
     activity.order_val = activity.id  # 默认排序值是当前id
     activity.save()
     return activity
@@ -151,7 +151,7 @@ def update_activity(id, **kwargs):
             kwargs.pop('act_link')  # 在创建的时候已经填写过act_link了不需要重新填写
     else:
         if kwargs.has_key('act_link'):
-            kwargs['share_link'] = 'http://m.xiaolumeimei.com/m/{mama_id}?next=' + kwargs['act_link']
+            kwargs['share_link'] = 'https://m.xiaolumeimei.com/m/{mama_id}?next=' + kwargs['act_link']
     for k, v in kwargs.iteritems():
         if hasattr(activity, k) and getattr(activity, k) != v:
             setattr(activity, k, v)
