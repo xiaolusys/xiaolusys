@@ -129,7 +129,7 @@ class ReleaseOmissive(APIView):
         return True
 
     def post(self, request):
-        content = request.POST
+        content = request.POST or request.data
         customer = content.get('buyer_id', None)
         template_id = content.get('template_id', None)
         cancel_coupon_id = content.get('cancel_coupon_id', None)
