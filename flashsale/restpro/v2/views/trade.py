@@ -68,7 +68,8 @@ def get_channel_list(request, customer):
     if is_in_wap:
         if is_in_weixin and customer.unionid:
             channel_list.append({'id': 'wx_pub', 'name': u'微信支付', 'payable': True, 'msg': ''})
-        channel_list.append({'id': 'alipay_wap', 'name': u'支付宝', 'payable': True, 'msg': ''})
+        else:
+            channel_list.append({'id': 'alipay_wap', 'name': u'支付宝', 'payable': True, 'msg': ''})
     else:
         channel_list.append({'id': 'wx', 'name': u'微信支付', 'payable': True, 'msg': ''})
         channel_list.append({'id': 'alipay', 'name': u'支付宝', 'payable': True, 'msg': ''})
