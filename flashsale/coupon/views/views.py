@@ -99,7 +99,7 @@ class ReleaseOmissive(APIView):
             else:
                 templates_data['X'].append(t)
         templates_data = OrderedDict(
-                 sorted(templates_data.items(), key=lambda templates_data: templates_data[0]))
+            sorted(templates_data.items(), key=lambda templates_data: templates_data[0]))
         x = {'sale_orders': sale_orders,
              'time_from': time_from,
              'time_to': time_to,
@@ -199,3 +199,35 @@ class VerifyReturnSysTransfer(APIView):
             return Response({'code': 0, 'info': '审核成功'})
         except Exception as e:
             return Response({'code': 2, 'info': '审核出错: %s' % e.message})
+
+
+class SendTransferEliteScore(APIView):
+    transfer_coupons = CouponTransferRecord.objects.all()
+    renderer_classes = (JSONRenderer, TemplateHTMLRenderer,)
+    permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser)
+    """赠送精品券积分
+    """
+
+    def post(self, request):
+        # type: (HttpRequest) -> Response
+        """工作人员 审核 用户申请的 退 精品优惠券
+        """
+        content = request.POST or request.data
+        rank = content.get('rank') or None
+        customer_id = content.get('customer_id') or None
+        elite_score = content.get('elite_score') or None
+
+        if not (rank and customer_id):
+            return Response({'code': 1, 'info': '参数错误'})
+        try:
+            from ..apis.v1.transfer import create_present_elite_score
+            from ..apis.v1.coupontemplate import get_coupon_template_by_id
+            from flashsale.pay.apis.v1.customer import get_customer_by_id
+
+            template = get_coupon_template_by_id(id=156)
+            customer = get_customer_by_id(int(customer_id))
+            create_present_elite_score(customer, int(elite_score), template, rank)
+            return Response({'code': 0, 'info': '操作成功'})
+        except Exception as e:
+            return Response({'code': 2, 'info': '送积分出错: %s' % e.message})
+

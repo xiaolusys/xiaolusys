@@ -19,6 +19,7 @@ from flashsale.pay.models import BudgetLog, SaleOrder
 __ALL__ = [
     'create_coupon_transfer_record',
     'get_transfer_record_by_id',
+    'create_present_elite_score',
 ]
 
 
@@ -50,6 +51,67 @@ def get_elite_score_by_templateid(templateid, mama):
 def get_transfer_record_by_id(id):
     # type: (int) -> CouponTransferRecord
     return CouponTransferRecord.objects.get(id=id)
+
+
+def create_present_elite_score(customer, elite_score, template, rank):
+    # type: (Customer, int, CouponTemplate, text_type) -> bool
+    """赠送积分
+    """
+    to_mama = customer.get_charged_mama()
+    to_mama_nick = customer.nick
+    to_mama_thumbnail = customer.thumbnail
+    coupon_to_mama_id = to_mama.id
+    init_from_mama_id = to_mama.id
+
+    coupon_from_mama_id = 0
+    from_mama_thumbnail = 'http://7xogkj.com2.z0.glb.qiniucdn.com/222-ohmydeer.png?imageMogr2/thumbnail/60/format/png'
+    from_mama_nick = 'SYSTEM'
+
+    uni_key_in = "elite_in-%s-%s" % (customer.id, rank)  # 一个用户一个的等级只有一次送积分
+    uni_key_out = "elite_out-%s-%s" % (customer.id, rank)  # 一个用户一个的等级只有一次送积分
+    product_img = template.extras.get("product_img") or ''
+    # 入券
+    transfer_in = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id,
+                                       from_mama_thumbnail=from_mama_thumbnail,
+                                       from_mama_nick=from_mama_nick,
+                                       coupon_to_mama_id=coupon_to_mama_id,
+                                       to_mama_thumbnail=to_mama_thumbnail,
+                                       to_mama_nick=to_mama_nick,
+                                       coupon_value=int(template.value),
+                                       init_from_mama_id=init_from_mama_id,
+                                       order_no=uni_key_in,
+                                       template_id=template.id,
+                                       product_img=product_img,
+                                       coupon_num=1,
+                                       transfer_type=CouponTransferRecord.IN_GIFT_COUPON,
+                                       uni_key=uni_key_in,
+                                       date_field=datetime.date.today(),
+                                       elite_score=elite_score,
+                                       transfer_status=CouponTransferRecord.DELIVERED)
+    # 用券
+    transfer_out = CouponTransferRecord(coupon_from_mama_id=coupon_to_mama_id,
+                                        from_mama_thumbnail=to_mama_thumbnail,
+                                        from_mama_nick=to_mama_nick,
+
+                                        coupon_to_mama_id=coupon_from_mama_id,
+                                        to_mama_thumbnail=from_mama_thumbnail,
+                                        to_mama_nick=from_mama_nick,
+
+                                        coupon_value=int(template.value),
+                                        init_from_mama_id=0,
+                                        order_no=uni_key_out,
+                                        template_id=template.id,
+                                        product_img=product_img,
+                                        coupon_num=1,
+                                        transfer_type=CouponTransferRecord.OUT_CONSUMED,
+                                        uni_key=uni_key_out,
+                                        date_field=datetime.date.today(),
+                                        elite_score=elite_score,
+                                        transfer_status=CouponTransferRecord.DELIVERED)
+    with transaction.atomic():
+        transfer_in.save()
+        transfer_out.save()
+    return True
 
 
 def create_present_coupon_transfer_record(customer, template, coupon_id, uni_key_prefix=None):
