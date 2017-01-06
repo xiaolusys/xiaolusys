@@ -54,7 +54,7 @@ def get_transfer_record_by_id(id):
 
 
 def create_present_elite_score(customer, elite_score, template, rank):
-    # type: (Customer, int, CouponTemplate, text_type) -> bool
+    # type: (Customer, int, CouponTemplate, text_type) -> CouponTransferRecord, CouponTransferRecord
     """赠送积分
     """
     to_mama = customer.get_charged_mama()
@@ -111,7 +111,7 @@ def create_present_elite_score(customer, elite_score, template, rank):
     with transaction.atomic():
         transfer_in.save()
         transfer_out.save()
-    return True
+    return transfer_in, transfer_out
 
 
 def create_present_coupon_transfer_record(customer, template, coupon_id, uni_key_prefix=None):

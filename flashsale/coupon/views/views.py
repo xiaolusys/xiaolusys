@@ -226,7 +226,9 @@ class SendTransferEliteScore(APIView):
 
             template = get_coupon_template_by_id(id=156)
             customer = get_customer_by_id(int(customer_id))
-            create_present_elite_score(customer, int(elite_score), template, rank)
+            transfer_in, transfer_out = create_present_elite_score(customer, int(elite_score), template, rank)
+            log_action(request.user, transfer_in, ADDITION, '赠送积分: 赠送')
+            log_action(request.user, transfer_out, ADDITION, '赠送积分: 消耗')
             return Response({'code': 0, 'info': '操作成功'})
         except Exception as e:
             return Response({'code': 2, 'info': '送积分出错: %s' % e.message})
