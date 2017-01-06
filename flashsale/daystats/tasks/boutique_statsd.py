@@ -106,6 +106,22 @@ def task_boutique_mama_statsd():
     statsd.gauge('xiaolumm.boutique.mama.ordered_count', order_mama_count)
 
 
+@app.task
+def task_boutique_mama_weekly_active():
+    """ 精英妈妈连续七天活跃度 """
+    ctr_qs = CouponTransferRecord.objects.filter(status=1)
+
+    dt = datetime.datetime.now()
+    df = dt - datetime.timedelta(days=7)
+
+    active_elite_mama_count = ctr_qs.filter(
+        date_field__range=(df, dt)
+    ).values('coupon_to_mama_id').distinct().count()
+
+    statsd.gauge('xiaolumm.boutique.weekly.active_mama_count', active_elite_mama_count)
+
+
+
 
 
 

@@ -1598,6 +1598,12 @@ STATSD_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_boutique_mama_statsd'}
     },
+    u'每小时发送精品券妈妈七天活跃数量': {
+        'task': 'flashsale.daystats.tasks.boutique_statsd.task_boutique_mama_weekly_active',
+        'schedule': crontab(minute="0", hour="*/1"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_boutique_mama_weekly_active'}
+    },
 }
 
 
