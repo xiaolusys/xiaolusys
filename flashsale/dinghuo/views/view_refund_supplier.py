@@ -212,8 +212,8 @@ def create_pksi_by_rgdetail(request):
     rgdetail_ids = json.loads(rgdetail_ids)
     RGdetail = RGDetail.objects.filter(id__in=rgdetail_ids)
     pksi_id = []
-    print content.get("RGdetail_ids")
-    print content.get("supplier_id")
+    # print content.get("RGdetail_ids")
+    # print content.get("supplier_id")
     for i in RGdetail:
         sku_id = i.skuid
         sale_order_id = i.id
@@ -225,7 +225,7 @@ def create_pksi_by_rgdetail(request):
         sku_properties_name = i.product_sku.properties_name
         rg_detail_info = {"sku_id":sku_id,"sale_order_id":sale_order_id,"sale_trade_id":sale_trade_id,"type":type,"pay_time":return_good.created,"num":num,
                           "title":title,"pic_path":pic_path,"sku_properties_name":sku_properties_name}
-        print rg_detail_info
+        # print rg_detail_info
         if PackageSkuItem.objects.filter(sale_order_id = i.id):
             pksi = PackageSkuItem.objects.filter(sale_order_id=i.id).first()
             if type!=2:
@@ -779,17 +779,17 @@ class ReturnGoodsViewSet(viewsets.GenericViewSet):
         # RGdetail = RGDetail.objects.filter(id__in=rgdetail_ids)
         rgdetail = return_good.rg_details.all()
         psi_id = []
-        print content.get("RGdetail_ids")
-        print content.get("supplier_id")
+        # print content.get("RGdetail_ids")
+        # print content.get("supplier_id")
         for i in rgdetail:
             sku_id = i.skuid
             sale_order_id = i.id
             sale_trade_id = i.return_goods.id
             if all([not type,i.type,i.num]):
-                print [not type,i.type,i.num]
+                # print [not type,i.type,i.num]
                 type = 3
             if all([not type,i.type,i.inferior_num]):
-                print [not type, i.type, i.inferior_num]
+                # print [not type, i.type, i.inferior_num]
                 type = 4
             num = i.num
             title = SkuStock.objects.get(sku_id=i.skuid).product.name
@@ -799,7 +799,7 @@ class ReturnGoodsViewSet(viewsets.GenericViewSet):
                               "type": type, "pay_time": return_good.created, "num": num,
                               "title": title, "pic_path": pic_path, "sku_properties_name": sku_properties_name,
                               "status":'assigned'}
-            print rg_detail_info
+            # print rg_detail_info
             if PackageSkuItem.objects.filter(sale_order_id=i.id):
                 psi = PackageSkuItem.objects.filter(sale_order_id=i.id).first()
                 if type != 2:

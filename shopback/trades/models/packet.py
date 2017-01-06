@@ -1121,16 +1121,15 @@ class PackageSkuItem(BaseModel):
                                                                return_addr_id,
                                                                self.product_sku.ware_by)
             po = PackageOrder.objects.filter(id=package_order_id).first()
+
             if po:
-                logger.warn({'action': "packageskuitem_merge_1",'info': "packageskuitem_id:" + str(self.id) + " package_order_id:" + str(po.id)})
-            if not po:
-                po = PackageOrder.create(package_order_id, self.sale_trade, PackageOrder.WAIT_PREPARE_SEND_STATUS, self)
-                logger.warn({'action': "packageskuitem_merge_2",'info': "packageskuitem_id:" + str(self.id) + " package_order_id:" + str(po.id)})
                 if po.sys_status == PackageOrder.PKG_NEW_CREATED:
                     po.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS
                 po.set_redo_sign(save_data=False)
-                po.reset_return_address()
-            logger.warn({'action': "packageskuitem_merge_3", 'info': "packageskuitem_id:"+str(self.id)+" package_order_id:" + str(po.id)})
+                po.reset_package_address()
+                po.set_logistics_company(self.sale_trade.logistics_company_id)
+            else:
+                po = PackageOrder.create(package_order_id, self.sale_trade, PackageOrder.WAIT_PREPARE_SEND_STATUS, self)
             self.package_order_id = po.id
             self.package_order_pid = po.pid
             self.save()

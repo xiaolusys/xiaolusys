@@ -495,25 +495,24 @@ $(document).ready(function() {
         if(cfm==true){
         var data = {"supplier_id":supplier_id}
         var url = "/sale/dinghuo/purchase_return/"+{{ original.id }}+"/create_psi_by_rgdetail";
-        console.log(url);
+        <!--console.log(url);-->
         $.ajax({"url":url,"data":data,"type":"post",dataType:"json","success":callback,"error":callback2});
         function callback(res){
             if(res.status==true){
-                alert("成功生成退货包裹商品:"+res.pksi_id);
+                console.log(res);
+                alert("成功生成退货包裹商品:"+res.psi_id);
             }
             else{
                 alert("无法生成退货包裹商品 "+res.reason);
             }
         }
         function callback2(XMLHttpRequest, textStatus, errorThrown){
-             console.log(XMLHttpRequest.status);
-            console.log(XMLHttpRequest.readyState);
-            console.log(textStatus);
+             <!--console.log(XMLHttpRequest.status);-->
+            <!--console.log(XMLHttpRequest.readyState);-->
+            <!--console.log(textStatus);-->
             alert("无法生成退货包裹商品");
         }
-        console.log(data);
         }
-        console.log("ngfa");
 
 
     }
