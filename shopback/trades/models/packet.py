@@ -313,10 +313,11 @@ class PackageOrder(models.Model):
         new_p = PackageOrder()
         need_attrs = ['pid', 'id', 'buyer_id', 'user_address_id', 'ware_by', 'tid', 'receiver_name', 'receiver_state',
                       'receiver_city', 'receiver_district', 'receiver_address', 'receiver_zip', 'receiver_mobile',
-                      'receiver_phone', 'buyer_nick', 'created']
+                      'receiver_phone', 'buyer_nick', 'created', 'merged']
         # all_attrs = PackageOrder.get_deferred_fields()
         all_attrs = [i.column for i in PackageOrder._meta.fields]
         for attr in all_attrs:
+            # 注意下字段'merged'和can_send_time  并发完全对应
             if attr not in need_attrs:
                 val = getattr(new_p, attr)
                 setattr(self, attr, val)
