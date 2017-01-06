@@ -53,6 +53,9 @@ class ReleaseOmissive(APIView):
                                                                                        'status',
                                                                                        'num',
                                                                                        'title')
+        for order in sale_orders:
+            order['status_display'] = SaleOrder.ORDER_STATUS[order['status']][1]
+
         # 获取赠送的优惠券
         usercoupons = UserCoupon.objects.filter(customer_id=buyer_id,
                                                 created__gte=time_from,
@@ -63,6 +66,8 @@ class ReleaseOmissive(APIView):
                                                                                           'title',
                                                                                           'status',
                                                                                           'customer_id')
+        for coupon in usercoupons:
+            coupon['status_display'] = UserCoupon.USER_COUPON_STATUS[coupon['status']][1]
         templates = CouponTemplate.objects.filter(status=CouponTemplate.SENDING,
                                                   coupon_type=CouponTemplate.TYPE_TRANSFER).order_by("value").values(
             'id',
@@ -137,7 +142,7 @@ class ReleaseOmissive(APIView):
         activity_id = int(activity_id)
         if cancel_coupon_id:
             try:
-                state = self.cancel_gift_coupon(int(cancel_coupon_id))
+                state = self.cancel_gift_coupon(int(cancel_coupon_id), request.user)
                 info = '取消操作成功' if state else '取消失败'
             except Exception as e:
                 info = e.message
