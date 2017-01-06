@@ -11,7 +11,7 @@ class DailyStat(models.Model):
 
     total_payment = models.IntegerField(default=0, verbose_name=u'日成交额')
     total_paycash = models.IntegerField(default=0, verbose_name=u'实付现金')
-    total_coupon  = models.IntegerField(default=0, verbose_name=u'优惠券')
+    total_coupon  = models.IntegerField(default=0, verbose_name=u'券使用额')
     total_budget  = models.IntegerField(default=0, verbose_name=u'钱包余额')
     total_boutique = models.IntegerField(default=0, verbose_name=u'购精品券')
     total_deposite  = models.IntegerField(default=0, verbose_name=u'支付押金')
