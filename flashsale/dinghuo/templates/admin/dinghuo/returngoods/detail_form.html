@@ -499,7 +499,6 @@ $(document).ready(function() {
         $.ajax({"url":url,"data":data,"type":"post",dataType:"json","success":callback,"error":callback2});
         function callback(res){
             if(res.status==true){
-                console.log(res);
                 alert("成功生成退货包裹商品:"+res.psi_id);
             }
             else{
