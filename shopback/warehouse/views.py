@@ -163,34 +163,13 @@ class PackageScanCheckView(APIView):
             return Response(u'需重打发货单')
         if not package_order.is_express_print:
             return Response(u'需重打物流单')
-        if not PackageScanCheckView.check_address_right(package_order):
-            return Response(u'地址错误不予放行')
-        oids = [p.oid for p in package_order.package_sku_items.filter(assign_status=1)]
-        for s in SaleOrder.objects.filter(oid__in=oids):
-            if not s.is_pending():
-                logger.error(u'有订单已被取消仍要求发货:' + str(s.id))
-                return Response(u'有订单已被取消：' + str(s.id))
+        err_res = package_order.checkerr()
+        if err_res:
+            return Response(err_res)
         package_order.sys_status = PackageOrder.WAIT_SCAN_WEIGHT_STATUS
         package_order.scanner = request.user.username
         package_order.save()
-        # package_order.scancheck(request.user)
         return Response({'isSuccess': True})
-
-    @staticmethod
-    def check_address_right(package_order):
-        from flashsale.pay.models import SaleTrade
-        from shopback.trades.models.packet import get_sale_trade_address_dict, get_package_address_dict
-        try:
-            for item in package_order.package_sku_items.all():
-                tid = item.sale_trade_id
-                trade = SaleTrade.objects.get(tid=tid)
-                if get_sale_trade_address_dict(trade) != get_package_address_dict(package_order):
-                    logger.error(u'地址错误:' + str(package_order.pid) + '|' + tid)
-                    return False
-            return True
-        except:
-            return False
-
 
 
 ########################## 订单重量入库 ###########################
@@ -269,6 +248,9 @@ class PackageScanWeightView(APIView):
             return Response(u'需重打发货单')
         if not package.is_express_print:
             return Response(u'需重打物流单')
+        err_res = package.checkerr()
+        if err_res:
+            return Response(err_res)
         package.weight = package_weight
         package.weighter = request.user.username
         package.save()

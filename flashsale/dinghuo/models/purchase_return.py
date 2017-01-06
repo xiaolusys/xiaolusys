@@ -571,6 +571,9 @@ class RGDetail(models.Model):
             n=Sum("inferior_num")).get('n', 0)
         return res or 0
 
+    def need_send(self):
+        return self.return_goods.status == ReturnGoods.VERIFY_RG
+
 
 def sync_rgd_return(sender, instance, created, **kwargs):
     instance.return_goods.set_stat()

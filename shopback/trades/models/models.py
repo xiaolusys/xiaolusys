@@ -54,6 +54,8 @@ TRADE_TYPE = (
     (pcfg.DIRECT_TYPE, u'内售'),
     (pcfg.REISSUE_TYPE, u'补发'),
     (pcfg.EXCHANGE_TYPE, u'退换货'),
+    (pcfg.EXCHANGE_TYPE, u'小鹿特卖'),
+    (pcfg.EXCHANGE_TYPE, u'退换货'),
 )
 
 TAOBAO_TRADE_STATUS = (

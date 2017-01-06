@@ -54,7 +54,7 @@ def task_saleorder_update_package_sku_item(sale_order):
     from shopback.items.models import ProductSku
     items = PackageSkuItem.objects.filter(sale_order_id=sale_order.id)
     if items.count() <= 0:
-        if not sale_order.is_pending():
+        if not sale_order.need_send():
             # we create PackageSkuItem only if sale_order is 'pending'.
             return
         ware_by = ProductSku.objects.get(id=sale_order.sku_id).ware_by

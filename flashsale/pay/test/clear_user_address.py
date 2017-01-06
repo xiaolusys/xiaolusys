@@ -1,5 +1,5 @@
 # coding=utf-8
-from flashsale.pay.models_addr import UserAddress
+from flashsale.pay.models import UserAddress
 from flashsale.pay.models import SaleTrade
 from datetime import datetime, timedelta
 import hashlib
@@ -13,6 +13,21 @@ def address_strip():
         if state:
             ua.save()
 
+def find_duplicate_address():
+    res = {}
+    need_delete1 = []
+    need_delete2 = []
+    for ua in UserAddress.objects.filter(status=UserAddress.NORMAL).order_by('-id'):
+        key = '-'.join([str(ua.cus_uid) , ua.receiver_name , ua.receiver_phone , ua.receiver_mobile, ua.receiver_state , ua.receiver_city , ua.receiver_district , ua.receiver_address])
+        key = key.strip()
+        key = hashlib.sha256(key).hexdigest()
+        if key in res:
+            print 'repeat:' + str(ua.id) + '|' + str(res[key].id) + '|' + str(res[key].created)
+            need_delete1.append(ua.id)
+            need_delete2.append(res[key].id)
+        else:
+            res[key] = ua
+    return res, need_delete1, need_delete2
 
 def clear_duplicate_address():
     # 由后往前，清除地址表中的重复地址

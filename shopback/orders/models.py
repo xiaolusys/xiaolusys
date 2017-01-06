@@ -3,12 +3,12 @@ from __future__ import unicode_literals
 
 import json
 import time
+import hashlib
 from django.db import models
-
 from core.models import BaseModel
 from core.fields import BigAutoField, BigForeignKey
 from shopback.users.models import User
-from shopback.items.models import Item
+from shopback.items.models import Item, Product, ProductSku
 from shopback import paramconfig as pcfg
 from shopback.signals import merge_trade_signal
 from common.utils import parse_datetime
@@ -44,9 +44,16 @@ STEP_TRADE_STATUS = (
     (pcfg.FRONT_PAID_FINAL_PAID, '定金和尾款都付'),
 )
 
+STAGE_CHOICES = (
+    (0, u'需创建PackageSkuItem'),
+    (1, u'已创建PackageSkuItem'),
+    (2, u'已完结')
+)
+
 
 class Trade(models.Model):
-    id   = models.BigIntegerField(primary_key=True)
+    YOUNI_SELLER_ID = '174265168'
+    id = models.BigIntegerField(primary_key=True)
     user = models.ForeignKey(User, null=True, related_name='trades')
 
     seller_id = models.CharField(max_length=64, blank=True)
@@ -137,6 +144,22 @@ class Trade(models.Model):
                 logger.error('backend update trade (tid:%s)error' % str(trade_id), exc_info=True)
 
         return trade
+
+    @property
+    def address_unikey(self):
+        address = self.receiver_state + self.receiver_city + self.receiver_district + self.receiver_address
+        return hashlib.sha1(address).hexdigest()
+
+    @property
+    def user_unikey(self):
+        user = self.receiver_name + self.receiver_phone
+        return hashlib.sha1(user).hexdigest()
+
+    @staticmethod
+    def seller():
+        if not hasattr(Trade, '_seller_'):
+            Trade._seller_ = User.objects.get(uid=Trade.YOUNI_SELLER_ID)
+        return Trade._seller_
 
     @classmethod
     def save_trade_through_dict(cls, user_id, trade_dict):
@@ -234,6 +257,8 @@ class Order(models.Model):
 
     status = models.CharField(max_length=32, choices=TAOBAO_TRADE_STATUS, blank=True)
 
+    stage = models.IntegerField(default=0, choices=STAGE_CHOICES, verbose_name=u'发货进度', help_text=u'0未处理1发货中2已完结')
+
     class Meta:
         db_table = 'shop_orders_order'
         app_label = 'orders'
@@ -251,3 +276,60 @@ class Order(models.Model):
             values = properties.split(':')
             value_list.append(values[1] if len(values) == 2 else properties)
         return ' '.join(value_list)
+
+    @property
+    def sku(self):
+        if not hasattr(self, '_sku_'):
+            self._sku_ = self.product.eskus.filter(outer_id=self.outer_sku_id).first()
+        return self._sku_
+
+    @property
+    def product(self):
+        if not hasattr(self, '_product_'):
+            self._product_ = Product.objects.filter(outer_id=self.outer_id).first()
+        return self._product_
+
+    def get_tb_oid(self):
+        return 'tb' + str(self.oid)
+
+    def has_psi_created(self):
+        from shopback.trades.models import PackageSkuItem, PSI_TYPE
+        return PackageSkuItem.objects.filter(oid=self.get_tb_oid()).exists()
+
+    def create_package_sku_item(self):
+        if self.stage > 0:
+            return
+        if self.has_psi_created():
+            return
+        from shopback.trades.models import PackageSkuItem, PSI_TYPE
+        ware_by = self.sku.ware_by
+        sku_item = PackageSkuItem(sale_order_id=None, ware_by=ware_by, oid=self.get_tb_oid())
+        sku_item.sku_id = self.sku.id
+        sku_item.product = self.product
+        sku_item.outer_sku_id = self.outer_sku_id
+        sku_item.outer_id = self.product.outer_id
+        sku_item.num = self.num
+        sku_item.type = PSI_TYPE.TIANMAO
+        sku_item.package_order_id
+        sku_item.package_order_pid
+        sku_item.ware_by = ware_by
+        # sku_item.cid = None
+        sku_item.title = self.product.title
+        sku_item.sku_properties_name = self.sku.properties_name
+        sku_item.pic_path = self.sku.product.pic_path
+        sku_item.pay_time = self.pay_time
+        sku_item.receiver_mobile = self.trade.receiver_mobile
+        # sku_item.out_sid
+        # sku_item.logistics_company_name
+        sku_item.price = self.price
+        sku_item.total_fee = self.payment
+        sku_item.payment = self.payment
+        sku_item.discount_fee = self.discount_fee
+        sku_item.sale_trade_id = 'tb' + str(self.trade.id)
+        sku_item.save()
+        sku_item.set_status_init_assigned()
+        PackageSkuItem.batch_merge(type=PSI_TYPE.TIANMAO)
+        self.stage = 1
+        self.save()
+        return sku_item
+

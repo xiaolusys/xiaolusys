@@ -138,7 +138,7 @@ def task_update_ordercarry(mama_id, order, customer_pk, carry_amount, agency_lev
     corresponding order_carry record.
     """
     status = 0  # unpaid
-    if order.is_pending():
+    if order.need_send():
         status = 1
     elif order.is_confirmed():
         status = 2
