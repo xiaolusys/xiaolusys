@@ -68,7 +68,7 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset().filter(customer_id=customer.id))
         page = self.paginate_queryset(queryset)
         if page is not None:
-            serializer = serializers.UserCouponListSerialize(queryset, many=True)
+            serializer = serializers.UserCouponListSerialize(page, many=True)
             return self.get_paginated_response(serializer.data)
         serializer = serializers.UserCouponListSerialize(queryset, many=True)
         return Response(serializer.data)
