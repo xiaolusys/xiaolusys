@@ -165,6 +165,8 @@ def _check_virtual_trade_status(time_from=None, time_to=None):
     tt = time_to or datetime.datetime.now()
     tf = time_from or (tt - datetime.timedelta(days=2))
     orders = SaleOrder.objects.filter(
+        created__gte=tf,
+        created__lte=tt,
         sale_trade__order_type=SaleTrade.ELECTRONIC_GOODS_ORDER,
         status__in=[SaleOrder.TRADE_FINISHED, SaleOrder.WAIT_SELLER_SEND_GOODS])
     ordersv = orders.values('id', 'status', 'oid')
@@ -177,6 +179,34 @@ def _check_virtual_trade_status(time_from=None, time_to=None):
             if not CouponTransferRecord.objects.filter(order_no=order['oid']).exists():
                 success_no_transfer.append(order['id'])
     return paid, success_no_transfer
+
+
+def _check_coupon_chain(time_from=None, time_to=None):
+    # type: (Optional[datetime], Optional[datetime]) -> Dict[str, List[int]]
+    """检查精品优惠券转券 chain
+    1. 转给下属的 券 如果没有 chain 则有问题
+    2. 其他券 如果 有chain 则有问题
+    """
+    from flashsale.coupon.models import TransferCouponDetail
+    tt = time_to or datetime.datetime.now()
+    tf = time_from or (tt - datetime.timedelta(days=1))
+    ds = TransferCouponDetail.objects.filter(created__gte=tf, created__lte=tt)
+    checked = []
+    error_coupon = []
+    for d in ds:
+        if d.coupon_id in checked:
+            continue
+        usercoupon = d.usercoupon
+        transfer_coupon_pk = usercoupon.transfer_coupon_pk
+        chain = usercoupon.mama_chain
+        if (transfer_coupon_pk is None) and (chain is not None):
+            error_coupon.append(str(d.coupon_id))
+        if (chain is None) and (transfer_coupon_pk is not None):
+            error_coupon.append(str(d.coupon_id))
+        checked.append(d.coupon_id)
+    message = '%s chain 检查--共%s条记录, 异常优惠券id为%s' % (str(datetime.datetime.now()), ds.count(), ','.join(error_coupon))
+    _send_msg_ding_talk(message)
+    return error_coupon
 
 
 @app.task()
@@ -205,7 +235,7 @@ def task_check_transfer_coupon_record():
             x = t.render(c)
             data.append(x)
     # if len(data) == 1:
-    #     return
+    # return
     msg = '--------------'.join(data)
     _send_msg_ding_talk(msg)
     paid, success_no_transfer = _check_virtual_trade_status()
@@ -217,3 +247,5 @@ def task_check_transfer_coupon_record():
            '1. 已付款状态id:\n%s' \
            '\n2. 交易成功没有流通记录id:\n%s' % (datetime.datetime.now(), '\n'.join(paid), '\n'.join(success_no_transfer))
     _send_msg_ding_talk(msg2)
+
+    _check_coupon_chain()

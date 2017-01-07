@@ -231,7 +231,7 @@ class UserCoupon(BaseModel):
         return 2
 
     @property
-    def return_mama_chain(self):
+    def mama_chain(self):
         # type: () -> Optional[List[int]]
         """退回 上级 的 妈妈id 列表
         """
@@ -245,7 +245,7 @@ class UserCoupon(BaseModel):
             return False  # 不是精品券  一律 不许 退
         if self.is_gift_transfer_coupon:  # 系统赠送的券 不能退 给 系统
             return False
-        if not self.return_mama_chain:
+        if not self.mama_chain:
             # 情况1. chain 不存在  则为 直接购买 没有转 过 则可以退系统
             # 情况2. chain 是 空的列表  则为 已经 退回 最上面 一级 则可以退系统
             return True
@@ -257,6 +257,6 @@ class UserCoupon(BaseModel):
         """
         if not self.coupon_type == UserCoupon.TYPE_TRANSFER:
             return False
-        if self.return_mama_chain:  # 退券chain 中 还 存在上级妈妈的id
+        if self.mama_chain:  # 退券chain 中 还 存在上级妈妈的id
             return True
         return False

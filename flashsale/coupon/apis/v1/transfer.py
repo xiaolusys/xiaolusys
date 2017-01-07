@@ -504,7 +504,7 @@ def apply_pending_return_transfer_coupon(coupon_ids, customer):
         template_ids.add(coupon.template_id)
 
         # 组织下 数据  key是上级妈妈id  value是 要退给上级妈妈的券 数量
-        chain = coupon.return_mama_chain
+        chain = coupon.mama_chain
         upmm = chain[-1]
         if upmm not in upper_mamas:
             upper_mamas[upmm] = [coupon.id]
