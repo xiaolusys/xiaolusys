@@ -203,6 +203,7 @@ def send_new_elite_transfer_coupons(customer_id, order_id, order_oid, product_id
         if not so.is_finished():
             return
 
+        # 1优惠券
         coupon_num = round(so.payment / 68)
         value, start_use_time, expires_time = template.calculate_value_and_time()
         extras = {'user_info': {'id': customer.id, 'nick': customer.nick, 'thumbnail': customer.thumbnail}}
@@ -237,7 +238,7 @@ def send_new_elite_transfer_coupons(customer_id, order_id, order_oid, product_id
                 template_id, index),
         })
 
-        # 购买338变为精英妈妈
+        # 2购买338/216变为精英妈妈
         from flashsale.xiaolumm.models.models import XiaoluMama
         to_mama = customer.get_xiaolumm()
         if to_mama.last_renew_type < XiaoluMama.ELITE:
@@ -245,50 +246,84 @@ def send_new_elite_transfer_coupons(customer_id, order_id, order_oid, product_id
             to_mama.charge_status = XiaoluMama.CHARGED
         if not to_mama.charge_time:
             to_mama.charge_time = datetime.datetime.now()
-        # 上级在做精英的话，自己为indirect跟着做，否则为direct
+        # 先判断分享的妈妈，再判断上级
+        # 管理员是在在支付订单里面保存的mmlinkid，其他场景就是direct，由运营再来分配
+        upper_mama_id = 0
+        strade = so.sale_trade
+        if strade and strade.extras_info and strade.extras_info.has_key('mm_linkid'):
+            if strade.extras_info['mm_linkid'] != 0 and strade.extras_info['mm_linkid'] != to_mama.id:
+                to_mama.referal_from = XiaoluMama.INDIRECT
+                upper_mama_id = strade.extras_info['mm_linkid']
+
+        # 上级在做精英的话，自己为indirect跟着做，否则按同样的逻辑找潜在妈妈表，再找粉丝表，都找不到则为direct
+        from flashsale.xiaolumm.models import PotentialMama, XlmmFans, ReferalRelationship
         relation_ship = to_mama.get_refer_to_relationships()
-        if relation_ship:
-            referal_mm = XiaoluMama.objects.filter(id=relation_ship.referal_from_mama_id).first()
-            if referal_mm:
-                if (referal_mm.referal_from == XiaoluMama.DIRECT or referal_mm.referal_from == XiaoluMama.INDIRECT) and (referal_mm.elite_score > 0):
-                    to_mama.referal_from = XiaoluMama.INDIRECT
+        if upper_mama_id == 0:
+            if relation_ship:
+                upper_mama_id = relation_ship.referal_from_mama_id
+            else:
+                # 潜在妈妈表
+                potential_mama = PotentialMama.objects.filter(potential_mama=to_mama.id).first()
+                if potential_mama:
+                    upper_mama_id = potential_mama.referal_mama
                 else:
-                    #如果上级没有做那么就跟着管理员做,管理员是在在支付订单里面保存的mmlinkid，其他场景就是direct，由运营再来分配
-                    strade = so.sale_trade
-                    if strade and strade.extras_info and strade.extras_info.has_key('mm_linkid'):
-                        if strade.extras_info['mm_linkid'] != 0 and strade.extras_info['mm_linkid'] != to_mama.id:
-                            to_mama.referal_from = XiaoluMama.INDIRECT
-                            #modify relation ship
-                            relation_ship.referal_type = XiaoluMama.ELITE
-                            relation_ship.referal_from_mama_id = strade.extras_info['mm_linkid']
-                            real_referal_mm = XiaoluMama.objects.filter(id=strade.extras_info['mm_linkid']).first()
-                            if real_referal_mm:
-                                relation_ship.referal_from_grandma_id = real_referal_mm.id
-                            else:
-                                relation_ship.referal_from_grandma_id = 0
-                            relation_ship.order_id = so.oid
-                            relation_ship.save()
-                            logger.info({
-                                'action': 'send_new_elite_transfer_coupons',
-                                'action_time': datetime.datetime.now(),
-                                'order_oid': order_oid,
-                                'message': u'change relation_ship :to mama_id=%s referalmm=%s grandmama=%s' % (
-                                    to_mama.id, relation_ship.referal_from_mama_id, relation_ship.referal_from_grandma_id),
-                            })
-                        else:
-                            to_mama.referal_from = XiaoluMama.DIRECT
+                    # fans
+                    fan = XlmmFans.objects.filter(fans_cusid=customer_id).first()
+                    if fan:
+                        upper_mama_id = fan.xlmm
                     else:
-                        to_mama.referal_from = XiaoluMama.DIRECT
+                        upper_mama_id = 0
+                        logger.error({
+                            'action': 'send_new_elite_transfer_coupons',
+                            'action_time': datetime.datetime.now(),
+                            'order_oid': order_oid,
+                            'message': u'relation_ship potential xlmmfan not exist:mama_id=%s' % (to_mama.id),
+                        })
+
+        referal_mm = XiaoluMama.objects.filter(id=upper_mama_id).first()
+        if referal_mm:
+            if (referal_mm.referal_from == XiaoluMama.DIRECT or referal_mm.referal_from == XiaoluMama.INDIRECT) and (
+                referal_mm.elite_score > 0):
+                to_mama.referal_from = XiaoluMama.INDIRECT
+            else:
+                to_mama.referal_from = XiaoluMama.DIRECT
         else:
             to_mama.referal_from = XiaoluMama.DIRECT
-            logger.error({
+        to_mama.save()
+
+        if relation_ship:
+            # modify relation ship
+            relation_ship.referal_type = XiaoluMama.ELITE
+            relation_ship.referal_from_mama_id = upper_mama_id
+
+            if referal_mm:
+                relation_ship.referal_from_grandma_id = referal_mm.referal_from_mama_id
+            else:
+                relation_ship.referal_from_grandma_id = 0
+            relation_ship.order_id = so.oid
+            relation_ship.save()
+            logger.info({
                 'action': 'send_new_elite_transfer_coupons',
                 'action_time': datetime.datetime.now(),
                 'order_oid': order_oid,
-                'message': u'relation_ship not exist:mama_id=%s' % (to_mama.id),
+                'message': u'change relation_ship :to mama_id=%s referalmm=%s grandmama=%s' % (
+                    to_mama.id, relation_ship.referal_from_mama_id, relation_ship.referal_from_grandma_id),
             })
-        to_mama.save()
+        else:
+            if referal_mm:
+                grandma_id = referal_mm.referal_from_mama_id
+            else:
+                grandma_id = 0
+            ship = ReferalRelationship(referal_from_grandma_id=grandma_id,
+                                       referal_from_mama_id=upper_mama_id,
+                                       referal_to_mama_id=to_mama.id,
+                                       referal_to_mama_nick=customer.nick,
+                                       referal_type=XiaoluMama.ELITE,
+                                       order_id=so.oid,
+                                       referal_to_mama_img=customer.thumbnail)
+            ship.save()
 
+        # 3精品流通记录
         to_mama_nick = customer.nick
         to_mama_thumbnail = customer.thumbnail
 
