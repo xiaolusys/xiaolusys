@@ -5,20 +5,13 @@ import hashlib
 from django.db import models, transaction
 from django.db.models import Q, Sum, F, Manager
 from django.db.models.signals import post_save
-from django.conf import settings
-
 from shopback.users.models import User as ShopUser
-from shopback.items.models import Item, Product, ProductSku
-from flashsale.pay.models import SaleOrder, SaleTrade,UserAddress
-from shopback.logistics.models import Logistics, LogisticsCompany
-from flashsale.pay.models import SaleTrade
+from shopback.items.models import Product, ProductSku
+from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import SkuStock
-from flashsale import pay
-from flashsale.dinghuo.models import ReturnGoods
 import logging
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_THIRD, WARE_CHOICES
 from shopback.trades.constants import PSI_STATUS, SYS_ORDER_STATUS, IN_EFFECT, PO_STATUS, PSI_TYPE
-#
 from shopback import paramconfig as pcfg
 from models import TRADE_TYPE, TAOBAO_TRADE_STATUS
 
@@ -32,9 +25,9 @@ class PackageOrder(models.Model):
     WARE_CHOICES = WARE_CHOICES
     pid = models.AutoField(verbose_name=u'包裹单号', primary_key=True)
     id = models.CharField(max_length=100, verbose_name=u'包裹码', unique=True)
-    tid = models.CharField(max_length=32, verbose_name=u'退货单号|参考交易单号')#rg6689
+    tid = models.CharField(max_length=32, verbose_name=u'退货单号|参考交易单号')#rg6689 tm1235
     ACTION_TYPE_CHOICES = ((0, u'普通发货'), (1, u'特殊发货'))
-    action_type = models.IntegerField(choices=ACTION_TYPE_CHOICES, default=0, verbose_name=u'发货类型',
+    action_type = models.IntegerField(choices=ACTION_TYPE_CHOICES, default=0, db_index=True, verbose_name=u'发货类型',
                                help_text=u'发货类型指定仓库查看到包裹后进行的动作')
     ware_by = models.IntegerField(default=WARE_SH, db_index=True, choices=WARE_CHOICES, verbose_name=u'所属仓库')
     # 暂时无效
@@ -68,7 +61,7 @@ class PackageOrder(models.Model):
                                        blank=True, verbose_name=u'手机')
     receiver_phone = models.CharField(max_length=20, db_index=True, blank=True, verbose_name=u'电话')
 
-    user_address_id = models.BigIntegerField(null=False, db_index=True, verbose_name=u'地址ID')
+    user_address_id = models.CharField(max_length=40, null=False, db_index=True, verbose_name=u'地址ID')
     # 物流信息
     buyer_id = models.BigIntegerField(db_index=True, null=True, verbose_name=u'买家ID')
     buyer_nick = models.CharField(max_length=64, blank=True, verbose_name=u'买家昵称')
@@ -76,7 +69,9 @@ class PackageOrder(models.Model):
     buyer_message = models.TextField(max_length=1000, blank=True, verbose_name=u'买家留言')
     seller_memo = models.TextField(max_length=1000, blank=True, verbose_name=u'卖家备注')
     sys_memo = models.TextField(max_length=1000, blank=True, verbose_name=u'系统备注')
+    # 作废
     seller_flag = models.IntegerField(null=True, default=0, verbose_name=u'淘宝旗帜')
+
     post_cost = models.FloatField(default=0.0, verbose_name=u'物流成本')
     is_lgtype = models.BooleanField(default=False, verbose_name=u'速递')
     lg_aging = models.DateTimeField(null=True, blank=True, verbose_name=u'速递送达时间')
@@ -132,6 +127,29 @@ class PackageOrder(models.Model):
     @property
     def type(self):
         return u'小鹿特卖'
+
+    @property
+    def package_type(self):
+        """
+            包裹分类
+            0普通特卖
+            1手工单
+            2退货类
+            5天猫订单
+        :return:
+        """
+        if self.action_type == 0:
+            return 0
+        if self.action_type == 1:
+            if self.package_sku_items.exclude(assign_status=3).first().type == PSI_TYPE.NORMAL:
+                return PSI_TYPE.NORMAL
+            if self.package_sku_items.exclude(assign_status=3).first().type == PSI_TYPE.BYHAND:
+                return PSI_TYPE.BYHAND
+            if self.package_sku_items.exclude(assign_status=3).first().type == PSI_TYPE.TIANMAO:
+                return PSI_TYPE.TIANMAO
+            if self.package_sku_items.exclude(assign_status=3).first().type in [2, 3, 4]:
+                return PSI_TYPE.RETURN_GOODS
+        return None
 
     @property
     def receiver_address_detail(self):
@@ -199,6 +217,7 @@ class PackageOrder(models.Model):
         # task_packageorder_send_check_packageorder.delay()
 
     def finish_third_package(self, out_sid, logistics_company, weighter=None):
+        from flashsale.pay.models import SaleOrder
         self.out_sid = out_sid
         self.logistics_company_id = logistics_company.id
         self.sys_status = PackageOrder.WAIT_CUSTOMER_RECEIVE
@@ -331,9 +350,10 @@ class PackageOrder(models.Model):
         self.sku_num = 0
         self.save()
 
-    def reset_package_address(self):
+    def reset_package_address(self, save=False):
         item = self.package_sku_items.filter(assign_status=PackageSkuItem.ASSIGNED).order_by('-id').first()
-        if item and item.sale_trade_id:
+        if item and item.type == PSI_TYPE.NORMAL and item.sale_trade_id:
+            from flashsale.pay.models import SaleTrade
             st = SaleTrade.objects.filter(tid=item.sale_trade_id).first()
             self.buyer_id = st.buyer_id
             self.receiver_name = st.receiver_name
@@ -344,6 +364,19 @@ class PackageOrder(models.Model):
             self.receiver_zip = st.receiver_zip
             self.receiver_phone = st.receiver_phone
             self.receiver_mobile = st.receiver_mobile
+        if item and item.type == PSI_TYPE.TIANMAO:
+            st = item.get_relate_order().trade
+            self.buyer_id = st.buyer_id
+            self.receiver_name = st.receiver_name
+            self.receiver_state = st.receiver_state
+            self.receiver_city = st.receiver_city
+            self.receiver_district = st.receiver_district
+            self.receiver_address = st.receiver_address
+            self.receiver_zip = st.receiver_zip
+            self.receiver_phone = st.receiver_phone
+            self.receiver_mobile = st.receiver_mobile
+        if save:
+            self.save()
 
     def reset_return_address(self):
         item = self.package_sku_items.filter(assign_status=PackageSkuItem.ASSIGNED).order_by('-id').first()
@@ -363,7 +396,8 @@ class PackageOrder(models.Model):
 
     def set_package_address(self):
         item = self.package_sku_items.filter(assign_status=PackageSkuItem.ASSIGNED).order_by('-id').first()
-        if item and item.sale_trade_id:
+        if item and item.type == PSI_TYPE.NORMAL and item.sale_trade_id:
+            from flashsale.pay.models import SaleTrade
             st = SaleTrade.objects.filter(tid=item.sale_trade_id).first()
             if not st:
                 return self
@@ -403,8 +437,8 @@ class PackageOrder(models.Model):
         package_sku_item = self.package_sku_items.order_by('-id').first()
         if not package_sku_item:
             return
-            if package_sku_item.sale_trade.logistics_company:
-                self.logistics_company_id = package_sku_item.sale_trade.logistics_company.id
+        if package_sku_item.type == PSI_TYPE.NORMAL and package_sku_item.sale_trade.logistics_company:
+            self.logistics_company_id = package_sku_item.sale_trade.logistics_company.id
             if old_logistics_company_id != self.logistics_company_id:
                 if self.is_express_print:
                     self.is_express_print = False
@@ -450,7 +484,12 @@ class PackageOrder(models.Model):
             sku_items = PackageSkuItem.objects.filter(package_order_id=self.id,
                                                       assign_status=PackageSkuItem.ASSIGNED)
             sku_num = sku_items.count()
-            order_sku_num = PackageSkuItem.unsend_orders_cnt(self.buyer_id)
+            if sku_num == 0:
+                return
+            package_type = self.package_type
+            if not package_type:
+                raise Exception(u'包裹无法判定类型')
+            order_sku_num = PackageSkuItem.unsend_orders_cnt(self.buyer_id, self.trade.receiver_name, type=package_type)
             if order_sku_num > 0:
                 ready_completion = sku_num == order_sku_num
             else:
@@ -497,6 +536,47 @@ class PackageOrder(models.Model):
         if package_order.sys_status == 'WAIT_PREPARE_SEND_STATUS':
             package_order.set_logistics_company(sale_trade.logistics_company_id)
         return package_order
+
+    @staticmethod
+    @transaction.atomic
+    def create_tianmao_package(id, trade, ware_by, psi=None):
+        po = PackageOrder()
+        po.package_order_id = id
+        po.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS
+        po.package_order_id = PackageOrder.gen_new_package_id(trade.user_unikey,
+                                                                   trade.address_unikey,
+                                                                   ware_by)
+        po.tid = 'tm' + str(trade.id)
+        po.action_type = 1
+        po.ware_by = WARE_SH
+        po.sys_status = PO_STATUS.WAIT_PREPARE_SEND_STATUS
+        po.sku_num = 1
+        po.order_sku_num = 1
+        po.seller_id = trade.seller().id
+        po.receiver_name = trade.receiver_name
+        po.receiver_state = trade.receiver_state
+        po.receiver_city = trade.receiver_city
+        po.receiver_district = trade.receiver_district
+        po.receiver_address = trade.receiver_address
+        po.receiver_zip = trade.receiver_zip
+        po.receiver_mobile = trade.receiver_mobile
+        po.receiver_phone = trade.receiver_phone
+        po.user_address_id = None
+        po.buyer_id = None
+        po.buyer_nick = trade.buyer_nick
+        po.buyer_message = trade.buyer_message
+        po.buyer_memo = trade.buyer_memo
+        po.seller_memo = trade.seller_memo
+        # po.seller_flag = trade.seller_flag
+        # po.is_lgtype = trade.is_lgtype
+        # po.lg_aging = trade.lg_aging
+        # po.lg_aging_type = trade.lg_aging_type
+        po.save()
+        if psi:
+            PackageSkuItem.objects.filter(id=psi.id).update(package_order_id=po.id,
+                                                            package_order_pid=po.pid)
+        po.set_logistics_company()
+        return po
 
     @staticmethod
     def get_or_create(id, sale_trade):
@@ -621,6 +701,7 @@ class PackageOrder(models.Model):
                 return u'有订单不应该发货:' + str(p.id)
 
     def check_address_error(self):
+        from flashsale.pay.models import SaleTrade
         try:
             for item in self.package_sku_items.all():
                 if item.type == PSI_TYPE.NORMAL:
@@ -715,12 +796,12 @@ class PackageSkuItem(BaseModel):
     sys_status = models.CharField(max_length=32, choices=SYS_ORDER_STATUS, blank=True, default=IN_EFFECT,
                                   verbose_name=u'系统状态')
 
-    type = models.IntegerField(default=0, choices=PSI_TYPE.CHOICES, verbose_name=u'类型')
+    type = models.IntegerField(default=0, choices=PSI_TYPE.CHOICES, db_index=True, verbose_name=u'类型')
     package_order_id = models.CharField(max_length=100, blank=True, db_index=True, null=True, verbose_name=u'包裹码')
     package_order_pid = models.IntegerField(db_index=True, null=True, verbose_name=u'包裹单号')
     ware_by = models.IntegerField(default=WARE_SH, choices=WARE_CHOICES, db_index=True, verbose_name=u'所属仓库')
-    refund_status = models.IntegerField(choices=pay.REFUND_STATUS, default=pay.NO_REFUND,
-                                        blank=True, verbose_name=u'退款状态')
+    # 无效字段 待删
+    refund_status = models.IntegerField(default=0, blank=True, verbose_name=u'退款状态')
     cid = models.BigIntegerField(null=True, verbose_name=u'商品分类')  # 合单时，不同商品的分类决定包裹能否进行合并操作
     title = models.CharField(max_length=128, blank=True, verbose_name=u'商品标题')
     sku_properties_name = models.CharField(max_length=256, blank=True, verbose_name=u'购买规格')
@@ -958,8 +1039,9 @@ class PackageSkuItem(BaseModel):
         if self.type == PSI_TYPE.NORMAL:
             return self.sale_order
         if self.type == PSI_TYPE.TIANMAO:
-            from flashsale.dinghuo.models import RGDetail
-
+            from shopback.orders.models import Order
+            return Order.objects.get(oid=self.oid.replace('tb',''))
+        from flashsale.dinghuo.models import RGDetail
         return RGDetail.objects.filter(id=self.rg_detail_id).first()
 
     def get_purchase_arrangement(self):
@@ -1092,13 +1174,14 @@ class PackageSkuItem(BaseModel):
 
     def merge(self):
         if self.status == PSI_STATUS.ASSIGNED:
-            if type == PSI_TYPE.NORMAL:
+            if self.type == PSI_TYPE.NORMAL:
                 if self.package_order_pid:
                     # 避免一些异常
                     PackageSkuItem.objects.filter(id=self.id).update(status=PSI_STATUS.MERGED)
                     return
                 self.status = PSI_STATUS.MERGED
                 self.merge_time = datetime.datetime.now()
+                self.save()
                 package_order_id = PackageOrder.gen_new_package_id(self.sale_trade.buyer_id,
                                                                    self.sale_trade.user_address_id,
                                                                    self.product_sku.ware_by)
@@ -1111,16 +1194,31 @@ class PackageSkuItem(BaseModel):
                     po.set_logistics_company(self.sale_trade.logistics_company_id)
                 else:
                     po = PackageOrder.create(package_order_id, self.sale_trade, PackageOrder.WAIT_PREPARE_SEND_STATUS, self)
-
                 self.package_order_id = po.id
                 self.package_order_pid = po.pid
-                self.save()
                 po.add_package_sku_item(self)
                 SkuStock.set_psi_merged(self.sku_id, self.num)
-            if type == PSI_TYPE.TIANMAO:
-                package_order_id = PackageOrder.gen_new_package_id(self.sale_trade.buyer_id,
-                                                                   self.sale_trade.user_address_id,
+            if self.type == PSI_TYPE.TIANMAO:
+                self.status = PSI_STATUS.MERGED
+                self.merge_time = datetime.datetime.now()
+                self.save()
+                trade = self.get_relate_order().trade
+                package_order_id = PackageOrder.gen_new_package_id(trade.user_unikey,
+                                                                   trade.address_unikey,
                                                                    self.product_sku.ware_by)
+                po = PackageOrder.objects.filter(id=package_order_id).first()
+                if po:
+                    if po.sys_status == PackageOrder.PKG_NEW_CREATED:
+                        po.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS
+                    po.set_redo_sign(save_data=False)
+                    po.reset_package_address(save=True)
+                    po.set_logistics_company(self.sale_trade.logistics_company_id)
+                else:
+                    PackageOrder.create_tianmao_package(package_order_id, trade, WARE_SH, self)
+                # self.package_order_id = po.id
+                # self.package_order_pid = po.pid
+                po.add_package_sku_item(self)
+                SkuStock.set_psi_merged(self.sku_id, self.num)
 
     def create_tianmao_package(self):
         """
@@ -1141,7 +1239,26 @@ class PackageSkuItem(BaseModel):
         po.sys_status = PO_STATUS.WAIT_PREPARE_SEND_STATUS
         po.sku_num = 1
         po.order_sku_num = 1
-        po.seller_id = ShopUser.objects.get(uid='flashsale').id
+        po.seller_id = trade.seller().id
+        po.receiver_name = trade.receiver_name
+        po.receiver_state = trade.receiver_state
+        po.receiver_city = trade.receiver_city
+        po.receiver_district = trade.receiver_district
+        po.receiver_address = trade.receiver_address
+        po.receiver_zip = trade.receiver_zip
+        po.receiver_mobile = trade.receiver_mobile
+        po.receiver_phone = trade.receiver_phone
+        po.user_address_id = trade.user_address_id
+        po.buyer_id = trade.buyer_id
+        po.buyer_nick = trade.buyer_nick
+        po.buyer_message = trade.buyer_message
+        po.buyer_memo = trade.buyer_memo
+        po.seller_memo = trade.seller_memo
+        # po.seller_flag = trade.seller_flag
+        # po.is_lgtype = trade.is_lgtype
+        # po.lg_aging = trade.lg_aging
+        # po.lg_aging_type = trade.lg_aging_type
+        po.save()
 
     def get_return_address_id(self):
         supplier_id = ReturnGoods.objects.filter(id=self.sale_trade_id).first().supplier.id
@@ -1293,8 +1410,12 @@ class PackageSkuItem(BaseModel):
     def reset_status(self):
         """
             依据当前订单信息，设置status
+            仅用于PSI_TYPE.NORMAL
+            #TODO
         """
-        from flashsale.pay.models import SaleOrder
+        from flashsale.pay.models import SaleOrder, SaleTrade
+        if self.type != PSI_TYPE.NORMAL:
+            return
         if self.assign_status == PackageSkuItem.CANCELED:
             self.status = PSI_STATUS.CANCEL
         elif self.sale_order.status in [SaleOrder.TRADE_BUYER_SIGNED, SaleTrade.TRADE_FINISHED]:
@@ -1322,14 +1443,19 @@ class PackageSkuItem(BaseModel):
             self.status = PSI_STATUS.PAID
 
     @staticmethod
-    def unsend_orders_cnt(buyer_id):
-        payed_counts = SaleOrder.objects.filter(buyer_id=buyer_id, status=SaleOrder.WAIT_SELLER_SEND_GOODS).count()
-        payed_saleorder = SaleOrder.objects.filter(buyer_id=buyer_id, status=SaleOrder.WAIT_SELLER_SEND_GOODS)
-        oids = [o.oid for o in payed_saleorder]
-        unuse_cnt = PackageSkuItem.objects.filter(oid__in=oids, assign_status__in=[PackageSkuItem.CANCELED,
-                                                                                   PackageSkuItem.FINISHED]).count()
-        payed_counts -= unuse_cnt
-        return payed_counts
+    def unsend_orders_cnt(buyer_id, type=PSI_TYPE.NORMAL):
+        if type == PSI_TYPE.NORMAL:
+            from flashsale.pay.models import SaleOrder
+            payed_counts = SaleOrder.objects.filter(buyer_id=buyer_id, status=SaleOrder.WAIT_SELLER_SEND_GOODS).count()
+            payed_saleorder = SaleOrder.objects.filter(buyer_id=buyer_id, status=SaleOrder.WAIT_SELLER_SEND_GOODS)
+            oids = [o.oid for o in payed_saleorder]
+            unuse_cnt = PackageSkuItem.objects.filter(oid__in=oids, assign_status__in=[PackageSkuItem.CANCELED,
+                                                                                       PackageSkuItem.FINISHED]).count()
+            payed_counts -= unuse_cnt
+            return payed_counts
+        if type == PSI_TYPE.TIANMAO:
+            from shopback.orders.models import Order
+            Order.objects.filter(receiver_name=buyer_id)
 
     @transaction.atomic
     def finish_third_send(self, out_sid, logistics_company):
@@ -1346,6 +1472,12 @@ class PackageSkuItem(BaseModel):
             SkuStock.objects.filter(sku_id=self.sku_id).update(post_num=F('post_num') + self.num)
 
     def gen_package(self):
+        """
+            仅适用于普通订单
+        :return:
+        """
+        if self.type != PSI_TYPE.NORMAL:
+            return
         sale_trade = self.sale_trade
         if not (sale_trade.buyer_id and sale_trade.user_address_id and self.product_sku.ware_by):
             raise Exception('packagize_sku_item error: sale_trade loss some info:' + str(sale_trade.id))
@@ -1363,7 +1495,9 @@ class PackageSkuItem(BaseModel):
             package_order.save()
 
     def get_purchase_uni_key(self):
-        """为了和历史上的purchase_record unikey保持一致"""
+        """为了和历史上的purchase_record unikey保持一致
+            #TODO@HY　如何处理一个订单多次订货问题？
+        """
         return self.oid + '-1'
 
     def is_canceled(self):
@@ -1453,14 +1587,6 @@ def update_productsku_salestats_num(sender, instance, created, **kwargs):
 
 post_save.connect(update_productsku_salestats_num, sender=PackageSkuItem,
                   dispatch_uid='post_save_update_productsku_salestats_num')
-
-# def update_package_order(sender, instance, created, **kwargs):
-#     from shopback.trades.tasks import task_update_package_order
-#     transaction.on_commit(lambda: task_update_package_order.delay(instance.id))
-#
-#
-# post_save.connect(update_package_order, sender=PackageSkuItem,
-#                   dispatch_uid='post_save_update_package_order')
 
 
 def get_package_address_dict(package_order):

@@ -7,7 +7,7 @@ import hashlib
 from django.db import models
 from core.models import BaseModel
 from core.fields import BigAutoField, BigForeignKey
-from shopback.users.models import User
+from shopback.users.models import User as ShopUser
 from shopback.items.models import Item, Product, ProductSku
 from shopback import paramconfig as pcfg
 from shopback.signals import merge_trade_signal
@@ -45,17 +45,16 @@ STEP_TRADE_STATUS = (
 )
 
 STAGE_CHOICES = (
-    (0, u'需创建PackageSkuItem'),
-    (1, u'已创建PackageSkuItem'),
+    (0, u'需创建发货sku单'),
+    (1, u'已创建发货sku单'),
     (2, u'已完结')
 )
 
 
 class Trade(models.Model):
-    YOUNI_SELLER_ID = '174265168'
+    YOUNI_SELLER_NICK = u'优尼世界旗舰店'
     id = models.BigIntegerField(primary_key=True)
-    user = models.ForeignKey(User, null=True, related_name='trades')
-
+    user = models.ForeignKey(ShopUser, null=True, related_name='trades')
     seller_id = models.CharField(max_length=64, blank=True)
     seller_nick = models.CharField(max_length=64, blank=True)
     buyer_nick = models.CharField(max_length=64, blank=True)
@@ -82,7 +81,7 @@ class Trade(models.Model):
     buyer_message = models.TextField(max_length=1000, blank=True)
     buyer_memo = models.TextField(max_length=1000, blank=True)
     seller_memo = models.TextField(max_length=1000, blank=True)
-    seller_flag = models.IntegerField(null=True)
+    seller_flag = models.IntegerField(null=True, help_text=u'自订订单标记')
 
     is_brand_sale = models.BooleanField(default=False)
     is_force_wlb = models.BooleanField(default=False)
@@ -113,7 +112,8 @@ class Trade(models.Model):
     receiver_zip = models.CharField(max_length=10, blank=True)
     receiver_mobile = models.CharField(max_length=24, blank=True)
     receiver_phone = models.CharField(max_length=20, blank=True)
-
+    user_address_unikey = models.CharField(max_length=40, null=True, default=None, db_index=True, verbose_name=u'地址唯一标识', help_text=u'用户地址sha1')
+    user_unikey = models.CharField(max_length=40, null=True, default=None, db_index=True, verbose_name=u'用户唯一标识', help_text=u'用户姓名电话sha1')
     step_paid_fee = models.FloatField(default=0.0)
     step_trade_status = models.CharField(max_length=32, choices=STEP_TRADE_STATUS, blank=True)
     status = models.CharField(max_length=32, choices=TAOBAO_TRADE_STATUS, blank=True)
@@ -131,7 +131,7 @@ class Trade(models.Model):
     def get_or_create(cls, trade_id, user_id):
 
         from shopback.trades.models import MergeTrade
-        user = User.objects.get(visitor_id=user_id)
+        user = ShopUser.objects.get(nick=user_id)
         trade, state = cls.objects.get_or_create(id=trade_id, user=user)
         try:
             MergeTrade.objects.get(tid=trade_id)
@@ -142,7 +142,6 @@ class Trade(models.Model):
                 trade = Trade.save_trade_through_dict(user_id, trade_dict)
             except Exception, exc:
                 logger.error('backend update trade (tid:%s)error' % str(trade_id), exc_info=True)
-
         return trade
 
     @property
@@ -158,14 +157,14 @@ class Trade(models.Model):
     @staticmethod
     def seller():
         if not hasattr(Trade, '_seller_'):
-            Trade._seller_ = User.objects.get(uid=Trade.YOUNI_SELLER_ID)
+            Trade._seller_ = ShopUser.objects.get(uid=Trade.YOUNI_SELLER_ID)
         return Trade._seller_
 
     @classmethod
     def save_trade_through_dict(cls, user_id, trade_dict):
 
         trade, state = cls.objects.get_or_create(pk=trade_dict['tid'])
-        trade.user = User.objects.get(visitor_id=user_id)
+        trade.user = ShopUser.objects.get(visitor_id=user_id)
         trade.seller_id = user_id
         for k, v in trade_dict.iteritems():
             hasattr(trade, k) and setattr(trade, k, v)
@@ -213,6 +212,20 @@ class Trade(models.Model):
 
         merge_trade_signal.send(sender=Trade, trade=trade)
         return trade
+
+    def get_address_unikey(self):
+        address = self.receiver_state + self.receiver_city + self.receiver_district + self.receiver_address
+        return hashlib.sha1(address).hexdigest()
+
+    def get_user_unikey(self):
+        user = self.receiver_name + self.receiver_phone
+        return hashlib.sha1(user).hexdigest()
+
+    @staticmethod
+    def seller():
+        if not hasattr(Trade, '_seller_'):
+            Trade._seller_ = ShopUser.objects.get(nick=Trade.YOUNI_SELLER_NICK)
+        return Trade._seller_
 
 
 class Order(models.Model):
