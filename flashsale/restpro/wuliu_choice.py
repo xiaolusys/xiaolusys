@@ -14,10 +14,9 @@ exp_status = {0: u"无轨迹", 1: u"已揽件", 2: u"在途中",
 
 def one_tradewuliu(logistics_company,out_sid,tradewuliu):
     logger.warn({'action': "kdn", 'info': "one_tradewuliu"})
-    if tradewuliu.content.find("AcceptTime") == -1:
-        kdn_sub.delay(rid=None, expName=logistics_company, expNo=out_sid)
-        return "请再次刷新下"
     status = exp_status[tradewuliu.status]
+    if not tradewuliu.content:
+        tradewuliu.content = '[{"AcceptTime": "", "AcceptStation": "已出货了哦"}]'
     format_exp_info = {
         "status": status,
         "status_code": tradewuliu.status,
@@ -49,6 +48,17 @@ def zero_tradewuliu(logistics_company,out_sid,tradewuliu):
     tradewuliu = TradeWuliu.objects.filter(out_sid=out_sid).order_by("-id").first()
 
     if not tradewuliu:
+        format_exp_info = {
+            "status": 0,
+            "status_code": '',
+            "name": logistics_company,
+            "errcode": '',
+            "id": "",
+            "message": "",
+            "content": '[{"AcceptTime": "", "AcceptStation": "已出货了哦"}]',
+            "out_sid": out_sid
+        }
+        return format_content(**format_exp_info)
         return "暂无物流信息"
 
     status = exp_status[tradewuliu.status]
