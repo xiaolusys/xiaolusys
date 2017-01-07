@@ -42,6 +42,7 @@ urlpatterns = [
 
     # envelop urls
     url(r'^envelop/confirm/$', sale_buyer_required(views.EnvelopConfirmSendView.as_view()), name="envelop_confirm"),
+    url(r'^budget/send_envelop/$', views.SendBudgetEnvelopAPIView.as_view(), name="envelop_send"),
 
     # profile urls
     url(r'^login/$', views.flashsale_login, name="flashsale_login"),
