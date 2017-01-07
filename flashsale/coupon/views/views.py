@@ -12,7 +12,7 @@ from flashsale.pay.models import SaleOrder, Customer, ModelProduct
 from collections import OrderedDict
 
 from ..apis.v1.usercoupon import create_user_coupon
-from ..apis.v1.transfer import agree_apply_transfer_record_2_sys, cancel_return_2_sys_transfer
+from ..apis.v1.transfer import agree_apply_transfer_record_2_sys, cancel_return_2_sys_transfer, get_transfer_record_by_id
 from ..models import UserCoupon, CouponTemplate, CouponTransferRecord
 
 import logging
@@ -190,10 +190,13 @@ class VerifyReturnSysTransfer(APIView):
         if not (transfer_record_id and return_func):
             return Response({'code': 1, 'info': '参数错误'})
         try:
+            record = get_transfer_record_by_id(int(transfer_record_id))
             if return_func == 'agree':
-                agree_apply_transfer_record_2_sys(transfer_record_id, user=request.user)
+                agree_apply_transfer_record_2_sys(record)
+                log_action(request.user, record, CHANGE, '同意用户申请退券退金额')
             elif return_func == 'reject':
-                cancel_return_2_sys_transfer(transfer_record_id, admin_user=request.user)
+                cancel_return_2_sys_transfer(record)
+                log_action(request.user, record, CHANGE, u'拒绝用户申请')
             else:
                 return Response({'code': 1, 'info': '参数错误'})
             return Response({'code': 0, 'info': '审核成功'})

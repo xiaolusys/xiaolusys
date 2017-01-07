@@ -12,6 +12,7 @@ from rest_framework.decorators import list_route, detail_route
 from rest_framework import exceptions
 from rest_framework import filters
 
+from core.options import log_action, CHANGE
 from common.auth import WeAppAuthentication
 from flashsale.restpro import permissions as perms
 from flashsale.restpro.v2.serializers import CouponTransferRecordSerializer
@@ -22,9 +23,10 @@ from flashsale.pay.models.product import ModelProduct
 from flashsale.pay.apis.v1.customer import get_customer_by_django_user, get_customer_by_id
 
 from flashsale.coupon.apis.v1.transfer import agree_apply_transfer_record, reject_apply_transfer_record, \
-    get_freeze_boutique_coupons_by_transfer, cancel_return_2_sys_transfer
+    get_freeze_boutique_coupons_by_transfer, cancel_return_2_sys_transfer, cancel_return_2_upper_transfer, \
+    coupon_exchange_saleorder, get_transfer_record_by_id
+
 from flashsale.coupon.apis.v1.usercoupon import return_transfer_coupon, transfer_coupons
-from flashsale.coupon.apis.v1.transfer import coupon_exchange_saleorder
 
 from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
 from flashsale.xiaolumm.models import ReferalRelationship, XiaoluMama, OrderCarry
@@ -373,9 +375,9 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         return Response({'code': 0, 'info': '操作成功'})
 
     @list_route(methods=['post'])
-    def cancel_return_2_sys_transfer_coupon(self, request, *args, **kwargs):
+    def cancel_return_transfer_coupon(self, request, *args, **kwargs):
         # type: (HttpRequest, *Any, **Any) -> Response
-        """取消　退券　给　系统
+        """取消　退券
         """
         transfer_record_id = request.POST.get('transfer_record_id')
         if not transfer_record_id:
@@ -383,7 +385,14 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         customer = get_customer_by_django_user(request.user)  # 下属用户返还自己的　券　给上级
         transfer_record_id = int(str(transfer_record_id).strip())
         try:
-            cancel_return_2_sys_transfer(transfer_record_id, customer=customer)
+            record = get_transfer_record_by_id(transfer_record_id)
+
+            if record.coupon_to_mama_id == 0:  # 是退系统记录
+                cancel_return_2_sys_transfer(transfer_record_id, customer=customer)
+            else:  # 是退上级的记录
+                cancel_return_2_upper_transfer(transfer_record_id, customer=customer)
+
+            log_action(customer.user, record, CHANGE, u'用户取消申请')
         except Exception as e:
             return Response({'code': 3, 'info': '取消出错:%s' % e.message})
         return Response({'code': 0, 'info': '已经取消'})
