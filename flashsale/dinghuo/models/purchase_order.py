@@ -579,7 +579,7 @@ class OrderList(models.Model):
             暂不支持订货单多账单
         """
         from flashsale.finance.models import BillRelation
-        br = BillRelation.objects.filter(object_id=self.id, type=BillRelation.TYPE_DINGHUO_PAY).first()
+        br = BillRelation.objects.filter(object_id=self.id, type=BillRelation.TYPE_DINGHUO_PAY).exclude(bill__type=0).first()
         if br:
             return br.bill
 
