@@ -539,7 +539,7 @@ def apply_pending_return_transfer_coupon(coupon_ids, customer):
         template_ids.add(coupon.template_id)
 
         # 组织下 数据  key是上级妈妈id  value是 要退给上级妈妈的券 数量
-        chain = coupon.return_mama_chain
+        chain = coupon.mama_chain
         upmm = chain[-1]
         if upmm not in upper_mamas:
             upper_mamas[upmm] = [coupon.id]
@@ -688,14 +688,12 @@ def reject_apply_transfer_record(user, transfer_record_id):
 
 
 @transaction.atomic()
-def agree_apply_transfer_record_2_sys(transfer_record_id, user=None):
-    # type: (DjangoUser, int) -> bool
+def agree_apply_transfer_record_2_sys(record):
+    # type: (CouponTransferRecord) -> bool
     """ 同意用户的 退券 到系统
     """
     from .usercoupon import cancel_coupon_by_ids
     from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
-
-    record = get_transfer_record_by_id(transfer_record_id)
 
     coupons = get_freeze_boutique_coupons_by_transfer(record.id)
     if not coupons:
@@ -707,23 +705,20 @@ def agree_apply_transfer_record_2_sys(transfer_record_id, user=None):
     bglog.confirm_budget_log()  # 确定钱包金额
     record.transfer_status = CouponTransferRecord.DELIVERED
     record.save(update_fields=['transfer_status', 'modified'])  # 完成流通记录
-    if user:
-        log_action(user, record, CHANGE, '同意用户申请退券退金额')
     task_calc_xlmm_elite_score(record.coupon_from_mama_id)  # 重算积分
     return True
 
 
 @transaction.atomic()
-def cancel_return_2_sys_transfer(transfer_record_id, customer=None, admin_user=None):
-    # type: (int, Customer) -> bool
+def cancel_return_2_sys_transfer(record, customer=None):
+    # type: (CouponTransferRecord, Customer) -> bool
     """用户取消　退　精品券　给　系统
     """
-    record = get_transfer_record_by_id(transfer_record_id)
     if customer:  # 用户提交 校验 用户身份和记录 是否一致
         mama = customer.get_xiaolumm()
         if not record.coupon_from_mama_id != mama.id:
             raise Exception('用户记录错误')
-    coupons = get_freeze_boutique_coupons_by_transfer(transfer_record_id)
+    coupons = get_freeze_boutique_coupons_by_transfer(record.id)
     if not coupons:
         raise Exception('优惠券没有找到')
     bglog = BudgetLog.objects.get_pending_return_boutique_coupon().filter(referal_id=str(record.id)).first()
@@ -733,10 +728,25 @@ def cancel_return_2_sys_transfer(transfer_record_id, customer=None, admin_user=N
     bglog.cancel_budget_log()  # 取消钱包记录
     record.transfer_status = CouponTransferRecord.CANCELED  # 取消 申请流通券记录
     record.save(update_fields=['transfer_status', 'modified'])
-    if admin_user:
-        log_action(admin_user, record, CHANGE, u'拒绝用户申请')
-    else:
-        log_action(customer.user, record, CHANGE, u'用户取消申请')
+    return True
+
+
+def cancel_return_2_upper_transfer(record, customer=None):
+    # type: (CouponTransferRecord, Customer) -> bool
+    """用户 取消　退给上级的精品券　
+    """
+    if customer:  # 用户提交 校验 用户身份和记录 是否一致
+        mama = customer.get_xiaolumm()
+        if not record.coupon_from_mama_id != mama.id:
+            raise Exception('用户记录错误')
+    coupons = get_freeze_boutique_coupons_by_transfer(record.id)
+    if not coupons:
+        raise Exception('优惠券没有找到')
+
+    with transaction.atomic():
+        rollback_user_coupon_status_2_unused_by_ids([cou.id for cou in coupons])  # 优惠券设置为可以使用状态
+        record.transfer_status = CouponTransferRecord.CANCELED  # 取消 申请流通券记录
+        record.save(update_fields=['transfer_status', 'modified'])
     return True
 
 
