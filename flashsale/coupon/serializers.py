@@ -32,7 +32,7 @@ class UserCouponSerialize(serializers.ModelSerializer):
         model = UserCoupon
         fields = (
             'id', "template_id", 'coupon_type', "coupon_type_display", "title", 'customer', "coupon_no", "coupon_value",
-            "valid", "deadline", "start_use_time", "expires_time", "status", "created",
+            "value", "valid", "deadline", "start_use_time", "expires_time", "status", "created",
             "use_fee", "use_fee_des", "pros_desc", "start_time", 'poll_status', 'wisecrack', 'nick', 'head_img'
         )
 
