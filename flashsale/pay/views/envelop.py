@@ -69,10 +69,13 @@ class SendBudgetEnvelopAPIView(APIView):
         # type: (HttpRequest) -> Response
         """获取用户钱包信息
         """
-        content = request.POST or request.data
+        content = request.GET or request.data
         customer_id = content.get('customer_id') or None
         customer_id = int(customer_id)
-        data = self.get_budget_data(customer_id)
+        try:
+            data = self.get_budget_data(customer_id)
+        except Exception as e:
+            return Response({'code': 1, 'info': '账户异常:%s' % e.message, 'data': {}})
         return Response({'code': 0, 'info': 'success', 'data': data})
 
     def post(self, request):
