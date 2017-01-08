@@ -284,8 +284,7 @@ def send_new_elite_transfer_coupons(customer_id, order_id, order_oid, product_id
 
         referal_mm = XiaoluMama.objects.filter(id=upper_mama_id).first()
         if referal_mm:
-            if (referal_mm.referal_from == XiaoluMama.DIRECT or referal_mm.referal_from == XiaoluMama.INDIRECT) and (
-                referal_mm.elite_score > 0):
+            if (referal_mm.referal_from == XiaoluMama.DIRECT or referal_mm.referal_from == XiaoluMama.INDIRECT):
                 to_mama.referal_from = XiaoluMama.INDIRECT
             else:
                 to_mama.referal_from = XiaoluMama.DIRECT
