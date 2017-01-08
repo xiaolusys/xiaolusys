@@ -255,7 +255,7 @@ def send_new_elite_transfer_coupons(customer_id, order_id, order_oid, product_id
             if (strade.extras_info['mm_linkid'] != 0) and strade.extras_info['mm_linkid'].isdigit() \
                     and (int(strade.extras_info['mm_linkid']) != to_mama.id):
                 to_mama.referal_from = XiaoluMama.INDIRECT
-                upper_mama_id = strade.extras_info['mm_linkid']
+                upper_mama_id = int(strade.extras_info['mm_linkid'])
 
         # 上级在做精英的话，自己为indirect跟着做，否则按同样的逻辑找潜在妈妈表，再找粉丝表，都找不到则为direct
         from flashsale.xiaolumm.models import PotentialMama, XlmmFans, ReferalRelationship
