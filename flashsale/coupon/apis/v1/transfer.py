@@ -250,8 +250,10 @@ def send_new_elite_transfer_coupons(customer_id, order_id, order_oid, product_id
         # 管理员是在在支付订单里面保存的mmlinkid，其他场景就是direct，由运营再来分配
         upper_mama_id = 0
         strade = so.sale_trade
+        import types
         if strade and strade.extras_info and strade.extras_info.has_key('mm_linkid'):
-            if strade.extras_info['mm_linkid'] != 0 and strade.extras_info['mm_linkid'] != to_mama.id:
+            if (strade.extras_info['mm_linkid'] != 0) and strade.extras_info['mm_linkid'].isdigit() \
+                    and (int(strade.extras_info['mm_linkid']) != to_mama.id):
                 to_mama.referal_from = XiaoluMama.INDIRECT
                 upper_mama_id = strade.extras_info['mm_linkid']
 
