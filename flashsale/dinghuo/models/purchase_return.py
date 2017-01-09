@@ -42,6 +42,7 @@ class ReturnGoods(models.Model):
     refund_fee = models.FloatField(default=0.0, verbose_name=u"客户退款额")
     confirm_refund = models.BooleanField(default=False, verbose_name=u"退款额确认")
     refund_confirmer_id = models.IntegerField(default=None, null=True, verbose_name=u"退款额确认人")
+    checked_time = models.DateTimeField(null=True, verbose_name=u'审核通过时间')
     transactor_id = models.IntegerField(default=None, null=True, db_index=True, verbose_name=u"处理人id")
     # transactor_id = models.IntegerField(choices=[(i.id, i.username) for i in return_goods_transcations()], default=None,
     #                                     null=True, db_index=True, verbose_name=u"处理人id")
@@ -308,6 +309,7 @@ class ReturnGoods(models.Model):
         #         id=sku).product.offshelf_time < datetime.datetime.now() + datetime.timedelta(days=7)
         #     return not_in_unreturn and not onshelf
         return True
+
     @staticmethod
     def get_user_by_supplier(supplier_id):
         from django.contrib.auth.models import Group
@@ -480,6 +482,12 @@ class ReturnGoods(models.Model):
             'amount': self.sum_amount
         }
 
+    def verify(self, user_id):
+        self.status = ReturnGoods.VERIFY_RG
+        self.transactor_id = user_id
+        self.checked_time = datetime.datetime.now()
+        self.save()
+
     def deal(self, confirm_pic_url):
         self.confirm_pic_url = confirm_pic_url
         self.status = self.REFUND_RG
@@ -488,6 +496,29 @@ class ReturnGoods(models.Model):
     def confirm(self):
         self.status = self.SUCCEED_RG
         self.save()
+
+    def create_or_update_package(self):
+        if self.status != ReturnGoods.VERIFY_RG:
+            return
+        package_items = []
+        for rg_detail in self.rg_details.all():
+            package_items.extend(rg_detail.update_package_item())
+        from shopback.trades.apis.v1.packet import packing_skus
+        from shopback.trades.apis import PSI_TYPE
+        packing_skus(PSI_TYPE.RETURN_GOODS, delay=False)
+        return self.get_packages()
+
+    def get_packages(self):
+        """
+            存在一个退货单打成多个包裹或多个订货单打成一个包裹的情况
+        :return:
+        """
+        psis = []
+        for rgdetail in self.rg_details.all():
+            psis.extend(rgdetail.get_psis())
+        posids = [psi.package_order_pid for psi in psis]
+        from shopback.trades.models import PackageOrder
+        return PackageOrder.objects.filter(pid__in=posids)
 
 
 def update_product_sku_stat_rg_quantity(sender, instance, created, **kwargs):
@@ -556,7 +587,96 @@ class RGDetail(models.Model):
 
     @property
     def product_sku(self):
-        return ProductSku.objects.get(id=self.skuid)
+        if not hasattr(self, '_product_sku_'):
+            self._product_sku_ = ProductSku.objects.get(id=self.skuid)
+        return self._product_sku_
+    sku = product_sku
+
+    @property
+    def product(self):
+        return self.product_sku.product
+
+    def get_psi_oid(self):
+        return 'rd%d' % self.id
+
+    def get_psi(self, type=None):
+        from shopback.trades.models import PackageSkuItem
+        condition = {'oid': self.get_psi_oid()}
+        if type:
+            condition[type] = type
+        return PackageSkuItem.objects.filter(**condition).first()
+
+    def get_psis(self):
+        from shopback.trades.models import PackageSkuItem
+        return PackageSkuItem.objects.filter(oid=self.get_psi_oid())
+
+    def update_package_item(self):
+        """
+            type 2清库存3退多货4退次品
+                return_goods退货回款，num > 0 则退库存，inferior_num > 0则退次品，两者都大于0，则创建两个psi
+        :return: 由于一次性创建两个psi情况存在，故返回列表
+            [psis]
+        """
+        if not self.need_send():
+            return
+        from shopback.trades.models import PackageSkuItem, PSI_TYPE
+        if self.get_psi():
+            res = []
+            for psi in PackageSkuItem.objects.filter(oid=self.get_psi_oid()):
+                if psi.type == PSI_TYPE.RETURN_INFERIOR:
+                    psi.num = self.inferior_num
+                    psi.save()
+                    if psi.num == 0:
+                        psi.set_status_cancel()
+                    else:
+                        res.append(psi)
+                else:
+                    psi.num = self.num
+                    psi.save()
+                    if psi.num == 0:
+                        psi.set_status_cancel()
+                    else:
+                        res.append(psi)
+            return res
+        return_goods = self.return_goods
+        types = []
+        if self.inferior_num > 0 and self.num == 0:
+            types = [PSI_TYPE.RETURN_INFERIOR]
+        if self.inferior_num > 0 and self.num > 0:
+            if return_goods.type == ReturnGoods.TYPE_COMMON:
+                types = [PSI_TYPE.RETURN_INFERIOR, PSI_TYPE.RETURN_GOODS]
+            else:
+                types = [PSI_TYPE.RETURN_INFERIOR, PSI_TYPE.RETURN_OUT_ORDER]
+        if self.inferior_num == 0 and self.num > 0:
+            if return_goods.type == ReturnGoods.TYPE_COMMON:
+                types = [PSI_TYPE.RETURN_GOODS]
+            else:
+                types = [PSI_TYPE.RETURN_OUT_ORDER]
+        ware_by = return_goods.supplier.ware_by
+        res = []
+        for type in types:
+            package_item = PackageSkuItem(sale_order_id=self.id, ware_by=ware_by, oid=self.get_psi_oid())
+            package_item.sku_id = self.skuid
+            package_item.product = self.product
+            package_item.outer_sku_id = self.product_sku.outer_id
+            package_item.outer_id = self.product.outer_id
+            package_item.num = self.inferior_num if type == PSI_TYPE.RETURN_INFERIOR else self.num
+            package_item.type = type
+            package_item.ware_by = ware_by
+            package_item.title = self.product.title()
+            package_item.sku_properties_name = self.sku.properties_name
+            package_item.pic_path = self.product.pic_path
+            package_item.pay_time = return_goods.checked_time
+            package_item.receiver_mobile = return_goods.get_supplier_addr().receiver_mobile
+            package_item.price = self.price
+            package_item.total_fee = self.price
+            package_item.payment = self.price
+            package_item.discount_fee = 0
+            package_item.sale_trade_id = 'rg' + str(return_goods.id)
+            package_item.save()
+            package_item.set_status_init_assigned()
+            res.append(package_item)
+        return res
 
     def get_src_desc(self):
         if not self.src:

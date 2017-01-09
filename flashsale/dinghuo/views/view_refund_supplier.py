@@ -133,8 +133,7 @@ def change_duihuo_status(request):
     rg = ReturnGoods.objects.get(id=id)
     change_status_des = u"仓库退货单状态变更为_{0}"
     if act_str == "ok":  # 审核通过
-        rg.status = ReturnGoods.VERIFY_RG
-        rg.save()
+        rg.verify()
         change_product_inventory(rg, request.user.username, request.user.id)
         log_action(user_id, rg, CHANGE,
                    change_status_des.format(rg.get_status_display()))
@@ -195,6 +194,7 @@ def modify_return_goods_sku(request):
     rg_detail.price = price
     rg_detail.save()
     return HttpResponse(True)
+
 
 def create_pksi_by_rgdetail(request):
     content = request.POST
@@ -730,38 +730,33 @@ class ReturnGoodsViewSet(viewsets.GenericViewSet):
         return Response('OK')
 
     @detail_route(methods=['get'])
-    def create_psi_by_rgdetail(self, request, pk):
-        return Response(pk)
-
-
-    @detail_route(methods=['post'])
-    def psi_has_pid(self,request, pk):
+    def psi_has_pid(self, request, pk):
         content = request.POST
         returngoods_id = content.get("returngoods_id", None)
         return_good = ReturnGoods.objects.get(id=returngoods_id)
         rg_detail = return_good.rg_details.all()
         pid_count = 0
         for i in rg_detail:
-            if PackageSkuItem.objects.filter(sale_order_id=i.id):
-                pksi = PackageSkuItem.objects.filter(sale_order_id=i.id).first()
-                if pksi.package_order_pid:
-                    pid_count = pid_count + 1
+            if i.get_psi() and i.get_psi().package_order_pid:
+                pid_count = pid_count + 1
         if pid_count == len(rg_detail):
-            info = {"status": True, "info": "全部都已生成了packageOrder"}
+            info = {"status": True, "info": u"全部都已生成了packageOrder"}
         elif pid_count == 0:
-            info = {"status": False, "info": "这个退货单里面的记录并没有生成任何一个packageorder"}
+            info = {"status": False, "info": u"这个退货单里面的记录并没有生成任何一个packageorder"}
         else:
-            info = {"status": True, "info": "这个退货单里面的记录有些有packageorder有些没有"}
-
+            info = {"status": True, "info": u"这个退货单里面的记录有些有packageorder有些没有"}
         return HttpResponse(json.dumps(info), content_type="application/json", status=200)
 
+    @detail_route(methods=['get'])
+    def create_psi_by_rgdetail(self, request, pk):
+        return Response(pk)
 
     @detail_route(methods=['post'])
     def create_psi_by_rgdetail(self, request, pk):
         content = request.POST
         returngoods_id = pk
-        return_good = ReturnGoods.objects.get(id=returngoods_id)
-        supplier_addr = return_good.get_supplier_addr()
+        return_goods = ReturnGoods.objects.get(id=returngoods_id)
+        supplier_addr = return_goods.get_supplier_addr()
         if not supplier_addr:
             return HttpResponse(json.dumps({"status": False, "reason": "供应商信息不存在,请填写供应商地址信息"}),
                                 content_type="application/json",
@@ -770,51 +765,9 @@ class ReturnGoodsViewSet(viewsets.GenericViewSet):
             return HttpResponse(json.dumps({"status": False, "reason": "供应商信息不完整,请完善供应商地址信息"}),
                                 content_type="application/json",
                                 status=200)
+        package = return_goods.create_package()
+        return HttpResponse(json.dumps({"status":True, "package_order": package.id}),
+                            content_type="application/json", status=200)
 
-        rgdetail_ids = content.get("RGdetail_ids")
-        type = ''
-        if return_good.type == ReturnGoods.TYPE_COMMON:
-            type = 2
-        # rgdetail_ids = json.loads(rgdetail_ids)
-        # RGdetail = RGDetail.objects.filter(id__in=rgdetail_ids)
-        rgdetail = return_good.rg_details.all()
-        psi_id = []
-        # print content.get("RGdetail_ids")
-        # print content.get("supplier_id")
-        for i in rgdetail:
-            sku_id = i.skuid
-            sale_order_id = i.id
-            sale_trade_id = i.return_goods.id
-            if all([not type,i.type,i.num]):
-                # print [not type,i.type,i.num]
-                type = 3
-            if all([not type,i.type,i.inferior_num]):
-                # print [not type, i.type, i.inferior_num]
-                type = 4
-            num = i.num
-            title = SkuStock.objects.get(sku_id=i.skuid).product.name
-            pic_path = SkuStock.objects.get(sku_id=i.skuid).product.pic_path
-            sku_properties_name = i.product_sku.properties_name
-            rg_detail_info = {"sku_id": sku_id, "sale_order_id": sale_order_id, "sale_trade_id": sale_trade_id,
-                              "type": type, "pay_time": return_good.created, "num": num,
-                              "title": title, "pic_path": pic_path, "sku_properties_name": sku_properties_name,
-                              "status":'assigned'}
-            # print rg_detail_info
-            if PackageSkuItem.objects.filter(sale_order_id=i.id):
-                psi = PackageSkuItem.objects.filter(sale_order_id=i.id).first()
-                if type != 2:
-                    psi_id.append(psi.id)
-                    continue
-                PackageSkuItem.objects.filter(sale_order_id=i.id).update(**rg_detail_info)
-                psi_id.append(psi.id)
-                if psi.package_order_pid:
-                    PackageOrder.objects.filter(pid=psi.package_order_pid).update(redo_sign=True,
-                                                                                   is_picking_print=False)
 
-            else:
-                psi = PackageSkuItem.objects.create(**rg_detail_info)
-                psi.return_merge()
-                psi_id.append(psi.id)
-        return HttpResponse(json.dumps({"status": True, "psi_id": psi_id}), content_type="application/json",
-                            status=200)
 

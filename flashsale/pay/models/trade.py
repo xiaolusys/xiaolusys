@@ -1036,6 +1036,11 @@ class SaleOrder(PayBaseModel):
         self.pay_time = pay_time
         self.save()
 
+    def finish_sent(self):
+        self.status = SaleOrder.WAIT_BUYER_CONFIRM_GOODS
+        self.consign_time = datetime.datetime.now()
+        self.save()
+
     def set_psi_paid(self):
         from shopback.trades.models import PackageSkuItem
         if self.sale_trade.order_type in [SaleTrade.RESERVE_ORDER, SaleTrade.DEPOSITE_ORDER,

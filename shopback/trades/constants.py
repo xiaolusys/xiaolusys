@@ -59,6 +59,8 @@ class PSI_TYPE:
     NORMAL = 0
     BYHAND = 1
     RETURN_GOODS = 2
+    RETURN_OUT_ORDER = 3
+    RETURN_INFERIOR = 4
     TIANMAO = 5
     CHOICES = (
         (0, u'普通订单'),

@@ -140,7 +140,7 @@
                     <option value=3>退多货</option>
                     <option value=4>退次品</option>
                 </select> -->
-                <input type="button" class="btn-mini btn-success" id="id_btn_pksi" value="生成退货商品包裹" onclick="create_pksi(this)"/>
+                <input type="button" class="btn-mini btn-success" id="id_btn_pksi" value="生成退货包裹" onclick="create_psi(this)"/>
                 <input type="button" class="btn-mini btn-success" id="change_to_refund" value="换货变退货回款" onclick="change_become_refund(this)" disabled="true"/>
 
             </div>
@@ -397,11 +397,11 @@
 $(document).ready(function() {
     var url = "/sale/dinghuo/purchase_return/"+{{ original.id }}+"/psi_has_pid";
     var data = {returngoods_id:{{original.id}}};
-    $.ajax({"url":url,"data":data,"type":"post",dataType:"json","success":callback});
+    $.ajax({"url":url,"data":data,"type":"get",dataType:"json","success":callback});
     function callback(res){
                 console.log(res);
         if(res.status==true){
-        $("#id_btn_pksi").val("更新packageskuitem");
+        $("#id_btn_pksi").val("更新包裹");
         }
         }
 });
@@ -485,13 +485,9 @@ $(document).ready(function() {
     	}
     }
 
-    function create_pksi(obj){
-        // var products_items = new Array();
-        // var data = {returngoods_id:{{original.id}}}
-       
+    function create_psi(obj){
         var supplier_id = {{original.supplier.id}};
-        var RGdetail_ids = [];
-        var cfm = confirm("是否把这些:"+RGdetail_ids+"    生成退货商品包裹");
+        var cfm = confirm("确认生成退货商品包裹?");
         if(cfm==true){
         var data = {"supplier_id":supplier_id}
         var url = "/sale/dinghuo/purchase_return/"+{{ original.id }}+"/create_psi_by_rgdetail";
@@ -506,14 +502,9 @@ $(document).ready(function() {
             }
         }
         function callback2(XMLHttpRequest, textStatus, errorThrown){
-             <!--console.log(XMLHttpRequest.status);-->
-            <!--console.log(XMLHttpRequest.readyState);-->
-            <!--console.log(textStatus);-->
             alert("无法生成退货包裹商品");
         }
         }
-
-
     }
 
     function modify_return_goods_sku(sku, id, num, price){

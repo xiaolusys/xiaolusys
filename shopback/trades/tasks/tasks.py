@@ -1270,6 +1270,7 @@ def realtime_check(type, func):
     uni_key = "%s|%s" % (type, time_from)
     func(time_from, uni_key)
 
+
 @app.task()
-def task_trade_merge():
-    PackageSkuItem.batch_merge()
+def task_trade_merge(type=None):
+    PackageSkuItem.batch_merge(type)

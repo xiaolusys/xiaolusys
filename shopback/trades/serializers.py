@@ -43,3 +43,17 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         exclude = ()
+
+
+class PackageOrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PackageOrder
+        fields = ['pid', 'id', 'tid', 'action_type', 'ware_by', 'status', 'sys_status', 'sku_num', 'order_sku_num',
+                  'ready_completion', 'seller_id', 'receiver_name', 'receiver_state', 'receiver_city',
+                  'receiver_district', 'receiver_address', 'receiver_zip', 'receiver_mobile', 'receiver_phone',
+                  'user_address_id', 'buyer_id', 'buyer_nick', 'buyer_message', 'seller_memo', 'sys_memo', 'post_cost',
+                  'out_sid', 'logistics_company', 'weight', 'is_qrcode', 'qrcode_msg', 'can_review', 'priority',
+                  'purchaser', 'supplier_id', 'operator', 'scanner', 'weighter', 'is_locked', 'is_charged',
+                  'is_picking_print', 'is_express_print', 'is_send_sms', 'has_refund', 'created', 'modified',
+                  'can_send_time', 'send_time', 'weight_time', 'charge_time', 'remind_time', 'consign_time',
+                  'reason_code', 'type']

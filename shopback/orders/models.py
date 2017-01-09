@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import json
 import time
 import hashlib
+import datetime
 from django.db import models
 from core.models import BaseModel
 from core.fields import BigAutoField, BigForeignKey
@@ -47,7 +48,7 @@ STEP_TRADE_STATUS = (
 STAGE_CHOICES = (
     (0, u'需创建发货sku单'),
     (1, u'已创建发货sku单'),
-    (2, u'已完结')
+    (2, u'已用老办法处理')
 )
 
 
@@ -144,16 +145,6 @@ class Trade(models.Model):
                 logger.error('backend update trade (tid:%s)error' % str(trade_id), exc_info=True)
         return trade
 
-    @property
-    def address_unikey(self):
-        address = self.receiver_state + self.receiver_city + self.receiver_district + self.receiver_address
-        return hashlib.sha1(address).hexdigest()
-
-    @property
-    def user_unikey(self):
-        user = self.receiver_name + self.receiver_phone
-        return hashlib.sha1(user).hexdigest()
-
     @staticmethod
     def seller():
         if not hasattr(Trade, '_seller_'):
@@ -218,7 +209,7 @@ class Trade(models.Model):
         return hashlib.sha1(address).hexdigest()
 
     def get_user_unikey(self):
-        user = self.receiver_name + self.receiver_phone
+        user = self.receiver_name + self.receiver_phone + self.YOUNI_SELLER_NICK
         return hashlib.sha1(user).hexdigest()
 
     @staticmethod
@@ -270,7 +261,7 @@ class Order(models.Model):
 
     status = models.CharField(max_length=32, choices=TAOBAO_TRADE_STATUS, blank=True)
 
-    stage = models.IntegerField(default=0, choices=STAGE_CHOICES, verbose_name=u'发货进度', help_text=u'0未处理1发货中2已完结')
+    stage = models.IntegerField(default=0, choices=STAGE_CHOICES, db_index=True, verbose_name=u'发货进度', help_text=u'0未处理1发货中2已完结')
 
     class Meta:
         db_table = 'shop_orders_order'
@@ -293,7 +284,11 @@ class Order(models.Model):
     @property
     def sku(self):
         if not hasattr(self, '_sku_'):
-            self._sku_ = self.product.eskus.filter(outer_id=self.outer_sku_id).first()
+            otps = self.outer_sku_id.split('.')
+            if len(otps) > 1:
+                self._sku_ = ProductSku.objects.filter(product__outer_id=otps[0], outer_id=otps[1]).first()
+            else:
+                self._sku_ = ProductSku.objects.filter(product__outer_id=self.outer_id, outer_id=self.outer_sku_id).first()
         return self._sku_
 
     @property
@@ -314,7 +309,11 @@ class Order(models.Model):
             return
         if self.has_psi_created():
             return
-        from shopback.trades.models import PackageSkuItem, PSI_TYPE
+        # 防错　如果mergeOrder已发货，则不再产生成PackageSkuItem
+        from shopback.trades.models import PackageSkuItem, PSI_TYPE, MergeOrder, MergeTrade
+        merge_order = MergeOrder.objects.filter(oid=self.oid).first()
+        if merge_order.is_sent() or merge_order.merge_trade.is_sent():
+            return
         ware_by = self.sku.ware_by
         sku_item = PackageSkuItem(sale_order_id=None, ware_by=ware_by, oid=self.get_tb_oid())
         sku_item.sku_id = self.sku.id
@@ -327,10 +326,10 @@ class Order(models.Model):
         sku_item.package_order_pid
         sku_item.ware_by = ware_by
         # sku_item.cid = None
-        sku_item.title = self.product.title
+        sku_item.title = self.product.title()
         sku_item.sku_properties_name = self.sku.properties_name
         sku_item.pic_path = self.sku.product.pic_path
-        sku_item.pay_time = self.pay_time
+        sku_item.pay_time = self.trade.pay_time
         sku_item.receiver_mobile = self.trade.receiver_mobile
         # sku_item.out_sid
         # sku_item.logistics_company_name
@@ -341,8 +340,22 @@ class Order(models.Model):
         sku_item.sale_trade_id = 'tb' + str(self.trade.id)
         sku_item.save()
         sku_item.set_status_init_assigned()
-        PackageSkuItem.batch_merge(type=PSI_TYPE.TIANMAO)
+        # PackageSkuItem.batch_merge(type=PSI_TYPE.TIANMAO)
         self.stage = 1
         self.save()
         return sku_item
 
+    def get_package_item(self):
+        from shopback.trades.models import PackageSkuItem, MergeOrder
+        if self.statge in [0, 2]:
+            return MergeOrder.objects.filter(oid=self.oid).first()
+        else:
+            return PackageSkuItem.objects.filter(oid=self.get_tb_oid()).first()
+
+    def need_send(self):
+        return self.status == pcfg.WAIT_SELLER_SEND_GOODS
+
+    def finish_sent(self):
+        self.status = pcfg.WAIT_BUYER_CONFIRM_GOODS
+        self.consign_time = datetime.datetime.now()
+        self.save()
