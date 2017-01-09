@@ -13,7 +13,8 @@ from core.models import BaseModel
 from shopback.items.models import ProductSku, Product, SkuStock
 from shopback.warehouse.constants import WARE_CHOICES, WARE_NONE, WARE_GZ
 from supplychain.supplier.models import SaleSupplier
-import logging
+import logging,json
+
 
 logger = logging.getLogger(__name__)
 
@@ -612,11 +613,14 @@ class OrderList(models.Model):
             elif change:
                 self.save()
         elif self.stage == OrderList.STAGE_STATE:
+            info = [self.lack,self.is_postpay]
+            logger.warn({'action': "orderlist", 'info': "run update_stage:" + str(self.id) +json.dumps(info)})
             change = self.set_stat()
             bill = self.get_bills()
             if self.lack is False and not self.is_postpay:
                 self.set_stage_complete()
             elif bill and all([i.is_finished() for i in bill]):
+                logger.warn({'action': "orderlist", 'info': "run update_stage:" + str(self.id) +str(all([i.is_finished() for i in bill]))})
                 self.set_stage_complete()
             elif change:
                 self.save()
