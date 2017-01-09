@@ -631,5 +631,5 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
             })
             return Response({"code": 3, "info": u'您的精品券数量不足，请联系微信客服!'})
 
-        coupon_exchange_saleorder(customer, order_id, mama_id, template_ids, coupon_num)
+        coupon_exchange_saleorder(customer, order_id, mama_id, template_ids, int(coupon_num))
         return Response({'code': 0, 'info': '兑换成功'})
