@@ -17,3 +17,4 @@ from .user import Register, Customer, UserBudget, BudgetLog, genCustomerNickname
 from .favorites import Favorites
 from .teambuy import TeamBuy, TeamBuyDetail
 from .admanager import ADManager
+from .searchhistory import UserSearchHistory

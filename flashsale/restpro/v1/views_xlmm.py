@@ -347,6 +347,9 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
 
     @list_route(methods=['get', 'post'])
     def mama_register_pay(self, request):
+
+        raise exceptions.APIException(u'活动已经关闭!')  # 2017-1-9
+
         if not request.user or not request.user.is_authenticated():
             raise exceptions.PermissionDenied()
 
