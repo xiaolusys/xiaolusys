@@ -371,10 +371,10 @@ def send_new_elite_transfer_coupons(customer_id, order_id, order_oid, product_id
     })
 
 
-def coupon_exchange_saleorder(customer, order_id, mama_id, exchg_template_id, coupon_num):
+def coupon_exchange_saleorder(customer, order_id, mama_id, template_ids, coupon_num):
     logger.info({
         'message': u'exchange order:customer=%s, mama_id=%s coupon_num=%s order_id=%s templateid=%s' % (
-            customer.id, mama_id, coupon_num, order_id, exchg_template_id),
+            customer.id, mama_id, coupon_num, order_id, template_ids),
     })
 
     # (1)sale order置为已经兑换
@@ -397,12 +397,25 @@ def coupon_exchange_saleorder(customer, order_id, mama_id, exchg_template_id, co
             logger.warn({'message': u'exchange order: order_id=%s not exist' % order_id})
             raise exceptions.ValidationError(u'找不到订单记录，兑换失败!')
 
-        # (2)用户优惠券需要变成使用状态
-        user_coupons = UserCoupon.objects.filter(customer_id=customer.id,
-                                                 template_id=int(exchg_template_id),
-                                                 status=UserCoupon.UNUSED)
-        user_coupons = user_coupons[0: coupon_num]
-        coupon_ids = [c.id for c in user_coupons]
+        # (2)用户优惠券需要变成使用状态,如果存在多个券通用情况，还要把多种券给使用掉
+        left_num = coupon_num
+        coupon_ids = []
+        for oneid in template_ids:
+            user_coupons = UserCoupon.objects.filter(customer_id=customer.id,
+                                                     template_id=int(oneid),
+                                                     status=UserCoupon.UNUSED)
+            if user_coupons.count() >= left_num:
+                user_coupons = user_coupons[0: left_num]
+            temp_coupon_ids = [c.id for c in user_coupons]
+            # (4)在精品券流通记录增加兑换记录
+            transfer = CouponTransferRecord.create_exchg_order_record(customer, user_coupons.count(), sale_order,
+                                                                      int(oneid))
+            create_transfer_coupon_detail(transfer.id, temp_coupon_ids)
+
+            coupon_ids = coupon_ids + temp_coupon_ids
+            left_num = left_num - user_coupons.count()
+            if left_num <= 0:
+                break
         use_coupon_by_ids(coupon_ids, tid=sale_order.oid)   # 改为 使用掉
 
         # (3)在user钱包写收入记录
@@ -416,10 +429,7 @@ def coupon_exchange_saleorder(customer, order_id, mama_id, exchg_template_id, co
                          uni_key=sale_order.oid,
                          status=BudgetLog.CONFIRMED)
 
-        # (4)在精品券流通记录增加兑换记录
-        transfer = CouponTransferRecord.create_exchg_order_record(customer, int(coupon_num), sale_order,
-                                                                  int(exchg_template_id))
-        create_transfer_coupon_detail(transfer.id, coupon_ids)
+
 
 
 def saleorder_return_coupon_exchange(salerefund, payment):

@@ -596,13 +596,31 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
         mama = get_charged_mama(request.user)
         mama_id = mama.id
 
-        stock_num = CouponTransferRecord.get_coupon_stock_num(mama_id, exchg_template_id)
-        if stock_num < int(coupon_num):
+        # wtf,有些券是可以流通通用的，那么要找出一组兑换templateid，判断数量是否足够
+        template_ids = []
+        sale_order = SaleOrder.objects.filter(oid=order_id).first()
+        model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id, is_boutique=True).first()
+        if model_product and model_product.extras.has_key('payinfo') \
+                and model_product.extras['payinfo'].has_key('coupon_template_ids'):
+            if model_product.extras['payinfo']['coupon_template_ids'] and len(
+                    model_product.extras['payinfo']['coupon_template_ids']) > 0:
+                template_ids = model_product.extras['payinfo']['coupon_template_ids']
+        if len(template_ids) > 0:
+            stock_num = 0
+            for oneid in template_ids:
+                stock_num += CouponTransferRecord.get_coupon_stock_num(mama_id, oneid)
+            if stock_num < int(coupon_num):
+                logger.warn({
+                    'message': u'exchange order:stock_num=%s < exchg coupon_num=%s ,order_id=%s templateid=%s' % (
+                        stock_num, coupon_num, order_id, exchg_template_id),
+                })
+                return Response({"code": 2, "info": u'您的精品券库存不足，请立即购买!'})
+        else:
             logger.warn({
-                'message': u'exchange order:stock_num=%s < exchg coupon_num=%s ,order_id=%s templateid=%s' % (
-                    stock_num, coupon_num, order_id, exchg_template_id),
+                'message': u'exchange order: modelproduct templateids empty, exchg coupon_num=%s ,order_id=%s templateid=%s' % (
+                    coupon_num, order_id, exchg_template_id),
             })
-            return Response({"code": 2, "info": u'您的精品券库存不足，请立即购买!'})
+            return Response({"code": 4, "info": u'商品参数配置有误，无法兑换，请联系管理员!'})
 
         user_coupons = UserCoupon.objects.filter(customer_id=customer.id, template_id=int(exchg_template_id),
                                                  status=UserCoupon.UNUSED)
@@ -613,5 +631,5 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
             })
             return Response({"code": 3, "info": u'您的精品券数量不足，请联系微信客服!'})
 
-        coupon_exchange_saleorder(customer, order_id, mama_id, exchg_template_id, coupon_num)
+        coupon_exchange_saleorder(customer, order_id, mama_id, template_ids, coupon_num)
         return Response({'code': 0, 'info': '兑换成功'})
