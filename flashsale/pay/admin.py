@@ -42,7 +42,8 @@ from .models import (
     Integral,
     IntegralLog,
     TeamBuy,
-    ADManager
+    ADManager,
+    UserSearchHistory
 )
 
 import cStringIO as StringIO
@@ -1009,3 +1010,16 @@ class ADManagerAdmin(admin.ModelAdmin):
     list_display = ('id', 'title', 'image', 'url', 'status')
 
 admin.site.register(ADManager, ADManagerAdmin)
+
+
+class UserSearchHistoryAdmin(admin.ModelAdmin):
+    list_display = ('id',
+                    'user_id',
+                    'content',
+                    'target',
+                    'result_count',
+                    'status')
+    list_filter = ('status', 'target')
+
+admin.site.register(UserSearchHistory, UserSearchHistoryAdmin)
+

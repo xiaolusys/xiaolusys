@@ -45,6 +45,7 @@ from flashsale.pay.models import (
     SaleFaq,
     CustomerShops,
     CuShopPros,
+    UserSearchHistory,
 )
 from flashsale.promotion.models import ActivityEntry, ActivityProduct
 from shopback.logistics.models import LogisticsCompany
@@ -1239,3 +1240,16 @@ class SaleFaqerializer(serializers.ModelSerializer):
     class Meta:
         model = SaleFaq
         fields = ('id', 'main_category', 'detail_category', 'question', 'answer')
+
+
+class UserSearchHistorySerialize(serializers.ModelSerializer):
+    class Meta:
+        model = UserSearchHistory
+        fields = (
+            'id',
+            'user_id',
+            'content',
+            'target',
+            'result_count',
+            'status',
+        )

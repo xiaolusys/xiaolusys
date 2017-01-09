@@ -19,6 +19,7 @@ from flashsale.pay.models import ModelProduct, Customer, CuShopPros
 
 from flashsale.restpro.v2 import serializers as serializers_v2
 from flashsale.pay.apis.v1.product import get_is_onsale_modelproducts
+from flashsale.pay.apis.v1.usersearchhistory import create_user_search_history, UserSearchHistory
 from apis.v1.products import ModelProductCtl, SkustatCtl
 
 import logging
@@ -304,6 +305,35 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
             queryset = queryset.order_by('lowest_agent_price')
         ids = [i['id'] for i in queryset.values('id')]
         queryset = ModelProductCtl.multiple(ids=ids)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = serializers_v2.APIModelProductListSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @list_route(methods=['get'])
+    def search_by_name(self, request, *args, **kwargs):
+        # type : (HttpRequest, *Any, **Any) -> HttpResponse
+        """按照名称搜索
+        """
+        name = request.GET.get('name') or ''
+
+        queryset = ModelProduct.objects.filter(shelf_status=ModelProduct.ON_SHELF, name__contains=name)
+        ids = [i['id'] for i in queryset.values('id')]
+        queryset = ModelProductCtl.multiple(ids=ids)
+
+        # 创建搜索记录
+        if not request.user.is_authenticated:  # 匿名用户
+            user_id = 0
+        else:
+            user_id = request.user.id
+        if name.strip():
+            create_user_search_history(content=name.strip(),
+                                       target=UserSearchHistory.MODEL_PRODUCT,
+                                       user_id=user_id,
+                                       result_count=len(queryset))
+
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = serializers_v2.APIModelProductListSerializer(page, many=True)
