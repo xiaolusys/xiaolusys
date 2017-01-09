@@ -78,4 +78,4 @@ class UserSearchHistoryViewSet(viewsets.ModelViewSet):
         if not target:
             return Response({'code': 1, 'info': '参数错误!'})
         clear_user_search_history(user_id, target)
-        return Response({'code': 0, 'info': '清楚成功!'})
+        return Response({'code': 0, 'info': '清除成功!'})
