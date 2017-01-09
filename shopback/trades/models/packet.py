@@ -1082,6 +1082,14 @@ class PackageSkuItem(BaseModel):
         user_address = UserAddress.objects.filter(supplier_id=supplier_id).first()
         return user_address.id
 
+    def get_supplier_nick(self):
+        supplier_id = ReturnGoods.objects.filter(id = self.sale_trade_id).first().supplier.id
+        user_address = UserAddress.objects.filter(supplier_id=supplier_id).first()
+        if user_address.receiver_name:
+            return user_address.receiver_name
+        else:
+            return
+
     def get_return_user_id(self):
         supplier_id = ReturnGoods.objects.filter(id = self.sale_trade_id).first().supplier.id
         user_address = UserAddress.objects.filter(supplier_id=supplier_id).first()
@@ -1116,6 +1124,7 @@ class PackageSkuItem(BaseModel):
             self.merge_time = datetime.datetime.now()
             return_addr_id = self.get_return_address_id()
             return_user_id = self.get_return_user_id()
+            supplier_nick = self.get_supplier_nick()
             return_user_id = return_user_id
             package_order_id = PackageOrder.gen_new_package_id(return_user_id,
                                                                return_addr_id,
@@ -1129,7 +1138,11 @@ class PackageSkuItem(BaseModel):
                 po.reset_return_address()
                 po.set_logistics_company(100)
             else:
-                po = PackageOrder.create(package_order_id, self.sale_trade, PackageOrder.WAIT_PREPARE_SEND_STATUS, self)
+                user_address_id = return_addr_id
+                buyer_id = return_user_id
+                buyer_nick = supplier_nick
+                po = PackageOrder.create(user_address_id,buyer_id,buyer_nick,package_order_id, self.sale_trade, PackageOrder.WAIT_PREPARE_SEND_STATUS, self)
+
             # if po:
             #     logger.warn({'action': "packageskuitem_merge_1",'info': "packageskuitem_id:" + str(self.id) + " package_order_id:" + str(po.id)})
             # if not po:
