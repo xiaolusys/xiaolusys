@@ -43,6 +43,9 @@ class STOThermalSet(viewsets.ViewSet):
         mobile = request.GET.get('mobile')
         trade_id= request.GET.get('trade_id')
         print_info = json.dumps(constant_extra.param_waybill_cloud_print_apply_new_request)
+        cp_code = request.GET.get('cp_code')
+        if cp_code:
+            print_info = print_info.replace("STO", cp_code)
         print_info = print_info.replace("city_r", city)
         print_info = print_info.replace("district_r", district)
         print_info = print_info.replace("wojia",detail)
