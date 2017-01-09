@@ -5,7 +5,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 __ALL__ = [
-    'create_user_search_history'
+    'create_user_search_history',
+    'get_distinct_user_search_product_history_by_user_id',
+    'clear_user_search_history',
 ]
 
 from ...models import UserSearchHistory
