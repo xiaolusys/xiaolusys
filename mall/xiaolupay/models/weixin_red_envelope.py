@@ -1,6 +1,6 @@
 # encoding=utf8
 from datetime import datetime
-from django.db import models
+from django.db import models, transaction
 from core.models import BaseModel
 
 
@@ -109,9 +109,10 @@ class WeixinRedEnvelope(BaseModel):
     def set_status_fail(self):
         from flashsale.pay.models.envelope import Envelop
 
-        self.status = WeixinRedEnvelope.FAILED
-        self.save()
+        with transaction.atomic():
+            self.status = WeixinRedEnvelope.FAILED
+            self.save()
 
-        item = Envelop.objects.filter(envelop_id=self.mch_billno).first()
-        item.handle_envelop(self)
+            item = Envelop.objects.filter(envelop_id=self.mch_billno).first()
+            item.handle_envelop(self)
         return self
