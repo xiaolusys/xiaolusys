@@ -332,7 +332,7 @@ class CarryRecord(BaseModel):
             return mama
         return None
 
-    @staticmethod
+    @classmethod
     def create(cls, mama_id, carry_num, carry_type, desc, uni_key=None, status=None):
         """
         创建收益

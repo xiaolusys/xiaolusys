@@ -43,7 +43,7 @@ def task_awardcarry_update_carryrecord(carry):
         return
 
     CarryRecord.create(carry.mama_id, carry.carry_num, CarryRecord.CR_RECOMMEND, carry.carry_description,
-                       uni_key=carry.uni_key,status=carry.status)
+        uni_key=carry.uni_key, status=carry.status)
 
 
 @app.task(serializer='pickle')
