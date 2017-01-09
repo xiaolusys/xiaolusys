@@ -87,5 +87,5 @@ def task_clickcarry_update_carryrecord(carry):
 
         return
 
-    CarryRecord.create(carry.mama_id, carry.carry_num, CarryRecord.CR_CLICK, carry.carry_description,
+    CarryRecord.create(carry.mama_id, carry.total_value, CarryRecord.CR_CLICK, carry.carry_description,
                        uni_key=carry.uni_key, status=carry.status)
