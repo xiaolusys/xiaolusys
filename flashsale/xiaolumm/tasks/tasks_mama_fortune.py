@@ -96,7 +96,6 @@ def task_cashout_update_mamafortune(mama_id):
 
 @app.task(max_retries=3, default_retry_delay=6)
 def task_carryrecord_update_mamafortune(mama_id):
-    #print "%s, mama_id: %s" % (get_cur_info(), mama_id)
 
     carrys = CarryRecord.objects.filter(mama_id=mama_id, date_field__gt=MAMA_FORTUNE_HISTORY_LAST_DAY).values(
         'status').annotate(carry=Sum('carry_num'))

@@ -21,38 +21,29 @@ def get_cur_info():
 
 @app.task(serializer='pickle')
 def task_awardcarry_update_carryrecord(carry):
-    #print "%s, mama_id: %s" % (get_cur_info(), carry.mama_id)
     if carry.mama_id <= 0:
         return
     
     record = CarryRecord.objects.filter(uni_key=carry.uni_key).first()
     if record:
-        update_fields = []
+        # 1. 不能同时修改状态和金额
         if record.status != carry.status:
-            record.status = carry.status
-            update_fields.append('status')
-            if carry.status == 2:
-                record.date_field = datetime.date.today()
-                update_fields.append('date_field')
+            if carry.status == CarryRecord.CONFIRMED:
+                record.confirm()
+            if carry.status == CarryRecord.CANCEL:
+                record.cancel()
+            return
+
+        # 2. 只有预计收益可以修改金额
         if record.carry_num != carry.carry_num:
-            record.carry_num = carry.carry_num
-            update_fields.append('carry_num')
-        if record.mama_id != carry.mama_id:
-            record.mama_id = carry.mama_id
-            update_fields.append('mama_id')
-        if record.carry_description != carry.carry_description:
-            record.carry_description = carry.carry_description
-            update_fields.append('carry_description')
-        if update_fields:
-            update_fields.append('modified')
-            record.save(update_fields=update_fields)
-    else:
-        carry_type = 3  # awardcarry
-        carry_record = CarryRecord(mama_id=carry.mama_id, carry_num=carry.carry_num,
-                                   carry_type=carry_type, date_field=carry.date_field,
-                                   carry_description=carry.carry_description,
-                                   uni_key=carry.uni_key, status=carry.status)
-        carry_record.save()
+            if record.status == CarryRecord.PENDING:
+                record.changePendingCarryAmount(carry.carry_num)
+            return
+
+        return
+
+    CarryRecord.create(carry.mama_id, carry.carry_num, CarryRecord.CR_RECOMMEND, carry.carry_description,
+                       uni_key=carry.uni_key,status=carry.status)
 
 
 @app.task(serializer='pickle')
@@ -63,20 +54,14 @@ def task_ordercarry_update_carryrecord(carry):
     record = CarryRecord.objects.filter(uni_key=carry.uni_key).first()
     if record:
         if record.status != carry.status:
-            record.status = carry.status
-            record.save()
-        return
-    # We create CarryRecord upon two status: 1) paid(pending); 2) confirmed
-    if not (carry.is_pending() or carry.is_confirmed()):
+            if carry.status == CarryRecord.CONFIRMED:
+                record.confirm()
+            if carry.status == CarryRecord.CANCEL:
+                record.cancel()
         return
 
-    # create new record 
-    carry_type = 2  # ordercarry
-    carry_record = CarryRecord(mama_id=carry.mama_id, carry_num=carry.carry_num,
-                               carry_type=carry_type, date_field=carry.date_field,
-                               carry_description=carry.carry_description,
-                               uni_key=carry.uni_key, status=carry.status)
-    carry_record.save()
+    CarryRecord.create(carry.mama_id, carry.carry_num, CarryRecord.CR_ORDER, carry.carry_description,
+                       uni_key=carry.uni_key,status=carry.status)
 
 
 @app.task(serializer='pickle')
@@ -84,18 +69,23 @@ def task_clickcarry_update_carryrecord(carry):
     if carry.mama_id <= 0:
         return
     
-    records = CarryRecord.objects.filter(uni_key=carry.uni_key)
-    if records.count() > 0:
-        record = records[0]
-        if record.carry_num != carry.total_value or record.status != carry.status:
-            record.carry_num = carry.total_value
-            record.status = carry.status
-            record.save()
+    record = CarryRecord.objects.filter(uni_key=carry.uni_key).first()
+    if record:
+        # 1. 不能同时修改状态和金额
+        if record.status != carry.status:
+            if carry.status == CarryRecord.CONFIRMED:
+                record.confirm()
+            if carry.status == CarryRecord.CANCEL:
+                record.cancel()
+            return
+
+        # 2. 只有预计收益可以修改金额
+        if record.carry_num != carry.total_value:
+            if record.status == CarryRecord.PENDING:
+                record.changePendingCarryAmount(carry.total_value)
+            return
+
         return
-    else:
-        carry_type = 1  # clickcarry
-        carry_record = CarryRecord(mama_id=carry.mama_id, carry_num=carry.total_value,
-                                   carry_type=carry_type, date_field=carry.date_field,
-                                   carry_description=carry.carry_description,
-                                   uni_key=carry.uni_key, status=carry.status)
-        carry_record.save()
+
+    CarryRecord.create(carry.mama_id, carry.carry_num, CarryRecord.CR_CLICK, carry.carry_description,
+                       uni_key=carry.uni_key, status=carry.status)
