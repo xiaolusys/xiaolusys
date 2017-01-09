@@ -111,6 +111,10 @@ def create_present_elite_score(customer, elite_score, template, rank):
     with transaction.atomic():
         transfer_in.save()
         transfer_out.save()
+
+    from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
+    task_calc_xlmm_elite_score(coupon_to_mama_id)
+
     return transfer_in, transfer_out
 
 
