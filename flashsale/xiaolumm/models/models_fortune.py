@@ -1058,9 +1058,10 @@ class ReferalRelationship(BaseModel):
         from flashsale.pay.models import Customer
 
         mama = XiaoluMama.objects.filter(id=self.referal_to_mama_id).first()
-        customer = Customer.objects.filter(unionid=mama.unionid).first()
-        if customer and customer.mobile:
-            return customer.mobile
+        if mama:
+            customer = Customer.objects.filter(unionid=mama.unionid).first()
+            if customer and customer.mobile:
+                return customer.mobile
         return None
 
     def is_confirmed(self):
