@@ -90,9 +90,10 @@ class APIModelProductSerializer(serializers.Serializer):
     extras = serializers.SerializerMethodField()
     custom_info = serializers.SerializerMethodField()
     teambuy_info = serializers.SerializerMethodField()
+    buy_coupon_url = serializers.SerializerMethodField()
 
     class Meta:
-        fields = ('id', 'detail_content', 'sku_info', 'comparison', 'extras', 'custom_info', 'teambuy_info')  #
+        fields = ('id', 'detail_content', 'sku_info', 'comparison', 'extras', 'custom_info', 'teambuy_info', 'buy_coupon_url')  #
 
     def get_id(self, obj):
         return obj.id
@@ -143,6 +144,37 @@ class APIModelProductSerializer(serializers.Serializer):
 
     def get_comparison(self, obj):
         return obj.comparison
+
+    def get_buy_coupon_url(self, obj):
+        # type: (ModuleProduct) -> text_type
+        """如果该款式是精品商品 则返回 对应的 购券 app 协议跳转链接
+        """
+        if not (obj.detail_content['is_boutique'] and obj.detail_content['product_type'] == 0):
+            return ''
+
+        payinfo = obj.extras.get('payinfo')
+        if not payinfo:
+            return ''
+        coupon_template_ids = payinfo.get('coupon_template_ids')
+        if not coupon_template_ids:
+            return ''
+
+        templateid = coupon_template_ids[0]
+        virtual_model_products = ModelProduct.objects.get_virtual_modelproducts()  # 虚拟商品
+        find_mp = None
+        for md in virtual_model_products:
+            md_bind_tpl_id = md.extras.get('template_id')
+            if not md_bind_tpl_id:
+                continue
+            if templateid == md_bind_tpl_id:
+                find_mp = md
+                break
+        if not find_mp:
+            return ''
+
+        protocol = 'com.jimei.xlmm://app/v1/webview?is_native=1&url={0}'
+        url = 'https://m.xiaolumeimei.com/mall/buycoupon?modelid={0}'.format(find_mp.id)
+        return protocol.format(url)
 
 
 class APIModelProductListSerializer(serializers.Serializer):
