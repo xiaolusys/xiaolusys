@@ -318,8 +318,13 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         """按照名称搜索
         """
         name = request.GET.get('name') or ''
+        product_type = request.GET.get('product_type') or 0
 
-        queryset = ModelProduct.objects.filter(shelf_status=ModelProduct.ON_SHELF, name__contains=name)
+        product_type = int(product_type)
+
+        queryset = ModelProduct.objects.filter(shelf_status=ModelProduct.ON_SHELF,
+                                               name__contains=name,
+                                               product_type=product_type)
         ids = [i['id'] for i in queryset.values('id')]
         queryset = ModelProductCtl.multiple(ids=ids)
 
