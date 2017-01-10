@@ -1063,10 +1063,10 @@ class PackageSkuItem(BaseModel):
         psi_ids = PackageSkuItem.objects.filter(status=PSI_STATUS.ASSIGNED, type=PSI_TYPE.NORMAL).values_list('id', flat=True)
         psi_ids = list(psi_ids)
         for psi_id in psi_ids:
-            with transaction.atomic():
-                psi = PackageSkuItem.objects.filter(id=psi_id, status=PSI_STATUS.ASSIGNED).first()
-                if psi:
-                    psi.merge()
+            # with transaction.atomic():
+            psi = PackageSkuItem.objects.filter(id=psi_id, status=PSI_STATUS.ASSIGNED).first()
+            if psi:
+                psi.merge()
 
     def set_status_waitscan(self, stat=True):
         self.status = PSI_STATUS.WAITSCAN
