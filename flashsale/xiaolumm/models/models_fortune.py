@@ -440,7 +440,7 @@ class CarryRecord(BaseModel):
 def carryrecord_update_mamafortune(sender, instance, created, **kwargs):
     from flashsale.xiaolumm.tasks import task_carryrecord_update_mamafortune, task_carryrecord_update_dailystats
 
-    transaction.on_commit(lambda: task_carryrecord_update_mamafortune(instance.mama_id))
+    # transaction.on_commit(lambda: task_carryrecord_update_mamafortune(instance.mama_id))
     transaction.on_commit(lambda: task_carryrecord_update_dailystats(instance.mama_id, instance.date_field))
 
 post_save.connect(carryrecord_update_mamafortune,
