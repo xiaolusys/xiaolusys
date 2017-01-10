@@ -123,7 +123,6 @@ def task_confirm_previous_activevalue(mama_id, today_date_field, num_days):
 
 @app.task()
 def task_visitor_increment_activevalue(mama_id, date_field):
-    print "%s, mama_id: %s" % (get_cur_info(), mama_id)
     value_type = 1  # click
 
     uni_key = util_unikey.gen_activevalue_unikey(value_type, mama_id, date_field, None, None)
@@ -136,7 +135,6 @@ def task_visitor_increment_activevalue(mama_id, date_field):
                                    uni_key=uni_key, value_description=description,
                                    date_field=date_field, status=status)
         active_value.save()
-        # task_confirm_previous_activevalue.s(mama_id, value_type, date_field, 2)()
 
     else:
         active_values.update(value_num=F('value_num') + 1)

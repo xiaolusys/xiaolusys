@@ -92,11 +92,7 @@ def task_visitor_increment_dailystats(mama_id, date_field):
 
 @app.task(max_retries=3, default_retry_delay=6)
 def task_carryrecord_update_dailystats(mama_id, date_field):
-    # print "%s, mama_id: %s" % (get_cur_info(), mama_id)
-
     uni_key = util_unikey.gen_dailystats_unikey(mama_id, date_field)
-    #if len(uni_key) > 16:
-    #    logger.error("%s: create dailystats error: uni_key wrong %s" % (get_cur_info(), uni_key))
 
     records = DailyStats.objects.filter(uni_key=uni_key)
     carrys = CarryRecord.objects.filter(mama_id=mama_id, date_field=date_field).exclude(status=3).values(
@@ -111,7 +107,6 @@ def task_carryrecord_update_dailystats(mama_id, date_field):
         try:
             create_dailystats_with_integrity(mama_id, date_field, uni_key, today_carry_num=today_carry_num)
         except IntegrityError as exc:
-            #logger.error("IntegrityError - DailyStats | %s, mama_id: %s, uni_key: %s, today_carry_num=%s" % (get_cur_info(), mama_id, uni_key, today_carry_num))
             raise task_carryrecord_update_dailystats.retry(exc=exc)
     else:
         records.update(today_carry_num=today_carry_num)

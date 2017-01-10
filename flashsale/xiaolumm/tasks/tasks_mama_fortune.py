@@ -125,8 +125,6 @@ def task_activevalue_update_mamafortune(mama_id):
     """
     更新妈妈activevalue
     """
-    print "%s, mama_id: %s" % (get_cur_info(), mama_id)
-
     today = datetime.datetime.now().date()
     effect_day = today - datetime.timedelta(30)
 
@@ -241,7 +239,7 @@ def task_update_mamafortune_fans_num(mama_id):
 @app.task(max_retries=3, default_retry_delay=6)
 def task_update_mamafortune_order_num(mama_id):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
-    records = OrderCarry.objects.filter(mama_id=mama_id).exclude(status=3).values('contributor_id')
+    records = OrderCarry.objects.filter(mama_id=mama_id).exclude(status=OrderCarry.CANCEL).values('contributor_id')
     order_num = records.count()
 
     mamas = MamaFortune.objects.filter(mama_id=mama_id)
@@ -258,7 +256,6 @@ def task_update_mamafortune_order_num(mama_id):
 @app.task()
 def task_update_mamafortune_active_num(mama_id):
     from flashsale.xiaolumm.models import XiaoluMama
-    print "%s, mama_id: %s" % (get_cur_info(), mama_id)
 
     fortune = MamaFortune.get_by_mamaid(mama_id)
     update_fields = ['active_normal_num', 'active_trial_num', 'active_all_num']
