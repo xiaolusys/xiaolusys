@@ -366,29 +366,27 @@ class CarryRecord(BaseModel):
         if self.status != CarryRecord.PENDING:
             return
 
-        with transaction.atomic():
-            self.status = CarryRecord.CONFIRMED
-            self.save()
+        self.status = CarryRecord.CONFIRMED
+        self.save()
 
-            fortune = MamaFortune.objects.filter(mama_id=self.mama_id).first()
-            fortune.carry_pending = F('carry_pending') - self.carry_num
-            fortune.carry_confirmed = F('carry_confirmed') + self.carry_num
-            fortune.save()
+        fortune = MamaFortune.objects.filter(mama_id=self.mama_id).first()
+        fortune.carry_pending = F('carry_pending') - self.carry_num
+        fortune.carry_confirmed = F('carry_confirmed') + self.carry_num
+        fortune.save()
 
     def cancel(self):
         """
         取消收益
         """
-        with transaction.atomic():
-            fortune = MamaFortune.objects.filter(mama_id=self.mama_id).first()
-            if self.status == CarryRecord.PENDING:
-                fortune.carry_pending = F('carry_pending') - self.carry_num
-            if self.status == CarryRecord.CONFIRMED:
-                fortune.carry_confirmed = F('carry_confirmed') - self.carry_num
-            fortune.save()
+        fortune = MamaFortune.objects.filter(mama_id=self.mama_id).first()
+        if self.status == CarryRecord.PENDING:
+            fortune.carry_pending = F('carry_pending') - self.carry_num
+        if self.status == CarryRecord.CONFIRMED:
+            fortune.carry_confirmed = F('carry_confirmed') - self.carry_num
+        fortune.save()
 
-            self.status = CarryRecord.CANCEL
-            self.save()
+        self.status = CarryRecord.CANCEL
+        self.save()
 
 
     def changePendingCarryAmount(self, new_value):
@@ -599,7 +597,6 @@ pre_save.connect(commission_xlmm_newtask,
 def ordercarry_update_carryrecord(sender, instance, created, **kwargs):
     from flashsale.xiaolumm.tasks import task_ordercarry_update_carryrecord
     task_ordercarry_update_carryrecord.delay(instance)
-
 
 post_save.connect(ordercarry_update_carryrecord,
                   sender=OrderCarry, dispatch_uid='post_save_ordercarry_update_carryrecord')

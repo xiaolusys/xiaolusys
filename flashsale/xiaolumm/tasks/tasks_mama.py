@@ -511,20 +511,18 @@ def task_order_trigger(sale_order):
 def carryrecord_update_xiaolumama_active_hasale(mmid):
     from flashsale.xiaolumm.models import CarryRecord
     from . import tasks_mama_fortune
+
     mama = XiaoluMama.objects.get(id=mmid)
+
     if not mama.active:
         active = CarryRecord.objects.filter(mama_id=mmid, carry_type=CarryRecord.CR_CLICK, status__in=[1, 2]).exists()
         if active:
             mama.set_active()
+
     if not mama.hasale:
         hasale = CarryRecord.objects.filter(mama_id=mmid, carry_type=CarryRecord.CR_ORDER, status__in=[1, 2]).exists()
         if hasale:
             mama.set_hasale()
+
     for mm_id in mama.get_parent_mama_ids():
         tasks_mama_fortune.task_update_mamafortune_active_num(mm_id)
-    # if hasale and mama.hasale != hasale:
-    #     mama.set_hasale()
-    # elif not hasale and mama.hasale != hasale:
-    #     mama.hasale = False
-    #     mama.hasale_time = None
-    #     mama.save()
