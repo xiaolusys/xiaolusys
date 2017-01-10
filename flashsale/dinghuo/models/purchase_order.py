@@ -667,7 +667,8 @@ class OrderList(models.Model):
 
     def to_excel_data(self, format):
         from shopback.trades.models import PackageSkuItem
-        need_send = PackageSkuItem.objects.filter(purchase_order_unikey=self.purchase_order_unikey)
+        need_send = PackageSkuItem.objects.filter(purchase_order_unikey=self.purchase_order_unikey).\
+            exclude(assign_status=3)
         items = []
         if not format:
             columns = [u'订单号', u'产品条码', u'订单状态', u'买家id', u'子订单编号', u'供应商编码', u'买家昵称', u'商品名称', u'产品规格', u'商品单价',
