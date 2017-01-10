@@ -187,7 +187,9 @@ def create_boutique_user_coupon(customer, tpl, unique_key=None, ufrom='wap', **k
 
 def rollback_user_coupon_status_2_unused_by_ids(ids):
     # type: (List[int]) -> None
-    UserCoupon.objects.filter(id__in=ids).update(status=UserCoupon.UNUSED)
+    """除取消状态的优惠券 可以撤回 可以使用状态
+    """
+    UserCoupon.objects.filter(id__in=ids).exclude(status=UserCoupon.CANCEL).update(status=UserCoupon.UNUSED)
 
 
 def use_coupon_by_ids(ids, tid):
@@ -224,6 +226,8 @@ def freeze_transfer_coupon(coupon_ids, transfer_id):
     """
     coupons = get_user_coupons_by_ids(coupon_ids)
     for coupon in coupons:
+        if coupon.status != UserCoupon.UNUSED:
+            raise Exception('优惠券状态非可用不予冻结操作！')
         coupon.status = UserCoupon.FREEZE
         coupon.extras['freeze_by_transfer_id'] = str(transfer_id)
         coupon.save(update_fields=['status', 'customer_id', 'extras', 'modified'])
@@ -236,6 +240,8 @@ def cancel_coupon_by_ids(coupon_ids):
     """
     coupons = get_user_coupons_by_ids(coupon_ids)
     for coupon in coupons:
+        if coupon.status == UserCoupon.CANCEL:
+            raise Exception('优惠券已经取消不能再次取消!')
         coupon.status = UserCoupon.CANCEL
         coupon.save(update_fields=['status', 'modified'])
     return True
