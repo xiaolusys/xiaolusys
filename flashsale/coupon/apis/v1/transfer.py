@@ -364,8 +364,7 @@ def send_new_elite_transfer_coupons(customer_id, order_id, order_oid, product_id
             create_transfer_coupon_detail(transfer.id, new_coupon_ids)  # 创建明细记录
         except IntegrityError as e:
             logging.error(e)
-    task_calc_xlmm_elite_score(coupon_to_mama_id)  # 计算妈妈积分
-    task_update_tpl_released_coupon_nums.delay(template.id)  # 统计发放数量
+
     logger.info({
         'action': 'send_new_elite_transfer_coupons',
         'action_time': datetime.datetime.now(),
@@ -373,6 +372,8 @@ def send_new_elite_transfer_coupons(customer_id, order_id, order_oid, product_id
         'message': u'end:template_id=%s, order_id=%s order_oid=%s product_id=%s' % (
             template_id, order_id, order_oid, product_id),
     })
+    task_calc_xlmm_elite_score(coupon_to_mama_id)  # 计算妈妈积分
+    task_update_tpl_released_coupon_nums.delay(template.id)  # 统计发放数量
 
 
 def coupon_exchange_saleorder(customer, order_id, mama_id, template_ids, coupon_num):

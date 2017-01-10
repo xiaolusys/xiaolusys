@@ -1064,7 +1064,7 @@ class ReferalRelationship(BaseModel):
         return None
 
     def is_confirmed(self):
-        return self.referal_type == XiaoluMama.FULL or self.referal_type == XiaoluMama.HALF
+        return self.referal_type == XiaoluMama.FULL or self.referal_type == XiaoluMama.HALF or self.referal_type == XiaoluMama.ELITE
 
     def referal_to_mama_nick_display(self):
         if self.referal_to_mama_nick == "":
