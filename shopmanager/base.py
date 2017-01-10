@@ -129,7 +129,7 @@ TEMPLATES = [
 ]
 
 INSTALLED_APPS =[
-
+    'admin_view_permission',
     'django.contrib.admin',
     # 'django.contrib.admindocs',
     'django.contrib.auth',
