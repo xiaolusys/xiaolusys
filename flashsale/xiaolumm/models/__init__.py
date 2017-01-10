@@ -15,3 +15,4 @@ from .mama_administrator import MamaAdministrator
 from .score import XlmmEffectScore, XlmmTeamEffScore
 
 from .referaltree import MamaReferalTree
+from .elite_mama import EliteMamaStatus

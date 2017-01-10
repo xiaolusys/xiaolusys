@@ -11,3 +11,4 @@ from .tasks_mama_fortune import *
 from .tasks_mama_push import *
 from .tasks_mama_relationship_visitor import *
 from .tasks_manager_summary import *
+from .elitemama import *

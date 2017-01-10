@@ -34,7 +34,8 @@ from .models import (
     RankActivity,
     MamaAdministrator,
     WeixinPushEvent,
-    MamaReferalTree
+    MamaReferalTree,
+    EliteMamaStatus,
 )
 from .models.models_rebeta import AgencyOrderRebetaScheme
 from .filters import UserNameFilter
@@ -881,6 +882,15 @@ class XlmmTeamEffScoreAdmin(admin.ModelAdmin):
     search_fields = ('mama_id', )
 
 admin.site.register(XlmmTeamEffScore, XlmmTeamEffScoreAdmin)
+
+
+class EliteMamaStatusAdmin(admin.ModelAdmin):
+    list_display = ('mama_id', 'sub_mamacount', 'purchase_amount', 'transfer_amount', 'sale_amount', 'refund_amount',
+                    'saleout_rate','transfer_rate', 'refund_rate', 'last_active_time', 'status', 'memo', 'joined_date')
+    list_filter = ('status', ('joined_date', DateFieldListFilter), ('last_active_time', DateFieldListFilter),)
+    search_fields = ('=mama_id', )
+
+admin.site.register(EliteMamaStatus, EliteMamaStatusAdmin)
 
 
 class MamaReferalTreeAdmin(admin.ModelAdmin):
