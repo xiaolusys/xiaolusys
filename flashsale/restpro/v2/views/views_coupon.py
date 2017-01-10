@@ -551,7 +551,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                                                 'status_display': OrderCarry.STATUS_TYPES[entry.status][1],
                                                 'order_value': entry.order_value, 'date_field': entry.date_field})
 
-        #从relationship推荐人中找出购买rmb338的新精英妈妈订单
+        #从relationship推荐人中找出购买rmb338/216的新精英妈妈订单
         from flashsale.xiaolumm.models.models_fortune import ReferalRelationship
         ships = ReferalRelationship.objects.filter(referal_from_mama_id=mama.id, referal_type=XiaoluMama.ELITE, status=ReferalRelationship.VALID)
         for ship in ships:
