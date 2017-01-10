@@ -344,20 +344,19 @@ class CarryRecord(BaseModel):
         date_field = datetime.date.today()
         status = status or CarryRecord.CONFIRMED
 
-        with transaction.atomic():
-            carry_record = CarryRecord(mama_id=mama_id, carry_num=carry_num, carry_type=carry_type,
-                date_field=date_field, carry_description=desc, uni_key=uni_key, status=status)
-            carry_record.save()
+        carry_record = CarryRecord(mama_id=mama_id, carry_num=carry_num, carry_type=carry_type,
+            date_field=date_field, carry_description=desc, uni_key=uni_key, status=status)
+        carry_record.save()
 
-            fortune, status = MamaFortune.objects.get_or_create(mama_id=mama_id, defaults={
-                'carry_pending': 0,
-                'carry_confirmed': 0
-            })
-            if status == CarryRecord.PENDING:
-                fortune.carry_pending = F('carry_pending') + carry_num
-            if status == CarryRecord.CONFIRMED:
-                fortune.carry_confirmed = F('carry_confirmed') + carry_num
-            fortune.save()
+        fortune, status = MamaFortune.objects.get_or_create(mama_id=mama_id, defaults={
+            'carry_pending': 0,
+            'carry_confirmed': 0
+        })
+        if status == CarryRecord.PENDING:
+            fortune.carry_pending = F('carry_pending') + carry_num
+        if status == CarryRecord.CONFIRMED:
+            fortune.carry_confirmed = F('carry_confirmed') + carry_num
+        fortune.save()
 
     def confirm(self):
         """
