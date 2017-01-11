@@ -1258,9 +1258,13 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             return Response({"code": 1, "info": "没有可签收订单"})
 
         customer = self.get_customer(request)
-        for order in wait_sign_orders:
-            order.confirm_sign_order()
-            logger.info('user(:%s) confirm sign order(:%s)' % (customer, order.oid))
+        try:
+            for order in wait_sign_orders:
+                order.confirm_sign_order()
+                logger.info('user(:%s) confirm sign order(:%s)' % (customer, order.oid))
+        except Exception as e:
+            info = e.message
+            return Response({"code": 1, "info": info})
 
         return Response({"code": 0, "info": "签收成功"})
 

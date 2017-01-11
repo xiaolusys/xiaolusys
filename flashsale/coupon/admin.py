@@ -1,7 +1,7 @@
 # coding=utf-8
 from django.contrib import admin
 from django.db.models import Sum
-
+from core.options import log_action, CHANGE
 from core.filters import DateFieldListFilter
 from flashsale.xiaolumm.models import MamaDailyAppVisit
 from flashsale.coupon.models import CouponTemplate, OrderShareCoupon, UserCoupon, TmpShareCoupon, CouponTransferRecord, \
@@ -37,6 +37,21 @@ class CouponTemplateAdmin(admin.ModelAdmin):
     list_filter = ('coupon_type', 'scope_type', )
     search_fields = ['=id', ]
     date_hierarchy = 'created'
+
+    def sync_coupon_value(self, request, queryset):
+        # type: (HttpRequest, List[CouponTemplate])
+        """同步 未使用的优惠券 金额 与 模板相同
+        """
+        from .apis.v1.usercoupon import sync_coupon_value_by_template
+
+        total_update_count = 0
+        for tpl in queryset.filter(status=CouponTemplate.SENDING):
+            c = sync_coupon_value_by_template(tpl)
+            total_update_count += c
+        return self.message_user(request, '共更新%s条记录' % total_update_count)
+
+    sync_coupon_value.short_description = '同步优惠券金额与模板相同'
+    actions = ['sync_coupon_value']
 
 
 admin.site.register(CouponTemplate, CouponTemplateAdmin)
