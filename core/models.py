@@ -21,11 +21,13 @@ class BaseModel(models.Model):
     def __unicode__(self):
         return str(self.id)
 
-    def save(self, update_fields=[], *args, **kwargs):
+    def save(self, *args, **kwargs):
         #　set modified field update default
+        update_fields = kwargs.get('update_fields')
         if update_fields and 'modified' not in update_fields:
             update_fields.append('modified')
-        return super(BaseModel, self).save(*args, **kwargs)
+
+        return super(BaseModel, self).save( *args, **kwargs)
 
     @classmethod
     def get_by_pk(cls, pk):

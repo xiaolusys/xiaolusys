@@ -22,13 +22,25 @@ class EliteMamaStatus(BaseModel):
 
     mama_id = models.IntegerField(unique=True, verbose_name=u'妈妈ID')
 
-    sub_mamacount   = models.IntegerField(default=0, db_index=True, verbose_name=u'下级数量')
-    purchase_amount = models.IntegerField(default=0, db_index=True, verbose_name=u'进货金额')
-    transfer_amount = models.IntegerField(default=0, db_index=True, verbose_name=u'转给下属')
-    return_amount   = models.IntegerField(default=0, db_index=True, verbose_name=u'下属退还')
-    sale_amount     = models.IntegerField(default=0, db_index=True, verbose_name=u'买货金额')
-    exchg_amount    = models.IntegerField(default=0, db_index=True, verbose_name=u'兑券金额')
-    refund_amount   = models.IntegerField(default=0, db_index=True, verbose_name=u'退券金额')
+    sub_mamacount   = models.IntegerField(default=0, db_index=True, verbose_name=u'下属数量')
+
+    purchase_amount_out = models.IntegerField(default=0, db_index=True, verbose_name=u'出券面额')
+    purchase_amount_in  = models.IntegerField(default=0, db_index=True, verbose_name=u'进券面额')
+
+    transfer_amount_out = models.IntegerField(default=0, db_index=True, verbose_name=u'转出面额')
+    transfer_amount_in  = models.IntegerField(default=0, db_index=True, verbose_name=u'转入面额')
+
+    return_amount_out   = models.IntegerField(default=0, db_index=True, verbose_name=u'退还上级面额')
+    return_amount_in    = models.IntegerField(default=0, db_index=True, verbose_name=u'收回下级面额')
+
+    sale_amount_out     = models.IntegerField(default=0, db_index=True, verbose_name=u'直接买货面额')
+    sale_amount_in      = models.IntegerField(default=0, db_index=True, verbose_name=u'直接出货面额')
+
+    exchg_amount_out    = models.IntegerField(default=0, db_index=True, verbose_name=u'兑换买货面额')
+    exchg_amount_in     = models.IntegerField(default=0, db_index=True, verbose_name=u'兑换出货面额')
+
+    refund_amount_out   = models.IntegerField(default=0, db_index=True, verbose_name=u'退券面额')
+    refund_amount_in    = models.IntegerField(default=0, db_index=True, verbose_name=u'回券面额')
 
     saleout_rate   = models.FloatField(default=0, db_index=True, verbose_name=u'出货率')
     transfer_rate  = models.FloatField(default=0, db_index=True, verbose_name=u'流通率', help_text='券转移给下属比例')
@@ -46,12 +58,16 @@ class EliteMamaStatus(BaseModel):
         verbose_name = u'精英妈妈/活跃状态'
         verbose_name_plural = u'精英妈妈/活跃状态列表'
 
-    def save(self, update_fields=[], *args, **kwargs):
-        if self.purchase_amount > 0:
-            self.saleout_rate = (self.sale_amount + self.exchg_amount) / self.purchase_amount
-            self.transfer_rate = min(self.transfer_amount - self.return_amount, 0) / self.purchase_amount
-            self.refund_rate   = self.refund_rate / self.purchase_amount
-            update_fields.extend(['transfer_rate', 'refund_rate'])
+    def save(self, *args, **kwargs):
+
+        in_amount = self.purchase_amount_in + self.transfer_amount_in + self.return_amount_in
+        if in_amount > 0:
+            self.saleout_rate = (self.sale_amount_out + self.exchg_amount_out) / in_amount
+            self.transfer_rate = min(self.transfer_amount_out - self.return_amount_in, 0) / in_amount
+            self.refund_rate   = (self.return_amount_out + self.refund_amount_out) / in_amount
+            update_fields = kwargs.get('update_fields')
+            if update_fields:
+                update_fields.extend(['saleout_rate', 'transfer_rate', 'refund_rate'])
         return super(EliteMamaStatus, self).save(*args, **kwargs)
 
 

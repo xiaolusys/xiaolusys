@@ -355,10 +355,6 @@ MAMA_FORTUNE_ROUTES = {
         'queue': 'mamafortune',
         'routing_key': 'mamafortune.task_mama_daily_tab_visit_stats',
     },
-    'flashsale.xiaolumm.tasks.elitemama.task_fresh_elitemama_active_status': {
-        'queue': 'mamafortune',
-        'routing_key': 'mamafortune.task_fresh_elitemama_active_status',
-    }
 }
 
 MAMA_RELATIONSHIP_ROUTES = {
@@ -1043,6 +1039,13 @@ SYNC_MODEL_SCHEDULE = {
         'args': (),
         'kwargs': {'pre_day': 0, 'interval': 1},
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
+    u'每小时更新精英妈妈活跃状态数据': {
+        'task': 'flashsale.xiaolumm.tasks.elitemama.task_fresh_elitemama_active_status',
+        'schedule': crontab(minute="30", hour="*/1"),
+        'args': (),
+        'kwargs': {},
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_fresh_elitemama_active_status'}
     },
 
     #    'runs-every-weeks-order-amount':{   #更新用户商城订单结算，按周

@@ -16,27 +16,48 @@ logger = logging.getLogger('celery.handler')
 @app.task()
 def task_fresh_elitemama_active_status():
 
-    elite_aggrates = CouponTransferRecord.objects.filter(status=CouponTransferRecord.EFFECT)\
-        .values('coupon_from_mama_id', 'transfer_type')\
-        .annotate(
-            record_amount=Sum(F('coupon_value') * F('coupon_num'))
-        )
+    base_qs = CouponTransferRecord.objects.filter(status=CouponTransferRecord.EFFECT)
+    # 进货金额
+    out_data_set = base_qs.values('coupon_from_mama_id','transfer_type').annotate(
+        record_amount=Sum(F('coupon_value') * F('coupon_num'))
+    )
+
+    in_data_set = base_qs.values('coupon_to_mama_id', 'transfer_type').annotate(
+        record_amount=Sum(F('coupon_value') * F('coupon_num'))
+    )
 
     elite_mamas = defaultdict(dict)
-    for agg in elite_aggrates:
+
+    for agg in in_data_set:
         agg_dict = {}
         if agg['transfer_type'] == CouponTransferRecord.IN_BUY_COUPON:
-            agg_dict['purchase_amount'] = agg['record_amount']
+            agg_dict['purchase_amount_in'] = agg['record_amount']
         if agg['transfer_type'] == CouponTransferRecord.OUT_TRANSFER:
-            agg_dict['transfer_amount'] = agg['record_amount']
+            agg_dict['transfer_amount_in'] = agg['record_amount']
         if agg['transfer_type'] == CouponTransferRecord.IN_RETURN_COUPON:
-            agg_dict['return_amount'] = agg['record_amount']
+            agg_dict['return_amount_in'] = agg['record_amount']
         if agg['transfer_type'] == CouponTransferRecord.OUT_CONSUMED:
-            agg_dict['sale_amount'] = agg['record_amount']
+            agg_dict['sale_amount_in'] = agg['record_amount']
         if agg['transfer_type'] == CouponTransferRecord.OUT_CASHOUT:
-            agg_dict['refund_amount'] = agg['record_amount']
+            agg_dict['refund_amount_in'] = agg['record_amount']
         if agg['transfer_type'] == CouponTransferRecord.OUT_EXCHG_SALEORDER:
-            agg_dict['exchg_amount'] = agg['record_amount']
+            agg_dict['exchg_amount_in'] = agg['record_amount']
+        elite_mamas[agg['coupon_to_mama_id']].update(agg_dict)
+
+    for agg in out_data_set:
+        agg_dict = {}
+        if agg['transfer_type'] == CouponTransferRecord.IN_BUY_COUPON:
+            agg_dict['purchase_amount_out'] = agg['record_amount']
+        if agg['transfer_type'] == CouponTransferRecord.OUT_TRANSFER:
+            agg_dict['transfer_amount_out'] = agg['record_amount']
+        if agg['transfer_type'] == CouponTransferRecord.IN_RETURN_COUPON:
+            agg_dict['return_amount_out'] = agg['record_amount']
+        if agg['transfer_type'] == CouponTransferRecord.OUT_CONSUMED:
+            agg_dict['sale_amount_out'] = agg['record_amount']
+        if agg['transfer_type'] == CouponTransferRecord.OUT_CASHOUT:
+            agg_dict['refund_amount_out'] = agg['record_amount']
+        if agg['transfer_type'] == CouponTransferRecord.OUT_EXCHG_SALEORDER:
+            agg_dict['exchg_amount_out'] = agg['record_amount']
         elite_mamas[agg['coupon_from_mama_id']].update(agg_dict)
 
     print 'elite mama total:', len(elite_mamas), elite_mamas
@@ -57,7 +78,7 @@ def task_fresh_elitemama_active_status():
         elite_active, state = EliteMamaStatus.objects.get_or_create(mama_id=mama_id)
         for key, value in data.iteritems():
             setattr(elite_active, key, value)
-        print elite_active, mama_id, data
+        
         if state or not elite_active.joined_date:
             elite_active.joined_date = mama_joined_date_maps.get(mama_id)
 

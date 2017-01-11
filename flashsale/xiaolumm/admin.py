@@ -885,8 +885,15 @@ admin.site.register(XlmmTeamEffScore, XlmmTeamEffScoreAdmin)
 
 
 class EliteMamaStatusAdmin(admin.ModelAdmin):
-    list_display = ('mama_id', 'sub_mamacount', 'purchase_amount', 'transfer_amount', 'sale_amount', 'refund_amount',
-                    'saleout_rate','transfer_rate', 'refund_rate', 'last_active_time', 'status', 'memo', 'joined_date')
+    list_display = ('mama_id', 'sub_mamacount', 'last_active_time', 'status',
+                    'saleout_rate', 'transfer_rate', 'refund_rate', 'memo', 'joined_date',
+                    'purchase_amount_out', 'purchase_amount_in',
+                    'transfer_amount_out', 'transfer_amount_in',
+                    'sale_amount_out', 'sale_amount_in',
+                    'refund_amount_out', 'refund_amount_in',
+                    'exchg_amount_out', 'exchg_amount_in',
+                    'return_amount_out', 'return_amount_in',
+                    )
     list_filter = ('status', ('joined_date', DateFieldListFilter), ('last_active_time', DateFieldListFilter),)
     search_fields = ('=mama_id', )
 
