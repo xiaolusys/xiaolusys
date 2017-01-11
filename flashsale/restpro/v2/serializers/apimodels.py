@@ -190,11 +190,12 @@ class APIModelProductListSerializer(serializers.Serializer):
     head_img = serializers.SerializerMethodField()
     web_url = serializers.SerializerMethodField()
     watermark_op = serializers.SerializerMethodField()
+    elite_score = serializers.SerializerMethodField()
 
     class Meta:
         fields = ('id', 'name', 'category_id', 'lowest_agent_price', 'lowest_std_sale_price',
                   'onshelf_time', 'offshelf_time', 'is_saleout', 'sale_state',
-                  'head_img', 'web_url', 'watermark_op')
+                  'head_img', 'web_url', 'watermark_op', 'elite_score')
 
     def get_id(self, obj):
         return obj.id
@@ -245,6 +246,9 @@ class APIModelProductListSerializer(serializers.Serializer):
 
     def get_watermark_op(self, obj):
         return obj.detail_content['watermark_op']
+
+    def get_elite_score(self, obj):
+        return obj.sku_info[0].elite_score
 
 
 class APIMamaProductListSerializer(serializers.Serializer):
