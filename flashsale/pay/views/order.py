@@ -593,7 +593,7 @@ class SaleOrderDoRefund(APIView):
         if not (SaleOrder.WAIT_SELLER_SEND_GOODS <= order.status < SaleOrder.TRADE_FINISHED):  # 状态为已付款
             return Response({'code': 3, 'info': u"交易状态不是已付款状态"})
 
-        refund = order.do_refund(reason=2, refund_channel=BUDGET, good_status=good_status)  # reason=2表示缺货
+        refund = order.do_refund(reason=2, refund_channel=BUDGET, good_status=good_status, creator=request.user)  # reason=2表示缺货
         pushTradeRefundTask.delay(refund.id)
         log_action(request.user, refund, CHANGE, u'SaleRefund退款单创建: good_status=%s' % good_status)
         log_action(request.user, order, CHANGE, u'SaleOrder订单退款')

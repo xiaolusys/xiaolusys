@@ -89,6 +89,7 @@ class SaleRefund(PayBaseModel):
 
     buyer_id = models.BigIntegerField(db_index=True, default=0, verbose_name=u"客户ID")  # type: int
     buyer_nick = models.CharField(max_length=64, blank=True, verbose_name=u'买家昵称')  # type: Optional[text_type]
+    creator_id = models.BigIntegerField(db_index=True, null=True, verbose_name=u"发起人")
     mobile = models.CharField(max_length=20, db_index=True, blank=True, verbose_name=u'手机')  # type: Optional[text_type]
     phone = models.CharField(max_length=20, blank=True, verbose_name=u'固话')  # type: Optional[text_type]
 
@@ -294,7 +295,7 @@ class SaleRefund(PayBaseModel):
 
     @classmethod
     def create_salerefund(cls, saleorder, refund_num, refund_fee, reason, good_status=None,
-                          desc='', refund_channel=None, proof_pic=None):
+                          desc='', refund_channel=None, proof_pic=None, creator=None):
         # type: (SaleOrder, int, float, int, text_type, text_type, Any, Any) -> SaleRefund
         """创建退款单
         """
@@ -304,6 +305,7 @@ class SaleRefund(PayBaseModel):
         salerefund = SaleRefund(trade_id=saleorder.sale_trade.id,
                                 order_id=saleorder.id,
                                 buyer_id=saleorder.buyer_id,
+                                creator_id=creator.id if creator else None,
                                 item_id=saleorder.item_id,
                                 charge=saleorder.sale_trade.charge,
                                 channel=saleorder.sale_trade.channel,
