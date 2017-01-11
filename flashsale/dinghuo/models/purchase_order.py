@@ -513,7 +513,8 @@ class OrderList(models.Model):
             self.is_postpay = True
         _now = datetime.datetime.now()
         self.add_note(u'-->%s:审核订货单' % _now.strftime('%m月%d %H:%M'), save=False)
-        self.save(update_fields=['stage', 'status', 'is_postpay', 'checked_time', 'ware_by', 'note'])
+        self.save()
+        # self.save(update_fields=['stage', 'status', 'is_postpay', 'checked_time', 'ware_by', 'note', 'user'])
         if self.purchase_order:
             self.purchase_order.book()
         try:
