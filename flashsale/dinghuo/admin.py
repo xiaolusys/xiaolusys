@@ -250,7 +250,6 @@ class OrderListAdmin(BaseModelAdmin):
     # test_order_action.short_description = u"审核(已付款)"
 
     def verify_order_action(self, request, queryset):
-        print 'verify_order_action', request
         for orderlist in queryset:
             sku_ids = list(orderlist.purchase_order.arrangements.values_list('sku_id', flat=True))
             psis = PackageSkuItem.get_need_purchase({'sku_id__in': sku_ids})
@@ -264,6 +263,8 @@ class OrderListAdmin(BaseModelAdmin):
             if psis_total != ods_total:
                 log_action(request.user.id, orderlist, CHANGE, u'数量不对，审核失败')
                 break
+            if not orderlist.buyer:
+                orderlist.buyer = request.user
             if orderlist.supplier.ware_by == WARE_THIRD and orderlist.stage < OrderList.STAGE_CHECKED:
                 from flashsale.finance.models import Bill
                 psi_oids = [p.oid for p in psis]
