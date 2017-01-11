@@ -74,6 +74,8 @@ def confirm_clickcarry(click_carry, mama_id, date_field):
     click_carry.confirmed_click_price = price
     click_carry.confirmed_click_limit = limit
     click_carry.total_value = total_value
+    click_carry.save()
+
     click_carry.status = 2  # confirm
     click_carry.save()
 
@@ -103,9 +105,13 @@ def task_confirm_previous_zero_order_clickcarry(mama_id, today_date_field, num_d
         if click_num > limit:
             click_num = limit
         total_value = click_num * price
-        click_carry.total_value = total_value
-        click_carry.status = 2  # confirm
-        click_carry.save()
+
+        if click_carry.total_value != total_value:
+            click_carry.total_value = total_value
+            click_carry.save()
+        if click_carry.status != 2:
+            click_carry.status = 2  # confirm
+            click_carry.save()
 
 @app.task()
 def task_confirm_previous_order_clickcarry(mama_id, today_date_field, num_days):
