@@ -757,16 +757,16 @@ def calc_transfer_coupon_data(date_field):
     values = CouponTransferRecord.objects.filter(
         status=1, transfer_status=3,
         date_field=date_field, transfer_type=4
-    ).values_list('coupon_num', 'coupon_value')
-    coupon_sale_num = sum([v for v, n in values])
-    coupon_sale_amount = sum([v * n for v, n in values])
+    ).aggregate(coupon_sale_num=Sum('coupon_num'),coupon_sale_amount=Sum(F('coupon_num')*F('coupon_value')))
+    coupon_sale_num = values.get('coupon_sale_num') or 0
+    coupon_sale_amount = values.get('coupon_sale_amount') or 0
 
     values = CouponTransferRecord.objects.filter(
         status=1, transfer_status=3,
         date_field=date_field, transfer_type__in=(3, 8)
-    ).values_list('coupon_num', 'coupon_value')
-    coupon_used_num = sum([v for v, n in values])
-    coupon_used_amount = sum([v * n for v, n in values])
+    ).aggregate(coupon_used_num=Sum('coupon_num'),coupon_used_amount=Sum(F('coupon_num')*F('coupon_value')))
+    coupon_used_num = values.get('coupon_used_num') or 0
+    coupon_used_amount = values.get('coupon_used_amount') or 0
 
     order_mama_count = OrderCarry.objects.filter(
         date_field=date_field,

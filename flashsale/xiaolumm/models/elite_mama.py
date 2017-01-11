@@ -59,12 +59,11 @@ class EliteMamaStatus(BaseModel):
         verbose_name_plural = u'精英妈妈/活跃状态列表'
 
     def save(self, *args, **kwargs):
-
-        in_amount = self.purchase_amount_in + self.transfer_amount_in + self.return_amount_in
+        in_amount = self.purchase_amount_in + self.transfer_amount_in
         if in_amount > 0:
-            self.saleout_rate = (self.sale_amount_out + self.exchg_amount_out) / in_amount
-            self.transfer_rate = min(self.transfer_amount_out - self.return_amount_in, 0) / in_amount
-            self.refund_rate   = (self.return_amount_out + self.refund_amount_out) / in_amount
+            self.saleout_rate  = '%.4f'%((self.sale_amount_out + self.exchg_amount_out) * 1.0 / in_amount)
+            self.transfer_rate = '%.4f'%(max(self.transfer_amount_out - self.return_amount_in, 0) * 1.0 / in_amount)
+            self.refund_rate   = '%.4f'%((self.return_amount_out + self.refund_amount_out) * 1.0 / in_amount)
             update_fields = kwargs.get('update_fields')
             if update_fields:
                 update_fields.extend(['saleout_rate', 'transfer_rate', 'refund_rate'])

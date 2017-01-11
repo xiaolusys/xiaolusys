@@ -11,12 +11,15 @@ from ..models import EliteMamaStatus, ReferalRelationship, XiaoluMama
 
 
 import logging
-logger = logging.getLogger('celery.handler')
+logger = logging.getLogger(__name__)
 
 @app.task()
 def task_fresh_elitemama_active_status():
 
-    base_qs = CouponTransferRecord.objects.filter(status=CouponTransferRecord.EFFECT)
+    base_qs = CouponTransferRecord.objects.filter(
+        transfer_status=CouponTransferRecord.DELIVERED,
+        status=CouponTransferRecord.EFFECT
+    )
     # 进货金额
     out_data_set = base_qs.values('coupon_from_mama_id','transfer_type').annotate(
         record_amount=Sum(F('coupon_value') * F('coupon_num'))
@@ -60,7 +63,7 @@ def task_fresh_elitemama_active_status():
             agg_dict['exchg_amount_out'] = agg['record_amount']
         elite_mamas[agg['coupon_from_mama_id']].update(agg_dict)
 
-    print 'elite mama total:', len(elite_mamas), elite_mamas
+    print 'elite mama total:', len(elite_mamas)
 
     min_join_records = CouponTransferRecord.objects\
         .values('coupon_from_mama_id').annotate(joined_date=Min('date_field'))\
