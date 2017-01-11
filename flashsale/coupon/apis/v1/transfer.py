@@ -774,8 +774,7 @@ def set_transfer_record_complete(transfer_record):
     """设置流通记录为已经完成状态
     """
     transfer_record.transfer_status = CouponTransferRecord.DELIVERED
-    transfer_record.save(['transfer_status', 'modified'])
-
+    transfer_record.save(update_fields=['transfer_status', 'modified'])
 
 def cancel_transfer_record_by_trade(trade_tid):
     # type: (text_type) -> bool
@@ -785,4 +784,4 @@ def cancel_transfer_record_by_trade(trade_tid):
     if not transfer_record:
         return False
     transfer_record.transfer_status = CouponTransferRecord.CANCELED  # 取消
-    transfer_record.save(['transfer_status', 'modified'])
+    transfer_record.save(update_fields=['transfer_status', 'modified'])
