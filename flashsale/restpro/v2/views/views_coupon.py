@@ -129,6 +129,8 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         # 判断是否已经有此template的申请了，如有，那么给出用户提示20161228
         to_customer = Customer.objects.normal_customer.filter(user=request.user).first()
         to_mama = to_customer.get_charged_mama()
+        if not to_mama:
+            return Response({"code": 4, "info": u"精英妈妈账户状态不正常，无法转券，请关注小鹿美美公众号联系客服或管理员！"})
         apply_records = CouponTransferRecord.objects.filter(coupon_to_mama_id=to_mama.id,
                                                             template_id=template_id,
                                                             transfer_type=CouponTransferRecord.OUT_TRANSFER,
@@ -369,7 +371,7 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         coupons = get_freeze_boutique_coupons_by_transfer(transfer_record_id, customer.id)
         if not coupons:
             return Response({'code': 3, 'info': '优惠券没有找到'})
-        state = return_transfer_coupon(coupons)  # 返还券
+        state = return_transfer_coupon(coupons, transfer_record_id)  # 返还券
         if not state:
             return Response({'code': 2, 'info': '操作失败'})
         return Response({'code': 0, 'info': '操作成功'})

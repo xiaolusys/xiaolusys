@@ -246,7 +246,7 @@ def cancel_coupon_by_ids(coupon_ids):
 
 
 @transaction.atomic()
-def return_transfer_coupon(coupons):
+def return_transfer_coupon(coupons, transfer_record_id):
     # type : (List[UserCoupon], int) -> bool
     """ 给 流通券退回上级　妈妈
     """
@@ -254,14 +254,11 @@ def return_transfer_coupon(coupons):
     from flashsale.xiaolumm.apis.v1.xiaolumama import get_mama_by_id
     from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
 
+    transfer = get_transfer_record_by_id(transfer_record_id)
+    set_transfer_record_complete(transfer)
+
     mama_ids = set()
     for coupon in coupons:
-        will_return_2_transfer_id = coupon.extras.get('freeze_by_transfer_id')
-        if not will_return_2_transfer_id:
-            continue
-        will_return_2_transfer_id = int(will_return_2_transfer_id)
-        transfer = get_transfer_record_by_id(will_return_2_transfer_id)
-        set_transfer_record_complete(transfer)
         to_mama = get_mama_by_id(transfer.coupon_to_mama_id)
         customer = get_customer_by_unionid(to_mama.openid)
         if not customer:
