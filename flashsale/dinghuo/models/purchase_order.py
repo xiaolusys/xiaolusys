@@ -426,6 +426,7 @@ class OrderList(models.Model):
         self.purchase_order.book(third_package=True)
         self.ware_by = self.supplier.ware_by
         _now = datetime.datetime.now()
+        self.checked_time = _now
         self.add_note(u'-->%s:审核第三方发货订货单' % _now.strftime('%m月%d %H:%M'), save=False)
         self.set_stage_state()
 
