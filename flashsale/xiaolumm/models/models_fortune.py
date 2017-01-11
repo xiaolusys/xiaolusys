@@ -337,27 +337,28 @@ class CarryRecord(BaseModel):
         """
         创建收益
         """
-        if status not in [CarryRecord.PENDING, CarryRecord.CONFIRMED]:
+        if status and status not in [CarryRecord.PENDING, CarryRecord.CONFIRMED]:
             return
 
         uni_key = uni_key or ''
         date_field = datetime.date.today()
         status = status or CarryRecord.CONFIRMED
 
-        with transaction.atomic():
-            carry_record = CarryRecord(mama_id=mama_id, carry_num=carry_num, carry_type=carry_type,
-                date_field=date_field, carry_description=desc, uni_key=uni_key, status=status)
-            carry_record.save()
+        carry_record = CarryRecord(mama_id=mama_id, carry_num=carry_num, carry_type=carry_type,
+            date_field=date_field, carry_description=desc, uni_key=uni_key, status=status)
+        carry_record.save()
 
-            fortune, status = MamaFortune.objects.get_or_create(mama_id=mama_id, defaults={
-                'carry_pending': 0,
-                'carry_confirmed': 0
-            })
-            if status == CarryRecord.PENDING:
-                fortune.carry_pending = F('carry_pending') + carry_num
-            if status == CarryRecord.CONFIRMED:
-                fortune.carry_confirmed = F('carry_confirmed') + carry_num
-            fortune.save()
+        fortune, created = MamaFortune.objects.get_or_create(mama_id=mama_id, defaults={
+            'carry_pending': 0,
+            'carry_confirmed': 0
+        })
+        if status == CarryRecord.PENDING:
+            fortune.carry_pending = F('carry_pending') + carry_num
+        if status == CarryRecord.CONFIRMED:
+            fortune.carry_confirmed = F('carry_confirmed') + carry_num
+        fortune.save()
+
+        return carry_record
 
     def confirm(self):
         """
@@ -366,29 +367,27 @@ class CarryRecord(BaseModel):
         if self.status != CarryRecord.PENDING:
             return
 
-        with transaction.atomic():
-            self.status = CarryRecord.CONFIRMED
-            self.save()
+        self.status = CarryRecord.CONFIRMED
+        self.save()
 
-            fortune = MamaFortune.objects.filter(mama_id=self.mama_id).first()
-            fortune.carry_pending = F('carry_pending') - self.carry_num
-            fortune.carry_confirmed = F('carry_confirmed') + self.carry_num
-            fortune.save()
+        fortune = MamaFortune.objects.filter(mama_id=self.mama_id).first()
+        fortune.carry_pending = F('carry_pending') - self.carry_num
+        fortune.carry_confirmed = F('carry_confirmed') + self.carry_num
+        fortune.save()
 
     def cancel(self):
         """
         取消收益
         """
-        with transaction.atomic():
-            fortune = MamaFortune.objects.filter(mama_id=self.mama_id).first()
-            if self.status == CarryRecord.PENDING:
-                fortune.carry_pending = F('carry_pending') - self.carry_num
-            if self.status == CarryRecord.CONFIRMED:
-                fortune.carry_confirmed = F('carry_confirmed') - self.carry_num
-            fortune.save()
+        fortune = MamaFortune.objects.filter(mama_id=self.mama_id).first()
+        if self.status == CarryRecord.PENDING:
+            fortune.carry_pending = F('carry_pending') - self.carry_num
+        if self.status == CarryRecord.CONFIRMED:
+            fortune.carry_confirmed = F('carry_confirmed') - self.carry_num
+        fortune.save()
 
-            self.status = CarryRecord.CANCEL
-            self.save()
+        self.status = CarryRecord.CANCEL
+        self.save()
 
 
     def changePendingCarryAmount(self, new_value):
@@ -443,7 +442,7 @@ class CarryRecord(BaseModel):
 def carryrecord_update_mamafortune(sender, instance, created, **kwargs):
     from flashsale.xiaolumm.tasks import task_carryrecord_update_mamafortune, task_carryrecord_update_dailystats
 
-    transaction.on_commit(lambda: task_carryrecord_update_mamafortune.delay(instance.mama_id))
+    # transaction.on_commit(lambda: task_carryrecord_update_mamafortune.delay(instance.mama_id))
     transaction.on_commit(lambda: task_carryrecord_update_dailystats.delay(instance.mama_id, instance.date_field))
 
 post_save.connect(carryrecord_update_mamafortune,
