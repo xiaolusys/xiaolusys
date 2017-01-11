@@ -18,3 +18,4 @@ from .favorites import Favorites
 from .teambuy import TeamBuy, TeamBuyDetail
 from .admanager import ADManager
 from .searchhistory import UserSearchHistory
+from .checkin import Checkin
