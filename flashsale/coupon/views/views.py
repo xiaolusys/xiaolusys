@@ -113,7 +113,7 @@ class ReleaseOmissive(APIView):
                          'data': x})
 
     def cancel_gift_coupon(self, usercoupon_id, action_user):
-        # type:(int) -> bool
+        # type:(int, User) -> bool
         """取消 赠送优惠券
         """
         from ..apis.v1.usercoupon import cancel_coupon_by_ids, get_user_coupon_by_id

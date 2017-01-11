@@ -54,7 +54,7 @@ def get_transfer_record_by_id(id):
 
 
 def create_present_elite_score(customer, elite_score, template, rank):
-    # type: (Customer, int, CouponTemplate, text_type) -> CouponTransferRecord, CouponTransferRecord
+    # type: (Customer, int, CouponTemplate, text_type) -> Tuple[CouponTransferRecord, CouponTransferRecord]
     """赠送积分
     """
     to_mama = customer.get_charged_mama()
@@ -171,8 +171,9 @@ def send_order_transfer_coupons(customer_id, order_id, order_oid, order_num, pro
 
     task_send_transfer_coupons.delay(customer_id, order_id, order_oid, order_num, product_id)
 
+
 def send_new_elite_transfer_coupons(customer_id, order_id, order_oid, product_id):
-    # type: (int, int, text_type, int, int) -> None
+    # type: (int, int, text_type, int) -> None
     """创建new elite精品券记录　和　优惠券记录
     """
     from flashsale.pay.apis.v1.customer import get_customer_by_id
@@ -540,7 +541,7 @@ def saleorder_return_coupon_exchange(salerefund, payment):
 
 @transaction.atomic()
 def apply_pending_return_transfer_coupon(coupon_ids, customer):
-    # type: (List[int]) -> bool
+    # type: (List[int], Customer) -> bool
     """下属 提交待审核　退精品券　给　上级
     """
     from .coupontemplate import get_coupon_template_by_id
