@@ -323,3 +323,11 @@ def unfreeze_user_coupon_by_userbudget(customer_id):
                     coupon.status = UserCoupon.UNUSED
                     coupon.save()
 
+
+def sync_coupon_value_by_template(template):
+    # type: (CouponTemplate) ->> int
+    """同步 (指定模板)未使用或者冻结的优惠券  金额 与 模板一致
+    """
+    coupons = UserCoupon.objects.get_template_coupons(template.id).filter(status__in=[UserCoupon.UNUSED,
+                                                                                      UserCoupon.FREEZE])
+    return coupons.update(value=template.value)
