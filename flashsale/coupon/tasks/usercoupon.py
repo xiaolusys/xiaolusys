@@ -190,7 +190,7 @@ def task_push_msg_pasting_coupon():
 
 @app.task()
 def task_release_coupon_for_deposit(customer_id, deposit_type, trade_id=None, cash_out_id=None):
-    # type:(int, int, int) -> None
+    # type:(int, int, Optional[int], Optional[int]) -> None
     """发送押金优惠券
     """
     from ..apis.v1.usercoupon import create_user_coupon

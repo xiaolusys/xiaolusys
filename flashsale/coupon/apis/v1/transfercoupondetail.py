@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 def create_transfer_coupon_detail(transfer_id, coupon_ids):
-    # type: (int, int, List[int]) -> List[TransferCouponDetail]
+    # type: (int, List[int]) -> List[TransferCouponDetail]
     """创建 流通记录 明细 内容
     """
     from ...models.transfercoupondetail import TransferCouponDetail

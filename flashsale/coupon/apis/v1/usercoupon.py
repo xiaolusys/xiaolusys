@@ -88,7 +88,7 @@ def get_freeze_boutique_coupons_by_transfer(transfer_record_id, customer_id=None
 
 
 def release_coupon_for_deposit(customer_id, deposit_type, trade_id=None, cash_out_id=None):
-    # type: (int, int, int) -> None
+    # type: (int, int, Optional[int], Optional[int]) -> None
     """release coupon for deposit
     """
     from ...tasks import task_release_coupon_for_deposit
@@ -99,8 +99,7 @@ def release_coupon_for_deposit(customer_id, deposit_type, trade_id=None, cash_ou
 def create_user_coupon(customer_id, coupon_template_id,
                        unique_key=None, trade_id=None, cash_out_id=None, order_share_id=None, coupon_value=None,
                        ufrom='wap', **kwargs):
-    # type: (int, int, Optional[text_type], Optional[int], Optional[int],
-    # Optional[int], Optional[float], Optional[text_type], **Any) ->Tuple[Optional[UserCoupon], int, text_type]
+    # type: (int, int, Optional[text_type], Optional[int], Optional[int], Optional[int], Optional[float], Optional[text_type], **Any) -> Tuple[UserCoupon, int, text_type]
     """创建普通类型优惠券, 这里不计算领取数量(默认只能领取一张 不填写 uniq_id的张数内容)
     """
     tpl = get_coupon_template_by_id(coupon_template_id)
@@ -154,8 +153,7 @@ def create_user_coupon(customer_id, coupon_template_id,
 
 
 def create_boutique_user_coupon(customer, tpl, unique_key=None, ufrom='wap', **kwargs):
-    # type: (Customer, CouponTemplate, Optional[text_type], text_type, **Any) ->
-    # Tuple[Optional[UserCoupon], int, text_type]
+    # type: (Customer, CouponTemplate, Optional[text_type], text_type, **Any) -> Tuple[Optional[UserCoupon], int, text_type]
     """创建boutique类型优惠券
     """
     if not _check_target_user(customer, tpl):
@@ -284,7 +282,7 @@ def return_transfer_coupon(coupons):
 
 
 def transfer_coupons(coupons, to_customer_id, transfer_record_id, chain):
-    # type: (List[UserCoupon], int, int, List[int])
+    # type: (List[UserCoupon], int, int, List[int]) -> None
     """转券
     """
     from .transfercoupondetail import create_transfer_coupon_detail
@@ -325,7 +323,7 @@ def unfreeze_user_coupon_by_userbudget(customer_id):
 
 
 def sync_coupon_value_by_template(template):
-    # type: (CouponTemplate) ->> int
+    # type: (CouponTemplate) -> int
     """同步 (指定模板)未使用或者冻结的优惠券  金额 与 模板一致
     """
     coupons = UserCoupon.objects.get_template_coupons(template.id).filter(status__in=[UserCoupon.UNUSED,

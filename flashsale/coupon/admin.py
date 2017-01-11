@@ -39,7 +39,7 @@ class CouponTemplateAdmin(admin.ModelAdmin):
     date_hierarchy = 'created'
 
     def sync_coupon_value(self, request, queryset):
-        # type: (HttpRequest, List[CouponTemplate])
+        # type: (HttpRequest, List[CouponTemplate]) -> HttpResponse
         """同步 未使用的优惠券 金额 与 模板相同
         """
         from .apis.v1.usercoupon import sync_coupon_value_by_template
