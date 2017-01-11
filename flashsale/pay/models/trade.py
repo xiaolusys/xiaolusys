@@ -1066,7 +1066,7 @@ class SaleOrder(PayBaseModel):
         return apply_fee
 
     def do_refund(self, refund_channel, reason=0, refund_num=None, refund_fee=None, good_status=None,
-                  desc='', proof_pic=None):
+                  desc='', proof_pic=None, creator=None):
         # type: (int, Any, Any, Any, text_type, Any, text_type) -> SaleRefund
         """订单退款
         """
@@ -1084,7 +1084,8 @@ class SaleOrder(PayBaseModel):
         refund_num = refund_num if refund_num else self.num
         refund_fee = refund_fee if refund_fee else self.payment
         salerefund = SaleRefund.create_salerefund(self, refund_num, refund_fee, reason, good_status,
-                                                  desc=desc, refund_channel=refund_channel, proof_pic=proof_pic)
+                                                  desc=desc, refund_channel=refund_channel, proof_pic=proof_pic,
+                                                  creator=creator)
         return salerefund
 
     def is_finishable(self):
