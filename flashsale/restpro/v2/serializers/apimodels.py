@@ -248,7 +248,7 @@ class APIModelProductListSerializer(serializers.Serializer):
         return obj.detail_content['watermark_op']
 
     def get_elite_score(self, obj):
-        return obj.sku_info[0].elite_score
+        return obj.sku_info[0]['elite_score']
 
 
 class APIMamaProductListSerializer(serializers.Serializer):
