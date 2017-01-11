@@ -379,6 +379,9 @@ class CarryRecord(BaseModel):
         """
         取消收益
         """
+        if self.status == CarryRecord.CANCEL:
+            return
+
         fortune = MamaFortune.objects.filter(mama_id=self.mama_id).first()
         if self.status == CarryRecord.PENDING:
             fortune.carry_pending = F('carry_pending') - self.carry_num
@@ -396,6 +399,9 @@ class CarryRecord(BaseModel):
         """
         if self.status != CarryRecord.PENDING:
             return
+
+        self.carry_num = new_value
+        self.save()
 
         delta = new_value - self.carry_num
         fortune = MamaFortune.objects.filter(mama_id=self.mama_id).first()
