@@ -13,6 +13,7 @@ from django.core.cache import cache
 from shopback.trades.constants import PSI_STATUS, PSI_TYPE
 from shopback.warehouse import WARE_SH, WARE_CHOICES, WARE_NONE
 from django.db.models import Manager
+from supplychain.supplier.models import SaleProduct
 import logging
 from copy import deepcopy
 logger = logging.getLogger(__name__)
@@ -560,11 +561,18 @@ class SkuStock(models.Model):
         from flashsale.dinghuo.models import OrderDetail
         from .product import Product
         from flashsale.dinghuo.models import ReturnGoods, RGDetail
-        rg_sku = RGDetail.objects.filter(return_goods__status__in=[1, 3, 31, 4]).values('skuid')
+        rg_sku = RGDetail.objects.filter(return_goods__status__in=[1, 3, 31]).values('skuid')
         rg_sku = [i['skuid'] for i in rg_sku]
-        order_skus = [o['chichu_id'] for o in OrderDetail.objects.filter(
-            arrival_time__gt=(datetime.datetime.now() - datetime.timedelta(days=20)), arrival_quantity__gt=0).values(
+        order_skus = [o['chichu_id'] for o in OrderDetail.objects.values(
             'chichu_id').distinct()]
+
+        rg_sku2 = []                                                        #判断sku为未备货状态才能退货
+        for i in rg_sku:
+            sp_id = SkuStock.objects.filter(sku_id=i).first().product.sale_product
+            sale_product = SaleProduct.objects.filter(id=sp_id).first()
+            if sale_product.stocking_mode == 0:
+                rg_sku2.append(i)
+        rg_sku = rg_sku2
 
         has_nouse_stock_sku_product = [(stat['id'], stat['product_id']) for stat in
                                        SkuStock._objects.exclude(sku_id__in=rg_sku).filter(sku_id__in=order_skus,
