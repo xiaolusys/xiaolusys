@@ -77,14 +77,14 @@ class DingDingAPI(object):
 
 def main():
     dd = DingDingAPI()
-    # print dd.getAccessToken()
-    # items = dd.getParty()
-    # items = dd.getPartyMember(party_id=4483290)
-    # print items['hasMore']
-    # for item in items['userlist']:
-    #     print item['userid'], item['name']
+    print dd.getAccessToken()
+    items = dd.getParty()
+    items = dd.getPartyMember(party_id=4483290)
+    print items['hasMore']
+    for item in items['userlist']:
+        print item['userid'], item['name']
 
-    dd.sendMsg('helldddoa', touser='0550581811782786')
+    # dd.sendMsg('helldddoa', touser='0550581811782786')
     # dd.sendMsg('', touser='01591912287010')
 
 if __name__ == '__main__':

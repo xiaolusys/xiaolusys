@@ -86,7 +86,7 @@ def task_fresh_elitemama_active_status():
 
     referal_maps = dict(ReferalRelationship.objects.filter(
         referal_from_mama_id__in=mama_joined_date_maps.keys(),
-        referal_type=XiaoluMama.ELITE)\
+        referal_type__gte=XiaoluMama.ELITE)\
         .values('referal_from_mama_id').annotate(sub_mamacount=Count('referal_to_mama_id'))\
         .values_list('referal_from_mama_id', 'sub_mamacount'))
 

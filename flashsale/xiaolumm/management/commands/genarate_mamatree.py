@@ -45,8 +45,14 @@ def get_referalrelationship_maps():
 
 def save_mama_referal_trees(tree_nodes):
     childs = tree_nodes.pop('childs')
+    mama_id = tree_nodes.get('referal_to_mama_id')
     try:
-        MamaReferalTree.objects.create(**tree_nodes)
+        mama_referal = MamaReferalTree.objects.filter(referal_to_mama_id=mama_id).first()
+        if not mama_referal:
+            mama_referal = MamaReferalTree(referal_to_mama_id=mama_id)
+        for k, v in tree_nodes.iteritems():
+            setattr(mama_referal, k, v)
+        mama_referal.save()
     except Exception, exc:
         print 'exc:', exc, tree_nodes
 
