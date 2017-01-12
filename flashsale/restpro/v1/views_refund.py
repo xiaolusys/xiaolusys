@@ -4,11 +4,12 @@ import logging
 from core.options import log_action, ADDITION, CHANGE
 from rest_framework import exceptions
 from common.modelutils import update_model_fields
-from flashsale.pay.models import SaleOrder
+from flashsale.pay.models import SaleOrder, SaleTrade
 from flashsale.pay.models import SaleRefund, Customer
 from flashsale.pay.constants import BUDGET
 from flashsale.pay import tasks
 from shopback.trades.models import PackageSkuItem
+from django.db import transaction
 
 logger = logging.getLogger(__name__)
 
@@ -84,7 +85,10 @@ def refund_Handler(request):
             return {"code": 3, "info": "订单没有找到!", "apply_fee": 0}
         if order.second_kill_title():
             return {"code": 4, "info": "秒杀商品暂不支持退单，请见谅!", "apply_fee": 0}
-
+        with transaction.atomic():
+            st = SaleTrade.objects.select_for_update().get(id=order.id) # 在saletrade上加锁，拿到锁后才容许退款。
+            if order.need_send() and not order.package_sku:
+                return {"code": 11, "info": "订单正在操作中，请稍后退款", "apply_fee": 0}
         pfcl = []
         if proof_pic != "":
             pfcl = proof_pic.split(',')

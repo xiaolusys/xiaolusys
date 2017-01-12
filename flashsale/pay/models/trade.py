@@ -439,9 +439,11 @@ class SaleTrade(BaseModel):
                         user_budget.charge_confirm(st.id)
                     except Exception, exc:
                         logger.error(exc.message, exc_info=True)
+            with transaction.atomic():
+                st = SaleTrade.objects.select_for_update().get(id=self.id)
+                st.confirm_payment()
+                st.set_order_paid()
 
-            st.confirm_payment()
-            st.set_order_paid()
         except Exception, exc:
             logger.info({
                 'action': 'trade_confirm_error',
@@ -1151,6 +1153,12 @@ class SaleOrder(PayBaseModel):
     def second_kill_title(self):
         """ 判断是否秒杀标题　"""
         return self.is_seckill()
+
+    def need_send(self):
+        if self.is_teambuy():
+            return self.teambuy_can_send()
+        else:
+            return self.status == SaleOrder.WAIT_SELLER_SEND_GOODS and self.refund_status <= SaleRefund.REFUND_REFUSE_BUYER
 
     def is_pending(self):
         if self.is_teambuy():
