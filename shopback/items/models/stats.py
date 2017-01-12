@@ -569,7 +569,7 @@ class SkuStock(models.Model):
         rg_sku2 = []                                                        #判断sku为未备货状态才能退货
         for i in rg_sku:
             sku_stock = SkuStock.objects.filter(sku_id=i).first()
-            if sku_stock:
+            if sku_stock.product:
                 sp_id = sku_stock.product.sale_product
                 sale_product = SaleProduct.objects.filter(id=sp_id).first()
                 if sale_product.stocking_mode == 0:
