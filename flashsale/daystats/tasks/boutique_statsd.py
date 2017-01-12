@@ -3,7 +3,7 @@ from __future__ import absolute_import, unicode_literals
 
 import datetime
 from django_statsd.clients import statsd
-from django.db.models import Sum, F, Count
+from django.db.models import Sum, F, Count, FloatField
 
 from shopmanager import celery_app as app
 
@@ -18,7 +18,7 @@ def task_transfer_coupon_order_statsd():
     values = ctr_qs.filter(transfer_status=3, transfer_type=4
     ).aggregate(
         total_coupon_num=Sum('coupon_num'),
-        total_coupon_value=Sum(F('coupon_num') * F('coupon_value'))
+        total_coupon_value=Sum(F('coupon_num') * F('coupon_value'), output_field=FloatField())
     )
     coupon_sale_num = values.get('total_coupon_num')
     coupon_sale_amount = values.get('total_coupon_value')
@@ -26,7 +26,7 @@ def task_transfer_coupon_order_statsd():
     values = ctr_qs.filter(transfer_status=3, transfer_type__in=(3, 8)
     ).aggregate(
         total_coupon_used_num=Sum('coupon_num'),
-        total_coupon_used_value=Sum(F('coupon_num') * F('coupon_value'))
+        total_coupon_used_value=Sum(F('coupon_num') * F('coupon_value'), output_field=FloatField())
     )
     coupon_used_num = values.get('total_coupon_used_num')
     coupon_used_amount = values.get('total_coupon_used_value')
@@ -36,14 +36,14 @@ def task_transfer_coupon_order_statsd():
     ).aggregate(
         transfer_count=Count('id'),
         transfer_nums=Sum('coupon_num'),
-        transfer_amounts=Sum(F('coupon_num') * F('coupon_value')),
+        transfer_amounts=Sum(F('coupon_num') * F('coupon_value'), output_field=FloatField()),
     )
 
     refund_return_num = ctr_qs.filter(transfer_type=CouponTransferRecord.OUT_CASHOUT).aggregate(
-        transfer_amounts=Sum(F('coupon_num') * F('coupon_value'))).get('transfer_amounts') or 0
+        transfer_amounts=Sum(F('coupon_num') * F('coupon_value'), output_field=FloatField())).get('transfer_amounts') or 0
 
     exchg_order_num = ctr_qs.filter(transfer_type=CouponTransferRecord.OUT_EXCHG_SALEORDER).aggregate(
-        exchg_amounts=Sum(F('coupon_num') * F('coupon_value'))).get('exchg_amounts') or 0
+        exchg_amounts=Sum(F('coupon_num') * F('coupon_value'), output_field=FloatField())).get('exchg_amounts') or 0
 
     coupon_chained_detail = UserCoupon.objects.filter(
         coupon_type=UserCoupon.TYPE_TRANSFER, is_chained=True).exclude(status=UserCoupon.CANCEL)\

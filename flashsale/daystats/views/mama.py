@@ -9,7 +9,7 @@ from django.db import models
 from django.views.decorators.cache import cache_page
 from django.core.paginator import Paginator
 from django.core.cache import cache
-from django.db.models import F, Sum
+from django.db.models import F, Sum, FloatField
 from django.contrib.auth.decorators import login_required
 
 from flashsale.daystats.mylib.chart import (
@@ -757,14 +757,14 @@ def calc_transfer_coupon_data(date_field):
     values = CouponTransferRecord.objects.filter(
         status=1, transfer_status=3,
         date_field=date_field, transfer_type=4
-    ).aggregate(coupon_sale_num=Sum('coupon_num'),coupon_sale_amount=Sum(F('coupon_num')*F('coupon_value')))
+    ).aggregate(coupon_sale_num=Sum('coupon_num'),coupon_sale_amount=Sum(F('coupon_num')*F('coupon_value'), output_field=FloatField()))
     coupon_sale_num = values.get('coupon_sale_num') or 0
     coupon_sale_amount = values.get('coupon_sale_amount') or 0
 
     values = CouponTransferRecord.objects.filter(
         status=1, transfer_status=3,
         date_field=date_field, transfer_type__in=(3, 8)
-    ).aggregate(coupon_used_num=Sum('coupon_num'),coupon_used_amount=Sum(F('coupon_num')*F('coupon_value')))
+    ).aggregate(coupon_used_num=Sum('coupon_num'),coupon_used_amount=Sum(F('coupon_num')*F('coupon_value'), output_field=FloatField()))
     coupon_used_num = values.get('coupon_used_num') or 0
     coupon_used_amount = values.get('coupon_used_amount') or 0
 
