@@ -77,7 +77,7 @@ def create_present_elite_score(customer, elite_score, template, rank):
                                        coupon_to_mama_id=coupon_to_mama_id,
                                        to_mama_thumbnail=to_mama_thumbnail,
                                        to_mama_nick=to_mama_nick,
-                                       coupon_value=int(template.value),
+                                       coupon_value=template.value,
                                        init_from_mama_id=init_from_mama_id,
                                        order_no=uni_key_in,
                                        template_id=template.id,
@@ -97,7 +97,7 @@ def create_present_elite_score(customer, elite_score, template, rank):
                                         to_mama_thumbnail=from_mama_thumbnail,
                                         to_mama_nick=from_mama_nick,
 
-                                        coupon_value=int(template.value),
+                                        coupon_value=template.value,
                                         init_from_mama_id=0,
                                         order_no=uni_key_out,
                                         template_id=template.id,
@@ -139,8 +139,10 @@ def create_present_coupon_transfer_record(customer, template, coupon_id, uni_key
     uni_key_prefix = 'gift-%s' % uni_key_prefix if uni_key_prefix else 'gift'
     uni_key = "%s-%s-%s" % (uni_key_prefix, to_mama.id, coupon_id)
     order_no = 'gift-%s' % coupon_id
-    coupon_value = int(template.value)
+    coupon_value = template.value
     product_img = template.extras.get("product_img") or ''
+
+    product_id, elite_score, agent_price = get_elite_score_by_templateid(template.id, to_mama)
 
     try:
         coupon = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id,
@@ -158,7 +160,11 @@ def create_present_coupon_transfer_record(customer, template, coupon_id, uni_key
                                       transfer_type=transfer_type,
                                       uni_key=uni_key,
                                       date_field=date_field,
-                                      transfer_status=transfer_status)
+                                      transfer_status=transfer_status,
+
+                                      elite_level=to_mama.elite_level,
+                                      to_mama_price=agent_price
+                                      )
         coupon.save()
         return coupon
     except Exception as e:
@@ -176,11 +182,7 @@ def send_new_elite_transfer_coupons(customer_id, order_id, order_oid, product_id
     # type: (int, int, text_type, int) -> None
     """创建new elite精品券记录　和　优惠券记录
     """
-    from flashsale.pay.apis.v1.customer import get_customer_by_id
-    from shopback.items.models import Product
-    from flashsale.pay.models import ModelProduct
     from flashsale.coupon.models import CouponTransferRecord
-    from flashsale.coupon.apis.v1.usercoupon import create_boutique_user_coupon
     from flashsale.coupon.apis.v1.coupontemplate import get_coupon_template_by_id
     from flashsale.coupon.tasks.coupontemplate import task_update_tpl_released_coupon_nums
     from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
@@ -353,6 +355,7 @@ def send_new_elite_transfer_coupons(customer_id, order_id, order_oid, product_id
         product_img = template.extras.get("product_img") or ''
         elite_score = coupon_num * 10
 
+        _, _, agent_price = get_elite_score_by_templateid(template_id, to_mama)
         try:
             transfer = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id,
                                             from_mama_thumbnail=from_mama_thumbnail,
@@ -363,7 +366,11 @@ def send_new_elite_transfer_coupons(customer_id, order_id, order_oid, product_id
                                             template_id=template_id,
                                             product_img=product_img, coupon_num=coupon_num, transfer_type=transfer_type,
                                             product_id=product_id, elite_score=elite_score,
-                                            uni_key=uni_key, date_field=date_field, transfer_status=transfer_status)
+                                            uni_key=uni_key, date_field=date_field, transfer_status=transfer_status,
+
+                                            elite_level=to_mama.elite_level,
+                                            to_mama_price=agent_price
+                                            )
             transfer.save()
             create_transfer_coupon_detail(transfer.id, new_coupon_ids)  # 创建明细记录
         except IntegrityError as e:
@@ -572,19 +579,22 @@ def apply_pending_return_transfer_coupon(coupon_ids, customer):
 
     template_id = template_ids.pop()
     template = get_coupon_template_by_id(template_id)
-    product_id, elite_score, agent_price = get_elite_score_by_templateid(template_id, mama)
+    _, _, from_agent_price = get_elite_score_by_templateid(template_id, mama)
     coupon_value = int(template.value)
     product_img = template.extras.get("product_img") or ''
 
     for upper_mama_id, cou_ids in upper_mamas.iteritems():
         # 生成 带审核 流通记录
-        total_elite_score = elite_score * len(cou_ids)
         count = CouponTransferRecord.objects.filter(transfer_type=CouponTransferRecord.IN_RETURN_COUPON,
                                                     uni_key__contains='return-upper-%s-%s-' % (
                                                         upper_mama_id, template.id)).count()
         uni_key = 'return-upper-%s-%s-%s' % (upper_mama_id, template.id, count + 1)
         upper_mm = get_mama_by_id(upper_mama_id)  # 要退给上级的妈妈
         upper_customer = upper_mm.get_customer()
+
+        product_id, to_elite_score, agent_price = get_elite_score_by_templateid(template_id, upper_mm)
+        total_elite_score = to_elite_score * len(cou_ids)
+
         new_transfer = CouponTransferRecord(
             coupon_from_mama_id=mama.id,
             from_mama_thumbnail=customer.thumbnail,
@@ -601,8 +611,14 @@ def apply_pending_return_transfer_coupon(coupon_ids, customer):
             uni_key=uni_key,
             date_field=datetime.date.today(),
             product_id=product_id,
-            elite_score=total_elite_score,
-            transfer_status=CouponTransferRecord.PENDING)
+            elite_score=total_elite_score,  # to mama的积分
+            transfer_status=CouponTransferRecord.PENDING,
+
+            elite_level=upper_mm.elite_level,  # to mama 的等级
+            to_mama_price=agent_price,  # to mama 对应等级的购买价格
+            from_mama_elite_level=mama.elite_level,
+            from_mama_price=from_agent_price,
+        )
         new_transfer.save()
         freeze_transfer_coupon(cou_ids, new_transfer.id)  # 冻结优惠券
         create_transfer_coupon_detail(new_transfer.id, cou_ids)
@@ -654,7 +670,11 @@ def apply_pending_return_transfer_coupon_2_sys(coupon_ids, customer):
         date_field=datetime.date.today(),
         product_id=product_id,
         elite_score=total_elite_score,
-        transfer_status=CouponTransferRecord.PENDING)
+        transfer_status=CouponTransferRecord.PENDING,
+
+        from_mama_elite_level=mama.elite_level,
+        from_mama_price=agent_price
+    )
     transfer.save()
     BudgetLog.create_return_coupon_log(customer.id, transfer.id, flow_amount=int(total_agent_price * 100))  # 生成钱包待确定记录
     freeze_transfer_coupon(coupon_ids, transfer.id)  # 冻结优惠券

@@ -14,7 +14,6 @@ def task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, prod
     # type: (int, int, text_type, int, int) -> None
     """创建精品券记录　和　优惠券记录
     """
-    from flashsale.pay.apis.v1.customer import get_customer_by_id
     from shopback.items.models import Product
     from flashsale.pay.models import ModelProduct
     from flashsale.coupon.models import CouponTransferRecord
@@ -24,6 +23,7 @@ def task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, prod
     from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
     from ..apis.v1.transfercoupondetail import create_transfer_coupon_detail
     from flashsale.pay.models import Customer, SaleOrder
+    from ..apis.v1.transfer import get_elite_score_by_templateid
 
     logger.info({
         'action': 'transfer_coupon',
@@ -40,6 +40,10 @@ def task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, prod
 
     template = get_coupon_template_by_id(id=template_id)
     index = 0
+
+    to_mama = customer.get_xiaolumm()
+    _, _, agent_price = get_elite_score_by_templateid(template.id, to_mama)
+
     with transaction.atomic():
         # 对saleorder加锁防止多次进入
         so = SaleOrder.objects.select_for_update().get(id=order_id)
@@ -93,7 +97,11 @@ def task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, prod
                                             template_id=template_id,
                                             product_img=product_img, coupon_num=order_num, transfer_type=transfer_type,
                                             product_id=product_id, elite_score=elite_score,
-                                            uni_key=uni_key, date_field=date_field, transfer_status=transfer_status)
+                                            uni_key=uni_key, date_field=date_field, transfer_status=transfer_status,
+
+                                            elite_level=to_mama.elite_level,
+                                            to_mama_price=agent_price,
+                                            )
             transfer.save()
             create_transfer_coupon_detail(transfer.id, new_coupon_ids)  # 创建明细记录
         except IntegrityError as e:

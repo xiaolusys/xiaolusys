@@ -103,6 +103,19 @@ class XiaoluMama(BaseModel):
 
     REGULAR_MAMA_TYPES = (HALF, FULL)
 
+    SP = 'SP'
+    Partner = 'Partner'
+    VP = 'VP'
+    Director = 'Director'
+    Associate = 'Associate'
+
+    TRANSFER_ELITE_LEVEL = (
+        (SP, u'SP'),
+        (Partner, u'Partner'),
+        (VP, u'VP'),
+        (Director, u'Director'),
+        (Associate, u'Associate'),
+    )
     is_staff = models.BooleanField(default=False, db_index=True, verbose_name=u'特殊账号（公司职员）')
     mobile = models.CharField(max_length=11, db_index=True, blank=False, verbose_name=u"手机")
     openid = models.CharField(max_length=64, blank=False, unique=True, verbose_name=u"UnionID")
