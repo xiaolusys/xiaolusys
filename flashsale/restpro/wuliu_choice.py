@@ -16,7 +16,7 @@ def one_tradewuliu(logistics_company,out_sid,tradewuliu):
     logger.warn({'action': "kdn", 'info': "one_tradewuliu"})
     status = exp_status[tradewuliu.status]
     if not tradewuliu.content:
-        tradewuliu.content = '[{"AcceptTime": "", "AcceptStation": "已出货了哦"}]'
+        tradewuliu.content = '[]'
     format_exp_info = {
         "status": status,
         "status_code": tradewuliu.status,
@@ -55,7 +55,7 @@ def zero_tradewuliu(logistics_company,out_sid,tradewuliu):
             "errcode": '',
             "id": "",
             "message": "",
-            "content": '[{"AcceptTime": "", "AcceptStation": "已出货了哦"}]',
+            "content": '[]',
             "out_sid": out_sid
         }
         return format_content(**format_exp_info)

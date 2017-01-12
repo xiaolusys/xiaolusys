@@ -566,13 +566,17 @@ class SkuStock(models.Model):
         order_skus = [o['chichu_id'] for o in OrderDetail.objects.values(
             'chichu_id').distinct()]
 
-        # rg_sku2 = []                                                        #判断sku为未备货状态才能退货
-        # for i in rg_sku:
-        #     sp_id = SkuStock.objects.filter(sku_id=i).first().product.sale_product
-        #     sale_product = SaleProduct.objects.filter(id=sp_id).first()
-        #     if sale_product.stocking_mode == 0:
-        #         rg_sku2.append(i)
-        # rg_sku = rg_sku2
+        rg_sku2 = []                                                        #判断sku为未备货状态才能退货
+        for i in rg_sku:
+            sku_stock = SkuStock.objects.filter(sku_id=i).first()
+            if sku_stock:
+                sp_id = sku_stock.product.sale_product
+                sale_product = SaleProduct.objects.filter(id=sp_id).first()
+                if sale_product.stocking_mode == 0:
+                    rg_sku2.append(i)
+            else:
+                rg_sku2.append(i)
+        rg_sku = rg_sku2
 
         has_nouse_stock_sku_product = [(stat['id'], stat['product_id']) for stat in
                                        SkuStock._objects.exclude(sku_id__in=rg_sku).filter(sku_id__in=order_skus,
