@@ -86,7 +86,7 @@ def refund_Handler(request):
         if order.second_kill_title():
             return {"code": 4, "info": "秒杀商品暂不支持退单，请见谅!", "apply_fee": 0}
         with transaction.atomic():
-            st = SaleTrade.objects.select_for_update().get(id=order.id) # 在saletrade上加锁，拿到锁后才容许退款。
+            st = SaleTrade.objects.select_for_update().get(id=order.sale_trade_id) # 在saletrade上加锁，拿到锁后才容许退款。
             if order.need_send() and not order.package_sku:
                 return {"code": 11, "info": "订单正在操作中，请稍后退款", "apply_fee": 0}
         pfcl = []
