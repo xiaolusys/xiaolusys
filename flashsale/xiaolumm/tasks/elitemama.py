@@ -93,7 +93,7 @@ def task_fresh_elitemama_active_status():
         
         if state or not elite_active.joined_date:
             elite_active.joined_date = mama_joined_date_maps.get(mama_id) or datetime.date.today()
-        print mama_id, data
+
         elite_active.sub_mamacount = referal_maps.get(mama_id) or 0
         elite_active.save()
 
