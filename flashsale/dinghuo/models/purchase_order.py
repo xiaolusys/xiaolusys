@@ -1063,6 +1063,17 @@ class OrderDetail(models.Model):
         SkuStock.add_inbound_quantity(self.chichu_id, now_add)
         SkuStock.get_by_sku(self.chichu_id).assign(orderlist=self.orderlist)
 
+        ###跟新orderlist状态为完成
+        all_orderdetail = self.orderlist.order_list.all()
+        orderdetail_count = all_orderdetail.count()
+        for i in all_orderdetail:
+            if i.arrival_quantity == i.buy_quantity:
+                orderdetail_count = orderdetail_count - 1
+        if orderdetail_count == 0:
+            self.orderlist.set_stage_complete()
+
+
+
 
 # def update_productskustats_inbound_quantity(sender, instance, created,
 #                                             **kwargs):
