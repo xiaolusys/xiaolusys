@@ -12,6 +12,9 @@ class SaleRefundTestCase(TestCase):
                 ]
 
     def setUp(self):
+        from flashsale.pay.models import SaleOrder
+        SaleOrder.objects.get(id=332233).set_psi_paid()
+        SaleOrder.objects.get(id=368347).set_psi_paid()
         self.username = 'xiaolu'
         self.password = 'test'
         self.client.login(username=self.username, password=self.password)
