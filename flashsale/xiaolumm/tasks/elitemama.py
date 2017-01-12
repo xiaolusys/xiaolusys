@@ -5,7 +5,7 @@ from shopmanager import celery_app as app
 
 import datetime
 from collections import defaultdict
-from django.db.models import Sum, Min, Count, F, Q
+from django.db.models import Sum, Min, Max, Count, F, Q
 
 from flashsale.coupon.models import CouponTransferRecord
 from ..models import EliteMamaStatus, ReferalRelationship, XiaoluMama
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 def task_fresh_elitemama_active_status():
 
     base_qs = CouponTransferRecord.objects.filter(
-        Q(coupon_from_mama_id=2219502)|Q(coupon_to_mama_id=2219502),
+        # Q(coupon_from_mama_id=2219502)|Q(coupon_to_mama_id=2219502),
         transfer_status=CouponTransferRecord.DELIVERED,
         status=CouponTransferRecord.EFFECT,
     )
@@ -79,6 +79,11 @@ def task_fresh_elitemama_active_status():
         .values_list('coupon_from_mama_id','joined_date')
     mama_joined_date_maps = dict(min_join_records)
 
+    max_active_records = CouponTransferRecord.objects.filter(date_field__isnull=False) \
+        .values('coupon_from_mama_id').annotate(last_active_time=Max('date_field')) \
+        .values_list('coupon_from_mama_id', 'last_active_time')
+    mama_active_date_maps = dict(max_active_records)
+
     referal_maps = dict(ReferalRelationship.objects.filter(
         referal_from_mama_id__in=mama_joined_date_maps.keys(),
         referal_type=XiaoluMama.ELITE)\
@@ -93,6 +98,9 @@ def task_fresh_elitemama_active_status():
         
         if state or not elite_active.joined_date:
             elite_active.joined_date = mama_joined_date_maps.get(mama_id) or datetime.date.today()
+
+        if mama_id in mama_active_date_maps:
+            elite_active.last_active_time = mama_active_date_maps.get(mama_id)
 
         elite_active.sub_mamacount = referal_maps.get(mama_id) or 0
         elite_active.save()
