@@ -893,6 +893,7 @@ class EliteMamaStatusAdmin(admin.ModelAdmin):
                     'refund_amount_out', 'refund_amount_in',
                     'exchg_amount_out', 'exchg_amount_in',
                     'return_amount_out', 'return_amount_in',
+                    'gift_amount_out', 'gift_amount_in',
                     )
     list_filter = ('status', ('joined_date', DateFieldListFilter), ('last_active_time', DateFieldListFilter),)
     search_fields = ('=mama_id', )

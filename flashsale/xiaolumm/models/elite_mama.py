@@ -36,14 +36,20 @@ class EliteMamaStatus(BaseModel):
     sale_amount_out     = models.IntegerField(default=0, db_index=True, verbose_name=u'直接买货面额')
     sale_amount_in      = models.IntegerField(default=0, db_index=True, verbose_name=u'直接出货面额')
 
+    refund_coupon_out = models.IntegerField(default=0, db_index=True, verbose_name=u'退货出券面额')
+    refund_coupon_in  = models.IntegerField(default=0, db_index=True, verbose_name=u'退货回券面额')
+
+    refund_amount_out = models.IntegerField(default=0, db_index=True, verbose_name=u'退券面额')
+    refund_amount_in  = models.IntegerField(default=0, db_index=True, verbose_name=u'回券面额')
+
     exchg_amount_out    = models.IntegerField(default=0, db_index=True, verbose_name=u'兑换买货面额')
     exchg_amount_in     = models.IntegerField(default=0, db_index=True, verbose_name=u'兑换出货面额')
 
-    refund_amount_out   = models.IntegerField(default=0, db_index=True, verbose_name=u'退券面额')
-    refund_amount_in    = models.IntegerField(default=0, db_index=True, verbose_name=u'回券面额')
+    gift_amount_out = models.IntegerField(default=0, db_index=True, verbose_name=u'赠出面额')
+    gift_amount_in  = models.IntegerField(default=0, db_index=True, verbose_name=u'赠入面额')
 
     saleout_rate   = models.FloatField(default=0, db_index=True, verbose_name=u'出货率')
-    transfer_rate  = models.FloatField(default=0, db_index=True, verbose_name=u'流通率', help_text='券转移给下属比例')
+    transfer_rate  = models.FloatField(default=0, db_index=True, verbose_name=u'转移流通率', help_text='券转移给下属比例')
     refund_rate    = models.FloatField(default=0, db_index=True, verbose_name=u'退券率')
 
     joined_date = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'加入时间')
@@ -59,9 +65,9 @@ class EliteMamaStatus(BaseModel):
         verbose_name_plural = u'精英妈妈/活跃状态列表'
 
     def save(self, *args, **kwargs):
-        in_amount = self.purchase_amount_in + self.transfer_amount_in
+        in_amount = self.purchase_amount_in + self.transfer_amount_in + self.gift_amount_in
         if in_amount > 0:
-            self.saleout_rate  = '%.4f'%((self.sale_amount_out + self.exchg_amount_out) * 1.0 / in_amount)
+            self.saleout_rate  = '%.4f'%((self.sale_amount_out + self.exchg_amount_out - self.refund_coupon_in) * 1.0 / in_amount)
             self.transfer_rate = '%.4f'%(max(self.transfer_amount_out - self.return_amount_in, 0) * 1.0 / in_amount)
             self.refund_rate   = '%.4f'%((self.return_amount_out + self.refund_amount_out) * 1.0 / in_amount)
             update_fields = kwargs.get('update_fields')

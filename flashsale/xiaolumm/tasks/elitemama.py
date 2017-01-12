@@ -3,8 +3,9 @@ from __future__ import absolute_import, unicode_literals
 
 from shopmanager import celery_app as app
 
+import datetime
 from collections import defaultdict
-from django.db.models import Sum, Min, Count, F
+from django.db.models import Sum, Min, Count, F, Q
 
 from flashsale.coupon.models import CouponTransferRecord
 from ..models import EliteMamaStatus, ReferalRelationship, XiaoluMama
@@ -17,8 +18,9 @@ logger = logging.getLogger(__name__)
 def task_fresh_elitemama_active_status():
 
     base_qs = CouponTransferRecord.objects.filter(
+        Q(coupon_from_mama_id=2219502)|Q(coupon_to_mama_id=2219502),
         transfer_status=CouponTransferRecord.DELIVERED,
-        status=CouponTransferRecord.EFFECT
+        status=CouponTransferRecord.EFFECT,
     )
     # 进货金额
     out_data_set = base_qs.values('coupon_from_mama_id','transfer_type').annotate(
@@ -30,7 +32,6 @@ def task_fresh_elitemama_active_status():
     )
 
     elite_mamas = defaultdict(dict)
-
     for agg in in_data_set:
         agg_dict = {}
         if agg['transfer_type'] == CouponTransferRecord.IN_BUY_COUPON:
@@ -39,12 +40,16 @@ def task_fresh_elitemama_active_status():
             agg_dict['transfer_amount_in'] = agg['record_amount']
         if agg['transfer_type'] == CouponTransferRecord.IN_RETURN_COUPON:
             agg_dict['return_amount_in'] = agg['record_amount']
+        if agg['transfer_type'] == CouponTransferRecord.IN_RETURN_GOODS:
+            agg_dict['refund_coupon_in'] = agg['record_amount']
         if agg['transfer_type'] == CouponTransferRecord.OUT_CONSUMED:
             agg_dict['sale_amount_in'] = agg['record_amount']
         if agg['transfer_type'] == CouponTransferRecord.OUT_CASHOUT:
             agg_dict['refund_amount_in'] = agg['record_amount']
         if agg['transfer_type'] == CouponTransferRecord.OUT_EXCHG_SALEORDER:
             agg_dict['exchg_amount_in'] = agg['record_amount']
+        if agg['transfer_type'] == CouponTransferRecord.IN_GIFT_COUPON:
+            agg_dict['gift_amount_in'] = agg['record_amount']
         elite_mamas[agg['coupon_to_mama_id']].update(agg_dict)
 
     for agg in out_data_set:
@@ -55,17 +60,21 @@ def task_fresh_elitemama_active_status():
             agg_dict['transfer_amount_out'] = agg['record_amount']
         if agg['transfer_type'] == CouponTransferRecord.IN_RETURN_COUPON:
             agg_dict['return_amount_out'] = agg['record_amount']
+        if agg['transfer_type'] == CouponTransferRecord.IN_RETURN_GOODS:
+            agg_dict['refund_coupon_in'] = agg['record_amount']
         if agg['transfer_type'] == CouponTransferRecord.OUT_CONSUMED:
             agg_dict['sale_amount_out'] = agg['record_amount']
         if agg['transfer_type'] == CouponTransferRecord.OUT_CASHOUT:
             agg_dict['refund_amount_out'] = agg['record_amount']
         if agg['transfer_type'] == CouponTransferRecord.OUT_EXCHG_SALEORDER:
             agg_dict['exchg_amount_out'] = agg['record_amount']
+        if agg['transfer_type'] == CouponTransferRecord.IN_GIFT_COUPON:
+            agg_dict['gift_amount_out'] = agg['record_amount']
         elite_mamas[agg['coupon_from_mama_id']].update(agg_dict)
 
     print 'elite mama total:', len(elite_mamas)
 
-    min_join_records = CouponTransferRecord.objects\
+    min_join_records = CouponTransferRecord.objects.filter(date_field__isnull=False)\
         .values('coupon_from_mama_id').annotate(joined_date=Min('date_field'))\
         .values_list('coupon_from_mama_id','joined_date')
     mama_joined_date_maps = dict(min_join_records)
@@ -83,8 +92,8 @@ def task_fresh_elitemama_active_status():
             setattr(elite_active, key, value)
         
         if state or not elite_active.joined_date:
-            elite_active.joined_date = mama_joined_date_maps.get(mama_id)
-
+            elite_active.joined_date = mama_joined_date_maps.get(mama_id) or datetime.date.today()
+        print mama_id, data
         elite_active.sub_mamacount = referal_maps.get(mama_id) or 0
         elite_active.save()
 
