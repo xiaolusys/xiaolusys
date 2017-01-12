@@ -5,7 +5,7 @@ from shopmanager import celery_app as app
 
 import datetime
 from collections import defaultdict
-from django.db.models import Sum, Min, Max, Count, F, Q
+from django.db.models import Sum, Min, Max, Count, F, Q, FloatField
 
 from flashsale.coupon.models import CouponTransferRecord
 from ..models import EliteMamaStatus, ReferalRelationship, XiaoluMama
@@ -24,11 +24,11 @@ def task_fresh_elitemama_active_status():
     )
     # 进货金额
     out_data_set = base_qs.values('coupon_from_mama_id','transfer_type').annotate(
-        record_amount=Sum(F('coupon_value') * F('coupon_num'))
+        record_amount=Sum(F('coupon_value') * F('coupon_num'), output_field=FloatField())
     )
 
     in_data_set = base_qs.values('coupon_to_mama_id', 'transfer_type').annotate(
-        record_amount=Sum(F('coupon_value') * F('coupon_num'))
+        record_amount=Sum(F('coupon_value') * F('coupon_num'), output_field=FloatField())
     )
 
     elite_mamas = defaultdict(dict)
