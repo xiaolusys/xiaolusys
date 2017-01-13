@@ -13,22 +13,20 @@ from flashsale.xiaolumm.models import OrderCarry
 
 @app.task
 def task_transfer_coupon_order_statsd():
-    ctr_qs = CouponTransferRecord.objects.filter(status=1)
+    ctr_qs = CouponTransferRecord.objects.filter(status=1, transfer_status=3)
 
-    values = ctr_qs.filter(transfer_status=3, transfer_type=4
-    ).aggregate(
-        total_coupon_num=Sum('coupon_num'),
-        total_coupon_value=Sum(F('coupon_num') * F('coupon_value'), output_field=FloatField())
-    )
-    coupon_sale_num = values.get('total_coupon_num')
-    coupon_sale_amount = values.get('total_coupon_value')
+    coupon_sale_detail = UserCoupon.objects.filter(
+        coupon_type=UserCoupon.TYPE_TRANSFER,
+        status=UserCoupon.USED
+    ).aggregate(coupon_sale_num=Count('id'), coupon_sale_amount=Sum('value'))
+    coupon_sale_num    = coupon_sale_detail.get('coupon_sale_num')
+    coupon_sale_amount = coupon_sale_detail.get('coupon_sale_amount')
 
-    values = ctr_qs.filter(transfer_status=3, transfer_type__in=(3, 8)
-    ).aggregate(
+    values = ctr_qs.filter(transfer_type__in=(3, 8)).aggregate(
         total_coupon_used_num=Sum('coupon_num'),
         total_coupon_used_value=Sum(F('coupon_num') * F('coupon_value'), output_field=FloatField())
     )
-    coupon_used_num = values.get('total_coupon_used_num')
+    coupon_used_num    = values.get('total_coupon_used_num')
     coupon_used_amount = values.get('total_coupon_used_value')
 
     transfer_details = ctr_qs.filter(
@@ -40,10 +38,12 @@ def task_transfer_coupon_order_statsd():
     )
 
     refund_return_num = ctr_qs.filter(transfer_type=CouponTransferRecord.OUT_CASHOUT).aggregate(
-        transfer_amounts=Sum(F('coupon_num') * F('coupon_value'), output_field=FloatField())).get('transfer_amounts') or 0
+        transfer_amounts=Sum(F('coupon_num') * F('coupon_value'), output_field=FloatField())
+    ).get('transfer_amounts') or 0
 
     exchg_order_num = ctr_qs.filter(transfer_type=CouponTransferRecord.OUT_EXCHG_SALEORDER).aggregate(
-        exchg_amounts=Sum(F('coupon_num') * F('coupon_value'), output_field=FloatField())).get('exchg_amounts') or 0
+        exchg_amounts=Sum(F('coupon_num') * F('coupon_value'), output_field=FloatField())
+    ).get('exchg_amounts') or 0
 
     coupon_chained_detail = UserCoupon.objects.filter(
         coupon_type=UserCoupon.TYPE_TRANSFER, is_chained=True).exclude(status=UserCoupon.CANCEL)\
@@ -114,11 +114,16 @@ def task_boutique_mama_weekly_active():
     dt = datetime.datetime.now()
     df = dt - datetime.timedelta(days=7)
 
-    active_elite_mama_count = ctr_qs.filter(
+    active_elite_mama_values_list = ctr_qs.filter(
         date_field__range=(df, dt)
-    ).values('coupon_to_mama_id').distinct().count()
+    ).values_list('coupon_from_mama_id','coupon_to_mama_id')
 
-    statsd.gauge('xiaolumm.boutique.weekly.active_mama_count', active_elite_mama_count)
+    active_elite_mama_array = set()
+    for mama_list in active_elite_mama_values_list:
+        active_elite_mama_array.add(mama_list[0])
+        active_elite_mama_array.add(mama_list[1])
+
+    statsd.gauge('xiaolumm.boutique.weekly.active_mama_count', len(active_elite_mama_array))
 
 
 
