@@ -57,7 +57,7 @@ def confirm_clickcarry(click_carry, mama_id, date_field):
     Get confirmed order number and write back to clickcarry.
     """
 
-    confirmed_order_num = OrderCarry.objects.filter(mama_id=mama_id, date_field=date_field, status=2, carry_num__gt=0).exclude(
+    confirmed_order_num = OrderCarry.objects.filter(mama_id=mama_id, date_field=date_field, status=OrderCarry.CONFIRM).exclude(
         carry_type=3).values('contributor_id').distinct().count()
     price, limit, name = plan_for_price_limit_name(confirmed_order_num, click_carry.carry_plan_id)
     click_num = click_carry.click_num
@@ -160,7 +160,7 @@ def update_clickcarry_upon_order(click_carry, mama_id, date_field):
     init fields.
     """
 
-    order_num = OrderCarry.objects.filter(mama_id=mama_id, date_field=date_field, carry_num__gt=0).exclude(status=0).exclude(
+    order_num = OrderCarry.objects.filter(mama_id=mama_id, date_field=date_field).exclude(status=0).exclude(
         status=3).exclude(carry_type=3).values('contributor_id').distinct().count()
     if click_carry.init_order_num != order_num:
         # update price, limit, total_value
