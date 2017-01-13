@@ -3,7 +3,7 @@ from tasks import kdn_sub,kdn_search,kd100_search
 from .kdn_wuliu_extra import format_content
 from flashsale.restpro import exp_map
 import logging
-import json
+import json,datetime
 from shopback.trades.models import TradeWuliu,PackageSkuItem
 
 logger = logging.getLogger(__name__)
@@ -18,7 +18,10 @@ def one_tradewuliu(logistics_company,out_sid,tradewuliu):
     status = exp_status[tradewuliu.status]
     if not tradewuliu.content:
         fa_time = PackageSkuItem.objects.filter(out_sid=out_sid).first().pay_time
-        fa_time = fa_time.strftime('%Y-%m-%d %H:%M:%S')
+        if not fa_time:
+            fa_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            fa_time = fa_time.strftime('%Y-%m-%d %H:%M:%S')
         content = {}
         content["AcceptTime"] = fa_time
         content['AcceptStation'] = "已出货了哦"
@@ -58,7 +61,10 @@ def zero_tradewuliu(logistics_company,out_sid,tradewuliu):
 
     if not tradewuliu:
         fa_time = PackageSkuItem.objects.filter(out_sid=out_sid).first().pay_time
-        fa_time = fa_time.strftime('%Y-%m-%d %H:%M:%S')
+        if not fa_time:
+            fa_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            fa_time = fa_time.strftime('%Y-%m-%d %H:%M:%S')
         content = {}
         content["AcceptTime"] = fa_time
         content['AcceptStation'] = "已出货了哦"
