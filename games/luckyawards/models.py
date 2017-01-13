@@ -23,3 +23,7 @@ class Joiner(models.Model):
         verbose_name = u'活动抽奖'
         verbose_name_plural = u'活动抽奖人员列表'
 
+    @property
+    def thumbnail_link(self):
+        return self.thumbnail.url
+
