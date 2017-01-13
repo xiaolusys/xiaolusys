@@ -16,21 +16,6 @@ exp_status = {0: u"无轨迹", 1: u"已揽件", 2: u"在途中",
 def one_tradewuliu(logistics_company,out_sid,tradewuliu):
     logger.warn({'action': "kdn", 'info': "one_tradewuliu"})
     status = exp_status[tradewuliu.status]
-    if not tradewuliu.content:
-        if not PackageSkuItem.objects.filter(out_sid=out_sid).first():
-            return "暂无物流信息"
-        fa_time = PackageSkuItem.objects.filter(out_sid=out_sid).first().pay_time
-        if not fa_time:
-            fa_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        else:
-            fa_time = fa_time.strftime('%Y-%m-%d %H:%M:%S')
-        content = {}
-        content["AcceptTime"] = fa_time
-        content['AcceptStation'] = "已出货了哦"
-        content2 = []
-        content2.append(content)
-        content2 = json.dumps(content2)
-        tradewuliu.content = content2
     format_exp_info = {
         "status": status,
         "status_code": tradewuliu.status,
@@ -62,30 +47,6 @@ def zero_tradewuliu(logistics_company,out_sid,tradewuliu):
     tradewuliu = TradeWuliu.objects.filter(out_sid=out_sid).order_by("-id").first()
 
     if not tradewuliu:
-        if not PackageSkuItem.objects.filter(out_sid=out_sid).first():
-            return "暂无物流信息"
-        fa_time = PackageSkuItem.objects.filter(out_sid=out_sid).first().pay_time
-        if not fa_time:
-            fa_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        else:
-            fa_time = fa_time.strftime('%Y-%m-%d %H:%M:%S')
-        content = {}
-        content["AcceptTime"] = fa_time
-        content['AcceptStation'] = "已出货了哦"
-        content2 = []
-        content2.append(content)
-        content2 = json.dumps(content2)
-        format_exp_info = {
-            "status": 0,
-            "status_code": '',
-            "name": logistics_company,
-            "errcode": '',
-            "id": "",
-            "message": "",
-            "content": content2,
-            "out_sid": out_sid
-        }
-        return format_content(**format_exp_info)
         return "暂无物流信息"
 
     status = exp_status[tradewuliu.status]
