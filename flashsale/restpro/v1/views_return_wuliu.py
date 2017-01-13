@@ -174,6 +174,9 @@ class ReturnWuliuViewSet(viewsets.ModelViewSet):
         content = request.GET
         packetid = content.get("packetid", None)
         company_code = content.get("company_code", None)
+        company_name = content.get("company_name", None)
+        if not company_code:
+            company_code = exp_map.exp_map.get(str(company_name).strip())
         if packetid is None:  # 参数缺失
             return Response({"info":"物流运单号为空了"})
         if not company_code:
