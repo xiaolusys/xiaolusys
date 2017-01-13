@@ -2,11 +2,6 @@
 from __future__ import absolute_import, unicode_literals
 
 class UnionPayConf(object):
-    WX = 'wx'        # 微信支付
-    ALIPAY = 'alipay' # 支付宝支付
-    WX_PUB = 'wx_pub' # 微信公众号支付
-    ALIPAY_WAP = 'alipay_wap' # zhifubao wangye
-    UPMP_WAP = 'upmp_wap' # yinglian
 
     CLIENT_IP = '118.178.116.5'
 

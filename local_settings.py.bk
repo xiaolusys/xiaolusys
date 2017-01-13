@@ -172,9 +172,15 @@ WX_KEY_PEM_PATH = '/data/certs/wx/apiclient_key.pem'
 
 WX_REFUND_USER_ID = 'refundem2'
 
-# 微信小程序
-WEAPP_APPID = 'wxea4fd45c52e4a20e'
-WEAPP_SECRET = '123456'
+# ================ 小鹿美美[微信小程序] ==================
+WEAPP_APPID  = 'wxea4fd45c52e4a20e'
+WEAPP_SECRET = '1246301cdb41c6336d82a12600189283'
+
+WEAPP_MCHID = "1410583302" #受理商ID，身份标识
+WEAPP_KEY   = "t5UXHfwR7QEv2jMLFuZm8DdqnAT0ON9a" #支付密钥
+
+WEAPP_CERT_PEM_PATH = '/data/certs/weapp/apiclient_cert.pem'
+WEAPP_KEY_PEM_PATH  = '/data/certs/weapp/apiclient_key.pem'
 
 ################### PING++ SETTINGS ##################
 

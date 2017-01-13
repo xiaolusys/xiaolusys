@@ -323,6 +323,16 @@ WEIXIN_MEDIA_HOST = "http://file.api.weixin.qq.com"
 WEIXIN_QRCODE_HOST = "https://mp.weixin.qq.com"
 WEIXIN_AUTHORIZE_URL = "https://open.weixin.qq.com/connect/oauth2/authorize"
 
+# ================ 小鹿美美[微信小程序] ==================
+WEAPP_APPID  = 'wxea4fd45c52e4a20e'
+WEAPP_SECRET = '1246301cdb41c6336d82a12600189283'
+
+WEAPP_MCHID = "1410583302" #受理商ID，身份标识
+WEAPP_KEY   = "t5UXHfwR7QEv2jMLFuZm8DdqnAT0ON9a" #支付密钥
+
+WEAPP_CERT_PEM_PATH = '/data/certs/weapp/apiclient_cert.pem'
+WEAPP_KEY_PEM_PATH  = '/data/certs/weapp/apiclient_key.pem'
+
 ################### Ntalker SETTINGS ##################
 NTALKER_NOTIFY_URL = 'http://wx.ntalker.com/agent/weixin'
 WX_MESSAGE_URL = 'https://api.weixin.qq.com/cgi-bin/message/custom/send'

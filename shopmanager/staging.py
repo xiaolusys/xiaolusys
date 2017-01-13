@@ -134,9 +134,15 @@ WX_KEY   = "t5UXHfwR7QEv2jMLFuZm8DdqnAT0ON9a" #支付密钥
 WX_CERT_PEM_PATH = '/data/certs/wx/apiclient_cert.pem'
 WX_KEY_PEM_PATH = '/data/certs/wx/apiclient_key.pem'
 
-# 微信小程序
-WEAPP_APPID = 'wxea4fd45c52e4a20e'
+# ================ 小鹿美美[微信小程序] ==================
+WEAPP_APPID  = 'wxea4fd45c52e4a20e'
 WEAPP_SECRET = '1246301cdb41c6336d82a12600189283'
+
+WEAPP_MCHID = "1410583302" #受理商ID，身份标识
+WEAPP_KEY   = "t5UXHfwR7QEv2jMLFuZm8DdqnAT0ON9a" #支付密钥
+
+WEAPP_CERT_PEM_PATH = '/data/certs/weapp/apiclient_cert.pem'
+WEAPP_KEY_PEM_PATH  = '/data/certs/weapp/apiclient_key.pem'
 
 ################### ALIPAY SETTINGS ##################
 ALIPAY_MCHID     = '2088911223385116'

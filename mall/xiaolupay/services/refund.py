@@ -42,11 +42,13 @@ def create_refund(charge, refund_amount, description, out_refund_no):
             time_succeed  = datetime.datetime.strptime(resp['gmt_refund_pay'],'%Y-%m-%d %H:%M:%S')
 
 
-    elif channel in (ChargeOrder.WX, ChargeOrder.WX_PUB):
+    elif channel in (ChargeOrder.WX, ChargeOrder.WX_PUB, ChargeOrder.WEAPP):
         if channel == ChargeOrder.WX:
             wx_config = WXPayConf.wx_configs()
-        else:
+        elif channel == ChargeOrder.WX_PUB:
             wx_config = WXPayConf.pub_configs()
+        else:
+            wx_config = WXPayConf.we_configs()
 
         wxpay = WXPay(**wx_config)
         resp = wxpay.refund({
@@ -98,11 +100,13 @@ def retrieve_or_update_refund(refund_no, notify_refund_info=None):
         except AliPayException, exc:
             logger.error('%s'%exc, exc_info=True)
 
-    elif channel in (ChargeOrder.WX, ChargeOrder.WX_PUB):
+    elif channel in (ChargeOrder.WX, ChargeOrder.WX_PUB, ChargeOrder.WEAPP):
         if channel == ChargeOrder.WX:
             wx_config = WXPayConf.wx_configs()
-        else:
+        elif channel == ChargeOrder.WX_PUB:
             wx_config = WXPayConf.pub_configs()
+        else:
+            wx_config = WXPayConf.we_configs()
 
         wxpay = WXPay(**wx_config)
         resp = notify_refund_info or wxpay.refundquery({

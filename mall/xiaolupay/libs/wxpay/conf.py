@@ -59,10 +59,10 @@ class WXPayConf:
         return {
             'app_id': getattr(settings, 'WEAPP_APPID', ''),
             'mch_id': getattr(settings, 'WEAPP_SECRET', ''),
-            'key': getattr(settings, 'WX_KEY', ''),
-            'cert_pem_path': getattr(settings, 'WX_CERT_PEM_PATH', ''),
-            'key_pem_path': getattr(settings, 'WX_KEY_PEM_PATH', ''),
-            'refund_user_id': getattr(settings, 'WX_REFUND_USER_ID', '')
+            'key': getattr(settings, 'WEAPP_KEY', ''),
+            'cert_pem_path': getattr(settings, 'WEAPP_CERT_PEM_PATH', ''),
+            'key_pem_path': getattr(settings, 'WEAPP_KEY_PEM_PATH', ''),
+            'refund_user_id': getattr(settings, 'WEAPP_REFUND_USER_ID', '')
         }
 
 

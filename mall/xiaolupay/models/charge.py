@@ -16,6 +16,7 @@ class ChargeOrder(BaseModel):
     )
 
     WX = 'wx'
+    WEAPP = 'weapp'
     ALIPAY = 'alipay'
     WX_PUB = 'wx_pub'
     ALIPAY_WAP = 'alipay_wap'
@@ -23,6 +24,7 @@ class ChargeOrder(BaseModel):
 
     CHANNEL_CHOICES = (
         (WX, u'微信支付'),
+        (WEAPP, u'小程序支付'),
         (ALIPAY, u'支付宝支付'),
         (WX_PUB, u'公众号支付'),
         (ALIPAY_WAP, u'支付宝网页支付'),

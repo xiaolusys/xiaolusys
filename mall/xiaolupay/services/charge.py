@@ -28,10 +28,10 @@ def create_credential(
         client_ip=''
     ):
     credential = PINGPP_CREDENTIAL_TPL[channel].copy()
-    if channel in (UnionPayConf.ALIPAY, UnionPayConf.ALIPAY_WAP):
+    if channel in (ChargeOrder.ALIPAY, ChargeOrder.ALIPAY_WAP):
         alipay = AliPay()
         order_amount = amount / AlipayConf.AMOUNT_SETTER
-        if channel == UnionPayConf.ALIPAY:
+        if channel == ChargeOrder.ALIPAY:
             pay_info = alipay.create_trade_app_pay_url(order_no, order_amount, subject, body)
             credential = {
                 "orderInfo": pay_info,
@@ -39,12 +39,12 @@ def create_credential(
         else:
             credential = alipay.trade_wap_pay(order_no, order_amount, subject, body)
 
-    elif channel in (UnionPayConf.WX, UnionPayConf.WX_PUB):
+    elif channel in (ChargeOrder.WX, ChargeOrder.WX_PUB, ChargeOrder.WEAPP):
         credential.update({
             "nonceStr": WXPayUtil.generate_nonce_str(),
         })
         notify_url = WXPayConf.NOTIFY_URL.format(channel=channel)
-        if channel == UnionPayConf.WX:
+        if channel == ChargeOrder.WX:
             wx_config = WXPayConf.wx_configs()
             wxpay = WXPay(**wx_config)
             resp = wxpay.unifiedorder({
@@ -119,8 +119,8 @@ def create_charge(
     with transaction.atomic():
         charge = ChargeOrder.objects.select_for_update().filter(order_no=order_no).first()
         if not charge:
-            if channel == ChargeOrder.WX_PUB and not extra.get('open_id'):
-                raise XiaoluPayException('wx_pub channel need open_id')
+            if channel in (ChargeOrder.WX_PUB, ChargeOrder.WEAPP) and not extra.get('open_id'):
+                raise XiaoluPayException('%s channel need open_id'%channel)
             try:
                 charge = ChargeOrder.objects.create(
                     order_no  = order_no,
@@ -166,7 +166,7 @@ def retrieve_or_update_order(order_no, channel=None, notify_order_info=None):
     fail_msg     = ''
     resp         = {}
 
-    if channel in (UnionPayConf.ALIPAY, UnionPayConf.ALIPAY_WAP):
+    if channel in (ChargeOrder.ALIPAY, ChargeOrder.ALIPAY_WAP):
         alipay = AliPay()
         try:
             resp = notify_order_info or alipay.trade_query(charge_order.order_no)
@@ -180,11 +180,13 @@ def retrieve_or_update_order(order_no, channel=None, notify_order_info=None):
             fail_code = exc.fail_code
             fail_msg  = exc.fail_msg
 
-    elif channel in (UnionPayConf.WX, UnionPayConf.WX_PUB):
-        if channel == UnionPayConf.WX:
+    elif channel in (ChargeOrder.WX, ChargeOrder.WX_PUB, ChargeOrder.WEAPP):
+        if channel == ChargeOrder.WX:
             wx_config = WXPayConf.wx_configs()
-        else:
+        elif channel == ChargeOrder.WX_PUB:
             wx_config = WXPayConf.pub_configs()
+        else:
+            wx_config = WXPayConf.we_configs()
 
         wxpay = WXPay(**wx_config)
         resp = notify_order_info or wxpay.orderquery({

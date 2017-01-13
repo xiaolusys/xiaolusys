@@ -56,6 +56,7 @@ class SaleTrade(BaseModel):
     """ payment (实付金额) = total_fee (商品总金额) + post_fee (邮费) - discount_fee (优惠金额) """
     PREFIX_NO = 'xd'
     WX = 'wx'
+    WEAPP = 'weapp'
     ALIPAY = 'alipay'
     WX_PUB = 'wx_pub'
     ALIPAY_WAP = 'alipay_wap'
@@ -67,6 +68,7 @@ class SaleTrade(BaseModel):
         (BUDGET, u'小鹿钱包'),
         (WALLET, u'妈妈钱包'),
         (WX, u'微信APP'),
+        (WEAPP, u'小程序支付'),
         (ALIPAY, u'支付宝APP'),
         (WX_PUB, u'微信WAP'),
         (ALIPAY_WAP, u'支付宝WAP'),

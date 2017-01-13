@@ -63,16 +63,20 @@ def is_from_weixin(request):
 def get_channel_list(request, customer):
     content = request.GET
     is_in_weixin = is_from_weixin(request)
-    is_in_wap = content.get('device', 'wap') == 'wap'
+    device_channel = content.get('device', 'wap')
     channel_list = []
-    if is_in_wap:
+    if device_channel == 'wap':
         if is_in_weixin and customer.unionid:
             channel_list.append({'id': 'wx_pub', 'name': u'微信支付', 'payable': True, 'msg': ''})
         else:
             channel_list.append({'id': 'alipay_wap', 'name': u'支付宝', 'payable': True, 'msg': ''})
+    elif device_channel == 'weapp':
+        channel_list.append({'id': 'weapp', 'name': u'微信支付', 'payable': True, 'msg': ''})
     else:
         channel_list.append({'id': 'wx', 'name': u'微信支付', 'payable': True, 'msg': ''})
         channel_list.append({'id': 'alipay', 'name': u'支付宝', 'payable': True, 'msg': ''})
+
+
     return channel_list
 
 class SaleTradeViewSet(viewsets.ModelViewSet):
@@ -84,7 +88,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     - {path}/confirm_sign[.formt]: 确认收货;
     - {path}/remind_send[.formt]: 提醒发货;
     - {path}/undisplay[.formt]: 删除订单记录;
-    - {path}/{pk}: 获取订单详情, 请传入参数 device :支付类型 (app ,app支付), (wap, wap支付), (web, 网页支付);
+    - {path}/{pk}: 获取订单详情, 请传入参数 device :支付类型 (app ,app支付), (weapp ,小程序支付), (wap, wap支付), (web, 网页支付);
     - {path}/{pk}/charge[.formt]:支付待支付订单,可传入支付方式: channel;
     - {path}/shoppingcart_create[.formt]:pingpp创建订单接口
     > - cart_ids：购物车明细ID，如 `100,101,...`
@@ -293,7 +297,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             self.check_before_charge(sale_trade)
 
         payment = sale_trade.get_cash_payment()
-
         if payment <= 0:
             raise Exception(u'%s支付金额不能小于0' % sale_trade.get_channel_display().replace(u'支付', u''))
 
@@ -302,7 +305,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         channel = sale_trade.channel
         order_success_url = CONS.MALL_PAY_SUCCESS_URL.format(order_id=sale_trade.id, order_tid=sale_trade.tid)
 
-        if channel == SaleTrade.WX_PUB and not buyer_openid:
+        if channel in (SaleTrade.WX_PUB, SaleTrade.WEAPP) and not buyer_openid:
             raise ValueError(u'请先微信授权登陆后再使用微信支付')
 
         if sale_trade.order_type == SaleTrade.TEAMBUY_ORDER:
@@ -321,7 +324,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                     raise Exception(u'钱包余额不足')
 
         extra = {}
-        if channel == SaleTrade.WX_PUB:
+        if channel in (SaleTrade.WX_PUB, SaleTrade.WEAPP):
             extra = {'open_id': buyer_openid, 'trade_type': 'JSAPI'}
         elif channel == SaleTrade.ALIPAY_WAP:
             extra = {"success_url": payback_url, "cancel_url": cancel_url}
