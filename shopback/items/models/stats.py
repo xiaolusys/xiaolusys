@@ -639,6 +639,14 @@ class SkuStock(models.Model):
         })
         return APIModel(**data)
 
+    @staticmethod
+    def all_assign(self):
+        from shopback.trades.models import PackageSkuItem
+        skuids = [p['sku_id'] for p in PackageSkuItem.objects.filter(assign_status=0).values('sku_id').distinct()]
+        for sku_id in skuids:
+            stock = SkuStock.get_by_sku(sku_id)
+            stock.assign()
+
     def assign(self, psi_id=None, orderlist=None, again=True):
         """
             配货有从库存分配和从订货单分配两种方式。
