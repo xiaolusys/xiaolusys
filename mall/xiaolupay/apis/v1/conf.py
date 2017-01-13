@@ -24,6 +24,15 @@ PINGPP_CREDENTIAL_TPL = {
         "prepayId": "wx201611251042121d2d60876b0135790716",
         "nonceStr": "511c1f93fe774740d58ef9d7897c511b"
     },
+    "weapp": {
+        "packageValue": "Sign=WXPay",
+        "timeStamp": 1480041732,
+        "sign": "B276E4FF8B63C7FE9F2E5FE5B0DE1DE6",
+        "partnerId": "1268398601",
+        "appId": "wx25fcb32689872499",
+        "prepayId": "wx201611251042121d2d60876b0135790716",
+        "nonceStr": "511c1f93fe774740d58ef9d7897c511b"
+    },
     "wx_pub": {
         "package": "prepay_id=wx201611251043317b2dafe4170529308336",
         "timeStamp": "1480041811",
