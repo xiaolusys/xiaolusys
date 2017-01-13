@@ -2154,7 +2154,7 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
                 if package_order.sys_status not in [PackageOrder.WAIT_CUSTOMER_RECEIVE, PackageOrder.FINISHED_STATUS]:
                     package_order.out_sid = out_sid
                     logistics_company = LogisticsCompany.objects.get(id=logistics_company_id)
-                    package_order.finish_third_package(out_sid, logistics_company)
+                    package_order.finish_third_package(out_sid, logistics_company, request.user.username)
             except Exception, e0:
                 errors.append(e0.message)
         order_list.set_by_package_sku_item()

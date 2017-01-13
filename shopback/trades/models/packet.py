@@ -92,7 +92,7 @@ class PackageOrder(models.Model):
     supplier_id = models.CharField(null=True,max_length=32, blank=True, verbose_name=u'供应商id')
     operator = models.CharField(max_length=32, blank=True, verbose_name=u'打单员')
     scanner = models.CharField(max_length=64, blank=True, verbose_name=u'扫描员')
-    weighter = models.CharField(max_length=64, blank=True, verbose_name=u'称重员')
+    weighter = models.CharField(max_length=64, blank=True, verbose_name=u'称重员', help_text=u'或者第三方发货的导入者')
     is_locked = models.BooleanField(default=False, verbose_name=u'锁定')
     is_charged = models.BooleanField(default=False, verbose_name=u'揽件')
     is_picking_print = models.BooleanField(default=False, verbose_name=u'发货单')
@@ -197,11 +197,13 @@ class PackageOrder(models.Model):
         from shopback.trades.tasks import task_packageorder_send_check_packageorder
         task_packageorder_send_check_packageorder.delay()
 
-    def finish_third_package(self, out_sid, logistics_company):
+    def finish_third_package(self, out_sid, logistics_company, weighter=None):
         self.out_sid = out_sid
         self.logistics_company_id = logistics_company.id
         self.sys_status = PackageOrder.WAIT_CUSTOMER_RECEIVE
         self.weight_time = datetime.datetime.now()
+        if weighter:
+            self.weighter = weighter
         self.status = pcfg.WAIT_BUYER_CONFIRM_GOODS
         self.save()
         # 为了承接过去的package_sku_item的数据, assign_status__in还要考虑 PackageSkuItem.ASSIGNED的情况
