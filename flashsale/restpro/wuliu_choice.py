@@ -3,7 +3,7 @@ from tasks import kdn_sub,kdn_search,kd100_search
 from .kdn_wuliu_extra import format_content
 from flashsale.restpro import exp_map
 import logging
-import json
+import json,datetime
 from shopback.trades.models import TradeWuliu,PackageSkuItem
 
 logger = logging.getLogger(__name__)
@@ -17,8 +17,13 @@ def one_tradewuliu(logistics_company,out_sid,tradewuliu):
     logger.warn({'action': "kdn", 'info': "one_tradewuliu"})
     status = exp_status[tradewuliu.status]
     if not tradewuliu.content:
+        if not PackageSkuItem.objects.filter(out_sid=out_sid).first():
+            return "暂无物流信息"
         fa_time = PackageSkuItem.objects.filter(out_sid=out_sid).first().pay_time
-        fa_time = fa_time.strftime('%Y-%m-%d %H:%M:%S')
+        if not fa_time:
+            fa_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            fa_time = fa_time.strftime('%Y-%m-%d %H:%M:%S')
         content = {}
         content["AcceptTime"] = fa_time
         content['AcceptStation'] = "已出货了哦"
@@ -57,8 +62,13 @@ def zero_tradewuliu(logistics_company,out_sid,tradewuliu):
     tradewuliu = TradeWuliu.objects.filter(out_sid=out_sid).order_by("-id").first()
 
     if not tradewuliu:
+        if not PackageSkuItem.objects.filter(out_sid=out_sid).first():
+            return "暂无物流信息"
         fa_time = PackageSkuItem.objects.filter(out_sid=out_sid).first().pay_time
-        fa_time = fa_time.strftime('%Y-%m-%d %H:%M:%S')
+        if not fa_time:
+            fa_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            fa_time = fa_time.strftime('%Y-%m-%d %H:%M:%S')
         content = {}
         content["AcceptTime"] = fa_time
         content['AcceptStation'] = "已出货了哦"
