@@ -17,7 +17,7 @@ from flashsale.restpro import wuliu_choice
 import logging
 from shopback.logistics.models import LogisticsCompany
 from flashsale.restpro import kdn_wuliu_extra,exp_map
-
+from common.auth import WeAppAuthentication
 
 logger = logging.getLogger('lacked_wuliu_company_name')
 class ReturnWuliuViewSet(viewsets.ModelViewSet):
@@ -26,21 +26,10 @@ class ReturnWuliuViewSet(viewsets.ModelViewSet):
     """
     queryset = ReturnWuLiu.objects.all()
     serializers_class = serializers.ReturnWuliuSerializer
-    authentication_classes = (authentication.SessionAuthentication, authentication.BaseAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
     gap_time = 7200  #查询时间间隔 2个小时
 
-    def get_owner_queryset(self, request):
-        customer = get_object_or_404(Customer, user=request.user)
-        queryset = self.queryset.filter(tid__in=(SaleTrade.objects.filter(buyer_id=customer.id).values('tid')))
-        return queryset
-
-    def list(self, request, *args, **kwargs):
-        """
-        根据客户的id的tid获取相应的物流信息
-        """
-        queryset = self.filter_queryset(self.get_owner_queryset(request))
-        return Response(queryset)
 
 
     def get_trade(self, tid):
