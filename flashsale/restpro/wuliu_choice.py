@@ -17,6 +17,8 @@ def one_tradewuliu(logistics_company,out_sid,tradewuliu):
     logger.warn({'action': "kdn", 'info': "one_tradewuliu"})
     status = exp_status[tradewuliu.status]
     if not tradewuliu.content:
+        if not PackageSkuItem.objects.filter(out_sid=out_sid).first():
+            return "暂无物流信息"
         fa_time = PackageSkuItem.objects.filter(out_sid=out_sid).first().pay_time
         if not fa_time:
             fa_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -60,6 +62,8 @@ def zero_tradewuliu(logistics_company,out_sid,tradewuliu):
     tradewuliu = TradeWuliu.objects.filter(out_sid=out_sid).order_by("-id").first()
 
     if not tradewuliu:
+        if not PackageSkuItem.objects.filter(out_sid=out_sid).first():
+            return "暂无物流信息"
         fa_time = PackageSkuItem.objects.filter(out_sid=out_sid).first().pay_time
         if not fa_time:
             fa_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
