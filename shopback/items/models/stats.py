@@ -477,7 +477,7 @@ class SkuStock(models.Model):
     def add_inbound_quantity(sku_id, num, stat=STAT_SIGN, warning=WARNING):
         # stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
         stock = SkuStock._objects.get(sku_id=sku_id)
-        stock.return_quantity += num
+        stock.inbound_quantity += num
         change_fields = ['inbound_quantity']
         stock.stat_save(change_fields, stat=stat, warning=warning)
 
