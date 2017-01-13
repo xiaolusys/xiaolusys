@@ -1156,6 +1156,10 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         content = request.GET
         exchange_num = content.get("exchange_num") or None  # 兑换张数
         template_id = content.get("template_id") or None  # 兑换的优惠券模板　72: ￥20　73　￥50
+        return Response({
+            'code': 11,
+            'info': '已停止兑换优惠券服务'
+        })
 
         default_return = collections.defaultdict(code=0, info='兑换成功')
         if not (exchange_num and template_id):
