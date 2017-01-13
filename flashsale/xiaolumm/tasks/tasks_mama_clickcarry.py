@@ -190,8 +190,8 @@ def get_active_click_plan(mama_id=None):
         now = datetime.datetime.now()
         mama = XiaoluMama.objects.filter(id=mama_id, status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED, renew_time__lt=now).first()
         if mama:
-            #如果妈妈已经过期，则试用体验0元妈妈点击计划
-            return ClickPlan.objects.filter(id=26).first()
+            #如果妈妈已经过期，则试用体验精英妈妈点击计划
+            return ClickPlan.objects.filter(id=30).first()
 
     return ClickPlan.get_active_clickplan()
 

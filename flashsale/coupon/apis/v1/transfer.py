@@ -306,7 +306,10 @@ def send_new_elite_transfer_coupons(customer_id, order_id, order_oid, product_id
 
             if referal_mm:
                 real_relation_ship = referal_mm.get_refer_to_relationships()
-                relation_ship.referal_from_grandma_id = real_relation_ship.referal_from_mama_id
+                if real_relation_ship:
+                    relation_ship.referal_from_grandma_id = real_relation_ship.referal_from_mama_id
+                else:
+                    relation_ship.referal_from_grandma_id = 0
             else:
                 relation_ship.referal_from_grandma_id = 0
             relation_ship.order_id = so.oid
