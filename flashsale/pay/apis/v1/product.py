@@ -36,8 +36,7 @@ def get_boutique_goods():
 def get_virtual_modelproduct_from_boutique_modelproduct(modelid):
     """从售卖商品的modelid找到虚拟商品券modelproduct
     """
-    model_product = ModelProduct.objects.filter(id=modelid,
-                                                is_boutique=True).first()
+    model_product = ModelProduct.objects.filter(id=modelid, is_boutique=True).first()
     if not model_product:
         return None
 
@@ -58,5 +57,4 @@ def get_virtual_modelproduct_from_boutique_modelproduct(modelid):
         if templateid == md_bind_tpl_id:
             find_mp = md
             break
-    if not find_mp:
-        return find_mp
+    return find_mp

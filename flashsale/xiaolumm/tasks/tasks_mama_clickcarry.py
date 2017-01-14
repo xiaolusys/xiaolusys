@@ -134,7 +134,21 @@ def create_clickcarry_upon_click(mama_id, date_field, fake=False):
     When we are going to create a clickcarry record, we have
     to get the order_num (all pending+confirmed orders) and
     calculate price, limit, price, etc.
+    20170114 elite mama score > 50 or trial 3 mama charged for 30days,has no clickcarry
     """
+
+    from flashsale.xiaolumm.models import XiaoluMama
+    if mama_id:
+        now = datetime.datetime.now()
+        deadline = datetime.datetime(2017, 3, 1)
+        mama = XiaoluMama.objects.filter(id=mama_id, status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED).first()
+        if mama:
+            if mama.last_renew_type == XiaoluMama.ELITE and mama.elite_score >= 50:
+                return
+            if mama.last_renew_type < XiaoluMama.ELITE and (now > deadline) and ((now - mama.charge_time).days > 30):
+                return
+        else:
+            return
 
     order_num = OrderCarry.objects.filter(mama_id=mama_id, date_field=date_field).exclude(status=0).exclude(
         status=3).exclude(carry_type=3).values('contributor_id').distinct().count()
