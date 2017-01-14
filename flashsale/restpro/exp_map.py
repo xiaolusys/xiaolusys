@@ -245,7 +245,8 @@ kd100_exp_map = {"韵达":"yunda",'韵达快递':'yunda','韵达速递':'yunda',
                  "德邦快递":"debangwuliu","德邦":"debangwuliu","德邦速递":"debangwuliu",
                  "宅急送":"zhaijisong",
                  "全一":"quanyikuaidi","全一快递":"quanyikuaidi","全一速递":"quanyikuaidi",
-                 "快捷速递":"kuaijiesudi","快捷":"kuaijiesudi","快捷快递":"kuaijiesudi"
+                 "快捷速递":"kuaijiesudi","快捷":"kuaijiesudi","快捷快递":"kuaijiesudi",
+                 "DH":"dhl","DHL":"dhl"
 
                  }
 
