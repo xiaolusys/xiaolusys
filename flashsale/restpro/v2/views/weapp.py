@@ -5,7 +5,7 @@ import simplejson
 import base64
 
 from Crypto.Cipher import AES
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.core.cache import cache
 from django.contrib.auth.models import User
 from rest_framework import viewsets
@@ -14,10 +14,12 @@ from django.conf import settings
 
 from flashsale.pay.models.user import Customer
 from shopapp.weixin.models.base import WeixinUnionID
-
+from shopapp.weixin.apis import WeiXinAPI
 
 TOKEN_TIMEOUT = 60 * 60 * 2  # token 2小时过期
 
+import logging
+logger = logging.getLogger(__name__)
 
 class WXBizDataCrypt:
     def __init__(self, appId, sessionKey):
@@ -87,6 +89,21 @@ class WeAppViewSet(viewsets.ViewSet):
 
         #
         item = WeixinUnionID.objects.filter(app_key=settings.WEAPP_APPID, openid=openid).first()
+        if not item:
+            try:
+                wxapi = WeiXinAPI(appKey=settings.WEAPP_APPID)
+                user_info = wxapi.getCustomerInfo(openid)
+                item = WeixinUnionID.objects.create(
+                    app_key=settings.WEAPP_APPID,
+                    openid=openid,
+                    unionid=user_info['unionid']
+                )
+            except IntegrityError:
+                item = WeixinUnionID.objects.filter(app_key=settings.WEAPP_APPID, openid=openid).first()
+            except Exception, exc:
+                logger.error(str(exc), exc_info=True)
+                item = None
+
         unionid = item.unionid if item else ''
         if unionid:
             customer = Customer.objects.get(unionid=unionid)

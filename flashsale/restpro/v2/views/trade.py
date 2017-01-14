@@ -302,9 +302,14 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             raise Exception(u'%s支付金额不能小于0' % sale_trade.get_channel_display().replace(u'支付', u''))
 
         order_no = sale_trade.tid
-        buyer_openid = sale_trade.openid
+        buyer_openid = ''
         channel = sale_trade.channel
         order_success_url = CONS.MALL_PAY_SUCCESS_URL.format(order_id=sale_trade.id, order_tid=sale_trade.tid)
+
+        if channel in (SaleTrade.WX_PUB, SaleTrade.WEAPP):
+            app_id = channel.lower() == SaleTrade.WX_PUB and settings.WX_PUB_APPID or settings.WEAPP_APPID
+            customer = Customer.objects.get(id=sale_trade.buyer_id)
+            buyer_openid = options.get_openid_by_unionid(customer.unionid, app_id)
 
         if channel in (SaleTrade.WX_PUB, SaleTrade.WEAPP) and not buyer_openid:
             raise ValueError(u'请先微信授权登陆后再使用微信支付')
@@ -437,8 +442,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             except:
                 teambuy = None
 
-        app_id = channel.lower() == SaleTrade.WX_PUB and  settings.WX_PUB_APPID or  settings.WEAPP_APPID
-        buyer_openid = options.get_openid_by_unionid(customer.unionid, app_id) or form.get('openid')
+        buyer_openid = options.get_openid_by_unionid(customer.unionid, settings.WX_PUB_APPID)
+        buyer_openid = buyer_openid or customer.openid
         payment      = round(float(form.get('payment')), 2)
         pay_extras = form.get('pay_extras', '')
         budget_payment = self.calc_extra_budget(pay_extras)
