@@ -44,11 +44,16 @@ input,label,button{
     margin-right:20px;
     padding:5px 5px;
 }
+
+.award-ul {
+    overflow:hidden;
+    height:110px;
+}
+
 .award-ul li {
     float:left;
     width:125px;
     height:110px;
-    overflow:hidden;
     padding:5px 5px;
 }
 
@@ -79,7 +84,12 @@ input,label,button{
     position: relative;
 }
 
+.lottery-ul .mask, .lottery-ul .mask-overlay{
+  display: none;
+}
+
 .lottery-ul li.award .mask{
+  display: block;
   opacity: 0.47;
   position: absolute;
   background-color: gray;
@@ -90,6 +100,7 @@ input,label,button{
 }
 
 .lottery-ul li.award .mask-overlay{
+  display: block;
   position: absolute;
   left:0;
   top:0;
@@ -102,6 +113,7 @@ input,label,button{
   color: #3fa156;
   opacity: 1;
 }
+
     </style>
 </head>
 <body>
@@ -121,10 +133,8 @@ input,label,button{
                     <option value="8">8</option>
                 </select>
             </div>
-            <div>
-                <button class="btn btn-large btn-primary award-start">开始抽奖</button>
-                &nbsp;&nbsp;&nbsp;&nbsp;
-                <button class="btn btn-large btn-danger award-remove">中奖移除</button>
+            <div class="control" >
+                <button class="btn btn-large btn-primary award-start" style="width: 100%;margin: 0px;">开始抽奖</button>
             </div>
         </div>
         <div class="award-panel">
@@ -162,7 +172,7 @@ var lottery={
 			$units = $lottery.find(".lottery-unit");
 			this.obj = $lottery;
 			this.count = $units.length;
-			$lottery.find(".lottery-unit-"+this.index).addClass("active");
+			// $lottery.find(".lottery-unit-"+this.index).addClass("active");
 		};
 	},
 	roll:function(){
@@ -170,15 +180,19 @@ var lottery={
 		var count = this.count;
 		var lottery = this.obj;
 		index += 1;
+		if (index > count){
+            index = 1;
+        }
 		while(hasBump(index)){
 		  index += 1;
+		  if (index > count){
+		    index = 1;
+		  }
 		};
-		if (index > count) {
-			index = 1;
-		};
-		$(lottery).find(".lottery-unit-"+index).removeClass("active");
+		$(lottery).find(".lottery-unit").removeClass('active');
 		$(lottery).find(".lottery-unit-"+index).addClass("active");
-		this.index=index;
+		this.index = index;
+		//console.log('roll counter:', index);
 		return false;
 	},
 	stop:function(index){
@@ -186,30 +200,39 @@ var lottery={
 		return false;
 	}
 };
+
 function award(index){
     console.log('debug award:',index,lottery.prize_list);
     var award = $("#lottery .lottery-unit-"+index);
-    $('.award-ul').append(award.clone());
-    award.addClass('award');
+    $('.award-ul').prepend(award.clone());
+    award.addClass('award').removeClass('active').find('div.mask-overlay > span').html(getBatchNo());
 }
+
 function hasBump(index){
-    return index in lottery.prize_list;
+    for (var i=0; i< lottery.prize_list.length; i++){
+        if (lottery.prize_list[i] == index){return true;}
+    }
+    return false ;
 }
+
 function getBatchNo(){
-    return parseInt($('#award-num').val());
+    return parseInt($('#award-batch').val());
 }
+
 function setLotteryPrizerIndex() {
     var index = Math.random()*(lottery.count)|1;
     while(hasBump(index)){
       index = Math.random()*(lottery.count)|1;
     }
+    console.log(index , lottery.prize_list, lottery.count)
     lottery.prize = index;
 }
 
 function roll(){
 	lottery.times += 1;
 	lottery.roll();
-	if (lottery.prize==lottery.index) {
+	//console.log('roll', lottery.prize, lottery.index);
+	if (lottery.prize == lottery.index) {
 	    lottery.prize_list[lottery.prize_list.length] = lottery.prize;
 	    award(lottery.prize);
 		clearTimeout(lottery.timer);
@@ -222,11 +245,17 @@ function roll(){
 
 window.onload=function(){
 	lottery.init('lottery');
-	$("#lottery-header button.award-start").click(function(){
-        console.log('debug: start');
-        lottery.prize = -1;
-        roll();
-        return false;
+	$("button.award-start").on('click', function(){
+	    var targetEle = $(this);
+	    if (targetEle.hasClass('btn-primary')){
+            lottery.prize = -1;
+            lottery.index = -1;
+            roll();
+            targetEle.removeClass('btn-primary').addClass('btn-success').html('点击抽取');
+	    } else {
+	        setLotteryPrizerIndex();
+            targetEle.removeClass('btn-success').addClass('btn-primary').html('开始抽奖');
+	    }
 	});
 };
 

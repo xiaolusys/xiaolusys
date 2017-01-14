@@ -445,7 +445,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         buyer_openid = form.get('openid')
         if not buyer_openid:
             buyer_openid = options.get_openid_by_unionid(customer.unionid, settings.WX_PUB_APPID)
-            
+
         payment      = round(float(form.get('payment')), 2)
         pay_extras = form.get('pay_extras', '')
         budget_payment = self.calc_extra_budget(pay_extras)
