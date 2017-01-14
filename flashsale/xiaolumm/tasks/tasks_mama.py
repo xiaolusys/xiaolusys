@@ -401,6 +401,9 @@ def validate_self_mama(mama, order_created_time):
         mama.charge_time and mama.charge_time < order_created_time and
         mama.renew_time and mama.renew_time > order_created_time):
         return True
+    if (mama and mama.status == XiaoluMama.EFFECT and mama.charge_status == XiaoluMama.CHARGED and
+        mama.last_renew_type == XiaoluMama.ELITE):
+        return True
     return False
 
 @app.task(serializer='pickle')
