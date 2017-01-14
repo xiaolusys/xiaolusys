@@ -116,7 +116,7 @@ def task_weixin_push_ordercarry(ordercarry):
                                                             is_boutique=True).first()
                 coupon_model_product = get_virtual_modelproduct_from_boutique_modelproduct(sale_order.item_product.model_id)
                 if goods_model_product and coupon_model_product:
-                    total_carry += goods_model_product.sku_info[0]['agent_price'] - coupon_model_product.sku_info[0]['agent_price']
+                    total_carry += round(goods_model_product.sku_info[0]['agent_price'] * 100 - coupon_model_product.sku_info[0]['agent_price'] * 100)
                     if goods_model_product.is_boutique:
                         is_boutique = True
 
