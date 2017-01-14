@@ -58,7 +58,7 @@ class WXPayConf:
     def we_configs():
         return {
             'app_id': getattr(settings, 'WEAPP_APPID', ''),
-            'mch_id': getattr(settings, 'WEAPP_SECRET', ''),
+            'mch_id': getattr(settings, 'WEAPP_MCHID', ''),
             'key': getattr(settings, 'WEAPP_KEY', ''),
             'cert_pem_path': getattr(settings, 'WEAPP_CERT_PEM_PATH', ''),
             'key_pem_path': getattr(settings, 'WEAPP_KEY_PEM_PATH', ''),

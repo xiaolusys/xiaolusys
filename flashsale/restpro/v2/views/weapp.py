@@ -97,6 +97,7 @@ class WeAppViewSet(viewsets.ViewSet):
         cache.set(token, data, TOKEN_TIMEOUT)
         resp = {
             'token': token,
+            'openid': openid,
             'unionid': unionid,
         }
         return Response(resp)

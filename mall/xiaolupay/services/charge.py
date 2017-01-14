@@ -77,6 +77,7 @@ def create_credential(
                 wx_config = WXPayConf.pub_configs()
             else:
                 wx_config = WXPayConf.we_configs()
+
             wxpay = WXPay(**wx_config)
             resp = wxpay.unifiedorder({
                 'out_trade_no': order_no,

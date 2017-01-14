@@ -420,6 +420,12 @@ class SaleTrade(BaseModel):
             with transaction.atomic():
                 st = SaleTrade.objects.select_for_update().get(id=self.id)
                 if st.status != SaleTrade.WAIT_BUYER_PAY:
+                    logger.info({
+                        'action': 'trade_confirm_exit',
+                        'order_no': self.tid,
+                        'status': self.get_status_display(),
+                        'action_time': datetime.datetime.now()
+                    })
                     return
 
                 st.status = SaleTrade.WAIT_SELLER_SEND_GOODS
@@ -441,6 +447,14 @@ class SaleTrade(BaseModel):
                         user_budget.charge_confirm(st.id)
                     except Exception, exc:
                         logger.error(exc.message, exc_info=True)
+
+                logger.info({
+                    'action': 'trade_confirm_save',
+                    'order_no': self.tid,
+                    'status': self.get_status_display(),
+                    'action_time': datetime.datetime.now()
+                })
+
             with transaction.atomic():
                 st = SaleTrade.objects.select_for_update().get(id=self.id)
                 st.confirm_payment()

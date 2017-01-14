@@ -101,6 +101,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     > - pay_extras：附加支付参数，eg. pid:2:couponid:226026:value:10.0;pid:1:value:2.0;pid:3:budget:37.9;
     > - uuid：系统分配唯一ID
     > - logistics_company_id: 快递公司id
+    > - openid: 用户微信openid(可选,默认系统内未记录时需传入)
     > - 返回结果：{'code':0,'info':'ok','charge':{...}},请求成功code=0,失败code大于0,错误信息info
     - {path}/buynow_create[.formt]:立即支付订单接口
     > - item_id：商品ID，如 `100,101,...`
@@ -436,9 +437,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             except:
                 teambuy = None
 
-        buyer_openid = options.get_openid_by_unionid(customer.unionid, settings.WX_PUB_APPID)
-        buyer_openid = buyer_openid or customer.openid
-        payment = round(float(form.get('payment')), 2)
+        app_id = channel.lower() == SaleTrade.WX_PUB and  settings.WX_PUB_APPID or  settings.WEAPP_APPID
+        buyer_openid = options.get_openid_by_unionid(customer.unionid, app_id) or form.get('openid')
+        payment      = round(float(form.get('payment')), 2)
         pay_extras = form.get('pay_extras', '')
         budget_payment = self.calc_extra_budget(pay_extras)
         coupon_ids = self.parse_coupon_ids_from_pay_extras(pay_extras)

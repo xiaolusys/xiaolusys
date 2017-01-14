@@ -1,0 +1,235 @@
+{% load mathfilters %}
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>小鹿美美－大乐透</title>
+    <meta name="keywords" content=""/>
+    <meta name="description" content=""/>
+    <link href="//cdn.bootcss.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
+    <style type="text/css">
+body{
+    margin:0 auto;
+}
+input,label,button{
+    margin-left:5px;
+}
+@-webkit-keyframes twinkling{   /*透明度由0到1*/
+    0%{
+        opacity:0.4;
+        width:50px;
+    }
+    100%{
+        opacity:1;              /*透明度为1*/
+        width:150px;
+    }
+}
+#lottery{margin:0px auto 0;}
+#lottery ul li{text-align:center;vertical-align:middle;font-size:24px;color:#333;font-index:-999}
+#lottery ul li.active img{-webkit-animation:twinkling 1s infinite ease-in-out;}
+#lottery-header {
+    margin:10px auto;
+    height:100px;
+}
+.lottery-ul ,.award-ul{
+    list-style: none;
+}
+.lottery-ul li {
+    float:left;
+    width:125px;
+    height:110px;
+    overflow:hidden;
+    margin-top:15px;
+    margin-right:20px;
+    padding:5px 5px;
+}
+.award-ul li {
+    float:left;
+    width:125px;
+    height:110px;
+    overflow:hidden;
+    padding:5px 5px;
+}
+
+.lottery-ul li img,.award-panel li img{
+    width:120px;
+}
+.lottery-ul li img:hover,.award-panel li img:hover{
+ width:400px;
+ height:auto;
+ position: absolute;
+ z-index: 10;
+}
+.ctrl-panel,.award-panel{
+    border:1px dashed blue;
+    height:115px;
+    float:left;
+}
+.ctrl-panel{
+    width:18%;
+}
+.ctrl-panel div{
+    margin-bottom:10px;
+}
+.award-panel{
+    width:80%;
+}
+.lottery-ul li {
+    position: relative;
+}
+
+.lottery-ul li.award .mask{
+  opacity: 0.47;
+  position: absolute;
+  background-color: gray;
+  left:0;
+  top:0;
+  right: 0;
+  bottom: 0;
+}
+
+.lottery-ul li.award .mask-overlay{
+  position: absolute;
+  left:0;
+  top:0;
+  right: 0;
+  bottom: 0;
+}
+
+.lottery-ul li.award .mask-overlay span{
+  font-size: 80px;
+  color: #3fa156;
+  opacity: 1;
+}
+    </style>
+</head>
+<body>
+<div class="container">
+    <div id="lottery-header">
+        <div class="ctrl-panel">
+            <div>
+                <label>抽奖批次:</label>
+                <select id="award-batch" class="form-control" style="width:120px;display:inline;">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                </select>
+            </div>
+            <div>
+                <button class="btn btn-large btn-primary award-start">开始抽奖</button>
+                &nbsp;&nbsp;&nbsp;&nbsp;
+                <button class="btn btn-large btn-danger award-remove">中奖移除</button>
+            </div>
+        </div>
+        <div class="award-panel">
+            <ul class="award-ul"></ul>
+        </div>
+    </div>
+    <div id="lottery">
+        <ul class="lottery-ul">
+            {% for joiner in joiners %}
+            <li class="lottery-unit lottery-unit-{{forloop.counter}}" joiner="{{joiner.id}}">
+                <img src="{{joiner.thumbnail_link}}">
+                <div class="mask" ></div>
+                <div class="mask-overlay"><span>0</span></div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+<script type="text/javascript" src="//cdn.bootcss.com/jquery/1.8.3/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+<script type="text/javascript">
+var lottery={
+	index:-1,	//当前转动到哪个位置，起点位置
+	count:0,	//总共有多少个位置
+	timer:0,	//setTimeout的ID，用clearTimeout清除
+	speed:20,	//初始转动速度
+	times:0,	//转动次数
+	cycle:10,	//转动基本次数：即至少需要转动多少次再进入抽奖环节
+	prize_num:0, //中奖人数
+	prize:-1,	//中奖位置
+	prize_list:[], //中奖位置列表
+	init:function(id){
+		if ($("#"+id).find(".lottery-unit").length>0) {
+			$lottery = $("#"+id);
+			$units = $lottery.find(".lottery-unit");
+			this.obj = $lottery;
+			this.count = $units.length;
+			$lottery.find(".lottery-unit-"+this.index).addClass("active");
+		};
+	},
+	roll:function(){
+		var index = this.index;
+		var count = this.count;
+		var lottery = this.obj;
+		index += 1;
+		while(hasBump(index)){
+		  index += 1;
+		};
+		if (index > count) {
+			index = 1;
+		};
+		$(lottery).find(".lottery-unit-"+index).removeClass("active");
+		$(lottery).find(".lottery-unit-"+index).addClass("active");
+		this.index=index;
+		return false;
+	},
+	stop:function(index){
+		this.prize=index;
+		return false;
+	}
+};
+function award(index){
+    console.log('debug award:',index,lottery.prize_list);
+    var award = $("#lottery .lottery-unit-"+index);
+    $('.award-ul').append(award.clone());
+    award.addClass('award');
+}
+function hasBump(index){
+    return index in lottery.prize_list;
+}
+function getBatchNo(){
+    return parseInt($('#award-num').val());
+}
+function setLotteryPrizerIndex() {
+    var index = Math.random()*(lottery.count)|1;
+    while(hasBump(index)){
+      index = Math.random()*(lottery.count)|1;
+    }
+    lottery.prize = index;
+}
+
+function roll(){
+	lottery.times += 1;
+	lottery.roll();
+	if (lottery.prize==lottery.index) {
+	    lottery.prize_list[lottery.prize_list.length] = lottery.prize;
+	    award(lottery.prize);
+		clearTimeout(lottery.timer);
+	}else{
+		//console.log(lottery.times+'^^^^^^'+lottery.speed+'^^^^^^^'+lottery.prize);
+		lottery.timer = setTimeout(roll,lottery.speed);
+	}
+	return false;
+}
+
+window.onload=function(){
+	lottery.init('lottery');
+	$("#lottery-header button.award-start").click(function(){
+        console.log('debug: start');
+        lottery.prize = -1;
+        roll();
+        return false;
+	});
+};
+
+</script>
+</body>
+</html>

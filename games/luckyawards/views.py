@@ -9,7 +9,6 @@ from rest_framework.response import Response
 from .models import Joiner
 
 import logging
-
 logger = logging.getLogger('django.request')
 
 
@@ -17,7 +16,7 @@ class LuckyAwardView(APIView):
     #     authentication_classes = (authentication.TokenAuthentication,)
     #     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.TemplateHTMLRenderer,)
-    template_name = "awards/index.html"
+    template_name = "awards/index_ctrl.html"
 
     def get(self, request):
         joiners = Joiner.objects.filter(is_active=True)
