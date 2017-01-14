@@ -1060,9 +1060,9 @@ def task_schedule_check_boutique_modelproduct(days=1):
                 right = False
             elif not (mp.rebeta_scheme_id == 12):
                 right = False
-            elif not mp.extras['payinfo']['use_coupon_only']:
+            elif not (mp.extras.has_key('payinfo') and mp.extras['payinfo']['use_coupon_only']):
                 right = False
-            elif not (mp.extras['payinfo'].has_key('coupon_template_ids') and len(
+            elif not (mp.extras.has_key('payinfo') and mp.extras['payinfo'].has_key('coupon_template_ids') and len(
                     mp.extras['payinfo']['coupon_template_ids']) > 0):
                 right = False
         if not right:
