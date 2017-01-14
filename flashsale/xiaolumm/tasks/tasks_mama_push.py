@@ -109,7 +109,7 @@ def task_weixin_push_ordercarry(ordercarry):
         oc = OrderCarry.objects.filter(order_id=so.oid, carry_type=ordercarry.carry_type).first()
         if oc:
             total_carry += oc.carry_num
-            if oc.carry_num == 0:
+            if oc.carry_num == 0 and (ordercarry.carry_type == 1 or ordercarry.carry_type == 2):
                 from flashsale.pay.apis.v1.product import get_virtual_modelproduct_from_boutique_modelproduct
                 from flashsale.pay.models import ModelProduct
                 goods_model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id,
