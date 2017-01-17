@@ -196,30 +196,25 @@ def create_new_elite_mama(customer, to_mama, so):
             to_mama.referal_from = XiaoluMama.INDIRECT
             upper_mama_id = int(strade.extras_info['mm_linkid'])
 
-    # 上级在做精英的话，自己为indirect跟着做，否则按同样的逻辑找潜在妈妈表，再找粉丝表，都找不到则为direct
+    # 上级在做精英的话，自己为indirect跟着做，否则按同样的逻辑找粉丝表，都找不到则为direct
     from flashsale.xiaolumm.models import PotentialMama, XlmmFans, ReferalRelationship
     relation_ship = to_mama.get_refer_to_relationships()
     if upper_mama_id == 0:
         if relation_ship:
             upper_mama_id = relation_ship.referal_from_mama_id
         else:
-            # 潜在妈妈表
-            potential_mama = PotentialMama.objects.filter(potential_mama=to_mama.id).first()
-            if potential_mama:
-                upper_mama_id = potential_mama.referal_mama
+            # fans
+            fan = XlmmFans.objects.filter(fans_cusid=customer.id).first()
+            if fan:
+                upper_mama_id = fan.xlmm
             else:
-                # fans
-                fan = XlmmFans.objects.filter(fans_cusid=customer.id).first()
-                if fan:
-                    upper_mama_id = fan.xlmm
-                else:
-                    upper_mama_id = 0
-                    logger.error({
-                        'action': 'send_new_elite_transfer_coupons',
-                        'action_time': datetime.datetime.now(),
-                        'order_oid': so.oid,
-                        'message': u'relation_ship potential xlmmfan not exist:mama_id=%s' % (to_mama.id),
-                    })
+                upper_mama_id = 0
+                logger.error({
+                    'action': 'send_new_elite_transfer_coupons',
+                    'action_time': datetime.datetime.now(),
+                    'order_oid': so.oid,
+                    'message': u'relation_ship potential xlmmfan not exist:mama_id=%s' % (to_mama.id),
+                })
 
     referal_mm = XiaoluMama.objects.filter(id=upper_mama_id).first()
     if referal_mm:
