@@ -1045,7 +1045,7 @@ def task_schedule_check_boutique_modelproduct(days=1):
     from flashsale.pay.models import ModelProduct
     from flashsale.pay.apis.v1.product import get_boutique_goods, get_virtual_modelproducts
     from apis.v1.products import ModelProductCtl
-    queryset = get_boutique_goods().filter(shelf_status=ModelProduct.ON_SHELF)
+    queryset = get_boutique_goods()
     ids = [i['id'] for i in queryset.values('id')]
     queryset = ModelProductCtl.multiple(ids=ids)
 
@@ -1055,6 +1055,29 @@ def task_schedule_check_boutique_modelproduct(days=1):
         right = False
         if mp.detail_content['is_boutique'] or (
             mp.extras.has_key('payinfo') and mp.extras['payinfo'].has_key('use_coupon_only')):
+            right = True
+            if not mp.detail_content['is_boutique']:
+                right = False
+            elif not (mp.rebeta_scheme_id == 12):
+                right = False
+            elif not (mp.extras.has_key('payinfo') and mp.extras['payinfo']['use_coupon_only']):
+                right = False
+            elif not (mp.extras.has_key('payinfo') and mp.extras['payinfo'].has_key('coupon_template_ids') and len(
+                    mp.extras['payinfo']['coupon_template_ids']) > 0):
+                right = False
+        if not right:
+            wrong_product.append(mp.id)
+
+    # 反向检查，有些商品忘记或错误设置了精品汇标志
+    boutique_queryet = ModelProduct.objects.filter(product_type=ModelProduct.USUAL_TYPE,
+                                                   status=ModelProduct.NORMAL,
+                                                   rebeta_scheme_id=12)
+    ids = [i['id'] for i in boutique_queryet.values('id')]
+    boutique_queryet = ModelProductCtl.multiple(ids=ids)
+    for mp in boutique_queryet:
+        right = False
+        if mp.detail_content['is_boutique'] or (
+                    mp.extras.has_key('payinfo') and mp.extras['payinfo'].has_key('use_coupon_only')):
             right = True
             if not mp.detail_content['is_boutique']:
                 right = False
