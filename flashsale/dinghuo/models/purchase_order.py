@@ -653,6 +653,7 @@ class OrderList(models.Model):
             if not od.arrival_time:
                 od.arrival_time = datetime.datetime.now()
             od.save()
+            SkuStock.get_by_sku(od.chichu_id).add_inbound_quantity(od.chichu_id, od.arrival_quantity)
 
     def reduce_sku_num(self, sku_id, num=1):
         od = self.order_list.filter(chichu_id=str(sku_id)).first()
