@@ -242,7 +242,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
     def budget_charge(self, sale_trade, check_coupon=True, **kwargs):
         """
-        小鹿钱包支付实现
+        小鹿钱包/小鹿币支付实现
         """
         with transaction.atomic():
             buyer = Customer.objects.select_for_update().get(pk=sale_trade.buyer_id)
@@ -708,6 +708,19 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
         return False
 
+    def check_xiaolucoin_buy_coupon(self, product, pay_extras):
+        """
+        bunow检测非精品券不能使用小鹿币购买，参数是否异常
+        """
+
+        mp = product.get_product_model()
+        from flashsale.pay.models.product import ModelProduct
+        if mp and (mp.product_type != ModelProduct.VIRTUAL_TYPE):
+            extras = self.parse_pay_extras_to_dict(pay_extras)
+            coin_value = extras.get(CONS.ETS_XIAOLUCOIN, {}).get('value', '')
+            if float(coin_value) > 0:
+                return Response({'code': 27, 'info': u'只有精品券才能使用小鹿币购买，您的购买商品中没有精品券，请重新加入购物车再购买'})
+
     def check_use_coupon_only(self, cart_qs, cart_discount, cart_total_fee, coupon_template_id):
         """
         检测是否只允许优惠券购买商品，参数是否异常
@@ -734,7 +747,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
         return False
 
-    def check_mixed_virtual_goods(self, cart_qs, customer):
+    def check_mixed_virtual_goods(self, cart_qs, customer, pay_extras):
         """
         检测购买精品券虚拟商品时，不能搭配普通商品，只能全部为虚拟商品，否则返回参数异常
         """
@@ -759,6 +772,11 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 return Response({'code': 26, 'info': u'您没有直接购券权限，请在购券界面提交申请'})
             if mm and (mm.elite_level != 'Associate') and (goods_num < 5) and (elite_score < 30):
                 return Response({'code': 25, 'info': u'购买精品券最低购买5张或者30积分，您本次购买没有达到要求，请在购物车重新添加精品券'})
+        else:
+            extras = self.parse_pay_extras_to_dict(pay_extras)
+            coin_value = extras.get(CONS.ETS_XIAOLUCOIN, {}).get('value', '')
+            if float(coin_value) > 0:
+                return Response({'code': 27, 'info': u'只有精品券才能使用小鹿币购买，您的购买商品中没有精品券，请重新加入购物车再购买'})
         return False
 
     @list_route(methods=['post'])
@@ -864,8 +882,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             })
             return Response({'code': 11, 'info': u'付款金额异常'})
 
-        # 检测组合虚拟商品购买时，不能跟普通商品搭配
-        error = self.check_mixed_virtual_goods(cart_qs, customer)
+        # 检测组合虚拟商品购买时，不能跟普通商品搭配,小鹿币只能跟虚拟商品搭配
+        error = self.check_mixed_virtual_goods(cart_qs, customer, pay_extras)
         if error:
             return error
 
@@ -1077,6 +1095,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             })
             return Response({'code': 11, 'info': u'付款金额异常'})
 
+        # 检测小鹿币不能购买非精品券商品
+        error = self.check_xiaolucoin_buy_coupon(product, pay_extras)
+        if error:
+            return error
         # 检测是否只允许优惠券购买商品，参数是否异常
         coupon_ids = self.parse_coupon_ids_from_pay_extras(pay_extras)
         coupon_template_ids = self.get_coupon_template_ids(coupon_ids)

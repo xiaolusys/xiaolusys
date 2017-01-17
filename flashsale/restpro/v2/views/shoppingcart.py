@@ -371,6 +371,9 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             budgets = CONS.PAY_EXTRAS.get(CONS.ETS_BUDGET)
             budgets.update(value=budget_cash, use_budget_allowed=budget_payable and 1 or 0)
             extras.append(budgets)
+        coins = CONS.PAY_EXTRAS.get(CONS.ETS_XIAOLUCOIN)
+        coins.update(value=0, use_budget_allowed=0)
+        extras.append(coins)
         return extras
 
     def get_logistics_by_shoppingcart(self, queryset):
