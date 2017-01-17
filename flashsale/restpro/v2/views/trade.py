@@ -717,7 +717,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         from flashsale.pay.models.product import ModelProduct
         if mp and (mp.product_type != ModelProduct.VIRTUAL_TYPE):
             extras = self.parse_pay_extras_to_dict(pay_extras)
-            coin_value = extras.get(CONS.ETS_XIAOLUCOIN, {}).get('value', '')
+            coin_value = extras.get(CONS.ETS_XIAOLUCOIN, {}).get('value', 0)
             if float(coin_value) > 0:
                 return Response({'code': 27, 'info': u'只有精品券才能使用小鹿币购买，您的购买商品中没有精品券，请重新加入购物车再购买'})
 
@@ -774,7 +774,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 return Response({'code': 25, 'info': u'购买精品券最低购买5张或者30积分，您本次购买没有达到要求，请在购物车重新添加精品券'})
         else:
             extras = self.parse_pay_extras_to_dict(pay_extras)
-            coin_value = extras.get(CONS.ETS_XIAOLUCOIN, {}).get('value', '')
+            coin_value = extras.get(CONS.ETS_XIAOLUCOIN, {}).get('value', 0)
             if float(coin_value) > 0:
                 return Response({'code': 27, 'info': u'只有精品券才能使用小鹿币购买，您的购买商品中没有精品券，请重新加入购物车再购买'})
         return False
