@@ -231,6 +231,7 @@ kd100_exp_map = {"韵达":"yunda",'韵达快递':'yunda','韵达速递':'yunda',
                  "申通":"shentong","申通快递":"shentong","申通速递":"shentong",
                  "顺丰":"shunfeng","顺丰快递":"shunfeng","顺丰速递":"shunfeng",
                  "EMS":"ems",  #对应于上面物流表中EMS
+                 "ems":"ems",
                  "百世":"huitongkuaidi","百世汇通":"huitongkuaidi",
                  "中通":"zhongtong","中通快递":"zhongtong","中通速递":"zhongtong",
                  "圆通":"yuantong","圆通快递":"yuantong","圆通速递":"yuantong",
@@ -246,12 +247,15 @@ kd100_exp_map = {"韵达":"yunda",'韵达快递':'yunda','韵达速递':'yunda',
                  "宅急送":"zhaijisong",
                  "全一":"quanyikuaidi","全一快递":"quanyikuaidi","全一速递":"quanyikuaidi",
                  "快捷速递":"kuaijiesudi","快捷":"kuaijiesudi","快捷快递":"kuaijiesudi",
-                 "DH":"dhl","DHL":"dhl"
+                 "DH":"dhl","DHL":"dhl",
+                 "邮政小包":"youzhengguonei",
+                 "天天":"tiantian",
 
                  }
 
 kdn_not_support_exp = ["如风达快递","如风达","如风达速递",
-                       "顺丰","顺丰快递","顺丰速递","快捷速递","快捷","快捷快递"]
+                       "顺丰","顺丰快递","顺丰速递","快捷速递","快捷","快捷快递","圓通快递","圆通","圆通速递",
+                       "百世汇通","天天","天天快递","天天速递","中通","中通快递","中通速递","邮政小包","邮政包裹","邮政","邮政快递","EMS","ems"]
 
 def reverse_map():
     return dict(zip(exp_map.values(),exp_map.keys()))

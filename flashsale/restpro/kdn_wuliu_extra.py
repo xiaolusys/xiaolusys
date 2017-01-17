@@ -18,7 +18,7 @@ import json
 import functools
 import requests
 import datetime,socket,random,struct
-from exp_map import exp_map,reverse_map
+from exp_map import exp_map,reverse_map,reverse_100_map
 from shopback.logistics.models import LogisticsCompany
 from flashsale.pay.models import SaleTrade,SaleOrder
 from shopback.trades.models import PackageSkuItem
@@ -436,7 +436,11 @@ def kdn_get_push(*args, **kwargs):
 
 
 def get_exp_by_kd100(company_name,out_sid):
-
+    trade_wuliu = TradeWuliu.objects.filter(out_sid=out_sid)
+    if trade_wuliu:
+        created_time = trade_wuliu.first().created
+        if datetime.datetime.now() - datetime.timedelta(hours=2) < created_time:
+            return
     type = str(company_name)
     postid=str(out_sid)
     tradewuliu = TradeWuliu.objects.filter(out_sid=postid).first()
@@ -464,6 +468,7 @@ def get_exp_by_kd100(company_name,out_sid):
     print res
     res = json.loads(res)
     all_info = list()
+
     if not res.get("data"):
         write_info = {
             "out_sid":postid,
@@ -478,6 +483,7 @@ def get_exp_by_kd100(company_name,out_sid):
         all_info.append(each_info)
     all_info.reverse()
 
+    res["com"] = reverse_100_map()[res["com"]]
     write_info = {
         "out_sid":res["nu"],
         "logistics_company":res["com"],
