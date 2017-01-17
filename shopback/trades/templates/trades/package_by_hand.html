@@ -5,9 +5,11 @@
 {{ block.super }}
 <link href="{{ STATIC_URL }}bootstrap-3.3.4-dist/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
 <link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css"/>
+<link rel="stylesheet" type="text/css" href="/static/wap/css/sweet-alert.css">
 <link href="{{ STATIC_URL }}css/base.less" rel="stylesheet/less" type="text/css"/>
 <link href="{{ STATIC_URL }}admin/css/forms.css" rel="stylesheet" type="text/css"/>
 <script src="{{ STATIC_URL }}layer-v1.9.2/layer/layer.js"></script>
+<script src="{{ STATIC_URL }}wap/js/sweet-alert.min.js"></script>
 <script src="{{ STATIC_URL }}layer-v1.9.2/layer/extend/layer.ext.js"></script>
 {% endblock %}
 
@@ -94,7 +96,7 @@
             <div class="row col-md-12">
                 <label class="col-md-1" for="sku_id">SKU编码:</label>
                 <input id="sku_id" type="text" class="col-md-3 input-m" placeholder="输入SKUID或者编码" value="">
-                <input id="sku_num" type="text" class="col-md-1 input-m" value="１">
+                <input id="sku_num" type="text" class="col-md-1 input-m" placeholder="输数字(正常数字别来中文数字)" value="1">
                 <button class="col-md-1" id="addsku">新增</button>
             </div>
         </div>
@@ -222,7 +224,6 @@ function get_address(){
         'receiver_city': receiver_city,
         'receiver_district': receiver_district,
         'receiver_address': receiver_address,
-        //'receiver_zip': receiver_zip,
         'receiver_mobile': receiver_mobile
     }
     return params;
@@ -233,17 +234,17 @@ function create_package(){
     $(".sku_line").each(function(){
         var el = $($(".sku_line")[0]);
         var sku_id = el.data("sku-id");
-        var num = el.find("#sku_num").text();
+        var num = el.find(".sku_num").text();
         psis.push([sku_id,num]);
     });
     params = get_address();
-    params['psis'] = psis;
+    params['psis'] = JSON.stringify(psis);
     $.ajax({
         type:'post',
         url:'/trades/package_order/new_create',
+        data: params,
         dataType: "json",
-        contentType: 'application/json',
-        success:function(){
+        success:function(res){
             swal({
                  title: '发货成功',
                  text: '是否前去查看包裹？',
@@ -251,10 +252,13 @@ function create_package(){
                  showCancelButton: true,
                  confirmButtonText: '查看包裹',
                  cancelButtonText: '留在本页'
-             }, function(){});
+             }, function(){
+                 window.location.href = '/admin/trades/packageorder?pid=' + res.id;
+             });
+             window.location.reload();
         },
         error:function(err){
-            alert(err)
+            alert(err.responseText);
         }
     });
 

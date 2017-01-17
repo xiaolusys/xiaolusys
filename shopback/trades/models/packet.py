@@ -2,6 +2,8 @@
 # @hy 原本命名为package.py不能被ide正确识别
 import datetime
 import logging
+import time
+import hashlib
 from django.db import models, transaction
 from django.db.models import Q, Sum, F, Manager
 from django.db.models.signals import post_save
@@ -364,12 +366,8 @@ class PackageOrder(models.Model):
             self.receiver_zip = st.receiver_zip
             self.receiver_phone = st.receiver_phone
             self.receiver_mobile = st.receiver_mobile
-        if save:
-            self.save()
-
-    def reset_return_address(self):
-        item = self.package_sku_items.filter(assign_status=PackageSkuItem.ASSIGNED).order_by('-id').first()
-        if item and item.sale_trade_id:
+        if item and item.type in [PSI_TYPE.RETURN_GOODS, PSI_TYPE.RETURN_OUT_ORDER, PSI_TYPE.RETURN_INFERIOR]:
+            from flashsale.dinghuo.models import ReturnGoods
             st = ReturnGoods.objects.filter(id=item.sale_trade_id).first()
             ua = UserAddress.objects.filter(supplier_id=st.supplier.id).first()
             self.buyer_id = ua.receiver_mobile
@@ -381,6 +379,8 @@ class PackageOrder(models.Model):
             self.receiver_zip = ua.receiver_zip
             self.receiver_phone = ua.receiver_phone
             self.receiver_mobile = ua.receiver_mobile
+        if save:
+            self.save()
 
 
     def set_package_address(self):
@@ -585,32 +585,41 @@ class PackageOrder(models.Model):
     @staticmethod
     @transaction.atomic
     def create_handle_package(ware_by, receiver_mobile, receiver_name, receiver_state, receiver_city,
-                              receiver_district, receiver_address, user_address_id):
+                              receiver_district, receiver_address, user_address_id=None):
         po = PackageOrder()
-        po.id = id
+        if user_address_id:
+            user_address_unikey = user_address_id
+        else:
+            address = receiver_state + receiver_city + receiver_district + receiver_address + receiver_name
+            user_address_unikey = hashlib.sha1(address).hexdigest()
         po.action_type = 1
         po.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS
-        po.tid = 'h' + str(return_goods.id)
+        _now = datetime.datetime.now()
+        time_s = time.mktime(_now.timetuple())
+        po.tid = 'h%s' % time_s
         po.action_type = 1
         po.ware_by = ware_by
         po.sys_status = PO_STATUS.WAIT_PREPARE_SEND_STATUS
         po.sku_num = 1
         po.order_sku_num = 1
         po.seller_id = ShopUser.objects.get(uid=FLASH_SELLER_ID).id
-        po.receiver_name = return_goods.get_supplier_addr().receiver_name
-        po.receiver_state = return_goods.get_supplier_addr().receiver_state
-        po.receiver_city = return_goods.get_supplier_addr().receiver_city
-        po.receiver_district = return_goods.get_supplier_addr().receiver_district
-        po.receiver_address = return_goods.get_supplier_addr().receiver_address
-        po.receiver_zip = return_goods.get_supplier_addr().receiver_zip
-        po.receiver_mobile = return_goods.get_supplier_addr().receiver_mobile
-        po.receiver_phone = return_goods.get_supplier_addr().receiver_phone
-        po.user_address_id = return_goods.get_supplier_addr().id
-        po.buyer_id = return_goods.supplier_id
-        po.buyer_nick = return_goods.supplier.supplier_name
+        poid = "%s-%s-%s" % (po.seller_id, user_address_unikey, ware_by)
+        num = PackageOrder.objects.filter(id__startswith=po.id).count()
+        po.id = poid + '-' + str(num)
+        po.receiver_name = receiver_name
+        po.receiver_state = receiver_state
+        po.receiver_city = receiver_city
+        po.receiver_district = receiver_district
+        po.receiver_address = receiver_address
+        po.receiver_zip = ''
+        po.receiver_mobile = receiver_mobile
+        po.receiver_phone = ''
+        po.user_address_id = user_address_id
+        po.buyer_id = None
+        po.buyer_nick = receiver_name
         po.can_send_time = datetime.datetime.now()
         po.save()
-        return
+        return po
 
     @staticmethod
     def get_or_create(id, sale_trade):
@@ -1123,6 +1132,7 @@ class PackageSkuItem(BaseModel):
             ware_by=ware_by,
             pay_time=datetime.datetime.now()
         )
+        psi.save()
         return psi
 
     @property

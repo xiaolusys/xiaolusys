@@ -60,7 +60,10 @@ class PayTimeRangeForm(BaseForm):
 
 
 class PackageOrderEditForm(forms.ModelForm):
+    user_address_id = forms.CharField(max_length=40, required=False)
+
     class Meta:
         model = PackageOrder
-        # fields = []
-        exclude = ['created']
+        fields = ["ware_by", "receiver_mobile", "receiver_name", "receiver_state", "receiver_city",
+                              "receiver_district", "receiver_address"]
+        # exclude = ['created']
