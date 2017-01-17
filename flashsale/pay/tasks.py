@@ -1025,7 +1025,6 @@ def task_schedule_check_user_budget(days=1):
 
     tousers = [
         '02401336675559',  # 伍磊
-        '01591912287010',  # 林杰
     ]
     msg = '定时检查用户钱包数据:\n时间: %s \n历史天数:%s\n钱包记录条数:%s\n错误用户有:%s' % \
           (str(datetime.datetime.now()), str(days), str(bgs.count()), '[%s]' % ','.join(errors))
@@ -1115,7 +1114,6 @@ def task_schedule_check_boutique_modelproduct(days=1):
     from common.dingding import DingDingAPI
     tousers = [
         '02401336675559',  # 伍磊
-        '01591912287010',  # 林杰
     ]
     msg = '定时检查boutique product数据:\n时间: %s \nerror记录条数:%s\n' % \
           (str(datetime.datetime.now()), str(wrong_product))
