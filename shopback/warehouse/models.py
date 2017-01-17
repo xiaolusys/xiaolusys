@@ -82,6 +82,7 @@ def update_productskustats_adjust_num(sender, instance, created, **kwargs):
             SkuStock.get_by_sku(instance.sku_id).relase_assign()
 
 
+
 post_save.connect(update_productskustats_adjust_num, sender=StockAdjust,
                   dispatch_uid='post_save_update_warehouse_receipt_status')
 

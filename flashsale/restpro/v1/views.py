@@ -409,6 +409,12 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data)
 
+    @detail_route(methods=['get'])
+    def get_address_list(self, request, pk):
+        queryset = UserAddress.objects.filter(receiver_mobile=pk)
+        qs = queryset.filter(status=UserAddress.NORMAL)
+        serializer = self.get_serializer(qs, many=True)
+        return Response(serializer.data)
 
 from rest_framework_extensions.cache.decorators import cache_response
 

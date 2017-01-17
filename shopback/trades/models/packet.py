@@ -583,6 +583,36 @@ class PackageOrder(models.Model):
         return po
 
     @staticmethod
+    @transaction.atomic
+    def create_handle_package(ware_by, receiver_mobile, receiver_name, receiver_state, receiver_city,
+                              receiver_district, receiver_address, user_address_id):
+        po = PackageOrder()
+        po.id = id
+        po.action_type = 1
+        po.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS
+        po.tid = 'h' + str(return_goods.id)
+        po.action_type = 1
+        po.ware_by = ware_by
+        po.sys_status = PO_STATUS.WAIT_PREPARE_SEND_STATUS
+        po.sku_num = 1
+        po.order_sku_num = 1
+        po.seller_id = ShopUser.objects.get(uid=FLASH_SELLER_ID).id
+        po.receiver_name = return_goods.get_supplier_addr().receiver_name
+        po.receiver_state = return_goods.get_supplier_addr().receiver_state
+        po.receiver_city = return_goods.get_supplier_addr().receiver_city
+        po.receiver_district = return_goods.get_supplier_addr().receiver_district
+        po.receiver_address = return_goods.get_supplier_addr().receiver_address
+        po.receiver_zip = return_goods.get_supplier_addr().receiver_zip
+        po.receiver_mobile = return_goods.get_supplier_addr().receiver_mobile
+        po.receiver_phone = return_goods.get_supplier_addr().receiver_phone
+        po.user_address_id = return_goods.get_supplier_addr().id
+        po.buyer_id = return_goods.supplier_id
+        po.buyer_nick = return_goods.supplier.supplier_name
+        po.can_send_time = datetime.datetime.now()
+        po.save()
+        return
+
+    @staticmethod
     def get_or_create(id, sale_trade):
         if not PackageOrder.objects.filter(id=id).exists():
             package_order = PackageOrder(id=id)
@@ -783,6 +813,7 @@ class PackageSkuItem(BaseModel):
 
     sale_order_id = models.IntegerField(unique=True, null=True, verbose_name=u'SKU订单ID')
     # 退货单直接用sale_order_id来存rg_detail_id （性能考虑，不加过多的索引）rd+rg_detail_id
+    # 手工单没有的都null
     oid = models.CharField(max_length=40, null=True, db_index=True, verbose_name=u'SKU交易单号|退货详单ID')
     # 退货单直接用sale_trade_id来存return_goods_id rg + sale_trade_id
     sale_trade_id = models.CharField(max_length=40, null=True, db_index=True, verbose_name=u'交易单号|退货单号')  # tid
@@ -1079,6 +1110,20 @@ class PackageSkuItem(BaseModel):
         if not assigned:
             sku_item.gen_arrangement()
         return sku_item
+
+    @staticmethod
+    def create_by_hand(sku, num, package_order_pid, package_order_id, receiver_mobile,
+                       ware_by):
+        psi = PackageSkuItem(
+            sku_id=sku.id,
+            num=num,
+            package_order_id=package_order_id,
+            package_order_pid=package_order_pid,
+            receiver_mobile=receiver_mobile,
+            ware_by=ware_by,
+            pay_time=datetime.datetime.now()
+        )
+        return psi
 
     @property
     def sku_stock(self):

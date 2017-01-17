@@ -5,7 +5,7 @@ from django import forms
 
 from core.forms import BaseForm
 
-from .models import MergeTrade, LogisticsCompany
+from .models import MergeTrade, LogisticsCompany, PackageOrder
 
 
 class YundaCustomerForm(forms.ModelForm):
@@ -57,3 +57,10 @@ class PayTimeRangeForm(BaseForm):
         if self.cleaned_attrs.pay_time_end:
             data['pay_time_end'] = self.cleaned_attrs.pay_time_end.strftime('%Y-%m-%d')
         return data
+
+
+class PackageOrderEditForm(forms.ModelForm):
+    class Meta:
+        model = PackageOrder
+        # fields = []
+        exclude = ['created']
