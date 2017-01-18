@@ -412,10 +412,10 @@ def elite_mama_recharge(customer_id, order_id, order_oid, product_id):
     from flashsale.xiaolumm.models.models import XiaoluMama
     to_mama = customer.get_xiaolumm()
     coin = XiaoluCoin.get_or_create(to_mama.id)
-    coin.recharge(round(so.total_fee * 100), order_id)
+    coin.recharge(round(so.total_fee * 100), order_oid)
 
     # 2,transfer record add recharge log
-    CouponTransferRecord.gen_recharge_record(customer, order_oid, round(so.total_fee))
+    CouponTransferRecord.gen_recharge_record(customer, order_oid, round(so.price), so.num)
 
     # 3,add elite score
     from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score

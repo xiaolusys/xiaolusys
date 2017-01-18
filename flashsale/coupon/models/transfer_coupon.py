@@ -476,7 +476,7 @@ class CouponTransferRecord(BaseModel):
         return transfer
 
     @classmethod
-    def gen_recharge_record(cls, customer, order_oid, price):
+    def gen_recharge_record(cls, customer, order_oid, price, num):
         from flashsale.coupon.models import CouponTemplate
 
         coupon_from_mama_id = 0
@@ -503,7 +503,7 @@ class CouponTransferRecord(BaseModel):
         mama = customer.get_charged_mama()
         product_id, elite_score, agent_price = get_elite_score_by_templateid(template_id, mama)
         from flashsale.xiaolumm.apis.v1.xiaolumama import xlmm_recharge_cacl_score
-        elite_score = xlmm_recharge_cacl_score(price)
+        elite_score = num * xlmm_recharge_cacl_score(price)
 
         transfer = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id,
                                         from_mama_thumbnail=from_mama_thumbnail,
