@@ -388,6 +388,36 @@ def send_new_elite_transfer_coupons(customer_id, order_id, order_oid, product_id
     task_calc_xlmm_elite_score(coupon_to_mama_id)  # 计算妈妈积分
     task_update_tpl_released_coupon_nums.delay(template.id)  # 统计发放数量
 
+def elite_mama_recharge(customer_id, order_id, order_oid, product_id):
+    """创建elite mama 充值记录
+    """
+    from flashsale.coupon.models import CouponTransferRecord
+    from flashsale.pay.models import Customer
+
+    logger.info({
+        'action': 'elite_mama_recharge',
+        'action_time': datetime.datetime.now(),
+        'order_oid': order_oid,
+        'message': u'begin:customer=%s, order_id=%s order_oid=%s product_id=%s' % (
+            customer_id, order_id, order_oid, product_id),
+    })
+
+    so = SaleOrder.objects.get(id=order_id)
+    if not so.is_finished():
+        return
+
+    # 1,xiaolucoin add recharge log
+    customer = Customer.objects.get(id=customer_id)
+    from flashsale.xiaolumm.models import XiaoluCoin
+    from flashsale.xiaolumm.models.models import XiaoluMama
+    to_mama = customer.get_xiaolumm()
+    coin = XiaoluCoin.get_or_create(to_mama.id)
+    coin.recharge(so.payment, order_id)
+
+    # 2,transfer record add recharge log
+    # 3,add elite score
+    from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
+    task_calc_xlmm_elite_score(to_mama.id)  # 计算妈妈积分
 
 def coupon_exchange_saleorder(customer, order_id, mama_id, template_ids, coupon_num):
     logger.info({
