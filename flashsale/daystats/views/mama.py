@@ -9,7 +9,7 @@ from django.db import models
 from django.views.decorators.cache import cache_page
 from django.core.paginator import Paginator
 from django.core.cache import cache
-from django.db.models import F, Sum, FloatField
+from django.db.models import F, Sum, FloatField, Q
 from django.contrib.auth.decorators import login_required
 
 from flashsale.daystats.mylib.chart import (
@@ -844,29 +844,26 @@ def transfer_coupon(req):
     return render(req, 'yunying/mama/index.html', locals())
 
 
-def calc_xlmm_elite_score(mama_id):
-    res = CouponTransferRecord.objects.filter(
-        coupon_from_mama_id=mama_id,
-        transfer_status=CouponTransferRecord.DELIVERED,
-        transfer_type__in=[CouponTransferRecord.OUT_CASHOUT, CouponTransferRecord.IN_RETURN_COUPON]
-    ).aggregate(n=Sum('elite_score'))
-    out_score = res['n'] or 0
+def calc_xlmm_elite_score(mama_id, start_date, end_date):
+    records = CouponTransferRecord.objects.using('default').filter(
+        Q(coupon_from_mama_id=mama_id) | Q(coupon_to_mama_id=mama_id),
+        created__gte=start_date, created__lt=end_date,
+        transfer_status=CouponTransferRecord.DELIVERED).order_by('created')
 
-    res = CouponTransferRecord.objects.filter(
-        coupon_to_mama_id=mama_id,
-        transfer_status=CouponTransferRecord.DELIVERED,
-        transfer_type=CouponTransferRecord.IN_BUY_COUPON
-    ).aggregate(n=Sum('elite_score'))
-    in_buy_score = res['n'] or 0
+    score = 0
+    for record in records:
+        if record.coupon_from_mama_id == mama_id:
+            if record.transfer_type in [CouponTransferRecord.OUT_CASHOUT, CouponTransferRecord.IN_RETURN_COUPON]:
+                score = score - record.elite_score
 
-    res = CouponTransferRecord.objects.filter(
-        coupon_to_mama_id=mama_id,
-        transfer_status=CouponTransferRecord.DELIVERED,
-        transfer_type=CouponTransferRecord.OUT_TRANSFER
-    ).aggregate(n=Sum('elite_score'))
-    in_trans_score = res['n'] or 0
+        if record.coupon_to_mama_id == mama_id:
+            if record.transfer_type in [
+                CouponTransferRecord.IN_BUY_COUPON,
+                CouponTransferRecord.OUT_TRANSFER,
+                CouponTransferRecord.IN_GIFT_COUPON
+            ]:
+                score += record.elite_score
 
-    score = in_buy_score + in_trans_score - out_score
     return score
 
 
@@ -875,6 +872,10 @@ def calc_xlmm_elite_score(mama_id):
 def coupon_rank(req):
     mama_id = req.GET.get('mama_id')
     q_page = req.GET.get('page') or 1
+    today = datetime.today()
+    yesterday = datetime.today() - timedelta(days=1)
+    start_date = datetime(yesterday.year, yesterday.month, yesterday.day)
+    end_date = datetime(today.year, today.month, today.day)
 
     data = {}
 
@@ -892,13 +893,15 @@ def coupon_rank(req):
     mamas = cur_page.object_list
 
     for item in mamas:
-        customer = Customer.objects.filter(unionid=item.openid).first()
+        customer = Customer.objects.using('default').filter(unionid=item.openid).first()
         data[item.id] = {
             'id': int(item.id),
             'elite_score': item.elite_score,
             'elite_level': item.elite_level,
             'referal_from': item.referal_from,
-            'customer': customer
+            'customer': customer,
+            'manager': item.mama_manager,
+            'yesterday_score': calc_xlmm_elite_score(item.id, start_date, end_date)
             # 'score': calc_xlmm_elite_score(item.id)
         }
     mama_ids = [int(x.id) for x in mamas]
@@ -994,6 +997,7 @@ def coupon_rank(req):
     sql = """
         SELECT
             coupon_to_mama_id ,
+            sum(coupon_value * coupon_num) AS val,
             sum(coupon_num) AS num
         FROM
             `xiaoludb`.`flashsale_coupon_transfer_record`
@@ -1006,7 +1010,7 @@ def coupon_rank(req):
     records = execute_sql(get_cursor(), sql)
     for item in records:
         data[int(item['coupon_to_mama_id'])]['in'] = {
-            # 'val': item['val'],
+            'val': item['val'],
             'num': item['num']
         }
 
@@ -1014,6 +1018,7 @@ def coupon_rank(req):
     sql = """
         SELECT
             coupon_from_mama_id ,
+            sum(coupon_value * coupon_num) AS val,
             sum(coupon_num) AS num
         FROM
             `xiaoludb`.`flashsale_coupon_transfer_record`
@@ -1026,7 +1031,7 @@ def coupon_rank(req):
     records = execute_sql(get_cursor(), sql)
     for item in records:
         data[int(item['coupon_from_mama_id'])]['out'] = {
-            # 'val': item['val'],
+            'val': item['val'],
             'num': item['num']
         }
 
