@@ -347,7 +347,10 @@ def kdn_subscription(*args,**kwargs):
     if res.status_code == 502:
         logging.warn("物流查询失败返回"+"502 Bad Gateway"+"快递鸟那边繁忙")
         return result
-    result = json.loads(result.encode('UTF-8'))
+    try:
+        result = json.loads(result.encode('UTF-8'))
+    except:
+        logger.warn({'action': "kdn", 'info': "run kdn_subscription_error_info:"+str(kwargs["expName"])+str(kwargs["expNo"])})
     if result["Success"] == True:
         logging.warn("订阅成功")
         result.update({"info":"订阅成功"})
