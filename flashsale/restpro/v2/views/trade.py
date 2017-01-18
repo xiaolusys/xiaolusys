@@ -252,23 +252,39 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             payment = round(sale_trade.payment * 100)
             strade_id = sale_trade.id
             channel = sale_trade.channel
+            pay_extras = sale_trade.extras_info.get('pay_extras')
+            extras = self.parse_pay_extras_to_dict(pay_extras)
+            budget_value = extras.get(CONS.ETS_BUDGET, {}).get('value', 0)
+            coin_value = extras.get(CONS.ETS_XIAOLUCOIN, {}).get('value', 0)
 
             if payment > 0:
-                user_budget = UserBudget.objects.filter(user=buyer, amount__gte=payment).first()
-                if not user_budget:
-                    raise Exception(u'小鹿钱包余额不足')
-                try:
-                    BudgetLog.create(
-                        customer_id=buyer.id,
-                        budget_type=BudgetLog.BUDGET_OUT,
-                        flow_amount=payment,
-                        budget_log_type=BudgetLog.BG_CONSUM,
-                        referal_id=strade_id,
-                        status=BudgetLog.CONFIRMED,
-                        uni_key='st_%s'%sale_trade.id
-                    )
-                except IntegrityError, exc:
-                    logger.error(str(exc), exc_info=True)
+                if float(budget_value) > 0:
+                    user_budget = UserBudget.objects.filter(user=buyer, amount__gte=payment).first()
+                    if not user_budget:
+                        raise Exception(u'小鹿钱包余额不足')
+                    try:
+                        BudgetLog.create(
+                            customer_id=buyer.id,
+                            budget_type=BudgetLog.BUDGET_OUT,
+                            flow_amount=payment,
+                            budget_log_type=BudgetLog.BG_CONSUM,
+                            referal_id=strade_id,
+                            status=BudgetLog.CONFIRMED,
+                            uni_key='st_%s'%sale_trade.id
+                        )
+                    except IntegrityError, exc:
+                        logger.error(str(exc), exc_info=True)
+                elif float(coin_value) > 0:
+                    from flashsale.xiaolumm.models.xiaolucoin import XiaoluCoin
+                    xlmm = buyer.getXiaolumm()
+                    if xlmm:
+                        xiaolucoin = XiaoluCoin.get_or_create()
+                        if xiaolucoin and xiaolucoin.amount >= payment:
+                            xiaolucoin.consume(payment, strade_id)
+                        else:
+                            raise Exception(u'小鹿币余额不足')
+                    else:
+                        raise Exception(u'不是正常的小鹿妈妈账号，无法使用小鹿币，请联系客服或管理员')
 
         # 确认付款后保存
         confirmTradeChargeTask(strade_id)
@@ -1175,7 +1191,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 return Response({'code': 10, 'info': u'妈妈钱包支付功能已取消'})
                 # response_charge = self.wallet_charge(sale_trade)
             elif channel == SaleTrade.BUDGET:
-                #小鹿钱包
+                #小鹿钱包/xiaolucoin
                 response_charge = self.budget_charge(sale_trade)
             else:
                 #pingpp 支付
