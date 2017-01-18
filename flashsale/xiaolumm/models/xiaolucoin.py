@@ -30,9 +30,11 @@ class XiaoluCoin(BaseModel):
         verbose_name_plural = u'小鹿币'
 
     @classmethod
-    def create(cls, mama_id):
-        coin = XiaoluCoin(mama_id=mama_id, amount=0)
-        coin.save()
+    def get_or_create(cls, mama_id):
+        coin = XiaoluCoin.objects.filter(mama_id=mama_id).first()
+        if not coin:
+            coin = XiaoluCoin(mama_id=mama_id, amount=0)
+            coin.save()
         return coin
 
     def recharge(self, amount, referal_id=''):
