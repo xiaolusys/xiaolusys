@@ -98,3 +98,20 @@ def change_mama_follow_elite_mama(mama_id, upper_mama_id, direct_info):
 
         relationship.change_referal_mama(upper_mama_id, is_elite=True)  # 修改该推荐关系的上级
     return True
+
+
+def xlmm_recharge_cacl_score(price):
+    """精英妈妈充值算积分
+    """
+    score = 0
+    if price == 600:
+        score = 100
+    elif price == 3000:
+        score = 600
+    elif price == 9000:
+        score = 2000
+    elif price == 25000:
+        score = 6000
+    elif price == 80000:
+        score = 20000
+    return score
