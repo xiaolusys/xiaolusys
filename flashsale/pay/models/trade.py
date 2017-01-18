@@ -1356,7 +1356,7 @@ def post_save_order_trigger(sender, instance, created, raw, **kwargs):
                             return
                     if instance.is_recharge_deposit():
                         elite_mama_recharge(instance.sale_trade.buyer_id, instance.id,
-                                            instance.oid, instance.num, instance.item_id)
+                                            instance.oid, instance.item_id)
                         return
                     task_update_referal_relationship(instance)
             else:

@@ -163,7 +163,7 @@ def task_saleorder_post_update_send_signal(saleorder_id, created, raw):
         saleorder = SaleOrder.objects.get(id=saleorder_id)
 
         logger.info({
-            'action': 'saleorder_update',
+            'action': 'task_saleorder_post_update_send_signal',
             'action_time': datetime.datetime.now(),
             'order_oid': saleorder.oid,
             'order_status': saleorder.status
@@ -177,7 +177,7 @@ def task_saleorder_post_update_send_signal(saleorder_id, created, raw):
         )
 
         logger.info({
-            'action': 'saleorder_update_end',
+            'action': 'task_saleorder_post_update_send_signal_end',
             'action_time': datetime.datetime.now(),
             'order_oid': saleorder.oid,
             'signal_data': '%s'%resp,
