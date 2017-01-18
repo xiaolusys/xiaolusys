@@ -36,6 +36,8 @@ from .models import (
     WeixinPushEvent,
     MamaReferalTree,
     EliteMamaStatus,
+    XiaoluCoin,
+    XiaoluCoinLog
 )
 from .models.models_rebeta import AgencyOrderRebetaScheme
 from .filters import UserNameFilter
@@ -928,6 +930,23 @@ class MamaReferalTreeAdmin(admin.ModelAdmin):
 
 
 admin.site.register(MamaReferalTree, MamaReferalTreeAdmin)
+
+
+class XiaoluCoinAdmin(admin.ModelAdmin):
+    list_display = ('id', 'mama_id', 'amount')
+    list_filter = ('created',)
+    search_fields = ('=mama_id',)
+
+admin.site.register(XiaoluCoin, XiaoluCoinAdmin)
+
+
+class XiaoluCoinLogAdmin(admin.ModelAdmin):
+    list_display = ('id', 'mama_id', 'iro_type', 'subject', 'amount', 'date_field', 'referal_id', 'uni_key')
+    list_filter = ('created', 'subject')
+    search_fields = ('=mama_id', '=referal_id')
+
+admin.site.register(XiaoluCoinLog, XiaoluCoinLogAdmin)
+
 
 
 
