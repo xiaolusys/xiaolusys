@@ -1205,7 +1205,7 @@ class SaleOrder(PayBaseModel):
     def is_transfer_coupon(self):
         return self.is_deposit() and \
                (self.outer_sku_id != '1' and self.outer_sku_id != '2' and self.outer_sku_id != '3') \
-               and (not self.is_recharge_deposit)
+               and (not self.is_recharge_deposit())
 
     def is_1_deposit(self):
         return self.is_deposit() and self.outer_sku_id == '3'
