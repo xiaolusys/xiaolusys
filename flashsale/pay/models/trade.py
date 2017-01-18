@@ -386,8 +386,8 @@ class SaleTrade(BaseModel):
         try:
             from django_statsd.clients import statsd
             dt_str = self.pay_time.strftime('%Y.%m.%d')
-            statsd.incr('xiaolumm.postpay_count.%s'%dt_str)
-            statsd.incr('xiaolumm.postpay_amount.%s'%dt_str, self.payment)
+            statsd.incr('xiaolumm.postpay_count.%s' % dt_str)
+            statsd.incr('xiaolumm.postpay_amount.%s' % dt_str, self.payment)
             for order in self.sale_orders.all():
                 if order.is_deposit() and order.status == SaleTrade.WAIT_SELLER_SEND_GOODS:
                     order.status = SaleTrade.TRADE_FINISHED
@@ -398,13 +398,12 @@ class SaleTrade(BaseModel):
                 'action': 'trade_confirm_signal',
                 'order_no': self.tid,
                 'action_time': datetime.datetime.now(),
-                'signal_data': '%s'%resp,
+                'signal_data': '%s' % resp,
             })
         except Exception, exc:
             logger.error(str(exc), exc_info=True)
             if not settings.INGORE_SIGNAL_EXCEPTION:
                 raise exc
-
 
     def charge_confirm(self, charge_time=None, charge=charge):
         """ 如果付款期间，订单被订单号任务关闭则不减锁定数量 """
@@ -759,6 +758,7 @@ def trigger_mama_deposit_action(sender, obj, *args, **kwargs):
     except Exception as e:
         logging.error(e)
 
+
 signal_saletrade_pay_confirm.connect(trigger_mama_deposit_action,
                                      sender=SaleTrade,
                                      dispatch_uid="signal_trigger_mama_deposit_action")
@@ -786,7 +786,9 @@ def update_skustock_paid_num(sender, obj, **kwargs):
     for order in obj.sale_orders.all():
         SkuStock.set_order_paid_num(order.sku_id, order.num)
 
+
 signal_saletrade_pay_confirm.connect(update_skustock_paid_num, sender=SaleTrade)
+
 
 def push_trade_pay_notify(sender, obj, **kwargs):
     """
@@ -857,7 +859,7 @@ def set_coupon_2_use_by_trade_confirm(sender, obj, **kwargs):
         logger.info({
             'action': 'set_coupon_2_use_by_trade_confirm_end',
             'action_time': datetime.datetime.now(),
-            'coupons': coupons.values('id','status'),
+            'coupons': coupons.values('id', 'status'),
             'order_no': obj.tid,
         })
         use_coupon_by_ids(coupon_ids, obj.tid)  # 使用优惠券
@@ -880,12 +882,14 @@ def set_coupon_2_use_by_trade_confirm(sender, obj, **kwargs):
             'traceback': traceback.format_exc(),
         })
 
+
 signal_saletrade_pay_confirm.connect(set_coupon_2_use_by_trade_confirm, sender=SaleTrade,
                                      dispatch_uid='signal_set_coupon_2_use_by_trade_confirm')
 
 
 def update_teambuy(sender, instance, created, **kwargs):
-    transaction.on_commit(lambda :instance.update_teambuy())
+    transaction.on_commit(lambda: instance.update_teambuy())
+
 
 post_save.connect(update_teambuy, sender=SaleTrade, dispatch_uid='post_save_saletrade_update_teambuy')
 
@@ -953,7 +957,7 @@ class SaleOrder(PayBaseModel):
     outer_sku_id = models.CharField(max_length=32, blank=True, verbose_name=u'规格外部编码')
 
     total_fee = models.FloatField(default=0.0, verbose_name=u'总费用')
-    payment   = models.FloatField(default=0.0, verbose_name=u'实付款')
+    payment = models.FloatField(default=0.0, verbose_name=u'实付款')
     discount_fee = models.FloatField(default=0.0, verbose_name=u'优惠金额')
 
     sku_name = models.CharField(max_length=256, blank=True, verbose_name=u'购买规格')
@@ -1034,7 +1038,8 @@ class SaleOrder(PayBaseModel):
 
     def set_psi_paid(self):
         from shopback.trades.models import PackageSkuItem
-        if self.sale_trade.order_type in [SaleTrade.RESERVE_ORDER, SaleTrade.DEPOSITE_ORDER, SaleTrade.ELECTRONIC_GOODS_ORDER]:
+        if self.sale_trade.order_type in [SaleTrade.RESERVE_ORDER, SaleTrade.DEPOSITE_ORDER,
+                                          SaleTrade.ELECTRONIC_GOODS_ORDER]:
             return
         if self.is_teambuy() and not self.teambuy_can_send():
             return
@@ -1050,7 +1055,7 @@ class SaleOrder(PayBaseModel):
 
     def teambuy_can_send(self):
         from flashsale.pay.models import TeamBuyDetail
-        oid = self.oid.split('-')[0] # 应对重新发货
+        oid = self.oid.split('-')[0]  # 应对重新发货
         return TeamBuyDetail.objects.get(oid=oid).teambuy.status == 1
 
     def can_refund(self):
@@ -1199,7 +1204,8 @@ class SaleOrder(PayBaseModel):
 
     def is_transfer_coupon(self):
         return self.is_deposit() and \
-               (self.outer_sku_id != '1' and self.outer_sku_id != '2' and self.outer_sku_id != '3')
+               (self.outer_sku_id != '1' and self.outer_sku_id != '2' and self.outer_sku_id != '3') \
+               and (not self.is_recharge_deposit)
 
     def is_1_deposit(self):
         return self.is_deposit() and self.outer_sku_id == '3'
@@ -1212,6 +1218,11 @@ class SaleOrder(PayBaseModel):
 
     def is_new_elite_deposit(self):
         return self.is_deposit() and (self.outer_sku_id == '338' or self.outer_sku_id == '216')
+
+    def is_recharge_deposit(self):
+        return self.is_deposit() and (self.outer_sku_id == '600' or self.outer_sku_id == '3000'
+                                      or self.outer_sku_id == '9000' or self.outer_sku_id == '25000'
+                                      or self.outer_sku_id == '80000')
 
     @property
     def item_product(self):
@@ -1304,14 +1315,16 @@ class SaleOrder(PayBaseModel):
     def product(self):
         return self.product_sku.product
 
+
 @receiver(post_save, sender=SaleOrder, dispatch_uid='post_save_saleorder_notify_update')
 def saleorder_notify_update(sender, instance, created, raw, **kwargs):
     from flashsale.pay.tasks import task_saleorder_post_update_send_signal
-    transaction.on_commit(lambda :task_saleorder_post_update_send_signal.delay(
+    transaction.on_commit(lambda: task_saleorder_post_update_send_signal.delay(
         instance.id,
         created,
         raw
-     ))
+    ))
+
 
 @receiver(signal_saleorder_post_update, sender=SaleOrder, dispatch_uid='post_save_order_trigger')
 def post_save_order_trigger(sender, instance, created, raw, **kwargs):
@@ -1323,7 +1336,7 @@ def post_save_order_trigger(sender, instance, created, raw, **kwargs):
 
     from flashsale.coupon.apis.v1.transfer import send_order_transfer_coupons
     from flashsale.xiaolumm.tasks import task_update_referal_relationship, task_order_trigger
-    from flashsale.coupon.apis.v1.transfer import send_new_elite_transfer_coupons
+    from flashsale.coupon.apis.v1.transfer import send_new_elite_transfer_coupons, elite_mama_recharge
 
     def _order_trigger(instance):
         message = 'oK'
@@ -1341,6 +1354,10 @@ def post_save_order_trigger(sender, instance, created, raw, **kwargs):
                             send_order_transfer_coupons(instance.sale_trade.buyer_id, instance.id,
                                                         instance.oid, instance.num, instance.item_id)
                             return
+                    if instance.is_recharge_deposit():
+                        elite_mama_recharge(instance.sale_trade.buyer_id, instance.id,
+                                            instance.oid, instance.num, instance.item_id)
+                        return
                     task_update_referal_relationship(instance)
             else:
                 task_order_trigger(instance)
@@ -1370,32 +1387,32 @@ def update_package_sku_item(sender, instance, created, **kwargs):
 
 
 def saleorder_update_productskustats_waitingpay_num(sender, instance, *args, **kwargs):
-
     from shopback.items.tasks_stats import task_saleorder_update_productskustats_waitingpay_num
-    transaction.on_commit(lambda:task_saleorder_update_productskustats_waitingpay_num(instance.sku_id))
+    transaction.on_commit(lambda: task_saleorder_update_productskustats_waitingpay_num(instance.sku_id))
 
 
 if not settings.CLOSE_CELERY:
     signal_saleorder_post_update.connect(saleorder_update_productskustats_waitingpay_num, sender=SaleOrder,
-                      dispatch_uid='post_save_aleorder_update_productskustats_waitingpay_num')
+                                         dispatch_uid='post_save_aleorder_update_productskustats_waitingpay_num')
 
 
 def saleorder_update_saletrade_status(sender, instance, *args, **kwargs):
     if instance.status > SaleOrder.WAIT_BUYER_PAY:
         from flashsale.pay.tasks import tasks_update_sale_trade_status
-        transaction.on_commit(lambda :tasks_update_sale_trade_status(instance.sale_trade_id))
+        transaction.on_commit(lambda: tasks_update_sale_trade_status(instance.sale_trade_id))
 
 
 signal_saleorder_post_update.connect(saleorder_update_saletrade_status, sender=SaleOrder,
-                  dispatch_uid='post_save_saleorder_update_saletrade_status')
+                                     dispatch_uid='post_save_saleorder_update_saletrade_status')
 
 
 def saleorder_update_stats_record(sender, instance, *args, **kwargs):
     from statistics.tasks import task_update_sale_order_stats_record
-    transaction.on_commit(lambda :task_update_sale_order_stats_record.delay(instance))
+    transaction.on_commit(lambda: task_update_sale_order_stats_record.delay(instance))
+
 
 signal_saleorder_post_update.connect(saleorder_update_stats_record, sender=SaleOrder,
-                  dispatch_uid='post_save_saleorder_update_stats_record')
+                                     dispatch_uid='post_save_saleorder_update_stats_record')
 
 
 class SaleOrderSyncLog(BaseModel):
@@ -1441,7 +1458,6 @@ class SaleOrderSyncLog(BaseModel):
 
 
 def post_save_gauge_data(sender, instance, created, **kwargs):
-
     from django_statsd.clients import statsd
     key = None
     if instance.is_completed():
@@ -1473,7 +1489,7 @@ signal_saleorder_post_update.connect(post_save_gauge_data, sender=SaleOrderSyncL
 
 def add_order_integral(sender, instance, created, **kwargs):
     from flashsale.pay.tasks import task_add_user_order_integral
-    transaction.on_commit(lambda :task_add_user_order_integral.delay(instance))
+    transaction.on_commit(lambda: task_add_user_order_integral.delay(instance))
 
 
 signal_saleorder_post_update.connect(add_order_integral, sender=SaleOrder, dispatch_uid='post_save_add_order_integral')
