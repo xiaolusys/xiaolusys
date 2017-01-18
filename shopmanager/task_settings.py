@@ -1468,7 +1468,7 @@ SHOP_APP_SCHEDULE = {
     },
     u'定时检查优惠券流通记录': {
         'task': 'flashsale.coupon.tasks.transfer_coupon.task_check_transfer_coupon_record',
-        'schedule': crontab(minute="0", hour="*/4"),
+        'schedule': crontab(minute="0", hour="*/2"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
