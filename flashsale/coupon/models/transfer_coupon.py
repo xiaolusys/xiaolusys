@@ -474,6 +474,52 @@ class CouponTransferRecord(BaseModel):
                        )
         transfer.save()
         return transfer
+
+    @classmethod
+    def gen_recharge_record(cls, customer, order_oid, price):
+        from flashsale.coupon.models import CouponTemplate
+
+        coupon_from_mama_id = 0
+        from_mama_thumbnail = 'http://7xogkj.com2.z0.glb.qiniucdn.com/222-ohmydeer.png?imageMogr2/thumbnail/60/format/png'
+        from_mama_nick = 'SYSTEM'
+
+        coupon_to_mama_id = customer.mama_id
+        to_mama_thumbnail = customer.thumbnail
+        to_mama_nick = customer.nick
+        init_from_mama_id = coupon_to_mama_id
+        order_no = order_oid
+
+        transfer_type = CouponTransferRecord.IN_RECHARGE
+        date_field = datetime.date.today()
+        transfer_status = CouponTransferRecord.DELIVERED
+        uni_key = "%s-%s-%s" % (coupon_to_mama_id, transfer_type, order_oid)  # every trade, only return once.
+
+        template_id = 156
+        template = CouponTemplate.objects.get(id=template_id)
+        coupon_value = template.value
+        product_img = template.extras.get("product_img") or ''
+
+        from flashsale.coupon.apis.v1.transfer import get_elite_score_by_templateid
+        mama = customer.get_charged_mama()
+        product_id, elite_score, agent_price = get_elite_score_by_templateid(template_id, mama)
+        from flashsale.xiaolumm.apis.v1.xiaolumama import xlmm_recharge_cacl_score
+        elite_score = xlmm_recharge_cacl_score(price)
+
+        transfer = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id,
+                                        from_mama_thumbnail=from_mama_thumbnail,
+                                        from_mama_nick=from_mama_nick, coupon_to_mama_id=coupon_to_mama_id,
+                                        to_mama_thumbnail=to_mama_thumbnail, to_mama_nick=to_mama_nick,
+                                        coupon_value=coupon_value,
+                                        init_from_mama_id=init_from_mama_id, order_no=order_no, template_id=template_id,
+                                        product_img=product_img, coupon_num=0, transfer_type=transfer_type,
+                                        product_id=product_id, elite_score=elite_score,
+                                        uni_key=uni_key, date_field=date_field, transfer_status=transfer_status,
+
+                                        elite_level=mama.elite_level,
+                                        to_mama_price=agent_price,
+                                        )
+        transfer.save()
+        return transfer
     
     @property
     def product_model_id(self):
