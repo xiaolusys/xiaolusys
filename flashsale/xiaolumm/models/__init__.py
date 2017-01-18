@@ -16,3 +16,4 @@ from .score import XlmmEffectScore, XlmmTeamEffScore
 
 from .referaltree import MamaReferalTree
 from .elite_mama import EliteMamaStatus
+from .xiaolucoin import XiaoluCoin, XiaoluCoinLog
