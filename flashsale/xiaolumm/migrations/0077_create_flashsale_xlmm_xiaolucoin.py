@@ -9,7 +9,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('xiaolumm', '0073_create_model_elitemama_status'),
+        ('xiaolumm', '0076_add_field_refund_coupon'),
     ]
 
     operations = [
