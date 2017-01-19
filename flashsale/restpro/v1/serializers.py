@@ -31,7 +31,7 @@ from shopback.items.models import Product, ProductSku
 from shopback.categorys.models import ProductCategory
 from shopback.logistics.models import LogisticsCompany
 from shopback.trades.models import TradeWuliu, PackageOrder, ReturnWuLiu
-from flashsale.xiaolumm.models import XiaoluMama, PotentialMama, ReferalRelationship
+from flashsale.xiaolumm.models import XiaoluMama, PotentialMama, ReferalRelationship, XiaoluCoin
 from rest_framework import serializers
 from flashsale.restpro import constants
 from flashsale.xiaolumm.models.models_advertis import MamaVebViewConf
@@ -89,12 +89,14 @@ class CustomerSerializer(serializers.HyperlinkedModelSerializer):
     waitpay_num = serializers.IntegerField(source='get_waitpay_num', read_only=True)
     waitgoods_num = serializers.IntegerField(source='get_waitgoods_num', read_only=True)
     refunds_num = serializers.IntegerField(source='get_refunds_num', read_only=True)
+    xiaolu_coin = serializers.SerializerMethodField()
 
     class Meta:
         model = Customer
         fields = ('id', 'url', 'user_id', 'username', 'nick', 'mobile', 'email', 'phone', 'score',
                   'thumbnail', 'status', 'created', 'modified', 'xiaolumm', 'has_usable_password', 'has_password',
-                  'user_budget', 'is_attention_public', 'coupon_num', 'waitpay_num', 'waitgoods_num', 'refunds_num')
+                  'user_budget', 'is_attention_public', 'coupon_num', 'waitpay_num', 'waitgoods_num', 'refunds_num',
+                  'xiaolu_coin')
 
     def get_score(self, obj):
         user_integral = Integral.objects.filter(integral_user=obj.id).first()
@@ -104,6 +106,13 @@ class CustomerSerializer(serializers.HyperlinkedModelSerializer):
 
     def get_url(self, obj):
         return ''
+
+    def get_xiaolu_coin(self, obj):
+        xlmm = obj.getXiaolumm()
+        if xlmm:
+            coin = XiaoluCoin.get_or_create(xlmm.id)
+            return coin.xiaolucoin_cash
+        return 0
 
 
 #####################################################################################

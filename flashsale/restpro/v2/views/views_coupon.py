@@ -29,7 +29,7 @@ from flashsale.coupon.apis.v1.transfer import agree_apply_transfer_record, rejec
 from flashsale.coupon.apis.v1.usercoupon import return_transfer_coupon, transfer_coupons
 
 from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
-from flashsale.xiaolumm.models import ReferalRelationship, XiaoluMama, OrderCarry
+from flashsale.xiaolumm.models import ReferalRelationship, XiaoluMama, OrderCarry, XiaoluCoin
 from flashsale.xiaolumm.apis.v1.xiaolumama import get_mama_by_openid
 
 logger = logging.getLogger(__name__)
@@ -163,11 +163,12 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         direct_buy_link = "http://m.xiaolumeimei.com/mall/buycoupon"
         upgrade_score = mama.get_upgrade_score()
         elite_level = mama.elite_level
+        coin = XiaoluCoin.get_or_create(mama_id)
 
         return Response({"mama_id": mama_id, "stock_num": stock_num, "waiting_in_num": waiting_in_num,
                          "waiting_out_num": waiting_out_num, "bought_num": in_num, "is_elite_mama": is_elite_mama,
                          "direct_buy": direct_buy, "direct_buy_link": direct_buy_link, "elite_score": mama.elite_score,
-                         "elite_level": elite_level, "upgrade_score": upgrade_score})
+                         "elite_level": elite_level, "upgrade_score": upgrade_score, "xiaolucoin_cash": coin.xiaolucoin_cash})
 
     @detail_route(methods=['POST'])
     def process_coupon(self, request, pk=None, *args, **kwargs):
