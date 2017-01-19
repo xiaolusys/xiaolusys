@@ -73,7 +73,7 @@ def parse_coupon_ids_from_pay_extras(pay_extras):
 
 def get_pay_type_from_trade(sale_trade):
     pay_extras = sale_trade.extras_info.get('pay_extras')
-    extras = sale_trade.parse_pay_extras_to_dict(pay_extras)
+    extras = parse_pay_extras_to_dict(pay_extras)
     budget_value = extras.get(CONS.ETS_BUDGET, {}).get('value', 0)
     coin_value = extras.get(CONS.ETS_XIAOLUCOIN, {}).get('value', 0)
 
