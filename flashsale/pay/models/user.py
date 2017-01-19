@@ -709,7 +709,7 @@ class BudgetLog(PayBaseModel):
         user_budget = self.user_budget  # 小鹿钱包
 
         with transaction.atomic():
-            if self.budget_type == BudgetLog.BUDGET_IN:  # 收如前提下改到取消状态
+            if self.budget_type == BudgetLog.BUDGET_IN:  # 收入 前提下改到取消状态
                 if self.status == BudgetLog.CONFIRMED:  # 确定的收入  取消 余额减少
                     user_budget.amount = F('amount') - self.flow_amount
                     user_budget.total_income = F('total_income') - self.flow_amount  # 减小鹿钱包总收入

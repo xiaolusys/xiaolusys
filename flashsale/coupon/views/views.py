@@ -213,7 +213,7 @@ class SendTransferEliteScore(APIView):
 
     def post(self, request):
         # type: (HttpRequest) -> Response
-        """工作人员 审核 用户申请的 退 精品优惠券
+        """工作人员 送积分
         """
         content = request.POST or request.data
         rank = content.get('rank') or None

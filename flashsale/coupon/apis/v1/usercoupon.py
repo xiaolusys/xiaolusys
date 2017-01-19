@@ -152,7 +152,7 @@ def create_user_coupon(customer_id, coupon_template_id,
     return cou, 0, u"领取成功"
 
 
-def create_boutique_user_coupon(customer, tpl, unique_key=None, ufrom='wap', **kwargs):
+def create_boutique_user_coupon(customer, tpl, coin_pay=False, unique_key=None, ufrom='wap', **kwargs):
     # type: (Customer, CouponTemplate, Optional[text_type], text_type, **Any) -> Tuple[Optional[UserCoupon], int, text_type]
     """创建boutique类型优惠券
     """
@@ -164,6 +164,11 @@ def create_boutique_user_coupon(customer, tpl, unique_key=None, ufrom='wap', **k
         return None, 3, u'优惠券已经发完了'
     value, start_use_time, expires_time = tpl.calculate_value_and_time()
     extras = {'user_info': {'id': customer.id, 'nick': customer.nick, 'thumbnail': customer.thumbnail}}
+    # xiaolucoin pay add type, 0 cash pay, 1 xiaolucoin pay
+    if coin_pay:
+        extras.append({'buy_coupon_type': 1})
+    else:
+        extras.append({'buy_coupon_type': 0})
     unique_key = tpl.make_uniq_id(customer.id) if not unique_key else unique_key
 
     cou = UserCoupon.objects.filter(uniq_id=unique_key).first()

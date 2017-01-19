@@ -24,6 +24,7 @@ def task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, prod
     from ..apis.v1.transfercoupondetail import create_transfer_coupon_detail
     from flashsale.pay.models import Customer, SaleOrder
     from ..apis.v1.transfer import get_elite_score_by_templateid
+    from flashsale.pay.apis.v1.order import get_pay_type_from_trade
 
     logger.info({
         'action': 'transfer_coupon',
@@ -50,11 +51,13 @@ def task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, prod
         if not so.is_finished():
             return
 
+        budget_pay, coin_pay = get_pay_type_from_trade(so.sale_trade)
+
         new_coupon_ids = []
         while index < order_num:
             unique_key = template.gen_usercoupon_unikey(order_id, index)
             try:
-                cou, code, msg = create_boutique_user_coupon(customer, template, unique_key=unique_key)
+                cou, code, msg = create_boutique_user_coupon(customer, template, coin_pay, unique_key=unique_key)
                 new_coupon_ids.append(cou.id)
             except IntegrityError as e:
                 logging.error(e)
@@ -80,12 +83,17 @@ def task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, prod
         from_mama_nick = 'SYSTEM'
 
         transfer_type = CouponTransferRecord.IN_BUY_COUPON
+        if coin_pay:
+            transfer_type = CouponTransferRecord.IN_BUY_COUPON_WITH_COIN
         date_field = datetime.date.today()
         transfer_status = CouponTransferRecord.DELIVERED
         uni_key = "%s-%s" % (to_mama.id, order_id)
         coupon_value = int(template.value)
         product_img = template.extras.get("product_img") or ''
         elite_score = product.elite_score * (int(order_num))
+        # xiaolucoin pay not add score
+        if coin_pay:
+            elite_score = 0
 
         try:
             transfer = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id,
