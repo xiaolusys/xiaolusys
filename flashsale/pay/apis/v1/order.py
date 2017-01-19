@@ -75,6 +75,10 @@ def get_pay_type_from_trade(sale_trade):
     pay_extras = sale_trade.extras_info.get('pay_extras')
     extras = parse_pay_extras_to_dict(pay_extras)
     budget_value = extras.get(CONS.ETS_BUDGET, {}).get('value', 0)
+    if budget_value == 0:
+        budget_value = extras.get(CONS.ETS_BUDGET, {}).get('budget', 0)
     coin_value = extras.get(CONS.ETS_XIAOLUCOIN, {}).get('value', 0)
+    if coin_value == 0:
+        coin_value = extras.get(CONS.ETS_XIAOLUCOIN, {}).get('budget', 0)
 
     return float(budget_value) > 0, float(coin_value) > 0
