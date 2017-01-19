@@ -47,6 +47,7 @@ from flashsale.restpro import constants as CONS
 from flashsale.xiaolumm.models import XiaoluMama,CarryLog
 from flashsale.pay.tasks import confirmTradeChargeTask, notifyTradePayTask, tasks_set_address_priority_logistics_code
 from mall.xiaolupay import apis as xiaolupay
+from flashsale.pay.apis.v1.order import parse_entry_params, parse_pay_extras_to_dict, parse_coupon_ids_from_pay_extras, get_pay_type_from_trade
 
 import logging
 logger = logging.getLogger(__name__)
@@ -252,13 +253,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             payment = round(sale_trade.payment * 100)
             strade_id = sale_trade.id
             channel = sale_trade.channel
-            pay_extras = sale_trade.extras_info.get('pay_extras')
-            extras = self.parse_pay_extras_to_dict(pay_extras)
-            budget_value = extras.get(CONS.ETS_BUDGET, {}).get('value', 0)
-            coin_value = extras.get(CONS.ETS_XIAOLUCOIN, {}).get('value', 0)
+            budget_pay, coin_pay = get_pay_type_from_trade(sale_trade)
 
             if payment > 0:
-                if float(budget_value) > 0:
+                if budget_pay:
                     user_budget = UserBudget.objects.filter(user=buyer, amount__gte=payment).first()
                     if not user_budget:
                         raise Exception(u'小鹿钱包余额不足')
@@ -274,7 +272,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                         )
                     except IntegrityError, exc:
                         logger.error(str(exc), exc_info=True)
-                elif float(coin_value) > 0:
+                elif coin_pay:
                     from flashsale.xiaolumm.models.xiaolucoin import XiaoluCoin
                     xlmm = buyer.getXiaolumm()
                     if xlmm:
@@ -465,7 +463,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         payment      = round(float(form.get('payment')), 2)
         pay_extras = form.get('pay_extras', '')
         budget_payment = self.calc_extra_budget(pay_extras)
-        coupon_ids = self.parse_coupon_ids_from_pay_extras(pay_extras)
+        coupon_ids = parse_coupon_ids_from_pay_extras(pay_extras)
 
         if not coupon_ids:
             coupon_id = form.get('coupon_id', None)
@@ -576,53 +574,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
              status=SaleTrade.WAIT_BUYER_PAY
         )
 
-    def parse_entry_params(self, pay_extras):
-        """
-        解析 pay_extras
-
-        示例
-        pid:1:value:2,pid:2:couponid:305463/305463/305463:value:50.00,pid:3:budget:46.00
-        pid:1:value:2;pid:2:value:3:conponid:2
-        """
-
-        if not pay_extras:
-            return []
-
-        pay_list = [e for e in re.split(',|;', pay_extras) if e.strip()]
-        extra_list = []
-        already_exists_pids = []
-
-        for k in pay_list:
-            pdict = {}
-            keys = k.split(':')
-            for i in range(0, len(keys) / 2):
-                pdict.update({keys[2*i]: keys[2*i+1]})
-
-            if pdict.get('pid') and pdict['pid'] not in already_exists_pids:
-                extra_list.append(pdict)
-                already_exists_pids.append(pdict['pid'])
-        return extra_list
-
-    def parse_pay_extras_to_dict(self, pay_extras):
-        """
-        [{'pid': 1, 'value': 2}] => {1: {'pid':1, 'value': 2}}
-        """
-        extra_list = self.parse_entry_params(pay_extras)
-        d = {}
-        for item in extra_list:
-            d[item['pid']] = item
-        return d
-
-    def parse_coupon_ids_from_pay_extras(self, pay_extras):
-        """
-        从pay_extras获取优惠券id
-        """
-        extras = self.parse_pay_extras_to_dict(pay_extras)
-        couponid_str = extras.get(CONS.ETS_COUPON, {}).get('couponid', '')
-        coupon_ids = couponid_str.split('/')
-        coupon_ids = filter(lambda x: x, coupon_ids)
-        return coupon_ids
-
     def calc_counpon_discount(self, coupon_id, item_ids, buyer_id, payment, order_no='',**kwargs):
         """
         计算优惠券折扣
@@ -651,7 +602,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         """　
         优惠信息(分)
         """
-        pay_extra_list = self.parse_entry_params(pay_extras)
+        pay_extra_list = parse_entry_params(pay_extras)
         discount_fee = 0
 
         for param in pay_extra_list:
@@ -680,7 +631,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
     def calc_extra_budget(self, pay_extras, **kwargs):
         """　支付余额(分) """
-        pay_extra_list = self.parse_entry_params(pay_extras)
+        pay_extra_list = parse_entry_params(pay_extras)
         pay_extra_dict = dict([(p['pid'], p) for p in pay_extra_list if p.get('pid')])
         budget_amount = 0
         for param in pay_extra_dict.values():
@@ -732,7 +683,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         mp = product.get_product_model()
         from flashsale.pay.models.product import ModelProduct
         if mp and (mp.product_type != ModelProduct.VIRTUAL_TYPE):
-            extras = self.parse_pay_extras_to_dict(pay_extras)
+            extras = parse_pay_extras_to_dict(pay_extras)
             coin_value = extras.get(CONS.ETS_XIAOLUCOIN, {}).get('value', 0)
             if float(coin_value) > 0:
                 return Response({'code': 27, 'info': u'只有精品券才能使用小鹿币购买，您的购买商品中没有精品券，请重新加入购物车再购买'})
@@ -789,7 +740,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             if mm and (mm.elite_level != 'Associate') and (goods_num < 5) and (elite_score < 30):
                 return Response({'code': 25, 'info': u'购买精品券最低购买5张或者30积分，您本次购买没有达到要求，请在购物车重新添加精品券'})
         else:
-            extras = self.parse_pay_extras_to_dict(pay_extras)
+            extras = parse_pay_extras_to_dict(pay_extras)
             coin_value = extras.get(CONS.ETS_XIAOLUCOIN, {}).get('value', 0)
             if float(coin_value) > 0:
                 return Response({'code': 27, 'info': u'只有精品券才能使用小鹿币购买，您的购买商品中没有精品券，请重新加入购物车再购买'})
@@ -904,7 +855,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             return error
 
         # 检测是否只允许优惠券购买商品，参数是否异常
-        coupon_ids = self.parse_coupon_ids_from_pay_extras(pay_extras)
+        coupon_ids = parse_coupon_ids_from_pay_extras(pay_extras)
         coupon_template_ids = self.get_coupon_template_ids(coupon_ids)
         coupon_template_id = coupon_template_ids[0] if coupon_template_ids else None
         error = self.check_use_coupon_only(cart_qs, cart_discount, cart_total_fee, coupon_template_id)
@@ -1116,7 +1067,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         if error:
             return error
         # 检测是否只允许优惠券购买商品，参数是否异常
-        coupon_ids = self.parse_coupon_ids_from_pay_extras(pay_extras)
+        coupon_ids = parse_coupon_ids_from_pay_extras(pay_extras)
         coupon_template_ids = self.get_coupon_template_ids(coupon_ids)
         coupon_template_id = coupon_template_ids[0] if coupon_template_ids else None
         error = self.check_use_coupon_only_buynow(product, bn_discount, bn_totalfee, coupon_template_id)

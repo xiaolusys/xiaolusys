@@ -15,6 +15,7 @@ from .usercoupon import get_user_coupons_by_ids, freeze_transfer_coupon, get_fre
     rollback_user_coupon_status_2_unused_by_ids
 from flashsale.pay.apis.v1.customer import get_customer_by_django_user
 from flashsale.pay.models import BudgetLog, SaleOrder
+from flashsale.xiaolumm.models.xiaolucoin import XiaoluCoin
 
 __ALL__ = [
     'create_coupon_transfer_record',
@@ -717,7 +718,7 @@ def apply_pending_return_transfer_coupon_2_sys(coupon_ids, customer):
         from_mama_price=agent_price
     )
     transfer.save()
-    BudgetLog.create_return_coupon_log(customer.id, transfer.id, flow_amount=int(total_agent_price * 100))  # 生成钱包待确定记录
+
     freeze_transfer_coupon(coupon_ids, transfer.id)  # 冻结优惠券
     create_transfer_coupon_detail(transfer.id, coupon_ids)
     return True
@@ -781,11 +782,32 @@ def agree_apply_transfer_record_2_sys(record):
     coupons = get_freeze_boutique_coupons_by_transfer(record.id)
     if not coupons:
         raise Exception('优惠券没有找到')
-    bglog = BudgetLog.objects.get_pending_return_boutique_coupon().filter(referal_id=str(record.id)).first()
-    if not bglog:
-        raise Exception('用户钱包没有该条记录')
+
+    #  用户退的券比如有3张，有可能是2张用钱买的，有可能1张是用小鹿币买的，那么用钱的要退到个人零钱，用币的退到小鹿币
+    product_id, elite_score, agent_price = get_elite_score_by_templateid(record.template_id, record.coupon_from_mama_id)
+    return_budget_amount = 0
+    return_coin_amount = 0
+    for coupon in coupons:
+        if coupon.status == UserCoupon.CANCEL:
+            raise Exception('优惠券已经取消不能再次取消!')
+        coupon.status = UserCoupon.CANCEL
+        coupon.save(update_fields=['status', 'modified'])
+        if int(coupon.extras['buy_coupon_type']) == 1:
+            return_coin_amount += agent_price
+        else:
+            return_budget_amount += agent_price
+
+    if round(return_budget_amount * 100) > 0:
+        BudgetLog.create(customer_id=coupons[0].customer_id,
+                         budget_type=BudgetLog.BUDGET_IN,
+                         flow_amount=round(return_budget_amount * 100),
+                         budget_log_type=BudgetLog.BG_RETURN_COUPON,
+                         referal_id=record.id)  # 生成钱包待确定记录
+    if round(return_coin_amount * 100) > 0:
+        XiaoluCoin.refund(round(return_coin_amount * 100), record.id)
+
     cancel_coupon_by_ids([i.id for i in coupons])  # 取消优惠券
-    bglog.confirm_budget_log()  # 确定钱包金额
+
     record.transfer_status = CouponTransferRecord.DELIVERED
     record.save(update_fields=['transfer_status', 'modified'])  # 完成流通记录
     task_calc_xlmm_elite_score(record.coupon_from_mama_id)  # 重算积分
@@ -804,11 +826,9 @@ def cancel_return_2_sys_transfer(record, customer=None):
     coupons = get_freeze_boutique_coupons_by_transfer(record.id)
     if not coupons:
         raise Exception('优惠券没有找到')
-    bglog = BudgetLog.objects.get_pending_return_boutique_coupon().filter(referal_id=str(record.id)).first()
-    if not bglog:
-        raise Exception('用户钱包没有找到记录')
+
     rollback_user_coupon_status_2_unused_by_ids([cou.id for cou in coupons])  # 优惠券设置为可以使用状态
-    bglog.cancel_budget_log()  # 取消钱包记录
+
     record.transfer_status = CouponTransferRecord.CANCELED  # 取消 申请流通券记录
     record.save(update_fields=['transfer_status', 'modified'])
     return True
