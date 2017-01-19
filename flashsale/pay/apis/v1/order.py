@@ -21,7 +21,7 @@ def get_user_skunum_by_last24hours(user, sku):
     return sum(order_nums)
 
 
-def parse_entry_params(self, pay_extras):
+def parse_entry_params(pay_extras):
     """
     解析 pay_extras
 
@@ -49,22 +49,22 @@ def parse_entry_params(self, pay_extras):
     return extra_list
 
 
-def parse_pay_extras_to_dict(self, pay_extras):
+def parse_pay_extras_to_dict(pay_extras):
     """
     [{'pid': 1, 'value': 2}] => {1: {'pid':1, 'value': 2}}
     """
-    extra_list = self.parse_entry_params(pay_extras)
+    extra_list = parse_entry_params(pay_extras)
     d = {}
     for item in extra_list:
         d[item['pid']] = item
     return d
 
 
-def parse_coupon_ids_from_pay_extras(self, pay_extras):
+def parse_coupon_ids_from_pay_extras(pay_extras):
     """
     从pay_extras获取优惠券id
     """
-    extras = self.parse_pay_extras_to_dict(pay_extras)
+    extras = parse_pay_extras_to_dict(pay_extras)
     couponid_str = extras.get(CONS.ETS_COUPON, {}).get('couponid', '')
     coupon_ids = couponid_str.split('/')
     coupon_ids = filter(lambda x: x, coupon_ids)
