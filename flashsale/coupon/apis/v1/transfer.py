@@ -804,9 +804,15 @@ def agree_apply_transfer_record_2_sys(record):
                          budget_log_type=BudgetLog.BG_RETURN_COUPON,
                          referal_id=record.id)  # 生成钱包待确定记录
     if round(return_coin_amount * 100) > 0:
-        XiaoluCoin.refund(round(return_coin_amount * 100), record.id)
-
-    cancel_coupon_by_ids([i.id for i in coupons])  # 取消优惠券
+        from flashsale.xiaolumm.models import XiaoluMama
+        xlmm = XiaoluMama.objects.filter(
+            id=record.coupon_from_mama_id, status=XiaoluMama.EFFECT,
+            charge_status=XiaoluMama.CHARGED).first()
+        if xlmm:
+            xiaolucoin = XiaoluCoin.get_or_create(xlmm.id)
+            xiaolucoin.refund(round(return_coin_amount * 100), record.id)
+        else:
+            raise Exception('小鹿妈妈账号不正常，请联系客服或管理员')
 
     record.transfer_status = CouponTransferRecord.DELIVERED
     record.save(update_fields=['transfer_status', 'modified'])  # 完成流通记录

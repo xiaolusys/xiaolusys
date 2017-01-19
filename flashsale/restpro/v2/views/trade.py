@@ -276,7 +276,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                     from flashsale.xiaolumm.models.xiaolucoin import XiaoluCoin
                     xlmm = buyer.getXiaolumm()
                     if xlmm:
-                        xiaolucoin = XiaoluCoin.get_or_create()
+                        xiaolucoin = XiaoluCoin.get_or_create(xlmm.id)
                         if xiaolucoin and xiaolucoin.amount >= payment:
                             xiaolucoin.consume(payment, strade_id)
                         else:
