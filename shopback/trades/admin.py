@@ -1334,14 +1334,15 @@ class PackageOrderAdmin(admin.ModelAdmin):
                                                           order_num=len(trade_ids),
                                                           trade_ids=','.join([str(i) for i in trade_ids]))
 
-            send_tasks = chord([send_package_task.s(user_id, order.pid)
-                                for order in queryset])(send_package_call_Back.s(replay_trade.id), max_retries=300)
-
+            send_tasks = chord([send_package_task.s(user_id, order.pid) for order in queryset])\
+                (send_package_call_Back.s(replay_trade.id), max_retries=300)
+            # [send_package_task(user_id, order.pid) for order in queryset]
+            # send_package_call_Back(replay_trade.id)
         except Exception, exc:
             logger.error(exc.message, exc_info=True)
             return HttpResponse('<body style="text-align:center;"><h1>发货请求执行出错:（%s）</h1></body>' % exc.message)
 
-        response_dict = {'task_id': send_tasks.task_id, 'replay_id': replay_trade.id}
+        response_dict = {'task_id': "send_tasks.task_id", 'replay_id': replay_trade.id}
 
         return render(
             request,
