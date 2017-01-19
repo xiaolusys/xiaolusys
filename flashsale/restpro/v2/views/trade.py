@@ -283,6 +283,22 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                             raise Exception(u'小鹿币余额不足')
                     else:
                         raise Exception(u'不是正常的小鹿妈妈账号，无法使用小鹿币，请联系客服或管理员')
+                else:
+                    user_budget = UserBudget.objects.filter(user=buyer, amount__gte=payment).first()
+                    if not user_budget:
+                        raise Exception(u'小鹿钱包余额不足')
+                    try:
+                        BudgetLog.create(
+                            customer_id=buyer.id,
+                            budget_type=BudgetLog.BUDGET_OUT,
+                            flow_amount=payment,
+                            budget_log_type=BudgetLog.BG_CONSUM,
+                            referal_id=strade_id,
+                            status=BudgetLog.CONFIRMED,
+                            uni_key='st_%s' % sale_trade.id
+                        )
+                    except IntegrityError, exc:
+                        logger.error(str(exc), exc_info=True)
 
         # 确认付款后保存
         confirmTradeChargeTask(strade_id)
