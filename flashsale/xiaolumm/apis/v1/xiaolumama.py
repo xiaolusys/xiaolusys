@@ -121,7 +121,7 @@ def get_xlmm_xiaolu_coin(mamaid):
     from flashsale.xiaolumm.models.xiaolucoin import XiaoluCoin
     coin = XiaoluCoin.objects.filter(mama_id=mamaid).first()
     if coin:
-        return coin.amount
+        return coin.xiaolucoin_cash
     else:
         return 0
 

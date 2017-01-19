@@ -29,6 +29,10 @@ class XiaoluCoin(BaseModel):
         verbose_name = u'小鹿币'
         verbose_name_plural = u'小鹿币'
 
+    @property
+    def xiaolucoin_cash(self):
+        return float('%.2f' % (self.amount * 0.01))
+
     @classmethod
     def get_or_create(cls, mama_id):
         coin = XiaoluCoin.objects.filter(mama_id=mama_id).first()

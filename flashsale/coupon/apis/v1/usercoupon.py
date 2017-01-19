@@ -166,9 +166,9 @@ def create_boutique_user_coupon(customer, tpl, coin_pay=False, unique_key=None, 
     extras = {'user_info': {'id': customer.id, 'nick': customer.nick, 'thumbnail': customer.thumbnail}}
     # xiaolucoin pay add type, 0 cash pay, 1 xiaolucoin pay
     if coin_pay:
-        extras.append({'buy_coupon_type': 1})
+        extras['buy_coupon_type'] = 1
     else:
-        extras.append({'buy_coupon_type': 0})
+        extras['buy_coupon_type'] = 0
     unique_key = tpl.make_uniq_id(customer.id) if not unique_key else unique_key
 
     cou = UserCoupon.objects.filter(uniq_id=unique_key).first()
