@@ -89,20 +89,6 @@ class WeAppViewSet(viewsets.ViewSet):
 
         #
         item = WeixinUnionID.objects.filter(app_key=settings.WEAPP_APPID, openid=openid).first()
-        if not item:
-            try:
-                wxapi = WeiXinAPI(appKey=settings.WEAPP_APPID)
-                user_info = wxapi.getCustomerInfo(openid)
-                item = WeixinUnionID.objects.create(
-                    app_key=settings.WEAPP_APPID,
-                    openid=openid,
-                    unionid=user_info['unionid']
-                )
-            except IntegrityError:
-                item = WeixinUnionID.objects.filter(app_key=settings.WEAPP_APPID, openid=openid).first()
-            except Exception, exc:
-                logger.error(str(exc), exc_info=True)
-                item = None
 
         unionid = item.unionid if item else ''
         if unionid:
@@ -169,11 +155,11 @@ class WeAppViewSet(viewsets.ViewSet):
                 customer.nick = user_info.get('nickName', '')
                 customer.save()
 
-                WeixinUnionID.objects.get_or_create(
-                    app_key=settings.WEAPP_APPID,
-                    openid=openid,
-                    defaults={'unionid': unionid}
-                )
+        WeixinUnionID.objects.get_or_create(
+            app_key=settings.WEAPP_APPID,
+            openid=openid,
+            defaults={'unionid': unionid}
+        )
 
         token_value['customer_id'] = customer.id
         token_value['unionid'] = unionid
