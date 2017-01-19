@@ -4,6 +4,8 @@ from rest_framework.decorators import list_route, detail_route
 from rest_framework.response import Response
 from rest_framework import exceptions
 from django.shortcuts import get_object_or_404
+from supplychain.supplier.models import SaleSupplier
+from rest_framework import authentication
 
 from .. import forms
 
@@ -15,7 +17,36 @@ from ..serializers import BillRelationSerializer, BillSerializer
 class BillViewSet(viewsets.GenericViewSet):
     serializer_class = BillSerializer
     renderer_classes = (renderers.JSONRenderer, renderers.TemplateHTMLRenderer)
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permissions_classes = (permissions.IsAuthenticated,)
+
+    @list_route(methods=['post'])
+    def pre_bill_create(self,request):
+        plan_money = request.POST.get("plan_money")
+        receiver_name = request.POST.get("receiver_name")
+        receiver_account = request.POST.get("receiver_account")
+        supplier_id = request.POST.get("supplier_id")
+        bill_id = 0
+        if not all([plan_money,receiver_name,receiver_account,supplier_id]):
+            info = {"reason": "信息不完整", "supplier_id": supplier_id, "bill_id": bill_id}
+            return Response(info)
+        user = request.user
+        sale_supplier = SaleSupplier.objects.filter(id=supplier_id)
+        if not sale_supplier or not supplier_id:
+            info = {"reason":"供应商不存在","supplier_id":supplier_id,"bill_id":bill_id}
+            return Response(info)
+        bill_info = {"plan_amount":plan_money,"receive_name":receiver_name,
+                     "receive_account":receiver_account,"supplier_id":sale_supplier.first().id,"creater":user,
+                     "type":-1,"status":0,"pay_method":6}
+        print bill_info
+        bill_id = Bill.objects.create(**bill_info)
+        info = {"reason": "创建预付款账单成功", "supplier_id": supplier_id, "bill_id": bill_id.id,"supplier_name":bill_id.supplier.supplier_name}
+        return Response(info)
+
+    @list_route(methods=['get'])
+    def bill_create(self,request):
+        return Response(template_name=u"finance/create_bill.html")
+
 
     @detail_route(methods=['get'])
     def bill_detail(self, request, pk, format='html'):

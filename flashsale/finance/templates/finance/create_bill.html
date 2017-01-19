@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+        <meta charset="utf-8">
+        <title>账单详情</title>
+        <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+        <style>
+         .popover{
+             max-width: 100%;
+         }
+        </style>
+    </head>
+
+    <body>
+    <label style="font-size:35px">预付款创建财务账单</label>
+    <br>
+    <label>收款人姓名:</label>
+    <input type="text" id="receiver_name">
+    <br>
+    <label>收款账号:</label>
+    <input type="text" id="receiver_account">
+    <br>
+    <label>计划款额:</label>
+    <input type="text"  id="plan_money">
+    <br>
+    <label>供应商ID:</label>
+    <input type="text" id="supplier_id">
+    <button onclick="cfm_info(this)">确认</button>
+    </body>
+
+    <script type="text/javascript">
+        function cfm_info(obj){
+            receiver_name = $("#receiver_name").val();
+            receiver_account = $("#receiver_account").val();
+            plan_money = $("#plan_money").val();
+            supplier_id = $("#supplier_id").val();
+            data = {"receiver_account":receiver_account,
+                        "receiver_name":receiver_name,
+                        "plan_money":plan_money,
+                        "supplier_id":supplier_id
+                        };
+
+            $.ajax({
+                url:"/sale/finance/bill_list/pre_bill_create",
+                type:"post",
+                dataType:'json',
+                data:data,
+                success:function(result){
+                    console.log(result);
+                    if(result.bill_id==0){
+                            console.log(result.reason);
+                    }
+                    else{
+                        console.log(result.reason);
+                        alert(result.reason+"   财务记录id:"+result.bill_id+"  供应商:"+result.supplier_name);
+                    }
+                }
+
+            })
+            console.log(data);
+        }
+    </script>
