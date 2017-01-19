@@ -1250,7 +1250,7 @@ class PackageSkuItem(BaseModel):
                     po.set_redo_sign(save_data=False)
                     po.reset_package_address()
                 else:
-                    po = PackageOrder.create(package_order_id, self.sale_trade, PackageOrder.WAIT_PREPARE_SEND_STATUS, self)
+                    po = PackageOrder.create(package_order_id, self.sale_trade, self)
                 self.package_order_id = po.id
                 self.package_order_pid = po.pid
                 self.save()
