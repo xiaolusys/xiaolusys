@@ -477,9 +477,9 @@ class PackageOrder(models.Model):
             if sku_num == 0:
                 return
             package_type = self.package_type
-            if not package_type:
+            if package_type is None:
                 raise Exception(u'包裹无法判定类型')
-            order_sku_num = PackageSkuItem.unprepare_orders_cnt(self.user_address_id,type=package_type)
+            order_sku_num = PackageSkuItem.unprepare_orders_cnt(self.user_address_id, type=package_type)
             if order_sku_num > 0:
                 ready_completion = sku_num == order_sku_num
             else:
@@ -1529,7 +1529,7 @@ class PackageSkuItem(BaseModel):
                                                            self.product_sku.ware_by)
         package_order = PackageOrder.objects.filter(id=package_order_id).first()
         if not package_order:
-            PackageOrder.create(package_order_id, sale_trade, PackageOrder.WAIT_PREPARE_SEND_STATUS, self)
+            PackageOrder.create(package_order_id, sale_trade, self)
         else:
             PackageSkuItem.objects.filter(id=self.id).update(package_order_id=package_order_id,
                                                              package_order_pid=package_order.pid)
