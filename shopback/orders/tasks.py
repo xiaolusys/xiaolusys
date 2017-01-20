@@ -75,7 +75,8 @@ def save_trade_durning_task(user_id, update_from=None, update_to=None, status=No
 
 @app.task(max_retries=3)
 def batch_create_package_order():
-    Order.objects
+    for order in Order.objects.filter(stage=0):
+        order.create_package_sku_item()
 
 
 @app.task(max_retries=3)

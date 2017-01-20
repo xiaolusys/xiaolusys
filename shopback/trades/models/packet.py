@@ -170,7 +170,7 @@ class PackageOrder(models.Model):
 
     @property
     def return_goods_id(self):
-        return self.tid.replace('rg')
+        return self.tid.replace('rg', '')
 
     def set_return_goods_id(self, return_goods_id):
         # '退货类都需要特殊处理，算作特殊发货（退库存要检查库存，退次品要从次品区取货）'
@@ -368,7 +368,7 @@ class PackageOrder(models.Model):
             self.receiver_mobile = st.receiver_mobile
         if item and item.type in [PSI_TYPE.RETURN_GOODS, PSI_TYPE.RETURN_OUT_ORDER, PSI_TYPE.RETURN_INFERIOR]:
             from flashsale.dinghuo.models import ReturnGoods
-            st = ReturnGoods.objects.filter(id=item.sale_trade_id).first()
+            st = ReturnGoods.objects.filter(id=item.return_goods_id).first()
             ua = UserAddress.objects.filter(supplier_id=st.supplier.id).first()
             self.buyer_id = ua.receiver_mobile
             self.receiver_name = ua.receiver_name
@@ -1124,6 +1124,7 @@ class PackageSkuItem(BaseModel):
     def create_by_hand(sku, num, package_order_pid, package_order_id, receiver_mobile,
                        ware_by):
         psi = PackageSkuItem(
+            type=PSI_TYPE.BYHAND,
             sku_id=sku.id,
             num=num,
             package_order_id=package_order_id,

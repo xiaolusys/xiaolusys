@@ -1378,7 +1378,7 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
     list_display = (
         'id', 'sale_order_link_to', 'oid', 'sale_trade_id_link', 'receiver_mobile', 'out_sid', 'logistics_company_name',
         'package_sku_item_link_to', 'status','assign_status', 'type', 'sys_status',
-        'pay_time', 'assign_time', 'product_title_link_to', 'ware_by', 'sku_id_link_to', 'sku_link_to', 'num',
+        'pay_time', 'assign_time', 'product_title_link_to', 'ware_by', 'sku_id_link_to', 'sku_link_to', 'num', 'sys_note',
         'package_order_link_to', 'payment', 'purchase_order_unikey_link', 'orderlist_status')
 
     search_fields = ['id', 'sale_order_id', 'sale_trade_id', 'receiver_mobile', 'out_sid', 'package_order_pid',

@@ -133,7 +133,7 @@ def change_duihuo_status(request):
     rg = ReturnGoods.objects.get(id=id)
     change_status_des = u"仓库退货单状态变更为_{0}"
     if act_str == "ok":  # 审核通过
-        rg.verify()
+        rg.verify(request.user.id)
         change_product_inventory(rg, request.user.username, request.user.id)
         log_action(user_id, rg, CHANGE,
                    change_status_des.format(rg.get_status_display()))
@@ -765,8 +765,8 @@ class ReturnGoodsViewSet(viewsets.GenericViewSet):
             return HttpResponse(json.dumps({"status": False, "reason": "供应商信息不完整,请完善供应商地址信息"}),
                                 content_type="application/json",
                                 status=200)
-        package = return_goods.create_package()
-        return HttpResponse(json.dumps({"status":True, "package_order": package.id}),
+        packages = return_goods.create_or_update_package()
+        return HttpResponse(json.dumps({"status":True, "package_order": [package.id for package in packages]}),
                             content_type="application/json", status=200)
 
 
