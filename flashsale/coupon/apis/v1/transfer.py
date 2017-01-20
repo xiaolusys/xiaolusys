@@ -695,7 +695,7 @@ def apply_pending_return_transfer_coupon_2_sys(coupon_ids, customer):
     cash_buy_coupon_ids = []
     coin_buy_coupon_ids = []
     for one_coupon in coupons:
-        if int(one_coupon.extras['buy_coupon_type']) == 1:
+        if one_coupon.extras.has_key('buy_coupon_type') and int(one_coupon.extras['buy_coupon_type']) == 1:
             coin_buy_coupon_ids.append(one_coupon.id)
         else:
             cash_buy_coupon_ids.append(one_coupon.id)
@@ -840,7 +840,7 @@ def agree_apply_transfer_record_2_sys(record):
             raise Exception('优惠券已经取消不能再次取消!')
         coupon.status = UserCoupon.CANCEL
         coupon.save(update_fields=['status', 'modified'])
-        if int(coupon.extras['buy_coupon_type']) == 1:
+        if coupon.extras.has_key('buy_coupon_type') and int(coupon.extras['buy_coupon_type']) == 1:
             return_coin_amount += agent_price
         else:
             return_budget_amount += agent_price
