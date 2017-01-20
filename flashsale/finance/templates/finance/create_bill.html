@@ -25,6 +25,11 @@
     <br>
     <label>供应商ID:</label>
     <input type="text" id="supplier_id">
+    <br>
+    <label>备注:</label>
+    <br>
+    <textarea id = "note"></textarea> 
+    <br>
     <button onclick="cfm_info(this)">确认</button>
     </body>
 
@@ -34,10 +39,12 @@
             receiver_account = $("#receiver_account").val();
             plan_money = $("#plan_money").val();
             supplier_id = $("#supplier_id").val();
+            note = $("#note").val();
             data = {"receiver_account":receiver_account,
                         "receiver_name":receiver_name,
                         "plan_money":plan_money,
-                        "supplier_id":supplier_id
+                        "supplier_id":supplier_id,
+                        "note":note
                         };
 
             $.ajax({
@@ -53,6 +60,8 @@
                     else{
                         console.log(result.reason);
                         alert(result.reason+"   财务记录id:"+result.bill_id+"  供应商:"+result.supplier_name);
+                        var url = "/admin/finance/bill/"+result.bill_id+"/change/"
+                        window.location.href=url; 
                     }
                 }
 
