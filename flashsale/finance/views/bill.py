@@ -26,6 +26,7 @@ class BillViewSet(viewsets.GenericViewSet):
         receiver_name = request.POST.get("receiver_name")
         receiver_account = request.POST.get("receiver_account")
         supplier_id = request.POST.get("supplier_id")
+        note = request.POST.get("note")
         bill_id = 0
         if not all([plan_money,receiver_name,receiver_account,supplier_id]):
             info = {"reason": "信息不完整", "supplier_id": supplier_id, "bill_id": bill_id}
@@ -37,10 +38,10 @@ class BillViewSet(viewsets.GenericViewSet):
             return Response(info)
         bill_info = {"plan_amount":plan_money,"receive_name":receiver_name,
                      "receive_account":receiver_account,"supplier_id":sale_supplier.first().id,"creater":user,
-                     "type":-1,"status":0,"pay_method":6}
+                     "type":-1,"status":0,"pay_method":6,"note":note}
         print bill_info
         bill_id = Bill.objects.create(**bill_info)
-        info = {"reason": "创建预付款账单成功", "supplier_id": supplier_id, "bill_id": bill_id.id,"supplier_name":bill_id.supplier.supplier_name}
+        info = {"reason": "创建预付款账单成功", "supplier_id": supplier_id, "bill_id": bill_id.id,"supplier_name":bill_id.supplier.supplier_name,"note":note}
         return Response(info)
 
     @list_route(methods=['get'])
