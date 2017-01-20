@@ -153,7 +153,7 @@ class CouponTransferRecordAdmin(admin.ModelAdmin):
     def transfer_status_show(self, obj):
         # type : (CouponTransferRecord) -> text_type
         if obj.transfer_status == CouponTransferRecord.PENDING and \
-                        obj.transfer_type == CouponTransferRecord.OUT_CASHOUT:  # 待审核 和 类型为 退券换钱
+                (obj.transfer_type == CouponTransferRecord.OUT_CASHOUT or obj.transfer_type == CouponTransferRecord.OUT_CASHOUT_COIN):  # 待审核 和 类型为 退券换钱
             et = 'style="padding: 0px 6px" type="button"'
             html1 = '<input class="returnT%s" %s onclick="agreeReturnTransfer(%s)" value="通过">' % (obj.id, et, obj.id )
             html2 = '<input class="returnT%s" %s onclick="rejectReturnTransfer(%s)" value="拒绝">' % (obj.id, et, obj.id )
