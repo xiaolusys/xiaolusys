@@ -59,6 +59,7 @@ from flashsale.xiaolumm.models.models_advertis import MamaVebViewConf
 from flashsale.xiaolumm.models import XiaoluMama, CarryLog, CashOut, MamaCarryTotal, XlmmFans, MamaMissionRecord
 from flashsale.xiaolumm.models.models_advertis import XlmmAdvertis, NinePicAdver
 from flashsale.xiaolumm.models.models_fortune import MAMA_FORTUNE_HISTORY_LAST_DAY
+from flashsale.xiaolumm.models import XiaoluCoinLog
 
 from flashsale.coupon.models import OrderShareCoupon
 from flashsale.clickcount.models import ClickCount, Clicks
@@ -1253,3 +1254,19 @@ class UserSearchHistorySerialize(serializers.ModelSerializer):
             'result_count',
             'status',
         )
+
+class XiaoluCoinLogSerializer(serializers.ModelSerializer):
+
+    subject = serializers.SerializerMethodField()
+    iro_type = serializers.SerializerMethodField()
+
+    class Meta:
+        model = XiaoluCoinLog
+        fields = ('id', 'mama_id', 'iro_type', 'amount', 'subject', 'date_field', 'created')
+
+    def get_subject(self, obj):
+        return dict(XiaoluCoinLog.SUBJECT_CHOICES).get(obj.subject, '')
+
+    def get_iro_type(self, obj):
+        return dict(XiaoluCoinLog.IRO_CHOICES).get(obj.iro_type, '')
+

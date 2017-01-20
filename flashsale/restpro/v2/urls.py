@@ -13,6 +13,7 @@ from flashsale.restpro.v1 import views_coupon_new
 from flashsale.restpro.v2.views import usercoupon
 from flashsale.restpro.v2.views import mmcashout
 from flashsale.restpro.v2.views import searchhistory
+from flashsale.restpro.v2.views import xiaolucoin
 
 v2_router = routers.DefaultRouter(trailing_slash=False)
 v2_router.register(r'categorys', views.SaleCategoryViewSet)
@@ -83,6 +84,7 @@ v2_router_urls += format_suffix_patterns([
 
     url(r'^weapp/login', views.WeAppViewSet.as_view({'get': 'login'})),
     url(r'^weapp/user_info', views.WeAppViewSet.as_view({'post': 'post_user_info'})),
+    url(r'^xiaolucoin/history', xiaolucoin.XiaoluCoinViewSet.as_view({'get': 'history'})),
 ])
 
 lesson_router = routers.DefaultRouter(trailing_slash=False)
