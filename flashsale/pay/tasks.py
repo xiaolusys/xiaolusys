@@ -645,7 +645,7 @@ def task_saleorder_update_package_sku_item(sale_order):
     from shopback.items.models import ProductSku, SkuStock
     items = PackageSkuItem.objects.filter(sale_order_id=sale_order.id)
     if items.count() <= 0:
-        if not sale_order.is_pending():
+        if not sale_order.need_send():
             # we create PackageSkuItem only if sale_order is 'pending'.
             return
         ware_by = ProductSku.objects.get(id=sale_order.sku_id).ware_by
@@ -687,7 +687,7 @@ def task_saleorder_update_package_sku_item(sale_order):
             sku_item.assign_status = PackageSkuItem.CANCELED
             sku_item.set_assign_status_time()
             sku_item.save()
-    elif sale_order.is_pending():
+    elif sale_order.need_send():
         if sku_item.assign_status == PackageSkuItem.CANCELED:
             sku_item.assign_status = PackageSkuItem.NOT_ASSIGNED
             sku_item.clear_order_info()

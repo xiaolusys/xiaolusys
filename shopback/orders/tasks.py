@@ -12,6 +12,7 @@ from common.utils import (format_time,
                           format_year_month,
                           parse_datetime,)
 from shopapp.taobao import apis
+from shopback.orders.models import Order, Trade
 import logging
 
 logger = logging.getLogger('django.request')
@@ -19,6 +20,63 @@ BLANK_CHAR = ''
 
 TASK_SUCCESS = 'SUCCESS'
 TASK_FAIL = 'FAIL'
+
+
+@app.task(max_retries=3)
+def save_trade_durning_task(user_id, update_from=None, update_to=None, status=None):
+    update_tids = []
+    try:
+        update_from = format_datetime(update_from) if update_from else None
+        update_to = format_datetime(update_to) if update_to else None
+
+        has_next = True
+        cur_page = 1
+        from shopback.trades.service import TradeService, OrderService
+        while has_next:
+            response_list = apis.taobao_trades_sold_get(tb_user_id=user_id,
+                                                        page_no=cur_page,
+                                                        use_has_next='true',
+                                                        fields='tid,modified',
+                                                        page_size=settings.TAOBAO_PAGE_SIZE,
+                                                        start_created=update_from,
+                                                        end_created=update_to,
+                                                        status=status)
+
+            order_list = response_list['trades_sold_get_response']
+            if order_list.has_key('trades'):
+                for trade in order_list['trades']['trade']:
+                    modified = parse_datetime(trade['modified']) if trade.get('modified', None) else None
+                    if TradeService.isValidPubTime(user_id, trade['tid'], modified):
+                        trade_dict = OrderService.getTradeFullInfo(user_id, trade['tid'])
+                        order_trade = OrderService.saveTradeByDict(user_id, trade_dict)
+                    update_tids.append(trade['tid'])
+            has_next = order_list['has_next']
+            cur_page += 1
+    except Exception, exc:
+        logger.error(u'淘宝订单批量下载错误：%s' % exc.message, exc_info=True)
+        raise saveUserDuringOrdersTask.retry(exc=exc, countdown=60)
+
+    else:
+        from shopback.trades.models import MergeTrade
+        wait_update_trades = MergeTrade.objects.filter(user__visitor_id=user_id,
+                                                       type=pcfg.TAOBAO_TYPE,
+                                                       status=pcfg.WAIT_SELLER_SEND_GOODS) \
+            .exclude(tid__in=update_tids)
+        for trade in wait_update_trades:
+            tid = trade.tid
+            if tid.find('-') == len(tid) - 2:
+                continue
+            try:
+                TradeService(user_id, trade.tid).payTrade()
+            except Exception, exc:
+                logger.error(u'更新订单信息异常:%s' % exc, exc_info=True)
+    return
+
+
+@app.task(max_retries=3)
+def batch_create_package_order():
+    for order in Order.objects.filter(stage=0):
+        order.create_package_sku_item()
 
 
 @app.task(max_retries=3)

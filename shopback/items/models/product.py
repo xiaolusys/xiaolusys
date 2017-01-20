@@ -1230,6 +1230,10 @@ class ProductSku(models.Model):
         return self.properties_alias or self.properties_name
 
     @property
+    def title(self):
+        return self.product.name
+
+    @property
     def BARCODE(self):
         return self.barcode.strip() or '%s%s' % (self.product.outer_id.strip(),
                                                  self.outer_id.strip())

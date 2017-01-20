@@ -46,7 +46,7 @@ import logging
 import re
 from shopback.trades.models import TradeWuliu, ReturnWuLiu
 from shopback.trades.tasks import send_package_task, send_package_call_Back
-
+from shopback.trades.constants import PSI_TYPE
 logger = logging.getLogger('django.request')
 
 PHONE_RE = re.compile('^(1[0-9]{10}|([0-9]{3,4}-)?[0-9-]{6,8})$')
@@ -1377,15 +1377,14 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
     # TODO@HY self.sale_order.sale_trade.buyer_nick写法多次查询数据库，以后可以优化性能
     list_display = (
         'id', 'sale_order_link_to', 'oid', 'sale_trade_id_link', 'receiver_mobile', 'out_sid', 'logistics_company_name',
-        'package_order_link_to', 'package_sku_item_link_to', 'status','assign_status', 'sys_status',
-        'pay_time', 'assign_time', 'product_title_link_to', 'ware_by', 'sku_id_link_to', 'sku_link_to', 'num', 'price',
-        'total_fee', 'payment', 'discount_fee', 'adjust_fee', 'purchase_order_unikey_link', 'orderlist_status',
-        'modified', 'created')
+        'package_sku_item_link_to', 'status','assign_status', 'type', 'sys_status',
+        'pay_time', 'assign_time', 'product_title_link_to', 'ware_by', 'sku_id_link_to', 'sku_link_to', 'num', 'sys_note',
+        'package_order_link_to', 'payment', 'purchase_order_unikey_link', 'orderlist_status')
 
     search_fields = ['id', 'sale_order_id', 'sale_trade_id', 'receiver_mobile', 'out_sid', 'package_order_pid',
                      'package_order_id', 'oid', 'sku_id', 'purchase_order_unikey']
-    list_filter = ('assign_status', 'status', 'ware_by')
-    change_list_template = "admin/trades/package_change_list.html"
+    list_filter = ('assign_status', 'status', 'type', 'ware_by')
+    #change_list_template = "admin/trades/package_change_list.html"
     ordering = ['-sys_status']
     list_per_page = 50
     readonly_fields = get_class_fields(PackageSkuItem)
@@ -1451,7 +1450,7 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
         return ''
 
     package_order_link_to.allow_tags = True
-    package_order_link_to.short_description = u'包裹商品'
+    package_order_link_to.short_description = u'包裹唯一码'
 
     def sale_trade_id_link(self, obj):
         return '<a href="%(url)s" target="_blank"> %(text)s</a>' % {
@@ -1471,17 +1470,26 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
         return ''
 
     package_sku_item_link_to.allow_tags = True
-    package_sku_item_link_to.short_description = u'包裹商品列表'
+    package_sku_item_link_to.short_description = u'包裹号'
 
     SALE_ORDER_LINK = (
         '<a href="%(sale_order_url)s" target="_blank">'
         '%(sale_order_id)s</a>')
 
     def sale_order_link_to(self, obj):
-        return self.SALE_ORDER_LINK % {
-            'sale_order_url': '/admin/pay/saleorder/%d/' % obj.sale_order_id,
-            'sale_order_id': obj.sale_order_id
-        }
+        if obj.type == PSI_TYPE.NORMAL:
+            return self.SALE_ORDER_LINK % {
+                'sale_order_url': '/admin/pay/saleorder/%d/' % obj.sale_order_id,
+                'sale_order_id': obj.sale_order_id
+            }
+        if obj.type == PSI_TYPE.TIANMAO:
+            return ''
+            # self.SALE_ORDER_LINK % {
+            #     'sale_order_url': '/admin/pay/saleorder/%d/' % obj.get_object().pk,
+            #     'sale_order_id': obj.oid
+            # }
+        return obj.oid
+
 
     sale_order_link_to.allow_tags = True
     sale_order_link_to.short_description = u'sku交易单'

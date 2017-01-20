@@ -57,6 +57,11 @@ class PO_STATUS:
 
 class PSI_TYPE:
     NORMAL = 0
+    BYHAND = 1
+    RETURN_GOODS = 2
+    RETURN_OUT_ORDER = 3
+    RETURN_INFERIOR = 4
+    TIANMAO = 5
     CHOICES = (
         (0, u'普通订单'),
         (1, u'手工发件'),
@@ -65,3 +70,4 @@ class PSI_TYPE:
         (4, u'退次品'),
         (5, u'天猫商城单')
     )
+

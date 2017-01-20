@@ -142,6 +142,15 @@ class UserAddress(BaseModel):
         self.save()  # 保存当前的为默认地址
         return True
 
+    def is_complete(self):
+        if all([self.supplier_id, self.receiver_name, self.receiver_state,
+             self.receiver_city, self.receiver_district, self.receiver_address,
+             self.receiver_mobile]):
+            return True
+        else:
+            return False
+
+
     def set_logistic_company(self, company_code):
         """ 设置物流公司 """
         self.logistic_company_code = company_code

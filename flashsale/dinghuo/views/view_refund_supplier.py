@@ -25,6 +25,7 @@ from core.options import log_action, ADDITION, CHANGE
 from ..tasks import calcu_refund_info_by_pro_v2
 from shopback.logistics.models import LogisticsCompany
 from flashsale.dinghuo.models import InBound,OrderList,OrderDetail
+from rest_framework import  authentication
 
 logger = logging.getLogger('django.request')
 
@@ -35,6 +36,8 @@ from rest_framework import generics, permissions, renderers, viewsets
 from supplychain.supplier.models import SaleProduct, SaleSupplier
 from rest_framework.decorators import list_route, detail_route
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
+from shopback.trades.models import PackageSkuItem,PackageOrder
+from shopback.items.models import SkuStock,Product,ProductSku
 from .. import forms
 
 
@@ -130,8 +133,7 @@ def change_duihuo_status(request):
     rg = ReturnGoods.objects.get(id=id)
     change_status_des = u"仓库退货单状态变更为_{0}"
     if act_str == "ok":  # 审核通过
-        rg.status = ReturnGoods.VERIFY_RG
-        rg.save()
+        rg.verify(request.user.id)
         change_product_inventory(rg, request.user.username, request.user.id)
         log_action(user_id, rg, CHANGE,
                    change_status_des.format(rg.get_status_display()))
@@ -192,6 +194,54 @@ def modify_return_goods_sku(request):
     rg_detail.price = price
     rg_detail.save()
     return HttpResponse(True)
+
+
+def create_pksi_by_rgdetail(request):
+    content = request.POST
+    returngoods_id = content.get("returngoods_id",None)
+    return_good = ReturnGoods.objects.get(id=returngoods_id)
+    supplier_addr = return_good.get_supplier_addr()
+    if not supplier_addr:
+        return HttpResponse(json.dumps({"status": False, "reason": "供应商信息不存在,请填写供应商地址信息"}), content_type="application/json",
+                            status=200)
+    elif not supplier_addr.is_complete():
+        return HttpResponse(json.dumps({"status": False, "reason": "供应商信息不完整,请完善供应商地址信息"}), content_type="application/json",
+                            status=200)
+    rgdetail_ids = content.get("RGdetail_ids")
+    type = content.get("type")
+    rgdetail_ids = json.loads(rgdetail_ids)
+    RGdetail = RGDetail.objects.filter(id__in=rgdetail_ids)
+    pksi_id = []
+    # print content.get("RGdetail_ids")
+    # print content.get("supplier_id")
+    for i in RGdetail:
+        sku_id = i.skuid
+        sale_order_id = i.id
+        sale_trade_id = i.return_goods.id
+        type = type
+        num = i.num
+        title = SkuStock.objects.get(sku_id=i.skuid).product.name
+        pic_path = SkuStock.objects.get(sku_id=i.skuid).product.pic_path
+        sku_properties_name = i.product_sku.properties_name
+        rg_detail_info = {"sku_id":sku_id,"sale_order_id":sale_order_id,"sale_trade_id":sale_trade_id,"type":type,"pay_time":return_good.created,"num":num,
+                          "title":title,"pic_path":pic_path,"sku_properties_name":sku_properties_name}
+        # print rg_detail_info
+        if PackageSkuItem.objects.filter(sale_order_id = i.id):
+            pksi = PackageSkuItem.objects.filter(sale_order_id=i.id).first()
+            if type!=2:
+                pksi_id.append(pksi.id)
+                continue
+            PackageSkuItem.objects.filter(sale_order_id = i.id).update(**rg_detail_info)
+            pksi_id.append(pksi.id)
+            if pksi.package_order_pid:
+                PackageOrder.objects.filter(pid=pksi.package_order_pid).update(redo_sign=True,is_picking_print=False)
+
+        else:
+            pksi = PackageSkuItem.objects.create(**rg_detail_info)
+            pksi.return_merge()
+            pksi_id.append(pksi.id)
+    return HttpResponse(json.dumps({"status":True,"pksi_id":pksi_id}),content_type="application/json", status=200)
+
 
 
 def replace_become_refund(request):
@@ -667,7 +717,8 @@ def returngoods_deal(request):
 
 
 class ReturnGoodsViewSet(viewsets.GenericViewSet):
-    renderer_classes = (renderers.JSONRenderer, renderers.TemplateHTMLRenderer)
+    renderer_classes = (renderers.JSONRenderer,)
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
     queryset = ReturnGoods.objects.all()
 
@@ -677,3 +728,46 @@ class ReturnGoodsViewSet(viewsets.GenericViewSet):
         supplier = get_object_or_404(SaleSupplier, pk=supplier_id)
         returngoods = ReturnGoods.generate_by_supplier(supplier.id, request.user.username)
         return Response('OK')
+
+    @detail_route(methods=['get'])
+    def psi_has_pid(self, request, pk):
+        content = request.POST
+        returngoods_id = content.get("returngoods_id", None)
+        return_good = ReturnGoods.objects.get(id=returngoods_id)
+        rg_detail = return_good.rg_details.all()
+        pid_count = 0
+        for i in rg_detail:
+            if i.get_psi() and i.get_psi().package_order_pid:
+                pid_count = pid_count + 1
+        if pid_count == len(rg_detail):
+            info = {"status": True, "info": u"全部都已生成了packageOrder"}
+        elif pid_count == 0:
+            info = {"status": False, "info": u"这个退货单里面的记录并没有生成任何一个packageorder"}
+        else:
+            info = {"status": True, "info": u"这个退货单里面的记录有些有packageorder有些没有"}
+        return HttpResponse(json.dumps(info), content_type="application/json", status=200)
+
+    @detail_route(methods=['get'])
+    def create_psi_by_rgdetail(self, request, pk):
+        return Response(pk)
+
+    @detail_route(methods=['post'])
+    def create_psi_by_rgdetail(self, request, pk):
+        content = request.POST
+        returngoods_id = pk
+        return_goods = ReturnGoods.objects.get(id=returngoods_id)
+        supplier_addr = return_goods.get_supplier_addr()
+        if not supplier_addr:
+            return HttpResponse(json.dumps({"status": False, "reason": "供应商信息不存在,请填写供应商地址信息"}),
+                                content_type="application/json",
+                                status=200)
+        elif not supplier_addr.is_complete():
+            return HttpResponse(json.dumps({"status": False, "reason": "供应商信息不完整,请完善供应商地址信息"}),
+                                content_type="application/json",
+                                status=200)
+        packages = return_goods.create_or_update_package()
+        return HttpResponse(json.dumps({"status":True, "package_order": [package.id for package in packages]}),
+                            content_type="application/json", status=200)
+
+
+

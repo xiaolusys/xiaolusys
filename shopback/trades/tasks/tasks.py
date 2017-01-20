@@ -928,10 +928,13 @@ def task_packageskuitem_update_productskusalestats_num(sku_id, pay_time):
 
 
 @app.task()
-def task_update_package_stat_num(instance):
-    from shopback.trades.models import PackageStat, PackageOrder
-    num = PackageStat.get_sended_package_num(instance.id)
-    PackageStat.objects.filter(id=instance.id).update(num=num)
+def task_update_package_stat_num(stat_id):
+    from shopback.trades.models import PackageStat
+    num = PackageStat.get_sended_package_num(stat_id)
+    i = PackageStat.objects.filter(id=stat_id).update(num=num)
+    if not i:
+        PackageStat(id=stat_id, num=1).save()
+
 
 
 @app.task()
@@ -1267,6 +1270,7 @@ def realtime_check(type, func):
     uni_key = "%s|%s" % (type, time_from)
     func(time_from, uni_key)
 
+
 @app.task()
-def task_trade_merge():
-    PackageSkuItem.batch_merge()
+def task_trade_merge(type=None):
+    PackageSkuItem.batch_merge(type)

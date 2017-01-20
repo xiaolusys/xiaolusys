@@ -1,0 +1,274 @@
+{% extends "admin/base_site_v2.html" %}
+{% load i18n admin_urls static admin_list %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link href="{{ STATIC_URL }}bootstrap-3.3.4-dist/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+<link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css"/>
+<link rel="stylesheet" type="text/css" href="/static/wap/css/sweet-alert.css">
+<link href="{{ STATIC_URL }}css/base.less" rel="stylesheet/less" type="text/css"/>
+<link href="{{ STATIC_URL }}admin/css/forms.css" rel="stylesheet" type="text/css"/>
+<script src="{{ STATIC_URL }}layer-v1.9.2/layer/layer.js"></script>
+<script src="{{ STATIC_URL }}wap/js/sweet-alert.min.js"></script>
+<script src="{{ STATIC_URL }}layer-v1.9.2/layer/extend/layer.ext.js"></script>
+{% endblock %}
+
+{% block bodyclass %}change-form{% endblock %}
+
+{% if not is_popup %}
+{% block breadcrumbs %}
+
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+    &rsaquo; {{ app_label|capfirst|escape }}
+    &rsaquo; {{ opts.verbose_name }}
+</div>
+{% endblock %}
+{% endif %}
+
+{% block coltype %}flex{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            物流单信息:
+        </div>
+        <div class="panel-body container-fluid">
+            <input type="hidden" id="pid" value="{{package.pid}}"/>
+            <div class="row col-md-12" class="col-md-3">
+                <label class="col-md-1" for="seller_id">所属店铺:</label>
+                <select id="seller_id" >
+                    <option value="12" selected="selected">小鹿特卖平台</option>
+                </select>
+                <!--<input id="seller_id" type="text" class="col-md-3" value="{{package.seller_id}}">-->
+                <span style="color:red">*</span>
+            </div>
+            <div class="row col-md-12">
+                <label class="col-md-1" for="ware_by">仓库:</label>
+                <select id="ware_by" class="col-md-1">
+                    <option value="1" selected="selected">上海仓</option>
+                    <option value="2">广州仓</option>
+                </select>
+                <!--<input id="ware_by" type="text" class="col-md-1" value="{{package.get_ware_by_display}}">-->
+                <span style="color:red">*</span>
+            </div>
+            <div class="row col-md-12">
+                <label class="col-md-1" for="id_receiver_mobile">收件人手机:</label>
+                <input id="id_receiver_mobile" type="text" class="col-md-3" placeholder="可利用手机号查找已存在的收件地址减少输入＾＿＾" value="{{package.receiver_mobile}}">
+                <span style="color:red">*</span>
+                <button id="search_address">查找</button>
+                <select id="user_address_select" style="display:none;"></select>
+                <button id="confirm_address" style="display:none;">确定</button>
+            </div>
+            <div class="row col-md-12">
+                <label class="col-md-1" for="receiver_name">收件人姓名:</label>
+                <input id="receiver_name" type="text" class="col-md-3" value="{{package.buyer_nick}}">
+                <span style="color:red">*</span>
+            </div>
+            <div class="row col-md-12">
+                <label class="col-md-1" for="receiver_state">省:</label>
+                <input id="receiver_state" type="text" class="col-md-1 input-s" value="{{package.receiver_state}}">
+                <span style="color:red">*</span>
+                <label class="col-md-1" for="receiver_city">市:</label>
+                <input id="receiver_city" type="text" class="col-md-1 input-s" value="{{package.receiver_state}}">
+                <span style="color:red">*</span>
+                <label class="col-md-1" for="receiver_district">县:</label>
+                <input id="receiver_district" type="text" class="col-md-1 input-s" value="{{package.receiver_state}}">
+                <span style="color:red">*</span>
+            </div>
+            <div class="row col-md-12">
+                <label class="col-md-1" for="receiver_address">地址:</label>
+                <input id="receiver_address" type="text" class="col-md-5" value="{{package.receiver_address}}">
+                <span style="color:red">*</span>
+            </div>
+            <div class="row col-md-12">
+                <label class="col-md-1" for="logistics_company_id">快递公司:</label>
+                <input id="logistics_company_id" type="text" class="col-md-5" placeholder="填写快递公司ID,会自动用这个快递派件，不填表示默认" value="{{package.logistics_company_id}}">
+            </div>
+        </div>
+    </div>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            发货单信息:
+        </div>
+        <div class="panel-body container-fluid">
+            <div class="row col-md-12">
+                <label class="col-md-1" for="sku_id">SKU编码:</label>
+                <input id="sku_id" type="text" class="col-md-3 input-m" placeholder="输入SKUID或者编码" value="">
+                <input id="sku_num" type="text" class="col-md-1 input-m" placeholder="输数字(正常数字别来中文数字)" value="1">
+                <button class="col-md-1" id="addsku">新增</button>
+            </div>
+        </div>
+    </div>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            发货清单:
+        </div>
+        <div class="panel-body">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <td>skuid</td>
+                        <td>商品名称</td>
+                        <td>规格</td>
+                        <td>编码</td>
+                        <td>数量</td>
+                        <td>操作</td>
+                    </tr>
+                </thead>
+                <tbody id="send_list">
+                </tbody>
+            </table>
+            <div class="row col-md-12">
+                <button class="col-md-6" id="confirm">确认发货</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="//cdn.bootcss.com/plupload/2.1.7/plupload.full.min.js"></script>
+<script src="//cdn.bootcss.com/plupload/2.1.7/i18n/zh_CN.js"></script>
+<script src="{{ STATIC_URL }}jquery/jquery-2.1.1.min.js"></script>
+<script src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<script src="{{ STATIC_URL }}underscore/underscore-min.js"></script>
+<script src="{{ STATIC_URL }}script/qiniu.js"></script>
+<script src="{{ STATIC_URL }}script/qiniu_file_name_handler.js"></script>
+<script src="{{ STATIC_URL }}plugins/xiaolu-uploader/uploader.js?v=0.1"></script>
+<script>
+function removeline(sku_id){
+    alert(sku_id)
+    $("#line_"+sku_id).remove();
+}
+function get_sku(){
+    var sku_id = $("#sku_id").val();
+    var sku_num = $("#sku_num").val();
+    if (sku_id==""){
+        alert("skuid必须不为空");
+        return false
+    }
+    if ($("#line_"+sku_id).length > 0){
+        alert("skuid已存在");
+        return false
+    }
+    function callback(res){
+        var dom = "<tr class=\"sku_line\" id=\"line_"+res.id+"\" data-sku-id="+res.id +
+                  "><td>" +res.id +
+                  "</td><td>" + res.title +
+                  "</td><td>" + res.name +
+                  "</td><td>" + res.outer_id +
+                  "</td><td><label class=\"sku_num\">" + sku_num +
+                  "</label</td><td><button onclick=\"removeline("+res.id+")\" data-sku-id=" + res.id+
+                  ">删除</button></td></tr>"
+        $('#send_list').append(dom);
+    }
+    $.ajax({
+            type:'get',
+            url:'/items/v2/sku/'+sku_id,
+            dataType: "json",
+            contentType: 'application/json',
+            success:callback ,
+            error:function(err){
+                alert(err)
+            }
+        });
+}
+var address_dict = {};
+function search_address(){
+    var receiver_phone = $("#id_receiver_mobile").val();
+    function callback(res){
+        for (var i in res){
+            item = res[i];
+            address_dict[item.id] = item;
+            line = "<option value=\"" + item.id + "\">" + item.receiver_state + item.receiver_city + item.receiver_district + item.receiver_address +"</option>"
+            $("#user_address_select").append(line);
+            $("#user_address_select").show();
+            $("#confirm_address").show();
+        }
+    }
+    $.ajax({
+            type:'get',
+            url:'/rest/v1/address/' + receiver_phone + '/get_address_list',
+            dataType: "json",
+            contentType: 'application/json',
+            success:callback ,
+            error:function(err){
+                alert(err)
+            }
+        });
+}
+function confirm_address(){
+    index = $("#user_address_select").val();
+    address = address_dict[index];
+    console.dir(address);
+    $("#id_receiver_mobile").val(address.receiver_mobile);
+    $("#receiver_name").val(address.receiver_name);
+    $("#receiver_state").val(address.receiver_state);
+    $("#receiver_city").val(address.receiver_city);
+    $("#receiver_district").val(address.receiver_district);
+    $("#receiver_address").val(address.receiver_address);
+}
+function get_address(){
+    var ware_by = $("#ware_by").val();
+    var seller_id = $("#seller_id").val();
+    var receiver_mobile = $("#id_receiver_mobile").val();
+    var receiver_name = $("#receiver_name").val();
+    var receiver_state = $("#receiver_state").val();
+    var receiver_city = $("#receiver_city").val();
+    var receiver_district = $("#receiver_district").val();
+    var receiver_address = $("#receiver_address").val();
+    params = {
+        'seller_id': seller_id,
+        'ware_by': ware_by,
+        'receiver_name': receiver_name,
+        'receiver_state': receiver_state,
+        'receiver_city': receiver_city,
+        'receiver_district': receiver_district,
+        'receiver_address': receiver_address,
+        'receiver_mobile': receiver_mobile
+    }
+    return params;
+}
+function create_package(){
+    var ware_by=1;
+    var psis = [];
+    $(".sku_line").each(function(){
+        var el = $($(".sku_line")[0]);
+        var sku_id = el.data("sku-id");
+        var num = el.find(".sku_num").text();
+        psis.push([sku_id,num]);
+    });
+    params = get_address();
+    params['psis'] = JSON.stringify(psis);
+    $.ajax({
+        type:'post',
+        url:'/trades/package_order/new_create',
+        data: params,
+        dataType: "json",
+        success:function(res){
+            swal({
+                 title: '发货成功',
+                 text: '是否前去查看包裹？',
+                 type: 'warning',
+                 showCancelButton: true,
+                 confirmButtonText: '查看包裹',
+                 cancelButtonText: '留在本页'
+             }, function(){
+                 window.location.href = '/admin/trades/packageorder?pid=' + res.id;
+             });
+             window.location.reload();
+        },
+        error:function(err){
+            alert(err.responseText);
+        }
+    });
+
+}
+
+$(function(){
+    $('#addsku').click(get_sku);
+    $('#confirm').click(create_package);
+    $('#search_address').click(search_address);
+    $("#confirm_address").click(confirm_address);
+});
+</script>
+{% endblock %}

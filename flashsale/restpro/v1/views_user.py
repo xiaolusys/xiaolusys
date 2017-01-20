@@ -15,6 +15,7 @@ from django.db import IntegrityError
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User as DjangoUser
 from django.core.cache import cache
+from django.http.response import HttpResponseForbidden
 from oauth2_provider.ext.rest_framework import OAuth2Authentication
 
 from rest_framework import mixins
@@ -31,7 +32,7 @@ from core.options import log_action, ADDITION, CHANGE, get_systemoa_user
 from core.weixin.options import gen_weixin_redirect_url
 from core.weixin.options import gen_wxlogin_sha1_sign
 from core.utils.httputils import get_client_ip
-
+from django.db.models import Q
 from flashsale.pay.models import Register, Customer, Integral, BudgetLog, UserBudget
 from shopapp.smsmgr.tasks import task_register_code
 from flashsale.restpro import permissions as perms
@@ -919,6 +920,19 @@ class CustomerViewSet(viewsets.ModelViewSet):
         if debug_secret != "xlmm@16888&a":
             return Response({"rcode": 1, "msg": "开启失败"})
         return Response({"rcode": 0, "msg": "开启成功"})
+
+    @detail_route(methods=['get'])
+    def get_address_list(self, request, pk):
+        # 仅仅是一个开发测试用的url
+        if not request.user.has_perm("add_inbound"):
+            return HttpResponseForbidden(u"只有库管有权限提取所有用户地址来发货")
+        from flashsale.pay.models import UserAddress
+        from flashsale.pay.serializers.serializers import UserAddressSerializer
+        customer_ids = [cus.id for cus in Customer.objects.filter(Q(id=pk))]
+        uas = UserAddress.objects.filter(cus_uid__in=customer_ids)
+        data = UserAddressSerializer(uas, many=True).data
+        return Response({"data": data})
+
 
 from django.shortcuts import redirect
 from django.contrib.auth.models import User

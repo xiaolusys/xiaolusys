@@ -3,9 +3,12 @@
 from shopback.trades.models import PackageSkuItem, PackageOrder
 
 
-def packing_skus():
+def packing_skus(type=None, delay=True):
     """
         打包
     :return:
     """
-    PackageSkuItem.packing_skus_delay()
+    if delay:
+        PackageSkuItem.packing_skus_delay(type)
+    else:
+        PackageSkuItem.batch_merge(type)

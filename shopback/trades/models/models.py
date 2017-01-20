@@ -54,6 +54,8 @@ TRADE_TYPE = (
     (pcfg.DIRECT_TYPE, u'内售'),
     (pcfg.REISSUE_TYPE, u'补发'),
     (pcfg.EXCHANGE_TYPE, u'退换货'),
+    (pcfg.EXCHANGE_TYPE, u'小鹿特卖'),
+    (pcfg.EXCHANGE_TYPE, u'退换货'),
 )
 
 TAOBAO_TRADE_STATUS = (
@@ -370,8 +372,6 @@ class MergeTrade(models.Model):
         return self.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,
                                    pcfg.WAIT_SCAN_WEIGHT_STATUS)
 
-
-
     def isPostScan(self):
         return self.status in (pcfg.WAIT_CHECK_BARCODE_STATUS,
                                pcfg.WAIT_SCAN_WEIGHT_STATUS)
@@ -379,6 +379,11 @@ class MergeTrade(models.Model):
     def isSplit(self):
         """ 是否分拆过后的订单 """
         return self.is_part_consign
+
+    def is_sent(self):
+        return self.status in (pcfg.WAIT_CHECK_BARCODE_STATUS,
+                               pcfg.WAIT_SCAN_WEIGHT_STATUS,
+                               pcfg.FINISHED_STATUS)
 
     def get_sale_trade(self):
         from flashsale.pay.models import SaleTrade
@@ -811,6 +816,9 @@ class MergeOrder(models.Model):
 
     def isInvalid(self):
         return self.sys_status == pcfg.INVALID_STATUS
+
+    def is_sent(self):
+        return self.sys_status in [pcfg.WAIT_BUYER_CONFIRM_GOODS, pcfg.TRADE_BUYER_SIGNED, pcfg.TRADE_FINISHED]
 
     def clean(self):
         for field in self._meta.fields:

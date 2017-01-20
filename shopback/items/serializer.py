@@ -9,7 +9,7 @@ class ProductSkuSerializers(serializers.HyperlinkedModelSerializer):
         model = ProductSku
 
         fields = (
-            'outer_id', 'barcode', 'quantity', 'warn_num', 'remain_num', 'wait_post_num', 'sale_num',
+            'id', 'ware_by', 'outer_id', 'name', 'title', 'barcode', 'quantity', 'warn_num', 'remain_num', 'wait_post_num', 'sale_num',
             'reduce_num', 'lock_num', 'sku_inferior_num', 'cost', 'std_purchase_price', 'std_sale_price', 'agent_price',
             'staff_price', 'weight', 'properties_name', 'properties_alias', 'is_split', 'is_match', 'sync_stock',
             'is_assign', 'post_check', 'created', 'modified', 'status', 'memo')

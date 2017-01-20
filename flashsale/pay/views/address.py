@@ -176,8 +176,25 @@ def get_supplier_name(request):
 
 def add_supplier_addr(request):
     if request.method == 'GET':
+        supplier_data = {}
+        if request.GET.get("id"):
+            ss = SaleSupplier.objects.filter(id=request.GET.get("id")).first()
+            ua = UserAddress.objects.filter(supplier_id=ss.id).first()
+            if ua:
+                data = ss.supplier_name + "(已录)"
+                detail_info = {"shen": ua.receiver_state, "shi": ua.receiver_city, "qu": ua.receiver_district,
+                               "receiver_address": ua.receiver_address,
+                               "receiver_name": ua.receiver_name, "receiver_mobile": ua.receiver_mobile}
+                supplier_data = detail_info
+                supplier_data['supplier_name'] = data
+                supplier_data['supplier_id'] = request.GET.get("id")
+            else:
+                data = ss.supplier_name
+                supplier_data['supplier_name'] = data
+                supplier_data['supplier_id'] = request.GET.get("id")
         prov_list = District.objects.filter(grade=District.FIRST_STAGE)
-        return render(request, "pay/add_supplier_addr.html",{"province_list":prov_list})
+        return render(request, "pay/add_supplier_addr.html",{"province_list":prov_list,"supplier_data":supplier_data})
+
     shen = request.POST.get("shen")
     shi = request.POST.get("shi")
     qu = request.POST.get("qu")

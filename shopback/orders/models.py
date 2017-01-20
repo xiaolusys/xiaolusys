@@ -3,12 +3,13 @@ from __future__ import unicode_literals
 
 import json
 import time
+import hashlib
+import datetime
 from django.db import models
-
 from core.models import BaseModel
 from core.fields import BigAutoField, BigForeignKey
-from shopback.users.models import User
-from shopback.items.models import Item
+from shopback.users.models import User as ShopUser
+from shopback.items.models import Item, Product, ProductSku
 from shopback import paramconfig as pcfg
 from shopback.signals import merge_trade_signal
 from common.utils import parse_datetime
@@ -44,11 +45,17 @@ STEP_TRADE_STATUS = (
     (pcfg.FRONT_PAID_FINAL_PAID, '定金和尾款都付'),
 )
 
+STAGE_CHOICES = (
+    (0, u'需创建发货sku单'),
+    (1, u'已创建发货sku单'),
+    (2, u'已用老办法处理')
+)
+
 
 class Trade(models.Model):
-    id   = models.BigIntegerField(primary_key=True)
-    user = models.ForeignKey(User, null=True, related_name='trades')
-
+    YOUNI_SELLER_NICK = u'优尼世界旗舰店'
+    id = models.BigIntegerField(primary_key=True)
+    user = models.ForeignKey(ShopUser, null=True, related_name='trades')
     seller_id = models.CharField(max_length=64, blank=True)
     seller_nick = models.CharField(max_length=64, blank=True)
     buyer_nick = models.CharField(max_length=64, blank=True)
@@ -75,7 +82,7 @@ class Trade(models.Model):
     buyer_message = models.TextField(max_length=1000, blank=True)
     buyer_memo = models.TextField(max_length=1000, blank=True)
     seller_memo = models.TextField(max_length=1000, blank=True)
-    seller_flag = models.IntegerField(null=True)
+    seller_flag = models.IntegerField(null=True, help_text=u'自订订单标记')
 
     is_brand_sale = models.BooleanField(default=False)
     is_force_wlb = models.BooleanField(default=False)
@@ -106,7 +113,8 @@ class Trade(models.Model):
     receiver_zip = models.CharField(max_length=10, blank=True)
     receiver_mobile = models.CharField(max_length=24, blank=True)
     receiver_phone = models.CharField(max_length=20, blank=True)
-
+    user_address_unikey = models.CharField(max_length=40, null=True, default=None, db_index=True, verbose_name=u'地址唯一标识', help_text=u'用户地址sha1')
+    user_unikey = models.CharField(max_length=40, null=True, default=None, db_index=True, verbose_name=u'用户唯一标识', help_text=u'用户姓名电话sha1')
     step_paid_fee = models.FloatField(default=0.0)
     step_trade_status = models.CharField(max_length=32, choices=STEP_TRADE_STATUS, blank=True)
     status = models.CharField(max_length=32, choices=TAOBAO_TRADE_STATUS, blank=True)
@@ -124,7 +132,7 @@ class Trade(models.Model):
     def get_or_create(cls, trade_id, user_id):
 
         from shopback.trades.models import MergeTrade
-        user = User.objects.get(visitor_id=user_id)
+        user = ShopUser.objects.get(nick=user_id)
         trade, state = cls.objects.get_or_create(id=trade_id, user=user)
         try:
             MergeTrade.objects.get(tid=trade_id)
@@ -135,14 +143,19 @@ class Trade(models.Model):
                 trade = Trade.save_trade_through_dict(user_id, trade_dict)
             except Exception, exc:
                 logger.error('backend update trade (tid:%s)error' % str(trade_id), exc_info=True)
-
         return trade
+
+    @staticmethod
+    def seller():
+        if not hasattr(Trade, '_seller_'):
+            Trade._seller_ = ShopUser.objects.get(uid=Trade.YOUNI_SELLER_ID)
+        return Trade._seller_
 
     @classmethod
     def save_trade_through_dict(cls, user_id, trade_dict):
 
         trade, state = cls.objects.get_or_create(pk=trade_dict['tid'])
-        trade.user = User.objects.get(visitor_id=user_id)
+        trade.user = ShopUser.objects.get(visitor_id=user_id)
         trade.seller_id = user_id
         for k, v in trade_dict.iteritems():
             hasattr(trade, k) and setattr(trade, k, v)
@@ -191,6 +204,20 @@ class Trade(models.Model):
         merge_trade_signal.send(sender=Trade, trade=trade)
         return trade
 
+    def get_address_unikey(self):
+        address = self.receiver_state + self.receiver_city + self.receiver_district + self.receiver_address
+        return hashlib.sha1(address).hexdigest()
+
+    def get_user_unikey(self):
+        user = self.receiver_name + self.receiver_phone + self.YOUNI_SELLER_NICK
+        return hashlib.sha1(user).hexdigest()
+
+    @staticmethod
+    def seller():
+        if not hasattr(Trade, '_seller_'):
+            Trade._seller_ = ShopUser.objects.get(nick=Trade.YOUNI_SELLER_NICK)
+        return Trade._seller_
+
 
 class Order(models.Model):
     oid = models.BigIntegerField(primary_key=True)
@@ -234,6 +261,8 @@ class Order(models.Model):
 
     status = models.CharField(max_length=32, choices=TAOBAO_TRADE_STATUS, blank=True)
 
+    stage = models.IntegerField(default=0, choices=STAGE_CHOICES, db_index=True, verbose_name=u'发货进度', help_text=u'0未处理1发货中2已完结')
+
     class Meta:
         db_table = 'shop_orders_order'
         app_label = 'orders'
@@ -251,3 +280,82 @@ class Order(models.Model):
             values = properties.split(':')
             value_list.append(values[1] if len(values) == 2 else properties)
         return ' '.join(value_list)
+
+    @property
+    def sku(self):
+        if not hasattr(self, '_sku_'):
+            otps = self.outer_sku_id.split('.')
+            if len(otps) > 1:
+                self._sku_ = ProductSku.objects.filter(product__outer_id=otps[0], outer_id=otps[1]).first()
+            else:
+                self._sku_ = ProductSku.objects.filter(product__outer_id=self.outer_id, outer_id=self.outer_sku_id).first()
+        return self._sku_
+
+    @property
+    def product(self):
+        if not hasattr(self, '_product_'):
+            self._product_ = Product.objects.filter(outer_id=self.outer_id).first()
+        return self._product_
+
+    def get_tb_oid(self):
+        return 'tb' + str(self.oid)
+
+    def has_psi_created(self):
+        from shopback.trades.models import PackageSkuItem, PSI_TYPE
+        return PackageSkuItem.objects.filter(oid=self.get_tb_oid()).exists()
+
+    def create_package_sku_item(self):
+        if self.stage > 0:
+            return
+        if self.has_psi_created():
+            return
+        # 防错　如果mergeOrder已发货，则不再产生成PackageSkuItem
+        from shopback.trades.models import PackageSkuItem, PSI_TYPE, MergeOrder, MergeTrade
+        merge_order = MergeOrder.objects.filter(oid=self.oid).first()
+        if merge_order.is_sent() or merge_order.merge_trade.is_sent():
+            return
+        ware_by = self.sku.ware_by
+        sku_item = PackageSkuItem(sale_order_id=None, ware_by=ware_by, oid=self.get_tb_oid())
+        sku_item.sku_id = self.sku.id
+        sku_item.product = self.product
+        sku_item.outer_sku_id = self.outer_sku_id
+        sku_item.outer_id = self.product.outer_id
+        sku_item.num = self.num
+        sku_item.type = PSI_TYPE.TIANMAO
+        sku_item.package_order_id
+        sku_item.package_order_pid
+        sku_item.ware_by = ware_by
+        # sku_item.cid = None
+        sku_item.title = self.product.title()
+        sku_item.sku_properties_name = self.sku.properties_name
+        sku_item.pic_path = self.sku.product.pic_path
+        sku_item.pay_time = self.trade.pay_time
+        sku_item.receiver_mobile = self.trade.receiver_mobile
+        # sku_item.out_sid
+        # sku_item.logistics_company_name
+        sku_item.price = self.price
+        sku_item.total_fee = self.payment
+        sku_item.payment = self.payment
+        sku_item.discount_fee = self.discount_fee
+        sku_item.sale_trade_id = 'tb' + str(self.trade.id)
+        sku_item.save()
+        sku_item.set_status_init_assigned()
+        # PackageSkuItem.batch_merge(type=PSI_TYPE.TIANMAO)
+        self.stage = 1
+        self.save()
+        return sku_item
+
+    def get_package_item(self):
+        from shopback.trades.models import PackageSkuItem, MergeOrder
+        if self.statge in [0, 2]:
+            return MergeOrder.objects.filter(oid=self.oid).first()
+        else:
+            return PackageSkuItem.objects.filter(oid=self.get_tb_oid()).first()
+
+    def need_send(self):
+        return self.status == pcfg.WAIT_SELLER_SEND_GOODS
+
+    def finish_sent(self):
+        self.status = pcfg.WAIT_BUYER_CONFIRM_GOODS
+        self.consign_time = datetime.datetime.now()
+        self.save()
