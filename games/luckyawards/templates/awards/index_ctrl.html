@@ -212,7 +212,7 @@ function hasBump(index){
     for (var i=0; i< lottery.prize_list.length; i++){
         if (lottery.prize_list[i] == index){return true;}
     }
-    return false ;
+    return false;
 }
 
 function getBatchNo(){
@@ -220,9 +220,9 @@ function getBatchNo(){
 }
 
 function setLotteryPrizerIndex() {
-    var index = Math.random()*(lottery.count)|1;
+    var index = parseInt(Math.random()*(lottery.count));
     while(hasBump(index)){
-      index = Math.random()*(lottery.count)|1;
+      index = parseInt(Math.random()*(lottery.count));
     }
     console.log(index , lottery.prize_list, lottery.count)
     lottery.prize = index;
