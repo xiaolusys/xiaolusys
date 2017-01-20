@@ -690,37 +690,79 @@ def apply_pending_return_transfer_coupon_2_sys(coupon_ids, customer):
     product_id, elite_score, agent_price = get_elite_score_by_templateid(template_id, mama)
     product_img = template.extras.get("product_img") or ''
     coupon_value = int(template.value)
-    num = coupons.count()
-    total_elite_score = elite_score * num  # 计算总积分
-    total_agent_price = agent_price * num  # 计算总退款
-    count = CouponTransferRecord.objects.get_out_cash_transfer_coupons().filter(coupon_from_mama_id=mama.id).count()
-    uni_key = 'return-sys-%s-%s' % (mama.id, count)
-    transfer = CouponTransferRecord(
-        coupon_from_mama_id=mama.id,
-        from_mama_thumbnail=customer.thumbnail,
-        from_mama_nick=customer.nick,
-        coupon_to_mama_id=0,
-        to_mama_thumbnail='http://7xogkj.com2.z0.glb.qiniucdn.com/222-ohmydeer.png?imageMogr2/thumbnail/60/format/png',
-        to_mama_nick='SYSTEM',
-        coupon_value=coupon_value,
-        template_id=template_id,
-        order_no='return-money-%s' % total_agent_price,
-        product_img=product_img,
-        coupon_num=num,
-        transfer_type=CouponTransferRecord.OUT_CASHOUT,
-        uni_key=uni_key,
-        date_field=datetime.date.today(),
-        product_id=product_id,
-        elite_score=total_elite_score,
-        transfer_status=CouponTransferRecord.PENDING,
 
-        from_mama_elite_level=mama.elite_level,
-        from_mama_price=agent_price
-    )
-    transfer.save()
+    # now，需要区分出来小鹿币买的和钱买的退法不一样，需要分开成2条记录处理
+    cash_buy_coupon_ids = []
+    coin_buy_coupon_ids = []
+    for one_coupon in coupons:
+        if int(one_coupon.extras['buy_coupon_type']) == 1:
+            coin_buy_coupon_ids.append(one_coupon.id)
+        else:
+            cash_buy_coupon_ids.append(one_coupon.id)
 
-    freeze_transfer_coupon(coupon_ids, transfer.id)  # 冻结优惠券
-    create_transfer_coupon_detail(transfer.id, coupon_ids)
+    if len(cash_buy_coupon_ids) > 0:
+        num = len(cash_buy_coupon_ids)
+        total_elite_score = elite_score * num  # 计算总积分
+        total_agent_price = agent_price * num  # 计算总退款
+        count = CouponTransferRecord.objects.get_all_return_sys_transfer_coupons().filter(coupon_from_mama_id=mama.id).count()
+        uni_key = 'return-sys-%s-%s' % (mama.id, count)
+        transfer = CouponTransferRecord(
+            coupon_from_mama_id=mama.id,
+            from_mama_thumbnail=customer.thumbnail,
+            from_mama_nick=customer.nick,
+            coupon_to_mama_id=0,
+            to_mama_thumbnail='http://7xogkj.com2.z0.glb.qiniucdn.com/222-ohmydeer.png?imageMogr2/thumbnail/60/format/png',
+            to_mama_nick='SYSTEM',
+            coupon_value=coupon_value,
+            template_id=template_id,
+            order_no='return-money-%s' % total_agent_price,
+            product_img=product_img,
+            coupon_num=num,
+            transfer_type=CouponTransferRecord.OUT_CASHOUT,
+            uni_key=uni_key,
+            date_field=datetime.date.today(),
+            product_id=product_id,
+            elite_score=total_elite_score,
+            transfer_status=CouponTransferRecord.PENDING,
+
+            from_mama_elite_level=mama.elite_level,
+            from_mama_price=agent_price
+        )
+        transfer.save()
+        freeze_transfer_coupon(cash_buy_coupon_ids, transfer.id)  # 冻结优惠券
+        create_transfer_coupon_detail(transfer.id, cash_buy_coupon_ids)
+
+    if len(coin_buy_coupon_ids) > 0:
+        num = len(coin_buy_coupon_ids)
+        total_elite_score = elite_score * num  # 计算总积分
+        total_agent_price = agent_price * num  # 计算总退款
+        count = CouponTransferRecord.objects.get_all_return_sys_transfer_coupons().filter(coupon_from_mama_id=mama.id).count()
+        uni_key = 'return-sys-%s-%s' % (mama.id, count)
+        transfer = CouponTransferRecord(
+            coupon_from_mama_id=mama.id,
+            from_mama_thumbnail=customer.thumbnail,
+            from_mama_nick=customer.nick,
+            coupon_to_mama_id=0,
+            to_mama_thumbnail='http://7xogkj.com2.z0.glb.qiniucdn.com/222-ohmydeer.png?imageMogr2/thumbnail/60/format/png',
+            to_mama_nick='SYSTEM',
+            coupon_value=coupon_value,
+            template_id=template_id,
+            order_no='return-coin-%s' % total_agent_price,
+            product_img=product_img,
+            coupon_num=num,
+            transfer_type=CouponTransferRecord.OUT_CASHOUT_COIN,
+            uni_key=uni_key,
+            date_field=datetime.date.today(),
+            product_id=product_id,
+            elite_score=total_elite_score,
+            transfer_status=CouponTransferRecord.PENDING,
+
+            from_mama_elite_level=mama.elite_level,
+            from_mama_price=agent_price
+        )
+        transfer.save()
+        freeze_transfer_coupon(coin_buy_coupon_ids, transfer.id)  # 冻结优惠券
+        create_transfer_coupon_detail(transfer.id, coin_buy_coupon_ids)
     return True
 
 
@@ -784,7 +826,13 @@ def agree_apply_transfer_record_2_sys(record):
         raise Exception('优惠券没有找到')
 
     #  用户退的券比如有3张，有可能是2张用钱买的，有可能1张是用小鹿币买的，那么用钱的要退到个人零钱，用币的退到小鹿币
-    product_id, elite_score, agent_price = get_elite_score_by_templateid(record.template_id, record.coupon_from_mama_id)
+    from flashsale.xiaolumm.models import XiaoluMama
+    xlmm = XiaoluMama.objects.filter(
+        id=record.coupon_from_mama_id, status=XiaoluMama.EFFECT,
+        charge_status=XiaoluMama.CHARGED).first()
+    if not xlmm:
+        raise Exception('小鹿妈妈账号不正常，请联系客服或管理员1')
+    product_id, elite_score, agent_price = get_elite_score_by_templateid(record.template_id, xlmm)
     return_budget_amount = 0
     return_coin_amount = 0
     for coupon in coupons:
@@ -804,15 +852,11 @@ def agree_apply_transfer_record_2_sys(record):
                          budget_log_type=BudgetLog.BG_RETURN_COUPON,
                          referal_id=record.id)  # 生成钱包待确定记录
     if round(return_coin_amount * 100) > 0:
-        from flashsale.xiaolumm.models import XiaoluMama
-        xlmm = XiaoluMama.objects.filter(
-            id=record.coupon_from_mama_id, status=XiaoluMama.EFFECT,
-            charge_status=XiaoluMama.CHARGED).first()
         if xlmm:
             xiaolucoin = XiaoluCoin.get_or_create(xlmm.id)
             xiaolucoin.refund(round(return_coin_amount * 100), record.id)
         else:
-            raise Exception('小鹿妈妈账号不正常，请联系客服或管理员')
+            raise Exception('小鹿妈妈账号不正常，请联系客服或管理员2')
 
     record.transfer_status = CouponTransferRecord.DELIVERED
     record.save(update_fields=['transfer_status', 'modified'])  # 完成流通记录
