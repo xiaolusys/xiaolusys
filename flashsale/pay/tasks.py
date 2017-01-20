@@ -1050,6 +1050,8 @@ def task_schedule_check_boutique_modelproduct(days=1):
     queryset = ModelProductCtl.multiple(ids=ids)
 
     wrong_product = []
+    non_boutiques = []
+    wrong_coupons = []
     # 先检查精品汇商品的字段设置对不对
     for mp in queryset:
         right = False
@@ -1089,7 +1091,7 @@ def task_schedule_check_boutique_modelproduct(days=1):
                     mp.extras['payinfo']['coupon_template_ids']) > 0):
                 right = False
         if not right:
-            wrong_product.append(mp.id)
+            non_boutiques.append(mp.id)
 
     # 再检查精品汇的券字段配置对不对
     coupon_queryset = get_virtual_modelproducts()
@@ -1110,14 +1112,14 @@ def task_schedule_check_boutique_modelproduct(days=1):
                     mp.extras['saleinfos']['is_coupon_deny'] == True):
                 right = False
         if (not right) and (mp.id != 25115) and (mp.id != 25339):
-            wrong_product.append(mp.id)
+            wrong_coupons.append(mp.id)
 
     from common.dingding import DingDingAPI
     tousers = [
         '02401336675559',  # 伍磊
     ]
-    msg = '定时检查boutique product数据:\n时间: %s \nerror记录条数:%s\n' % \
-          (str(datetime.datetime.now()), str(wrong_product))
+    msg = '定时检查boutique product数据:\n时间:%s\n精品参数设置错误:%s\n非精品设置错误:%s\n精品券设置错误:%s\n' % \
+          (str(datetime.datetime.now()), str(wrong_product), str(non_boutiques), str(wrong_coupons))
     dd = DingDingAPI()
     for touser in tousers:
         dd.sendMsg(msg, touser)

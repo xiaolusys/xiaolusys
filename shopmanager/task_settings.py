@@ -1220,12 +1220,12 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
-    u'定时每日更新红包数据': {
-        'task': 'flashsale.pay.tasks.task_Pull_Red_Envelope',
-        'schedule': crontab(minute="10", hour="23"),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
+    # u'定时每日更新红包数据': {
+    #     'task': 'flashsale.pay.tasks.task_Pull_Red_Envelope',
+    #     'schedule': crontab(minute="10", hour="23"),
+    #     'args': (),
+    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    # },
     u'定时统计每天推广支出情况': {
         'task': 'flashsale.daystats.tasks.flashsale.task_PopularizeCost_By_Day',
         'schedule': crontab(minute="30", hour="8"),
