@@ -310,6 +310,9 @@ class CategoryPreference(BaseModel):
     def __unicode__(self):
         return '<%s-%s-%s>' % (self.id, self.category.__unicode__(), self.category.id)
 
+    def get_preferences(self):
+        return list(set(self.preferences + [1,2]))
+
 
 class PreferencePool(BaseModel):
     name = models.CharField(max_length=64, verbose_name=u'参数名称')

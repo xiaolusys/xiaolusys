@@ -779,6 +779,6 @@ class PreferencePoolViewSet(viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
         if configed_category:
             cfg_cat = CategoryPreference.objects.filter(category__id=configed_category, is_default=True).first()
-            queryset = queryset.filter(id__in=cfg_cat.preferences) if cfg_cat else queryset
+            queryset = queryset.filter(id__in=cfg_cat.get_preferences()) if cfg_cat else queryset
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
