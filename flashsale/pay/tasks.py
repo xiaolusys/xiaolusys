@@ -642,7 +642,8 @@ def task_close_refund(days=None):
 def task_saleorder_update_package_sku_item(sale_order):
 
     from shopback.trades.models import PackageSkuItem
-    from shopback.items.models import ProductSku, SkuStock
+    from shopback.items.models import SkuStock
+    from flashsale.pay.models import ProductSku
     items = PackageSkuItem.objects.filter(sale_order_id=sale_order.id)
     if items.count() <= 0:
         if not sale_order.need_send():

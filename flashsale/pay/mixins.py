@@ -9,7 +9,6 @@ from rest_framework import exceptions
 
 from . import constants
 from .models import Customer, ShoppingCart, SaleTrade, SaleOrder, genTradeUniqueid
-from shopback.items.models import ProductSku
 from flashsale.xiaolumm.models import XiaoluMama
 
 from common.modelutils import update_model_fields

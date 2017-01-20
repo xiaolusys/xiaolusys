@@ -9,7 +9,6 @@ from rest_framework import permissions
 from rest_framework import renderers
 
 from flashsale.pay.models import SaleTrade, SaleOrder, SaleRefund
-from shopback.items.models import Product, ProductSku
 
 
 def product_category_map():

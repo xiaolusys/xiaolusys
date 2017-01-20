@@ -20,7 +20,7 @@ from flashsale.pay.models import Customer, SaleTrade
 from flashsale.xiaolumm.models import XiaoluMama
 from shopapp.weixin.options import get_openid_by_unionid
 from shopback.items.models import Product
-from shopback.items.models import ProductSku
+from flashsale.pay.models import ProductSku
 
 logger = logging.getLogger(__name__)
 

@@ -20,7 +20,8 @@ from flashsale.dinghuo.models import OrderDetail, OrderList,  SupplyChainDataSta
 from flashsale.pay.models import SaleOrder
 from flashsale.dinghuo.models_purchase import PurchaseArrangement, PurchaseDetail, PurchaseOrder
 from shopback import paramconfig as pcfg
-from shopback.items.models import Product, ProductSku
+from shopback.items.models import Product
+from flashsale.pay.models import ProductSku
 from shopback.trades.models import (MergeOrder, TRADE_TYPE, SYS_TRADE_STATUS)
 from supplychain.supplier.models import SaleProduct, SupplierCharge, SaleSupplier
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_COMPANY, WARE_CHOICES

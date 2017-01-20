@@ -5,19 +5,21 @@ import re
 import json
 import datetime
 import urlparse
+import collections
 from django.db import models
-from django.db.models import F
+from django.db.models import F, Sum, Avg
 from django.conf import settings
 from django.db.models.signals import post_save
 from django.core.cache import cache
-
+from django.forms.models import model_to_dict
 from common.utils import update_model_fields
 from core.fields import JSONCharMyField
 from core.models import BaseTagModel
 from core.options import get_systemoa_user, log_action, CHANGE
 
 from shopback import paramconfig as pcfg
-from shopback.items.models import Product, ProductSku, ProductSkuContrast, ContrastContent
+from shopback.items.models import Product, ProductSkuContrast, ContrastContent
+from shopback.items.models import ProductSku
 from shopback.items.constants import SKU_CONSTANTS_SORT_MAP as SM, PROPERTY_NAMES, PROPERTY_KEYMAP
 from shopback.items.tasks_stats import task_product_upshelf_notify_favorited_customer
 from .base import PayBaseModel, BaseModel
@@ -857,3 +859,389 @@ class ModelProductSkuContrast(BaseModel):
 
     def __unicode__(self):
         return u'<%s-%s>' % (self.id, self.modelproduct.id)
+
+'''
+class SaleSku(models.Model):
+    """ 记录库存商品规格属性类 """
+
+    class Meta:
+        db_table = 'flashsale_salesku'
+        unique_together = ("outer_id", "product")
+        app_label = 'items'
+        verbose_name = u'待售sku'
+        verbose_name_plural = u'待售sku列表'
+
+    API_CACHE_KEY_TPL = 'api_productsku_{0}'
+
+    NORMAL = pcfg.NORMAL
+    REMAIN = pcfg.REMAIN
+    DELETE = pcfg.DELETE
+    STATUS_CHOICES = (
+        (pcfg.NORMAL, u'使用'),
+        (pcfg.REMAIN, u'待用'),
+        (pcfg.DELETE, u'作废'),
+    )
+
+    outer_id = models.CharField(max_length=32, blank=False, verbose_name=u'编码')
+
+    supplier_skucode = models.CharField(max_length=32, blank=True, db_index=True, verbose_name=u'供应商SKU编码')
+    barcode = models.CharField(max_length=64, blank=True, db_index=True, verbose_name='条码')
+    product = models.ForeignKey(Product, null=True, related_name='prod_skus', verbose_name='商品')
+
+    quantity = models.IntegerField(default=0, verbose_name='库存数')
+    warn_num = models.IntegerField(default=0, verbose_name='警戒数')  # 警戒库位
+    remain_num = models.IntegerField(default=0, verbose_name='预留数')  # 预留库存
+    wait_post_num = models.IntegerField(default=0, verbose_name='待发数')  # 待发数
+    sale_num = models.IntegerField(default=0, verbose_name=u'日出库数')  # 日出库
+    reduce_num = models.IntegerField(default=0, verbose_name='预减数')  # 下次入库减掉这部分库存
+    lock_num = models.IntegerField(default=0, verbose_name='锁定数')  # 特卖待发货，待付款数量
+    sku_inferior_num = models.IntegerField(default=0, verbose_name=u"次品数")  # 保存对应sku的次品数量
+
+    cost = models.FloatField(default=0, verbose_name='成本价')
+    std_purchase_price = models.FloatField(default=0, verbose_name='标准进价')
+    std_sale_price = models.FloatField(default=0, verbose_name='吊牌价')
+    agent_price = models.FloatField(default=0, verbose_name='出售价')
+    staff_price = models.FloatField(default=0, verbose_name='员工价')
+
+    weight = models.CharField(max_length=10, blank=True, verbose_name='重量(g)')
+
+    properties_name = models.TextField(max_length=200, blank=True, verbose_name='线上规格名称')
+    properties_alias = models.TextField(max_length=200, blank=True, verbose_name='系统规格名称')
+
+    is_split = models.BooleanField(default=False, verbose_name='需拆分')
+    is_match = models.BooleanField(default=False, verbose_name='有匹配')
+
+    sync_stock = models.BooleanField(default=True, verbose_name='库存同步')
+    # 是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
+    is_assign = models.BooleanField(default=False, verbose_name='手动分配')
+
+    post_check = models.BooleanField(default=False, verbose_name='需扫描')
+    created = models.DateTimeField(null=True, blank=True, auto_now_add=True, verbose_name='创建时间')
+    modified = models.DateTimeField(null=True, blank=True, auto_now=True, verbose_name='修改时间')
+    status = models.CharField(max_length=10, db_index=True, choices=STATUS_CHOICES,
+                              default=pcfg.NORMAL, verbose_name='规格状态')  # normal,delete
+
+    match_reason = models.CharField(max_length=80, blank=True, verbose_name='匹配原因')
+    buyer_prompt = models.CharField(max_length=60, blank=True, verbose_name='客户提示')
+    memo = models.TextField(max_length=1000, blank=True, verbose_name='备注')
+
+    def __unicode__(self):
+        return '<%s,%s:%s>' % (self.id, self.outer_id, self.properties_alias or self.properties_name)
+
+    def clean(self):
+        for field in self._meta.fields:
+            if isinstance(field, (models.CharField, models.TextField)):
+                setattr(self, field.name, getattr(self, field.name).strip())
+
+    @property
+    def realtime_quantity(self):
+        """
+        This tells how many quantity in store.
+        """
+        sku_stats = self.stat
+        if sku_stats:
+            return self.stat.realtime_quantity
+        return 0
+
+    @property
+    def real_inferior_quantity(self):
+        return self.stat.inferior_num
+
+    @property
+    def excess_quantity(self):
+        """ 多余未售库存数 """
+        sku_stats = self.stat
+        if sku_stats:
+            return max(0, sku_stats.realtime_quantity - sku_stats.wait_post_num)
+        return 0
+
+    @property
+    def aggregate_quantity(self):
+        """
+        This tells how many quantity we have in total since we introduced inbound_quantity.
+        """
+        raise NotImplementedError
+
+    @property
+    def name(self):
+        return self.properties_alias or self.properties_name
+
+    @property
+    def title(self):
+        return self.product.name
+
+    @property
+    def BARCODE(self):
+        return self.barcode.strip() or '%s%s' % (self.product.outer_id.strip(),
+                                                 self.outer_id.strip())
+
+    def get_supplier_outerid(self):
+        return re.sub('-[0-9]$', '', self.outer_id)
+
+    @property
+    def realnum(self):
+        if self.remain_num >= self.sale_num:
+            return self.remain_num - self.sale_num
+        return 0
+
+    @property
+    def real_remainnum(self):
+        """ 实际剩余库存 """
+        wait_post_num = max(self.wait_post_num, 0)
+        if self.remain_num > 0 and self.remain_num >= wait_post_num:
+            return self.remain_num - wait_post_num
+        return 0
+
+    @property
+    def free_num(self):
+        """ 可售库存数 """
+        # return max(self.remain_num - max(self.lock_num, 0), 0)
+        sku_stats = self.stat
+        if sku_stats:
+            self.lock_num = sku_stats.lock_num
+        return max(self.remain_num - max(self.lock_num, 0), 0)
+
+    @property
+    def sale_out(self):
+        if self.free_num > 0:
+            return False
+        if self.quantity > self.wait_post_num > 0:
+            return False
+        return True
+
+    @property
+    def ware_by(self):
+        return self.product.ware_by
+
+    @property
+    def size_of_sku(self):
+        try:
+            display_num = ""
+            if self.free_num > 3:
+                display_num = "NO"
+            else:
+                display_num = self.free_num
+            contrast = self.product.contrast.get_correspond_content
+            sku_name = self.properties_alias or self.properties_name
+            display_sku = contrast[sku_name]
+            display_sku = display_sku.items()
+            result_data = collections.OrderedDict()
+            for p in display_sku:
+                result_data[p[0]] = p[1]
+            return {"result": result_data, "free_num": display_num}
+        except:
+            return {"result": {}, "free_num": display_num}
+
+    @property
+    def not_assign_num(self):
+        return self.stat.not_assign_num
+
+    def set_remain_num(self, remain_num):
+        self.remain_num = remain_num
+        self.save()
+
+    def calc_discount_fee(self, xlmm=None):
+        """ 优惠折扣 """
+        if not xlmm or xlmm.agencylevel < 2:
+            return 0
+
+        try:
+            discount = int(self.product.details.mama_discount)
+            if discount > 100:
+                discount = 100
+
+            if discount < 0:
+                discount = 0
+            return float('%.2f' % ((100 - discount) / 100.0 * float(self.agent_price)))
+        except:
+            return 0
+
+    @property
+    def is_out_stock(self):
+        quantity = max(self.quantity, 0)
+        wait_post_num = max(self.wait_post_num, 0)
+        return quantity - wait_post_num <= 0
+
+    @property
+    def json(self):
+        model_dict = model_to_dict(self)
+        model_dict.update({
+            'districts': self.get_district_list(),
+            'barcode': self.BARCODE,
+            'name': self.name
+        })
+        return model_dict
+
+    def update_quantity(self, num, full_update=False, dec_update=False):
+        """ 更新规格库存 """
+        if full_update:
+            self.quantity = num
+        elif dec_update:
+            self.quantity = F('quantity') - num
+        else:
+            self.quantity = F('quantity') + num
+        update_model_fields(self, update_fields=['quantity'])
+
+        psku = self.__class__.objects.get(id=self.id)
+        self.quantity = psku.quantity
+
+        post_save.send_robust(sender=self.__class__, instance=self, created=False)
+
+    def update_wait_post_num(self, num, full_update=False, dec_update=False):
+        """ 更新规格待发数:full_update:是否全量更新 dec_update:是否减库存 """
+        if full_update:
+            self.wait_post_num = num
+        elif dec_update:
+            self.wait_post_num = models.F('wait_post_num') - num
+        else:
+            self.wait_post_num = models.F('wait_post_num') + num
+        update_model_fields(self, update_fields=['wait_post_num'])
+
+        psku = self.__class__.objects.get(id=self.id)
+        self.wait_post_num = psku.wait_post_num
+
+        post_save.send_robust(sender=self.__class__, instance=self, created=False)
+
+    def update_lock_num(self, num, full_update=False, dec_update=False):
+        """ 更新规格待发数:full_update:是否全量更新 dec_update:是否减库存 """
+        if full_update:
+            self.lock_num = num
+        elif dec_update:
+            self.lock_num = models.F('lock_num') - num
+        else:
+            self.lock_num = models.F('lock_num') + num
+        update_model_fields(self, update_fields=['lock_num'])
+
+        psku = self.__class__.objects.get(id=self.id)
+        self.lock_num = psku.lock_num
+
+    def update_reduce_num(self, num, full_update=False, dec_update=False):
+        """ 更新商品库存: full_update:是否全量更新 dec_update:是否减库存 """
+        if full_update:
+            self.reduce_num = num
+        elif dec_update:
+            self.reduce_num = F('reduce_num') - num
+        else:
+            self.reduce_num = F('reduce_num') + num
+        update_model_fields(self, update_fields=['reduce_num'])
+
+        self.reduce_num = self.__class__.objects.get(id=self.id).reduce_num
+        post_save.send(sender=self.__class__, instance=self, created=False)
+
+    def update_quantity_by_storage_num(self, num):
+        if num < 0:
+            raise Exception(u'入库更新商品库存数不能小于0')
+
+        if num > self.reduce_num:
+            real_update_num = num - self.reduce_num
+            real_reduct_num = 0
+        else:
+            real_update_num = 0
+            real_reduct_num = self.reduce_num - num
+
+        self.update_quantity(real_update_num)
+        self.update_reduce_num(real_reduct_num, full_update=True)
+
+    @property
+    def is_stock_warn(self):
+        """
+        库存是否警告:
+        1，如果当前库存小于0；
+        2，同步库存（当前库存-预留库存-待发数）小于警告库位 且没有设置警告取消；
+        """
+        quantity = max(self.quantity, 0)
+        remain_num = max(self.remain_num, 0)
+        wait_post_num = max(self.wait_post_num, 0)
+        return quantity - remain_num - wait_post_num <= 0
+
+    @property
+    def is_warning(self):
+        """
+        库存预警:
+        1，如果当前能同步的库存小昨日销量；
+        """
+        quantity = max(self.quantity, 0)
+        remain_num = max(self.remain_num, 0)
+        wait_post_num = max(self.wait_post_num, 0)
+        sync_num = quantity - remain_num - wait_post_num
+        return self.warn_num > 0 and self.warn_num >= sync_num
+
+    @property
+    def district(self):
+        from shopback.items.models.storage import ProductLocation
+        location = ProductLocation.objects.filter(product_id=self.product.id, sku_id=self.id).first()
+        if location:
+            return location.district
+
+    def get_district_list(self):
+        from shopback.items.models.storage import ProductLocation
+        locations = ProductLocation.objects.filter(product_id=self.product.id, sku_id=self.id)
+        return [(l.district.parent_no, l.district.district_no) for l in locations]
+
+    def get_districts_code(self):
+        """ 商品库中区位,ret_type :c,返回组合后的字符串；o,返回[父编号]-[子编号],... """
+        locations = self.get_district_list()
+        sdict = {}
+        for d in locations:
+            dno = d[1]
+            pno = d[0]
+            if sdict.has_key(pno):
+                sdict[pno].add(dno)
+            else:
+                sdict[pno] = set([dno])
+        dc_list = sorted(sdict.items(), key=lambda d: d[0])
+        ds = []
+        for k, v in dc_list:
+            ds.append('%s-[%s]' % (k, ','.join(v)))
+        return ','.join(ds)
+
+    def get_sum_sku_inferior_num(self):
+        same_pro_skus = ProductSku.objects.filter(product_id=self.product_id)
+        sum_inferior_num = same_pro_skus.aggregate(total_inferior=Sum("sku_inferior_num")).get("total_inferior") or 0
+        return sum_inferior_num
+
+    @property
+    def collect_amount(self):
+        return self.cost * self.quantity
+
+    @property
+    def color_size(self):
+        color = self.product.name.split('/')[-1:][0]
+        size = self.properties_name
+        return '%s,%s' % (color, size)
+
+    @staticmethod
+    def get_by_outer_id(outer_id, outer_sku_id):
+        product = Product.objects.get(outer_id=outer_id)
+        # return ProductSku.objects.filter(outer_id=outer_sku_id, product_id=product.id).first()
+        return ProductSku.objects.get(outer_id=outer_sku_id, product_id=product.id)
+
+    def is_deposite(self):
+        return self.product.outer_id.startswith(Product.DIPOSITE_CODE_PREFIX)
+
+    def to_apimodel(self):
+        from apis.v1.products import SKU as APIModel
+        data = self.__dict__
+        data.update({
+            'type': 'size',
+            'id': self.id,
+            'name': self.name,
+            'free_num': self.free_num,
+            'is_saleout': self.free_num <= 0,
+            'std_sale_price': self.std_sale_price,
+            'agent_price': self.agent_price,
+        })
+        return APIModel(**data)
+
+
+def invalid_apiproductsku_cache(sender, instance, *args, **kwargs):
+    if hasattr(sender, 'API_CACHE_KEY_TPL'):
+        logger.debug('invalid_apiproductsku_cache: %s' % instance.id)
+        from shopback.items.models.stats import SkuStock
+        cache.delete(ProductSku.API_CACHE_KEY_TPL.format(instance.id))
+        cache.delete(SkuStock.API_CACHE_KEY_TPL.format(instance.id))
+
+
+post_save.connect(invalid_apiproductsku_cache, sender=SaleSku, dispatch_uid='post_save_invalid_apiproductsku_cache')
+'''
+

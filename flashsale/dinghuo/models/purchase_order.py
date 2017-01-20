@@ -10,7 +10,8 @@ from django.contrib.auth.models import User
 from django.db import transaction
 from core.utils.modelutils import update_model_fields
 from core.models import BaseModel
-from shopback.items.models import ProductSku, Product, SkuStock
+from shopback.items.models import Product, SkuStock
+from flashsale.pay.models import ProductSku
 from shopback.warehouse.constants import WARE_CHOICES, WARE_NONE, WARE_GZ
 from supplychain.supplier.models import SaleSupplier
 import logging,json

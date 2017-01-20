@@ -12,7 +12,8 @@ from django.conf import settings
 from django.db import transaction
 
 from .base import PayBaseModel, BaseModel
-from shopback.items.models import Product, ProductSku
+from shopback.items.models import Product
+from .product import ProductSku
 
 from mall.xiaolupay import apis as xiaolupay
 

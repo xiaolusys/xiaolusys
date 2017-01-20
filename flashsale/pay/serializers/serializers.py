@@ -2,7 +2,8 @@
 from django.forms import model_to_dict
 from rest_framework import serializers
 
-from shopback.items.models import Product, ProductSku
+from shopback.items.models import Product
+from flashsale.pay.models import ProductSku
 from ..models import SaleTrade, District, UserAddress, ModelProduct, BrandProduct, SaleRefund
 
 

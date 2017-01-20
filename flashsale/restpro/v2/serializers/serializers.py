@@ -22,7 +22,8 @@ from flashsale.xiaolumm.models.models_fortune import (
     DailyStats,
 )
 from flashsale.pay.models import BrandEntry, BrandProduct
-from shopback.items.models import Product, ProductSku
+from shopback.items.models import Product
+from flashsale.pay.models import ProductSku
 from flashsale.pay.models import (
     SaleTrade,
     SaleOrder,

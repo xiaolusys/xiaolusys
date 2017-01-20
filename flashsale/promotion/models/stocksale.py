@@ -12,7 +12,8 @@ from flashsale.pay.models.product import Productdetail
 from supplychain.supplier.models import SaleProduct
 from flashsale.promotion.models import ActivityEntry, ActivityProduct
 from flashsale.xiaolumm.models.models_rebeta import AgencyOrderRebetaScheme
-from shopback.items.models import SkuStock, ProductSku
+from shopback.items.models import SkuStock
+from flashsale.pay.models import ProductSku
 from supplychain.supplier.models.schedule import SaleProductManage, SaleProductManageDetail
 
 
