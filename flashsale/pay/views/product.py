@@ -15,7 +15,8 @@ from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer, Browsab
 from rest_framework.views import APIView
 from rest_framework import filters
 
-from shopback.items.models import Product, ProductSku
+from shopback.items.models import Product
+from flashsale.pay.models import ProductSku
 from flashsale.pay import serializers
 
 

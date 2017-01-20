@@ -5,10 +5,6 @@ from rest_framework.response import Response
 from rest_framework import authentication
 from rest_framework import permissions
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer, BrowsableAPIRenderer
-from rest_framework.views import APIView
-from rest_framework import filters
-
-from shopback.items.models import Product, ProductSku
 from flashsale.pay.models import SaleTrade, SaleOrder
 from flashsale.pay import serializers
 

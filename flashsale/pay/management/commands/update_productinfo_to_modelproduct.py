@@ -5,7 +5,8 @@ from django.core.management.base import BaseCommand
 
 import datetime
 from django.db.models import Min
-from shopback.items.models import Product, ProductSku
+from shopback.items.models import Product
+from flashsale.pay.models import ProductSku
 from flashsale.pay.models import ModelProduct
 from supplychain.supplier.models import SaleCategory, SaleProduct
 

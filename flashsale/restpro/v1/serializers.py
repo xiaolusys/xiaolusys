@@ -27,7 +27,8 @@ from flashsale.pay.models import (
 )
 from flashsale.pay.models.favorites import Favorites
 from flashsale.promotion.models import ActivityEntry, ActivityProduct
-from shopback.items.models import Product, ProductSku
+from shopback.items.models import Product
+from flashsale.pay.models import ProductSku
 from shopback.categorys.models import ProductCategory
 from shopback.logistics.models import LogisticsCompany
 from shopback.trades.models import TradeWuliu, PackageOrder, ReturnWuLiu

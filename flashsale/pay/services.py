@@ -9,6 +9,7 @@ from shopback.base.service import LocalService
 from shopback import paramconfig as pcfg
 from shopapp.weixin.models import MIAOSHA_SELLER_ID
 from shopback.users.models import User
+from flashsale.pay.models import ProductSku
 
 import logging
 logger = logging.getLogger(__name__)
@@ -53,7 +54,7 @@ class FlashSaleService(LocalService):
     def createMergeOrder(cls, merge_trade, order, *args, **kwargs):
 
         from shopback.trades.models import MergeOrder
-        from shopback.items.models import Product, ProductSku
+        from shopback.items.models import Product
 
         order_id = order.oid
         merge_order, state = MergeOrder.objects.get_or_create(oid=order_id,

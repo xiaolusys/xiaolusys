@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 def orderlist_change_forecastinbound(order_list):
     logger.info('orderlist_change_forecastinbound start: %s'% order_list)
-    from shopback.items.models import Product, ProductSku
+    from flashsale import Product, ProductSku
     supplier = order_list.supplier
     orderlist_id = order_list.id
     first_create = True

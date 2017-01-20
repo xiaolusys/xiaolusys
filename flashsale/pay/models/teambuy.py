@@ -6,7 +6,8 @@ import urlparse
 from django.db import models
 from core.models import AdminModel, BaseModel
 from flashsale.pay.models import Customer, ModelProduct, SaleOrder, SaleTrade
-from shopback.items.models import ProductSku, Product
+from shopback.items.models import Product
+from .product import ProductSku
 from django.db.models.signals import post_save, pre_save
 from django.conf import settings
 

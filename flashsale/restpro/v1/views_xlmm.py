@@ -35,11 +35,11 @@ from flashsale.pay.models import SaleTrade
 from flashsale.xiaolumm.models import XiaoluMama, CarryLog, CashOut, PotentialMama, ReferalRelationship
 from flashsale.xiaolumm.models.models_fans import XlmmFans, FansNumberRecord
 from flashsale.xiaolumm.models.models_fortune import MamaFortune
-from flashsale.pay.models import Envelop
+from flashsale.pay.models import Envelop, ProductSku
 from shopapp.weixin.models import WeixinUnionID
 from flashsale.xiaolumm.apis.v1.potentialmama import update_potential_by_deposit
 
-from shopback.items.models import Product, ProductSku
+from shopback.items.models import Product
 from . import serializers
 
 import logging

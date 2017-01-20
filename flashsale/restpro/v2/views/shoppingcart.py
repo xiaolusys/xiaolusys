@@ -34,7 +34,8 @@ from flashsale.pay.apis.v1.order import get_user_skunum_by_last24hours
 from flashsale.coupon.models import UserCoupon
 from flashsale.restpro import permissions as perms
 from .. import serializers
-from shopback.items.models import Product, ProductSku
+from shopback.items.models import Product
+from flashsale.pay.models import ProductSku
 from shopback.base import log_action, ADDITION, CHANGE
 from shopback.logistics.models import LogisticsCompany
 from flashsale.restpro import constants as CONS

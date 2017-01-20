@@ -15,7 +15,8 @@ from django.dispatch import receiver
 
 from .base import PayBaseModel, BaseModel
 from shopback.logistics.models import LogisticsCompany
-from shopback.items.models import Product, ProductSku
+from shopback.items.models import Product
+from .product import ProductSku
 from shopback.users.models import User
 from flashsale.pay import constants as CONST
 
@@ -689,7 +690,7 @@ def add_renew_deposit_record(sender, obj, **kwargs):
 
     from flashsale.xiaolumm.models import CashOut, XiaoluMama, MamaFortune
     from core.options import log_action, ADDITION
-    from shopback.items.models import ProductSku
+    from flashsale.pay.models import ProductSku
 
     sku = ProductSku.objects.get(id=order.sku_id)
     deposit_price = sku.agent_price
@@ -1312,7 +1313,7 @@ class SaleOrder(PayBaseModel):
     @property
     def product_sku(self):
         if not hasattr(self, '_product_sku_'):
-            from shopback.items.models import ProductSku
+            from flashsale.pay.models import ProductSku
             self._product_sku_ = ProductSku.objects.filter(id=self.sku_id).first()
         return self._product_sku_
 
