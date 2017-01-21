@@ -885,7 +885,7 @@ class Product(models.Model):
         product_valuelist = Product.objects.filter(model_id=model_pro.id).values('id', 'outer_id', 'name')
         for p in product_valuelist:
             if p['name'].find('/') > -1:
-                p['name'] = p['name'].split('/')[1]
+                p['name'] = p['name'].split('/')[-1]
 
         productname_maps = dict([(e['name'], e) for e in product_valuelist])
         productid_maps = dict([(e['outer_id'], e) for e in product_valuelist])
@@ -895,7 +895,7 @@ class Product(models.Model):
             .values('id', 'outer_id', 'product__name', 'product_id', 'properties_name', 'barcode')
         for ps in productsku_valuelist:
             if ps['product__name'].find('/') > -1:
-                ps['name'] = ps['product__name'].split('/')[1] + '-' + ps['properties_name']
+                ps['name'] = ps['product__name'].split('/')[-1] + '-' + ps['properties_name']
             else:
                 ps['name'] = ps['product__name'] + '-' + ps['properties_name']
 
