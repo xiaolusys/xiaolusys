@@ -144,7 +144,7 @@ def task_xlmm_score():
 def task_check_xlmm_exchg_order():
     queryset = OrderCarry.objects.filter(carry_type__in=[OrderCarry.WAP_ORDER, OrderCarry.APP_ORDER],
                                          status__in=[OrderCarry.CONFIRM, OrderCarry.CANCEL],
-                                         date_field__gt='2016-11-30')
+                                         date_field__gt='2017-1-1')
     exchg_orders = [i['order_id'] for i in queryset.values('order_id')]
     from flashsale.pay.models.trade import SaleOrder
     new_elite_queryset = SaleOrder.objects.filter(item_id='80281', status=SaleOrder.TRADE_FINISHED)
