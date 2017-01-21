@@ -258,6 +258,7 @@ def add_DataSign(f):
 
 def comfirm_get(out_sid,status):            #根据物流状态自动确认收货
     out_sid = str(out_sid)
+    confirm_psi_finish(out_sid=out_sid, status=status)
     logging.warn("comfirm_get")
     logger.warn({'action': "kdn", 'info': "start_comfirm_get:"+ out_sid})
     tradewuliu = TradeWuliu.objects.filter(out_sid=out_sid).order_by("-id")
@@ -275,6 +276,7 @@ def comfirm_get(out_sid,status):            #根据物流状态自动确认收�
 
 def confirm_get_by_content(out_sid,content):   #根据物流内容自动确认收货
     out_sid = str(out_sid)
+    confirm_psi_finish(out_sid=out_sid,content=content)
     logging.warn("confirm_get_by_content")
     logger.warn({'action': "kdn", 'info': "confirm_get_by_content:" + out_sid})
     if content.find("\u5df2\u7b7e\u6536")!=-1 or content.find("\u59a5\u6295") != -1:
@@ -286,6 +288,16 @@ def confirm_get_by_content(out_sid,content):   #根据物流内容自动确认�
                 for i in so:
                     logger.warn({'action': "kdn", 'info': "confirm_sign_order:" + out_sid})
                     i.confirm_sign_order()
+
+def confirm_psi_finish(out_sid,status=None,content=None):
+    psi = PackageSkuItem.objects.filter(out_sid=out_sid, status='finish').first()
+    if psi and status == 3:
+        logger.warn({'action': "kdn", 'info': "confirm_psi_finish:" + out_sid})
+        psi.set_status_finish()
+    if psi and content and (content.find("\u5df2\u7b7e\u6536") != -1 or content.find("\u59a5\u6295") != -1):
+        logger.warn({'action': "kdn100", 'info': "confirm_psi_finish:" + out_sid})
+        psi.set_status_finish()
+
 
 
 def write_traces(kwargs):
