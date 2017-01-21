@@ -1037,15 +1037,15 @@ def task_schedule_check_user_budget(days=1):
 @app.task()
 def task_schedule_check_boutique_modelproduct(days=1):
     from flashsale.coupon.models.coupon_template import CouponTemplate
-    templates_qs = CouponTemplate.objects.filter(coupon_type=CouponTemplate.TYPE_TRANSFER)
-    templates = []
+    templates_qs = CouponTemplate.objects.filter(coupon_type=CouponTemplate.TYPE_TRANSFER).only('extras')
+    modelproduct_ids = []
     for template in templates_qs:
-        templates.append(template.id)
+        modelproduct_ids.append(template.extras.get('product_model_id'))
 
     from flashsale.pay.models import ModelProduct
     from flashsale.pay.apis.v1.product import get_boutique_goods, get_virtual_modelproducts
     from apis.v1.products import ModelProductCtl
-    queryset = get_boutique_goods()
+    queryset = get_boutique_goods().filter(id__in=modelproduct_ids)
     ids = [i['id'] for i in queryset.values('id')]
     queryset = ModelProductCtl.multiple(ids=ids)
 
@@ -1071,9 +1071,12 @@ def task_schedule_check_boutique_modelproduct(days=1):
             wrong_product.append(mp.id)
 
     # 反向检查，有些商品忘记或错误设置了精品汇标志
-    boutique_queryet = ModelProduct.objects.filter(product_type=ModelProduct.USUAL_TYPE,
-                                                   status=ModelProduct.NORMAL,
-                                                   rebeta_scheme_id=12)
+    boutique_queryet = ModelProduct.objects.filter(
+        id__in=modelproduct_ids,
+        product_type=ModelProduct.USUAL_TYPE,
+        status=ModelProduct.NORMAL,
+        rebeta_scheme_id=12
+    )
     ids = [i['id'] for i in boutique_queryet.values('id')]
     boutique_queryet = ModelProductCtl.multiple(ids=ids)
     for mp in boutique_queryet:
