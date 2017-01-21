@@ -164,7 +164,6 @@ def _send_msg_ding_talk(msg):
 
     tousers = [
         '02401336675559',  # 伍磊
-        '01591912287010',  # 林杰
     ]
     dd = DingDingAPI()
     for touser in tousers:

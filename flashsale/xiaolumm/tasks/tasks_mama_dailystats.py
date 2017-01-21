@@ -235,7 +235,6 @@ def task_check_xlmm_exchg_order():
         from common.dingding import DingDingAPI
         tousers = [
             '02401336675559',  # 伍磊
-            '01591912287010',  # 林杰
         ]
         msg = '定时检查boutique exchange数据:\n时间: %s \norder_num=%s == budget_num=%s == trans_num=%s\n' % \
               (str(datetime.datetime.now()), order_num, budget_log1.count(), trans_num)
@@ -293,7 +292,6 @@ def task_check_xlmm_return_exchg_order():
         from common.dingding import DingDingAPI
         tousers = [
             '02401336675559',  # 伍磊
-            '01591912287010',  # 林杰
         ]
         msg = '定时检查boutique return exchange数据:\n时间: %s \norder_num=%s == budget_num=%s == trans_num=%s\n' % \
               (str(datetime.datetime.now()), order_num, budget_num, trans_num)
