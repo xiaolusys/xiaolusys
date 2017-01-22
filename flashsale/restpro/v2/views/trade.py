@@ -913,22 +913,22 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             return Response({'code': 5, 'info': u'付款方式有误'})
 
         # 创建订单
-        # try:
-        with transaction.atomic():
-            sale_trade, state = self.create_Saletrade(request, content, address, customer, order_type=order_type)
-            if state:
-                self.create_Saleorder_By_Shopcart(sale_trade, cart_qs)
-        # except Exception, exc:
-        #     logger.error({
-        #         'code': 8,
-        #         'message': u'订单创建异常:%s' % exc,
-        #         'channel': channel,
-        #         'user_agent': user_agent,
-        #         'action':'trade_create',
-        #         'order_no': tuuid,
-        #         'data': '%s' % content
-        #     })
-        #     return Response({'code': 8, 'info': u'订单创建异常'})
+        try:
+            with transaction.atomic():
+                sale_trade, state = self.create_Saletrade(request, content, address, customer, order_type=order_type)
+                if state:
+                    self.create_Saleorder_By_Shopcart(sale_trade, cart_qs)
+        except Exception, exc:
+            logger.error({
+                'code': 8,
+                'message': u'订单创建异常:%s' % exc,
+                'channel': channel,
+                'user_agent': user_agent,
+                'action':'trade_create',
+                'order_no': tuuid,
+                'data': '%s' % content
+            })
+            return Response({'code': 8, 'info': u'订单创建异常'})
 
         try:
             if channel == SaleTrade.WALLET:
