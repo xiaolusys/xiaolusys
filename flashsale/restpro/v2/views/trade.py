@@ -260,8 +260,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                     xlmm = buyer.getXiaolumm()
                     if xlmm:
                         xiaolucoin = XiaoluCoin.objects.select_for_update().filter(mama_id=xlmm.id).first()
-                        if xiaolucoin and xiaolucoin.amount >= sale_trade.coin_paid:
-                            xiaolucoin.consume(sale_trade.coin_paid, strade_id)
+                        if xiaolucoin and xiaolucoin.amount >= sale_trade.coin_payment:
+                            xiaolucoin.consume(sale_trade.coin_payment, strade_id)
                         else:
                             raise Exception(u'小鹿币余额不足')
                     else:
@@ -347,8 +347,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 xlmm = customer.getXiaolumm()
                 if xlmm:
                     xiaolucoin = XiaoluCoin.objects.select_for_update().filter(mama_id=xlmm.id).first()
-                    if xiaolucoin and xiaolucoin.amount >= sale_trade.coin_paid:
-                        xiaolucoin.consume(sale_trade.coin_paid, sale_trade.id)
+                    if xiaolucoin and xiaolucoin.amount >= sale_trade.coin_payment:
+                        xiaolucoin.consume(sale_trade.coin_payment , sale_trade.id)
                     else:
                         raise Exception(u'小鹿币不足')
                 else:

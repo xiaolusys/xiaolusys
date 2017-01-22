@@ -234,6 +234,13 @@ class SaleTrade(BaseModel):
         return 0
 
     @property
+    def coin_payment(self):
+        """ 余额支付（分） """
+        if self.has_coin_paid:
+            return int(round(self.coin_paid * 100))
+        return 0
+
+    @property
     def status_name(self):
         if self.status in (SaleTrade.WAIT_SELLER_SEND_GOODS, SaleTrade.TRADE_BUYER_SIGNED):
             is_complete_refunding = True
