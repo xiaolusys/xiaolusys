@@ -625,8 +625,8 @@ class SaleTrade(BaseModel):
             xiaolucoin = XiaoluCoin.objects.select_for_update().filter(mama_id=xlmm.id).first()
             # 必须该订单有小鹿币消费记录，才能退款到小鹿币钱包
             consume_log   = XiaoluCoinLog.objects.filter(subject=XiaoluCoinLog.CONSUME, referal_id=self.id).first()
-            if xiaolucoin and consume_log and xiaolucoin.amount >= self.coin_paid:
-                xiaolucoin.refund(self.coin_paid, self.id)
+            if xiaolucoin and consume_log:
+                xiaolucoin.refund(self.coin_payment, self.id)
 
         # 释放被当前订单使用的优惠券
         st.release_coupon()
