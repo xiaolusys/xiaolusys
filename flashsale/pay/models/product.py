@@ -34,6 +34,7 @@ WASH_INSTRUCTION ='''洗涤时请深色、浅色衣物分开洗涤。最高洗�
 
 
 class Productdetail(PayBaseModel):
+    """　DEPRECATED 该MODEL已废弃，新功能开发请不要引用 """
     OUT_PERCENT = 0  # 未设置代理返利比例
     ZERO_PERCENT = -1
     THREE_PERCENT = 3

@@ -44,8 +44,7 @@ from shopback.logistics.models import LogisticsCompany
 from shopapp.weixin import options
 from common.utils import update_model_fields
 from flashsale.restpro import constants as CONS
-
-from flashsale.xiaolumm.models import XiaoluMama,CarryLog
+from flashsale.xiaolumm.models import XiaoluMama,CarryLog, XiaoluCoin
 from flashsale.pay.tasks import confirmTradeChargeTask, notifyTradePayTask, tasks_set_address_priority_logistics_code
 from mall.xiaolupay import apis as xiaolupay
 from flashsale.pay.apis.v1.order import parse_entry_params, parse_pay_extras_to_dict, parse_coupon_ids_from_pay_extras, get_pay_type_from_trade
@@ -257,35 +256,18 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             budget_pay, coin_pay = get_pay_type_from_trade(sale_trade)
 
             if payment > 0:
-                if budget_pay:
-                    user_budget = UserBudget.objects.filter(user=buyer, amount__gte=payment).first()
-                    if not user_budget:
-                        raise Exception(u'小鹿钱包余额不足')
-                    try:
-                        BudgetLog.create(
-                            customer_id=buyer.id,
-                            budget_type=BudgetLog.BUDGET_OUT,
-                            flow_amount=payment,
-                            budget_log_type=BudgetLog.BG_CONSUM,
-                            referal_id=strade_id,
-                            status=BudgetLog.CONFIRMED,
-                            uni_key='st_%s'%sale_trade.id
-                        )
-                    except IntegrityError, exc:
-                        logger.error(str(exc), exc_info=True)
-                elif coin_pay:
-                    from flashsale.xiaolumm.models.xiaolucoin import XiaoluCoin
+                if coin_pay:
                     xlmm = buyer.getXiaolumm()
                     if xlmm:
-                        xiaolucoin = XiaoluCoin.get_or_create(xlmm.id)
-                        if xiaolucoin and xiaolucoin.amount >= payment:
-                            xiaolucoin.consume(payment, strade_id)
+                        xiaolucoin = XiaoluCoin.objects.select_for_update().filter(mama_id=xlmm.id).first()
+                        if xiaolucoin and xiaolucoin.amount >= sale_trade.coin_paid:
+                            xiaolucoin.consume(sale_trade.coin_paid, strade_id)
                         else:
                             raise Exception(u'小鹿币余额不足')
                     else:
                         raise Exception(u'不是正常的小鹿妈妈账号，无法使用小鹿币，请联系客服或管理员')
                 else:
-                    user_budget = UserBudget.objects.filter(user=buyer, amount__gte=payment).first()
+                    user_budget = UserBudget.objects.select_for_update().filter(user=buyer, amount__gte=payment).first()
                     if not user_budget:
                         raise Exception(u'小鹿钱包余额不足')
                     try:
@@ -296,7 +278,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                             budget_log_type=BudgetLog.BG_CONSUM,
                             referal_id=strade_id,
                             status=BudgetLog.CONFIRMED,
-                            uni_key='st_%s' % sale_trade.id
+                            uni_key='st_%s' % strade_id
                         )
                     except IntegrityError, exc:
                         logger.error(str(exc), exc_info=True)
@@ -337,9 +319,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         channel = sale_trade.channel
         order_success_url = CONS.MALL_PAY_SUCCESS_URL.format(order_id=sale_trade.id, order_tid=sale_trade.tid)
 
+        customer = Customer.objects.get(id=sale_trade.buyer_id)
         if channel in (SaleTrade.WX_PUB, SaleTrade.WEAPP):
             app_id = channel.lower() == SaleTrade.WX_PUB and settings.WX_PUB_APPID or settings.WEAPP_APPID
-            customer = Customer.objects.get(id=sale_trade.buyer_id)
             buyer_openid = options.get_openid_by_unionid(customer.unionid, app_id) or sale_trade.openid
 
         if channel in (SaleTrade.WX_PUB, SaleTrade.WEAPP) and not buyer_openid:
@@ -353,12 +335,24 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
         if sale_trade.has_budget_paid:
             with transaction.atomic():
-                ubudget = UserBudget.objects.get(user=sale_trade.buyer_id)
+                ubudget = UserBudget.objects.select_for_update().filter(user=sale_trade.buyer_id).first()
                 budget_charge_create = ubudget.charge_pending(sale_trade.id, sale_trade.budget_payment)
                 if not budget_charge_create:
                     logger.error('budget payment err:tid=%s, payment=%s, budget_payment=%s' % (
                         sale_trade.tid, sale_trade.payment, sale_trade.budget_payment))
                     raise Exception(u'钱包余额不足')
+
+        if sale_trade.has_coin_paid:
+            with transaction.atomic():
+                xlmm = customer.getXiaolumm()
+                if xlmm:
+                    xiaolucoin = XiaoluCoin.objects.select_for_update().filter(mama_id=xlmm.id).first()
+                    if xiaolucoin and xiaolucoin.amount >= sale_trade.coin_paid:
+                        xiaolucoin.consume(sale_trade.coin_paid, sale_trade.id)
+                    else:
+                        raise Exception(u'小鹿币不足')
+                else:
+                    raise Exception('您还不是小鹿妈妈')
 
         extra = {}
         if channel in (SaleTrade.WX_PUB, SaleTrade.WEAPP):
@@ -479,8 +473,13 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
         payment      = round(float(form.get('payment')), 2)
         pay_extras = form.get('pay_extras', '')
-        budget_payment = self.calc_extra_budget(pay_extras)
         coupon_ids = parse_coupon_ids_from_pay_extras(pay_extras)
+        budget_dicts = self.calc_extra_budget(pay_extras, type_list=[CONS.BUDGET, CONS.XIAOLUCOIN])
+        budget_payment = budget_dicts.get(CONS.ETS_BUDGET) or 0
+        xiaolucoin_payment = budget_dicts.get(CONS.ETS_XIAOLUCOIN) or 0
+
+        if xiaolucoin_payment > 0 and not (is_boutique and order_type == SaleTrade.ELECTRONIC_GOODS_ORDER):
+            raise Exception(u'小鹿币只可用于购买精品券')
 
         if not coupon_ids:
             coupon_id = form.get('coupon_id', None)
@@ -501,8 +500,11 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             'buyer_nick': customer.nick,
             'buyer_message': form.get('buyer_message', ''),
             'payment': payment,
-            'pay_cash': max(0, round(payment * 100 - budget_payment) / 100.0),
+            'pay_cash': max(0, round(payment * 100 - budget_payment - xiaolucoin_payment) / 100.0),
             'has_budget_paid': budget_payment > 0,
+            'budget_paid': budget_payment * 0.01,
+            'has_coin_paid': xiaolucoin_payment > 0,
+            'coin_paid': xiaolucoin_payment * 0.01,
             'total_fee': round(float(form.get('total_fee')), 2),
             'post_fee': round(float(form.get('post_fee')), 2),
             'discount_fee': round(float(form.get('discount_fee')), 2),
@@ -646,16 +648,16 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
         return round(discount_fee)
 
-    def calc_extra_budget(self, pay_extras, **kwargs):
+    def calc_extra_budget(self, pay_extras, type_list=[], **kwargs):
         """　支付余额(分) """
         pay_extra_list = parse_entry_params(pay_extras)
         pay_extra_dict = dict([(p['pid'], p) for p in pay_extra_list if p.get('pid')])
-        budget_amount = 0
+        type_values = {}
         for param in pay_extra_dict.values():
             pid = param['pid']
-            if pid in CONS.PAY_EXTRAS and CONS.PAY_EXTRAS[pid].get('type') == CONS.BUDGET:
-                budget_amount += round(float(param['budget']) * 100)
-        return budget_amount
+            if pid in CONS.PAY_EXTRAS and CONS.PAY_EXTRAS[pid].get('type') in type_list:
+                type_values.update({pid:int(round(float(param.get('budget') or param.get('value') or 0) * 100))})
+        return type_values
 
     def logger_request(self, request):
         data = request.POST.dict()
@@ -911,22 +913,22 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             return Response({'code': 5, 'info': u'付款方式有误'})
 
         # 创建订单
-        try:
-            with transaction.atomic():
-                sale_trade, state = self.create_Saletrade(request, content, address, customer, order_type=order_type)
-                if state:
-                    self.create_Saleorder_By_Shopcart(sale_trade, cart_qs)
-        except Exception, exc:
-            logger.error({
-                'code': 8,
-                'message': u'订单创建异常:%s' % exc,
-                'channel': channel,
-                'user_agent': user_agent,
-                'action':'trade_create',
-                'order_no': tuuid,
-                'data': '%s' % content
-            })
-            return Response({'code': 8, 'info': u'订单创建异常'})
+        # try:
+        with transaction.atomic():
+            sale_trade, state = self.create_Saletrade(request, content, address, customer, order_type=order_type)
+            if state:
+                self.create_Saleorder_By_Shopcart(sale_trade, cart_qs)
+        # except Exception, exc:
+        #     logger.error({
+        #         'code': 8,
+        #         'message': u'订单创建异常:%s' % exc,
+        #         'channel': channel,
+        #         'user_agent': user_agent,
+        #         'action':'trade_create',
+        #         'order_no': tuuid,
+        #         'data': '%s' % content
+        #     })
+        #     return Response({'code': 8, 'info': u'订单创建异常'})
 
         try:
             if channel == SaleTrade.WALLET:

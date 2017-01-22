@@ -144,14 +144,17 @@ class SaleTrade(BaseModel):
     channel = models.CharField(max_length=16, db_index=True,
                                choices=CHANNEL_CHOICES, blank=True, verbose_name=u'付款方式')
 
+    total_fee = models.FloatField(default=0.0, verbose_name=u'总费用')
     payment = models.FloatField(default=0.0, verbose_name=u'付款金额')
     pay_cash = models.FloatField(default=0.0, verbose_name=u'实付现金')
     post_fee = models.FloatField(default=0.0, verbose_name=u'物流费用')
     discount_fee = models.FloatField(default=0.0, verbose_name=u'优惠折扣')
-    total_fee = models.FloatField(default=0.0, verbose_name=u'总费用')
+    budget_paid = models.FloatField(default=0.0, verbose_name=u'余额支付')
+    coin_paid   = models.FloatField(default=0.0, verbose_name=u'小鹿币支付')
 
     has_budget_paid = models.BooleanField(default=False, verbose_name=u'使用余额')
-    is_boutique = models.BooleanField(default=False, db_index=True, verbose_name=u'精品订单')
+    has_coin_paid   = models.BooleanField(default=False, verbose_name=u'使用小鹿币')
+    is_boutique     = models.BooleanField(default=False, db_index=True, verbose_name=u'精品订单')
 
     buyer_message = models.TextField(max_length=1000, blank=True, verbose_name=u'买家留言')
     seller_memo = models.TextField(max_length=1000, blank=True, verbose_name=u'卖家备注')
@@ -227,7 +230,7 @@ class SaleTrade(BaseModel):
     def budget_payment(self):
         """ 余额支付（分） """
         if self.has_budget_paid:
-            return int(round((self.payment - self.pay_cash) * 100))
+            return int(round(self.budget_paid * 100))
         return 0
 
     @property
@@ -607,6 +610,17 @@ class SaleTrade(BaseModel):
         if st.has_budget_paid:
             ubudget = UserBudget.objects.get(user=st.buyer_id)
             ubudget.charge_cancel(st.id)
+
+        if st.has_coin_paid:
+            from flashsale.xiaolumm.models import XiaoluCoin, XiaoluCoinLog
+            customer = Customer.objects.filter(id=self.buyer_id).first()
+            xlmm     = customer.getXiaolumm()
+            xiaolucoin = XiaoluCoin.objects.select_for_update().filter(mama_id=xlmm.id).first()
+            # 必须该订单有小鹿币消费记录，才能退款到小鹿币钱包
+            consume_log   = XiaoluCoinLog.objects.filter(subject=XiaoluCoinLog.CONSUME, referal_id=self.id).first()
+            if xiaolucoin and consume_log and xiaolucoin.amount >= self.coin_paid:
+                xiaolucoin.refund(self.coin_paid, self.id)
+
         # 释放被当前订单使用的优惠券
         st.release_coupon()
 

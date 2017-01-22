@@ -122,7 +122,7 @@ class SaleTradeAdmin(BaseExportActionModelAdmin):
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = (
-        'status', 'channel', 'is_boutique', 'has_budget_paid', 'order_type', ('pay_time', DateFieldListFilter),
+        'status', 'channel', 'is_boutique', 'has_budget_paid', 'has_coin_paid', 'order_type', ('pay_time', DateFieldListFilter),
         ('created', DateFieldListFilter))
     search_fields = ['=tid', '=id', '=receiver_mobile', '=buyer_id']
     list_per_page = 20
@@ -133,8 +133,8 @@ class SaleTradeAdmin(BaseExportActionModelAdmin):
     fieldsets = ((u'订单基本信息:', {
         'classes': ('expand',),
         'fields': (('tid', 'buyer_nick', 'channel', 'status')
-                   , ('trade_type', 'order_type', 'pay_cash', 'has_budget_paid', 'is_boutique')
-                   , ('total_fee', 'payment', 'post_fee', 'discount_fee')
+                   , ('trade_type', 'order_type', 'pay_cash', 'has_budget_paid', 'has_coin_paid', 'is_boutique')
+                   , ('total_fee', 'payment', 'post_fee', 'discount_fee','budget_paid','coin_paid')
                    , ('pay_time', 'consign_time', 'charge')
                    , ('buyer_id', 'openid', 'extras_info')
                    , ('buyer_message', 'seller_memo',)
@@ -150,6 +150,7 @@ class SaleTradeAdmin(BaseExportActionModelAdmin):
 
     # --------定制控件属性----------------
     formfield_overrides = {
+        models.FloatField: {'widget': TextInput(attrs={'size': '6'})},
         models.CharField: {'widget': TextInput(attrs={'size': '16'})},
         models.TextField: {'widget': Textarea(attrs={'rows': 6, 'cols': 35})},
     }
