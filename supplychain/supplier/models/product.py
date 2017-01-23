@@ -226,6 +226,7 @@ class SaleProduct(BaseTagModel):
                                  'remain_num': psku.remain_num,
                                  'std_sale_price': psku.std_sale_price,
                                  'cost': psku.cost,
+                                 'elite_score': pro.elite_score,
                                  'supplier_skucode': psku.supplier_skucode,
                                  'properties_alias': psku.properties_alias,
                                  'properties_name': psku.properties_name})

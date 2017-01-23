@@ -871,7 +871,11 @@ class Product(models.Model):
         for x in skus_list:
             if x['color'] in colors:
                 continue
-            products_list.append({'name': x['color'], 'pic_path': x.get('pic_path') or ''})
+            products_list.append({
+                'name': x['color'],
+                'pic_path': x.get('pic_path') or '',
+                'elite_score': x.get('elite_score') or 0,
+            })
             colors.add(x['color'])
 
         pro_count = 1
@@ -918,6 +922,7 @@ class Product(models.Model):
 
             kwargs = {'name': pro['name'],
                       'pic_path': pro['pic_path'],
+                      'elite_score': pro['elite_score'],
                       'outer_id': outer_id,
                       'model_id': model_pro.id,
                       'sale_charger': creator.username,
@@ -944,7 +949,8 @@ class Product(models.Model):
                     'supplier_skucode': color_sku.get('supplier_skucode', ''),
                     'properties_name': color_sku['properties_name'] or pro['name'] ,
                     'properties_alias': color_sku['properties_alias'],
-                    'barcode': barcode
+                    'barcode': barcode,
+
                 })
                 sku_count += 1
             kwargs.update({'product_skus_list': product_skus_list})
