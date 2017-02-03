@@ -556,8 +556,8 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                     # 下级使用小鹿币购买的券，上级可以兑券
                     from flashsale.pay.apis.v1.order import get_pay_type_from_trade
                     budget_pay, coin_pay = get_pay_type_from_trade(sale_order.sale_trade)
-                    if coin_pay and round(sale_order.payment / sale_order.price) > 0:
-                        results.append({'exchg_template_id': template_id,
+                    if coin_pay and round(sale_order.payment / sale_order.price) > 0 and model_product.extras.has_key('template_id'):
+                        results.append({'exchg_template_id': model_product.extras['template_id'],
                                         'num': round(sale_order.payment / sale_order.price),
                                         'order_id': entry.order_id, 'sku_img': entry.sku_img,
                                         'contributor_nick': entry.contributor_nick, 'status': entry.status,
