@@ -1380,11 +1380,6 @@ def post_save_order_trigger(sender, instance, created, raw, **kwargs):
                         else:
                             send_order_transfer_coupons(instance.sale_trade.buyer_id, instance.id,
                                                         instance.oid, instance.num, instance.item_id)
-                            # 用币购券的订单，上级是可以兑换的，那么需要写入ordercarry
-                            from flashsale.pay.apis.v1.order import get_pay_type_from_trade
-                            budget_pay, coin_pay = get_pay_type_from_trade(instance.sale_trade)
-                            if coin_pay:
-                                task_order_trigger(instance)
                             return
                     if instance.is_recharge_deposit():
                         elite_mama_recharge(instance.sale_trade.buyer_id, instance.id,

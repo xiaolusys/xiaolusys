@@ -718,8 +718,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             if xiaolucoin_payment > 0:
                 if pay_cash > 0:
                     return Response({'code': 25, 'info': u'您的精英妈妈账号只能使用小鹿币直接购券，没有现金购券权限，请减少购券数量或充值小鹿币 '})
-            else:
-                return Response({'code': 26, 'info': u'您没有直接购券权限，请在购券界面提交申请或选择用小鹿币购买'})
         elif mm and (mm.referal_from == XiaoluMama.DIRECT):
             if xiaolucoin_payment > 0:
                 if (pay_cash > 0) and (mm.elite_level != 'Associate') and (goods_num < 5) and (elite_score < 30):
@@ -786,8 +784,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 if xiaolucoin_payment > 0:
                     if pay_cash > 0:
                         return Response({'code': 25, 'info': u'您的精英妈妈账号只能使用小鹿币直接购券，没有现金购券权限，请减少购券数量或充值小鹿币 '})
-                else:
-                    return Response({'code': 26, 'info': u'您没有直接购券权限，请在购券界面提交申请或选择用小鹿币购买'})
             elif mm and (mm.referal_from == XiaoluMama.DIRECT):
                 if xiaolucoin_payment > 0:
                     if (pay_cash > 0) and (mm.elite_level != 'Associate') and (goods_num < 5) and (elite_score < 30):

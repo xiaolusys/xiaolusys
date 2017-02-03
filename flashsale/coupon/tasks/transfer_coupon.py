@@ -114,6 +114,13 @@ def task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, prod
             create_transfer_coupon_detail(transfer.id, new_coupon_ids)  # 创建明细记录
         except IntegrityError as e:
             logging.error(e)
+
+    # 用币购券的订单，上级是可以兑换的，那么需要写入ordercarry
+    from flashsale.xiaolumm.models import XiaoluMama
+    from flashsale.xiaolumm.tasks import task_order_trigger
+    if coin_pay and to_mama.referal_from == XiaoluMama.INDIRECT:
+        task_order_trigger(so)
+
     task_calc_xlmm_elite_score(coupon_to_mama_id)  # 计算妈妈积分
     task_update_tpl_released_coupon_nums.delay(template.id)  # 统计发放数量
     logger.info({
