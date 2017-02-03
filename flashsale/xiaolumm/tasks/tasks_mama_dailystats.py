@@ -142,9 +142,12 @@ def task_xlmm_score():
 
 @app.task()
 def task_check_xlmm_exchg_order():
+    tt = datetime.datetime.now()
+    tf = tt - datetime.timedelta(days=30)
+
     queryset = OrderCarry.objects.filter(carry_type__in=[OrderCarry.WAP_ORDER, OrderCarry.APP_ORDER],
                                          status__in=[OrderCarry.CONFIRM, OrderCarry.CANCEL],
-                                         date_field__gt='2017-1-1')
+                                         created__gte=tf)
     exchg_orders = [i['order_id'] for i in queryset.values('order_id')]
     from flashsale.pay.models.trade import SaleOrder
     new_elite_queryset = SaleOrder.objects.filter(item_id='80281', status=SaleOrder.TRADE_FINISHED)
@@ -202,23 +205,23 @@ def task_check_xlmm_exchg_order():
 
     from flashsale.pay.models.user import BudgetLog
     budget_log1 = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_IN,
-                                          budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED)
+                                          budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED, created__gte=tf)
     budget_log2 = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_OUT,
-                                           budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED)
+                                           budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED, created__gte=tf)
     budget_num = budget_log1.count() - budget_log2.count()
     budget_oids = [i['uni_key'] for i in budget_log1.values('uni_key')]
     res1 = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_IN,
-                                   budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED).aggregate(
+                                   budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED, created__gte=tf).aggregate(
         n=Sum('flow_amount'))
     exchg_budget_sum1 = res1['n'] or 0
     res2 = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_OUT,
-                                   budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED).aggregate(
+                                   budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED, created__gte=tf).aggregate(
         n=Sum('flow_amount'))
     exchg_budget_sum2 = res2['n'] or 0
     exchg_budget_sum = exchg_budget_sum1 - exchg_budget_sum2
     from flashsale.coupon.models.transfer_coupon import CouponTransferRecord
-    trans_num = CouponTransferRecord.objects.filter(transfer_type=CouponTransferRecord.OUT_EXCHG_SALEORDER, transfer_status=CouponTransferRecord.DELIVERED).count()
-    res = CouponTransferRecord.objects.filter(transfer_type=CouponTransferRecord.OUT_EXCHG_SALEORDER, transfer_status=CouponTransferRecord.DELIVERED).aggregate(
+    trans_num = CouponTransferRecord.objects.filter(transfer_type=CouponTransferRecord.OUT_EXCHG_SALEORDER, transfer_status=CouponTransferRecord.DELIVERED, created__gte=tf).count()
+    res = CouponTransferRecord.objects.filter(transfer_type=CouponTransferRecord.OUT_EXCHG_SALEORDER, transfer_status=CouponTransferRecord.DELIVERED, created__gte=tf).aggregate(
         n=Sum('coupon_num'))
     exchg_trancoupon_num = res['n'] or 0
     retD = list(set(results).difference(set(budget_oids)))
