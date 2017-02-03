@@ -754,7 +754,7 @@ def apply_pending_return_transfer_coupon_2_sys(coupon_ids, customer):
             uni_key=uni_key,
             date_field=datetime.date.today(),
             product_id=product_id,
-            elite_score=total_elite_score,
+            elite_score=0,
             transfer_status=CouponTransferRecord.PENDING,
 
             from_mama_elite_level=mama.elite_level,
