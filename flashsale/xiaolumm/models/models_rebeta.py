@@ -104,6 +104,8 @@ class AgencyOrderRebetaScheme(models.Model):
         if payment > MAX_PAYMENT:
             payment = MAX_PAYMENT
 
+        if not carry_rules:
+            return 0
         key_list = map(int, carry_rules.keys())
         key_list.sort()
 
