@@ -536,7 +536,6 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                 model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id, is_boutique=True).first()
                 if model_product and model_product.extras.has_key('payinfo') \
                         and model_product.extras['payinfo'].has_key('coupon_template_ids'):
-
                     if model_product.extras['payinfo']['coupon_template_ids'] and len(
                             model_product.extras['payinfo']['coupon_template_ids']) > 0:
 
@@ -553,6 +552,17 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                                                 'contributor_nick': entry.contributor_nick, 'status': entry.status,
                                                 'status_display': OrderCarry.STATUS_TYPES[entry.status][1],
                                                 'order_value': entry.order_value, 'date_field': entry.date_field})
+                elif model_product and model_product.is_boutique_coupon:
+                    # 下级使用小鹿币购买的券，上级可以兑券
+                    from flashsale.pay.apis.v1.order import get_pay_type_from_trade
+                    budget_pay, coin_pay = get_pay_type_from_trade(sale_order.sale_trade)
+                    if coin_pay and round(sale_order.payment / sale_order.price) > 0:
+                        results.append({'exchg_template_id': template_id,
+                                        'num': round(sale_order.payment / sale_order.price),
+                                        'order_id': entry.order_id, 'sku_img': entry.sku_img,
+                                        'contributor_nick': entry.contributor_nick, 'status': entry.status,
+                                        'status_display': OrderCarry.STATUS_TYPES[entry.status][1],
+                                        'order_value': entry.order_value, 'date_field': entry.date_field})
 
         #从relationship推荐人中找出购买rmb338/216的新精英妈妈订单
         from flashsale.xiaolumm.models.models_fortune import ReferalRelationship
