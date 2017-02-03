@@ -700,35 +700,35 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         direct indirect购买虚拟商品还有一些积分等限制
         """
 
-        extras = parse_pay_extras_to_dict(pay_extras)
-        coin_value = extras.get(CONS.ETS_XIAOLUCOIN, {}).get('budget', 0)
-        if coin_value == 0:
-            coin_value = extras.get(CONS.ETS_XIAOLUCOIN, {}).get('value', 0)
+        budget_dicts = self.calc_extra_budget(pay_extras, type_list=[CONS.BUDGET, CONS.XIAOLUCOIN])
+        budget_payment = budget_dicts.get(CONS.ETS_BUDGET) or 0
+        xiaolucoin_payment = budget_dicts.get(CONS.ETS_XIAOLUCOIN) or 0
+        pay_cash = max(0, round(payment - budget_payment - xiaolucoin_payment) / 100.0)
         goods_num = sku_num
         elite_score = goods_num * product.elite_score
 
         mp = product.get_product_model()
         from flashsale.pay.models.product import ModelProduct
         if mp and (mp.product_type != ModelProduct.VIRTUAL_TYPE):
-            if float(coin_value) > 0:
-                return Response({'code': 27, 'info': u'只有精品券才能使用小鹿币购买，您的购买商品中没有精品券，请重新加入购物车再购买'})
+            if xiaolucoin_payment > 0:
+                return Response({'code': 30, 'info': u'只有精品券才能使用小鹿币购买，您的购买商品中没有精品券，请重新加入购物车再购买'})
 
         mm = customer.getXiaolumm()
         if mm and (mm.referal_from == XiaoluMama.INDIRECT):
-            if float(coin_value) > 0:
-                if payment > 0:
-                    return Response({'code': 28, 'info': u'您的精英妈妈账号只能使用小鹿币直接购券，没有现金购券权限，请减少购券数量或充值小鹿币 '})
+            if xiaolucoin_payment > 0:
+                if pay_cash > 0:
+                    return Response({'code': 25, 'info': u'您的精英妈妈账号只能使用小鹿币直接购券，没有现金购券权限，请减少购券数量或充值小鹿币 '})
             else:
-                return Response({'code': 26, 'info': u'您没有直接购券权限，请在购券界面提交申请'})
+                return Response({'code': 26, 'info': u'您没有直接购券权限，请在购券界面提交申请或选择用小鹿币购买'})
         elif mm and (mm.referal_from == XiaoluMama.DIRECT):
-            if float(coin_value) > 0:
-                if (payment > 0) and (mm.elite_level != 'Associate') and (goods_num < 5) and (elite_score < 30):
-                    return Response({'code': 25, 'info': u'购买精品券最低购买5张或者30积分，您本次购买没有达到要求，请在购物车重新添加精品券,全部使用小鹿币无此限制'})
+            if xiaolucoin_payment > 0:
+                if (pay_cash > 0) and (mm.elite_level != 'Associate') and (goods_num < 5) and (elite_score < 30):
+                    return Response({'code': 27, 'info': u'购买精品券最低购买5张或者30积分，您本次购买没有达到要求，请在购物车重新添加精品券,全部使用小鹿币无此限制'})
             else:
                 if (mm.elite_level != 'Associate') and (goods_num < 5) and (elite_score < 30):
-                    return Response({'code': 25, 'info': u'购买精品券最低购买5张或者30积分，您本次购买没有达到要求，请在购物车重新添加精品券'})
+                    return Response({'code': 28, 'info': u'购买精品券最低购买5张或者30积分，您本次购买没有达到要求，请在购物车重新添加精品券'})
         else:
-            return Response({'code': 26, 'info': u'您没有直接购券权限，请在购券界面提交申请'})
+            return Response({'code': 29, 'info': u'您没有直接购券权限，请在购券界面提交申请'})
 
     def check_use_coupon_only(self, cart_qs, cart_discount, cart_total_fee, coupon_template_id):
         """
@@ -774,32 +774,32 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 elite_score += cart.num * cart.product.elite_score
                 goods_num += cart.num
 
-        extras = parse_pay_extras_to_dict(pay_extras)
-        coin_value = extras.get(CONS.ETS_XIAOLUCOIN, {}).get('budget', 0)
-        if coin_value == 0:
-            coin_value = extras.get(CONS.ETS_XIAOLUCOIN, {}).get('value', 0)
+        budget_dicts = self.calc_extra_budget(pay_extras, type_list=[CONS.BUDGET, CONS.XIAOLUCOIN])
+        budget_payment = budget_dicts.get(CONS.ETS_BUDGET) or 0
+        xiaolucoin_payment = budget_dicts.get(CONS.ETS_XIAOLUCOIN) or 0
+        pay_cash = max(0, round(payment - budget_payment - xiaolucoin_payment) / 100.0)
         if virtual_num > 0:
             if virtual_num != cart_qs.count():
                 return Response({'code': 24, 'info': u'购买精品券或虚拟商品时，只能单独购买，不能与普通商品搭配'})
             mm = customer.getXiaolumm()
             if mm and (mm.referal_from == XiaoluMama.INDIRECT):
-                if float(coin_value) > 0:
-                    if payment > 0:
-                        return Response({'code': 28, 'info': u'您的精英妈妈账号只能使用小鹿币直接购券，没有现金购券权限，请减少购券数量或充值小鹿币 '})
+                if xiaolucoin_payment > 0:
+                    if pay_cash > 0:
+                        return Response({'code': 25, 'info': u'您的精英妈妈账号只能使用小鹿币直接购券，没有现金购券权限，请减少购券数量或充值小鹿币 '})
                 else:
                     return Response({'code': 26, 'info': u'您没有直接购券权限，请在购券界面提交申请或选择用小鹿币购买'})
             elif mm and (mm.referal_from == XiaoluMama.DIRECT):
-                if float(coin_value) > 0:
-                    if (payment > 0) and (mm.elite_level != 'Associate') and (goods_num < 5) and (elite_score < 30):
-                        return Response({'code': 25, 'info': u'购买精品券最低购买5张或者30积分，您本次购买没有达到要求，请在购物车重新添加精品券,全部使用小鹿币无此限制'})
+                if xiaolucoin_payment > 0:
+                    if (pay_cash > 0) and (mm.elite_level != 'Associate') and (goods_num < 5) and (elite_score < 30):
+                        return Response({'code': 27, 'info': u'购买精品券最低购买5张或者30积分，您本次购买没有达到要求，请在购物车重新添加精品券,全部使用小鹿币无此限制'})
                 else:
                     if (mm.elite_level != 'Associate') and (goods_num < 5) and (elite_score < 30):
-                        return Response({'code': 25, 'info': u'购买精品券最低购买5张或者30积分，您本次购买没有达到要求，请在购物车重新添加精品券'})
+                        return Response({'code': 28, 'info': u'购买精品券最低购买5张或者30积分，您本次购买没有达到要求，请在购物车重新添加精品券'})
             else:
-                return Response({'code': 26, 'info': u'您没有直接购券权限，请在购券界面提交申请'})
+                return Response({'code': 29, 'info': u'您没有直接购券权限，请在购券界面提交申请'})
         else:
-            if float(coin_value) > 0:
-                return Response({'code': 27, 'info': u'只有精品券才能使用小鹿币购买，您的购买商品中没有精品券，请重新加入购物车再购买'})
+            if xiaolucoin_payment > 0:
+                return Response({'code': 30, 'info': u'只有精品券才能使用小鹿币购买，您的购买商品中没有精品券，请重新加入购物车再购买'})
         return False
 
     @list_route(methods=['post'])
