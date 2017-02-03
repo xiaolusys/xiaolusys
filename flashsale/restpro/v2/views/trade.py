@@ -701,7 +701,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         """
 
         extras = parse_pay_extras_to_dict(pay_extras)
-        coin_value = extras.get(CONS.ETS_XIAOLUCOIN, {}).get('value', 0)
+        coin_value = extras.get(CONS.ETS_XIAOLUCOIN, {}).get('budget', 0)
+        if coin_value == 0:
+            coin_value = extras.get(CONS.ETS_XIAOLUCOIN, {}).get('value', 0)
         goods_num = sku_num
         elite_score = goods_num * product.elite_score
 
@@ -773,7 +775,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 goods_num += cart.num
 
         extras = parse_pay_extras_to_dict(pay_extras)
-        coin_value = extras.get(CONS.ETS_XIAOLUCOIN, {}).get('value', 0)
+        coin_value = extras.get(CONS.ETS_XIAOLUCOIN, {}).get('budget', 0)
+        if coin_value == 0:
+            coin_value = extras.get(CONS.ETS_XIAOLUCOIN, {}).get('value', 0)
         if virtual_num > 0:
             if virtual_num != cart_qs.count():
                 return Response({'code': 24, 'info': u'购买精品券或虚拟商品时，只能单独购买，不能与普通商品搭配'})
@@ -783,7 +787,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                     if payment > 0:
                         return Response({'code': 28, 'info': u'您的精英妈妈账号只能使用小鹿币直接购券，没有现金购券权限，请减少购券数量或充值小鹿币 '})
                 else:
-                    return Response({'code': 26, 'info': u'您没有直接购券权限，请在购券界面提交申请'})
+                    return Response({'code': 26, 'info': u'您没有直接购券权限，请在购券界面提交申请或选择用小鹿币购买'})
             elif mm and (mm.referal_from == XiaoluMama.DIRECT):
                 if float(coin_value) > 0:
                     if (payment > 0) and (mm.elite_level != 'Associate') and (goods_num < 5) and (elite_score < 30):
