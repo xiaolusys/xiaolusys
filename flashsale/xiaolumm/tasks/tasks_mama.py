@@ -83,7 +83,7 @@ def task_update_second_level_ordercarry_by_trial(potential, order_carry):
 def task_update_second_level_ordercarry(referal_relationship, order_carry):
     print "%s, mama_id: %s" % (get_cur_info(), order_carry.mama_id)
 
-    carry_type = 3  # second level
+    carry_type = OrderCarry.REFERAL_ORDER  # second level
     parent_mama_id = referal_relationship.referal_from_mama_id
     uni_key = util_unikey.gen_ordercarry_unikey(carry_type, order_carry.order_id)
     record = OrderCarry.objects.filter(uni_key=uni_key).first()

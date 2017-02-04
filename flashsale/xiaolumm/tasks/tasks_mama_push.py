@@ -109,7 +109,7 @@ def task_weixin_push_ordercarry(ordercarry):
         oc = OrderCarry.objects.filter(order_id=so.oid, carry_type=ordercarry.carry_type).first()
         if oc:
             total_carry += oc.carry_num
-            if oc.carry_num == 0 and (ordercarry.carry_type == 1 or ordercarry.carry_type == 2):
+            if oc.carry_num == 0 and (ordercarry.carry_type == OrderCarry.WAP_ORDER or ordercarry.carry_type == OrderCarry.APP_ORDER):
                 from flashsale.pay.apis.v1.product import get_virtual_modelproduct_from_boutique_modelproduct
                 from flashsale.pay.models import ModelProduct
                 goods_model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id,
@@ -119,6 +119,16 @@ def task_weixin_push_ordercarry(ordercarry):
                     total_carry += round(goods_model_product.sku_info[0]['agent_price'] * 100 - coupon_model_product.sku_info[0]['agent_price'] * 100)
                     if goods_model_product.is_boutique:
                         is_boutique = True
+            elif oc.carry_num == 0 and (ordercarry.carry_type == OrderCarry.REFERAL_ORDER):
+                # 购券也能兑换，其价格是不同等级券的差价
+                from flashsale.pay.models import ModelProduct
+                goods_model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id,
+                                                                  is_boutique=True).first()
+                if goods_model_product and goods_model_product.is_boutique:
+                    is_boutique = True
+                    total_carry += round(
+                        goods_model_product.sku_info[3]['agent_price'] * 100 - coupon_model_product.sku_info[4][
+                            'agent_price'] * 100)
 
     if total_carry == 0:
         return
