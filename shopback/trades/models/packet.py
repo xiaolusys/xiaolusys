@@ -12,6 +12,7 @@ from shopback.items.models import Product, ProductSku
 from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import SkuStock
 from flashsale.pay.models import UserAddress, FLASH_SELLER_ID
+from flashsale.pay import REFUND_STATUS
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_THIRD, WARE_CHOICES
 from shopback.trades.constants import PSI_STATUS, SYS_ORDER_STATUS, IN_EFFECT, PO_STATUS, PSI_TYPE
 from shopback import paramconfig as pcfg
@@ -845,7 +846,7 @@ class PackageSkuItem(BaseModel):
     package_order_pid = models.IntegerField(db_index=True, null=True, verbose_name=u'包裹单号')
     ware_by = models.IntegerField(default=WARE_SH, choices=WARE_CHOICES, db_index=True, verbose_name=u'所属仓库')
     # 无效字段 待删
-    refund_status = models.IntegerField(default=0, blank=True, verbose_name=u'退款状态')
+    refund_status = models.IntegerField(choices=REFUND_STATUS, default=0, blank=True, verbose_name=u'退款状态')
     cid = models.BigIntegerField(null=True, verbose_name=u'商品分类')  # 合单时，不同商品的分类决定包裹能否进行合并操作
     title = models.CharField(max_length=128, blank=True, verbose_name=u'商品标题')
     sku_properties_name = models.CharField(max_length=256, blank=True, verbose_name=u'购买规格')
