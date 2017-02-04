@@ -194,9 +194,9 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             serializer = self.get_serializer(object_list, many=True)
             response = self.get_paginated_response(serializer.data)
             response.data.update({
-                'downshelf_deadline': self.get_downshelf_deadline(object_list, cur_date).strftime("%Y-%m-%d %H:%M:%S"),
+                'downshelf_deadline': self.get_downshelf_deadline(object_list, cur_date).strftime("%Y-%m-%dT%H:%M:%S"),
                 'upshelf_starttime': (datetime.datetime.combine(cur_date, datetime.datetime.min.time())\
-                                + datetime.timedelta(seconds= 10 * 60 * 60)).strftime("%Y-%m-%d %H:%M:%S")
+                                + datetime.timedelta(seconds= 10 * 60 * 60)).strftime("%Y-%m-%dT%H:%M:%S")
             })
             return response
 

@@ -170,8 +170,8 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         if not offshelf_time:
             offshelf_time = onshelf_time + datetime.timedelta(seconds= 60 * 60 * 28)
         response.data.update({
-            'offshelf_deadline': onshelf_time.strftime("%Y-%m-%d %H:%M:%S"),
-            'onshelf_starttime': offshelf_time.strftime("%Y-%m-%d %H:%M:%S")
+            'offshelf_deadline': onshelf_time.strftime("%Y-%m-%dT%H:%M:%S"),
+            'onshelf_starttime': offshelf_time.strftime("%Y-%m-%dT%H:%M:%S")
         })
         return response
 
