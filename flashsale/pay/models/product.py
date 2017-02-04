@@ -22,6 +22,7 @@ from shopback.items.models import Product, ProductSkuContrast, ContrastContent
 from shopback.items.models import ProductSku
 from shopback.items.constants import SKU_CONSTANTS_SORT_MAP as SM, PROPERTY_NAMES, PROPERTY_KEYMAP
 from shopback.items.tasks_stats import task_product_upshelf_notify_favorited_customer
+from .. import constants
 from .base import PayBaseModel, BaseModel
 from ..signals import signal_record_supplier_models
 from ..managers import modelproduct
@@ -721,6 +722,7 @@ class ModelProduct(BaseTagModel):
 
     def set_boutique_coupon_only(self, coupon_tpl_id):
         # 设置成精品汇商品返利计划
+        self.rebeta_scheme_id = constants.BOUTIQUE_PRODUCT_REBETA_SCHEME_ID
         self.extras.update({
             "payinfo": {
                 "use_coupon_only": True,
