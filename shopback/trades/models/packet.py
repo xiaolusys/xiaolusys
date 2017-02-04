@@ -510,6 +510,7 @@ class PackageOrder(models.Model):
     def create(id, sale_trade, psi=None):
         package_order = PackageOrder(id=id)
         buyer_id, address_id, ware_by_id, order = id.split('-')
+        package_order.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS
         package_order.buyer_id = int(buyer_id)
         package_order.user_address_id = int(address_id)
         package_order.ware_by = int(ware_by_id)
