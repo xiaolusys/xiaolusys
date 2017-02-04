@@ -349,11 +349,11 @@ def task_calc_all_xlmm_elite_score():
     task_check_xlmm_return_exchg_order.delay()
 
 
-def check_xlmm_ordercarry():
+def check_xlmm_ordercarry(recent_day):
     results = []
 
     tt = datetime.datetime.now()
-    tf = tt - datetime.timedelta(days=15)
+    tf = tt - datetime.timedelta(days=recent_day)
     from flashsale.pay.models.trade import SaleOrder, SaleTrade, Customer
     queryset = SaleOrder.objects.filter(status__in=[SaleOrder.WAIT_SELLER_SEND_GOODS,
                                                     SaleOrder.WAIT_BUYER_CONFIRM_GOODS,
@@ -379,8 +379,9 @@ def check_xlmm_ordercarry():
             order_carry_qs = OrderCarry.objects.filter(order_id=order.oid)
             if not order_carry_qs:
                 results.append(order.oid)
-                # from flashsale.xiaolumm.tasks import task_order_trigger
-                # task_order_trigger(order)
+                from flashsale.xiaolumm.tasks import task_order_trigger
+                task_order_trigger(order).delay()
+                continue
             status = OrderCarry.STAGING  # unpaid
             if order.need_send():
                 status = OrderCarry.ESTIMATE
