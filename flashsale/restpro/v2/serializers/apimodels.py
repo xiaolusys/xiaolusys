@@ -362,9 +362,10 @@ class APIMamaProductListSerializer(serializers.Serializer):
                 find_mp = md
                 break
         item = {'elite_level_price': '', 'next_elite_level_price': ''}
-        for product in find_mp.products:
-            if mama.elite_level in product.name:
-                item['elite_level_price'] = '￥%s' % product.agent_price
-            elif mama.next_elite_level in product.name:
-                item['next_elite_level_price'] = '升级后￥%s' % product.agent_price
+        if find_mp:
+            for product in find_mp.products:
+                if mama.elite_level in product.name:
+                    item['elite_level_price'] = '￥%s' % product.agent_price
+                elif mama.next_elite_level in product.name:
+                    item['next_elite_level_price'] = '升级后￥%s' % product.agent_price
         return item
