@@ -57,67 +57,73 @@
         <ul class="object-tools">
           {% block object-tools-items %}
             <li>
-                <a href="/trades/dirty_orders2" class="addlink" target="_blank">待处理订单汇总</a>
+                <a href="/trades/package_order/new" class="addlink" target="_blank">新手工单</a>
             </li>
             <li>
-                <a href="/sale/dinghuo/dailywork/" class="addlink" target="_blank">爆款销量统计</a>
+                <a href="/admin/trades/packageskuitem/?type__in=2,3,4" class="addlink" target="_blank">所有退货单</a>
             </li>
-            <li>
-				<a href="/trades/manybeizhu/" class="addlink" target="_blank">
-                一键备注
-              </a>
-              </li>
-              <li>
-              <a href="/trades/detail/" class="addlink" target="_blank">
-                订单明细查询
-              </a>
-              </li>
-            <li>
-            <a href="/trades/direct/?type=direct" class="addlink" target="_blank">
-                新内售单
-              </a>
-            </li>
+            <!--<li>-->
+                <!--<a href="/trades/dirty_orders2" class="addlink" target="_blank">待处理订单汇总</a>-->
+            <!--</li>-->
+            <!--<li>-->
+                <!--<a href="/sale/dinghuo/dailywork/" class="addlink" target="_blank">爆款销量统计</a>-->
+            <!--</li>-->
+            <!--<li>-->
+				<!--<a href="/trades/manybeizhu/" class="addlink" target="_blank">-->
+                <!--一键备注-->
+              <!--</a>-->
+              <!--</li>-->
+              <!--<li>-->
+              <!--<a href="/trades/detail/" class="addlink" target="_blank">-->
+                <!--订单明细查询-->
+              <!--</a>-->
+              <!--</li>-->
+            <!--<li>-->
+            <!--<a href="/trades/direct/?type=direct" class="addlink" target="_blank">-->
+                <!--新内售单-->
+              <!--</a>-->
+            <!--</li>-->
 
 
-            <li>
-              <a href="/trades/direct/?type=reissue" class="addlink" target="_blank">
-                新补发单
-              </a>
-            </li>
-            <li>
-              <a href="/trades/exchange/" class="addlink" target="_blank">
-                新退换货单
-              </a>
-            </li>
-            <li>
-              <a href="/trades/order/statistic/" class="addlink" target="_blank">
-                商品 统计
-              </a>
-            </li>
-            <li>
-              <a href="/trades/order/statistic/?is_sale=1" class="addlink" target="_blank">
-                特卖商品 统计
-              </a>
-            </li>
-            <li>
-              <a href="/trades/related/orders/" class="addlink" target="_blank">
-                关联销售
-              </a>
-            </li>
-            <li>
-              <a href="/trades/order/outstock/" class="addlink" target="_blank">
-                缺货商品
-              </a>
-            </li>
-            <li>
-              <a href="/trades/logistic/query/" class="addlink" target="_blank">
-                快递查询
-              </a>
-            </li>
-            <li>
-              <a href="/trades/fenxiao/count/" class="addlink" target="_blank">分销商业务查询
-              </a>
-            </li>
+            <!--<li>-->
+              <!--<a href="/trades/direct/?type=reissue" class="addlink" target="_blank">-->
+                <!--新补发单-->
+              <!--</a>-->
+            <!--</li>-->
+            <!--<li>-->
+              <!--<a href="/trades/exchange/" class="addlink" target="_blank">-->
+                <!--新退换货单-->
+              <!--</a>-->
+            <!--</li>-->
+            <!--<li>-->
+              <!--<a href="/trades/order/statistic/" class="addlink" target="_blank">-->
+                <!--商品 统计-->
+              <!--</a>-->
+            <!--</li>-->
+            <!--<li>-->
+              <!--<a href="/trades/order/statistic/?is_sale=1" class="addlink" target="_blank">-->
+                <!--特卖商品 统计-->
+              <!--</a>-->
+            <!--</li>-->
+            <!--<li>-->
+              <!--<a href="/trades/related/orders/" class="addlink" target="_blank">-->
+                <!--关联销售-->
+              <!--</a>-->
+            <!--</li>-->
+            <!--<li>-->
+              <!--<a href="/trades/order/outstock/" class="addlink" target="_blank">-->
+                <!--缺货商品-->
+              <!--</a>-->
+            <!--</li>-->
+            <!--<li>-->
+              <!--<a href="/trades/logistic/query/" class="addlink" target="_blank">-->
+                <!--快递查询-->
+              <!--</a>-->
+            <!--</li>-->
+            <!--<li>-->
+              <!--<a href="/trades/fenxiao/count/" class="addlink" target="_blank">分销商业务查询-->
+              <!--</a>-->
+            <!--</li>-->
           {% endblock %}
         </ul>
       {% endif %}
@@ -184,10 +190,10 @@
 				};
 			}
 		}
-
+        /*
 		window.onload = function(){
 			new ordercheck.Manager();
   			new tradetag.Manager();
-		}
+		}*/
 	</script>
 {% endblock %}
