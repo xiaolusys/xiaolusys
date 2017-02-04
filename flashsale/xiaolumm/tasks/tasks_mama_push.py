@@ -127,7 +127,7 @@ def task_weixin_push_ordercarry(ordercarry):
                 if goods_model_product and goods_model_product.is_boutique:
                     is_boutique = True
                     total_carry += round(
-                        goods_model_product.sku_info[3]['agent_price'] * 100 - coupon_model_product.sku_info[4][
+                        goods_model_product.sku_info[3]['agent_price'] * 100 - goods_model_product.sku_info[4][
                             'agent_price'] * 100)
 
     if total_carry == 0:
