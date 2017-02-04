@@ -391,5 +391,11 @@ def check_xlmm_ordercarry():
 
             for order_carry in order_carry_qs:
                 if status != order_carry.status:
+                    from core.options import log_action, CHANGE, get_systemoa_user
+                    logmsg = 'status not equal to saleorder|status:%s->%s' % (
+                        order_carry.status, status)
+                    order_carry.status = status
+                    sys_oa = get_systemoa_user()
+                    log_action(sys_oa, order_carry, CHANGE, logmsg)
                     results.append(order.oid)
     print "ordercarry error is: ", results
