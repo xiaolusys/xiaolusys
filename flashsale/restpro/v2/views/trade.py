@@ -467,9 +467,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             except:
                 teambuy = None
 
-        buyer_openid = form.get('openid')
-        if not buyer_openid:
-            buyer_openid = options.get_openid_by_unionid(customer.unionid, settings.WX_PUB_APPID)
+        buyer_openid = form.get('openid') or customer.openid
+        # if not buyer_openid:
+        #     buyer_openid = options.get_openid_by_unionid(customer.unionid, settings.WX_PUB_APPID)
 
         payment      = round(float(form.get('payment')), 2)
         pay_extras = form.get('pay_extras', '')
