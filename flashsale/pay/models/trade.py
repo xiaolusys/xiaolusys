@@ -1394,6 +1394,7 @@ def post_save_order_trigger(sender, instance, created, raw, **kwargs):
             'action': 'task_order_trigger',
             'action_time': datetime.datetime.now(),
             'order_oid': instance.oid,
+            'order_status': instance.status,
             'traceback': message,
         })
 
