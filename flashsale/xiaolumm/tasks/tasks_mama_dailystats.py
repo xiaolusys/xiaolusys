@@ -389,12 +389,14 @@ def check_xlmm_ordercarry():
             elif order.is_canceled():
                 status = OrderCarry.CANCEL
 
+            update_fields = ['status', 'modified']
             for order_carry in order_carry_qs:
                 if status != order_carry.status:
                     from core.options import log_action, CHANGE, get_systemoa_user
                     logmsg = 'status not equal to saleorder|status:%s->%s' % (
                         order_carry.status, status)
                     order_carry.status = status
+                    order_carry.save(update_fields=update_fields)
                     sys_oa = get_systemoa_user()
                     log_action(sys_oa, order_carry, CHANGE, logmsg)
                     results.append(order.oid)
