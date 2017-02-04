@@ -581,24 +581,24 @@ class OrderCarry(BaseModel):
         return self.carry_type == 1 or self.carry_type == 2
 
 
-def commission_xlmm_newtask(sender, instance, **kwargs):
-    """
-    检测新手任务：赚取第一笔佣金
-    """
-    from flashsale.xiaolumm.tasks import task_push_new_mama_task
-    from flashsale.xiaolumm.models.new_mama_task import NewMamaTask
-
-    ordercarry = instance
-    xlmm = ordercarry.mama
-    if not xlmm:
-        return
-    ordercarry = OrderCarry.objects.filter(mama_id=xlmm.id).exists()
-
-    if not ordercarry:
-        task_push_new_mama_task.delay(xlmm, NewMamaTask.TASK_FIRST_COMMISSION)
-
-pre_save.connect(commission_xlmm_newtask,
-                 sender=OrderCarry, dispatch_uid='pre_save_commission_xlmm_newtask')
+# def commission_xlmm_newtask(sender, instance, **kwargs):
+#     """
+#     检测新手任务：赚取第一笔佣金
+#     """
+#     from flashsale.xiaolumm.tasks import task_push_new_mama_task
+#     from flashsale.xiaolumm.models.new_mama_task import NewMamaTask
+#
+#     ordercarry = instance
+#     xlmm = ordercarry.mama
+#     if not xlmm:
+#         return
+#     ordercarry = OrderCarry.objects.filter(mama_id=xlmm.id).exists()
+#
+#     if not ordercarry:
+#         task_push_new_mama_task.delay(xlmm, NewMamaTask.TASK_FIRST_COMMISSION)
+#
+# pre_save.connect(commission_xlmm_newtask,
+#                  sender=OrderCarry, dispatch_uid='pre_save_commission_xlmm_newtask')
 
 
 def ordercarry_update_carryrecord(sender, instance, created, **kwargs):
