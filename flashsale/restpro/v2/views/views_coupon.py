@@ -553,7 +553,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                                                 'status_display': OrderCarry.STATUS_TYPES[entry.status][1],
                                                 'order_value': entry.order_value, 'date_field': entry.date_field})
                 elif model_product and model_product.is_boutique_coupon:
-                    # 下级使用小鹿币购买的券，上级可以兑券
+                    # indirect下级使用小鹿币购买的券，上级可以兑券,因为在保存ordercarry时已经判断了indirect才能保存，此处没有做indirect判断
                     from flashsale.pay.apis.v1.order import get_pay_type_from_trade
                     budget_pay, coin_pay = get_pay_type_from_trade(sale_order.sale_trade)
                     if coin_pay and round(sale_order.payment / sale_order.price) > 0 and model_product.extras.has_key('template_id'):
