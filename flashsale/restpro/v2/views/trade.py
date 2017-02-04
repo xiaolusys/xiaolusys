@@ -325,7 +325,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             buyer_openid = options.get_openid_by_unionid(customer.unionid, app_id) or sale_trade.openid
 
         if channel in (SaleTrade.WX_PUB, SaleTrade.WEAPP) and not buyer_openid:
-            raise ValueError(u'请先微信授权登陆后再使用微信支付')
+            raise ValueError(u'您现在使用的是手机号登录，微信支付时需要微信授权，请先退出登录然后使用微信授权登录后再使用微信支付。')
 
         if sale_trade.order_type == SaleTrade.TEAMBUY_ORDER:
             order_success_url = CONS.TEAMBUY_SUCCESS_URL.format(order_tid=sale_trade.tid) + '?from_page=order_commit'
