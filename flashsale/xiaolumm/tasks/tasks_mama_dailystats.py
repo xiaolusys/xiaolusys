@@ -378,9 +378,11 @@ def check_xlmm_ordercarry(recent_day):
         if order.sale_trade.order_type == SaleTrade.SALE_ORDER or coin_buy_order:
             order_carry_qs = OrderCarry.objects.filter(order_id=order.oid)
             if not order_carry_qs:
-                results.append(order.oid)
                 from flashsale.xiaolumm.tasks import task_order_trigger
                 task_order_trigger(order)
+                order_carry_qs = OrderCarry.objects.filter(order_id=order.oid)
+                if order_carry_qs:
+                    results.append(order.oid)
                 continue
             status = OrderCarry.STAGING  # unpaid
             if order.need_send():
