@@ -123,8 +123,8 @@ def task_weixin_push_ordercarry(ordercarry):
                 # 购券也能兑换，其价格是不同等级券的差价
                 from flashsale.pay.models import ModelProduct
                 goods_model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id,
-                                                                  is_boutique=True).first()
-                if goods_model_product and goods_model_product.is_boutique:
+                                                                  is_boutique=True, product_type=ModelProduct.VIRTUAL_TYPE).first()
+                if goods_model_product:
                     is_boutique = True
                     total_carry += round(
                         goods_model_product.sku_info[3]['agent_price'] * 100 - goods_model_product.sku_info[4][
