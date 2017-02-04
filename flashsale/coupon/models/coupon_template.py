@@ -265,7 +265,7 @@ class CouponTemplate(BaseModel):
             raise AssertionError(u'该产品不支持使用优惠券')
 
         tpl_product_ids = self.bind_product_ids  # 设置的绑定的产品
-        tpl_bind_pros = tpl_product_ids.strip().split(',') if tpl_product_ids else []  # 绑定的产品list
+        tpl_bind_pros = tpl_product_ids if tpl_product_ids else []  # 绑定的产品list
         if not tpl_bind_pros != []:  # 如果优惠券没有绑定产品
             self.check_category(product_ids)  # 没有限制产品则检查分类限制
             return

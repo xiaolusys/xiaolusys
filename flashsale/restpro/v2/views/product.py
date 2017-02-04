@@ -60,6 +60,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
       - page=n (n >= 1)
       - page_size=n (n >= 1)
     """
+    # TODO@CAUTION this class has been replaced by ModelProductViewSet
     queryset = Product.objects.all()
     serializer_class = serializers.SimpleProductSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
@@ -193,14 +194,15 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             serializer = self.get_serializer(object_list, many=True)
             response = self.get_paginated_response(serializer.data)
             response.data.update({
-                'downshelf_deadline':self.get_downshelf_deadline(object_list, cur_date),
-                'upshelf_starttime':datetime.datetime.combine(cur_date, datetime.datetime.min.time())\
-                                + datetime.timedelta(seconds= 10 * 60 * 60)
+                'downshelf_deadline': self.get_downshelf_deadline(object_list, cur_date).strftime("%Y-%m-%d %H:%M:%S"),
+                'upshelf_starttime': (datetime.datetime.combine(cur_date, datetime.datetime.min.time())\
+                                + datetime.timedelta(seconds= 10 * 60 * 60)).strftime("%Y-%m-%d %H:%M:%S")
             })
             return response
 
         object_list = self.objets_from_cache(queryset, value_keys=['pk', 'is_saleout'])
         serializer  = self.get_serializer(object_list, many=True)
+
         return Response(serializer.data)
 
     @cache_response(timeout=CACHE_VIEW_TIMEOUT, key_func='calc_items_cache_key')

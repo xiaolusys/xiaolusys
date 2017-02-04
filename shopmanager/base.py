@@ -43,6 +43,7 @@ DATABASES = {
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
+# USE_TZ = True #if true, 时间日期设置都应传入utc时间
 TIME_ZONE = 'Asia/Shanghai'
 
 # DATETIME_INPUT_FORMATS = '%Y-%m-%d %H:%M:%S'
