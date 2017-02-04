@@ -380,7 +380,7 @@ def check_xlmm_ordercarry(recent_day):
             if not order_carry_qs:
                 results.append(order.oid)
                 from flashsale.xiaolumm.tasks import task_order_trigger
-                task_order_trigger(order).delay()
+                task_order_trigger(order)
                 continue
             status = OrderCarry.STAGING  # unpaid
             if order.need_send():
