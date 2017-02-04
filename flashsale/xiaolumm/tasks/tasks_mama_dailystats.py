@@ -349,3 +349,45 @@ def task_calc_all_xlmm_elite_score():
     task_check_xlmm_return_exchg_order.delay()
 
 
+def check_xlmm_ordercarry():
+    results = []
+
+    tt = datetime.datetime.now()
+    tf = tt - datetime.timedelta(days=90)
+    from flashsale.pay.models.trade import SaleOrder, SaleTrade, Customer
+    queryset = SaleOrder.objects.filter(status__in=[SaleOrder.WAIT_SELLER_SEND_GOODS,
+                                                    SaleOrder.WAIT_BUYER_CONFIRM_GOODS,
+                                                    SaleOrder.TRADE_BUYER_SIGNED,
+                                                    SaleOrder.TRADE_FINISHED,
+                                                    SaleOrder.TRADE_CLOSED,
+                                                    SaleOrder.TRADE_CLOSED_BY_SYS],
+                                        created__gte=tf)
+
+    for order in queryset:
+        # 特卖订单有ordercarry或用币买券的inderect mama 虚拟订单有
+        coin_buy_order = False
+        from flashsale.xiaolumm.models import XiaoluMama
+        from flashsale.pay.apis.v1.order import get_pay_type_from_trade
+        budget_pay, coin_pay = get_pay_type_from_trade(order.sale_trade)
+        if coin_pay:
+            customer = Customer.objects.get(id=order.buyer_id)
+            to_mama = customer.get_xiaolumm()
+            if to_mama.referal_from == XiaoluMama.INDIRECT:
+                coin_buy_order = True
+        if order.sale_trade.order_type == SaleTrade.SALE_ORDER or coin_buy_order:
+            order_carry_qs = OrderCarry.objects.filter(order_id=order.oid)
+            if not order_carry_qs:
+                results.append(order.oid)
+                # from flashsale.xiaolumm.tasks import task_order_trigger
+                # task_order_trigger(order)
+            status = OrderCarry.STAGING  # unpaid
+            if order.need_send():
+                status = OrderCarry.ESTIMATE
+            elif order.is_confirmed():
+                status = OrderCarry.CONFIRM
+            elif order.is_canceled():
+                status = OrderCarry.CANCEL
+
+            for order_carry in order_carry_qs:
+                if status != order_carry.status:
+                    results.append(order.oid)

@@ -137,13 +137,13 @@ def task_update_ordercarry(mama_id, order, customer_pk, carry_amount, agency_lev
     Whenever a sku order gets saved, trigger this task to update
     corresponding order_carry record.
     """
-    status = 0  # unpaid
+    status = OrderCarry.STAGING  # unpaid
     if order.need_send():
-        status = 1
+        status = OrderCarry.ESTIMATE
     elif order.is_confirmed():
-        status = 2
+        status = OrderCarry.CONFIRM
     elif order.is_canceled():
-        status = 3
+        status = OrderCarry.CANCEL
 
     carry_type = 1  # direct order
     if via_app:
