@@ -203,7 +203,7 @@ class PackageOrder(models.Model):
             sku_item.logistics_company_name = self.logistics_company.name
             sku_item.logistics_company_code = self.logistics_company.code
             sku_item.set_status_sent()
-            self.get_relate_order().finish_sent()
+            sku_item.get_relate_order().finish_sent()
             psku = ProductSku.objects.get(id=sku_item.sku_id)
             psku.update_quantity(sku_item.num, dec_update=True)
             psku.update_wait_post_num(sku_item.num, dec_update=True)
