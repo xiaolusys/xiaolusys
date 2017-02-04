@@ -646,11 +646,16 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                 })
                 return Response({"code": 2, "info": u'您的精品券库存不足，请立即购买!'})
         else:
-            logger.warn({
-                'message': u'exchange order: modelproduct templateids empty, exchg coupon_num=%s ,order_id=%s templateid=%s' % (
-                    coupon_num, order_id, exchg_template_id),
-            })
-            return Response({"code": 4, "info": u'商品参数配置有误，无法兑换，请联系管理员!'})
+            from flashsale.pay.apis.v1.order import get_pay_type_from_trade
+            budget_pay, coin_pay = get_pay_type_from_trade(sale_order.sale_trade)
+            if coin_pay and model_product.extras.has_key('template_id'):
+                template_ids.append(model_product.extras['template_id'])
+            else:
+                logger.warn({
+                    'message': u'exchange order: modelproduct templateids empty, exchg coupon_num=%s ,order_id=%s templateid=%s' % (
+                        coupon_num, order_id, exchg_template_id),
+                })
+                return Response({"code": 4, "info": u'商品参数配置有误，无法兑换，请联系管理员!'})
 
         user_coupons = UserCoupon.objects.filter(customer_id=customer.id, template_id=int(exchg_template_id),
                                                  status=UserCoupon.UNUSED)
