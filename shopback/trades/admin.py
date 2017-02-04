@@ -1453,11 +1453,17 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
     package_order_link_to.short_description = u'包裹唯一码'
 
     def sale_trade_id_link(self, obj):
-        return '<a href="%(url)s" target="_blank"> %(text)s</a>' % {
-            'url': '/admin/pay/saletrade/?tid=%s' % obj.sale_trade_id,
-            'text': obj.sale_trade_id
-        }
-
+        if obj.type == 0:
+            return '<a href="%(url)s" target="_blank"> %(text)s</a>' % {
+                'url': '/admin/pay/saletrade/?tid=%s' % obj.sale_trade_id,
+                'text': obj.sale_trade_id
+            }
+        if obj.type in [2, 3, 4]:
+            return '<a href="%(url)s" target="_blank"> %(text)s</a>' % {
+                'url': '/admin/dinghuo/returngoods/%s' % obj.return_goods_id,
+                'text': obj.sale_trade_id
+            }
+        return ''
     sale_trade_id_link.allow_tags = True
     sale_trade_id_link.short_description = u'交易单号'
 
