@@ -116,7 +116,7 @@ def task_weixin_push_ordercarry(ordercarry):
                                                             is_boutique=True).first()
                 coupon_model_product = get_virtual_modelproduct_from_boutique_modelproduct(sale_order.item_product.model_id)
                 if goods_model_product and coupon_model_product:
-                    total_carry += round(goods_model_product.sku_info[0]['agent_price'] * 100 - coupon_model_product.sku_info[0]['agent_price'] * 100)
+                    total_carry += abs(round(goods_model_product.sku_info[0]['agent_price'] * 100 - coupon_model_product.sku_info[0]['agent_price'] * 100))
                     if goods_model_product.is_boutique:
                         is_boutique = True
             elif oc.carry_num == 0 and (ordercarry.carry_type == OrderCarry.REFERAL_ORDER):
@@ -126,9 +126,9 @@ def task_weixin_push_ordercarry(ordercarry):
                                                                   is_boutique=True, product_type=ModelProduct.VIRTUAL_TYPE).first()
                 if goods_model_product:
                     is_boutique = True
-                    total_carry += round(
+                    total_carry += abs(round(
                         goods_model_product.sku_info[3]['agent_price'] * 100 - goods_model_product.sku_info[4][
-                            'agent_price'] * 100)
+                            'agent_price'] * 100))
 
     if total_carry == 0:
         return
@@ -148,7 +148,7 @@ def task_weixin_push_ordercarry(ordercarry):
                   'customerInfo':{'value':ordercarry.contributor_nick,'color':'#000000'},
                   'orderItemName':{'value':u'预计最低兑换佣金','color':'#ff0000'},
                   'orderItemData':{'value':u'%.2f' % (total_carry * 0.01),'color':'#ff0000'},
-                  'remark':{'value':u'共%d件商品，快去看看吧～' % sku_num, 'color':'#F87217'}}
+                  'remark':{'value':u'包含%s,共%d件商品，快去看看吧～' % (ordercarry.sku_name, sku_num), 'color':'#F87217'}}
     else:
         params = {'first': {'value': u'女王大人, 小鹿美美App报告：您的店铺有人下单啦！', 'color': '#F87217'},
                   'tradeDateTime': {'value': ordercarry.created.strftime('%Y-%m-%d %H:%M:%S'), 'color': '#000000'},
@@ -156,7 +156,7 @@ def task_weixin_push_ordercarry(ordercarry):
                   'customerInfo': {'value': ordercarry.contributor_nick, 'color': '#000000'},
                   'orderItemName': {'value': u'订单佣金', 'color': '#ff0000'},
                   'orderItemData': {'value': u'%.2f' % (total_carry * 0.01), 'color': '#ff0000'},
-                  'remark': {'value': u'共%d件商品，快去看看吧～' % sku_num, 'color': '#F87217'}}
+                  'remark': {'value': u'包含%s,共%d件商品，快去看看吧～' % (ordercarry.sku_name, sku_num), 'color': '#F87217'}}
 
     mama_id = ordercarry.mama_id
     date_field = ordercarry.date_field
