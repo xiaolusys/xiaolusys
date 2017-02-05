@@ -901,7 +901,7 @@ def set_coupon_2_use_by_trade_confirm(sender, obj, **kwargs):
             coupon_num = len(coupon_ids)
             transfer = CouponTransferRecord.create_consume_record(coupon_num, obj, template_id)
             create_transfer_coupon_detail(transfer.id, coupon_ids)
-            
+
         logger.info({
             'action': 'set_coupon_2_use_by_trade_confirm_end',
             'action_time': datetime.datetime.now(),
@@ -1358,11 +1358,20 @@ class SaleOrder(PayBaseModel):
 @receiver(post_save, sender=SaleOrder, dispatch_uid='post_save_saleorder_notify_update')
 def saleorder_notify_update(sender, instance, created, raw, **kwargs):
     from flashsale.pay.tasks import task_saleorder_post_update_send_signal
-    transaction.on_commit(lambda: task_saleorder_post_update_send_signal.delay(
-        instance.id,
-        created,
-        raw
-    ))
+
+    def _trans_commit_send_signal():
+        logger.info({
+            'action': 'saleorder_post_save_commit',
+            'action_time': datetime.datetime.now(),
+            'order_oid': instance.oid,
+        })
+        task_saleorder_post_update_send_signal.delay(
+            instance.id,
+            created,
+            raw
+        )
+
+    transaction.on_commit(_trans_commit_send_signal)
 
 
 @receiver(signal_saleorder_post_update, sender=SaleOrder, dispatch_uid='post_save_order_trigger')
@@ -1378,7 +1387,13 @@ def post_save_order_trigger(sender, instance, created, raw, **kwargs):
     from flashsale.coupon.apis.v1.transfer import send_new_elite_transfer_coupons, elite_mama_recharge
 
     def _order_trigger(instance):
-        message = 'oK'
+        message = 'OK'
+        logger.info({
+            'action': 'task_order_trigger_start',
+            'action_time': datetime.datetime.now(),
+            'order_oid': instance.oid,
+            'order_status': instance.status,
+        })
         try:
             if instance.is_deposit():
                 if instance.is_confirmed():
@@ -1403,7 +1418,7 @@ def post_save_order_trigger(sender, instance, created, raw, **kwargs):
         except Exception, exc:
             message = traceback.format_exc(),
         logger.info({
-            'action': 'task_order_trigger',
+            'action': 'task_order_trigger_end',
             'action_time': datetime.datetime.now(),
             'order_oid': instance.oid,
             'order_status': instance.status,
