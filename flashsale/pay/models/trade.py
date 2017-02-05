@@ -399,6 +399,11 @@ class SaleTrade(BaseModel):
             dt_str = self.pay_time.strftime('%Y.%m.%d')
             statsd.incr('xiaolumm.postpay_count.%s' % dt_str)
             statsd.incr('xiaolumm.postpay_amount.%s' % dt_str, self.payment)
+            logger.info({
+                'action': 'trade_confirm_signal_start',
+                'order_no': self.tid,
+                'action_time': datetime.datetime.now()
+            })
             for order in self.sale_orders.all():
                 if order.is_deposit() and order.status == SaleTrade.WAIT_SELLER_SEND_GOODS:
                     order.status = SaleTrade.TRADE_FINISHED
@@ -406,7 +411,7 @@ class SaleTrade(BaseModel):
             strade = self
             resp = signal_saletrade_pay_confirm.send_robust(sender=SaleTrade, obj=strade)
             logger.info({
-                'action': 'trade_confirm_signal',
+                'action': 'trade_confirm_signal_end',
                 'order_no': self.tid,
                 'action_time': datetime.datetime.now(),
                 'signal_data': '%s' % resp,
@@ -464,6 +469,12 @@ class SaleTrade(BaseModel):
                     'status': self.get_status_display(),
                     'action_time': datetime.datetime.now()
                 })
+
+            logger.info({
+                'action': 'trade_confirm_commit',
+                'order_no': self.tid,
+                'action_time': datetime.datetime.now()
+            })
 
             with transaction.atomic():
                 st = SaleTrade.objects.select_for_update().get(id=self.id)
@@ -878,12 +889,6 @@ def set_coupon_2_use_by_trade_confirm(sender, obj, **kwargs):
         from flashsale.coupon.apis.v1.transfercoupondetail import create_transfer_coupon_detail
 
         coupons = get_user_coupons_by_ids(coupon_ids)
-        logger.info({
-            'action': 'set_coupon_2_use_by_trade_confirm_end',
-            'action_time': datetime.datetime.now(),
-            'coupons': coupons.values('id', 'status'),
-            'order_no': obj.tid,
-        })
         use_coupon_by_ids(coupon_ids, obj.tid)  # 使用优惠券
 
         # 创建 消费流通记录 如果是流通券类型的话
@@ -896,6 +901,13 @@ def set_coupon_2_use_by_trade_confirm(sender, obj, **kwargs):
             coupon_num = len(coupon_ids)
             transfer = CouponTransferRecord.create_consume_record(coupon_num, obj, template_id)
             create_transfer_coupon_detail(transfer.id, coupon_ids)
+            
+        logger.info({
+            'action': 'set_coupon_2_use_by_trade_confirm_end',
+            'action_time': datetime.datetime.now(),
+            'coupons': coupons.values('id', 'status'),
+            'order_no': obj.tid,
+        })
     except Exception as e:
         logger.warn({
             'action': 'set_coupon_2_use_by_trade_confirm_error',
