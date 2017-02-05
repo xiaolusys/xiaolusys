@@ -21,9 +21,9 @@ class Command(BaseCommand):
         计算精品汇返点, 并发放
         """
 
-        month = 12  # 哪个月的返点, 需要你自己填
-        start_date = datetime(2016, 12, 1)  # 这里要改
-        end_date = datetime(2017, 1, 1)  # 这里也要改
+        month = '201701'  # 哪个月的返点, 需要你自己填
+        start_date = datetime(2017, 1, 1)  # 这里要改
+        end_date = datetime(2017, 2, 1)  # 这里也要改
 
         mamas = self.get_mamas_score_gte()
 
@@ -38,7 +38,7 @@ class Command(BaseCommand):
 
                 customer_id = mama.customer_id
                 flow_amount = int(Decimal(str(fd)) * 100)
-                uni_key = 'fd-{month}-{mama_id}'.format(month=12, mama_id=mama.id)
+                uni_key = 'fd-{month}-{mama_id}'.format(month=month, mama_id=mama.id)
                 try:
                     # 创建待确定收入
                     BudgetLog.create(customer_id, BudgetLog.BUDGET_IN, flow_amount, BudgetLog.BG_FANDIAN,
