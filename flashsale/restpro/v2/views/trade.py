@@ -711,7 +711,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         from flashsale.pay.models.product import ModelProduct
         if mp and (mp.product_type != ModelProduct.VIRTUAL_TYPE):
             if xiaolucoin_payment > 0:
-                return Response({'code': 30, 'info': u'只有精品券才能使用小鹿币购买，您的购买商品中没有精品券，请重新加入购物车再购买'})
+                return Response({'code': 29, 'info': u'只有精品券才能使用小鹿币购买，您的购买商品中没有精品券，请重新加入购物车再购买'})
 
         mm = customer.getXiaolumm()
         if mm and (mm.referal_from == XiaoluMama.INDIRECT):
@@ -725,8 +725,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             else:
                 if (mm.elite_level != 'Associate') and (goods_num < 5) and (elite_score < 30):
                     return Response({'code': 28, 'info': u'购买精品券最低购买5张或者30积分，您本次购买没有达到要求，请在购物车重新添加精品券'})
-        else:
-            return Response({'code': 29, 'info': u'您没有直接购券权限，请在购券界面提交申请'})
 
     def check_use_coupon_only(self, cart_qs, cart_discount, cart_total_fee, coupon_template_id):
         """
@@ -791,11 +789,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 else:
                     if (mm.elite_level != 'Associate') and (goods_num < 5) and (elite_score < 30):
                         return Response({'code': 28, 'info': u'购买精品券最低购买5张或者30积分，您本次购买没有达到要求，请在购物车重新添加精品券'})
-            else:
-                return Response({'code': 29, 'info': u'您没有直接购券权限，请在购券界面提交申请'})
         else:
             if xiaolucoin_payment > 0:
-                return Response({'code': 30, 'info': u'只有精品券才能使用小鹿币购买，您的购买商品中没有精品券，请重新加入购物车再购买'})
+                return Response({'code': 29, 'info': u'只有精品券才能使用小鹿币购买，您的购买商品中没有精品券，请重新加入购物车再购买'})
         return False
 
     @list_route(methods=['post'])
