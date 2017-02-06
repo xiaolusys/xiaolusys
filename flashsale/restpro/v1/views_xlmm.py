@@ -907,23 +907,23 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
     def verify_cashout(self, cash_type, cashout_amount, customer, xlmm):
 
         if (cash_type is None) and (cashout_amount is None):  # 参数错误(没有参数)
-            return 0, {"code": 1, "msg": '暂未开通'}
+            return 0, {"code": 1, "info": '暂未开通'}
 
         if cash_type:
             value = self.cashout_type.get(cash_type)
         elif cashout_amount:
             value = int(decimal.Decimal(cashout_amount) * 100)
         else:
-            return 0, {"code": 1, "msg": '提现金额不能为0'}
+            return 0, {"code": 1, "info": '提现金额不能为0'}
 
         could_cash_out, active_value_num = get_mamafortune(xlmm.id)
         # if active_value_num < 100:
         #     return 0, {"code": 4, 'msg': '活跃值不足'}  # 活跃值不够
         if self.queryset.filter(status=CashOut.PENDING, xlmm=xlmm.id).count() > 0:  # 如果有待审核提现记录则不予再次创建记录
-            return 0, {"code": 3, 'msg': '提现审核中'}
+            return 0, {"code": 3, 'info': '提现审核中'}
         if could_cash_out < value * 0.01:  # 如果可以提现金额不足
-            return 0, {"code": 2, 'msg': '余额不足'}
-        return value, {"code": 0, 'msg': '提交成功'}
+            return 0, {"code": 2, 'info': '余额不足'}
+        return value, {"code": 0, 'info': '提交成功'}
 
     def create(self, request, *args, **kwargs):
         """
