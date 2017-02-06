@@ -606,7 +606,7 @@ def apply_pending_return_transfer_coupon(coupon_ids, customer):
     upper_mamas = {}
     for coupon in coupons:
         if not coupon.can_return_upper_mama():
-            raise Exception('%s不支持退券给上级妈妈' % coupon.title)
+            return 1, ('%s不支持退券给上级妈妈' % coupon.title)
         template_ids.add(coupon.template_id)
 
         # 组织下 数据  key是上级妈妈id  value是 要退给上级妈妈的券 数量
@@ -617,7 +617,7 @@ def apply_pending_return_transfer_coupon(coupon_ids, customer):
         else:
             upper_mamas[upmm].append(coupon.id)
     if len(template_ids) != 1:
-        raise Exception('多种券不支持同时退券')
+        return 2, '多种券不支持同时退券'
 
     template_id = template_ids.pop()
     template = get_coupon_template_by_id(template_id)
@@ -664,7 +664,7 @@ def apply_pending_return_transfer_coupon(coupon_ids, customer):
         new_transfer.save()
         freeze_transfer_coupon(cou_ids, new_transfer.id)  # 冻结优惠券
         create_transfer_coupon_detail(new_transfer.id, cou_ids)
-    return True
+    return 0, '成功'
 
 
 @transaction.atomic()
@@ -681,10 +681,10 @@ def apply_pending_return_transfer_coupon_2_sys(coupon_ids, customer):
     template_ids = set()
     for coupon in coupons:
         if not coupon.can_return_sys():
-            raise Exception('%s不支持退券给系统' % coupon.title)
+            return 1, ('%s不支持退券给系统' % coupon.title)
         template_ids.add(coupon.template_id)
     if len(template_ids) != 1:
-        raise Exception('多种券不支持同时退券')
+        return 2, '多种券不支持同时退券'
     template_id = template_ids.pop()
     template = get_coupon_template_by_id(template_id)
     product_id, elite_score, agent_price = get_elite_score_by_templateid(template_id, mama)
@@ -763,7 +763,7 @@ def apply_pending_return_transfer_coupon_2_sys(coupon_ids, customer):
         transfer.save()
         freeze_transfer_coupon(coin_buy_coupon_ids, transfer.id)  # 冻结优惠券
         create_transfer_coupon_detail(transfer.id, coin_buy_coupon_ids)
-    return True
+    return 0, '成功'
 
 
 @transaction.atomic()
