@@ -512,8 +512,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
             mama = get_charged_mama(request.user)
             mama_id = mama.id
             exchg_orders = OrderCarry.objects.filter(mama_id=mama_id,
-                                                     carry_type__in=[OrderCarry.WAP_ORDER, OrderCarry.APP_ORDER],
-                                                     status__in=[OrderCarry.ESTIMATE, OrderCarry.CONFIRM],
+                                                     status__in=[OrderCarry.CONFIRM],
                                                      date_field__gt='2016-11-30')
             coin_buy_exchg_orders = OrderCarry.objects.filter(mama_id=mama_id,
                                                      carry_type__in=[OrderCarry.REFERAL_ORDER],
@@ -530,56 +529,53 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                 if sale_order and sale_order.extras.has_key('exchange'):
                     continue
 
-                user_coupon = UserCoupon.objects.filter(trade_tid=sale_order.sale_trade.tid).first()
-                if user_coupon:
-                    use_template_id = user_coupon.template_id
-                else:
-                    use_template_id = None
+                # APP OR WAP ORDER IS REAL GOODS
+                if entry.carry_type == OrderCarry.APP_ORDER or entry.carry_type == OrderCarry.WAP_ORDER:
+                    user_coupon = UserCoupon.objects.filter(trade_tid=sale_order.sale_trade.tid).first()
+                    if user_coupon:
+                        use_template_id = user_coupon.template_id
+                    else:
+                        use_template_id = None
 
-                # find modelproduct
-                model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id, is_boutique=True).first()
-                if model_product and model_product.extras.has_key('payinfo') \
-                        and model_product.extras['payinfo'].has_key('coupon_template_ids'):
-                    if model_product.extras['payinfo']['coupon_template_ids'] and len(
-                            model_product.extras['payinfo']['coupon_template_ids']) > 0:
+                    # find modelproduct
+                    model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id, is_boutique=True).first()
+                    if model_product and model_product.extras.has_key('payinfo') \
+                            and model_product.extras['payinfo'].has_key('coupon_template_ids'):
+                        if model_product.extras['payinfo']['coupon_template_ids'] and len(
+                                model_product.extras['payinfo']['coupon_template_ids']) > 0:
 
-                        template_ids = model_product.extras['payinfo']['coupon_template_ids']
-                        template_id = model_product.extras['payinfo']['coupon_template_ids'][0]
-                        # 用的券全部是精品券那就无法兑换，部分用券部分现金还是能兑换的
-                        if template_ids and template_id:
-                            # if use_template_id and use_template_id in template_ids:
-                            #     continue
-                            if round(sale_order.payment / sale_order.price) > 0:
-                                results.append({'exchg_template_id': template_id,
-                                                'num': round(sale_order.payment / sale_order.price),
-                                                'order_id': entry.order_id, 'sku_img': entry.sku_img,
-                                                'contributor_nick': entry.contributor_nick, 'status': entry.status,
-                                                'status_display': OrderCarry.STATUS_TYPES[entry.status][1],
-                                                'order_value': entry.order_value, 'date_field': entry.date_field})
-        if coin_buy_exchg_orders:
-            for entry in coin_buy_exchg_orders:
-                # find sale trade use coupons
-                sale_order = SaleOrder.objects.filter(oid=entry.order_id).first()
-                if not sale_order:
-                    continue
-                if sale_order and sale_order.extras.has_key('exchange'):
-                    continue
-
-                # find modelproduct
-                model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id,
-                                                            is_boutique=True,
-                                                            product_type=ModelProduct.VIRTUAL_TYPE).first()
-                if model_product:
-                    # indirect下级使用小鹿币购买的券，上级可以兑券,因为在保存ordercarry时已经判断了indirect才能保存，此处没有做indirect判断
-                    from flashsale.pay.apis.v1.order import get_pay_type_from_trade
-                    budget_pay, coin_pay = get_pay_type_from_trade(sale_order.sale_trade)
-                    if coin_pay and round(sale_order.payment / sale_order.price) > 0 and model_product.extras.has_key('template_id'):
-                        results.append({'exchg_template_id': model_product.extras['template_id'],
-                                        'num': round(sale_order.payment / sale_order.price),
-                                        'order_id': entry.order_id, 'sku_img': entry.sku_img,
-                                        'contributor_nick': entry.contributor_nick, 'status': entry.status,
-                                        'status_display': OrderCarry.STATUS_TYPES[entry.status][1],
-                                        'order_value': entry.order_value, 'date_field': entry.date_field})
+                            template_ids = model_product.extras['payinfo']['coupon_template_ids']
+                            template_id = model_product.extras['payinfo']['coupon_template_ids'][0]
+                            # 用的券全部是精品券那就无法兑换，部分用券部分现金还是能兑换的
+                            if template_ids and template_id:
+                                # if use_template_id and use_template_id in template_ids:
+                                #     continue
+                                if round(sale_order.payment / sale_order.price) > 0:
+                                    results.append({'exchg_template_id': template_id,
+                                                    'num': round(sale_order.payment / sale_order.price),
+                                                    'order_id': entry.order_id, 'sku_img': entry.sku_img,
+                                                    'contributor_nick': entry.contributor_nick, 'status': entry.status,
+                                                    'status_display': OrderCarry.STATUS_TYPES[entry.status][1],
+                                                    'order_value': entry.order_value, 'date_field': entry.date_field})
+                elif entry.carry_type == OrderCarry.REFERAL_ORDER:
+                    # coin buy coupon
+                    # find modelproduct
+                    model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id,
+                                                                is_boutique=True,
+                                                                product_type=ModelProduct.VIRTUAL_TYPE).first()
+                    if model_product:
+                        imgs = model_product.head_imgs.split('\n')
+                        head_img = imgs[0] if imgs else ''
+                        # indirect下级使用小鹿币购买的券，上级可以兑券,因为在保存ordercarry时已经判断了indirect才能保存，此处没有做indirect判断
+                        from flashsale.pay.apis.v1.order import get_pay_type_from_trade
+                        budget_pay, coin_pay = get_pay_type_from_trade(sale_order.sale_trade)
+                        if coin_pay and round(sale_order.payment / sale_order.price) > 0 and model_product.extras.has_key('template_id'):
+                            results.append({'exchg_template_id': model_product.extras['template_id'],
+                                            'num': round(sale_order.payment / sale_order.price),
+                                            'order_id': entry.order_id, 'sku_img': head_img,
+                                            'contributor_nick': entry.contributor_nick, 'status': entry.status,
+                                            'status_display': OrderCarry.STATUS_TYPES[entry.status][1],
+                                            'order_value': entry.order_value, 'date_field': entry.date_field})
 
         #从relationship推荐人中找出购买rmb338/216的新精英妈妈订单
         from flashsale.xiaolumm.models.models_fortune import ReferalRelationship
