@@ -1194,13 +1194,13 @@ class XLSampleSkuSerialize(serializers.ModelSerializer):
 class BudgetLogSerialize(serializers.ModelSerializer):
     budeget_detail_cash = serializers.FloatField(source='get_flow_amount_display', read_only=True)
     desc = serializers.SerializerMethodField()
-    mama_id = serializers.SerializerMethodField()
+    mama = serializers.SerializerMethodField()
 
     class Meta:
         model = BudgetLog
         fields = (
             'customer_id',
-            'mama_id',
+            'mama',
             'desc',
             'budget_type',
             'budget_log_type',
@@ -1216,9 +1216,13 @@ class BudgetLogSerialize(serializers.ModelSerializer):
             obj.get_budget_type_display(),
             obj.flow_amount * 0.01)
 
-    def get_mama_id(self, obj):
+    def get_mama(self, obj):
         customer = Customer.objects.get(id=obj.customer_id)
-        return customer.mama_id
+        return {
+            'mama_id': customer.mama_id,
+            'nick': customer.nick,
+            'thumbnail': customer.thumbnail
+        }
 
 
 class XlmmFansCustomerInfoSerialize(serializers.ModelSerializer):
