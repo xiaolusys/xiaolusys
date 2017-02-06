@@ -1194,22 +1194,31 @@ class XLSampleSkuSerialize(serializers.ModelSerializer):
 class BudgetLogSerialize(serializers.ModelSerializer):
     budeget_detail_cash = serializers.FloatField(source='get_flow_amount_display', read_only=True)
     desc = serializers.SerializerMethodField()
+    mama_id = serializers.SerializerMethodField()
 
     class Meta:
         model = BudgetLog
-        fields = ('desc',
-                  'budget_type',
-                  'budget_log_type',
-                  'budget_date',
-                  'get_status_display',
-                  'status',
-                  'budeget_detail_cash',
-                  'modified')
+        fields = (
+            'customer_id',
+            'mama_id',
+            'desc',
+            'budget_type',
+            'budget_log_type',
+            'budget_date',
+            'get_status_display',
+            'status',
+            'budeget_detail_cash',
+            'modified'
+        )
 
     def get_desc(self, obj):
         return u'您通过{0}{1}{2}元.'.format(obj.get_budget_log_type_display(),
             obj.get_budget_type_display(),
             obj.flow_amount * 0.01)
+
+    def get_mama_id(self, obj):
+        customer = Customer.objects.get(id=obj.customer_id)
+        return customer.mama_id
 
 
 class XlmmFansCustomerInfoSerialize(serializers.ModelSerializer):
@@ -1270,4 +1279,3 @@ class XiaoluCoinLogSerializer(serializers.ModelSerializer):
 
     def get_iro_type(self, obj):
         return dict(XiaoluCoinLog.IRO_CHOICES).get(obj.iro_type, '')
-
