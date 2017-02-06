@@ -64,9 +64,9 @@ class PackageOrder(models.Model):
                                        blank=True, verbose_name=u'手机')
     receiver_phone = models.CharField(max_length=20, db_index=True, blank=True, verbose_name=u'电话')
 
-    user_address_id = models.CharField(max_length=40, null=False, db_index=True, verbose_name=u'地址ID')
+    user_address_id = models.CharField(max_length=40, null=False, blank=True, db_index=True, verbose_name=u'地址ID')
     # 物流信息
-    buyer_id = models.BigIntegerField(db_index=True, null=True, verbose_name=u'买家ID')
+    buyer_id = models.BigIntegerField(db_index=True, blank=True, null=True, verbose_name=u'买家ID')
     buyer_nick = models.CharField(max_length=64, blank=True, verbose_name=u'买家昵称')
 
     buyer_message = models.TextField(max_length=1000, blank=True, verbose_name=u'买家留言')
@@ -1135,6 +1135,8 @@ class PackageSkuItem(BaseModel):
             ware_by=ware_by,
             pay_time=datetime.datetime.now()
         )
+        psi.status = PSI_STATUS.MERGED
+        psi.assign_status = PackageSkuItem.ASSIGNED
         psi.save()
         return psi
 
