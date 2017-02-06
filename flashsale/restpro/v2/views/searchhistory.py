@@ -12,6 +12,8 @@ from rest_framework.parsers import JSONParser
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.decorators import parser_classes
 from rest_framework.response import Response
+
+from common.auth import WeAppAuthentication
 from .. import serializers
 from flashsale.pay.models import UserSearchHistory
 from flashsale.pay.apis.v1.usersearchhistory import get_distinct_user_search_product_history_by_user_id, \
@@ -32,7 +34,7 @@ class UserSearchHistoryViewSet(viewsets.ModelViewSet):
     """
     queryset = UserSearchHistory.objects.all()
     serializer_class = serializers.UserSearchHistorySerialize
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication, )
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication, WeAppAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer, )
     filter_backends = (filters.DjangoFilterBackend,)
