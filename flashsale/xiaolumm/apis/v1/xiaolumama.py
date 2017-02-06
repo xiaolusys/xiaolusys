@@ -154,7 +154,6 @@ def current_month_rebate_remain(mama_id):
     end_date = today
 
     result = get_mama_buy_coupon_score(mama_id, start_date, end_date)
-    print result
     return (0, result['fd'])
 
 
