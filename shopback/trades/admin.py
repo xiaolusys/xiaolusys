@@ -1544,7 +1544,7 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
     product_title_link_to.short_description = u'商品名称'
 
 
-    actions = ['show_3day_delay']
+    actions = []
     def get_actions(self, request):
         actions = super(PackageSkuItemAdmin, self).get_actions(request)
         actions.pop('delete_selected')
