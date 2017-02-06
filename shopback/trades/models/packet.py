@@ -1533,7 +1533,9 @@ class PackageSkuItem(BaseModel):
                                                            self.product_sku.ware_by)
         package_order = PackageOrder.objects.filter(id=package_order_id).first()
         if not package_order:
-            PackageOrder.create(package_order_id, sale_trade, self)
+            package_order = PackageOrder.create(package_order_id, sale_trade, self)
+            PackageSkuItem.objects.filter(id=self.id).update(package_order_id=package_order_id,
+                                                             package_order_pid=package_order.pid)
         else:
             PackageSkuItem.objects.filter(id=self.id).update(package_order_id=package_order_id,
                                                              package_order_pid=package_order.pid)
