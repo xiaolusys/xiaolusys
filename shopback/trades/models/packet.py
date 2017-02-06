@@ -1377,6 +1377,8 @@ class PackageSkuItem(BaseModel):
 
     @staticmethod
     def batch_merge(type=PSI_TYPE.NORMAL):
+        if type is None:
+            type = PSI_TYPE.NORMAL
         if type in [PSI_TYPE.NORMAL, PSI_TYPE.TIANMAO]:
             psi_ids = PackageSkuItem.objects.filter(status=PSI_STATUS.ASSIGNED, type=type).values_list('id', flat=True)
         else:
