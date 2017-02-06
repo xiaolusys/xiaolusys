@@ -1573,27 +1573,27 @@ class PotentialMama(BaseModel):
         return '/'.join([str(mama_id), str(referal_from_mama_id)])
 
 
-def potentialmama_xlmm_newtask(sender, instance, **kwargs):
-    """
-    检测新手任务：发展第一个代理　
-    """
-    from flashsale.xiaolumm.tasks import task_push_new_mama_task
-    from flashsale.xiaolumm.models.new_mama_task import NewMamaTask
-    from flashsale.xiaolumm.models.models_fortune import ReferalRelationship
-
-    potentialmama = instance
-    xlmm_id = potentialmama.referal_mama
-    xlmm = XiaoluMama.objects.filter(id=xlmm_id).first()
-
-    item = PotentialMama.objects.filter(referal_mama=xlmm_id).exists() or \
-           ReferalRelationship.objects.filter(referal_from_mama_id=xlmm_id).exists()
-
-    if not item:
-        task_push_new_mama_task.delay(xlmm, NewMamaTask.TASK_FIRST_MAMA_RECOMMEND)
-
-
-pre_save.connect(potentialmama_xlmm_newtask,
-                 sender=PotentialMama, dispatch_uid='pre_save_potentialmama_xlmm_newtask')
+# def potentialmama_xlmm_newtask(sender, instance, **kwargs):
+#     """
+#     检测新手任务：发展第一个代理　
+#     """
+#     from flashsale.xiaolumm.tasks import task_push_new_mama_task
+#     from flashsale.xiaolumm.models.new_mama_task import NewMamaTask
+#     from flashsale.xiaolumm.models.models_fortune import ReferalRelationship
+#
+#     potentialmama = instance
+#     xlmm_id = potentialmama.referal_mama
+#     xlmm = XiaoluMama.objects.filter(id=xlmm_id).first()
+#
+#     item = PotentialMama.objects.filter(referal_mama=xlmm_id).exists() or \
+#            ReferalRelationship.objects.filter(referal_from_mama_id=xlmm_id).exists()
+#
+#     if not item:
+#         task_push_new_mama_task.delay(xlmm, NewMamaTask.TASK_FIRST_MAMA_RECOMMEND)
+#
+#
+# pre_save.connect(potentialmama_xlmm_newtask,
+#                  sender=PotentialMama, dispatch_uid='pre_save_potentialmama_xlmm_newtask')
 
 
 #def potentialmama_push_sms(sender, instance, created, **kwargs):
