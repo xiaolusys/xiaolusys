@@ -154,12 +154,23 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
                                                             CouponTransferRecord.IN_RETURN_COUPON,  # 退给上级代理
                                                             CouponTransferRecord.OUT_CASHOUT])  # 退给系统
         # 判断当前用户 本 月 是否 有生成 退券的记录(待审核或者已经审核掉的) 如果有则不予申请
-        today = datetime.datetime.today()
-        tf = datetime.datetime(today.year, today.month, 1, 0, 0, 0)  # 这个月第一天开始
-        tt = datetime.datetime(today.year, today.month, today.day, 0, 0, 0)  # 昨天结束
-        if p_records.filter(created__gte=tf, created__lt=tt).exclude(
-                transfer_status=CouponTransferRecord.CANCELED).exists():  # 排除取消的流通 (退券) 记录
-            return Response({'code': 6, 'info': '您本月已经有退券了,每月只有一天能够退券,请集中到某一天集中申请!'})
+        # 2017-2-6 新需求，某些用户临时有退券的需求，可能一个月退2次，方便运营处理，可以在xiaolumama web配置页配置mamaid，可退多次
+        return_more_times = False
+        from flashsale.xiaolumm.models.models_advertis import MamaVebViewConf
+        conf = MamaVebViewConf.objects.filter(version='mama_conf').first()  # 新手任务配置后台记录
+        extra = conf.extra
+
+        if extra['refund_coupon_except'] and (type(extra['refund_coupon_except']) == list) \
+                and (mama.id in extra['refund_coupon_except']):  # 推荐妈妈不显示的时候则将
+            return_more_times = True  # 可以退多次
+
+        if not return_more_times:
+            today = datetime.datetime.today()
+            tf = datetime.datetime(today.year, today.month, 1, 0, 0, 0)  # 这个月第一天开始
+            tt = datetime.datetime(today.year, today.month, today.day, 0, 0, 0)  # 昨天结束
+            if p_records.filter(created__gte=tf, created__lt=tt).exclude(
+                    transfer_status=CouponTransferRecord.CANCELED).exists():  # 排除取消的流通 (退券) 记录
+                return Response({'code': 6, 'info': '您本月已经有退券了,每月只有一天能够退券,请集中到某一天集中申请!'})
 
         can_return_elite = mama.elite_score - mama.get_level_lowest_elite()  # 当前可退回的积分数
         p_records = p_records.filter(transfer_status=CouponTransferRecord.PENDING)  # 待确定的流通记录积分
