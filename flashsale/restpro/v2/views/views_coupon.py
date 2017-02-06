@@ -514,11 +514,6 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
             exchg_orders = OrderCarry.objects.filter(mama_id=mama_id,
                                                      status__in=[OrderCarry.CONFIRM],
                                                      date_field__gt='2016-11-30')
-            coin_buy_exchg_orders = OrderCarry.objects.filter(mama_id=mama_id,
-                                                     carry_type__in=[OrderCarry.REFERAL_ORDER],
-                                                     status__in=[OrderCarry.CONFIRM],
-                                                     date_field__gt='2017-2-2')
-
         results = []
         if exchg_orders:
             for entry in exchg_orders:
