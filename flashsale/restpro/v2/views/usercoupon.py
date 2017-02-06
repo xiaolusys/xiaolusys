@@ -169,14 +169,14 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         if coupon_elite > can_return_elite:
             return Response({'code': 5, 'info': '您的退券张数太多，会导致您降级，请减少退券数量'})
         if return_to == 'upper_mama':  # 退给上级
-            state = apply_pending_return_transfer_coupon(coupon_ids, customer)
+            code, info = apply_pending_return_transfer_coupon(coupon_ids, customer)
         elif return_to == 'sys':  # 退给系统
             try:
-                state = apply_pending_return_transfer_coupon_2_sys(coupon_ids, customer)
+                code, info = apply_pending_return_transfer_coupon_2_sys(coupon_ids, customer)
             except Exception as e:
                 return Response({'code': 5, 'info': '申请出错:%s' % e.message})
         else:
             return Response({'code': 1, 'info': '参数错误'})
-        if not state:
-            return Response({'code': 2, 'info': '申请失败'})
+        if code != 0:
+            return Response({'code': 2, 'info': info})
         return Response({'code': 0, 'info': '申请成功'})
