@@ -639,7 +639,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                     'message': u'exchange order:stock_num=%s < exchg coupon_num=%s ,order_id=%s templateid=%s' % (
                         stock_num, coupon_num, order_id, exchg_template_id),
                 })
-                return Response({"code": 2, "info": u'您的精品券库存不足，请立即购买!'})
+                return Response({"code": 2, "info": u'您的精品券库存不足,需要补充%s张,请立即购买!' % (int(coupon_num) - stock_num)})
         else:
             from flashsale.pay.apis.v1.order import get_pay_type_from_trade
             budget_pay, coin_pay = get_pay_type_from_trade(sale_order.sale_trade)
