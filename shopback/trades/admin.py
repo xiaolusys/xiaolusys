@@ -1392,6 +1392,14 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
         '<a href="%(package_order_url)s" target="_blank">'
         '%(package_order_pid)s</a>')
 
+
+
+    def show_3day_delay(self, request, queryset):
+        print 1231231321
+        return HttpResponseRedirect('/admin/dinghuo/returngoods/?status__exact=0')
+    show_3day_delay.allow_tags = True
+    show_3day_delay.short_description = u'付款后3天还未到货'
+
     def purchase_order_unikey_link(self, obj):
         if obj.purchase_order_unikey:
             return '<a href="/admin/dinghuo/orderlist/?purchase_order_unikey=%s" target="_blank"> %s </a>' % (
@@ -1534,6 +1542,13 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
 
     product_title_link_to.allow_tags = True
     product_title_link_to.short_description = u'商品名称'
+
+
+    actions = []
+    def get_actions(self, request):
+        actions = super(PackageSkuItemAdmin, self).get_actions(request)
+        actions.pop('delete_selected')
+        return actions
 
 
 admin.site.register(PackageSkuItem, PackageSkuItemAdmin)

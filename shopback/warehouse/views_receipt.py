@@ -32,6 +32,8 @@ class ReceiptGoodsViewSet(viewsets.ModelViewSet):
         receipt_type = content.get('receipt_type') or None
 
         receipt = self.queryset.filter(express_no=express_no, express_company=express_company).first()
+        if not express_no:
+            return Response({"code": 2, "info": "物流单号为空,添加失败", "receipt": ""})
         if not receipt:  # 不存在则创建
             receipt = ReceiptGoods(
                 receipt_type=receipt_type,
