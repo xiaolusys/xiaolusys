@@ -165,10 +165,14 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         elite_level = mama.elite_level
         coin = XiaoluCoin.get_or_create(mama_id)
 
+        from flashsale.xiaolumm.apis.v1.xiaolumama import current_month_rebate_remain
+        remain_score, money = current_month_rebate_remain(mama_id)
+
         return Response({"mama_id": mama_id, "stock_num": stock_num, "waiting_in_num": waiting_in_num,
                          "waiting_out_num": waiting_out_num, "bought_num": in_num, "is_elite_mama": is_elite_mama,
                          "direct_buy": direct_buy, "direct_buy_link": direct_buy_link, "elite_score": mama.elite_score,
-                         "elite_level": elite_level, "upgrade_score": upgrade_score, "xiaolucoin_cash": coin.xiaolucoin_cash})
+                         "elite_level": elite_level, "upgrade_score": upgrade_score, "xiaolucoin_cash": coin.xiaolucoin_cash,
+                         "to_rebate_score": remain_score, "rebate_money": money})
 
     @detail_route(methods=['POST'])
     def process_coupon(self, request, pk=None, *args, **kwargs):
