@@ -9,11 +9,13 @@ from django.core.urlresolvers import reverse
 
 from rest_framework import filters
 from rest_framework import viewsets
+from rest_framework import authentication
 from rest_framework import permissions
 from rest_framework.decorators import list_route
 from rest_framework.response import Response
 from rest_framework_extensions.cache.decorators import cache_response
 
+from common.auth import WeAppAuthentication
 from core import pagination
 from flashsale.pay.models import ModelProduct, Customer, CuShopPros
 
@@ -62,6 +64,7 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = ModelProduct.objects.all()
     serializer_class = serializers_v2.SimpleModelProductSerializer
+    authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
     pagination_class = pagination.PageNumberPkPagination
