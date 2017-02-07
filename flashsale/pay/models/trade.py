@@ -474,9 +474,9 @@ class SaleTrade(BaseModel):
                 if order.is_deposit() and order.status == SaleTrade.WAIT_SELLER_SEND_GOODS:
                     order.status = SaleTrade.TRADE_FINISHED
                     order.save(update_fields=['status'])
-
-            self.confirm_payment()
-            self.set_order_paid()
+            st = SaleTrade.objects.get(id=self.id)
+            st.confirm_payment()
+            st.set_order_paid()
 
         except Exception, exc:
             logger.error({
