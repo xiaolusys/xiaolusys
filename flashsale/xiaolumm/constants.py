@@ -36,3 +36,18 @@ GROUP_TARGET_STAGE = [
 ]
 GROUP_TARGET_STAGE.reverse()
 GROUP_TARGET_AWARD_RATE = 0.05
+
+# xiaolumm 精英妈妈的等级定义
+ELITEMM_ASSOCIATE = 'Associate'
+ELITEMM_DIRECTOR = 'Director'
+ELITEMM_VP = 'VP'
+ELITEMM_PARTNER = 'Partner'
+ELITEMM_SP = 'SP'
+
+ELITEMM_DESC_INFO = {
+    ELITEMM_ASSOCIATE: {'english_name': u'Associate', 'chinese_name': u'经理', 'min_score': 0},
+    ELITEMM_DIRECTOR: {'english_name': u'Director', 'chinese_name': u'主管', 'min_score': 300},
+    ELITEMM_VP: {'english_name': u'VP', 'chinese_name': u'副总裁', 'min_score': 1000},
+    ELITEMM_PARTNER: {'english_name': u'Partner', 'chinese_name': u'合伙人', 'min_score': 3000},
+    ELITEMM_SP: {'english_name': u'SP', 'chinese_name': u'高级合伙人', 'min_score': 10000},
+}
