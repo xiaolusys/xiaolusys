@@ -1,7 +1,7 @@
 # -*- coding:utf8 -*-
 from django.contrib import admin
 from core.filters import DateFieldListFilter
-from .models import DailyStat, PopularizeCost
+from .models import DailyStat, PopularizeCost, DailyBoutiqueStat
 from django import forms
 
 from core.admin import ApproxAdmin
@@ -80,3 +80,11 @@ class PopularizeCostAdmin(admin.ModelAdmin):
     ordering = ('-date',)
 
 
+@admin.register(DailyBoutiqueStat)
+class DailyBoutiqueStatAdmin(admin.ModelAdmin):
+    list_display = ('model_id',
+                    'stat_date', 'model_stock_num', 'model_sale_num','model_refund_num',
+                    'coupon_sale_num', 'coupon_use_num', 'coupon_refund_num',)
+    list_filter = (('stat_date', DateFieldListFilter),)
+    search_fields = ['=model_id']
+    ordering = ('-stat_date',)

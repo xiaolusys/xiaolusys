@@ -103,6 +103,13 @@ class SMSPlatform(BaseModel):
 
 class SMSRecord(BaseModel):
     """ 短信平台发送记录 """
+
+    SMS_CREATED  = pcfg.SMS_CREATED
+    SMS_COMMIT   = pcfg.SMS_COMMIT
+    SMS_COMPLETE = pcfg.SMS_COMPLETE
+    SMS_ERROR    = pcfg.SMS_ERROR
+    SMS_CANCLE   = pcfg.SMS_CANCLE
+
     platform = models.ForeignKey(SMSPlatform, null=True, default=None, related_name='sms_records', verbose_name=u'短信服务商')
 
     task_type = models.CharField(max_length=16, choices=choice_sms_notify_type(), db_index=True, verbose_name=u'类型')

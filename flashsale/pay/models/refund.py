@@ -104,7 +104,7 @@ class SaleRefund(PayBaseModel):
                                       verbose_name=u'退款方式')  # type: text_type
     item_id = models.BigIntegerField(null=True, default=0, verbose_name=u'商品ID')  # type: int
     title = models.CharField(max_length=64, blank=True, verbose_name=u'出售标题')  # type: Optional[text_type]
-    sku_id = models.BigIntegerField(null=True, default=0, verbose_name=u'规格ID')  # type: int
+    sku_id = models.BigIntegerField(null=True, db_index=True, default=0, verbose_name=u'规格ID')  # type: int
     sku_name = models.CharField(max_length=64, blank=True, verbose_name=u'规格标题')  # type: Optional[text_type]
     ware_by = models.IntegerField(db_index=True, default=0, verbose_name=u'退回仓库')  # type: int
 

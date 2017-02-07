@@ -755,6 +755,13 @@ QRCODE_ROUTES = {
     },
 }
 
+BOUTIQUE_ROUTES = {
+    'flashsale.daystats.tasks.boutique.task_boutique_sale_and_refund_stats': {
+        'queue': 'statistics',
+        'routing_key': 'statistics.task_boutique_sale_and_refund_stats',
+    },
+}
+
 CELERY_ROUTES = {
     'flashsale.xiaolumm.tasks.base.task_Push_Pending_Carry_Cash': {
         'queue': 'peroid',
@@ -968,6 +975,7 @@ CELERY_ROUTES.update(LOGISTICS_ROUTES)
 CELERY_ROUTES.update(APIS_ROUTES)
 CELERY_ROUTES.update(DINGHUO_ROUTES)
 CELERY_ROUTES.update(QRCODE_ROUTES)
+CELERY_ROUTES.update(BOUTIQUE_ROUTES)
 CELERY_ROUTES.update(XIAOLUPAY_ROUTES)
 
 CELERY_TASK_ROUTES = CELERY_ROUTES
@@ -1562,6 +1570,16 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_schedule_check_user_budget'}
     },
+
+}
+
+BOUTIQUE_SCHEDULE = {
+    u'每日统计昨日精品商品及券库存和销量': {
+        'task': 'flashsale.daystats.tasks.boutique.task_all_boutique_stats',
+        'schedule': crontab(minute="15"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_all_boutique_stats'}
+    },
     u'定时检查boutique product配置问题': {
         'task': 'flashsale.pay.tasks.task_schedule_check_boutique_modelproduct',
         'schedule': crontab(minute="0", hour="12"),
@@ -1611,6 +1629,12 @@ STATSD_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_boutique_mama_weekly_active'}
     },
+    u'每5分钟发送短信短信累计消耗量数据': {
+        'task': 'flashsale.daystats.tasks.sms_statsd.task_sms_send_count_gauge_statsd',
+        'schedule': crontab(minute="*/5"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_sms_send_count_gauge_statsd'}
+    },
 }
 
 
@@ -1629,6 +1653,7 @@ CELERYBEAT_SCHEDULE = {}
 CELERYBEAT_SCHEDULE.update(SYNC_MODEL_SCHEDULE)
 CELERYBEAT_SCHEDULE.update(SHOP_APP_SCHEDULE)
 CELERYBEAT_SCHEDULE.update(WDT_SCHEDULE)
+CELERYBEAT_SCHEDULE.update(BOUTIQUE_SCHEDULE)
 CELERYBEAT_SCHEDULE.update(STATSD_SCHEDULE)
 
 CELERY_BEAT_SCHEDULE = CELERYBEAT_SCHEDULE

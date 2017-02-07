@@ -28,7 +28,6 @@ from shopback.users.models import DjangoUser, User
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 
 from supplychain.supplier.models import SaleProduct
-
 from .. import constants, managers
 
 import logging
@@ -970,14 +969,15 @@ class Product(models.Model):
                 if not usual_model_id.isdigit():
                     raise ValueError('精品券关联商品款式链接不合法')
                 usual_modle_product = ModelProduct.objects.filter(id=usual_model_id).first()
-                usual_product_ids   = list(usual_modle_product.products.values_list('id', flat=True))
+                usual_product_ids   = ','.join(list(usual_modle_product.products.values_list('id', flat=True)))
                 if not usual_modle_product or not usual_modle_product.is_boutique_product:
                     raise ValueError('请输入正确的精品商品链接(商品需打上精品汇标记)')
 
                 # 创建精品券
                 coupon_template = get_or_create_boutique_template(
                     model_pro.id, usual_modle_product.lowest_agent_price, model_title=model_pro.name,
-                    model_product_ids=usual_product_ids, model_img=model_pro.head_img_url)
+                    modelproduct_ids=str(usual_modle_product.id),product_ids=usual_product_ids,
+                    model_img=model_pro.head_img_url)
 
                 # 设置精品商品只可使用指定优惠券
                 usual_modle_product.set_boutique_coupon_only(coupon_template.id)

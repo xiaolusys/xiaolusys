@@ -119,7 +119,8 @@ class PopularizeCost(models.Model):
         verbose_name_plural = u'每日推广支出列表'
 
     def total_incarry(self):
-        return self.carrylog_order + self.carrylog_click + self.carrylog_thousand + self.carrylog_agency + self.carrylog_recruit + self.carrylog_red_packet
+        return self.carrylog_order + self.carrylog_click + self.carrylog_thousand + \
+               self.carrylog_agency + self.carrylog_recruit + self.carrylog_red_packet
 
     total_incarry.short_description = u'推广费用'
 
@@ -141,5 +142,34 @@ class DaystatCalcResult(BaseModel):
     class Meta:
         db_table = 'flashsale_daystat_result_cache'
         app_label = 'daystats'
-        verbose_name = u'小鹿妈妈／数据统计暂存结果'
-        verbose_name_plural = u'小鹿妈妈／数据统计暂存结果'
+        verbose_name = u'小鹿妈妈/数据统计暂存结果'
+        verbose_name_plural = u'小鹿妈妈/数据统计暂存结果'
+
+
+class DailyBoutiqueStat(BaseModel):
+    """ 每日精品商品及券数量统计
+    规格统计数据结构:
+        [
+            {'sku_id':somevalue,'sku_stock_num':0, 'sku_sale_num':0, 'sku_refund_num':0}
+        ]
+    """
+    model_id  = models.IntegerField(verbose_name=u'款式ID')
+    stat_date = models.DateField(default=datetime.date.today,
+                                 db_index=True, verbose_name=u'业务日期')
+
+    model_stock_num = models.IntegerField(default=0, db_index=True, verbose_name=u'商品库存数量')
+    model_sale_num  = models.IntegerField(default=0, db_index=True, verbose_name=u'商品销售数量')
+    model_refund_num  = models.IntegerField(default=0, db_index=True, verbose_name=u'商品退款数')
+
+    coupon_sale_num = models.IntegerField(default=0, db_index=True, verbose_name=u'券销售数量')
+    coupon_use_num  = models.IntegerField(default=0, db_index=True, verbose_name=u'券使用数量')
+    coupon_refund_num  = models.IntegerField(default=0, db_index=True, verbose_name=u'退券数量')
+
+    sku_stats = JSONCharMyField(max_length=2048, default=[], blank=False, verbose_name=u"规格统计")
+
+    class Meta:
+        db_table = 'flashsale_daily_boutique_stat'
+        unique_together = ['model_id', 'stat_date']
+        app_label = 'daystats'
+        verbose_name = u'精品/每日销售统计'
+        verbose_name_plural = u'精品/每日销售统计列表'

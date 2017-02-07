@@ -20,7 +20,7 @@ def default_template_extras():
             'share_times_limit': 20  # 分享链接被成功领取的优惠券次数
         },
         'randoms': {'min_val': 0, 'max_val': 1},  # 随机金额范围
-        'scopes': {'product_ids': '', 'category_ids': ''},  # 使用范围, product_ids：券关联的实际商品id
+        'scopes': {'modelproduct_ids':'', 'product_ids': '', 'category_ids': ''},  # 使用范围, product_ids：券关联的实物商品id
         'templates': {'post_img': ''},  # 优惠券模板
         'product_model_id': 0, #保存关联券商品款式id
     }
