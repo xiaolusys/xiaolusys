@@ -88,7 +88,8 @@ v2_router_urls += format_suffix_patterns([
     url(r'^weapp/login', views.WeAppViewSet.as_view({'get': 'login'})),
     url(r'^weapp/user_info', views.WeAppViewSet.as_view({'post': 'post_user_info'})),
     url(r'^xiaolucoin/history', xiaolucoin.XiaoluCoinViewSet.as_view({'get': 'history'})),
-    url(r'^rebate', fandian.FandianViewSet.as_view({'get': 'index'})),
+    url(r'^rebate$', fandian.FandianViewSet.as_view({'get': 'index'})),
+    url(r'^rebate/history$', fandian.FandianViewSet.as_view({'get': 'history'})),
 ])
 
 lesson_router = routers.DefaultRouter(trailing_slash=False)
