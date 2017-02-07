@@ -2,6 +2,8 @@
 from __future__ import unicode_literals, absolute_import
 
 from datetime import timedelta, datetime
+from decimal import Decimal
+
 from django.db import transaction
 from django.db.models import Q
 
@@ -193,29 +195,53 @@ def task_calc_xlmm_elite_score(mama_id):
     return score, upgrade_date
 
 
-def get_mama_buy_coupon_score( mama_id, start_date, end_date):
+def get_mama_buy_coupon_score(mama_id, start_date, end_date):
     """
     计算精英妈妈购券获得的返点
     """
     score = 0
     payment = 0
 
-    records = CouponTransferRecord.objects.filter(
+    in_records = CouponTransferRecord.objects.filter(
         coupon_to_mama_id=mama_id,
         transfer_status=CouponTransferRecord.DELIVERED,
-        transfer_type=CouponTransferRecord.IN_BUY_COUPON,
+        transfer_type__in=[
+            CouponTransferRecord.IN_BUY_COUPON,
+            CouponTransferRecord.IN_BUY_COUPON_WITH_COIN
+        ],
         created__gt=start_date,
         created__lt=end_date,
     )
 
-    for record in records:
+    out_records = CouponTransferRecord.objects.filter(
+        coupon_from_mama_id=mama_id,
+        transfer_status=CouponTransferRecord.DELIVERED,
+        transfer_type__in=[
+            CouponTransferRecord.OUT_CASHOUT,
+            CouponTransferRecord.OUT_CASHOUT_COIN
+        ],
+        created__gt=start_date,
+        created__lt=end_date,
+    )
+
+    for record in in_records:
         order_id = record.order_no
         try:
             order = SaleOrder.objects.get(oid=order_id)
         except Exception:
             continue
         payment += order.payment
-        score += record.elite_score
+        print '+', order.payment, record.transfer_type
+
+    for record in out_records:
+        try:
+            _, _, money = record.order_no.split('-')
+        except Exception, e:
+            print e
+            continue
+        payment -= float(money)
+        print '-', money, record.transfer_type
+
 
     fd = 0
     if 10000 <= payment < 20000:
