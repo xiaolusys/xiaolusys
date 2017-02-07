@@ -92,9 +92,9 @@ def task_all_boutique_stats():
         status=ModelProduct.NORMAL,
         product_type=ModelProduct.USUAL_TYPE
     )
-
+    yesterday = datetime.datetime.today() - datetime.timedelta(days=1)
     for mp in boutique_products.iterator():
-        task_boutique_sale_and_refund_stats.delay(mp.id)
+        task_boutique_sale_and_refund_stats.delay(yesterday, mp.id)
 
 
 

@@ -1576,7 +1576,7 @@ SHOP_APP_SCHEDULE = {
 BOUTIQUE_SCHEDULE = {
     u'每日统计昨日精品商品及券库存和销量': {
         'task': 'flashsale.daystats.tasks.boutique.task_all_boutique_stats',
-        'schedule': crontab(minute="15"),
+        'schedule': crontab(minute="0", hour="2"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_all_boutique_stats'}
     },
