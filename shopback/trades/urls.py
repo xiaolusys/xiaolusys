@@ -11,10 +11,12 @@ from shopback.base.authentication import login_required_ajax
 from shopback.trades import views_product_analysis
 from shopback.trades import views_new_check_order
 from shopback.trades.views_package import PackageOrderViewSet
+from shopback.trades.views_arrival_time_analysis import ArrivalTimeViewSet
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'dirty_orders2', DirtyOrderViewSet, 'dirty_orders')
 router.register(r'package_order', PackageOrderViewSet, 'package_order')
+router.register(r'arrival_analysis', ArrivalTimeViewSet, 'arrival_analysis')
 
 urlpatterns = [
     url(r'address/$', csrf_exempt(login_required_ajax(change_trade_addr))),
