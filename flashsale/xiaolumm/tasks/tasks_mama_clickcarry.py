@@ -140,12 +140,11 @@ def create_clickcarry_upon_click(mama_id, date_field, fake=False):
     from flashsale.xiaolumm.models import XiaoluMama
     if mama_id:
         now = datetime.datetime.now()
-        deadline = datetime.datetime(2017, 3, 1)
         mama = XiaoluMama.objects.filter(id=mama_id, status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED).first()
         if mama:
             if mama.last_renew_type == XiaoluMama.ELITE and mama.elite_score >= 50:
                 return
-            if mama.last_renew_type < XiaoluMama.ELITE and (now > deadline) and ((now - mama.charge_time).days > 30):
+            if mama.last_renew_type < XiaoluMama.ELITE and ((now - mama.charge_time).days > 30):
                 return
         else:
             return

@@ -737,9 +737,15 @@ def task_period_check_mama_renew_state():
     for emm in effect_mms:
         try:
             if now >= emm.renew_time:
-                emm.status = XiaoluMama.FROZEN
-                emm.save(update_fields=['status'])
-                log_action(sys_oa, emm, CHANGE, u'定时任务: 检查到期 修改状态到冻结')
+                # 2017-2-7 精英妈妈不冻结,变为单纯精英妈妈，老的99／188妈妈冻结
+                if emm.is_elite_mama:
+                    emm.last_renew_type = XiaoluMama.ELITE
+                    emm.save(update_fields=['last_renew_type'])
+                    log_action(sys_oa, emm, CHANGE, u'定时任务: 检查到期 修改续费类型为精英妈妈')
+                else:
+                    emm.status = XiaoluMama.FROZEN
+                    emm.save(update_fields=['status'])
+                    log_action(sys_oa, emm, CHANGE, u'定时任务: 检查到期 修改状态到冻结')
         except TypeError as e:
             logger.error(u"task_period_check_mama_renew_state FROZEN mama:%s, error info: %s" % (emm.id, e))
 
