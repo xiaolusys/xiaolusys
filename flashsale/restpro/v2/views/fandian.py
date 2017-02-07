@@ -28,7 +28,7 @@ class FandianViewSet(viewsets.GenericViewSet):
         queryset = BudgetLog.objects.filter(
             budget_log_type=BudgetLog.BG_FANDIAN,
             uni_key__contains='fd-{month}'.format(month=month)
-        ).order_by('-created')
+        ).order_by('-flow_amount')
 
         queryset = self.paginate_queryset(queryset)
         serializers = self.get_serializer(queryset, many=True)
