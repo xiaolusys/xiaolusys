@@ -853,28 +853,15 @@ class XiaoluMama(BaseModel):
 
     @property
     def elite_level(self):
-        # from flashsale.coupon.models import CouponTransferRecord
-        #
-        # stock_num, in_num, out_num = CouponTransferRecord.get_stock_num(self.id)
-        # if in_num >= 1000:
-        #     return 'SP'
-        # if in_num >= 300:
-        #     return 'Partner'
-        # if in_num >= 100:
-        #     return 'VP'
-        # if in_num >= 30:
-        #     return 'Director'
-        # if in_num >= 5:
-        #     return 'Associate'
-        if self.elite_score >= 10000:
+        if self.elite_score >= constants.ELITEMM_DESC_INFO[constants.ELITEMM_SP].get('min_score'):
             return 'SP'
-        if self.elite_score >= 3000:
+        if self.elite_score >= constants.ELITEMM_DESC_INFO[constants.ELITEMM_PARTNER].get('min_score'):
             return 'Partner'
-        if self.elite_score >= 1000:
+        if self.elite_score >= constants.ELITEMM_DESC_INFO[constants.ELITEMM_VP].get('min_score'):
             return 'VP'
-        if self.elite_score >= 300:
+        if self.elite_score >= constants.ELITEMM_DESC_INFO[constants.ELITEMM_DIRECTOR].get('min_score'):
             return 'Director'
-        if self.elite_score >= 50:
+        if self.elite_score >= constants.ELITEMM_DESC_INFO[constants.ELITEMM_ASSOCIATE].get('min_score'):
             return 'Associate'
 
         return 'Associate'
@@ -895,27 +882,25 @@ class XiaoluMama(BaseModel):
         """妈妈积分等级 对应　最低积分数值
         """
         m = {
-            'Associate': 0,
-            'Director': 300,
-            'VP': 1000,
-            'Partner': 3000,
-            'SP': 10000
+            'Associate': constants.ELITEMM_DESC_INFO[constants.ELITEMM_ASSOCIATE].get('min_score'),
+            'Director': constants.ELITEMM_DESC_INFO[constants.ELITEMM_DIRECTOR].get('min_score'),
+            'VP': constants.ELITEMM_DESC_INFO[constants.ELITEMM_VP].get('min_score'),
+            'Partner': constants.ELITEMM_DESC_INFO[constants.ELITEMM_PARTNER].get('min_score'),
+            'SP': constants.ELITEMM_DESC_INFO[constants.ELITEMM_SP].get('min_score')
         }
         return m[self.elite_level]
 
     def get_upgrade_score(self):
-        if self.elite_score >= 10000:
+        if self.elite_score >= constants.ELITEMM_DESC_INFO[constants.ELITEMM_SP].get('min_score'):
             return 0
-        if self.elite_score >= 3000:
-            return 10000 - self.elite_score
-        if self.elite_score >= 1000:
-            return 3000 - self.elite_score
-        if self.elite_score >= 300:
-            return 1000 - self.elite_score
-        if self.elite_score >= 50:
-            return 300 - self.elite_score
-        else:
-            return 50 - self.elite_score
+        if self.elite_score >= constants.ELITEMM_DESC_INFO[constants.ELITEMM_PARTNER].get('min_score'):
+            return constants.ELITEMM_DESC_INFO[constants.ELITEMM_SP].get('min_score') - self.elite_score
+        if self.elite_score >= constants.ELITEMM_DESC_INFO[constants.ELITEMM_VP].get('min_score'):
+            return constants.ELITEMM_DESC_INFO[constants.ELITEMM_PARTNER].get('min_score') - self.elite_score
+        if self.elite_score >= constants.ELITEMM_DESC_INFO[constants.ELITEMM_DIRECTOR].get('min_score'):
+            return constants.ELITEMM_DESC_INFO[constants.ELITEMM_VP].get('min_score') - self.elite_score
+        if self.elite_score >= constants.ELITEMM_DESC_INFO[constants.ELITEMM_ASSOCIATE].get('min_score'):
+            return constants.ELITEMM_DESC_INFO[constants.ELITEMM_DIRECTOR].get('min_score') - self.elite_score
 
     def fill_info(self, mobile, referal_from):
         update_fields = []

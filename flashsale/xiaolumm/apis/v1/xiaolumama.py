@@ -14,6 +14,7 @@ from flashsale.pay.models import SaleOrder
 from ...models import XiaoluMama
 from ...signals import signal_xiaolumama_register_success
 from .potentialmama import update_potential_by_deposit, create_potential_mama
+from flashsale.xiaolumm import constants as CONS
 
 __ALL__ = [
     'get_mama_by_id',
@@ -144,9 +145,10 @@ def current_month_rebate_remain(mama_id):
     money = 0
 
     score, upgrade_date = task_calc_xlmm_elite_score(mama_id)
+    min_socre = CONS.ELITEMM_DESC_INFO[CONS.ELITEMM_PARTNER].get('min_score')
 
-    if score < 3000:
-        return (3000-score, money)
+    if score < min_socre:
+        return (min_socre-score, money)
 
     today = datetime.today()
     thismonth = datetime(today.year, today.month, 1)
