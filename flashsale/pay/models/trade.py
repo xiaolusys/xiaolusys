@@ -404,10 +404,7 @@ class SaleTrade(BaseModel):
                 'order_no': self.tid,
                 'action_time': datetime.datetime.now()
             })
-            for order in self.sale_orders.all():
-                if order.is_deposit() and order.status == SaleTrade.WAIT_SELLER_SEND_GOODS:
-                    order.status = SaleTrade.TRADE_FINISHED
-                    order.save(update_fields=['status'])
+
             strade = self
             resp = signal_saletrade_pay_confirm.send_robust(sender=SaleTrade, obj=strade)
             logger.info({
@@ -457,11 +454,8 @@ class SaleTrade(BaseModel):
 
                 # 如果使用余额支付,付款成功后则扣除
                 if st.has_budget_paid:
-                    try:
-                        user_budget = UserBudget.objects.get(user_id=st.buyer_id)
-                        user_budget.charge_confirm(st.id)
-                    except Exception, exc:
-                        logger.error(exc.message, exc_info=True)
+                    user_budget = UserBudget.objects.get(user_id=st.buyer_id)
+                    user_budget.charge_confirm(st.id)
 
                 logger.info({
                     'action': 'trade_confirm_save',
@@ -476,13 +470,16 @@ class SaleTrade(BaseModel):
                 'action_time': datetime.datetime.now()
             })
 
-            with transaction.atomic():
-                st = SaleTrade.objects.select_for_update().get(id=self.id)
-                st.confirm_payment()
-                st.set_order_paid()
+            for order in self.sale_orders.all():
+                if order.is_deposit() and order.status == SaleTrade.WAIT_SELLER_SEND_GOODS:
+                    order.status = SaleTrade.TRADE_FINISHED
+                    order.save(update_fields=['status'])
+
+            self.confirm_payment()
+            self.set_order_paid()
 
         except Exception, exc:
-            logger.info({
+            logger.error({
                 'action': 'trade_confirm_error',
                 'action_time': datetime.datetime.now(),
                 'order_no': self.tid,
@@ -707,42 +704,42 @@ class SaleTrade(BaseModel):
                 TeamBuy.create_or_join(instance)
 
 
-def add_renew_deposit_record(sender, obj, **kwargs):
-    """
-    押金续费:　使用代理钱包混合支付的情况
-    """
-    if not obj.is_Deposite_Order():
-        return
-    wallet_renew_deposit = obj.extras_info.get('wallet_renew_deposit') or 0
-    if float(wallet_renew_deposit) <= 0:  # 不是续费类型的
-        return
-    order = obj.sale_orders.all().first()
-    if order.is_1_deposit():
-        return
-
-    from flashsale.xiaolumm.models import CashOut, XiaoluMama, MamaFortune
-    from core.options import log_action, ADDITION
-    from flashsale.pay.models import ProductSku
-
-    sku = ProductSku.objects.get(id=order.sku_id)
-    deposit_price = sku.agent_price
-
-    customer = Customer.objects.get(id=obj.buyer_id)
-    xlmm = XiaoluMama.objects.filter(openid=customer.unionid).first()
-    cash = deposit_price - order.payment
-    if cash <= 0:
-        return
-
-    cash_value = cash * 100
-
-    cash = CashOut.create(xlmm.id, cash_value, CashOut.MAMA_RENEW)
-    cash.approve_cashout()
-
-    log_action(customer.user, cash, ADDITION, u'用户妈妈钱包兑换代理续费')
-
-
-signal_saletrade_pay_confirm.connect(add_renew_deposit_record, sender=SaleTrade,
-                                     dispatch_uid=u'trade_pay_confirm_add_renew_deposit_record')
+# def add_renew_deposit_record(sender, obj, **kwargs):
+#     """
+#     押金续费:　使用代理钱包混合支付的情况
+#     """
+#     if not obj.is_Deposite_Order():
+#         return
+#     wallet_renew_deposit = obj.extras_info.get('wallet_renew_deposit') or 0
+#     if float(wallet_renew_deposit) <= 0:  # 不是续费类型的
+#         return
+#     order = obj.sale_orders.all().first()
+#     if order.is_1_deposit():
+#         return
+#
+#     from flashsale.xiaolumm.models import CashOut, XiaoluMama, MamaFortune
+#     from core.options import log_action, ADDITION
+#     from flashsale.pay.models import ProductSku
+#
+#     sku = ProductSku.objects.get(id=order.sku_id)
+#     deposit_price = sku.agent_price
+#
+#     customer = Customer.objects.get(id=obj.buyer_id)
+#     xlmm = XiaoluMama.objects.filter(openid=customer.unionid).first()
+#     cash = deposit_price - order.payment
+#     if cash <= 0:
+#         return
+#
+#     cash_value = cash * 100
+#
+#     cash = CashOut.create(xlmm.id, cash_value, CashOut.MAMA_RENEW)
+#     cash.approve_cashout()
+#
+#     log_action(customer.user, cash, ADDITION, u'用户妈妈钱包兑换代理续费')
+#
+#
+# signal_saletrade_pay_confirm.connect(add_renew_deposit_record, sender=SaleTrade,
+#                                      dispatch_uid=u'trade_pay_confirm_add_renew_deposit_record')
 
 
 def record_supplier_args(sender, obj, **kwargs):
