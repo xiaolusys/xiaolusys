@@ -182,7 +182,8 @@ def task_calc_xlmm_elite_score(mama_id):
             if record.transfer_type in [
                 CouponTransferRecord.IN_BUY_COUPON,
                 CouponTransferRecord.OUT_TRANSFER,
-                CouponTransferRecord.IN_GIFT_COUPON
+                CouponTransferRecord.IN_GIFT_COUPON,
+                CouponTransferRecord.IN_RECHARGE
             ]:
                 score += record.elite_score
 
