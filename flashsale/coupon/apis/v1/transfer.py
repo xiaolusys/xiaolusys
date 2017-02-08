@@ -179,7 +179,64 @@ def send_order_transfer_coupons(customer_id, order_id, order_oid, order_num, pro
     task_send_transfer_coupons.delay(customer_id, order_id, order_oid, order_num, product_id)
 
 
+def give_gift_score_to_new_elite_mama(customer, to_mama, so):
+    """
+    新精英妈妈赠送60积分
+    """
+    # 精品流通记录
+    to_mama_nick = customer.nick
+    to_mama_thumbnail = customer.thumbnail
+
+    coupon_to_mama_id = to_mama.id
+    init_from_mama_id = to_mama.id
+
+    coupon_from_mama_id = 0
+    from_mama_thumbnail = 'http://7xogkj.com2.z0.glb.qiniucdn.com/222-ohmydeer.png?imageMogr2/thumbnail/60/format/png'
+    from_mama_nick = 'SYSTEM'
+
+    transfer_type = CouponTransferRecord.IN_GIFT_COUPON
+    date_field = datetime.date.today()
+    transfer_status = CouponTransferRecord.DELIVERED
+    uni_key = "gift-365elite-%s-%s" % (to_mama.id, so.id)
+    coupon_value = 365
+    product_img = ''
+    elite_score = 60
+    coupon_num = 1
+    template_id = 365
+
+    _, _, agent_price = get_elite_score_by_templateid(template_id, to_mama)
+    try:
+        transfer = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id,
+                                        from_mama_thumbnail=from_mama_thumbnail,
+                                        from_mama_nick=from_mama_nick, coupon_to_mama_id=coupon_to_mama_id,
+                                        to_mama_thumbnail=to_mama_thumbnail, to_mama_nick=to_mama_nick,
+                                        coupon_value=coupon_value,
+                                        init_from_mama_id=init_from_mama_id, order_no=so.oid,
+                                        template_id=template_id,
+                                        product_img=product_img, coupon_num=coupon_num, transfer_type=transfer_type,
+                                        product_id=so.item_id, elite_score=elite_score,
+                                        uni_key=uni_key, date_field=date_field, transfer_status=transfer_status,
+
+                                        elite_level=to_mama.elite_level,
+                                        to_mama_price=agent_price
+                                        )
+        transfer.save()
+    except IntegrityError as e:
+        logging.error(e)
+
+    logger.info({
+        'action': 'give_gift_score_to_new_elite_mama',
+        'action_time': datetime.datetime.now(),
+        'order_oid': so.oid,
+        'message': u'add 60 socore end:template_id=%s, order_id=%s order_oid=%s product_id=%s' % (
+            template_id, so.id, so.oid, so.item_id),
+    })
+
+
 def create_new_elite_mama(customer, to_mama, so):
+    """
+    新精英妈妈类型和推荐关系填写
+    """
     from flashsale.xiaolumm.models.models import XiaoluMama
     if to_mama.last_renew_type < XiaoluMama.ELITE:
         to_mama.last_renew_type = XiaoluMama.ELITE
@@ -211,7 +268,7 @@ def create_new_elite_mama(customer, to_mama, so):
             else:
                 upper_mama_id = 0
                 logger.error({
-                    'action': 'send_new_elite_transfer_coupons',
+                    'action': 'create_new_elite_mama',
                     'action_time': datetime.datetime.now(),
                     'order_oid': so.oid,
                     'message': u'relation_ship potential xlmmfan not exist:mama_id=%s' % (to_mama.id),
@@ -243,7 +300,7 @@ def create_new_elite_mama(customer, to_mama, so):
         relation_ship.order_id = so.oid
         relation_ship.save()
         logger.info({
-            'action': 'send_new_elite_transfer_coupons',
+            'action': 'create_new_elite_mama',
             'action_time': datetime.datetime.now(),
             'order_oid': so.oid,
             'message': u'change relation_ship :to mama_id=%s referalmm=%s grandmama=%s' % (
@@ -266,6 +323,13 @@ def create_new_elite_mama(customer, to_mama, so):
                                    order_id=so.oid,
                                    referal_to_mama_img=customer.thumbnail)
         ship.save()
+    logger.info({
+        'action': 'create_new_elite_mama end',
+        'action_time': datetime.datetime.now(),
+        'order_oid': so.oid,
+        'message': u'create_new_elite_mama :to mama_id=%s referalmm=%s grandmama=%s' % (
+            to_mama.id, relation_ship.referal_from_mama_id, relation_ship.referal_from_grandma_id),
+    })
 
 def send_new_elite_transfer_coupons(customer_id, order_id, order_oid, product_id):
     # type: (int, int, text_type, int) -> None

@@ -536,9 +536,9 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                     else:
                         use_template_id = None
 
-                    # find modelproduct
+                    # find modelproduct, need except 365elite product
                     model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id, is_boutique=True).first()
-                    if model_product and model_product.extras.has_key('payinfo') \
+                    if model_product and (model_product.id != 25408) and model_product.extras.has_key('payinfo') \
                             and model_product.extras['payinfo'].has_key('coupon_template_ids'):
                         if model_product.extras['payinfo']['coupon_template_ids'] and len(
                                 model_product.extras['payinfo']['coupon_template_ids']) > 0:
@@ -557,7 +557,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                                                     'status_display': OrderCarry.STATUS_TYPES[entry.status][1],
                                                     'order_value': entry.order_value, 'date_field': entry.date_field})
                 elif entry.carry_type == OrderCarry.REFERAL_ORDER:
-                    # coin buy coupon
+                    # coin buy coupon exchange list
                     # find modelproduct
                     model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id,
                                                                 is_boutique=True,
@@ -576,17 +576,26 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                                             'status_display': OrderCarry.STATUS_TYPES[entry.status][1],
                                             'order_value': entry.order_value, 'date_field': entry.date_field})
 
-        #从relationship推荐人中找出购买rmb338/216的新精英妈妈订单
+        #从relationship推荐人中找出购买rmb338/216 rmb365的新精英妈妈订单
         from flashsale.xiaolumm.models.models_fortune import ReferalRelationship
         ships = ReferalRelationship.objects.filter(referal_from_mama_id=mama.id, referal_type=XiaoluMama.ELITE, status=ReferalRelationship.VALID)
         for ship in ships:
             if ship.order_id and len(ship.order_id) > 0:
                 rmb338_order = SaleOrder.objects.filter(oid=ship.order_id).first()
-                if rmb338_order and (not rmb338_order.extras.has_key('exchange')) \
-                        and rmb338_order.is_new_elite_deposit():
+                if rmb338_order and (not rmb338_order.extras.has_key('exchange')):
+                    template_id = 0
+                    num = 1
+                    if rmb338_order.is_new_elite_deposit():
+                        template_id = 156
+                        num = round(rmb338_order.payment / 68)
+                    elif rmb338_order.is_elite_365_order():
+                        template_id = 365
+                        num = 1
+                    else:
+                        continue
                     buyer_customer = Customer.objects.normal_customer.filter(id=rmb338_order.buyer_id).first()
-                    results.append({'exchg_template_id': 156,
-                                    'num': round(rmb338_order.payment / 68),
+                    results.append({'exchg_template_id': template_id,
+                                    'num': num,
                                     'order_id': ship.order_id, 'sku_img': rmb338_order.pic_path,
                                     'contributor_nick': buyer_customer.nick, 'status': 2,
                                     'status_display': u'确定收益',
