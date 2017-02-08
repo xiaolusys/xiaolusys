@@ -1,5 +1,5 @@
 {% extends "wuliu_analysis/dinghuo_base.html" %}
-{% block title %}仓库发货3天后尚未收到货{% endblock %}
+{% block title %}客户付款后仓库未发货列表{% endblock %}
 {% block head_script %}
 <link href='{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css' rel='stylesheet'/>
 <link href="{{ STATIC_URL }}plugins/xiaolu-uploader/uploader.css" rel="stylesheet">
@@ -46,7 +46,7 @@
             <th>sale_order_id</th>
             <th>SKU</th>
             <th>商品标题</th>
-            <th>仓库发货时间</th>
+            <th>用户付款时间</th>
             <th>商品编码</th>
             <th style="min-width:80px">数量</th>
             <th>状态</th>
@@ -66,7 +66,7 @@
                 <td><a>{{psi.oid }}</a></td>
                 <td><a>{{psi.sku_id }}</a></td>
                 <td><a>{{psi.title }}</a></td>
-                <td><a >{{psi.weight_time }}</a></td>
+                <td><a >{{psi.pay_time }}</a></td>
                 <td><a >{{psi.outer_id }}</a></td>
                 <td><a >{{psi.num }}</a></td>
                 <td><a>{{psi.status }}</a></td>
