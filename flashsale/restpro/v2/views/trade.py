@@ -715,9 +715,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
         mm = customer.getXiaolumm()
         if mm and (mm.referal_from == XiaoluMama.INDIRECT):
-            if xiaolucoin_payment > 0:
-                if pay_cash > 0:
-                    return Response({'code': 25, 'info': u'您的精英妈妈账号只能使用小鹿币直接购券，没有现金购券权限，请减少购券数量或充值小鹿币 '})
+            if pay_cash > 0:
+                return Response({'code': 25, 'info': u'您的精英妈妈账号只能使用小鹿币直接购券，没有现金购券权限，请减少购券数量或充值小鹿币 '})
         elif mm and (mm.referal_from == XiaoluMama.DIRECT):
             if xiaolucoin_payment > 0:
                 if (pay_cash > 0) and (mm.elite_level != 'Associate') and (goods_num < 5) and (elite_score < 30):
@@ -779,9 +778,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 return Response({'code': 24, 'info': u'购买精品券或虚拟商品时，只能单独购买，不能与普通商品搭配'})
             mm = customer.getXiaolumm()
             if mm and (mm.referal_from == XiaoluMama.INDIRECT):
-                if xiaolucoin_payment > 0:
-                    if pay_cash > 0:
-                        return Response({'code': 25, 'info': u'您的精英妈妈账号只能使用小鹿币直接购券，没有现金购券权限，请减少购券数量或充值小鹿币 '})
+                if pay_cash > 0:
+                    return Response({'code': 25, 'info': u'您的精英妈妈账号只能使用小鹿币直接购券，没有现金购券权限，请减少购券数量或充值小鹿币 '})
             elif mm and (mm.referal_from == XiaoluMama.DIRECT):
                 if xiaolucoin_payment > 0:
                     if (pay_cash > 0) and (mm.elite_level != 'Associate') and (goods_num < 5) and (elite_score < 30):
