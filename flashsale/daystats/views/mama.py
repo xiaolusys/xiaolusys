@@ -816,8 +816,8 @@ def calc_transfer_coupon_data(date_field):
         'elite_mama_count': elite_mama_count,
         'new_elite_mama_count': new_active_elite_mama_count,
         'active_elite_mama_count': active_elite_mama_count,
-        'coin_charge_num': coin_stats.get('recharge') or 0,
-        'coin_refund_num': coin_stats.get('refund') or 0,
+        'coin_charge_num': (coin_stats.get('recharge') or 0) / 100,
+        'coin_refund_num': (coin_stats.get('refund') or 0) / 100,
     }
 
 
