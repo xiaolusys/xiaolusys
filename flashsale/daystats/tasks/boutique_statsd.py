@@ -14,20 +14,17 @@ from flashsale.xiaolumm.models import XiaoluCoinLog
 @app.task
 def task_transfer_coupon_order_statsd():
     ctr_qs = CouponTransferRecord.objects.filter(status=1, transfer_status=3)
+    coupon_qs = UserCoupon.objects.filter(coupon_type=UserCoupon.TYPE_TRANSFER)
 
-    coupon_sale_detail = UserCoupon.objects.filter(
-        coupon_type=UserCoupon.TYPE_TRANSFER,
-        status=UserCoupon.USED
-    ).aggregate(coupon_sale_num=Count('id'), coupon_sale_amount=Sum('value'))
-    coupon_sale_num    = coupon_sale_detail.get('coupon_sale_num')
-    coupon_sale_amount = coupon_sale_detail.get('coupon_sale_amount')
+    coupon_sale_detail = coupon_qs.aggregate(
+        coupon_sale_num=Count('id'), coupon_sale_amount=Sum('value'))
+    coupon_sale_num    = coupon_sale_detail.get('coupon_sale_num') or 0
+    coupon_sale_amount = coupon_sale_detail.get('coupon_sale_amount') or 0
 
-    values = ctr_qs.filter(transfer_type__in=(3, 8)).aggregate(
-        total_coupon_used_num=Sum('coupon_num'),
-        total_coupon_used_value=Sum(F('coupon_num') * F('coupon_value'), output_field=FloatField())
-    )
-    coupon_used_num    = values.get('total_coupon_used_num')
-    coupon_used_amount = values.get('total_coupon_used_value')
+    values = coupon_qs.filter(status=UserCoupon.USED).aggregate(
+        coupon_used_num=Count('id'), coupon_used_amount=Sum('value'))
+    coupon_used_num    = values.get('coupon_used_num') or 0
+    coupon_used_amount = values.get('coupon_used_amount') or 0
 
     transfer_details = ctr_qs.filter(
         transfer_type=CouponTransferRecord.OUT_TRANSFER
