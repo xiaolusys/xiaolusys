@@ -9,7 +9,7 @@ from shopmanager import celery_app as app
 
 from flashsale.coupon.models import CouponTransferRecord, TransferCouponDetail, UserCoupon
 from flashsale.xiaolumm.models import OrderCarry
-
+from flashsale.xiaolumm.models import XiaoluCoinLog
 
 @app.task
 def task_transfer_coupon_order_statsd():
@@ -49,6 +49,8 @@ def task_transfer_coupon_order_statsd():
         coupon_type=UserCoupon.TYPE_TRANSFER, is_chained=True).exclude(status=UserCoupon.CANCEL)\
         .aggregate(chained_num=Count('id'), chained_amount=Sum('value'))
 
+    coin_stats = XiaoluCoinLog.objects.values('subject').annotate(Sum('amount'))
+
     dt_str = datetime.datetime.now().strftime('%Y.%m.%d')
     statsd.gauge('xiaolumm.boutique.coupon.sale_num.%s'%dt_str, coupon_sale_num)
     statsd.gauge('xiaolumm.boutique.coupon.sale_amount.%s'% dt_str, coupon_sale_amount)
@@ -73,6 +75,12 @@ def task_transfer_coupon_order_statsd():
     statsd.gauge('xiaolumm.boutique.coupon.transfer_count', transfer_details.get('transfer_count') or 0)
     statsd.gauge('xiaolumm.boutique.coupon.transfer_nums', transfer_details.get('transfer_nums') or 0)
     statsd.gauge('xiaolumm.boutique.coupon.transfer_amounts', transfer_details.get('transfer_amounts') or 0)
+
+    for coin_stat in coin_stats:
+        statsd.gauge('xiaolumm.boutique.coin.%s.%s'%(coin_stat['subject'], dt_str),
+                     coin_stat['amount__sum'] / 100 or 0)
+        statsd.gauge('xiaolumm.boutique.coin.%s'%coin_stat['subject'],
+                     coin_stat['amount__sum'] / 100 or 0)
 
 
 @app.task

@@ -37,7 +37,7 @@ def task_boutique_sale_and_refund_stats(stat_date, modelproduct_id):
         pay_time__range=(stat_datetime_start, stat_datetime_end)
     ).exclude(status=SaleOrder.TRADE_CLOSED_BY_SYS).values('sku_id').
                        annotate(Sum('num')).values_list('sku_id', 'num__sum'))
-    print 'order stats:', order_stats
+
     stock_values = SkuStock.objects.filter(
         sku_id__in=sku_ids
     ).values_list('sku_id','history_quantity', 'inbound_quantity', 'adjust_quantity', 'return_quantity', 'post_num', 'rg_quantity')
@@ -93,7 +93,7 @@ def task_boutique_sale_and_refund_stats(stat_date, modelproduct_id):
         if not state and k == 'sku_stats':
             old_sku_stock_map = dict([(ss['sku_id'], ss['sku_stock_num']) for ss in boutique_stat.sku_stats])
             for sku_stat in stat_params['sku_stats']:
-                sku_stat['sku_stock_num'] = old_sku_stock_map.get(sku_stat['sku_id'])
+                sku_stat['sku_stock_num'] = old_sku_stock_map.get(sku_stat['sku_id']) or 0
 
         setattr(boutique_stat, k, v)
     if not boutique_stat.created:
@@ -111,10 +111,12 @@ def fresh_coupontemplate_extras_modelproduct_ids():
         if isinstance(product_ids, list):
             print 'invalid: coupon_template_id=', cpt.id, product_ids
             continue
+
         modelps = Product.objects.filter(id__in=[int(i) for i in product_ids.split(',') if i])
         if model_id or not modelps:
             print cpt.id, cpt.extras['scopes']
             continue
+
         model_id = modelps.first().model_id
         cpt.extras['scopes']['modelproduct_ids'] = str(model_id)
         cpt.save()

@@ -752,8 +752,11 @@ def rank(req):
 
 
 def calc_transfer_coupon_data(date_field):
+
     from flashsale.coupon.models import CouponTransferRecord
     from flashsale.xiaolumm.models import OrderCarry
+    from flashsale.xiaolumm.models import XiaoluCoinLog
+
     values = CouponTransferRecord.objects.filter(
         status=1, transfer_status=3,
         date_field=date_field, transfer_type=4
@@ -800,6 +803,10 @@ def calc_transfer_coupon_data(date_field):
         date_field=date_field,
         transfer_status=CouponTransferRecord.DELIVERED
     ).values('coupon_to_mama_id').distinct().count()
+
+    coin_stats = dict(XiaoluCoinLog.objects.filter(date_field=date_field)
+        .values('subject').annotate(Sum('amount')).values_list('subject', 'amount__sum'))
+
     return {
         'coupon_sale_num': coupon_sale_num,
         'coupon_sale_amount': coupon_sale_amount,
@@ -808,7 +815,9 @@ def calc_transfer_coupon_data(date_field):
         'order_mama_count': order_mama_count,
         'elite_mama_count': elite_mama_count,
         'new_elite_mama_count': new_active_elite_mama_count,
-        'active_elite_mama_count': active_elite_mama_count
+        'active_elite_mama_count': active_elite_mama_count,
+        'coin_charge_num': coin_stats.get('recharge') or 0,
+        'coin_refund_num': coin_stats.get('refund') or 0,
     }
 
 
@@ -830,7 +839,9 @@ def transfer_coupon(req):
         'order_mama_count': u'有收益妈妈数',
         'elite_mama_count': u'累计妈妈数',
         'new_elite_mama_count': u'新增妈妈',
-        'active_elite_mama_count': u'活跃妈妈数'
+        'active_elite_mama_count': u'活跃妈妈数',
+        'coin_charge_num': u'小鹿币充值',
+        'coin_refund_num': u'小鹿币退款',
     }
     items_dict = {k: [] for k, v in name_maps.iteritems()}
     for stats in stats_list:
