@@ -117,8 +117,25 @@ def double_mama_score():
     mamas = XiaoluMama.objects.filter(referal_from__in=[XiaoluMama.DIRECT, XiaoluMama.INDIRECT], status=XiaoluMama.EFFECT,
                                       charge_status=XiaoluMama.CHARGED, elite_score__gt=0)
     for mama in mamas:
-        origin_score = mama.elite_score
-        score = origin_score
+        from flashsale.coupon.models.transfer_coupon import CouponTransferRecord
+        res = CouponTransferRecord.objects.filter(
+            coupon_from_mama_id=mama.id,
+            transfer_status=CouponTransferRecord.DELIVERED,
+            transfer_type__in=[CouponTransferRecord.OUT_CASHOUT, CouponTransferRecord.IN_RETURN_COUPON]
+        ).aggregate(n=Sum('elite_score'))
+        out_score = res['n'] or 0
+
+        res = CouponTransferRecord.objects.filter(
+            coupon_to_mama_id=mama.id,
+            transfer_status=CouponTransferRecord.DELIVERED,
+            transfer_type__in=[CouponTransferRecord.IN_BUY_COUPON, CouponTransferRecord.OUT_TRANSFER,
+                               CouponTransferRecord.IN_GIFT_COUPON, CouponTransferRecord.IN_RECHARGE]
+        ).aggregate(n=Sum('elite_score'))
+        in_score = res['n'] or 0
+
+        origin_score = in_score - out_score
+
+        score = mama.elite_score
         if score >= 300 and score < 600:
             score = 600
         elif score >= 600 and score < 1000:
