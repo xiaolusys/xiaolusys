@@ -927,7 +927,7 @@ class PackageSkuItem(BaseModel):
 
     @staticmethod
     def get_no_out_sid_by_pay_time(start_time,end_time):
-        no_sent_psi = PackageSkuItem.objects.filter(pay_time__gte=start_time, pay_time__lte=end_time, out_sid="", type=0)
+        no_sent_psi = PackageSkuItem.objects.filter(pay_time__gte=start_time, pay_time__lte=end_time, out_sid="", type=0).exclude(assign_status=3)
         return no_sent_psi
 
     def set_failed_time(self):
