@@ -925,6 +925,11 @@ class PackageSkuItem(BaseModel):
                 delay_packageskuitem.append(i)
         return delay_packageskuitem
 
+    @staticmethod
+    def get_no_out_sid_by_pay_time(start_time,end_time):
+        no_sent_psi = PackageSkuItem.objects.filter(pay_time__gte=start_time, pay_time__lte=end_time, out_sid="", type=0)
+        return no_sent_psi
+
     def set_failed_time(self):
         now_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         PackageSkuItem.objects.filter(out_sid=self.out_sid).update(failed_retrieve_time=now_time)
