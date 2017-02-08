@@ -1415,12 +1415,12 @@ def post_save_order_trigger(sender, instance, created, raw, **kwargs):
                     task_update_referal_relationship(instance)
             else:
                 # 365 order create relationship and first give 60 score
-                if instance.is_elite_365_order():
+                if instance.is_elite_365_order() and instance.status == SaleOrder.WAIT_SELLER_SEND_GOODS:
                     customer = Customer.objects.get(id=instance.sale_trade.buyer_id)
                     to_mama = customer.get_xiaolumm()
                     # 判断妈妈为一个新妈妈，满足条件如下：妈妈还不是精英妈妈；
                     from flashsale.xiaolumm.models.models import XiaoluMama
-                    if to_mama.last_renew_type < XiaoluMama.ELITE:
+                    if not to_mama.is_elite_mama():
                         create_new_elite_mama(customer, to_mama, instance)
                         give_gift_score_to_new_elite_mama(customer, to_mama, instance)
                 task_order_trigger(instance)

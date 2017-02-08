@@ -181,7 +181,7 @@ def send_order_transfer_coupons(customer_id, order_id, order_oid, order_num, pro
 
 def give_gift_score_to_new_elite_mama(customer, to_mama, so):
     """
-    新精英妈妈赠送60积分
+    新精英妈妈赠送100积分,
     """
     # 精品流通记录
     to_mama_nick = customer.nick
@@ -197,10 +197,10 @@ def give_gift_score_to_new_elite_mama(customer, to_mama, so):
     transfer_type = CouponTransferRecord.IN_GIFT_COUPON
     date_field = datetime.date.today()
     transfer_status = CouponTransferRecord.DELIVERED
-    uni_key = "gift-365elite-%s-%s" % (to_mama.id, so.id)
+    uni_key = "gift-365elite-in-%s" % (to_mama.id)
     coupon_value = 365
     product_img = ''
-    elite_score = 60
+    elite_score = 100
     coupon_num = 1
     template_id = 365
 
@@ -216,11 +216,25 @@ def give_gift_score_to_new_elite_mama(customer, to_mama, so):
                                         product_img=product_img, coupon_num=coupon_num, transfer_type=transfer_type,
                                         product_id=so.item_id, elite_score=elite_score,
                                         uni_key=uni_key, date_field=date_field, transfer_status=transfer_status,
-
                                         elite_level=to_mama.elite_level,
                                         to_mama_price=agent_price
                                         )
         transfer.save()
+        uni_key = "gift-365elite-out-%s" % (to_mama.id)
+        transfer_out = CouponTransferRecord(coupon_from_mama_id=coupon_to_mama_id,
+                                            from_mama_thumbnail=to_mama_thumbnail,
+                                            from_mama_nick=to_mama_nick, coupon_to_mama_id=coupon_from_mama_id,
+                                            to_mama_thumbnail=from_mama_thumbnail, to_mama_nick=from_mama_nick,
+                                            coupon_value=coupon_value,
+                                            init_from_mama_id=0, order_no=so.oid,
+                                            template_id=template_id,
+                                            product_img=product_img, coupon_num=coupon_num, transfer_type=CouponTransferRecord.OUT_CONSUMED,
+                                            product_id=so.item_id, elite_score=elite_score,
+                                            uni_key=uni_key, date_field=date_field, transfer_status=transfer_status,
+                                            elite_level=to_mama.elite_level,
+                                            to_mama_price=agent_price
+                                            )
+        transfer_out.save()
     except IntegrityError as e:
         logging.error(e)
 
