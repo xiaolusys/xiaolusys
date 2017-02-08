@@ -717,7 +717,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
         mm = customer.getXiaolumm()
         if mm and (mm.referal_from == XiaoluMama.INDIRECT):
-            # 排除充值mp 
+            # 排除充值mp
             if mp.id != 25339 and (pay_cash > 0 or budget_payment > 0):
                 return Response({'code': 25, 'info': u'您的精英妈妈账号只能使用小鹿币直接购券，没有现金购券权限，请减少购券数量或充值小鹿币 '})
         elif mm and (mm.referal_from == XiaoluMama.DIRECT):
