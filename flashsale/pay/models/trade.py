@@ -1420,7 +1420,7 @@ def post_save_order_trigger(sender, instance, created, raw, **kwargs):
                     to_mama = customer.get_xiaolumm()
                     # 判断妈妈为一个新妈妈，满足条件如下：妈妈还不是精英妈妈；
                     from flashsale.xiaolumm.models.models import XiaoluMama
-                    if not to_mama.is_elite_mama():
+                    if not to_mama.is_elite_mama:
                         create_new_elite_mama(customer, to_mama, instance)
                         give_gift_score_to_new_elite_mama(customer, to_mama, instance)
                 task_order_trigger(instance)
