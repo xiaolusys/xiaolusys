@@ -969,7 +969,7 @@ class Product(models.Model):
                 if not usual_model_id.isdigit():
                     raise ValueError('精品券关联商品款式链接不合法')
                 usual_modle_product = ModelProduct.objects.filter(id=usual_model_id).first()
-                usual_product_ids   = ','.join(list(usual_modle_product.products.values_list('id', flat=True)))
+                usual_product_ids   = ','.join(map(str, usual_modle_product.products.values_list('id', flat=True)))
                 if not usual_modle_product or not usual_modle_product.is_boutique_product:
                     raise ValueError('请输入正确的精品商品链接(商品需打上精品汇标记)')
 
