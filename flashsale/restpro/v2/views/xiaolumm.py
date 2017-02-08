@@ -134,6 +134,12 @@ class MamaFortuneViewSet(viewsets.ModelViewSet):
         data = serializer.data
         if len(data) > 0:
             res = data[0]
+            import datetime
+            logger.info({'action': 'get_mm_fortune',
+                         'action_time': datetime.datetime.now(),
+                         'message': "get_mm_fortune: mm id %s, carry_confirmed %s, carry_cashout %s, history_confirmed %s, history_cashout %s"
+                                  % (mama_id, fortunes[0].carry_confirmed, fortunes[0].carry_cashout, fortunes[0].history_confirmed, fortunes[0].history_cashout)
+                         })
         else:
             res = None
         return Response({"mama_fortune": res})
