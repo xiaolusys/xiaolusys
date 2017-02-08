@@ -1,6 +1,6 @@
 # encoding=utf8
 from rest_framework import viewsets
-from rest_framework import authentication
+from rest_framework import authentication, permissions
 
 from common.auth import WeAppAuthentication
 from flashsale.pay.models.user import Customer
@@ -12,6 +12,7 @@ class XiaoluCoinViewSet(viewsets.GenericViewSet):
     """
     """
     authentication_classes = (authentication.SessionAuthentication, WeAppAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated,)
     serializer_class = XiaoluCoinLogSerializer
 
     def history(self, request, *args, **kwargs):
