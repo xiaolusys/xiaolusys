@@ -41,28 +41,15 @@ class ArrivalTimeViewSet(viewsets.GenericViewSet):
         delay_packageskuitem = []
         if start_time and end_time:
             delay_packageskuitem = PackageSkuItem.get_no_receive_psi_by_weight_time(start_time,min(end_time,datetime.datetime.now() - datetime.timedelta(days=delay_day),end_time))
-            # sent_packageskuitem = PackageSkuItem.objects.filter(weight_time__gte=start_time,
-            #                                                     weight_time__lte=min(end_time,datetime.datetime.now() - datetime.timedelta(
-            #                                                         days=delay_day),end_time), status='sent',type=0)
         else:
             delay_packageskuitem = PackageSkuItem.get_no_receive_psi_by_weight_time(deadline,datetime.datetime.now() - datetime.timedelta(days=delay_day))
-
-            # sent_packageskuitem = PackageSkuItem.objects.filter(weight_time__startswith=deadline,
-            #                                                     weight_time__lte=datetime.datetime.now() - datetime.timedelta(
-            #                                                         days=delay_day), status='sent',type=0)
         print delay_packageskuitem
-
-
-        # delay_packageskuitem = list()
-        # for i in sent_packageskuitem:
-        #     trade_wuliu = TradeWuliu.objects.filter(out_sid=i.out_sid).order_by("-id").first()
-        #     if not trade_wuliu:
-        #         delay_packageskuitem.append(trade_wuliu)
-        #     elif (trade_wuliu.content.find("\u5df2\u7b7e\u6536") == -1 or trade_wuliu.content.find("\u59a5\u6295") == -1):
-        #         delay_packageskuitem.append(trade_wuliu)
         return render(request, "wuliu_analysis/arrival_goods_analysis.html", {'delay_packageskuitem': delay_packageskuitem})
 
-
+    @detail_route(methods=['post'])
+    def set_sys_note(self, request, pk):
+        sys_note = request.POST.get("sys_note")
+        PackageSkuItem.set_sys_note(pk,sys_note)
 
     # @detail_route(methods=['get'])
     # def psi_has_pid(self, request, pk):

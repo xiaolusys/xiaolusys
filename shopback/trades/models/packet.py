@@ -883,7 +883,7 @@ class PackageSkuItem(BaseModel):
     payment = models.FloatField(default=0.0, verbose_name=u'实付款')
     discount_fee = models.FloatField(default=0.0, verbose_name=u'折扣')
     adjust_fee = models.FloatField(default=0.0, verbose_name=u'调整费用')
-    note_recorder = models.ForeignKey(User,related_name='packageskuitem', verbose_name=u'备注记录人')
+    note_recorder = models.ForeignKey(User,null=True,related_name='packageskuitem', verbose_name=u'备注记录人')
 
 
     # 作废
