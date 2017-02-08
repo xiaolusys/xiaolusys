@@ -699,7 +699,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         bunow检测非精品券不能使用小鹿币购买，参数是否异常
         direct indirect购买虚拟商品还有一些积分等限制
         """
-
+        return Response({'code': 29, 'info': u'充值维护中，预计需要1个小时，请23：00后再试'})
         budget_dicts = self.calc_extra_budget(pay_extras, type_list=[CONS.BUDGET, CONS.XIAOLUCOIN])
         budget_payment = budget_dicts.get(CONS.ETS_BUDGET) or 0
         xiaolucoin_payment = budget_dicts.get(CONS.ETS_XIAOLUCOIN) or 0
