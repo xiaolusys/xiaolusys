@@ -135,7 +135,7 @@ def double_mama_score():
             score = 20000
 
         mama.elite_score = score
-        mama.save(update_fields=['elite_score'])
+        mama.save()
         from core.options import log_action, CHANGE, get_systemoa_user
         sys_oa = get_systemoa_user()
         log_action(sys_oa, mama, CHANGE, u'0208升级分数翻倍修改用户积分从%s到%s' % (origin_score, score))
