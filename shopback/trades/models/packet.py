@@ -18,6 +18,7 @@ from shopback.trades.constants import PSI_STATUS, SYS_ORDER_STATUS, IN_EFFECT, P
 from shopback import paramconfig as pcfg
 from shopback.trades.models import TradeWuliu
 from models import TRADE_TYPE, TAOBAO_TRADE_STATUS
+from django.contrib.auth.models import User
 
 logger = logging.getLogger('django.request')
 logger = logging.getLogger(__name__)
@@ -882,6 +883,8 @@ class PackageSkuItem(BaseModel):
     payment = models.FloatField(default=0.0, verbose_name=u'实付款')
     discount_fee = models.FloatField(default=0.0, verbose_name=u'折扣')
     adjust_fee = models.FloatField(default=0.0, verbose_name=u'调整费用')
+    note_recorder = models.ForeignKey(User,related_name='packageskuitem', verbose_name=u'备注记录人')
+
 
     # 作废
     REAL_ORDER_GIT_TYPE = 0  # 实付
@@ -929,6 +932,11 @@ class PackageSkuItem(BaseModel):
     def get_no_out_sid_by_pay_time(start_time,end_time):
         no_sent_psi = PackageSkuItem.objects.filter(pay_time__gte=start_time, pay_time__lte=end_time, out_sid="", type=0).exclude(assign_status=3)
         return no_sent_psi
+
+    @staticmethod
+    def set_sys_note(self,id,content):
+        PackageSkuItem.objects.filter(id=id).update(sys_note=content)
+
 
     def set_failed_time(self):
         now_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
