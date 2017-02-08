@@ -1,5 +1,7 @@
 # coding=utf-8
 import datetime
+from django.db.models import Q
+
 from core.managers import BaseManager
 
 
@@ -24,3 +26,11 @@ class ScheduleManager(BaseManager):
         """未来排期
         """
         return self.future_schedules().filter(schedule_type=self.model.SP_TOPIC)
+
+    def activeable_topic_schedules(self):
+        # type: () -> List[SaleProductManage]
+        """ 可
+        """
+        today = datetime.date.today()
+        base_qs = self.get_queryset().filter(Q(sale_time__gte=today)|Q(offshelf_time__gt=today))
+        return base_qs.filter(schedule_type=self.model.SP_TOPIC)

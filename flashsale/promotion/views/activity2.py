@@ -14,6 +14,7 @@ from rest_framework.decorators import list_route, detail_route
 from rest_framework.response import Response
 from rest_framework import exceptions
 
+from supplychain.supplier.models import SaleProductManage
 from ..models.activity import ActivityEntry, ActivityProduct
 from ..serializers.activity import ActivitySerializer, ActivityProductSerializer
 from ..apis.activity import get_activity_by_id, create_activity, update_activity, get_activity_pros_by_activity_id, \
@@ -49,7 +50,8 @@ class ActivityViewSet(viewsets.ModelViewSet):
     def list_filters(self, request, *args, **kwargs):
         # type: (HttpRequest, *Any, **Any) -> Response
         act_type = choice_2_name_value(ActivityEntry.ACT_CHOICES)
-        f_schedules = get_future_topic_schedules().order_by('sale_time').values('id', 'upshelf_time', 'offshelf_time')
+        f_schedules = SaleProductManage.objects.activeable_topic_schedules()\
+            .order_by('sale_time').values('id', 'upshelf_time', 'offshelf_time')
         return Response({
             'act_type': act_type,
             'schedules': f_schedules,
