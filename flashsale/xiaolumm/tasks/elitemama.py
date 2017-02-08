@@ -110,3 +110,31 @@ def task_fresh_elitemama_active_status():
             print 'update count:', cnt
 
     print 'finish count:', cnt
+
+
+def double_mama_score():
+    from flashsale.xiaolumm.models import XiaoluMama
+    mamas = XiaoluMama.objects.filter(referal_from__in=[XiaoluMama.DIRECT, XiaoluMama.INDIRECT], status=XiaoluMama.EFFECT,
+                                      charge_status=XiaoluMama.CHARGED, elite_score__gt=0)
+    for mama in mamas:
+        origin_score = mama.elite_score
+        score = mama.elite_score
+        if score >= 300 and score < 600:
+            score = 600
+        elif score >= 600 and score < 1000:
+            score = score
+        elif score >= 1000 and score < 2000:
+            score = 2000
+        elif score >= 2000 and score < 3000:
+            score = score
+        elif score >= 3000 and score < 6000:
+            score = 6000
+        elif score >= 6000 and score < 10000:
+            score = score
+        elif score >= 10000 and score < 20000:
+            score = 20000
+
+        mama.update(elite_score=score)
+        from core.options import log_action, CHANGE, get_systemoa_user
+        sys_oa = get_systemoa_user()
+        log_action(sys_oa, mama, CHANGE, u'0208升级分数翻倍修改用户积分从%s到%s' % (origin_score, score))
