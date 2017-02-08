@@ -60,7 +60,7 @@ class ArrivalTimeViewSet(viewsets.GenericViewSet):
         #         delay_packageskuitem.append(trade_wuliu)
         #     elif (trade_wuliu.content.find("\u5df2\u7b7e\u6536") == -1 or trade_wuliu.content.find("\u59a5\u6295") == -1):
         #         delay_packageskuitem.append(trade_wuliu)
-        return render(request, "wuliu_analysis/arrival_goods_analysis.html", {'package_sku_item': delay_packageskuitem})
+        return render(request, "wuliu_analysis/arrival_goods_analysis.html", {'delay_packageskuitem': delay_packageskuitem})
 
 
 
