@@ -118,7 +118,7 @@ def double_mama_score():
                                       charge_status=XiaoluMama.CHARGED, elite_score__gt=0)
     for mama in mamas:
         origin_score = mama.elite_score
-        score = mama.elite_score
+        score = origin_score
         if score >= 300 and score < 600:
             score = 600
         elif score >= 600 and score < 1000:
@@ -136,6 +136,20 @@ def double_mama_score():
 
         mama.elite_score = score
         mama.save()
-        from core.options import log_action, CHANGE, get_systemoa_user
+        from core.options import log_action, CHANGE, ADDITION, get_systemoa_user
         sys_oa = get_systemoa_user()
         log_action(sys_oa, mama, CHANGE, u'0208升级分数翻倍修改用户积分从%s到%s' % (origin_score, score))
+
+        try:
+            from flashsale.coupon.apis.v1.transfer import create_present_elite_score
+            from flashsale.coupon.apis.v1.coupontemplate import get_coupon_template_by_id
+            from flashsale.pay.apis.v1.customer import get_customer_by_id
+
+            if score > origin_score:
+                template = get_coupon_template_by_id(id=156)
+                customer = get_customer_by_id(mama.customer_id)
+                transfer_in, transfer_out = create_present_elite_score(customer, int(score - origin_score), template, 1)
+                log_action(sys_oa, transfer_in, ADDITION, '0208升级分数翻倍赠送积分: 赠送')
+                log_action(sys_oa, transfer_out, ADDITION, '0208升级分数翻倍赠送积分: 消耗')
+        except Exception as e:
+            pass
