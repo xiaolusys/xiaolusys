@@ -16,5 +16,5 @@ def task_sms_send_count_gauge_statsd():
     ).values('task_type').annotate(Count('id')).values_list('task_type', 'id__count')
 
     for task_type, sms_count in sms_stats:
-        statsd.gauge('xiaolusys.sms.send.%s'%task_type, sms_count)
+        statsd.gauge('xiaolumm.sms.send.%s'%task_type, sms_count)
 
