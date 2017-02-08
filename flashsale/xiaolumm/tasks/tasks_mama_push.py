@@ -146,7 +146,7 @@ def task_weixin_push_ordercarry(ordercarry):
                   'tradeDateTime':{'value':ordercarry.created.strftime('%Y-%m-%d %H:%M:%S'),'color':'#000000'},
                   'orderType':{'value':order_type,'color':'#000000'},
                   'customerInfo':{'value':ordercarry.contributor_nick,'color':'#000000'},
-                  'orderItemName':{'value':u'预计最低兑换佣金','color':'#ff0000'},
+                  'orderItemName':{'value':u'预计兑换佣金','color':'#ff0000'},
                   'orderItemData':{'value':u'%.2f' % (total_carry * 0.01),'color':'#ff0000'},
                   'remark':{'value':u'包含%s,共%d件商品，快去看看吧～' % (ordercarry.sku_name, sku_num), 'color':'#F87217'}}
     else:
