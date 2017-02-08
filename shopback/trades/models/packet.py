@@ -16,6 +16,7 @@ from flashsale.pay import REFUND_STATUS
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_THIRD, WARE_CHOICES
 from shopback.trades.constants import PSI_STATUS, SYS_ORDER_STATUS, IN_EFFECT, PO_STATUS, PSI_TYPE
 from shopback import paramconfig as pcfg
+from shopback.trades.models import TradeWuliu
 from models import TRADE_TYPE, TAOBAO_TRADE_STATUS
 
 logger = logging.getLogger('django.request')
@@ -909,6 +910,20 @@ class PackageSkuItem(BaseModel):
         app_label = 'trades'
         verbose_name = u'包裹商品'
         verbose_name_plural = u'包裹商品列表'
+
+    @staticmethod
+    def get_no_receive_psi_by_weight_time(start_time,end_time):
+        ### 获得时间段内已发货,没签收状态的packageskuitem
+        sent_packageskuitem = PackageSkuItem.objects.filter(weight_time__gte=start_time,weight_time__lte=end_time,status='sent',type=0)
+        ###判断已发货的packageskuitem,用户是否已经收到货
+        delay_packageskuitem = list()
+        for i in sent_packageskuitem:
+            trade_wuliu = TradeWuliu.objects.filter(out_sid=i.out_sid).order_by("-id").first()
+            if not trade_wuliu:
+                delay_packageskuitem.append(i)
+            elif (trade_wuliu.content.find("\u5df2\u7b7e\u6536") == -1 or trade_wuliu.content.find("\u59a5\u6295") == -1):
+                delay_packageskuitem.append(i)
+        return delay_packageskuitem
 
     def set_failed_time(self):
         now_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")

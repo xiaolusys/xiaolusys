@@ -37,26 +37,29 @@ class ArrivalTimeViewSet(viewsets.GenericViewSet):
             end_time = datetime.datetime.strptime(end_time, "%Y-%m-%d")
 
         deadline = (datetime.datetime.now() - datetime.timedelta(days=delay_day)).strftime("%Y-%m")
-        sent_packageskuitem = []
+        deadline = datetime.datetime.strptime(deadline,"%Y-%m")
+        delay_packageskuitem = []
         if start_time and end_time:
-            sent_packageskuitem = PackageSkuItem.objects.filter(weight_time__gte=start_time,
-                                                                weight_time__lte=min(end_time,datetime.datetime.now() - datetime.timedelta(
-                                                                    days=delay_day),end_time), status='sent',type=0)
+            delay_packageskuitem = PackageSkuItem.get_no_receive_psi_by_weight_time(start_time,min(end_time,datetime.datetime.now() - datetime.timedelta(days=delay_day),end_time))
+            # sent_packageskuitem = PackageSkuItem.objects.filter(weight_time__gte=start_time,
+            #                                                     weight_time__lte=min(end_time,datetime.datetime.now() - datetime.timedelta(
+            #                                                         days=delay_day),end_time), status='sent',type=0)
         else:
-            sent_packageskuitem = PackageSkuItem.objects.filter(weight_time__startswith=deadline,
-                                                                weight_time__lte=datetime.datetime.now() - datetime.timedelta(
-                                                                    days=delay_day), status='sent',type=0)
-        print sent_packageskuitem
+            delay_packageskuitem = PackageSkuItem.get_no_receive_psi_by_weight_time(deadline,datetime.datetime.now() - datetime.timedelta(days=delay_day))
 
-
-        delay_packageskuitem = list()
-        for i in sent_packageskuitem:
-            trade_wuliu = TradeWuliu.objects.filter(out_sid=i.out_sid).order_by("-id").first()
-            if not trade_wuliu:
-                delay_packageskuitem.append(trade_wuliu)
-            elif (trade_wuliu.content.find("\u5df2\u7b7e\u6536") == -1 or trade_wuliu.content.find("\u59a5\u6295") == -1):
-                delay_packageskuitem.append(trade_wuliu)
+            # sent_packageskuitem = PackageSkuItem.objects.filter(weight_time__startswith=deadline,
+            #                                                     weight_time__lte=datetime.datetime.now() - datetime.timedelta(
+            #                                                         days=delay_day), status='sent',type=0)
         print delay_packageskuitem
+
+
+        # delay_packageskuitem = list()
+        # for i in sent_packageskuitem:
+        #     trade_wuliu = TradeWuliu.objects.filter(out_sid=i.out_sid).order_by("-id").first()
+        #     if not trade_wuliu:
+        #         delay_packageskuitem.append(trade_wuliu)
+        #     elif (trade_wuliu.content.find("\u5df2\u7b7e\u6536") == -1 or trade_wuliu.content.find("\u59a5\u6295") == -1):
+        #         delay_packageskuitem.append(trade_wuliu)
         return render(request, "wuliu_analysis/arrival_goods_analysis.html", {'package_sku_item': delay_packageskuitem})
 
 
