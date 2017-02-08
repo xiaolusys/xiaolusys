@@ -41,6 +41,7 @@
 <div>
         <table id="orderdetailtable" border="1" class="table table-striped table-bordered table-hover">
             <thead>
+            <th><input type="checkbox" id="action-toggle" onclick="action_toggle(this)" value=""/></th>
             <th>pacakgeskuitem_id</th>
             <th>sale_trade_id</th>
             <th>sale_order_id</th>
@@ -56,11 +57,16 @@
             <th>物流公司</th>
             <th>物流编号</th>
             <th>收货手机</th>
+            <th>系统备注</th>
+            <th>记录人</th>
             </thead>
             <tbody>
 
             {% for psi in delay_packageskuitem %}
             <tr >
+                <td class="action-checkbox">
+                    <input class="action-select" type="checkbox" data-id={{psi.id}} onclick="can_change(this)">
+                </td>
                 <td><a>{{psi.id }}</a></td>
                 <td><a>{{psi.sale_trade_id }}</a></td>
                 <td><a>{{psi.oid }}</a></td>
@@ -76,6 +82,8 @@
                 <td><a>{{psi.logistics_company_name }}</a></td>
                 <td><a>{{psi.out_sid }}</a></td>
                 <td><a>{{psi.receiver_mobile }}</a></td>
+                <td><a>{{psi.sys_note }}</a></td>
+                <td><a>{{psi.note_recorder}}</a></td>
             </tr>
             {% endfor %}
             </tbody>
