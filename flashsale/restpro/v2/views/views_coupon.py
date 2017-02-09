@@ -583,7 +583,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
             if ship.order_id and len(ship.order_id) > 0:
                 rmb338_order = SaleOrder.objects.filter(oid=ship.order_id).first()
                 if rmb338_order and (not rmb338_order.extras.has_key('exchange')) \
-                        and (sale_order.status in [SaleOrder.WAIT_BUYER_CONFIRM_GOODS, SaleOrder.TRADE_BUYER_SIGNED, SaleOrder.TRADE_FINISHED]):
+                        and (rmb338_order.status in [SaleOrder.WAIT_BUYER_CONFIRM_GOODS, SaleOrder.TRADE_BUYER_SIGNED, SaleOrder.TRADE_FINISHED]):
                     template_id = 0
                     num = 1
                     if rmb338_order.is_new_elite_deposit():
@@ -597,7 +597,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                     buyer_customer = Customer.objects.normal_customer.filter(id=rmb338_order.buyer_id).first()
                     results.append({'exchg_template_id': template_id,
                                     'num': num,
-                                    'order_id': ship.order_id, 'sku_img': rmb338_order.pic_path, 'sku_name': sale_order.title,
+                                    'order_id': ship.order_id, 'sku_img': rmb338_order.pic_path, 'sku_name': rmb338_order.title,
                                     'contributor_nick': buyer_customer.nick, 'status': 2,
                                     'status_display': u'确定收益',
                                     'order_value': round(rmb338_order.payment * 100), 'date_field': rmb338_order.pay_time})
