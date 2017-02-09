@@ -168,8 +168,8 @@ def double_mama_score():
             if score > origin_score:
                 template = get_coupon_template_by_id(id=156)
                 customer = get_customer_by_id(mama.customer_id)
-                transfer_in, transfer_out = create_present_elite_score(customer, int(score - origin_score), template, 1)
+                transfer_in = create_present_elite_score(customer, int(score - origin_score), template, 1)
                 log_action(sys_oa, transfer_in, ADDITION, '0208升级分数翻倍赠送积分: 赠送')
-                log_action(sys_oa, transfer_out, ADDITION, '0208升级分数翻倍赠送积分: 消耗')
+                # log_action(sys_oa, transfer_out, ADDITION, '0208升级分数翻倍赠送积分: 消耗')
         except Exception as e:
             pass

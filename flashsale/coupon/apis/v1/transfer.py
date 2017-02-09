@@ -87,45 +87,45 @@ def create_present_elite_score(customer, elite_score, template, rank):
                                        coupon_to_mama_id=coupon_to_mama_id,
                                        to_mama_thumbnail=to_mama_thumbnail,
                                        to_mama_nick=to_mama_nick,
-                                       coupon_value=template.value,
+                                       coupon_value=0,
                                        init_from_mama_id=init_from_mama_id,
                                        order_no=uni_key_in,
-                                       template_id=template.id,
+                                       template_id=0,
                                        product_img=product_img,
-                                       coupon_num=1,
+                                       coupon_num=0,
                                        transfer_type=CouponTransferRecord.IN_GIFT_COUPON,
                                        uni_key=uni_key_in,
                                        date_field=datetime.date.today(),
                                        elite_score=elite_score,
                                        transfer_status=CouponTransferRecord.DELIVERED)
     # 用券
-    transfer_out = CouponTransferRecord(coupon_from_mama_id=coupon_to_mama_id,
-                                        from_mama_thumbnail=to_mama_thumbnail,
-                                        from_mama_nick=to_mama_nick,
-
-                                        coupon_to_mama_id=coupon_from_mama_id,
-                                        to_mama_thumbnail=from_mama_thumbnail,
-                                        to_mama_nick=from_mama_nick,
-
-                                        coupon_value=template.value,
-                                        init_from_mama_id=0,
-                                        order_no=uni_key_out,
-                                        template_id=template.id,
-                                        product_img=product_img,
-                                        coupon_num=1,
-                                        transfer_type=CouponTransferRecord.OUT_CONSUMED,
-                                        uni_key=uni_key_out,
-                                        date_field=datetime.date.today(),
-                                        elite_score=elite_score,
-                                        transfer_status=CouponTransferRecord.DELIVERED)
+    # transfer_out = CouponTransferRecord(coupon_from_mama_id=coupon_to_mama_id,
+    #                                     from_mama_thumbnail=to_mama_thumbnail,
+    #                                     from_mama_nick=to_mama_nick,
+    #
+    #                                     coupon_to_mama_id=coupon_from_mama_id,
+    #                                     to_mama_thumbnail=from_mama_thumbnail,
+    #                                     to_mama_nick=from_mama_nick,
+    #
+    #                                     coupon_value=template.value,
+    #                                     init_from_mama_id=0,
+    #                                     order_no=uni_key_out,
+    #                                     template_id=template.id,
+    #                                     product_img=product_img,
+    #                                     coupon_num=1,
+    #                                     transfer_type=CouponTransferRecord.OUT_CONSUMED,
+    #                                     uni_key=uni_key_out,
+    #                                     date_field=datetime.date.today(),
+    #                                     elite_score=elite_score,
+    #                                     transfer_status=CouponTransferRecord.DELIVERED)
     with transaction.atomic():
         transfer_in.save()
-        transfer_out.save()
+        # transfer_out.save()
 
     from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
     task_calc_xlmm_elite_score(coupon_to_mama_id)
 
-    return transfer_in, transfer_out
+    return transfer_in
 
 
 def create_present_coupon_transfer_record(customer, template, coupon_id, uni_key_prefix=None):
