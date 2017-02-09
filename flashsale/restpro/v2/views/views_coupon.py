@@ -496,7 +496,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                     buyer_customer = Customer.objects.normal_customer.filter(id=sale_order.buyer_id).first()
                     results.append({'exchg_template_id': entry.template_id,
                                     'num': entry.coupon_num,
-                                    'order_id': entry.uni_key, 'sku_img': sale_order.pic_path,
+                                    'order_id': entry.uni_key, 'sku_img': sale_order.pic_path, 'sku_name': sale_order.title,
                                     'contributor_nick': buyer_customer.nick, 'status': 2,
                                     'status_display': u'确定收益',
                                     'order_value': round(sale_order.payment * 100), 'date_field': entry.created})
@@ -552,7 +552,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                                 if round(sale_order.payment / sale_order.price) > 0:
                                     results.append({'exchg_template_id': template_id,
                                                     'num': round(sale_order.payment / sale_order.price),
-                                                    'order_id': entry.order_id, 'sku_img': entry.sku_img,
+                                                    'order_id': entry.order_id, 'sku_img': entry.sku_img, 'sku_name': sale_order.title,
                                                     'contributor_nick': entry.contributor_nick, 'status': entry.status,
                                                     'status_display': OrderCarry.STATUS_TYPES[entry.status][1],
                                                     'order_value': entry.order_value, 'date_field': entry.date_field})
@@ -571,7 +571,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                         if coin_pay and round(sale_order.payment / sale_order.price) > 0 and model_product.extras.has_key('template_id'):
                             results.append({'exchg_template_id': model_product.extras['template_id'],
                                             'num': round(sale_order.payment / sale_order.price),
-                                            'order_id': entry.order_id, 'sku_img': head_img,
+                                            'order_id': entry.order_id, 'sku_img': head_img, 'sku_name': sale_order.title,
                                             'contributor_nick': entry.contributor_nick, 'status': entry.status,
                                             'status_display': OrderCarry.STATUS_TYPES[entry.status][1],
                                             'order_value': entry.order_value, 'date_field': entry.date_field})
@@ -582,7 +582,8 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
         for ship in ships:
             if ship.order_id and len(ship.order_id) > 0:
                 rmb338_order = SaleOrder.objects.filter(oid=ship.order_id).first()
-                if rmb338_order and (not rmb338_order.extras.has_key('exchange')):
+                if rmb338_order and (not rmb338_order.extras.has_key('exchange')) \
+                        and (sale_order.status in [SaleOrder.WAIT_BUYER_CONFIRM_GOODS, SaleOrder.TRADE_BUYER_SIGNED, SaleOrder.TRADE_FINISHED]):
                     template_id = 0
                     num = 1
                     if rmb338_order.is_new_elite_deposit():
@@ -596,7 +597,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                     buyer_customer = Customer.objects.normal_customer.filter(id=rmb338_order.buyer_id).first()
                     results.append({'exchg_template_id': template_id,
                                     'num': num,
-                                    'order_id': ship.order_id, 'sku_img': rmb338_order.pic_path,
+                                    'order_id': ship.order_id, 'sku_img': rmb338_order.pic_path, 'sku_name': sale_order.title,
                                     'contributor_nick': buyer_customer.nick, 'status': 2,
                                     'status_display': u'确定收益',
                                     'order_value': round(rmb338_order.payment * 100), 'date_field': rmb338_order.pay_time})
