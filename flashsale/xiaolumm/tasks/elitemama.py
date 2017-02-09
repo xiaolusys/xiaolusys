@@ -135,8 +135,8 @@ def double_mama_score():
                 coupon_to_mama_id=mama.id,
                 transfer_status=CouponTransferRecord.DELIVERED,
                 transfer_type__in=[CouponTransferRecord.IN_GIFT_COUPON],
-                created__range=(from_time, to_time).first()
-            )
+                created__range=(from_time, to_time)
+            ).first()
             if mama.elite_score >= 600 and mama.elite_score < 2000:
                 score = 600 - gift_ct.elite_score + 300
             elif mama.elite_score >= 2000 and mama.elite_score < 6000:
