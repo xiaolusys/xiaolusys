@@ -68,8 +68,17 @@ def create_present_elite_score(customer, elite_score, template, rank):
     from_mama_thumbnail = 'http://7xogkj.com2.z0.glb.qiniucdn.com/222-ohmydeer.png?imageMogr2/thumbnail/60/format/png'
     from_mama_nick = 'SYSTEM'
 
-    uni_key_in = "elite_in-%s-%s" % (customer.id, rank)  # 一个用户一个的等级只有一次送积分
-    uni_key_out = "elite_out-%s-%s" % (customer.id, rank)  # 一个用户一个的等级只有一次送积分
+    # 一个用户一个的等级只有一次送积分取消，可以送多次
+    date_field = datetime.date.today()
+    idx = CouponTransferRecord.objects.filter(coupon_from_mama_id=coupon_from_mama_id, coupon_to_mama_id=coupon_to_mama_id,
+                             template_id=template.id, date_field=date_field,
+                             transfer_type=CouponTransferRecord.IN_GIFT_COUPON,
+                             transfer_status__gte=CouponTransferRecord.PROCESSED).count()
+
+
+    idx = idx + 1
+    uni_key_in = "elite_in-%s-%s-%s" % (customer.id, date_field, idx)
+    uni_key_out = "elite_out-%s-%s-%s" % (customer.id, date_field, idx)
     product_img = template.extras.get("product_img") or ''
     # 入券
     transfer_in = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id,

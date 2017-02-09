@@ -113,49 +113,52 @@ def task_fresh_elitemama_active_status():
 
 
 def double_mama_score():
+    from flashsale.coupon.models.transfer_coupon import CouponTransferRecord
+    from_time = datetime.datetime(2017, 2, 8, 23, 0, 0, 0)
+    to_time = datetime.datetime(2017, 2, 8, 23, 30, 0, 0)
+    has_add = CouponTransferRecord.objects.filter(
+        transfer_status=CouponTransferRecord.DELIVERED,
+        transfer_type__in=[CouponTransferRecord.IN_GIFT_COUPON],
+        created__range=(from_time, to_time)
+    )
+
+    has_add_mms = [p['coupon_to_mama_id'] for p in has_add.values('coupon_to_mama_id')]
+
     from flashsale.xiaolumm.models import XiaoluMama
     mamas = XiaoluMama.objects.filter(referal_from__in=[XiaoluMama.DIRECT, XiaoluMama.INDIRECT], status=XiaoluMama.EFFECT,
                                       charge_status=XiaoluMama.CHARGED, elite_score__gt=0)
     for mama in mamas:
-        from flashsale.coupon.models.transfer_coupon import CouponTransferRecord
-        res = CouponTransferRecord.objects.filter(
-            coupon_from_mama_id=mama.id,
-            transfer_status=CouponTransferRecord.DELIVERED,
-            transfer_type__in=[CouponTransferRecord.OUT_CASHOUT, CouponTransferRecord.IN_RETURN_COUPON]
-        ).aggregate(n=Sum('elite_score'))
-        out_score = res['n'] or 0
-
-        res = CouponTransferRecord.objects.filter(
-            coupon_to_mama_id=mama.id,
-            transfer_status=CouponTransferRecord.DELIVERED,
-            transfer_type__in=[CouponTransferRecord.IN_BUY_COUPON, CouponTransferRecord.OUT_TRANSFER,
-                               CouponTransferRecord.IN_GIFT_COUPON, CouponTransferRecord.IN_RECHARGE]
-        ).aggregate(n=Sum('elite_score'))
-        in_score = res['n'] or 0
-
-        origin_score = in_score - out_score
-
+        origin_score = mama.elite_score
         score = mama.elite_score
-        if score >= 300 and score < 600:
-            score = 600
-        elif score >= 600 and score < 1000:
-            score = score
-        elif score >= 1000 and score < 2000:
-            score = 2000
-        elif score >= 2000 and score < 3000:
-            score = score
-        elif score >= 3000 and score < 6000:
-            score = 6000
-        elif score >= 6000 and score < 10000:
-            score = score
-        elif score >= 10000 and score < 20000:
-            score = 20000
+        if mama.id in has_add_mms:
+            gift_ct = CouponTransferRecord.objects.filter(
+                coupon_to_mama_id=mama.id,
+                transfer_status=CouponTransferRecord.DELIVERED,
+                transfer_type__in=[CouponTransferRecord.IN_GIFT_COUPON],
+                created__range=(from_time, to_time).first()
+            )
+            if mama.elite_score >= 600 and mama.elite_score < 2000:
+                score = 600 - gift_ct.elite_score + 300
+            elif mama.elite_score >= 2000 and mama.elite_score < 6000:
+                score = 2000 - gift_ct.elite_score + 1000
+            elif mama.elite_score >= 6000 and mama.elite_score < 20000:
+                score = 6000 - gift_ct.elite_score + 3000
+            elif mama.elite_score >= 20000:
+                score = 20000 - gift_ct.elite_score + 10000
+        else:
+            if score >= 600 and score < 1000:
+                score += 300
+            elif score >= 2000 and score < 3000:
+                score += 1000
+            elif score >= 6000 and score < 10000:
+                score += 3000
 
-        mama.elite_score = score
-        mama.save()
-        from core.options import log_action, CHANGE, ADDITION, get_systemoa_user
-        sys_oa = get_systemoa_user()
-        log_action(sys_oa, mama, CHANGE, u'0208升级分数翻倍修改用户积分从%s到%s' % (origin_score, score))
+        if mama.elite_score != score:
+            mama.elite_score = score
+            mama.save()
+            from core.options import log_action, CHANGE, ADDITION, get_systemoa_user
+            sys_oa = get_systemoa_user()
+            log_action(sys_oa, mama, CHANGE, u'0208升级分数翻倍修改用户积分从%s到%s' % (origin_score, score))
 
         try:
             from flashsale.coupon.apis.v1.transfer import create_present_elite_score
