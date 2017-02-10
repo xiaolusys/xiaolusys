@@ -137,7 +137,7 @@ class XiaoluMama(BaseModel):
     active = models.BooleanField(default=False, verbose_name=u"已激活", help_text=u'有获得收益')
     active_time = models.DateTimeField(null=True, verbose_name=u"激活时间")
 
-    last_renew_type = models.IntegerField(choices=RENEW_TYPE, default=365, db_index=True, verbose_name=u"最近续费类型")
+    last_renew_type = models.IntegerField(choices=RENEW_TYPE, default=SCAN, db_index=True, verbose_name=u"最近续费类型")
 
     agencylevel = models.IntegerField(default=INNER_LEVEL, db_index=True, choices=AGENCY_LEVEL, verbose_name=u"代理类别")
     target_complete = models.FloatField(default=0.0, verbose_name=u"升级指标完成额")
