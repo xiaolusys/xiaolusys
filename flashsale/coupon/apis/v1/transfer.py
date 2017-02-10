@@ -207,10 +207,10 @@ def give_gift_score_to_new_elite_mama(customer, to_mama, so):
     date_field = datetime.date.today()
     transfer_status = CouponTransferRecord.DELIVERED
     uni_key = "gift-365elite-in-%s" % (to_mama.id)
-    coupon_value = 365
+    coupon_value = 0
     product_img = ''
     elite_score = 100
-    coupon_num = 1
+    coupon_num = 0
     template_id = 365
 
     _, _, agent_price = get_elite_score_by_templateid(template_id, to_mama)
@@ -229,21 +229,21 @@ def give_gift_score_to_new_elite_mama(customer, to_mama, so):
                                         to_mama_price=agent_price
                                         )
         transfer.save()
-        uni_key = "gift-365elite-out-%s" % (to_mama.id)
-        transfer_out = CouponTransferRecord(coupon_from_mama_id=coupon_to_mama_id,
-                                            from_mama_thumbnail=to_mama_thumbnail,
-                                            from_mama_nick=to_mama_nick, coupon_to_mama_id=coupon_from_mama_id,
-                                            to_mama_thumbnail=from_mama_thumbnail, to_mama_nick=from_mama_nick,
-                                            coupon_value=coupon_value,
-                                            init_from_mama_id=0, order_no=so.oid,
-                                            template_id=template_id,
-                                            product_img=product_img, coupon_num=coupon_num, transfer_type=CouponTransferRecord.OUT_CONSUMED,
-                                            product_id=so.item_id, elite_score=elite_score,
-                                            uni_key=uni_key, date_field=date_field, transfer_status=transfer_status,
-                                            elite_level=to_mama.elite_level,
-                                            to_mama_price=agent_price
-                                            )
-        transfer_out.save()
+        # uni_key = "gift-365elite-out-%s" % (to_mama.id)
+        # transfer_out = CouponTransferRecord(coupon_from_mama_id=coupon_to_mama_id,
+        #                                     from_mama_thumbnail=to_mama_thumbnail,
+        #                                     from_mama_nick=to_mama_nick, coupon_to_mama_id=coupon_from_mama_id,
+        #                                     to_mama_thumbnail=from_mama_thumbnail, to_mama_nick=from_mama_nick,
+        #                                     coupon_value=coupon_value,
+        #                                     init_from_mama_id=0, order_no=so.oid,
+        #                                     template_id=template_id,
+        #                                     product_img=product_img, coupon_num=coupon_num, transfer_type=CouponTransferRecord.OUT_CONSUMED,
+        #                                     product_id=so.item_id, elite_score=elite_score,
+        #                                     uni_key=uni_key, date_field=date_field, transfer_status=transfer_status,
+        #                                     elite_level=to_mama.elite_level,
+        #                                     to_mama_price=agent_price
+        #                                     )
+        # transfer_out.save()
     except IntegrityError as e:
         logging.error(e)
 
@@ -251,7 +251,7 @@ def give_gift_score_to_new_elite_mama(customer, to_mama, so):
         'action': 'give_gift_score_to_new_elite_mama',
         'action_time': datetime.datetime.now(),
         'order_oid': so.oid,
-        'message': u'add 60 socore end:template_id=%s, order_id=%s order_oid=%s product_id=%s' % (
+        'message': u'add 100 socore end:template_id=%s, order_id=%s order_oid=%s product_id=%s' % (
             template_id, so.id, so.oid, so.item_id),
     })
 
@@ -264,6 +264,8 @@ def create_new_elite_mama(customer, to_mama, so):
     if to_mama.last_renew_type < XiaoluMama.ELITE:
         to_mama.last_renew_type = XiaoluMama.ELITE
         to_mama.charge_status = XiaoluMama.CHARGED
+    else:
+        return
     if not to_mama.charge_time:
         to_mama.charge_time = datetime.datetime.now()
     # 先判断分享的妈妈，再判断上级
@@ -306,6 +308,9 @@ def create_new_elite_mama(customer, to_mama, so):
     else:
         to_mama.referal_from = XiaoluMama.DIRECT
     to_mama.save()
+    from core.options import log_action, CHANGE, ADDITION, get_systemoa_user
+    sys_oa = get_systemoa_user()
+    log_action(sys_oa, to_mama, CHANGE, u'create_new_elite_mama change referal')
 
     if relation_ship:
         # modify relation ship
@@ -322,6 +327,7 @@ def create_new_elite_mama(customer, to_mama, so):
             relation_ship.referal_from_grandma_id = 0
         relation_ship.order_id = so.oid
         relation_ship.save()
+        log_action(sys_oa, to_mama, CHANGE, u'create_new_elite_mama change relationship')
         logger.info({
             'action': 'create_new_elite_mama',
             'action_time': datetime.datetime.now(),
