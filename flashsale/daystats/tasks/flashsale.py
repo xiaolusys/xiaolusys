@@ -60,7 +60,10 @@ def task_Push_Sales_To_DailyStat(target_date):
                     total_old_visiter_num += 1
 
     from flashsale.pay.models import SaleTrade
-    order_stats = SaleTrade.objects.filter(pay_time__range=(df, dt))
+    order_stats = SaleTrade.objects.filter(
+        pay_time__range=(df, dt),
+        order_type__in=(SaleTrade.SALE_ORDER, SaleTrade.RESERVE_ORDER, SaleTrade.TEAMBUY_ORDER)
+    )
     aggrate_data = order_stats.aggregate(
         total_payment=Sum('payment'),
         total_paycash=Sum('pay_cash'),
