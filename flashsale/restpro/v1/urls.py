@@ -18,7 +18,7 @@ from flashsale.restpro.v1 import views_praise
 from flashsale.restpro.v1 import views_pro_ref
 from flashsale.restpro.v1 import views_xlmm
 from flashsale.restpro.v1 import views_mmadver
-from flashsale.restpro.v1 import views_wuliu_new,views_return_wuliu
+from flashsale.restpro.v1 import views_wuliu_new,views_return_wuliu,views_wuliu_kd100
 from flashsale.restpro.v1 import views_cushops
 from flashsale.restpro.v1 import views_promotion
 from flashsale.restpro.v1 import views_login_v2
@@ -80,6 +80,7 @@ promotion_router.register(r'free_order', views_promotion.XLSampleOrderViewSet)
 promotion_router.register(r'fanlist', views_promotion.InviteReletionshipView)
 
 router.register(r'wuliu', views_wuliu_new.WuliuViewSet)
+router.register(r'wuliu_kd100',views_wuliu_kd100.WuliuViewSet)
 router.register(r'rtnwuliu', views_return_wuliu.ReturnWuliuViewSet)
 
 # 推送相关

@@ -36,8 +36,8 @@ def kd100_instant_query(company, number,query_url = "http://poll.kuaidi100.com/p
     sign = get_md5_value(sign).upper()
     query_param_info = {"param":param,"sign":sign,"customer":customer}
     resp = requests.post(query_url,data=query_param_info)
-    print resp.text
-    return json.loads(resp.text)
+    resp.encoding = "utf-8"
+    return resp.text
 
 def kd100_subscription(company, number,query_url = "http://poll.kuaidi100.com/poll",
                         key='ZIBQxfAP7615',callbackurl="http://admin.xiaolumm.com"):
@@ -50,31 +50,13 @@ def kd100_subscription(company, number,query_url = "http://poll.kuaidi100.com/po
     resp = requests.post(query_url,data=param)
     return resp.text
 
-def create_or_update_tradewuliu(**wuliu_trace_data):
-    out_sid = wuliu_trace_data.get("nu")
-    logistics_company = wuliu_trace_data.get("com")
-    status = wuliu_trace_data.get("status")
-    time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    content = json.dumps(wuliu_trace_data.get("data","没有物流数据"))
 
-    write_data = {
-        "out_sid": out_sid,
-        "logistics_company": logistics_company,
-        "status": status,
-        "time": time,
-        "content": content
-    }
-    tradewuliu = TradeWuliu.objects.filter(out_sid=out_sid)
 
-    if tradewuliu.first() is None:
-        TradeWuliu.objects.create(**write_data)
-    else:
-        tradewuliu.update(**write_data)
 
 def kd100_callbackurl(**call_back_wuliu_data):
     sub_status = call_back_wuliu_data.get("status")
     sub_message = call_back_wuliu_data.get("message")
     wuliu_trace_data = call_back_wuliu_data.get("lastResult")
-    create_or_update_tradewuliu(**wuliu_trace_data)
+    TradeWuliu.create_or_update_tradewuliu(**wuliu_trace_data)
 
 
