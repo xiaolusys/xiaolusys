@@ -108,6 +108,7 @@ class LogisticsCompany(models.Model):
 
     id = models.BigIntegerField(primary_key=True, verbose_name='ID')
     code = models.CharField(max_length=64, unique=True, blank=True, verbose_name='快递编码')
+    kd100_express_key = models.CharField(max_length=64, blank=True, null=True, verbose_name="快递100编码")
     name = models.CharField(max_length=64, blank=True, verbose_name='快递名称')
     reg_mail_no = models.CharField(max_length=500, blank=True, verbose_name='单号匹配规则')
     district = models.TextField(blank=True, verbose_name='服务区域(,号分隔)')
