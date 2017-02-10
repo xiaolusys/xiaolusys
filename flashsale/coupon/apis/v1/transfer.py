@@ -246,6 +246,8 @@ def give_gift_score_to_new_elite_mama(customer, to_mama, so):
     except IntegrityError as e:
         logging.error(e)
 
+    from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
+    task_calc_xlmm_elite_score(to_mama.id)  # 计算妈妈积分
     logger.info({
         'action': 'give_gift_score_to_new_elite_mama',
         'action_time': datetime.datetime.now(),
