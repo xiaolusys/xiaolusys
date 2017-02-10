@@ -1235,6 +1235,34 @@ class TradeWuliu(models.Model):
     remark = models.CharField(max_length=64, blank=True, verbose_name=u'备注')
     reason = models.CharField(max_length=128, blank=True, verbose_name=u'原因')
 
+    @staticmethod
+    def create_or_update_tradewuliu(wuliu_trace_data):
+        wuliu_trace_data = json.loads(wuliu_trace_data)
+        out_sid = wuliu_trace_data.get("nu")
+        logistics_company = wuliu_trace_data.get("com")
+        status = wuliu_trace_data.get("state")
+        time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        content = json.dumps(wuliu_trace_data.get("data", "no_wuliu_data"))
+        write_data = {
+            "out_sid": out_sid,
+            "logistics_company": logistics_company,
+            "status": status,
+            "time": time,
+            "content": content
+        }
+        tradewuliu = TradeWuliu.objects.filter(out_sid=out_sid)
+        if tradewuliu.first() is None:
+            tradewuliu = TradeWuliu.objects.create(**write_data)
+            return tradewuliu.id
+        else:
+            tradewuliu.update(**write_data)
+            return tradewuliu.first().id
+
+    @staticmethod
+    def get_tradewuliu(out_sid, logistics_company):
+        tradewuliu = TradeWuliu.objects.filter(out_sid=out_sid, logistics_company=logistics_company).first()
+        return tradewuliu
+
     class Meta:
         db_table = 'shop_trades_wuliudetail'
         app_label = 'trades'

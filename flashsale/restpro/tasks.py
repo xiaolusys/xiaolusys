@@ -196,6 +196,11 @@ BAIDU_POST_CODE_EXCHANGE = {
     'QFKD': 'quanfengkuaidi',
 }
 
+
+@app.task()
+def create_or_update_tradewuliu(wuliu_trace_data):
+    TradeWuliu.create_or_update_tradewuliu(wuliu_trace_data)
+
 @app.task()
 def get_third_apidata(trade):
     """ 访问第三方api 获取物流参数 并保存到本地数据库　"""
