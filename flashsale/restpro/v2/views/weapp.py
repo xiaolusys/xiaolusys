@@ -92,7 +92,7 @@ class WeAppViewSet(viewsets.ViewSet):
 
         unionid = item.unionid if item else ''
         if unionid:
-            customer = Customer.objects.get(unionid=unionid)
+            customer = Customer.objects.filter(unionid=unionid).first()
             data['unionid'] = unionid
             data['customer_id'] = customer.id
 
