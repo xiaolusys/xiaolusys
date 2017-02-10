@@ -213,7 +213,6 @@ def give_gift_score_to_new_elite_mama(customer, to_mama, so):
     coupon_num = 0
     template_id = 365
 
-    _, _, agent_price = get_elite_score_by_templateid(template_id, to_mama)
     try:
         transfer = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id,
                                         from_mama_thumbnail=from_mama_thumbnail,
@@ -226,7 +225,7 @@ def give_gift_score_to_new_elite_mama(customer, to_mama, so):
                                         product_id=so.item_id, elite_score=elite_score,
                                         uni_key=uni_key, date_field=date_field, transfer_status=transfer_status,
                                         elite_level=to_mama.elite_level,
-                                        to_mama_price=agent_price
+                                        to_mama_price=0
                                         )
         transfer.save()
         # uni_key = "gift-365elite-out-%s" % (to_mama.id)
