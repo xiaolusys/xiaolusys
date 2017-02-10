@@ -494,7 +494,7 @@ class CouponTransferRecord(BaseModel):
         transfer_status = CouponTransferRecord.DELIVERED
         uni_key = "%s-%s-%s" % (coupon_to_mama_id, transfer_type, order_oid)  # every trade, only return once.
 
-        template_id = 156
+        template_id = 374
         template = CouponTemplate.objects.get(id=template_id)
         coupon_value = template.value
         product_img = template.extras.get("product_img") or ''

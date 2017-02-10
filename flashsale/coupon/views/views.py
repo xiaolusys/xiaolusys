@@ -227,7 +227,7 @@ class SendTransferEliteScore(APIView):
             from ..apis.v1.coupontemplate import get_coupon_template_by_id
             from flashsale.pay.apis.v1.customer import get_customer_by_id
 
-            template = get_coupon_template_by_id(id=156)
+            template = get_coupon_template_by_id(id=374)
             customer = get_customer_by_id(int(customer_id))
             transfer_in = create_present_elite_score(customer, int(elite_score), template, rank)
             log_action(request.user, transfer_in, ADDITION, '赠送积分: 赠送')
