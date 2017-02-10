@@ -166,10 +166,28 @@ def double_mama_score():
             from flashsale.pay.apis.v1.customer import get_customer_by_id
 
             if score > origin_score:
-                template = get_coupon_template_by_id(id=156)
+                template = get_coupon_template_by_id(id=374)
                 customer = get_customer_by_id(mama.customer_id)
                 transfer_in = create_present_elite_score(customer, int(score - origin_score), template, 1)
                 log_action(sys_oa, transfer_in, ADDITION, '0208升级分数翻倍赠送积分: 赠送')
                 # log_action(sys_oa, transfer_out, ADDITION, '0208升级分数翻倍赠送积分: 消耗')
         except Exception as e:
             pass
+
+
+def modify_mama_transferrecord_couponnum():
+    from flashsale.coupon.models.transfer_coupon import CouponTransferRecord
+    from_time = datetime.datetime(2017, 2, 8, 0, 0, 0, 0)
+    to_time = datetime.datetime(2017, 2, 9, 23, 59, 0, 0)
+    has_add = CouponTransferRecord.objects.filter(
+        transfer_status=CouponTransferRecord.DELIVERED,
+        transfer_type__in=[CouponTransferRecord.IN_GIFT_COUPON, CouponTransferRecord.OUT_CONSUMED],
+        created__range=(from_time, to_time)
+    )
+
+    for ct in has_add:
+        if ct.uni_key.startswith('elite'):
+            ct.coupon_value = 0
+            ct.coupon_num = 0
+            ct.product_id = 0
+            ct.save()

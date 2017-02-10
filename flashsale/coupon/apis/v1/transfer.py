@@ -377,7 +377,7 @@ def send_new_elite_transfer_coupons(customer_id, order_id, order_oid, product_id
     #model_product = ModelProduct.objects.filter(id=product.model_id).first()
     #template_id = model_product.extras.get("template_id")
     customer = Customer.objects.get(id=customer_id)
-    template_id = 156
+    template_id = 374
 
     template = get_coupon_template_by_id(id=template_id)
     index = 0
