@@ -464,14 +464,16 @@ class InBoundViewSet(viewsets.GenericViewSet):
         return Response({})
 
     def retrieve(self, request, pk=None):
-        inbound = get_object_or_404(InBound, id=pk)
+        inbound  = get_object_or_404(InBound, id=pk)
         supplier = inbound.supplier
+        batch_no = inbound.get_batch_no()
 
         result = {
             'supplier_id': supplier.id,
             'supplier_name': supplier.supplier_name,
             'warehouses': self.WARE_HOUSES,
-            'inbound': inbound
+            'inbound': inbound,
+            'batch_no': batch_no,
         }
         if inbound.status == InBound.PENDING:
             template_name = 'dinghuo/inbound_allocate.html'

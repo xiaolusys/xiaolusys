@@ -9,7 +9,9 @@ from django.db.models.signals import post_save
 from django.contrib.auth.models import User
 from django.db import transaction
 from core.utils.modelutils import update_model_fields
+from core.utils.barcode import number2char
 from core.models import BaseModel
+
 from shopback.items.models import Product, SkuStock
 from flashsale.pay.models import ProductSku
 from shopback.warehouse.constants import WARE_CHOICES, WARE_NONE, WARE_GZ
@@ -24,6 +26,21 @@ def gen_purchase_order_group_key(order_ids):
     sorted_ids = [int(s) for s in order_ids]
     sorted_ids.sort()
     return '-%s-' % ('-'.join([str(s) for s in sorted_ids]))
+
+
+def parse_number_to_char(number):
+    char_list = []
+    while number >= 26:
+        div_index, number = number / 26, number % 26
+        char_list.append(div_index)
+
+    char_list.append(number / 26)
+    char_list.reverse()
+    return ''.join(map(number2char, char_list)).rjust(4,'0')
+
+def gen_batch_no():
+    order_count = OrderList.objects.count()
+    return parse_number_to_char(order_count)
 
 
 class OrderList(models.Model):
@@ -112,6 +129,8 @@ class OrderList(models.Model):
     )
 
     id = models.AutoField(primary_key=True)
+    batch_no = models.CharField(max_length=8, default=gen_batch_no, blank=True, verbose_name=u'批次编号') #, unique=True
+
     buyer = models.ForeignKey(User,
                               null=True,
                               related_name='dinghuo_orderlists',

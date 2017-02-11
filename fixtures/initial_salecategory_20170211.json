@@ -1,0 +1,1282 @@
+[
+{
+  "model": "supplier.salecategory",
+  "pk": 1,
+  "fields": {
+    "created": "2014-12-09T06:25:20",
+    "modified": "2016-12-26T10:10:44",
+    "cid": "1",
+    "parent_cid": "0",
+    "name": "\u7ae5\u88c5",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/child1013.png",
+    "grade": 1,
+    "is_parent": true,
+    "sort_order": 80,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 2,
+  "fields": {
+    "created": "2014-12-09T06:49:09",
+    "modified": "2016-12-26T10:10:51",
+    "cid": "2",
+    "parent_cid": "0",
+    "name": "\u5973\u88c5",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/women1013.png",
+    "grade": 1,
+    "is_parent": true,
+    "sort_order": 100,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 3,
+  "fields": {
+    "created": "2016-07-22T22:38:38",
+    "modified": "2017-02-10T21:24:54",
+    "cid": "3",
+    "parent_cid": "0",
+    "name": "\u98df\u54c1\u4fdd\u5065",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/meishi1013.png",
+    "grade": 1,
+    "is_parent": true,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 4,
+  "fields": {
+    "created": "2014-12-29T12:43:44",
+    "modified": "2016-12-26T10:10:05",
+    "cid": "4",
+    "parent_cid": "0",
+    "name": "\u9970\u54c1",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/peishi1013.png",
+    "grade": 1,
+    "is_parent": true,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 59,
+  "fields": {
+    "created": "2015-07-02T09:11:49",
+    "modified": "2017-02-11T11:19:12",
+    "cid": "5-145-59",
+    "parent_cid": "5-145",
+    "name": "\u5973\u88c5\u5916\u5957",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/lady/waitao.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 93,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 60,
+  "fields": {
+    "created": "2015-07-02T09:14:38",
+    "modified": "2017-02-11T11:20:28",
+    "cid": "5-145-60",
+    "parent_cid": "5-145",
+    "name": "\u5973\u88c5\u88d9\u88c5",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/lady/qunzhuang.png?",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 94,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 61,
+  "fields": {
+    "created": "2015-07-02T09:14:52",
+    "modified": "2017-02-11T11:20:43",
+    "cid": "5-145-61",
+    "parent_cid": "5-145",
+    "name": "\u5973\u88c5\u5957\u88c5",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/lady/taozhuang.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 95,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 62,
+  "fields": {
+    "created": "2015-07-02T09:15:03",
+    "modified": "2017-02-11T11:21:00",
+    "cid": "5-145-62",
+    "parent_cid": "5-145",
+    "name": "\u5973\u88c5\u88e4\u88c5",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/lady/kuzhuang.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 96,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 63,
+  "fields": {
+    "created": "2015-07-02T09:15:34",
+    "modified": "2017-02-11T11:14:32",
+    "cid": "5-145-63",
+    "parent_cid": "5-145",
+    "name": "\u7ae5\u88c5\u4e0a\u88c5",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/child/shangzhuang.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 79,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 64,
+  "fields": {
+    "created": "2015-07-02T09:16:04",
+    "modified": "2017-02-11T11:15:38",
+    "cid": "5-145-64",
+    "parent_cid": "5-145",
+    "name": "\u7ae5\u88c5\u88d9\u88c5",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/child/qunzhuang.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 75,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 65,
+  "fields": {
+    "created": "2015-07-02T09:16:17",
+    "modified": "2017-02-11T11:15:22",
+    "cid": "5-145-65",
+    "parent_cid": "5-145",
+    "name": "\u7ae5\u88c5\u5957\u88c5",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/child/taozhuang.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 76,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 66,
+  "fields": {
+    "created": "2015-07-02T09:16:35",
+    "modified": "2017-02-11T11:16:15",
+    "cid": "5-145-66",
+    "parent_cid": "5-145",
+    "name": "\u7ae5\u88c5\u5916\u5957",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/child/waitao.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 78,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 67,
+  "fields": {
+    "created": "2015-07-02T09:16:51",
+    "modified": "2017-02-11T11:16:47",
+    "cid": "5-145-67",
+    "parent_cid": "5-145",
+    "name": "\u8fde\u4f53\u8863",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/child/liantiyi.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 70,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 68,
+  "fields": {
+    "created": "2015-07-02T09:17:05",
+    "modified": "2017-02-11T11:17:17",
+    "cid": "5-145-68",
+    "parent_cid": "5-145",
+    "name": "\u7ae5\u88c5\u88e4\u88c5",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/child/kuzhuang.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 74,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 70,
+  "fields": {
+    "created": "2015-07-04T16:00:34",
+    "modified": "2017-02-11T11:21:15",
+    "cid": "5-145-70",
+    "parent_cid": "5-145",
+    "name": "\u5973\u88c5\u4e0a\u8863",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/lady/shangyi.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 97,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 71,
+  "fields": {
+    "created": "2015-08-27T17:46:54",
+    "modified": "2017-02-11T11:21:28",
+    "cid": "5-145-71",
+    "parent_cid": "5-145",
+    "name": "\u5973\u88c5\u5185\u8863",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/lady/neiyi.png?",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 98,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 72,
+  "fields": {
+    "created": "2015-10-13T13:54:26",
+    "modified": "2017-02-11T11:17:40",
+    "cid": "5-145-72",
+    "parent_cid": "5-145",
+    "name": "\u7ae5\u88c5\u914d\u9970",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/child/peishi.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 71,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 73,
+  "fields": {
+    "created": "2015-10-13T13:56:43",
+    "modified": "2017-02-11T11:21:45",
+    "cid": "5-145-73",
+    "parent_cid": "5-145",
+    "name": "\u5973\u88c5\u914d\u9970",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/lady/peishi.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 99,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 74,
+  "fields": {
+    "created": "2015-10-14T10:13:14",
+    "modified": "2017-02-11T11:18:08",
+    "cid": "5-145-74",
+    "parent_cid": "5-145",
+    "name": "\u4eb2\u5b50\u88c5",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/child/qinzizhuang.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 72,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 75,
+  "fields": {
+    "created": "2015-10-29T14:18:09",
+    "modified": "2017-02-11T11:18:27",
+    "cid": "5-145-75",
+    "parent_cid": "5-145",
+    "name": "\u7ae5\u88c5\u5185\u8863",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/child/neiyi.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 73,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 81,
+  "fields": {
+    "created": "2016-08-04T09:34:09",
+    "modified": "2016-12-26T10:10:12",
+    "cid": "6",
+    "parent_cid": "0",
+    "name": "\u7bb1\u5305",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/bag1013.png",
+    "grade": 1,
+    "is_parent": true,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 82,
+  "fields": {
+    "created": "2016-08-04T09:38:57",
+    "modified": "2017-02-11T11:27:19",
+    "cid": "5-145-81",
+    "parent_cid": "5-145",
+    "name": "\u624b\u63d0\u5305",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/bags/shoutibao.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 83,
+  "fields": {
+    "created": "2016-08-06T16:00:06",
+    "modified": "2017-02-11T11:25:00",
+    "cid": "5-145-82",
+    "parent_cid": "5-145",
+    "name": "\u884c\u674e\u7bb1",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/bags/xinglixiang.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 84,
+  "fields": {
+    "created": "2016-08-06T16:00:30",
+    "modified": "2017-02-11T11:24:46",
+    "cid": "5-145-83",
+    "parent_cid": "5-145",
+    "name": "\u94b1\u5305",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/bags/qianbao.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 85,
+  "fields": {
+    "created": "2016-08-06T16:00:51",
+    "modified": "2017-02-11T11:24:28",
+    "cid": "5-145-84",
+    "parent_cid": "5-145",
+    "name": "\u624b\u62ff\u5305",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/bags/shounabao.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 86,
+  "fields": {
+    "created": "2016-08-06T16:02:35",
+    "modified": "2017-02-11T11:24:21",
+    "cid": "5-145-85",
+    "parent_cid": "5-145",
+    "name": "\u80a9\u80cc\u5305",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/bags/jianbeibao.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 87,
+  "fields": {
+    "created": "2016-08-16T11:27:28",
+    "modified": "2017-02-11T11:07:43",
+    "cid": "3-140-87",
+    "parent_cid": "3-140",
+    "name": "\u4f11\u95f2\u96f6\u98df",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/food/snack.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 88,
+  "fields": {
+    "created": "2016-08-16T11:27:58",
+    "modified": "2017-02-11T11:09:05",
+    "cid": "3-141-88",
+    "parent_cid": "3-141",
+    "name": "\u517b\u751f\u8336\u996e",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/food/tea.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 89,
+  "fields": {
+    "created": "2016-08-16T11:28:13",
+    "modified": "2017-02-11T11:07:19",
+    "cid": "3-140-89",
+    "parent_cid": "3-140",
+    "name": "\u5357\u5317\u5e72\u8d27",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/food/drycargo.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 90,
+  "fields": {
+    "created": "2016-08-16T11:28:40",
+    "modified": "2017-02-11T11:10:12",
+    "cid": "3-142-90",
+    "parent_cid": "3-142",
+    "name": "\u4fdd\u5065\u6ecb\u8865",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/food/health.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 91,
+  "fields": {
+    "created": "2016-08-16T14:05:50",
+    "modified": "2017-02-10T21:25:13",
+    "cid": "5",
+    "parent_cid": "0",
+    "name": "\u6bcd\u5a74\u7528\u54c1",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/muying1013.png",
+    "grade": 1,
+    "is_parent": true,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 92,
+  "fields": {
+    "created": "2016-08-16T14:06:58",
+    "modified": "2017-02-11T11:28:53",
+    "cid": "5-145-92",
+    "parent_cid": "5-145",
+    "name": "\u4e66\u5305\u6587\u5177",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/muying/shubaowenju.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 93,
+  "fields": {
+    "created": "2016-08-16T14:07:29",
+    "modified": "2017-02-11T11:28:44",
+    "cid": "5-145-93",
+    "parent_cid": "5-145",
+    "name": "\u76ca\u667a\u73a9\u5177",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/muying/yizhiyouxi.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 94,
+  "fields": {
+    "created": "2016-08-16T14:11:05",
+    "modified": "2017-02-11T11:28:37",
+    "cid": "5-145-94",
+    "parent_cid": "5-145",
+    "name": "\u5a74\u7ae5\u5bb6\u5c45",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/muying/yingtongjiaju.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 95,
+  "fields": {
+    "created": "2016-08-16T14:11:30",
+    "modified": "2017-02-11T11:12:40",
+    "cid": "5-144-95",
+    "parent_cid": "5-144",
+    "name": "\u5b55\u5988\u4e13\u533a",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/muying/yunmazhuanqu.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 96,
+  "fields": {
+    "created": "2016-08-16T14:37:25",
+    "modified": "2017-02-11T11:18:45",
+    "cid": "5-145-96",
+    "parent_cid": "5-145",
+    "name": "\u6f14\u51fa\u670d",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/child/yanchufu.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 77,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 97,
+  "fields": {
+    "created": "2016-08-24T14:06:06",
+    "modified": "2017-02-10T21:24:12",
+    "cid": "7",
+    "parent_cid": "0",
+    "name": "\u7f8e\u5986\u6d17\u62a4",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/meizhuang1013.png",
+    "grade": 1,
+    "is_parent": true,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 98,
+  "fields": {
+    "created": "2016-08-24T14:07:46",
+    "modified": "2017-02-11T11:00:38",
+    "cid": "8",
+    "parent_cid": "0",
+    "name": "\u5bb6\u5c45\u767e\u8d27",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/jiaju1013.png",
+    "grade": 1,
+    "is_parent": true,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 99,
+  "fields": {
+    "created": "2016-08-24T14:10:46",
+    "modified": "2017-02-11T11:06:05",
+    "cid": "8-139-99",
+    "parent_cid": "8-139",
+    "name": "\u4fdd\u6e29\u676f",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/jiaju/baowenbei.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 100,
+  "fields": {
+    "created": "2016-08-24T14:11:58",
+    "modified": "2017-02-11T10:55:31",
+    "cid": "7-134-100",
+    "parent_cid": "7-134",
+    "name": "\u9762\u819c",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/meizhuang/mianmo.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 101,
+  "fields": {
+    "created": "2016-08-24T14:17:13",
+    "modified": "2017-02-11T11:00:07",
+    "cid": "7-136-101",
+    "parent_cid": "7-136",
+    "name": "\u6d17\u62a4",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/meizhuang/xihu.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 102,
+  "fields": {
+    "created": "2016-08-24T15:52:42",
+    "modified": "2017-02-11T10:55:19",
+    "cid": "7-134-102",
+    "parent_cid": "7-134",
+    "name": "\u62a4\u80a4",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/meizhuang/hufu.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 103,
+  "fields": {
+    "created": "2016-08-24T15:55:41",
+    "modified": "2017-02-11T10:58:49",
+    "cid": "7-135-103",
+    "parent_cid": "7-135",
+    "name": "\u5f69\u5986",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/meizhuang/caizhuang.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 105,
+  "fields": {
+    "created": "2016-08-25T17:01:37",
+    "modified": "2017-02-11T10:58:36",
+    "cid": "7-135-105",
+    "parent_cid": "7-135",
+    "name": "\u9999\u6c34",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/meizhuang/xiangshui.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 106,
+  "fields": {
+    "created": "2016-08-30T17:10:52",
+    "modified": "2017-02-11T11:07:05",
+    "cid": "3-140-106",
+    "parent_cid": "3-140",
+    "name": "\u997c\u5e72\u7cd5\u70b9",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/food/biscuit.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 111,
+  "fields": {
+    "created": "2016-09-07T15:05:13",
+    "modified": "2017-02-11T11:05:47",
+    "cid": "8-139-111",
+    "parent_cid": "8-139",
+    "name": "\u5c0f\u7535\u5668",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/jiaju/dianqi.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 112,
+  "fields": {
+    "created": "2016-09-07T15:33:06",
+    "modified": "2017-02-11T11:28:30",
+    "cid": "5-145-112",
+    "parent_cid": "5-145",
+    "name": "\u7ae5\u978b",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/muying/tongxie.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 113,
+  "fields": {
+    "created": "2016-09-07T16:57:34",
+    "modified": "2017-02-11T11:03:15",
+    "cid": "8-138-113",
+    "parent_cid": "8-138",
+    "name": "\u5bb6\u7eba",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/jiaju/jiafang.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 114,
+  "fields": {
+    "created": "2016-09-08T18:11:51",
+    "modified": "2017-02-11T11:05:35",
+    "cid": "8-139-114",
+    "parent_cid": "8-139",
+    "name": "\u53a8\u5177",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/jiaju/chuju.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 115,
+  "fields": {
+    "created": "2016-09-09T13:33:32",
+    "modified": "2017-02-11T11:02:01",
+    "cid": "8-137-115",
+    "parent_cid": "8-137",
+    "name": "\u6536\u7eb3\u6e05\u6d01",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/jiaju/shounaqingjie.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 116,
+  "fields": {
+    "created": "2016-09-09T15:36:47",
+    "modified": "2016-09-30T16:25:36",
+    "cid": "8-116",
+    "parent_cid": "8",
+    "name": "xxxxxxxxxxxx",
+    "cat_pic": "",
+    "grade": 2,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "delete"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 117,
+  "fields": {
+    "created": "2016-09-09T15:41:44",
+    "modified": "2017-02-11T11:05:15",
+    "cid": "8-139-117",
+    "parent_cid": "8-139",
+    "name": "\u62d6\u978b",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/jiaju/tuoxie.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 118,
+  "fields": {
+    "created": "2016-09-12T16:49:53",
+    "modified": "2017-02-11T11:28:23",
+    "cid": "5-145-118",
+    "parent_cid": "5-145",
+    "name": "\u7ed8\u672c",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/muying/huiben.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 119,
+  "fields": {
+    "created": "2016-09-13T17:10:50",
+    "modified": "2017-02-11T11:04:37",
+    "cid": "8-139-119",
+    "parent_cid": "8-139",
+    "name": "\u96e8\u4f1e",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/jiaju/yushan.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 120,
+  "fields": {
+    "created": "2016-09-20T14:45:20",
+    "modified": "2017-02-11T11:28:01",
+    "cid": "5-145-120",
+    "parent_cid": "5-145",
+    "name": "\u6f6e\u6d41\u9970\u54c1",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/peishi/accessories.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 121,
+  "fields": {
+    "created": "2016-09-20T14:45:39",
+    "modified": "2017-02-11T11:23:44",
+    "cid": "5-145-121",
+    "parent_cid": "5-145",
+    "name": "\u9879\u94fe",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/peishi/necklace.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 122,
+  "fields": {
+    "created": "2016-09-20T14:45:54",
+    "modified": "2017-02-11T11:23:36",
+    "cid": "5-145-122",
+    "parent_cid": "5-145",
+    "name": "\u8033\u73af",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/peishi/earring.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 123,
+  "fields": {
+    "created": "2016-09-20T14:46:08",
+    "modified": "2017-02-11T11:23:27",
+    "cid": "5-145-123",
+    "parent_cid": "5-145",
+    "name": "\u624b\u956f",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/peishi/bracelet.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 124,
+  "fields": {
+    "created": "2016-09-20T14:46:22",
+    "modified": "2017-02-11T11:23:17",
+    "cid": "5-145-124",
+    "parent_cid": "5-145",
+    "name": "\u773c\u955c",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/peishi/glasses.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 125,
+  "fields": {
+    "created": "2016-09-20T14:46:36",
+    "modified": "2017-02-11T11:22:49",
+    "cid": "5-145-125",
+    "parent_cid": "5-145",
+    "name": "\u6c34\u6676\u9970\u54c1",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/peishi/crystal.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 126,
+  "fields": {
+    "created": "2016-09-30T16:25:10",
+    "modified": "2017-02-11T11:04:59",
+    "cid": "8-139-126",
+    "parent_cid": "8-139",
+    "name": "\u533b\u7597\u4fdd\u5065",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/jiaju/yiliaobaojian.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 127,
+  "fields": {
+    "created": "2016-11-22T15:38:18",
+    "modified": "2016-11-22T15:38:18",
+    "cid": "9",
+    "parent_cid": "0",
+    "name": "\u978b\u5b50",
+    "cat_pic": "http://img.xiaolumeimei.com/TT1479800267214lALOiKULgs0Ce80Cmw_667_635.png",
+    "grade": 1,
+    "is_parent": true,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 128,
+  "fields": {
+    "created": "2016-11-23T10:32:38",
+    "modified": "2017-02-11T11:31:11",
+    "cid": "5-145-128",
+    "parent_cid": "5-145",
+    "name": "\u5973\u978b",
+    "cat_pic": "",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 129,
+  "fields": {
+    "created": "2016-11-23T10:33:06",
+    "modified": "2017-02-11T11:31:07",
+    "cid": "5-145-129",
+    "parent_cid": "5-145",
+    "name": "\u7537\u978b",
+    "cat_pic": "",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 130,
+  "fields": {
+    "created": "2016-11-23T10:33:42",
+    "modified": "2017-02-11T11:31:01",
+    "cid": "5-145-130",
+    "parent_cid": "5-145",
+    "name": "\u7ae5\u978b",
+    "cat_pic": "",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 131,
+  "fields": {
+    "created": "2016-11-23T10:34:18",
+    "modified": "2017-02-11T11:30:57",
+    "cid": "5-145-131",
+    "parent_cid": "5-145",
+    "name": "\u62d6\u978b",
+    "cat_pic": "",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 132,
+  "fields": {
+    "created": "2016-12-08T17:47:05",
+    "modified": "2017-02-11T11:11:46",
+    "cid": "5-143-132",
+    "parent_cid": "5-143",
+    "name": "\u5976\u7c89",
+    "cat_pic": "",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 133,
+  "fields": {
+    "created": "2017-01-23T18:09:58",
+    "modified": "2017-02-11T10:54:44",
+    "cid": "7-134-133",
+    "parent_cid": "7-134",
+    "name": "\u4e2a\u4eba\u62a4\u7406",
+    "cat_pic": "",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 134,
+  "fields": {
+    "created": "2017-02-11T10:53:06",
+    "modified": "2017-02-11T10:53:06",
+    "cid": "7-134",
+    "parent_cid": "7",
+    "name": "\u62a4\u80a4\u4fdd\u517b",
+    "cat_pic": "",
+    "grade": 2,
+    "is_parent": true,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 135,
+  "fields": {
+    "created": "2017-02-11T10:58:08",
+    "modified": "2017-02-11T10:58:08",
+    "cid": "7-135",
+    "parent_cid": "7",
+    "name": "\u7f8e\u5986\u9632\u62a4",
+    "cat_pic": "",
+    "grade": 2,
+    "is_parent": true,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 136,
+  "fields": {
+    "created": "2017-02-11T10:59:39",
+    "modified": "2017-02-11T10:59:39",
+    "cid": "7-136",
+    "parent_cid": "7",
+    "name": "\u4e2a\u4eba\u6d17\u62a4",
+    "cat_pic": "",
+    "grade": 2,
+    "is_parent": true,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 137,
+  "fields": {
+    "created": "2017-02-11T11:01:14",
+    "modified": "2017-02-11T11:01:14",
+    "cid": "8-137",
+    "parent_cid": "8",
+    "name": "\u65e5\u5e38\u6e05\u6d01",
+    "cat_pic": "",
+    "grade": 2,
+    "is_parent": true,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 138,
+  "fields": {
+    "created": "2017-02-11T11:02:35",
+    "modified": "2017-02-11T11:02:35",
+    "cid": "8-138",
+    "parent_cid": "8",
+    "name": "\u5bb6\u5c45\u5bb6\u7eba",
+    "cat_pic": "",
+    "grade": 2,
+    "is_parent": true,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 139,
+  "fields": {
+    "created": "2017-02-11T11:04:20",
+    "modified": "2017-02-11T11:04:20",
+    "cid": "8-139",
+    "parent_cid": "8",
+    "name": "\u7efc\u5408\u767e\u8d27",
+    "cat_pic": "",
+    "grade": 2,
+    "is_parent": true,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 140,
+  "fields": {
+    "created": "2017-02-11T11:06:51",
+    "modified": "2017-02-11T11:06:51",
+    "cid": "3-140",
+    "parent_cid": "3",
+    "name": "\u98df\u54c1\u96f6\u98df",
+    "cat_pic": "",
+    "grade": 2,
+    "is_parent": true,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 141,
+  "fields": {
+    "created": "2017-02-11T11:08:11",
+    "modified": "2017-02-11T11:08:35",
+    "cid": "3-141",
+    "parent_cid": "3",
+    "name": "\u996e\u54c1\u51b2\u5242",
+    "cat_pic": "",
+    "grade": 2,
+    "is_parent": true,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 142,
+  "fields": {
+    "created": "2017-02-11T11:09:48",
+    "modified": "2017-02-11T11:09:48",
+    "cid": "3-142",
+    "parent_cid": "3",
+    "name": "\u4fdd\u5065\u54c1",
+    "cat_pic": "",
+    "grade": 2,
+    "is_parent": true,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 143,
+  "fields": {
+    "created": "2017-02-11T11:11:33",
+    "modified": "2017-02-11T11:11:33",
+    "cid": "5-143",
+    "parent_cid": "5",
+    "name": "\u65b0\u751f\u7528\u54c1",
+    "cat_pic": "",
+    "grade": 2,
+    "is_parent": true,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 144,
+  "fields": {
+    "created": "2017-02-11T11:12:20",
+    "modified": "2017-02-11T11:12:20",
+    "cid": "5-144",
+    "parent_cid": "5",
+    "name": "\u5b55\u5987\u7528\u54c1",
+    "cat_pic": "",
+    "grade": 2,
+    "is_parent": true,
+    "sort_order": 0,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 145,
+  "fields": {
+    "created": "2017-02-11T11:13:15",
+    "modified": "2017-02-11T11:13:15",
+    "cid": "5-145",
+    "parent_cid": "5",
+    "name": "\u6bcd\u5a74\u5bb6\u5c45",
+    "cat_pic": "",
+    "grade": 2,
+    "is_parent": true,
+    "sort_order": 0,
+    "status": "normal"
+  }
+}
+]

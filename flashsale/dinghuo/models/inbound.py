@@ -586,6 +586,14 @@ class InBound(models.Model):
         inferior_str =  u'次%d' % self.all_inferior_quantity if self.all_inferior_quantity > 0 else ''
         return self.get_status_display() + wrong_str + more_str + inferior_str
 
+    def get_batch_no(self):
+        batch_no = ''
+        orderlist_id = self.ori_orderlist_id or (self.orderlist_ids and self.orderlist_ids[0] or None)
+        if orderlist_id:
+            orderlist = OrderList.objects.filter(id=orderlist_id).first()
+            batch_no = orderlist and orderlist.batch_no or ''
+        return batch_no
+
     @property
     def all_quantity(self):
         return self.details.aggregate(n=Sum('arrival_quantity') + Sum('inferior_quantity')).get('n', 0) or 0

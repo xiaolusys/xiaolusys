@@ -2,7 +2,7 @@
 from rest_framework import serializers
 
 from supplychain.supplier.models import SaleSupplier
-from .models import LackGoodOrder
+from .models import LackGoodOrder, OrderList
 from .models.inbound import InBound
 
 class SupplierSerializer(serializers.ModelSerializer):
@@ -33,3 +33,10 @@ class InBoundSerializer(serializers.ModelSerializer):
     class Meta:
         model = InBound
         fields = ('id', 'status', 'ware_by')
+
+
+
+
+
+
+

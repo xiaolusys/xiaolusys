@@ -728,36 +728,18 @@ class Product(models.Model):
         supplier: 选品供应商
         item_category: 产品类别
         """
-        category_maps = {
-            3: '3',
-            39: '3',
-            6: '6',
-            5: '9',
-            52: '5',
-            44: '7',
-            8: '8',
-            49: '4',
-            10: '1'
-        }
-        if not item_category:
-            return None
-        elif item_category.cid == 9:
-            outer_id = "100" + "%05d" % supplier.id
-        else:
-            outer_id = category_maps.get(item_category.parent_cid, '0') + str(item_category.cid) + "%05d" % supplier.id
-
-        count = cls.objects.filter(outer_id__startswith=outer_id).count() or 1
-        inner_outer_id = outer_id + "%03d" % count
+        from core.utils import barcode
+        PREFIX = 'SP'
+        latest_pro = cls.objects.filter(outer_id__startswith=PREFIX).order_by('-outer_id').first()
+        inner_no = barcode.gen(digit_num=5, begin=latest_pro and latest_pro.outer_id.replace(PREFIX, '') or 0)
         while True:
             product_ins = cls.objects.filter(
-                models.Q(outer_id__startswith=inner_outer_id)|models.Q(outer_id__startswith='RMB%s'%inner_outer_id)).count()
-            if not product_ins or count > 998:
+                models.Q(outer_id__startswith='SP%s'%inner_no)|models.Q(outer_id__startswith='RMB%s'%inner_no)).count()
+            if not product_ins:
                 break
-            count += 1
-            inner_outer_id = outer_id + "%03d" % count
-        if len(inner_outer_id) > 12:
-            raise Exception(u"编码位数不能超出12位")
-        return inner_outer_id
+            inner_no = barcode.gen(digit_num=5, begin=inner_no)
+
+        return PREFIX + inner_no
 
     @classmethod
     def update_or_create_product_and_skus(cls, model_pro, *args, **kwargs):
@@ -852,7 +834,11 @@ class Product(models.Model):
         skus_list: sku 的列表信息
         inner_outer_id: 生成的内部编码
         model_pro: 产品款式
+        编码规则: SP12345XY (X,Y为商品颜色和尺码序号)
         """
+
+        def _num2char(number):
+            return 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[int(number)%26]
 
         def _get_valid_procount(outerid, pro_count, id_maps):
             next_id = outerid + str(pro_count)
@@ -910,7 +896,7 @@ class Product(models.Model):
                 pro_count += 1
             pro_count = _get_valid_procount(inner_outer_id, pro_count, productid_maps)
             pro_dict = productname_maps.get(pro['name'])
-            outer_id = pro_dict and pro_dict['outer_id'] or inner_outer_id + str(pro_count)
+            outer_id = pro_dict and pro_dict['outer_id'] or inner_outer_id + _num2char(pro_count)
             color_skus = []
             for sku in skus_list:
                 if sku['color'] == pro['name']:
@@ -936,7 +922,7 @@ class Product(models.Model):
             for color_sku in color_skus:
                 sku_count = _get_valid_procount(outer_id, sku_count, skuid_maps)
                 sku_dict = skuname_maps.get('%s-%s' % (pro['name'], color_sku['properties_name']))
-                sku_outer_id = sku_dict and sku_dict['outer_id'] or outer_id + str(sku_count)
+                sku_outer_id = sku_dict and sku_dict['outer_id'] or outer_id + _num2char(sku_count)
                 barcode = sku_dict and sku_dict['barcode'] or '%s%d' % (outer_id, sku_count)
 
                 product_skus_list.append({

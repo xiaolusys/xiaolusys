@@ -181,7 +181,9 @@
                 </td>
                 <td>{{detail.sku.properties_name}}</td>
                 <td>
-                    <a href="/admin/items/skustock/?sku_id={{detail.sku.id}}" target="_blank" title="Sku明细">{{detail.sku.barcode}}</a>
+                    <a href="/admin/items/skustock/?sku_id={{detail.sku.id}}" target="_blank" title="Sku明细">
+                        {% if batch_no %}{{detail.sku.barcode}}-{{batch_no}}{% else %}{{detail.sku.barcode}}{% endif %}
+                    </a>
                 </td>
                 <td>
                     {{detail.arrival_quantity|add:detail.inferior_quantity}}
