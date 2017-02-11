@@ -385,7 +385,6 @@ class PackageOrder(models.Model):
         if save:
             self.save()
 
-
     def set_package_address(self):
         item = self.package_sku_items.filter(assign_status=PackageSkuItem.ASSIGNED).order_by('-id').first()
         if item and item.type == PSI_TYPE.NORMAL and item.sale_trade_id:
@@ -1037,6 +1036,10 @@ class PackageSkuItem(BaseModel):
         if not hasattr(self, '_product_sku_'):
             self._product_sku_ = ProductSku.objects.get(id=self.sku_id)
         return self._product_sku_
+
+    @property
+    def product(self):
+        return self.product_sku.product
 
     @property
     def package_order(self):

@@ -8,8 +8,9 @@ from django.shortcuts import get_object_or_404
 from django.http.response import HttpResponseBadRequest
 from shopback.trades.models import PackageOrder, PackageSkuItem
 from shopback.trades.serializers import PackageOrderSerializer
-from shopback.trades.forms import PackageOrderEditForm
+from shopback.trades.forms import PackageOrderEditForm, PackageOrderWareByForm, PackageOrderNoteForm
 from shopback.items.models import ProductSku
+
 
 class PackageOrderViewSet(viewsets.ModelViewSet):
     queryset = PackageOrder.objects.all()
@@ -64,3 +65,31 @@ class PackageOrderViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(package)
         return Response(serializer.data)
 
+    @list_route(methods=['post'])
+    def change_wareby(self, request, *args, **kwargs):
+        form = PackageOrderWareByForm(request.POST)
+        if not form.is_valid():
+            return HttpResponseBadRequest(form.errors.as_text())
+        ware_by = form.cleaned_data['ware_by']
+        pid = form.cleaned_data['pid']
+        package = get_object_or_404(PackageOrder, pid=pid)
+        package.ware_by = ware_by
+        package.save()
+        return Response({'status': 'success'})
+
+    def retrieve(self, request, *args, **kwargs):
+        package_order = self.get_object()
+        package_order = self.get_serializer(package_order).data
+        return Response({'package_order': package_order}, template_name="trades/package_order.html")
+
+    @list_route(methods=['post'])
+    def change_note(self, request, *args, **kwargs):
+        form = PackageOrderNoteForm(request.POST)
+        if not form.is_valid():
+            return HttpResponseBadRequest(form.errors.as_text())
+        note = form.cleaned_data['note']
+        pid = form.cleaned_data['pid']
+        package = get_object_or_404(PackageOrder, pid=pid)
+        package.seller_memo = note
+        package.save()
+        return Response({'res': 'success'})
