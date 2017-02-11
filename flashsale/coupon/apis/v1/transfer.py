@@ -531,25 +531,27 @@ def coupon_exchange_saleorder(customer, order_id, mama_id, template_ids, coupon_
             customer.id, mama_id, coupon_num, order_id, template_ids),
     })
 
-    # (1)sale order置为已经兑换
+
     from flashsale.pay.models.trade import SaleOrder
     from .transfercoupondetail import create_transfer_coupon_detail
     from .usercoupon import use_coupon_by_ids
 
     sale_order = SaleOrder.objects.filter(oid=order_id).first()
+    if sale_order:
+        if sale_order.status < SaleOrder.WAIT_BUYER_CONFIRM_GOODS:
+            logger.warn({'message': u'exchange order: order_id=%s status=%s' % (order_id, sale_order.status)})
+            raise exceptions.ValidationError(u'订单记录状态不对，兑换失败!')
+        if sale_order and sale_order.extras.has_key('exchange') and sale_order.extras['exchange'] == True:
+            logger.warn({'message': u'exchange order: order_id=%s has already exchg' % order_id})
+            raise exceptions.ValidationError(u'订单已经被兑换过了，兑换失败!')
+    else:
+        logger.warn({'message': u'exchange order: order_id=%s not exist' % order_id})
+        raise exceptions.ValidationError(u'找不到订单记录，兑换失败!')
+
     with transaction.atomic():
-        if sale_order:
-            if sale_order.status < SaleOrder.WAIT_BUYER_CONFIRM_GOODS:
-                logger.warn({'message': u'exchange order: order_id=%s status=%s' % (order_id, sale_order.status)})
-                raise exceptions.ValidationError(u'订单记录状态不对，兑换失败!')
-            if sale_order and sale_order.extras.has_key('exchange') and sale_order.extras['exchange'] == True:
-                logger.warn({'message': u'exchange order: order_id=%s has already exchg' % order_id})
-                raise exceptions.ValidationError(u'订单已经被兑换过了，兑换失败!')
-            sale_order.extras['exchange'] = True
-            SaleOrder.objects.filter(oid=order_id).update(extras=sale_order.extras)
-        else:
-            logger.warn({'message': u'exchange order: order_id=%s not exist' % order_id})
-            raise exceptions.ValidationError(u'找不到订单记录，兑换失败!')
+        # (1)sale order置为已经兑换
+        sale_order.extras['exchange'] = True
+        SaleOrder.objects.filter(oid=order_id).update(extras=sale_order.extras)
 
         # (2)用户优惠券需要变成使用状态,如果存在多个券通用情况，还要把多种券给使用掉
         left_num = coupon_num
