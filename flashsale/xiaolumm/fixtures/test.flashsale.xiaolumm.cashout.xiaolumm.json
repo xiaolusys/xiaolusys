@@ -22,7 +22,8 @@
     "qrcode_link": "",
     "cash": 0,
     "weikefu": "",
-    "target_complete": 0.0
+    "target_complete": 0.0,
+    "last_renew_type": 365
   },
   "model": "xiaolumm.xiaolumama",
   "pk": 1461
