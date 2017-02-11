@@ -32,9 +32,9 @@
         </legend>
     </div>
 <label>开始时间</label>
-<input type="text" id="start_time" size="20" value={{start_time}}></input>
+<input type="text" id="start_time" size="20" value={{start_time}} />
 <label>结束时间</label>
-<input type="text" id="end_time" size="20"  value={{end_time}}></input>
+<input type="text" id="end_time" size="20"  value={{end_time}} />
 <button onclick="get_time(this)">确认查询</button>
 
 <button><a href="/sale/dinghuo/supplier_sku/{{ supplier_sku.0.salesupplier_id }}/excel?start_time={{start_time}}&&end_time={{end_time}}">下载excel</a></button>

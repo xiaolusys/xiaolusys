@@ -46,6 +46,8 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class PackageOrderSerializer(serializers.ModelSerializer):
+    package_sku_items = serializers.SerializerMethodField('gen_package_sku_items', read_only=True)
+    logistics_company_name = serializers.SerializerMethodField('gen_logistics_company_name', read_only=True)
     class Meta:
         model = PackageOrder
         fields = ['pid', 'id', 'tid', 'action_type', 'ware_by', 'status', 'sys_status', 'sku_num', 'order_sku_num',
@@ -56,4 +58,34 @@ class PackageOrderSerializer(serializers.ModelSerializer):
                   'purchaser', 'supplier_id', 'operator', 'scanner', 'weighter', 'is_locked', 'is_charged',
                   'is_picking_print', 'is_express_print', 'is_send_sms', 'has_refund', 'created', 'modified',
                   'can_send_time', 'send_time', 'weight_time', 'charge_time', 'remind_time', 'consign_time',
-                  'reason_code', 'type']
+                  'reason_code', 'type', 'get_sys_status_display', 'package_sku_items', 'get_ware_by_display',
+                  'logistics_company_name', 'get_package_type_display']
+
+    def gen_logistics_company_name(self, obj):
+        return obj.logistics_company.name
+
+    def gen_package_sku_items(self, obj):
+        package_list = []
+        for package_sku_item in obj.package_sku_items.all():
+            package_list.append({
+                'id': package_sku_item.id,
+                'oid': package_sku_item.oid,
+                'sku_id': package_sku_item.sku_id,
+                'product_id': package_sku_item.product_sku.product_id,
+                'product_name': package_sku_item.product_sku.product.name,
+                'outer_id': package_sku_item.product_sku.product.outer_id,
+                'outer_sku_id': package_sku_item.product_sku.outer_id,
+                'sku_name': package_sku_item.product_sku.properties_name,
+                'pay_time': package_sku_item and package_sku_item.pay_time or obj.pay_time,
+                'book_time': package_sku_item and package_sku_item.book_time,
+                'assign_time': package_sku_item and package_sku_item.assign_time,
+                'num': package_sku_item.num,
+                'finish_time': package_sku_item and package_sku_item.finish_time,
+                'cancel_time': package_sku_item and package_sku_item.cancel_time,
+                'assign_status_display': package_sku_item and package_sku_item.get_assign_status_display() or '',
+                'status_display': package_sku_item and package_sku_item.get_status_display() or '',
+                'ware_by_display': package_sku_item and package_sku_item.get_ware_by_display() or '',
+                'note': package_sku_item.sys_note,
+                'init_assigned': package_sku_item.init_assigned
+            })
+        return package_list

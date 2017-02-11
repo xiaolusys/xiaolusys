@@ -44,9 +44,11 @@ import logging
 
 # fang  2015-8-19
 import re
+from core.admin import BaseModelAdmin
 from shopback.trades.models import TradeWuliu, ReturnWuLiu
 from shopback.trades.tasks import send_package_task, send_package_call_Back
 from shopback.trades.constants import PSI_TYPE
+from shopback.warehouse.constants import WARE_CHOICES
 logger = logging.getLogger('django.request')
 
 PHONE_RE = re.compile('^(1[0-9]{10}|([0-9]{3,4}-)?[0-9-]{6,8})$')
@@ -1296,12 +1298,12 @@ class ReturnWuliuAdmin(admin.ModelAdmin):
 admin.site.register(ReturnWuLiu, ReturnWuliuAdmin)
 
 
-class PackageOrderAdmin(admin.ModelAdmin):
+class PackageOrderAdmin(BaseModelAdmin):
     list_display = (
-        'pid', 'id_link', 'sys_status', 'type', 'out_sid', 'logistics_company_name', 'receiver_name', 'receiver_mobile',
+        'pid_link', 'id_link', 'sys_status', 'type', 'out_sid', 'logistics_company_name', 'receiver_name', 'receiver_mobile',
         'receiver_address_info',
         'payment', 'operator', 'is_picking_print', 'is_express_print', 'redo_sign',
-        'is_send_sms', 'has_refund', 'ware_by', 'created', 'send_time', 'weight_time',
+        'is_send_sms', 'has_refund', 'ware_by_select', 'created', 'send_time', 'weight_time',
         'consign_time', 'weight', 'merge_trade_id')
 
     search_fields = ['pid', 'id', 'out_sid', 'receiver_name', 'receiver_mobile']
@@ -1310,11 +1312,26 @@ class PackageOrderAdmin(admin.ModelAdmin):
     ordering = ['-sys_status']
     list_per_page = 50
 
+    def pid_link(self, obj):
+        return "<a href='/trades/package_order/%d'>%s</a>" % (obj.pid, obj.pid)
+    pid_link.short_description = u'PID'
+    pid_link.allow_tags = True
+
     def id_link(self, obj):
         return "<a href='/admin/trades/packageskuitem?package_order_pid=%d'>%s</a>" % (obj.pid, obj.id)
 
     id_link.short_description = u'包裹码'
     id_link.allow_tags = True
+
+    def ware_by_select(self, obj):
+        part = ['<select class="buyer-select" data-package-id="%d" data-wareby-id="%d" onchange="select_ware_by(this)">' % (obj.pid, obj.ware_by)]
+        for ware_by in [1, 2, 9]:
+            part.append('<option value="' + str(ware_by) + '" ' + ('selected=selected' if ware_by==obj.ware_by else '')+'>' + dict(WARE_CHOICES)[ware_by] +'</option>')
+        part.append('</select>')
+        return ''.join(part)
+    ware_by_select.short_description = u'仓库'
+    ware_by_select.allow_tags = True
+
 
     def receiver_address_info(self, obj):
         return obj.receiver_address_detail
@@ -1365,10 +1382,9 @@ class PackageOrderAdmin(admin.ModelAdmin):
         #         js = ("jquery/jquery-1.8.13.min.js","script/admin/adminpopup.js","script/trades/new_checkTrade.js",
         #               "layer-v1.9.2/layer/layer.js","bootstrap/js/bootstrap.js","script/trades/select_stock.js",)
         js = ("closure-library/closure/goog/base.js", "script/admin/adminpopup.js", "script/base.js",
-              "script/trades/checkpackage.js",
+              "script/trades/checkpackage.js", "script/trades/select_ware_by.js",
               "script/trades/tradetags.js", "script/trades/new_checkTrade.js", "layer-v1.9.2/layer/layer.js",
               "bootstrap/js/bootstrap.js", "jquery/jquery-1.8.13.min.js", "script/trades/select_stock.js")
-
 
 admin.site.register(PackageOrder, PackageOrderAdmin)
 

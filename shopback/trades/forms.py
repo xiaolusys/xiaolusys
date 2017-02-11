@@ -67,3 +67,18 @@ class PackageOrderEditForm(forms.ModelForm):
         fields = ["ware_by", "receiver_mobile", "receiver_name", "receiver_state", "receiver_city",
                               "receiver_district", "receiver_address"]
         # exclude = ['created']
+
+
+class PackageOrderWareByForm(forms.Form):
+    pid = forms.IntegerField()
+    ware_by = forms.IntegerField()
+
+
+class PackageOrderNoteForm(forms.Form):
+    pid = forms.IntegerField()
+    note = forms.CharField()
+
+
+class PackageOrderLogisticsCompanyForm(forms.Form):
+    pid = forms.IntegerField()
+    logistics_company_id = forms.IntegerField()
