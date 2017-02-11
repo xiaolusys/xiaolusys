@@ -31,6 +31,7 @@ class MamaCahoutTestCase(TestCase):
             mama_ft.order_num = 2
             mama_ft.fans_num = 1
             mama_ft.history_last_day = '2016-03-23'
+            mama_ft.last_renew_type = 365
             mama_ft.save()
         else:
             mama_ft = MamaFortune()
@@ -41,6 +42,7 @@ class MamaCahoutTestCase(TestCase):
             mama_ft.order_num = 2
             mama_ft.fans_num = 1
             mama_ft.history_last_day = '2016-03-23'
+            mama_ft.last_renew_type = 365
             mama_ft.save()
 
     def testCashoutList(self):
