@@ -775,7 +775,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 # 找到这个商品与妈妈等级一致的价格，累加起来方便后面核对价格
                 for product in mp.products:
                     if mm and (mm.elite_level in product.name):
-                        mm_level_payment += product.agent_price
+                        mm_level_payment += product.agent_price * cart.num
 
         budget_dicts = self.calc_extra_budget(pay_extras, type_list=[CONS.BUDGET, CONS.XIAOLUCOIN])
         budget_payment = budget_dicts.get(CONS.ETS_BUDGET) or 0
