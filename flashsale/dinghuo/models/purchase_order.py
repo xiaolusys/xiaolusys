@@ -31,10 +31,10 @@ def gen_purchase_order_group_key(order_ids):
 def parse_number_to_char(number):
     char_list = []
     while number >= 26:
-        div_index, number = number / 26, number % 26
-        char_list.append(div_index)
+        number, value = number / 26, number % 26
+        char_list.append(value)
 
-    char_list.append(number / 26)
+    char_list.append(number)
     char_list.reverse()
     return ''.join(map(number2char, char_list)).rjust(4,'0')
 
@@ -129,7 +129,7 @@ class OrderList(models.Model):
     )
 
     id = models.AutoField(primary_key=True)
-    batch_no = models.CharField(max_length=8, default=gen_batch_no, blank=True, verbose_name=u'批次编号') #, unique=True
+    batch_no = models.CharField(max_length=8, default=gen_batch_no, unique=True, blank=True, verbose_name=u'批次编号') #
 
     buyer = models.ForeignKey(User,
                               null=True,

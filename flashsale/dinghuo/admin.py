@@ -48,7 +48,7 @@ class OrderListAdmin(BaseModelAdmin):
     inlines = [orderdetailInline]
 
     list_display = (
-        'id', 'buyer_select', 'order_amount','quantity', 'created', 'press_num', 'stage', 'get_receive_status', 'is_postpay', 'changedetail', 'supplier', 'note_name',
+        'id', 'batch_no', 'buyer_select', 'order_amount','quantity', 'created', 'press_num', 'stage', 'get_receive_status', 'is_postpay', 'changedetail', 'supplier', 'note_name',
         'purchase_order_unikey_link', 'shelf_status', 'remind_link')
     list_filter = (('created', DateFieldListFilter), 'stage', 'arrival_process', 'is_postpay', 'press_num',
                    'pay_status', BuyerNameFilter, 'last_pay_date', 'created_by')
