@@ -531,7 +531,6 @@ def coupon_exchange_saleorder(customer, order_id, mama_id, template_ids, coupon_
             customer.id, mama_id, coupon_num, order_id, template_ids),
     })
 
-
     from flashsale.pay.models.trade import SaleOrder
     from .transfercoupondetail import create_transfer_coupon_detail
     from .usercoupon import use_coupon_by_ids
