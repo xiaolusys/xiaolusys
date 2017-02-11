@@ -759,10 +759,11 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         检测购买精品券虚拟商品时，不能搭配普通商品，只能全部为虚拟商品，否则返回参数异常
         direct indirect购买虚拟商品还有一些积分等限制
         """
-
+        mm = customer.getXiaolumm()
         virtual_num = 0
         goods_num = 0
         elite_score = 0
+        mm_level_payment = 0
         for cart in cart_qs:
             mp = cart.get_modelproduct()
             # 包含virtual的商品
@@ -771,6 +772,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 virtual_num += 1
                 elite_score += cart.num * cart.product.elite_score
                 goods_num += cart.num
+                # 找到这个商品与妈妈等级一致的价格，累加起来方便后面核对价格
+                for product in mp.products:
+                    if mm and (mm.elite_level in product.name):
+                        mm_level_payment += product.agent_price
 
         budget_dicts = self.calc_extra_budget(pay_extras, type_list=[CONS.BUDGET, CONS.XIAOLUCOIN])
         budget_payment = budget_dicts.get(CONS.ETS_BUDGET) or 0
@@ -779,7 +784,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         if virtual_num > 0:
             if virtual_num != cart_qs.count():
                 return Response({'code': 24, 'info': u'购买精品券或虚拟商品时，只能单独购买，不能与普通商品搭配'})
-            mm = customer.getXiaolumm()
+            if mm and payment != round(mm_level_payment * 100):
+                return Response({'code': 30, 'info': u'购买精品券或虚拟商品时，妈妈等级和价格不匹配，您的等级价格%s，实际支付价格%s' % (mm_level_payment, round(payment / 100.0))})
             if mm and (mm.referal_from == XiaoluMama.INDIRECT):
                 if pay_cash > 0 or budget_payment > 0:
                     return Response({'code': 25, 'info': u'您的精英妈妈账号只能使用小鹿币直接购券，没有现金购券权限，请减少购券数量或充值小鹿币 '})
