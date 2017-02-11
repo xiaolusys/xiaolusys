@@ -77,3 +77,8 @@ class PackageOrderWareByForm(forms.Form):
 class PackageOrderNoteForm(forms.Form):
     pid = forms.IntegerField()
     note = forms.CharField()
+
+
+class PackageOrderLogisticsCompanyForm(forms.Form):
+    pid = forms.IntegerField()
+    logistics_company_id = forms.IntegerField()

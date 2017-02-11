@@ -30,10 +30,10 @@ class PackageOrder(models.Model):
     WARE_CHOICES = WARE_CHOICES
     pid = models.AutoField(verbose_name=u'包裹单号', primary_key=True)
     id = models.CharField(max_length=100, verbose_name=u'包裹码', unique=True)
-    tid = models.CharField(max_length=32, verbose_name=u'退货单号|参考交易单号')#rg6689 tm1235
+    tid = models.CharField(max_length=32, verbose_name=u'退货单号|参考交易单号')  # rg6689 tm1235
     ACTION_TYPE_CHOICES = ((0, u'普通发货'), (1, u'特殊发货'))
     action_type = models.IntegerField(choices=ACTION_TYPE_CHOICES, default=0, db_index=True, verbose_name=u'发货类型',
-                               help_text=u'发货类型指定仓库查看到包裹后进行的动作')
+                                      help_text=u'发货类型指定仓库查看到包裹后进行的动作')
     ware_by = models.IntegerField(default=WARE_SH, db_index=True, choices=WARE_CHOICES, verbose_name=u'所属仓库')
     # 暂时无效
     status = models.CharField(max_length=32, db_index=True,
@@ -91,7 +91,7 @@ class PackageOrder(models.Model):
     can_review = models.BooleanField(default=False, verbose_name=u'复审')
     priority = models.IntegerField(default=0, verbose_name=u'作废字段')
     purchaser = models.CharField(null=True, max_length=32, blank=True, verbose_name=u'采购员')
-    supplier_id = models.CharField(null=True,max_length=32, blank=True, verbose_name=u'供应商id')
+    supplier_id = models.CharField(null=True, max_length=32, blank=True, verbose_name=u'供应商id')
     operator = models.CharField(max_length=32, blank=True, verbose_name=u'打单员')
     scanner = models.CharField(max_length=64, blank=True, verbose_name=u'扫描员')
     weighter = models.CharField(max_length=64, blank=True, verbose_name=u'称重员', help_text=u'或者第三方发货的导入者')
@@ -155,6 +155,11 @@ class PackageOrder(models.Model):
             if self.package_sku_items.exclude(assign_status=3).first().type in [2, 3, 4]:
                 return PSI_TYPE.RETURN_GOODS
         return None
+
+    def get_package_type_display(self):
+        res = {PSI_TYPE.NORMAL: u'普通单', PSI_TYPE.BYHAND: u'手工单', PSI_TYPE.TIANMAO: u'天猫单',
+               PSI_TYPE.RETURN_GOODS: u'退货单'}
+        return res.get(self.package_type)
 
     @property
     def receiver_address_detail(self):
@@ -758,7 +763,7 @@ class PackageOrder(models.Model):
                 if item.type == PSI_TYPE.TIANMAO:
                     pass
                     # 这里要检查一下地址  @TODO@黄炎
-                    #item.get_objects().
+                    # item.get_objects().
         except:
             return u'地址错误，未知异常:' + str(self.pid) + '|' + str(item.id)
 
@@ -832,7 +837,6 @@ class PackageSkuItem(BaseModel):
 
     sku_id = models.CharField(max_length=20, blank=True, db_index=True, verbose_name=u'SKUID')
     outer_id = models.CharField(max_length=20, blank=True, verbose_name=u'商品编码')
-    product = models.ForeignKey(Product, null=True, db_index=True, verbose_name=u'Product')
     outer_sku_id = models.CharField(max_length=20, blank=True, verbose_name=u'规格ID')
 
     num = models.IntegerField(default=0, verbose_name=u'数量')
@@ -856,7 +860,7 @@ class PackageSkuItem(BaseModel):
     init_assigned = models.BooleanField(default=False, verbose_name=u'初始即分配')
     is_boutique = models.BooleanField(default=False, db_index=True, verbose_name=u'精品订单')
 
-    pay_time = models.DateTimeField(db_index=True, verbose_name=u'付款时间',help_text=u'付款时间|天猫成交时间|退货审核时间|该时间决定发货顺序')
+    pay_time = models.DateTimeField(db_index=True, verbose_name=u'付款时间', help_text=u'付款时间|天猫成交时间|退货审核时间|该时间决定发货顺序')
     book_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'准备订货时间')
     booked_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'订下货时间')
     # 作废字段
@@ -882,8 +886,7 @@ class PackageSkuItem(BaseModel):
     payment = models.FloatField(default=0.0, verbose_name=u'实付款')
     discount_fee = models.FloatField(default=0.0, verbose_name=u'折扣')
     adjust_fee = models.FloatField(default=0.0, verbose_name=u'调整费用')
-    note_recorder = models.ForeignKey(User,null=True,related_name='packageskuitem', verbose_name=u'备注记录人')
-
+    note_recorder = models.ForeignKey(User, null=True, related_name='packageskuitem', verbose_name=u'备注记录人')
 
     # 作废
     REAL_ORDER_GIT_TYPE = 0  # 实付
@@ -914,28 +917,30 @@ class PackageSkuItem(BaseModel):
         verbose_name_plural = u'包裹商品列表'
 
     @staticmethod
-    def get_no_receive_psi_by_weight_time(start_time,end_time):
+    def get_no_receive_psi_by_weight_time(start_time, end_time):
         ### 获得时间段内已发货,没签收状态的packageskuitem
-        sent_packageskuitem = PackageSkuItem.objects.filter(weight_time__gte=start_time,weight_time__lte=end_time,status='sent',type=0)
+        sent_packageskuitem = PackageSkuItem.objects.filter(weight_time__gte=start_time, weight_time__lte=end_time,
+                                                            status='sent', type=0)
         ###判断已发货的packageskuitem,用户是否已经收到货
         delay_packageskuitem = list()
         for i in sent_packageskuitem:
             trade_wuliu = TradeWuliu.objects.filter(out_sid=i.out_sid).order_by("-id").first()
             if not trade_wuliu:
                 delay_packageskuitem.append(i)
-            elif (trade_wuliu.content.find("\u5df2\u7b7e\u6536") == -1 or trade_wuliu.content.find("\u59a5\u6295") == -1):
+            elif (trade_wuliu.content.find("\u5df2\u7b7e\u6536") == -1 or trade_wuliu.content.find(
+                    "\u59a5\u6295") == -1):
                 delay_packageskuitem.append(i)
         return delay_packageskuitem
 
     @staticmethod
-    def get_no_out_sid_by_pay_time(start_time,end_time):
-        no_sent_psi = PackageSkuItem.objects.filter(pay_time__gte=start_time, pay_time__lte=end_time, out_sid="", type=0).exclude(assign_status=3)
+    def get_no_out_sid_by_pay_time(start_time, end_time):
+        no_sent_psi = PackageSkuItem.objects.filter(pay_time__gte=start_time, pay_time__lte=end_time, out_sid="",
+                                                    type=0).exclude(assign_status=3)
         return no_sent_psi
 
     @staticmethod
-    def set_sys_note(self,id,content):
+    def set_sys_note(self, id, content):
         PackageSkuItem.objects.filter(id=id).update(sys_note=content)
-
 
     def set_failed_time(self):
         now_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -944,6 +949,7 @@ class PackageSkuItem(BaseModel):
     def cancel_failed_time(self):
         if self.failed_retrieve_time:
             PackageSkuItem.objects.filter(out_sid=self.out_sid).update(failed_retrieve_time=None)
+
     #
     # @staticmethod
     # def get_failed_express():
@@ -979,14 +985,14 @@ class PackageSkuItem(BaseModel):
 
     @staticmethod
     def get_by_return_goods_id(return_goods_id):
-        return PackageSkuItem.objects.filter(sale_trade_id='rg'+str(return_goods_id))
+        return PackageSkuItem.objects.filter(sale_trade_id='rg' + str(return_goods_id))
 
     def set_rg_detail_id(self, rg_detail_id):
         self.sale_order_id = 'rd' + str(rg_detail_id)
 
     @staticmethod
     def get_by_rg_detail_id(rg_detail_id):
-        return PackageSkuItem.objects.filter(sale_trade_id='rd'+str(rg_detail_id)).first()
+        return PackageSkuItem.objects.filter(sale_trade_id='rd' + str(rg_detail_id)).first()
 
     def get_supplier_product_info(self):
         """
@@ -1117,7 +1123,7 @@ class PackageSkuItem(BaseModel):
             return self.sale_order
         if self.type == PSI_TYPE.TIANMAO:
             from shopback.orders.models import Order
-            return Order.objects.get(oid=self.oid.replace('tb',''))
+            return Order.objects.get(oid=self.oid.replace('tb', ''))
         from flashsale.dinghuo.models import RGDetail
         return RGDetail.objects.filter(id=self.rg_detail_id).first()
 
@@ -1379,8 +1385,8 @@ class PackageSkuItem(BaseModel):
         po = PackageOrder()
         po.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS
         po.package_order_id = PackageOrder.gen_new_package_id(trade.user_unikey,
-                                                                   trade.address_unikey,
-                                                                   self.product_sku.ware_by)
+                                                              trade.address_unikey,
+                                                              self.product_sku.ware_by)
         po.tid = 'tm' + str(self.get_relate_object().trade.id)
         po.action_type = 1
         po.ware_by = WARE_SH
@@ -1415,7 +1421,8 @@ class PackageSkuItem(BaseModel):
         if type in [PSI_TYPE.NORMAL, PSI_TYPE.TIANMAO]:
             psi_ids = PackageSkuItem.objects.filter(status=PSI_STATUS.ASSIGNED, type=type).values_list('id', flat=True)
         else:
-            psi_ids = PackageSkuItem.objects.filter(status=PSI_STATUS.ASSIGNED, type__in=[2, 3, 4]).values_list('id', flat=True)
+            psi_ids = PackageSkuItem.objects.filter(status=PSI_STATUS.ASSIGNED, type__in=[2, 3, 4]).values_list('id',
+                                                                                                                flat=True)
         psi_ids = list(psi_ids)
         for psi_id in psi_ids:
             psi = PackageSkuItem.objects.filter(id=psi_id, status=PSI_STATUS.ASSIGNED).first()
@@ -1530,7 +1537,8 @@ class PackageSkuItem(BaseModel):
             return payed_counts
         if type == PSI_TYPE.TIANMAO:
             from shopback.orders.models import Order, Trade
-            payed_orders = Order.objects.filter(trade__user_address_unikey=address_id, trade__status=pcfg.WAIT_SELLER_SEND_GOODS)
+            payed_orders = Order.objects.filter(trade__user_address_unikey=address_id,
+                                                trade__status=pcfg.WAIT_SELLER_SEND_GOODS)
             payed_counts = payed_orders.count()
             oids = [o.oid for o in payed_orders]
             insend_cnt = PackageSkuItem.objects.filter(oid__in=oids, assign_status=1).count()
@@ -1667,6 +1675,7 @@ def update_productsku_salestats_num(sender, instance, created, **kwargs):
     from shopback.trades.tasks import task_packageskuitem_update_productskusalestats_num
     transaction.on_commit(
         lambda: task_packageskuitem_update_productskusalestats_num(instance.sku_id, instance.pay_time))
+
 
 post_save.connect(update_productsku_salestats_num, sender=PackageSkuItem,
                   dispatch_uid='post_save_update_productsku_salestats_num')

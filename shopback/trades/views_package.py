@@ -8,8 +8,10 @@ from django.shortcuts import get_object_or_404
 from django.http.response import HttpResponseBadRequest
 from shopback.trades.models import PackageOrder, PackageSkuItem
 from shopback.trades.serializers import PackageOrderSerializer
-from shopback.trades.forms import PackageOrderEditForm, PackageOrderWareByForm, PackageOrderNoteForm
+from shopback.trades.forms import PackageOrderEditForm, PackageOrderWareByForm, PackageOrderNoteForm, PackageOrderLogisticsCompanyForm
 from shopback.items.models import ProductSku
+from shopback.logistics.models import LogisticsCompany
+from shopback.trades.serializers import LogisticsCompanySerializer
 
 
 class PackageOrderViewSet(viewsets.ModelViewSet):
@@ -80,7 +82,10 @@ class PackageOrderViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         package_order = self.get_object()
         package_order = self.get_serializer(package_order).data
-        return Response({'package_order': package_order}, template_name="trades/package_order.html")
+        logistics_companys = LogisticsCompany.objects.filter(type=1)
+        logistics_companys = LogisticsCompanySerializer(logistics_companys, many=True).data
+        return Response({'package_order': package_order, 'logistics_companys': logistics_companys},
+                        template_name="trades/package_order.html")
 
     @list_route(methods=['post'])
     def change_note(self, request, *args, **kwargs):
@@ -91,5 +96,17 @@ class PackageOrderViewSet(viewsets.ModelViewSet):
         pid = form.cleaned_data['pid']
         package = get_object_or_404(PackageOrder, pid=pid)
         package.seller_memo = note
+        package.save()
+        return Response({'res': 'success'})
+
+    @list_route(methods=['post'])
+    def change_logistics_company(self, request, *args, **kwargs):
+        form = PackageOrderLogisticsCompanyForm(request.POST)
+        if not form.is_valid():
+            return HttpResponseBadRequest(form.errors.as_text())
+        logistics_company_id = form.cleaned_data['logistics_company_id']
+        pid = form.cleaned_data['pid']
+        package = get_object_or_404(PackageOrder, pid=pid)
+        package.logistics_company_id = logistics_company_id
         package.save()
         return Response({'res': 'success'})

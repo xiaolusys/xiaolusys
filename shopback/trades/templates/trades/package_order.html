@@ -65,44 +65,24 @@ a.section:link, a.section:visited { color: #666666; }
                 <input type= "hidden" id="pid" value="{{package_order.pid}}"/>
                 <label class="col-md-1" for="id_pid">原单ID:</label>
                 <label class="col-md-1" id="id_pid">{{package_order.pid}}</label>
+                <label class="col-md-1" for="tid">tid:</label>
+                <label class="col-md-2" id="tid">{{package_order.tid}}</label>
                 <label class="col-md-1" for="package_type">包裹类型:</label>
-                <label class="col-md-1" id="package_type">{{package_order.package_type}}</label>
+                <label class="col-md-1" id="package_type">{{package_order.get_package_type_display}}</label>
                 <label class="col-md-1" for="package_id">包裹码:</label>
                 <label class="col-md-1" id="package_id">{{package_order.id}}</label>
-                <label class="col-md-1" for="ware_by">所属仓库:</label>
-                <label class="col-md-1" id="ware_by">{{package_order.ware_by}}</label>
                 <label class="col-md-1" for="sys_status">包裹状态:</label>
                 <label class="col-md-1" id="sys_status">{{package_order.get_sys_status_display}}</label>
             </div>
             <div class="row">
-                <label class="col-md-1" for="tid">tid:</label>
-                <label class="col-md-3" id="tid">{{package_order.tid}}</label>
                 <label class="col-md-1" for="buyer_nick">买家昵称:</label>
                 <label class="col-md-1" id="buyer_nick">{{package_order.buyer_nick}}</label>
-                <label class="col-md-1" for="buyer_message">买家留言:</label>
-                <label class="col-md-1" id="buyer_message">{{package_order.buyer_message}}</label>
-                <label class="col-md-1" for="sys_memo">系统备注:</label>
-                <label class="col-md-1" id="sys_memo">{{package_order.sys_memo}}</label>
-            </div>
-            <div class="row">
-                <label class="col-md-1" for="logistics_company">物流公司:</label>
-                <label class="col-md-3" id="logistics_company">{{package_order.logistics_company}}</label>
-                <label class="col-md-1" for="post_cost">物流成本:</label>
-                <label class="col-md-1" id="post_cost">{{package_order.post_cost}}</label>
-                <label class="col-md-1" for="is_lgtype">速递:</label>
-                <label class="col-md-1" id="is_lgtype">{{package_order.is_lgtype}}</label>
-                <label class="col-md-1" for="out_sid">快递单号:</label>
-                <label class="col-md-1" id="out_sid">{{package_order.out_sid}}</label>
-            </div>
-            <div class="row">
-                <label class="col-md-1" for="weight">重量:</label>
-                <label class="col-md-3" id="weight">{{package_order.weight}}</label>
-                <label class="col-md-1" for="is_qrcode">热敏订单:</label>
-                <label class="col-md-1" id="is_qrcode">{{package_order.is_qrcode}}</label>
-                <label class="col-md-1" for="qrcode_msg">打印信息:</label>
-                <label class="col-md-1" id="qrcode_msg">{{package_order.qrcode_msg}}</label>
-                <label class="col-md-1" for="can_review">复审:</label>
-                <label class="col-md-1" id="can_review">{{package_order.can_review}}</label>
+                <label class="col-md-1" for="receiver_name">收件人姓名:</label>
+                <label class="col-md-1" id="receiver_name">{{package_order.receiver_name}}</label>
+                <label class="col-md-1" for="receiver_mobile">买家号码:</label>
+                <label class="col-md-1" id="receiver_mobile">{{package_order.receiver_mobile}}</label>
+                <label class="col-md-1" for="ware_by">所属仓库:</label>
+                <label class="col-md-1" id="ware_by">{{package_order.get_ware_by_display}}</label>
             </div>
             <div class="row">
                 <label class="col-md-1" for="receiver_state">省:</label>
@@ -113,6 +93,41 @@ a.section:link, a.section:visited { color: #666666; }
                 <label class="col-md-1" id="receiver_district">{{package_order.receiver_district}}</label>
                 <label class="col-md-1" for="receiver_address">详细地址:</label>
                 <label class="col-md-3" id="receiver_address">{{package_order.receiver_address}}</label>
+            </div>
+            <div class="row">
+                <label class="col-md-1" for="weight">重量:</label>
+                <label class="col-md-1" id="weight">{{package_order.weight | default_if_none:""}}</label>
+                <label class="col-md-1" for="is_qrcode">热敏订单:</label>
+                <label class="col-md-1" id="is_qrcode">{% if package_order.is_qrcode %}是{%else%}否{%endif%}</label>
+                <label class="col-md-1" for="qrcode_msg">打印信息:</label>
+                <label class="col-md-1" id="qrcode_msg">{{package_order.qrcode_msg}}</label>
+                <label class="col-md-1" for="can_review">复审:</label>
+                <label class="col-md-1" id="can_review">{%if package_order.can_review%}是{%else%}否{%endif%}</label>
+            </div>
+            <div class="row">
+                <label class="col-md-1" for="can_send_time">可发货时间:</label>
+                <label class="col-md-2" id="can_send_time">{{package_order.can_send_time | default_if_none:"" }}</label>
+                <label class="col-md-1" for="weight_time">称重时间:</label>
+                <label class="col-md-2" id="weight_time">{{package_order.weight_time | default_if_none:""}}</label>
+                <label class="col-md-1" for="consign_time">完成时间:</label>
+                <label class="col-md-2" id="consign_time">{{package_order.consign_time | default_if_none:""}}</label>
+            </div>
+            <div class="row">
+                <label class="col-md-1" for="logistics_company">物流公司:</label>
+                <label class="col-md-1" id="logistics_company">{{package_order.logistics_company_name}}</label>
+                <div class="col-md-1" style="float:left"><button type="button" class="btn-mini btn-primary" data-toggle="modal" data-target="#change-logistics-company-modal">修改</button></div>
+                <label class="col-md-1" for="out_sid">快递单号:</label>
+                <label class="col-md-1" id="out_sid">{{package_order.out_sid}}</label>
+                <label class="col-md-1" for="post_cost">物流成本:</label>
+                <label class="col-md-1" id="post_cost">{{package_order.post_cost}}</label>
+                <label class="col-md-1" for="is_lgtype">速递:</label>
+                <label class="col-md-1" id="is_lgtype">{{package_order.is_lgtype}}</label>
+            </div>
+            <div class="row">
+                <label class="col-md-1" for="buyer_message">买家留言:</label>
+                <label class="col-md-5" id="buyer_message">{{package_order.buyer_message}}</label>
+                <label class="col-md-1" for="sys_memo">系统备注:</label>
+                <label class="col-md-5" id="sys_memo">{{package_order.sys_memo}}</label>
             </div>
             <div class="row">
                 <label class="col-md-1" for="seller_memo">备注:</label>
@@ -163,7 +178,7 @@ a.section:link, a.section:visited { color: #666666; }
                 <td>{{psi.assign_status_display}}</td>
                 <td>{{psi.status_display}}</td>
                 <td>{{psi.assign_time}}</td>
-                <td>{{psi.init_assigned}}</td>
+                <td>{%if psi.init_assigned%}是{%else%}否{%endif%}</td>
                 <td>
                 </td>
             </tr>
@@ -173,7 +188,31 @@ a.section:link, a.section:visited { color: #666666; }
     </div>
 </div>
 </div>
-
+<div class="modal" id="change-logistics-company-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="panel-heading">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">修改物流公司</h4>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <label class="col-md-2" >物流公司：</label>
+                    <select id="logistics_company_id">
+                        {%for lc in logistics_companys%}
+                        <option value="{{lc.id}}" {%if lc.id == package_order.logistics_company %}selected="selected"{%endif%}>{{lc.name}}</option>
+                        {%endfor%}
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer panel-body">
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="btn_change_logistics_company">修改</button>
+            </div>
+        </div>
+    </div>
+</div>
 <!-- END Content -->
 <script>
 $(function(){
@@ -212,6 +251,44 @@ $(function(){
             }
         }
     $("#btn_edit_seller_memo").click(edit_seller_memo);
+    var change_logistics_company = function(evt){
+        var dom = $('#btn_change_logistics_company');
+        if (dom.hasClass("loading")) {
+            return
+        }
+        var id = $('#pid').val();
+        var logistics_company_id = $("#logistics_company_id").val();
+        dom.addClass("loading");
+        var url = "/trades/package_order/change_logistics_company";
+        var data = {"logistics_company_id": logistics_company_id, "pid": id};
+
+        $.ajax({
+            "url": url,
+            "data": data,
+            "type": "post",
+            dataType: "json",
+            success: callback,
+            error: function(res){
+                alert(res.responseText);
+            }
+            });
+            function callback(res) {
+                dom.removeClass("loading");
+                console.log(res.res);
+                if (res.res) {
+                    //刷新当前页面
+                    alert("修改成功");
+                    window.location.reload();
+                }
+                else{
+                    alert("卖家备注添加失败")
+                }
+            }
+        }
+
+
+    $("#btn_change_logistics_company").click(change_logistics_company);
+
 });
 </script>
 

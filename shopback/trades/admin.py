@@ -1300,7 +1300,7 @@ admin.site.register(ReturnWuLiu, ReturnWuliuAdmin)
 
 class PackageOrderAdmin(BaseModelAdmin):
     list_display = (
-        'pid', 'id_link', 'sys_status', 'type', 'out_sid', 'logistics_company_name', 'receiver_name', 'receiver_mobile',
+        'pid_link', 'id_link', 'sys_status', 'type', 'out_sid', 'logistics_company_name', 'receiver_name', 'receiver_mobile',
         'receiver_address_info',
         'payment', 'operator', 'is_picking_print', 'is_express_print', 'redo_sign',
         'is_send_sms', 'has_refund', 'ware_by_select', 'created', 'send_time', 'weight_time',
@@ -1311,6 +1311,11 @@ class PackageOrderAdmin(BaseModelAdmin):
     change_list_template = "admin/trades/package_change_list.html"
     ordering = ['-sys_status']
     list_per_page = 50
+
+    def pid_link(self, obj):
+        return "<a href='/trades/package_order/%d'>%s</a>" % (obj.pid, obj.pid)
+    pid_link.short_description = u'PID'
+    pid_link.allow_tags = True
 
     def id_link(self, obj):
         return "<a href='/admin/trades/packageskuitem?package_order_pid=%d'>%s</a>" % (obj.pid, obj.id)

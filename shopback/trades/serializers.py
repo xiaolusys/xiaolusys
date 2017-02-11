@@ -47,6 +47,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class PackageOrderSerializer(serializers.ModelSerializer):
     package_sku_items = serializers.SerializerMethodField('gen_package_sku_items', read_only=True)
+    logistics_company_name = serializers.SerializerMethodField('gen_logistics_company_name', read_only=True)
     class Meta:
         model = PackageOrder
         fields = ['pid', 'id', 'tid', 'action_type', 'ware_by', 'status', 'sys_status', 'sku_num', 'order_sku_num',
@@ -57,7 +58,11 @@ class PackageOrderSerializer(serializers.ModelSerializer):
                   'purchaser', 'supplier_id', 'operator', 'scanner', 'weighter', 'is_locked', 'is_charged',
                   'is_picking_print', 'is_express_print', 'is_send_sms', 'has_refund', 'created', 'modified',
                   'can_send_time', 'send_time', 'weight_time', 'charge_time', 'remind_time', 'consign_time',
-                  'reason_code', 'type', 'get_sys_status_display', 'package_sku_items']
+                  'reason_code', 'type', 'get_sys_status_display', 'package_sku_items', 'get_ware_by_display',
+                  'logistics_company_name', 'get_package_type_display']
+
+    def gen_logistics_company_name(self, obj):
+        return obj.logistics_company.name
 
     def gen_package_sku_items(self, obj):
         package_list = []
