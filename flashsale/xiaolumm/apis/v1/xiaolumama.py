@@ -51,7 +51,7 @@ def mama_pay_deposit(customer_id, deposit_type, referrer, trade_id, oid=None):
         renew_days = XiaoluMama.TRIAL
         if not xlmm.is_trialable():
             return  # 不可以试用
-        create_potential_mama(xlmm, referrer)  # 创建潜在妈妈记录
+        # create_potential_mama(xlmm, referrer)  # 创建潜在妈妈记录
     elif deposit_type == 99:
         renew_days = XiaoluMama.HALF
     elif deposit_type == 188:
