@@ -96,23 +96,24 @@ def task_get_unserinfo_and_create_accounts(openid, wx_pubid):
     
 @app.task
 def task_create_scan_potential_mama(referal_from_mama_id, potential_mama_id, potential_mama_unionid):
-    if referal_from_mama_id == potential_mama_id:
-        return
-    
-    uni_key = PotentialMama.gen_uni_key(potential_mama_id, referal_from_mama_id)
-    pm = PotentialMama.objects.filter(uni_key=uni_key).first()
-    if pm:
-        return
-
-    info = WeixinUserInfo.objects.filter(unionid=potential_mama_unionid).first()
-    if not info:
-        return
-        
-    thumbnail = info.thumbnail
-    nick = info.nick
-    pm = PotentialMama(potential_mama=potential_mama_id, referal_mama=referal_from_mama_id, uni_key=uni_key,
-                       nick=nick, thumbnail=thumbnail, last_renew_type=XiaoluMama.SCAN)
-    pm.save()
+    return
+    # if referal_from_mama_id == potential_mama_id:
+    #     return
+    #
+    # uni_key = PotentialMama.gen_uni_key(potential_mama_id, referal_from_mama_id)
+    # pm = PotentialMama.objects.filter(uni_key=uni_key).first()
+    # if pm:
+    #     return
+    #
+    # info = WeixinUserInfo.objects.filter(unionid=potential_mama_unionid).first()
+    # if not info:
+    #     return
+    #
+    # thumbnail = info.thumbnail
+    # nick = info.nick
+    # pm = PotentialMama(potential_mama=potential_mama_id, referal_mama=referal_from_mama_id, uni_key=uni_key,
+    #                    nick=nick, thumbnail=thumbnail, last_renew_type=XiaoluMama.SCAN)
+    # pm.save()
 
 
 @app.task(max_retries=3, default_retry_delay=15)
@@ -211,19 +212,19 @@ def task_activate_xiaolumama(openid, wx_pubid):
         return
 
     #自己扫自己的二维码加入，不需要增加自己潜在妈妈和推荐关系,此时可以从粉丝关系表中找出来上级妈妈
-    if referal_from_mama_id == mama.id:
-        customer = Customer.objects.filter(openid=openid).first()
-        if not customer:
-            raise Customer.DoesNotExist()
-        fan = XlmmFans.objects.filter(fans_cusid=customer.id).first()
-        if not fan:
-            return
-        potential_mama_id = fan.xlmm
-    else:
-        potential_mama_id = mama.id
-
-    potential_mama_unionid = unionid
-    task_create_scan_potential_mama.delay(referal_from_mama_id, potential_mama_id, potential_mama_unionid)
+    # if referal_from_mama_id == mama.id:
+    #     customer = Customer.objects.filter(openid=openid).first()
+    #     if not customer:
+    #         raise Customer.DoesNotExist()
+    #     fan = XlmmFans.objects.filter(fans_cusid=customer.id).first()
+    #     if not fan:
+    #         return
+    #     potential_mama_id = fan.xlmm
+    # else:
+    #     potential_mama_id = mama.id
+    #
+    # potential_mama_unionid = unionid
+    # task_create_scan_potential_mama.delay(referal_from_mama_id, potential_mama_id, potential_mama_unionid)
 
 
 @app.task(max_retries=3, default_retry_delay=6)
@@ -487,18 +488,18 @@ def get_or_create_weixin_xiaolumm(wxpubId, openid, event, eventKey):
         )
     # 添加妈妈推荐关系
     if xiaolumm.is_chargeable():
-        potentailmama = PotentialMama.objects.filter(potential_mama=xiaolumm.id).first()
-        if potentailmama:
-            return xiaolumm
-        if referal_from_mama_id and int(referal_from_mama_id) != xiaolumm.id:
-            protentialmama = PotentialMama(
-                potential_mama=xiaolumm.id,
-                referal_mama=referal_from_mama_id,
-                nick=wx_userinfo['nickname'],
-                thumbnail=wx_userinfo['headimgurl'],
-                last_renew_type=XiaoluMama.SCAN,
-                uni_key=PotentialMama.gen_uni_key(xiaolumm.id, referal_from_mama_id))
-            protentialmama.save()
+        # potentailmama = PotentialMama.objects.filter(potential_mama=xiaolumm.id).first()
+        # if potentailmama:
+        #     return xiaolumm
+        # if referal_from_mama_id and int(referal_from_mama_id) != xiaolumm.id:
+        #     protentialmama = PotentialMama(
+        #         potential_mama=xiaolumm.id,
+        #         referal_mama=referal_from_mama_id,
+        #         nick=wx_userinfo['nickname'],
+        #         thumbnail=wx_userinfo['headimgurl'],
+        #         last_renew_type=XiaoluMama.SCAN,
+        #         uni_key=PotentialMama.gen_uni_key(xiaolumm.id, referal_from_mama_id))
+        #     protentialmama.save()
         #  修改该小鹿妈妈的接管状态
         xiaolumm.chargemama()
         xiaolumm.update_renew_day(XiaoluMama.SCAN)

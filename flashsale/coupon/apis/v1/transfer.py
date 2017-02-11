@@ -311,7 +311,7 @@ def create_new_elite_mama(customer, to_mama, so):
     to_mama.save()
     from core.options import log_action, CHANGE, ADDITION, get_systemoa_user
     sys_oa = get_systemoa_user()
-    log_action(sys_oa, to_mama, CHANGE, u'create_new_elite_mama change referal')
+    log_action(sys_oa, to_mama, CHANGE, u'create_new_elite_mama change referal %s' % (to_mama.referal_from))
 
     if relation_ship:
         # modify relation ship
@@ -328,7 +328,9 @@ def create_new_elite_mama(customer, to_mama, so):
             relation_ship.referal_from_grandma_id = 0
         relation_ship.order_id = so.oid
         relation_ship.save()
-        log_action(sys_oa, to_mama, CHANGE, u'create_new_elite_mama change relationship')
+        log_action(sys_oa, relation_ship, CHANGE, u'create_new_elite_mama change relationship,referalmm=%s grandmama=%s' % (
+            relation_ship.referal_from_mama_id, relation_ship.referal_from_grandma_id)
+                   )
         logger.info({
             'action': 'create_new_elite_mama',
             'action_time': datetime.datetime.now(),
