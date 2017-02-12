@@ -62,7 +62,7 @@ class PackageOrderSerializer(serializers.ModelSerializer):
                   'logistics_company_name', 'get_package_type_display']
 
     def gen_logistics_company_name(self, obj):
-        return obj.logistics_company.name
+        return obj.logistics_company.name if obj.logistics_company else ''
 
     def gen_package_sku_items(self, obj):
         package_list = []
