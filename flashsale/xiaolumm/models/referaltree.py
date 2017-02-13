@@ -11,8 +11,12 @@ class MamaReferalTree(BaseModel):
 
     direct_invite_num = models.IntegerField(default=0, db_index=True, verbose_name=u'直接邀请数')
     indirect_invite_num = models.IntegerField(default=0, db_index=True, verbose_name=u'间接邀请数')
+    gradient = models.IntegerField(default=0, db_index=True, verbose_name=u'邀请梯度')
 
-    gradient = models.IntegerField(default=0, db_index=True, verbose_name=u'梯度')
+    direct_fans_num = models.IntegerField(default=0, db_index=True, verbose_name=u'直接粉丝数')
+    indirect_fans_num = models.IntegerField(default=0, db_index=True, verbose_name=u'间接粉丝数')
+    fans_gradient = models.IntegerField(default=0, db_index=True, verbose_name=u'粉丝梯度')
+
     is_elite = models.BooleanField(default=False, db_index=True, verbose_name=u'精英妈妈')
     is_vip   = models.BooleanField(default=False, db_index=True, verbose_name=u'付费妈妈')
 

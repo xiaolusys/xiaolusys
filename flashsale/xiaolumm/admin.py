@@ -905,8 +905,8 @@ admin.site.register(EliteMamaStatus, EliteMamaStatusAdmin)
 
 
 class MamaReferalTreeAdmin(admin.ModelAdmin):
-    list_display = ('id','referal_to_mama_id_link', 'referal_from_mama_id_link', 'direct_invite_num', 'indirect_invite_num',
-                    'gradient', 'is_elite', 'is_vip', 'last_active_time', 'mama_info_link')
+    list_display = ('id','referal_to_mama_id_link', 'referal_from_mama_id_link', 'direct_invite_num', 'indirect_invite_num', 'gradient',
+                    'direct_fans_num', 'indirect_fans_num', 'fans_gradient', 'is_elite', 'is_vip', 'last_active_time', 'mama_info_link')
     list_filter = ('is_elite', 'is_vip', ('created', DateFieldListFilter), ('last_active_time', DateFieldListFilter), 'gradient')
     search_fields = ('=referal_to_mama_id', '=referal_from_mama_id')
 
