@@ -19,6 +19,8 @@ from shopback import paramconfig as pcfg
 from shopback.trades.models import TradeWuliu
 from models import TRADE_TYPE, TAOBAO_TRADE_STATUS
 from django.contrib.auth.models import User
+from flashsale.restpro.kd100_subscription import kd100_subscription
+
 
 logger = logging.getLogger('django.request')
 logger = logging.getLogger(__name__)
@@ -215,6 +217,7 @@ class PackageOrder(models.Model):
             psku.update_quantity(sku_item.num, dec_update=True)
             psku.update_wait_post_num(sku_item.num, dec_update=True)
         self.refresh_stat()
+        kd100_subscription(self.logistics_company.kd100_express_key,self.out_sid)
 
     def finish_third_package(self, out_sid, logistics_company, weighter=None):
         from flashsale.pay.models import SaleOrder
@@ -226,6 +229,7 @@ class PackageOrder(models.Model):
             self.weighter = weighter
         self.status = pcfg.WAIT_BUYER_CONFIRM_GOODS
         self.save()
+        kd100_subscription(logistics_company.kd100_express_key,out_sid)
         # 为了承接过去的package_sku_item的数据, assign_status__in还要考虑 PackageSkuItem.ASSIGNED的情况
         package_sku_items = PackageSkuItem.objects.filter(package_order_id=self.id,
                                                           assign_status__in=[PackageSkuItem.ASSIGNED,
@@ -838,7 +842,6 @@ class PackageSkuItem(BaseModel):
     sku_id = models.CharField(max_length=20, blank=True, db_index=True, verbose_name=u'SKUID')
     outer_id = models.CharField(max_length=20, blank=True, verbose_name=u'商品编码')
     outer_sku_id = models.CharField(max_length=20, blank=True, verbose_name=u'规格ID')
-
     num = models.IntegerField(default=0, verbose_name=u'数量')
     status = models.CharField(max_length=32, choices=PSI_STATUS.CHOICES, db_index=True, default=PSI_STATUS.PAID,
                               blank=True, verbose_name=u'订单状态')
