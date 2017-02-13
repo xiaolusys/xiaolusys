@@ -1243,6 +1243,7 @@ class TradeWuliu(models.Model):
         status = wuliu_trace_data.get("state")
         time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         content = json.dumps(wuliu_trace_data.get("data", "no_wuliu_data"))
+        print content
         write_data = {
             "out_sid": out_sid,
             "logistics_company": logistics_company,

@@ -57,13 +57,17 @@ class WuliuViewSet(viewsets.ModelViewSet):
         # 如果我们数据库中记录已经是已签收状态,那么直接返回我们数据库中的物流信息
         tradewuliu = TradeWuliu.get_tradewuliu(packetid,company_code)
         if tradewuliu and tradewuliu.status == 3:
-            return Response(json.loads(tradewuliu.content))
+            kd100_wuliu.confirm_get_by_state(tradewuliu.out_sid,tradewuliu.status)
+            show_data = kd100_wuliu.fomat_wuliu_data_from_db(tradewuliu)
+            return Response(show_data)
         # 我们的记录不是已签收状态,那么直接在线同步查询,并异步更新我们的数据库
-        serarch_result = kd100_wuliu.kd100_instant_query(company_code,packetid)
-        serarch_result_dict = json.loads(serarch_result)
-        if tradewuliu and tradewuliu.content != json.dumps(serarch_result_dict["data"]):
-            create_or_update_tradewuliu.delay(serarch_result)
-        return Response(serarch_result_dict)
+        search_result = kd100_wuliu.kd100_instant_query(company_code,packetid)
+        print tradewuliu.content
+        print json.dumps(json.loads(search_result).get("data"))
+        if not tradewuliu or (tradewuliu and tradewuliu.content != json.dumps(json.loads(search_result).get("data"))):
+            create_or_update_tradewuliu.delay(search_result)
+        show_data = kd100_wuliu.format_wuliu_data(search_result)
+        return Response(show_data)
 
     @list_route(methods=["post"])
     def push_wuliu_data(self,request):
@@ -79,7 +83,12 @@ class WuliuViewSet(viewsets.ModelViewSet):
         lastResult = param.get("lastResult")
         lastResult = json.dumps(lastResult)
         print lastResult,type(lastResult)
+        out_sid = json.loads(lastResult).get("nu")
+        status = json.loads(lastResult).get("state")
         TradeWuliu.create_or_update_tradewuliu(lastResult)
+        if out_sid and status and status == 3:
+            kd100_wuliu.confirm_get_by_state(out_sid, status)
+        logger.warn({'action': "kd100", 'info': "push_wuliu_data:" + str(out_sid)})
         return Response({"result":"true","returnCode":"200","message":u"成功"})
 
 
