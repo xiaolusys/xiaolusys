@@ -6,7 +6,7 @@ import re
 
 
 class Deposite(models.Model):
-    """ 仓库 """
+    """ 货位 """
 
     deposite_name = models.CharField(max_length=32, blank=True, verbose_name='仓库名')
     location = models.CharField(max_length=32, blank=True, verbose_name='仓库位置')
@@ -17,8 +17,8 @@ class Deposite(models.Model):
     class Meta:
         db_table = 'shop_archives_deposite'
         app_label = 'archives'
-        verbose_name = u'仓库'
-        verbose_name_plural = u'仓库列表'
+        verbose_name = u'货位'
+        verbose_name_plural = u'货位列表'
 
     def __unicode__(self):
         return self.deposite_name
