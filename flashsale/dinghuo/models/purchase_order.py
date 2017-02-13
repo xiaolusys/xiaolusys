@@ -30,10 +30,9 @@ def gen_purchase_order_group_key(order_ids):
 
 def parse_number_to_char(number):
     char_list = []
-    while number >= 26:
+    while number > 26:
         number, value = number / 26, number % 26
         char_list.append(value)
-
     char_list.append(number)
     char_list.reverse()
     return ''.join(map(number2char, char_list)).rjust(4,'0')

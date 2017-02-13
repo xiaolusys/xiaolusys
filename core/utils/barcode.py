@@ -2,7 +2,7 @@
 from __future__ import absolute_import, unicode_literals
 
 def number2char(number):
-    return 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[int(number) % 26]
+    return '0ABCDEFGHIJKLMNOPQRSTUVWXYZ'[int(number) % 27]
 
 def gen(digit_num=5, prefix='', begin='00001'):
     if int(begin) >= int('9'*6):
