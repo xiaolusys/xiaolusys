@@ -748,7 +748,7 @@ class PackageOrder(models.Model):
         if res:
             return res
         for p in self.package_sku_items.filter(assign_status=1):
-            if not p.get_relate_order().need_send():
+            if p.get_relate_order() and not p.get_relate_order().need_send():
                 return u'有订单不应该发货:' + str(p.id)
 
     def check_address_error(self):
