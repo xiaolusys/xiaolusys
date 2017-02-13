@@ -731,7 +731,7 @@ class Product(models.Model):
         from core.utils import barcode
         PREFIX = 'SP'
         latest_pro = cls.objects.filter(outer_id__startswith=PREFIX).order_by('-outer_id').first()
-        inner_no = barcode.gen(digit_num=5, begin=latest_pro and latest_pro.outer_id.replace(PREFIX, '') or 0)
+        inner_no = barcode.gen(digit_num=5, begin=latest_pro and latest_pro.outer_id[2:-2] or 0)
         while True:
             product_ins = cls.objects.filter(
                 models.Q(outer_id__startswith='SP%s'%inner_no)|models.Q(outer_id__startswith='RMB%s'%inner_no)).count()
@@ -838,7 +838,7 @@ class Product(models.Model):
         """
 
         def _num2char(number):
-            return 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[int(number)%26]
+            return '0ABCDEFGHIJKLMNOPQRSTUVWXYZ'[int(number)%27]
 
         def _get_valid_procount(outerid, pro_count, id_maps):
             next_id = outerid + str(pro_count)
@@ -896,7 +896,7 @@ class Product(models.Model):
                 pro_count += 1
             pro_count = _get_valid_procount(inner_outer_id, pro_count, productid_maps)
             pro_dict = productname_maps.get(pro['name'])
-            outer_id = pro_dict and pro_dict['outer_id'] or inner_outer_id + _num2char(pro_count - 1)
+            outer_id = pro_dict and pro_dict['outer_id'] or inner_outer_id + _num2char(pro_count)
             color_skus = []
             for sku in skus_list:
                 if sku['color'] == pro['name']:
@@ -922,7 +922,7 @@ class Product(models.Model):
             for color_sku in color_skus:
                 sku_count = _get_valid_procount(outer_id, sku_count, skuid_maps)
                 sku_dict = skuname_maps.get('%s-%s' % (pro['name'], color_sku['properties_name']))
-                sku_outer_id = sku_dict and sku_dict['outer_id'] or outer_id + _num2char(sku_count - 1)
+                sku_outer_id = sku_dict and sku_dict['outer_id'] or outer_id + _num2char(sku_count)
                 barcode = sku_dict and sku_dict['barcode'] or '%s%d' % (outer_id, sku_count)
 
                 product_skus_list.append({
