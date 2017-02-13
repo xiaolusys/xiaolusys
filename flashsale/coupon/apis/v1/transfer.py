@@ -313,6 +313,7 @@ def create_new_elite_mama(customer, to_mama, so):
     sys_oa = get_systemoa_user()
     log_action(sys_oa, to_mama, CHANGE, u'create_new_elite_mama change referal %s' % (to_mama.referal_from))
 
+    grandma_id = 0
     if relation_ship:
         # modify relation ship
         relation_ship.referal_type = XiaoluMama.ELITE
@@ -322,10 +323,13 @@ def create_new_elite_mama(customer, to_mama, so):
             real_relation_ship = referal_mm.get_refer_to_relationships()
             if real_relation_ship:
                 relation_ship.referal_from_grandma_id = real_relation_ship.referal_from_mama_id
+                grandma_id = real_relation_ship.referal_from_mama_id
             else:
                 relation_ship.referal_from_grandma_id = 0
+                grandma_id = 0
         else:
             relation_ship.referal_from_grandma_id = 0
+            grandma_id = 0
         relation_ship.order_id = so.oid
         relation_ship.save()
         log_action(sys_oa, relation_ship, CHANGE, u'create_new_elite_mama change relationship,referalmm=%s grandmama=%s' % (
@@ -360,7 +364,7 @@ def create_new_elite_mama(customer, to_mama, so):
         'action_time': datetime.datetime.now(),
         'order_oid': so.oid,
         'message': u'create_new_elite_mama :to mama_id=%s referalmm=%s grandmama=%s' % (
-            to_mama.id, relation_ship.referal_from_mama_id, relation_ship.referal_from_grandma_id),
+            to_mama.id, upper_mama_id, grandma_id),
     })
 
 def send_new_elite_transfer_coupons(customer_id, order_id, order_oid, product_id):
