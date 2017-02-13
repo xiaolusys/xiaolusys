@@ -1,6 +1,7 @@
 # coding=utf-8
 import requests
-
+import logging
+logger = logging.getLogger(__name__)
 
 
 def kd100_subscription(company, number,query_url = "http://poll.kuaidi100.com/poll",
