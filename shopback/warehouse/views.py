@@ -173,7 +173,7 @@ class PackageScanCheckView(APIView):
         logger.info({
             'action': 'psi_scan_check',
             'action_time': datetime.datetime.now(),
-            'order_oid': package_order.oid,
+            'order_no': package_order.tid,
             'package_no': package_id,
             'serial_data': serial_data,
         })
@@ -195,7 +195,7 @@ class PackageScanCheckView(APIView):
                     continue
 
                 # except empty key, and sorted by scan num
-                batch_orders = sorted([item for item in batch_nos.items() if item[0]], key=lambda l: l[1], reverse=True)
+                batch_orders = sorted([list(item) for item in batch_nos.items() if item[0]], key=lambda l: l[1], reverse=True)
                 for order in orders:
                     oid = order['oid']
                     origin_num = order['num']
