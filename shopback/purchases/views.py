@@ -61,61 +61,61 @@ class JSONResponse(HttpResponse):
         super(JSONResponse, self).__init__(content, **kwargs)
 
 
-class PurchaseView(APIView):
-    """ 采购单 """
-    serializer_class = serializers.PurchaseSerializer
-    permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication,)
-    renderer_classes = (PurchaseHtmlRenderer, new_BaseJSONRenderer, BrowsableAPIRenderer,)
-
-    def get(self, request, *args, **kwargs):
-
-        params = {}
-        params['suppliers'] = serializers.SupplierSerializer(Supplier.objects.filter(in_use=True), many=True).data
-        params['deposites'] = serializers.DepositeSerializer(Deposite.objects.filter(in_use=True), many=True).data
-        params['purchase_types'] = serializers.PurchaseTypeSerializer(PurchaseType.objects.filter(in_use=True),
-                                                                      many=True).data
-        # print params
-
-        # return Response({"object":params})
-        # return Response(params)
-        return Response({'object': params})
-
-    def post(self, request, *args, **kwargs):
-        # print "post"
-        content = request.POST
-        purchase_id = content.get('purchase_id')
-        # purchase_id=10004
-        print purchase_id, "99999999999"
-        purchase = None
-        state = False
-
-        if purchase_id:
-            try:
-                purchase = Purchase.objects.get(id=purchase_id)
-
-            except:
-                return u'输入采购编号未找到'
-        else:
-            state = True
-            purchase = Purchase()
-            purchase.creator = request.user.username
-
-        for k, v in content.iteritems():
-            if not v: continue
-            hasattr(purchase, k) and setattr(purchase, k, v.strip())
-
-        if not purchase.origin_no:
-            purchase.origin_no = str(time.time())
-
-        if not purchase.service_date:
-            purchase.service_date = datetime.datetime.now()
-        purchase.save()
-
-        log_action(request.user.id, purchase, state and ADDITION
-                   or CHANGE, u'%s采购单' % (state and u'新建' or u'修改'))
-
-        return HttpResponseRedirect('/purchases/%d/' % purchase.id)
+# class PurchaseView(APIView):
+#     """ 采购单 """
+#     serializer_class = serializers.PurchaseSerializer
+#     permission_classes = (permissions.IsAuthenticated,)
+#     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication,)
+#     renderer_classes = (PurchaseHtmlRenderer, new_BaseJSONRenderer, BrowsableAPIRenderer,)
+#
+#     def get(self, request, *args, **kwargs):
+#
+#         params = {}
+#         params['suppliers'] = serializers.SupplierSerializer(Supplier.objects.filter(in_use=True), many=True).data
+#         params['deposites'] = serializers.DepositeSerializer(Deposite.objects.filter(in_use=True), many=True).data
+#         params['purchase_types'] = serializers.PurchaseTypeSerializer(PurchaseType.objects.filter(in_use=True),
+#                                                                       many=True).data
+#         # print params
+#
+#         # return Response({"object":params})
+#         # return Response(params)
+#         return Response({'object': params})
+#
+#     def post(self, request, *args, **kwargs):
+#         # print "post"
+#         content = request.POST
+#         purchase_id = content.get('purchase_id')
+#         # purchase_id=10004
+#         print purchase_id, "99999999999"
+#         purchase = None
+#         state = False
+#
+#         if purchase_id:
+#             try:
+#                 purchase = Purchase.objects.get(id=purchase_id)
+#
+#             except:
+#                 return u'输入采购编号未找到'
+#         else:
+#             state = True
+#             purchase = Purchase()
+#             purchase.creator = request.user.username
+#
+#         for k, v in content.iteritems():
+#             if not v: continue
+#             hasattr(purchase, k) and setattr(purchase, k, v.strip())
+#
+#         if not purchase.origin_no:
+#             purchase.origin_no = str(time.time())
+#
+#         if not purchase.service_date:
+#             purchase.service_date = datetime.datetime.now()
+#         purchase.save()
+#
+#         log_action(request.user.id, purchase, state and ADDITION
+#                    or CHANGE, u'%s采购单' % (state and u'新建' or u'修改'))
+#
+#         return HttpResponseRedirect('/purchases/%d/' % purchase.id)
 
 
 class PurchaseInsView(APIView):

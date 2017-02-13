@@ -10,12 +10,12 @@ from django.views.decorators.csrf import csrf_exempt
 from shopback.base.authentication import login_required_ajax
 
 urlpatterns = [
-    url(r'^add/$', csrf_exempt(PurchaseView.as_view(
-       # resource=PurchaseResource,
-       # renderers=(PurchaseHtmlRenderer,BaseJsonRenderer),
-       # authentication=(UserLoggedInAuthentication,),
-       # permissions=(IsAuthenticated,)
-    ))),
+    # url(r'^add/$', csrf_exempt(PurchaseView.as_view(
+    #    # resource=PurchaseResource,
+    #    # renderers=(PurchaseHtmlRenderer,BaseJsonRenderer),
+    #    # authentication=(UserLoggedInAuthentication,),
+    #    # permissions=(IsAuthenticated,)
+    # ))),
     url(r'^(?P<id>\d{1,20})/$', csrf_exempt(PurchaseInsView.as_view(
        # resource=PurchaseResource,
        # renderers=(PurchaseHtmlRenderer,BaseJsonRenderer),

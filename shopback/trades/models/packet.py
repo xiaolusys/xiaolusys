@@ -1274,12 +1274,8 @@ class PackageSkuItem(BaseModel):
                     pa.generate_order(retry=True)
 
     def merge(self):
-        if self.status == PSI_STATUS.ASSIGNED:
+        if not self.package_order_pid:
             if self.type == PSI_TYPE.NORMAL:
-                if self.package_order_pid:
-                    # 避免一些异常
-                    PackageSkuItem.objects.filter(id=self.id).update(status=PSI_STATUS.MERGED)
-                    return
                 self.status = PSI_STATUS.MERGED
                 self.merge_time = datetime.datetime.now()
                 package_order_id = PackageOrder.gen_new_package_id(self.sale_trade.buyer_id,
