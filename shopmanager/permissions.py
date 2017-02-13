@@ -7,16 +7,15 @@ permission_trades = [
 ]
 
 permissions = []
-permissions.append(permission_trades)
+permissions.extend(permission_trades)
 
 
 def update_permissions():
     from django.contrib.auth.models import Permission
     from django.contrib.contenttypes.models import ContentType
-
     for permission in permissions:
-        content_id = ContentType.objects.get(app_label=permissions[0], model=permissions[1]).id
-        Permission.get_or_create(name=permission[2], content_type=content_id, codename=permission[0])
+        content_type = ContentType.objects.get(app_label=permission[1][0], model=permission[1][1])
+        Permission.objects.get_or_create(name=permission[2], content_type=content_type, codename=permission[0])
 # 获取权限对应的model
 # from django.apps import apps
 # apps.get_models('trades', 'packageorder')
