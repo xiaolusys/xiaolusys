@@ -28,7 +28,7 @@ def get_coupons_elite(user_coupons, mama_level):
     # type: (List[UserCoupon], text_type) -> int
     """计算优惠券 在当前等级的 积分
     """
-    virtual_model_products = ModelProduct.objects.get_virtual_modelproducts()  # 虚拟商品
+    virtual_model_products = ModelProduct.objects.filter(product_type=ModelProduct.VIRTUAL_TYPE, status=ModelProduct.NORMAL)  # 虚拟商品
     map_dict = {}
     for md in virtual_model_products:
         md_bind_tpl_id = md.extras.get('template_id')
