@@ -20,6 +20,7 @@ from flashsale.dinghuo.models import OrderList, OrderDetail, ProductSkuDetail, R
 from flashsale.dinghuo.models_user import MyUser, MyGroup
 from shopback.trades.models import PackageSkuItem
 from shopback.warehouse import WARE_THIRD
+from flashsale.dinghuo.models import StockBatchFlowRecord
 from .filters import OrderListStatusFilter2, BuyerNameFilter, \
     InBoundCreatorFilter
 import datetime
@@ -976,3 +977,14 @@ class PackageBackOrderStatsAdmin(BaseModelAdmin):
 
 
 admin.site.register(PackageBackOrderStats, PackageBackOrderStatsAdmin)
+
+
+class StockBatchFlowRecordAdmin(BaseModelAdmin):
+    list_display = (
+        'id', 'model_id', 'sku_id', 'record_num', 'record_type', 'batch_no', 'referal_id', 'status', 'finish_time', 'created')
+    search_fields = ('=model_id', '=sku_id', '=referal_id')
+    list_filter = [("finish_time", DateFieldListFilter),("created", DateFieldListFilter)]
+
+
+admin.site.register(StockBatchFlowRecord, StockBatchFlowRecordAdmin)
+

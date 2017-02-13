@@ -3,9 +3,9 @@ import cStringIO as StringIO
 import datetime
 import logging
 import re
-from django.db.models import Q, Sum
-from django.forms.models import model_to_dict
-from shopback import paramconfig as pcfg
+import json
+from collections import defaultdict
+from django.db import transaction
 from shopback.base.new_renders import new_BaseJSONRenderer
 from shopback.logistics.models import LogisticsCompany
 from shopback.trades.models import PackageSkuItem, PackageOrder, SYS_TRADE_STATUS, TAOBAO_TRADE_STATUS
@@ -16,6 +16,8 @@ from rest_framework.views import APIView
 from rest_framework import authentication, permissions
 from shopapp.smsmgr.tasks import task_notify_package_post
 from flashsale.pay.models import SaleOrder
+from flashsale.dinghuo.apis import stockflow
+
 logger = logging.getLogger('django.request')
 
 
@@ -148,6 +150,7 @@ class PackageScanCheckView(APIView):
     def post(self, request, *args, **kwargs):
         content = request.POST
         package_id = content.get('package_no', '').strip()
+        serial_data = json.loads(content.get('serial_data', '{}'))
         if not package_id:
             return Response(u'单号不能为空')
         package_id = self.parsePackageNo(package_id)
@@ -166,9 +169,51 @@ class PackageScanCheckView(APIView):
         err_res = package_order.checkerr()
         if err_res:
             return Response(err_res)
-        package_order.sys_status = PackageOrder.WAIT_SCAN_WEIGHT_STATUS
-        package_order.scanner = request.user.username
-        package_order.save()
+
+        logger.info({
+            'action': 'psi_scan_check',
+            'action_time': datetime.datetime.now(),
+            'order_oid': package_order.oid,
+            'package_no': package_id,
+            'serial_data': serial_data,
+        })
+
+        with transaction.atomic():
+            package_order.sys_status = PackageOrder.WAIT_SCAN_WEIGHT_STATUS
+            package_order.scanner = request.user.username
+            package_order.save()
+            # 根据客户端扫描验货获取的条码批次号信息，保存进数据库
+            psi_values = package_order.package_sku_items.values('sku_id', 'oid', 'num')
+            sku_maps  = defaultdict(list)
+            for val in psi_values:
+                sku_maps[int(val['sku_id'])].append(val)
+
+            for sku_id, batch_nos in serial_data.iteritems():
+                # sorted by order num
+                orders = sorted(sku_maps.get(int(sku_id)), key=lambda l: l['num'], reverse=True)
+                if not orders:
+                    continue
+
+                # except empty key, and sorted by scan num
+                batch_orders = sorted([item for item in batch_nos.items() if item[0]], key=lambda l: l[1], reverse=True)
+                for order in orders:
+                    oid = order['oid']
+                    origin_num = order['num']
+                    index  = 0
+
+                    for bo in batch_orders:
+                        batch_no = bo[0]
+                        delta_num = min(origin_num, bo[1])
+                        if delta_num > 0:
+                            stockflow.push_saleorder_post_batch_record(
+                                sku_id, delta_num, batch_no, oid, row_split= index > 0)
+
+                        origin_num = origin_num - delta_num
+                        bo[1] = bo[1] - delta_num
+                        index += 1
+                        if origin_num == 0:
+                            break
+
         return Response({'isSuccess': True})
 
 
@@ -256,6 +301,12 @@ class PackageScanWeightView(APIView):
         package.save()
         package.finish_scan_weight()
         task_notify_package_post.delay(package)
+
+        # 将库存批次出货记录置为有效
+        psi_values = package.package_sku_items.values_list('oid', flat=True)
+        for oid in psi_values:
+            stockflow.set_stock_batch_flow_record_finished(oid, stockflow.StockBatchFlowRecord.SALEORDER)
+
         return Response({'isSuccess': True})
 
 
