@@ -88,8 +88,8 @@ class WuliuViewSet(viewsets.ModelViewSet):
         out_sid = json.loads(lastResult).get("nu")
         status = json.loads(lastResult).get("state")
         TradeWuliu.create_or_update_tradewuliu(lastResult)
-        if out_sid and status and status == 3:
-            kd100_wuliu.confirm_get_by_state(out_sid, status)
+        # if out_sid and status and status == 3:
+        #     kd100_wuliu.confirm_get_by_state(out_sid, status)
         logger.warn({'action': "kd100", 'info': "push_wuliu_data:" + str(out_sid)})
         return Response({"result":"true","returnCode":"200","message":u"成功"})
 
