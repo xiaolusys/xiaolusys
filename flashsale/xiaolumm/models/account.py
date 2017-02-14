@@ -77,13 +77,16 @@ class AccountEntry(BaseModel):
         import os
         obj_id = os.urandom(16).encode('hex')
 
-        debit = AccountSubject.objects.get(code=debit)
-        lender = AccountSubject.objects.get(code=lender)
+        try:
+            debit = AccountSubject.objects.get(code=debit)
+            lender = AccountSubject.objects.get(code=lender)
 
-        AccountEntry.objects.create(customer_id=customer_id, subject=debit, amount=-amount,
-                                    obj_id=obj_id, referal_id=referal_id)
-        AccountEntry.objects.create(customer_id=customer_id, subject=lender, amount=amount,
-                                    obj_id=obj_id, referal_id=referal_id)
+            AccountEntry.objects.create(customer_id=customer_id, subject=debit, amount=-amount,
+                                        obj_id=obj_id, referal_id=referal_id)
+            AccountEntry.objects.create(customer_id=customer_id, subject=lender, amount=amount,
+                                        obj_id=obj_id, referal_id=referal_id)
+        except Exception:
+            return
 
     def __unicode__(self):
         return '<%s>' % (self.id)
