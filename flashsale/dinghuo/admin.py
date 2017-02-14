@@ -982,7 +982,7 @@ admin.site.register(PackageBackOrderStats, PackageBackOrderStatsAdmin)
 class StockBatchFlowRecordAdmin(BaseModelAdmin):
     list_display = (
         'id', 'model_id', 'sku_id', 'record_num', 'record_type', 'batch_no', 'referal_id', 'status', 'finish_time', 'created')
-    search_fields = ('=model_id', '=sku_id', '=referal_id')
+    search_fields = ('=model_id', '=sku_id', '=referal_id', '=batch_no')
     list_filter = [("finish_time", DateFieldListFilter),("created", DateFieldListFilter)]
 
 

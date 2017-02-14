@@ -4,6 +4,7 @@ from core.filters import DateFieldListFilter
 from .models import DailyStat, PopularizeCost, DailyBoutiqueStat
 from django import forms
 
+from flashsale.pay.models import ModelProduct
 from core.admin import ApproxAdmin
 
 
@@ -82,9 +83,16 @@ class PopularizeCostAdmin(admin.ModelAdmin):
 
 @admin.register(DailyBoutiqueStat)
 class DailyBoutiqueStatAdmin(admin.ModelAdmin):
-    list_display = ('model_id',
+    list_display = ('model_id', 'product_link',
                     'stat_date', 'model_stock_num', 'model_sale_num','model_refund_num',
                     'coupon_sale_num', 'coupon_use_num', 'coupon_refund_num',)
     list_filter = (('stat_date', DateFieldListFilter),)
     search_fields = ['=model_id']
     ordering = ('-stat_date',)
+
+    def product_link(self, obj):
+        mp = ModelProduct.objects.filter(id=obj.model_id).first()
+        return '<a href="/admin/pay/modelproduct/?q=%s" style="width:100px;">%s</a>'%(mp.id, mp.name)
+
+    product_link.allow_tags = True
+    product_link.short_description = u"商品名称"

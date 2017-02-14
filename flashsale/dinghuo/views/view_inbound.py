@@ -466,7 +466,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
     def retrieve(self, request, pk=None):
         inbound  = get_object_or_404(InBound, id=pk)
         supplier = inbound.supplier
-        batch_no = '' # inbound.get_batch_no()
+        batch_no = inbound.get_batch_no()
 
         result = {
             'supplier_id': supplier.id,
