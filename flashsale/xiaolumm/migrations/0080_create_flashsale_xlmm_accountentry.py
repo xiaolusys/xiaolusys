@@ -9,7 +9,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('xiaolumm', '0077_create_flashsale_xlmm_xiaolucoin'),
+        ('xiaolumm', '0079_add_fans_num'),
     ]
 
     operations = [
