@@ -1,8 +1,11 @@
 # coding=utf-8
+import re
 import datetime
 import django_filters
 from django.shortcuts import get_object_or_404
 from django.db import transaction
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from django_statsd.clients import statsd
 
 from rest_framework import exceptions
@@ -12,6 +15,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import list_route
 
 from flashsale.pay.models import Customer
+from flashsale.pay.models.product import ModelProduct
 from flashsale.xiaolumm.models import XiaoluMama, MamaTabVisitStats
 from flashsale.xiaolumm.models.models_advertis import XlmmAdvertis, NinePicAdver, MamaVebViewConf
 from flashsale.xiaolumm.tasks import task_mama_daily_tab_visit_stats
@@ -67,8 +71,7 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
     queryset = NinePicAdver.objects.all()
     serializer_class = serializers.NinePicAdverSerialize
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated,)
-    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
     ordering_fields = '__all__'
     filter_class = NinePicAdverFilter
@@ -95,6 +98,82 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
             'view': self,
             "mama_id": xlmm.id if xlmm else 0
         }
+
+    @list_route(methods=['get'])
+    @method_decorator(cache_page(30))
+    def today(self, req, *args, **kwargs):
+        q_hour = req.GET.get('hour')
+        today = datetime.date.today()
+        tomorrow = today + datetime.timedelta(days=1)
+
+        try:
+            q_hour = int(q_hour)
+        except:
+            q_hour = None
+
+        if q_hour:
+            start_time = datetime.datetime(today.year, today.month, today.day, q_hour)
+            end_time = start_time + datetime.timedelta(hours=1)
+            queryset = NinePicAdver.objects.filter(start_time__gte=start_time, start_time__lt=end_time)
+            print start_time, end_time
+        else:
+            queryset = NinePicAdver.objects.filter(start_time__gte=today, start_time__lt=tomorrow)
+
+        items = []
+        for item in queryset:
+            for model_id in re.split(u',|，', item.detail_modelids):
+                if not model_id or item in items:
+                    continue
+                item.model_id = model_id
+                items.append(item)
+
+        virtual_model_products = ModelProduct.objects.get_virtual_modelproducts()  # 虚拟商品
+
+        data = []
+        for item in items:
+            model_id = item.model_id
+            mp = ModelProduct.objects.get(id=model_id)
+            coupon_template_id = mp.extras.get('payinfo', {}).get('coupon_template_ids', [])
+            coupon_template_id = coupon_template_id[0] if coupon_template_id else None
+
+            find_mp = None
+
+            for md in virtual_model_products:
+                md_bind_tpl_id = md.extras.get('template_id')
+                if md_bind_tpl_id and coupon_template_id == md_bind_tpl_id:
+                    find_mp = md
+                    break
+
+            if not find_mp:
+                continue
+
+            prices = [x.agent_price for x in find_mp.products]
+            min_price = min(prices)
+            max_price = max(prices)
+
+            data.append({
+                'pic': mp.head_img(),
+                'name': mp.name,
+                'price': mp.lowest_agent_price,
+                'profit': {
+                    'min': mp.lowest_agent_price - max_price,
+                    'max': mp.lowest_agent_price - min_price
+                },
+                'start_time': item.start_time,
+                'hour': item.start_time.hour,
+                'model_id': model_id
+            })
+
+        import itertools
+        group = itertools.groupby(data, lambda x: x['hour'])
+        result = []
+        for key, items in group:
+           result.append({
+               'hour': key,
+               'items': list(items)
+           })
+
+        return Response(result)
 
     @list_route(methods=['get'])
     def get_nine_pic_by_modelid(self, request, *args, **kwargs):
