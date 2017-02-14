@@ -20,6 +20,7 @@ class AccountSubject(BaseModel):
     def __unicode__(self):
         return '<%s>' % (self.id)
 
+
 # class AccountSummary(BaseModel):
 #     """ 该存档汇总记录只供参考 """
 #     NOW_SUM   = 'now'
