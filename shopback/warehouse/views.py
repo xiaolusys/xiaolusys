@@ -122,6 +122,7 @@ class PackageScanCheckView(APIView):
                           'sku_name': product_sku and product_sku.name or '',
                           'pic_path': product.pic_path,
                           'num': order.num,
+                          'sku_id':order.sku_id,
                           'post_check': is_need_check,
                           'status': order.get_status_display()}
             order_items.append(order_dict)
