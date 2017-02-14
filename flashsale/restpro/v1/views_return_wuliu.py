@@ -18,8 +18,36 @@ import logging
 from shopback.logistics.models import LogisticsCompany
 from flashsale.restpro import kdn_wuliu_extra,exp_map
 from common.auth import WeAppAuthentication
-
+from flashsale.restpro import kd100_wuliu
+import json
+from flashsale.restpro.tasks import create_or_update_tradewuliu
 logger = logging.getLogger('lacked_wuliu_company_name')
+
+kd100_exp_map = {"韵达":"yunda",'韵达快递':'yunda','韵达速递':'yunda',
+                 "申通":"shentong","申通快递":"shentong","申通速递":"shentong",
+                 "顺丰":"shunfeng","顺丰快递":"shunfeng","顺丰速递":"shunfeng",
+                 "EMS":"ems",  #对应于上面物流表中EMS
+                 "ems":"ems",
+                 "百世":"huitongkuaidi","百世汇通":"huitongkuaidi",
+                 "中通":"zhongtong","中通快递":"zhongtong","中通速递":"zhongtong",
+                 "圆通":"yuantong","圆通快递":"yuantong","圆通速递":"yuantong",
+                 "国通":"guotong","国通快递":"guotong","国通速递":"guotong",
+                 "天天":"tiantian","天天快递":"tiantian",
+                 "邮政包裹":"youzhengguonei","邮政": "youzhengguonei","邮政快递":"youzhengguonei",
+                 "安能物流":"annengwuliu","安能":"annengwuliu","安能快递":"annengwuliu","安能速递":"annengwuliu",
+                 "优速快递":"youshuwuliu","优速速递":"youshuwuliu","优速":"youshuwuliu",
+                 "龙邦快递":"longbanwuliu","龙邦":"longbanwuliu","龙邦速递":"longbanwuliu",
+                 "如风达快递":"rufengda","如风达":"rufengda","如风达速递":"rufengda",
+                 "全峰快递":"quanfengkuaidi","全峰":"quanfengkuaidi","全峰速递":"quanfengkuaidi",
+                 "德邦快递":"debangwuliu","德邦":"debangwuliu","德邦速递":"debangwuliu",
+                 "宅急送":"zhaijisong",
+                 "全一":"quanyikuaidi","全一快递":"quanyikuaidi","全一速递":"quanyikuaidi",
+                 "快捷速递":"kuaijiesudi","快捷":"kuaijiesudi","快捷快递":"kuaijiesudi",
+                 "DH":"dhl","DHL":"dhl",
+                 "邮政小包":"youzhengguonei",
+                 "天天":"tiantian",
+
+                 }
 class ReturnWuliuViewSet(viewsets.ModelViewSet):
     """
     {prefix}/get_wuliu_by_tid: 由tid获取退货物流信息
@@ -109,7 +137,7 @@ class ReturnWuliuViewSet(viewsets.ModelViewSet):
             if len(sim):
                 company_id = LogisticsCompany.objects.get(name=sim[0])
         if company_id:
-            return company_id.express_key
+            return company_id.kd100_express_key
         else:
             logger.warn(company_name)
             return None
@@ -180,19 +208,24 @@ class ReturnWuliuViewSet(viewsets.ModelViewSet):
             logistics_company = company_name
         else:
             return Response({"info":"尚且还不支持"+company_code+"的物流公司查询"})
-        tradewuliu = TradeWuliu.objects.filter(out_sid=out_sid).order_by("-id")
-        if tradewuliu.first():
-            kdn_wuliu_extra.confirm_get_by_content(out_sid,tradewuliu.first().content)
-            logger.warn({'action': "kdn", 'info': "run get_wuliu_by_packetid_1"})
-            result = wuliu_choice.result_choice[1](logistics_company,
-                                                             out_sid,
-                                                             tradewuliu.first())
-        else:
-            logger.warn({'action': "kdn", 'info': "run get_wuliu_by_packetid_2"})
-            result = wuliu_choice.result_choice[0](logistics_company,
-                                                             out_sid,
-                                                             tradewuliu.first())
-        return Response(result)
+        if not str(company_name).strip():
+            return Response("暂无物流信息")
+        company_code = kd100_exp_map.get(str(company_name).strip())
+        # 如果我们数据库中记录已经是已签收状态,那么直接返回我们数据库中的物流信息
+        tradewuliu = TradeWuliu.get_tradewuliu(packetid,company_code)
+        if tradewuliu and tradewuliu.status == 3:
+            show_data = kd100_wuliu.fomat_wuliu_data_from_db(tradewuliu)
+            return Response(show_data)
+        # 我们的记录不是已签收状态,那么直接在线同步查询,并异步更新我们的数据库
+        search_result = kd100_wuliu.kd100_instant_query(company_code,packetid)
+        if not json.loads(search_result).get("data"):
+            return Response("暂无物流信息")
+        # print tradewuliu.content
+        # print json.dumps(json.loads(search_result).get("data"))
+        if not tradewuliu or (tradewuliu and tradewuliu.content != json.dumps(json.loads(search_result).get("data"))):
+            create_or_update_tradewuliu.delay(search_result)
+        show_data = kd100_wuliu.format_wuliu_data(search_result)
+        return Response(show_data)
 
     def create(self, request, *args, **kwargs):
         """创建本地物流存储"""
