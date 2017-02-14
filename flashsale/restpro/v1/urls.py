@@ -79,8 +79,8 @@ promotion_router.register(r'free_proinfo', views_promotion.XLFreeSampleViewSet)
 promotion_router.register(r'free_order', views_promotion.XLSampleOrderViewSet)
 promotion_router.register(r'fanlist', views_promotion.InviteReletionshipView)
 
-router.register(r'wuliu', views_wuliu_new.WuliuViewSet)
-router.register(r'wuliu_kd100',views_wuliu_kd100.WuliuViewSet)
+# router.register(r'wuliu', views_wuliu_new.WuliuViewSet)
+router.register(r'wuliu',views_wuliu_kd100.WuliuViewSet)
 router.register(r'rtnwuliu', views_return_wuliu.ReturnWuliuViewSet)
 
 # 推送相关
