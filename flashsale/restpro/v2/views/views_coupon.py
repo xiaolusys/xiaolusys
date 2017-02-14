@@ -268,8 +268,8 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         mama = get_charged_mama(request.user)
         mama_id = mama.id
         coupons = self.queryset.filter(coupon_from_mama_id=mama_id, status=status).exclude(transfer_type__in=[
-            CouponTransferRecord.OUT_CASHOUT,
-            CouponTransferRecord.IN_RETURN_COUPON]).order_by('-created')
+            CouponTransferRecord.OUT_CASHOUT, CouponTransferRecord.IN_RETURN_COUPON,
+            CouponTransferRecord.IN_RECHARGE, CouponTransferRecord.OUT_CASHOUT_COIN]).order_by('-created')
         if transfer_status:
             coupons = coupons.filter(transfer_status=transfer_status.strip())
 
@@ -295,8 +295,8 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
         mama = get_charged_mama(request.user)
         mama_id = mama.id
         coupons = self.queryset.filter(coupon_to_mama_id=mama_id, status=status).exclude(transfer_type__in=[
-            CouponTransferRecord.OUT_CASHOUT,
-            CouponTransferRecord.IN_RETURN_COUPON]).order_by('-created')
+            CouponTransferRecord.OUT_CASHOUT, CouponTransferRecord.IN_RETURN_COUPON,
+            CouponTransferRecord.IN_RECHARGE, CouponTransferRecord.OUT_CASHOUT_COIN]).order_by('-created')
         if transfer_status:
             coupons = coupons.filter(transfer_status=transfer_status.strip())
 
@@ -438,8 +438,8 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
             return Response({'code': 2, 'info': '妈妈记录没找到'})
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.filter(coupon_from_mama_id=mama.id,
-                                   transfer_type__in=[CouponTransferRecord.OUT_CASHOUT,
-                                                      CouponTransferRecord.IN_RETURN_COUPON]).order_by('-created')
+                                   transfer_type__in=[CouponTransferRecord.OUT_CASHOUT, CouponTransferRecord.IN_RETURN_COUPON,
+                                                      CouponTransferRecord.OUT_CASHOUT_COIN]).order_by('-created')
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
