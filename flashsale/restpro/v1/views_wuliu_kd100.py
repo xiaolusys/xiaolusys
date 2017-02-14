@@ -29,6 +29,32 @@ from flashsale.restpro import wuliu_choice,kd100_wuliu
 from shopback.logistics.models import LogisticsCompany
 logger = logging.getLogger(__name__)
 
+kd100_exp_map = {"韵达":"yunda",'韵达快递':'yunda','韵达速递':'yunda',
+                 "申通":"shentong","申通快递":"shentong","申通速递":"shentong",
+                 "顺丰":"shunfeng","顺丰快递":"shunfeng","顺丰速递":"shunfeng",
+                 "EMS":"ems",  #对应于上面物流表中EMS
+                 "ems":"ems",
+                 "百世":"huitongkuaidi","百世汇通":"huitongkuaidi",
+                 "中通":"zhongtong","中通快递":"zhongtong","中通速递":"zhongtong",
+                 "圆通":"yuantong","圆通快递":"yuantong","圆通速递":"yuantong",
+                 "国通":"guotong","国通快递":"guotong","国通速递":"guotong",
+                 "天天":"tiantian","天天快递":"tiantian",
+                 "邮政包裹":"youzhengguonei","邮政": "youzhengguonei","邮政快递":"youzhengguonei",
+                 "安能物流":"annengwuliu","安能":"annengwuliu","安能快递":"annengwuliu","安能速递":"annengwuliu",
+                 "优速快递":"youshuwuliu","优速速递":"youshuwuliu","优速":"youshuwuliu",
+                 "龙邦快递":"longbanwuliu","龙邦":"longbanwuliu","龙邦速递":"longbanwuliu",
+                 "如风达快递":"rufengda","如风达":"rufengda","如风达速递":"rufengda",
+                 "全峰快递":"quanfengkuaidi","全峰":"quanfengkuaidi","全峰速递":"quanfengkuaidi",
+                 "德邦快递":"debangwuliu","德邦":"debangwuliu","德邦速递":"debangwuliu",
+                 "宅急送":"zhaijisong",
+                 "全一":"quanyikuaidi","全一快递":"quanyikuaidi","全一速递":"quanyikuaidi",
+                 "快捷速递":"kuaijiesudi","快捷":"kuaijiesudi","快捷快递":"kuaijiesudi",
+                 "DH":"dhl","DHL":"dhl",
+                 "邮政小包":"youzhengguonei",
+                 "天天":"tiantian",
+
+                 }
+
 class WuliuViewSet(viewsets.ModelViewSet):
     """
     - {prefix}/get_wuliu_by_tid : 由tid获取物流信息
@@ -52,10 +78,12 @@ class WuliuViewSet(viewsets.ModelViewSet):
         if not packetid.isdigit():
             return Response({"info":"物流单号有误,包含非数字"})
         packetid = str(packetid)
-        company_code = str(company_code)
-
+        company_code = str(company_code).strip()
+        if company_code not in kd100_exp_map.values():
+            kd100_code = LogisticsCompany.objects.filter(code=company_code).first()
+            company_code = kd100_code.kd100_express_key
         # 如果我们数据库中记录已经是已签收状态,那么直接返回我们数据库中的物流信息
-        tradewuliu = TradeWuliu.get_tradewuliu(packetid,company_code)
+        tradewuliu = TradeWuliu.get_tradewuliu(packetid)
         if tradewuliu and tradewuliu.status == 3:
             kd100_wuliu.confirm_get_by_state(tradewuliu.out_sid,tradewuliu.status)
             show_data = kd100_wuliu.fomat_wuliu_data_from_db(tradewuliu)
