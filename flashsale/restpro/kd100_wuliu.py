@@ -72,7 +72,7 @@ def format_wuliu_data(wuliu_data):
     return_data["status"] = wuliu_state[wuliu_data["state"]]
     return_data["name"] = wuliu_data["com"]
     return_data["status_code"] = int(wuliu_data["state"])
-    return_data["error_code"] = ''
+    return_data["errorcode"] = ''
     return_data["order"] = wuliu_data["nu"]
     return_data["message"] = wuliu_data["message"]
     for i in wuliu_data['data']:
