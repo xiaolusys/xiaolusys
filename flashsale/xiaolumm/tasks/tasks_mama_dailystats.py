@@ -370,7 +370,7 @@ def check_xlmm_ordercarry(recent_day):
         from flashsale.pay.apis.v1.order import get_pay_type_from_trade
         if order.sale_trade.order_type == SaleTrade.ELECTRONIC_GOODS_ORDER:
             budget_pay, coin_pay = get_pay_type_from_trade(order.sale_trade)
-            if coin_pay:
+            if coin_pay > 0:
                 customer = Customer.objects.get(id=order.buyer_id)
                 to_mama = customer.get_xiaolumm()
                 if to_mama.referal_from == XiaoluMama.INDIRECT:

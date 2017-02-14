@@ -83,7 +83,7 @@ def task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, prod
         from_mama_nick = 'SYSTEM'
 
         transfer_type = CouponTransferRecord.IN_BUY_COUPON
-        if coin_pay:
+        if coin_pay > 0:
             transfer_type = CouponTransferRecord.IN_BUY_COUPON_WITH_COIN
         date_field = datetime.date.today()
         transfer_status = CouponTransferRecord.DELIVERED
@@ -91,9 +91,9 @@ def task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, prod
         coupon_value = int(template.value)
         product_img = template.extras.get("product_img") or ''
         elite_score = product.elite_score * (int(order_num))
-        # xiaolucoin pay not add score
-        if coin_pay:
-            elite_score = 0
+        # xiaolucoin pay not add score,但是小鹿币和现金混合支付的话需要按比例给积分
+        if coin_pay > 0:
+            elite_score = int(elite_score * ((round(so.sale_trade.total_fee * 100) - round(coin_pay * 100)) / round(so.sale_trade.total_fee * 100)))
 
         try:
             transfer = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id,

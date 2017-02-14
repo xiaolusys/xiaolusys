@@ -256,7 +256,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             budget_pay, coin_pay = get_pay_type_from_trade(sale_trade)
 
             if payment > 0:
-                if coin_pay:
+                if coin_pay > 0:
                     xlmm = buyer.getXiaolumm()
                     if xlmm:
                         xiaolucoin = XiaoluCoin.objects.select_for_update().filter(mama_id=xlmm.id).first()
