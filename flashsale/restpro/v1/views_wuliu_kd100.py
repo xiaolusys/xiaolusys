@@ -62,8 +62,8 @@ class WuliuViewSet(viewsets.ModelViewSet):
             return Response(show_data)
         # 我们的记录不是已签收状态,那么直接在线同步查询,并异步更新我们的数据库
         search_result = kd100_wuliu.kd100_instant_query(company_code,packetid)
-        print tradewuliu.content
-        print json.dumps(json.loads(search_result).get("data"))
+        # print tradewuliu.content
+        # print json.dumps(json.loads(search_result).get("data"))
         if not tradewuliu or (tradewuliu and tradewuliu.content != json.dumps(json.loads(search_result).get("data"))):
             create_or_update_tradewuliu.delay(search_result)
         show_data = kd100_wuliu.format_wuliu_data(search_result)

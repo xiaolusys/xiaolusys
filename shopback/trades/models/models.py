@@ -1242,14 +1242,21 @@ class TradeWuliu(models.Model):
         logistics_company = wuliu_trace_data.get("com")
         status = wuliu_trace_data.get("state")
         time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        content = json.dumps(wuliu_trace_data.get("data", "no_wuliu_data"))
-        print content
+        content = wuliu_trace_data.get("data", "no_wuliu_data")
+        new_content = []
+        if content != "no_wuliu_data":
+            for i in content:
+                new_content.append({"ftime":i.get("ftime"),
+                 "context":i.get("context"),
+                 "time":i.get("time")})
+        new_content = json.dumps(new_content)
+        print new_content
         write_data = {
             "out_sid": out_sid,
             "logistics_company": logistics_company,
             "status": status,
             "time": time,
-            "content": content
+            "content": new_content
         }
         tradewuliu = TradeWuliu.objects.filter(out_sid=out_sid)
         if tradewuliu.first() is None:
