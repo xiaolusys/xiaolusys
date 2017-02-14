@@ -88,7 +88,7 @@ def fomat_wuliu_data_from_db(tradewuliu):
         "errcode": tradewuliu.errcode,
         "id": "",
         "message": "",
-        "out_sid": tradewuliu.out_sid
+        "order": tradewuliu.out_sid
     }
     data = []
     for i in json.loads(tradewuliu.content):
