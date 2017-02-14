@@ -91,7 +91,12 @@ def fomat_wuliu_data_from_db(tradewuliu):
         "order": tradewuliu.out_sid
     }
     data = []
-    for i in json.loads(tradewuliu.content):
+    try:
+        content = json.loads(tradewuliu.content)
+    except:
+        if tradewuliu.content:
+            content = eval(tradewuliu.content)
+    for i in content:
         temp = {}
         temp.update({'time':i['time'].encode('utf-8')})
         temp.update({'content':i['context'].encode('utf-8')})
