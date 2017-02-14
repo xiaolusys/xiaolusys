@@ -1267,8 +1267,8 @@ class TradeWuliu(models.Model):
             return tradewuliu.first().id
 
     @staticmethod
-    def get_tradewuliu(out_sid, logistics_company):
-        tradewuliu = TradeWuliu.objects.filter(out_sid=out_sid, logistics_company=logistics_company).first()
+    def get_tradewuliu(out_sid):
+        tradewuliu = TradeWuliu.objects.filter(out_sid=out_sid).first()
         return tradewuliu
 
     class Meta:

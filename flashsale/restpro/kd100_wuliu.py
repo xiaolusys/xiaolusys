@@ -98,8 +98,10 @@ def fomat_wuliu_data_from_db(tradewuliu):
             content = eval(tradewuliu.content)
     for i in content:
         temp = {}
-        temp.update({'time':i['time'].encode('utf-8')})
-        temp.update({'content':i['context'].encode('utf-8')})
+        # temp.update({'time':i['time'].encode('utf-8')})
+        temp.update({'time': i.get('time',i.get("AcceptTime")).encode('utf-8')})
+        # temp.update({'content':i['context'].encode('utf-8')})
+        temp.update({'content': i.get('context',i.get("AcceptStation")).encode('utf-8')})
         data.append(temp)
         format_exp_info.update({"data":data})
 
