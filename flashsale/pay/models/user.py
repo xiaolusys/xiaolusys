@@ -575,6 +575,8 @@ class BudgetLog(PayBaseModel):
         """
         创建收支记录
         """
+        from flashsale.xiaolumm.models import AccountEntry
+
         budget_date = budget_date or datetime.date.today()
         status = status or BudgetLog.CONFIRMED
         customer = Customer.objects.get(id=customer_id)
@@ -603,12 +605,29 @@ class BudgetLog(PayBaseModel):
                 'total_income': 0,
                 'total_expense': 0
             })
-            if budget_type == BudgetLog.BUDGET_IN and status == BudgetLog.CONFIRMED:
-                budget.amount = F('amount') + flow_amount
-                budget.total_income = F('total_income') + flow_amount
-            elif budget_type == BudgetLog.BUDGET_OUT:
+
+            if budget_type == BudgetLog.BUDGET_IN:
+                if status == BudgetLog.CONFIRMED:
+                    budget.amount = F('amount') + flow_amount
+                    budget.total_income = F('total_income') + flow_amount
+                    if budget_log_type == BudgetLog.BG_REFUND:
+                        AccountEntry.create(customer_id, '140101', '120101', flow_amount)
+                    if budget_log_type == BudgetLog.BG_MAMA_CASH:
+                        AccountEntry.create(customer_id, '12010202', '120101', flow_amount)
+                    if budget_log_type == BudgetLog.BG_ENVELOPE:
+                        AccountEntry.create(customer_id, '160101', '120101', flow_amount)
+
+            if budget_type == BudgetLog.BUDGET_OUT:
                 budget.amount = F('amount') - flow_amount
                 budget.total_expense = F('total_expense') + flow_amount
+                if budget_log_type == BudgetLog.BG_CONSUM:
+                    AccountEntry.create(customer_id, '120101', '110401', flow_amount)
+                if budget_log_type == BudgetLog.BG_CASHOUT:
+                    if status == BudgetLog.PENDING:
+                        AccountEntry.create(customer_id, '120101', '12010301', flow_amount)
+                    if status == BudgetLog.CONFIRMED:
+                        AccountEntry.create(customer_id, '120101', '12010302', flow_amount)
+
             budget.save()
 
         return budget_log
@@ -680,23 +699,34 @@ class BudgetLog(PayBaseModel):
         # type: () -> bool
         """确定钱包记录
         """
+        from flashsale.xiaolumm.models import AccountEntry
+
         if self.status == BudgetLog.CONFIRMED:
             return False
         user_budget = self.user_budget  # 小鹿钱包
 
         with transaction.atomic():
-            if self.budget_type == BudgetLog.BUDGET_IN:  # 收如前提下改到确定状态
-                if self.status in [BudgetLog.PENDING, BudgetLog.CANCELED]:  # 待确定 取消  变确定 余额增加
+            if self.budget_type == BudgetLog.BUDGET_IN:  # 收入
+                if self.status in [BudgetLog.PENDING, BudgetLog.CANCELED]:  # 待确定, 取消 => 确定
                     user_budget.amount = F('amount') + self.flow_amount
-                    user_budget.total_income = F('total_income') + self.flow_amount  # 加小鹿钱包总收入
-            if self.budget_type == BudgetLog.BUDGET_OUT:  # 支出前提下改到确定状态
-                if self.status == BudgetLog.CANCELED:  # 从取消 变确定 则 余额减少
+                    user_budget.total_income = F('total_income') + self.flow_amount
+            if self.budget_type == BudgetLog.BUDGET_OUT:  # 支出
+                if self.status == BudgetLog.CANCELED:  # 取消 => 确定
                     user_budget.amount = F('amount') - self.flow_amount
-                    user_budget.total_expense = F('total_expense') + self.flow_amount   # 加小鹿钱包总支出
+                    user_budget.total_expense = F('total_expense') + self.flow_amount
+
+                if self.budget_log_type == BudgetLog.BG_CASHOUT:
+                    if self.status == BudgetLog.PENDING:
+                        AccountEntry.create(self.customer_id, '12010301', '12010302', self.flow_amount)
+                    if self.status == BudgetLog.CANCELED:
+                        AccountEntry.create(self.customer_id, '120101', '12010302', self.flow_amount)
+
+
             user_budget.save()  # 保存用户钱包
 
             self.status = BudgetLog.CONFIRMED
             self.save(update_fields=['status', 'modified'])
+
 
         return True
 
@@ -704,19 +734,26 @@ class BudgetLog(PayBaseModel):
         # type: () -> bool
         """取消 钱包记录
         """
+        from flashsale.xiaolumm.models import AccountEntry
+
         if self.status == BudgetLog.CANCELED:
             return False
         user_budget = self.user_budget  # 小鹿钱包
 
         with transaction.atomic():
-            if self.budget_type == BudgetLog.BUDGET_IN:  # 收入 前提下改到取消状态
-                if self.status == BudgetLog.CONFIRMED:  # 确定的收入  取消 余额减少
+            if self.budget_type == BudgetLog.BUDGET_IN:  # 收入
+                if self.status == BudgetLog.CONFIRMED:  # 确定 => 取消
                     user_budget.amount = F('amount') - self.flow_amount
-                    user_budget.total_income = F('total_income') - self.flow_amount  # 减小鹿钱包总收入
-            if self.budget_type == BudgetLog.BUDGET_OUT:  # 支出前提下改到取消状态
-                if self.status in [BudgetLog.CONFIRMED, BudgetLog.PENDING]:  # 确定 待确定 支出 到取消状态
-                    user_budget.amount = F('amount') + self.flow_amount  # 收入增加
-                    user_budget.total_expense = F('total_expense') - self.flow_amount  # 支出取消 收入增加 总支出 减少
+                    user_budget.total_income = F('total_income') - self.flow_amount
+            if self.budget_type == BudgetLog.BUDGET_OUT:  # 支出
+                if self.status in [BudgetLog.CONFIRMED, BudgetLog.PENDING]:  # 确定, 待确定 => 取消
+                    user_budget.amount = F('amount') + self.flow_amount
+                    user_budget.total_expense = F('total_expense') - self.flow_amount
+                if self.budget_log_type == BudgetLog.BG_CASHOUT:
+                    if self.status == BudgetLog.PENDING:
+                        AccountEntry.create(self.customer_id, '12010301', '120101', self.flow_amount)
+                    if self.status == BudgetLog.CONFIRMED:
+                        AccountEntry.create(self.customer_id, '12010302', '120101', self.flow_amount)
             user_budget.save()  # 保存用户钱包
 
             self.status = BudgetLog.CANCELED
