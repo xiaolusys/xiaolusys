@@ -869,6 +869,7 @@ class PackageOrderSerializer(serializers.ModelSerializer):
     book_time = serializers.CharField(source='first_package_sku_item.book_time', read_only=True)
     assign_time = serializers.CharField(source='first_package_sku_item.assign_time', read_only=True)
     finish_time = serializers.CharField(source='first_package_sku_item.finish_time', read_only=True)
+    weight_time = serializers.CharField(read_only=True)
     cancel_time = serializers.CharField(source='first_package_sku_item.cancel_time', read_only=True)
     ware_by_display = serializers.CharField(source='get_ware_by_display', read_only=True)
     assign_status_display = serializers.CharField(source='get_sys_status_display', read_only=True)
@@ -879,7 +880,7 @@ class PackageOrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = PackageOrder
         fields = ('id', 'logistics_company', 'process_time', 'pay_time', 'book_time', 'assign_time',
-                  'finish_time', 'cancel_time', 'assign_status_display', 'ware_by_display', 'out_sid', 'note')
+                  'finish_time', 'weight_time','cancel_time', 'assign_status_display', 'ware_by_display', 'out_sid', 'note')
 
 
 class SaleTradeDetailSerializer(serializers.HyperlinkedModelSerializer):
@@ -925,6 +926,7 @@ class SaleTradeDetailSerializer(serializers.HyperlinkedModelSerializer):
                     'can_refund': sale_order.can_refund(),
                     'assign_time': package_sku_item and package_sku_item.assign_time,
                     'finish_time': package_sku_item and package_sku_item.finish_time,
+                    'weight_time': package_sku_item and package_sku_item.weight_time,
                     'cancel_time': package_sku_item and package_sku_item.cancel_time,
                     'assign_status_display': package_sku_item and package_sku_item.get_assign_status_display() or '',
                     'ware_by_display': package_sku_item and package_sku_item.get_ware_by_display() or '',
