@@ -1613,6 +1613,7 @@ class PackageSkuItem(BaseModel):
     def clear_order_info(self):
         if self.assign_status == 2:
             return
+        self.status = PSI_STATUS.ASSIGNED
         self.package_order_id = None
         self.package_order_pid = None
         self.logistics_company_code = ''
@@ -1638,9 +1639,28 @@ class PackageSkuItem(BaseModel):
             package_order.update_relase_package_sku_item()
 
     def reset_assign_package(self):
-        if self.assign_status in [PackageSkuItem.NOT_ASSIGNED, PackageSkuItem.ASSIGNED]:
-            self.receiver_mobile = self.sale_trade.receiver_phone
-            self.clear_order_info()
+        """
+            已发货：不可更改
+            未合单：不必更改
+            已合单：
+                恢复到已分配状态，重新合单。
+        :return:
+        """
+        if self.assign_status == 2:
+            raise Exception(u'已发货单无法修改地址')
+        if not self.package_order_id:
+            return
+        if self.package_order_id:
+            package_order = self.package_order
+            self.package_order_id = None
+            self.package_order_pid = None
+            self.status = PSI_STATUS.ASSIGNED
+            self.save()
+            stock = SkuStock.get_by_sku(self.sku_id)
+            stock.restat()
+            stock.save()
+            if package_order:
+                package_order.update_relase_package_sku_item()
 
     @staticmethod
     def reset_trade_package(sale_trade_tid):
