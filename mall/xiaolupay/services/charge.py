@@ -25,19 +25,21 @@ def create_credential(
         subject='',
         body='',
         extra={},
-        client_ip=''
+        client_ip='',
+        time_expire=None,
     ):
     credential = PINGPP_CREDENTIAL_TPL[channel].copy()
     if channel in (ChargeOrder.ALIPAY, ChargeOrder.ALIPAY_WAP):
         alipay = AliPay()
         order_amount = amount / AlipayConf.AMOUNT_SETTER
+        timeout_express = '%dm'%((time_expire - datetime.datetime.now()).seconds / 60)
         if channel == ChargeOrder.ALIPAY:
-            pay_info = alipay.create_trade_app_pay_url(order_no, order_amount, subject, body)
+            pay_info = alipay.create_trade_app_pay_url(order_no, order_amount, subject, body, timeout_express=timeout_express)
             credential = {
                 "orderInfo": pay_info,
             }
         else:
-            credential = alipay.trade_wap_pay(order_no, order_amount, subject, body)
+            credential = alipay.trade_wap_pay(order_no, order_amount, subject, body, timeout_express=timeout_express)
 
     elif channel in (ChargeOrder.WX, ChargeOrder.WX_PUB, ChargeOrder.WEAPP):
         credential.update({
@@ -53,6 +55,7 @@ def create_credential(
                 'total_fee': amount,
                 'notify_url': notify_url,
                 'trade_type': 'APP',
+                'time_expire':time_expire.strftime('%Y%m%d%H%M%S'),
                 'nonce_str': credential['nonceStr'],
             })
             if 'prepay_id' not in resp:
@@ -87,6 +90,7 @@ def create_credential(
                 'trade_type': 'JSAPI',
                 'openid': extra['open_id'],
                 'nonce_str': credential['nonceStr'],
+                'time_expire': time_expire.strftime('%Y%m%d%H%M%S'),
             })
             if 'prepay_id' not in resp:
                 raise XiaoluPayException('%s' % resp)
@@ -143,7 +147,8 @@ def create_charge(
         if charge.channel != channel or charge.extra != extra:
             charge.channel = channel
             charge.extra   = extra
-            charge.save(update_fields=['channel', 'extra'])
+            charge.time_expire = time_now + datetime.timedelta(seconds=UnionPayConf.TIME_EXPIRED)
+            charge.save(update_fields=['channel', 'extra', 'time_expire'])
 
     charge.get_or_create_credential()
     return charge

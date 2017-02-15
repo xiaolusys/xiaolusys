@@ -96,6 +96,7 @@ class ChargeOrder(BaseModel):
                         body=self.body,
                         extra=self.extra,
                         client_ip=self.client_ip,
+                        time_expire=self.time_expire,
                     )
                 except Exception, exc:
                     import logging

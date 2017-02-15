@@ -77,7 +77,7 @@ class AliPay(object):
         resp_json = json.loads(resp.text)
         return self.process_alipay_response(resp_json)
 
-    def create_trade_app_pay_url(self, out_trade_no, total_amount, subject, body=''):
+    def create_trade_app_pay_url(self, out_trade_no, total_amount, subject, body='', timeout_express='2h'):
         head_params = {
             'method': 'alipay.trade.app.pay',
             'notify_url': AlipayConf.NOTIFY_URL,
@@ -87,12 +87,12 @@ class AliPay(object):
             'total_amount': total_amount,
             'subject': subject,
             'body': body,
-            'timeout_express': '2h',
+            'timeout_express': timeout_express,
             'product_code': 'QUICK_MSECURITY_PAY',
         }
         return self._build_request_url(head_params, biz_params)
 
-    def trade_wap_pay(self, out_trade_no, total_amount, subject, body=''):
+    def trade_wap_pay(self, out_trade_no, total_amount, subject, body='', timeout_express='2h'):
         """ deprecated """
         head_params = {
             'method': 'alipay.trade.wap.pay',
@@ -103,6 +103,7 @@ class AliPay(object):
             'total_amount': total_amount,
             'subject': subject,
             'body': body,
+            'timeout_express': timeout_express,
             'product_code': 'QUICK_WAP_PAY',
         }
         params = self._build_request_params(head_params, biz_params)

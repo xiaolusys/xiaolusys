@@ -34,7 +34,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-FLASH_SELLER_ID = 'flashsale'
+FLASH_SELLER_ID  = 'flashsale'
 AGENCY_DIPOSITE_CODE = Product.DIPOSITE_CODE_PREFIX
 TIME_FOR_PAYMENT = 25 * 60
 

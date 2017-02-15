@@ -5,7 +5,7 @@ class UnionPayConf(object):
 
     CLIENT_IP = '118.178.116.5'
 
-    TIME_EXPIRED = 7200 # s
+    TIME_EXPIRED = 25 * 60 # s
 
 
 
