@@ -966,6 +966,16 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             })
             return Response({'code': 8, 'info': u'订单创建异常'})
 
+        logger.info({
+            'message': u'订单创建:%s' % sale_trade.tid,
+            'channel': channel,
+            'user_agent': user_agent,
+            'action': 'shoppingcart_create trade_create',
+            'action_time': datetime.datetime.now(),
+            'order_no': tuuid,
+            'data': '%s' % content
+        })
+
         try:
             if channel == SaleTrade.WALLET:
                 # 妈妈钱包支付 2016-4-23 关闭代理钱包支付功能
@@ -1190,6 +1200,16 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'data': '%s' % CONTENT
             })
             return Response({'code': 8, 'info': u'订单创建异常'})
+
+        logger.info({
+            'message': u'订单创建:%s' % sale_trade.tid,
+            'channel': channel,
+            'user_agent': user_agent,
+            'action': 'buynow trade_create',
+            'action_time': datetime.datetime.now(),
+            'order_no': tuuid,
+            'data': '%s' % CONTENT
+        })
 
         try:
             if channel == SaleTrade.WALLET:
