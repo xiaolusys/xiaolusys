@@ -56,7 +56,7 @@ class ChangeUpperMama(APIView):
                                                   upper_mama_id=int(upper_mama_id),
                                                   direct_info=direct_info)
             if state:
-                log_action(request.user, mm, CHANGE, '修改上级妈妈信息')
+                log_action(request.user, mm, CHANGE, '修改上级妈妈信息 upper=%s direct_info=%s' % (upper_mama_id, direct_info))
         except Exception as e:
             return Response({'code': 2, 'info': e.message})
         return Response({'code': 0, 'info': '设置成功'})
