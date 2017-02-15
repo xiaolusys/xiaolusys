@@ -84,7 +84,6 @@ class WeAppViewSet(viewsets.ViewSet):
 
         weapp = WeApp()
         data = weapp.get_session_key(code)
-        session_key = data['session_key']
         openid = data['openid']
 
         #
