@@ -89,12 +89,29 @@ def change_mama_follow_elite_mama(mama_id, upper_mama_id, direct_info):
     mm = get_mama_by_id(mama_id)
     upper_elite_mama = get_mama_by_id(upper_mama_id)
 
-    if upper_elite_mama.last_renew_type < XiaoluMama.ELITE:
+    if upper_elite_mama.last_renew_type < XiaoluMama.ELITE or (not upper_elite_mama.is_elite_mama):
         raise Exception('指定的上级妈妈不是精英妈妈')
 
     relationship = get_relationship_by_mama_id(mm.id)  # 获取当前妈妈的推荐关系
     if not relationship:
-        raise Exception('推荐关系没有找到')
+        # raise Exception('推荐关系没有找到')
+        from flashsale.xiaolumm.models.models_fortune import ReferalRelationship
+        if upper_elite_mama:
+            real_relation_ship = upper_elite_mama.get_refer_to_relationships()
+            if real_relation_ship:
+                grandma_id = real_relation_ship.referal_from_mama_id
+            else:
+                grandma_id = 0
+        else:
+            grandma_id = 0
+        ship = ReferalRelationship(referal_from_grandma_id=grandma_id,
+                                   referal_from_mama_id=upper_mama_id,
+                                   referal_to_mama_id=mama_id,
+                                   referal_to_mama_nick=mm.nick,
+                                   referal_type=XiaoluMama.ELITE,
+                                   order_id='',
+                                   referal_to_mama_img=mm.thumbnail)
+        ship.save()
 
     with transaction.atomic():
         if mm.charge_status != XiaoluMama.CHARGED:
@@ -104,8 +121,8 @@ def change_mama_follow_elite_mama(mama_id, upper_mama_id, direct_info):
             mm.last_renew_type = XiaoluMama.ELITE  # 修改为精英妈妈
         mm.referal_from = direct_info
         mm.save()
-
-        relationship.change_referal_mama(upper_mama_id, is_elite=True)  # 修改该推荐关系的上级
+        if relationship:
+            relationship.change_referal_mama(upper_mama_id, is_elite=True)  # 修改该推荐关系的上级
     return True
 
 
