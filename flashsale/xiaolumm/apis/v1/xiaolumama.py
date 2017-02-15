@@ -202,7 +202,8 @@ def task_calc_xlmm_elite_score(mama_id):
                 CouponTransferRecord.IN_BUY_COUPON,
                 CouponTransferRecord.OUT_TRANSFER,
                 CouponTransferRecord.IN_GIFT_COUPON,
-                CouponTransferRecord.IN_RECHARGE
+                CouponTransferRecord.IN_RECHARGE,
+                CouponTransferRecord.IN_BUY_COUPON_WITH_COIN
             ]:
                 score += record.elite_score
 

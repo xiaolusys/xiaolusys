@@ -57,7 +57,7 @@ def task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, prod
         while index < order_num:
             unique_key = template.gen_usercoupon_unikey(order_id, index)
             try:
-                cou, code, msg = create_boutique_user_coupon(customer, template, coin_pay, unique_key=unique_key)
+                cou, code, msg = create_boutique_user_coupon(customer, template, (coin_pay > 0), unique_key=unique_key)
                 new_coupon_ids.append(cou.id)
             except IntegrityError as e:
                 logging.error(e)

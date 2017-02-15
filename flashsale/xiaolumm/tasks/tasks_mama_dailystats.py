@@ -317,10 +317,12 @@ def task_calc_xlmm_elite_score(mama_id):
     ).aggregate(n=Sum('elite_score'))
     out_score = res['n'] or 0
 
+    # 为什么要加上用币买券，因为币和现金混合支付的时候算的是用币买券，后面都退到币里面，所以这里要加上积分
     res = CouponTransferRecord.objects.filter(
         coupon_to_mama_id=mama_id,
         transfer_status=CouponTransferRecord.DELIVERED,
-        transfer_type__in=[CouponTransferRecord.IN_BUY_COUPON, CouponTransferRecord.OUT_TRANSFER, CouponTransferRecord.IN_GIFT_COUPON, CouponTransferRecord.IN_RECHARGE]
+        transfer_type__in=[CouponTransferRecord.IN_BUY_COUPON, CouponTransferRecord.OUT_TRANSFER, CouponTransferRecord.IN_GIFT_COUPON,
+                           CouponTransferRecord.IN_RECHARGE, CouponTransferRecord.IN_BUY_COUPON_WITH_COIN]
     ).aggregate(n=Sum('elite_score'))
     in_score = res['n'] or 0
 

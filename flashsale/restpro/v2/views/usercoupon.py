@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 def get_coupons_elite(user_coupons, mama_level):
     # type: (List[UserCoupon], text_type) -> int
-    """计算优惠券 在当前等级的 积分
+    """计算优惠券 在当前等级的 积分,积分购买的券不算积分
     """
     virtual_model_products = ModelProduct.objects.filter(product_type=ModelProduct.VIRTUAL_TYPE, status=ModelProduct.NORMAL)  # 虚拟商品
     map_dict = {}
@@ -41,6 +41,10 @@ def get_coupons_elite(user_coupons, mama_level):
     products = Product.objects.filter(model_id__in=model_ids).values('model_id', 'name', 'elite_score')
     total_elite_score = 0
     for c in user_coupons:
+        # 积分购买的券不算积分
+        if c.extras.has_key('buy_coupon_type') and int(c.extras['buy_coupon_type']) == 1:
+            continue
+
         model_id = map_dict[c.template_id]
         for p in products:
             if mama_level in p['name'] and p['model_id'] == model_id:  # 款式相同　并且名字含有　对应等级的产品
