@@ -69,8 +69,10 @@ a.section:link, a.section:visited { color: #666666; }
                 <label class="col-md-2" id="tid">{{package_order.tid}}</label>
                 <label class="col-md-1" for="package_type">包裹类型:</label>
                 <label class="col-md-1" id="package_type">{{package_order.get_package_type_display}}</label>
+            </div>
+            <div class="row">
                 <label class="col-md-1" for="package_id">包裹码:</label>
-                <label class="col-md-1" id="package_id">{{package_order.id}}</label>
+                <label class="col-md-5" id="package_id">{{package_order.id}}</label>
                 <label class="col-md-1" for="sys_status">包裹状态:</label>
                 <label class="col-md-1" id="sys_status">{{package_order.get_sys_status_display}}</label>
             </div>
