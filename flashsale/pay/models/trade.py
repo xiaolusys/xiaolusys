@@ -474,9 +474,6 @@ class SaleTrade(BaseModel):
                 if order.is_deposit() and order.status == SaleTrade.WAIT_SELLER_SEND_GOODS:
                     order.status = SaleTrade.TRADE_FINISHED
                     order.save(update_fields=['status'])
-            st = SaleTrade.objects.get(id=self.id)
-            st.confirm_payment()
-            st.set_order_paid()
 
         except Exception, exc:
             logger.error({
@@ -487,6 +484,11 @@ class SaleTrade(BaseModel):
                 'traceback': traceback.format_exc(),
             })
             raise exc
+
+        # 下面2个函数操作不适合放在transaction里面，这2个函数一个是信号处理，一个是包裹处理，逻辑处理多
+        st = SaleTrade.objects.get(id=self.id)
+        st.confirm_payment()
+        st.set_order_paid()
 
         logger.info({
             'action': 'trade_confirm_end',
