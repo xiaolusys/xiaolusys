@@ -801,7 +801,7 @@ def judgement_schedule_manager(managers, saleorderstatsrecord):
     a = sorted(target_manager, key=lambda k: k['seconds'], reverse=False)
     # 取出最小的seconds( 获取最近的时间)
     if not a:
-        logger.error(u'judgement_schedule_manager %s no in managers shelf time !' % saleorderstatsrecord.id)
+        # logger.error(u'judgement_schedule_manager %s no in managers shelf time !' % saleorderstatsrecord.id)
         return None
     return a[0]
 
@@ -814,7 +814,7 @@ def task_statsrecord_update_model_stats(saleorderstatsrecord, review_days=None):
     """
     # 上下架时间的确定
     sale_product = saleorderstatsrecord.sale_product
-    review_days = review_days if review_days else 180
+    review_days = review_days if review_days else 365
     detail_review_time = datetime.datetime.now() - datetime.timedelta(days=review_days)
     sale_manager_details = SaleProductManageDetail.objects.filter(today_use_status=SaleProductManageDetail.NORMAL,
                                                                   sale_product_id=sale_product,

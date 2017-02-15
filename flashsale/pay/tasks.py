@@ -49,7 +49,8 @@ def task_Update_Sale_Customer(unionid, openid=None, app_key=None):
             profile.thumbnail = wxuser.headimgurl or profile.thumbnail
             update_model_fields(
                 profile,
-                update_fields=['nick', 'mobile', 'openid', 'thumbnail'])
+                update_fields=['nick', 'mobile', 'openid', 'thumbnail']
+            )
 
     except Exception, exc:
         logger.debug(exc.message, exc_info=True)

@@ -61,7 +61,6 @@ class AliPay(object):
         sign = base64.encodestring(sign).replace("\n", "")
         return sign
 
-
     def process_alipay_response(self, resp_json):
         for k, v in resp_json.iteritems():
             if k.endswith('_response'):
