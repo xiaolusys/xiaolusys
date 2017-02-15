@@ -91,11 +91,13 @@ def fomat_wuliu_data_from_db(tradewuliu):
         "order": tradewuliu.out_sid
     }
     data = []
+    is_reverse = 0
     try:
         content = json.loads(tradewuliu.content)
     except:
         if tradewuliu.content:
             content = eval(tradewuliu.content)
+            is_reverse = 1
     for i in content:
         temp = {}
         # temp.update({'time':i['time'].encode('utf-8')})
@@ -103,6 +105,8 @@ def fomat_wuliu_data_from_db(tradewuliu):
         # temp.update({'content':i['context'].encode('utf-8')})
         temp.update({'content': i.get('context',i.get("AcceptStation")).encode('utf-8')})
         data.append(temp)
+        if is_reverse:
+            data.reverse()
         format_exp_info.update({"data":data})
 
     return format_exp_info
