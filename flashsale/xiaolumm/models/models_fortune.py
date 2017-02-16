@@ -1004,34 +1004,34 @@ post_save.connect(confirm_previous_activevalue,
                   sender=ActiveValue, dispatch_uid='post_save_confirm_previous_activevalue')
 
 
-def activevalue_update_last_renew_time(sender, instance, created, **kwargs):
-    if not created:
-        return
-    from flashsale.xiaolumm.models import XiaoluMama
-
-    mama_id = instance.mama_id
-    mama = XiaoluMama.objects.filter(id=mama_id,last_renew_type__gte=XiaoluMama.ELITE,status=XiaoluMama.EFFECT,charge_status=XiaoluMama.CHARGED).exclude(last_renew_type=XiaoluMama.HALF).first()
-    if not mama:
-        return
-
-    start_date = datetime.date(2016,8,28) # start from 2016-08-28
-    charge_date = mama.charge_time.date()
-    if charge_date > start_date:
-        start_date = charge_date
-    today = datetime.date.today()
-
-    cnt = ActiveValue.objects.filter(mama_id=mama_id,date_field__gte=start_date,date_field__lt=today).values('date_field').distinct().count()
-    if today == instance.date_field:
-        cnt += 1
-
-    renew_date = start_date + datetime.timedelta(days=365+cnt)
-    renew_time = datetime.datetime(renew_date.year, renew_date.month, renew_date.day)
-    if mama.renew_time != renew_time:
-        mama.renew_time = renew_time
-        mama.save(update_fields=['renew_time', 'modified'])
-
-post_save.connect(activevalue_update_last_renew_time,
-                  sender=ActiveValue, dispatch_uid='post_save_activevalue_update_last_renew_time')
+# def activevalue_update_last_renew_time(sender, instance, created, **kwargs):
+#     if not created:
+#         return
+#     from flashsale.xiaolumm.models import XiaoluMama
+#
+#     mama_id = instance.mama_id
+#     mama = XiaoluMama.objects.filter(id=mama_id,last_renew_type__gte=XiaoluMama.ELITE,status=XiaoluMama.EFFECT,charge_status=XiaoluMama.CHARGED).exclude(last_renew_type=XiaoluMama.HALF).first()
+#     if not mama:
+#         return
+#
+#     start_date = datetime.date(2016,8,28) # start from 2016-08-28
+#     charge_date = mama.charge_time.date()
+#     if charge_date > start_date:
+#         start_date = charge_date
+#     today = datetime.date.today()
+#
+#     cnt = ActiveValue.objects.filter(mama_id=mama_id,date_field__gte=start_date,date_field__lt=today).values('date_field').distinct().count()
+#     if today == instance.date_field:
+#         cnt += 1
+#
+#     renew_date = start_date + datetime.timedelta(days=365+cnt)
+#     renew_time = datetime.datetime(renew_date.year, renew_date.month, renew_date.day)
+#     if mama.renew_time != renew_time:
+#         mama.renew_time = renew_time
+#         mama.save(update_fields=['renew_time', 'modified'])
+#
+# post_save.connect(activevalue_update_last_renew_time,
+#                   sender=ActiveValue, dispatch_uid='post_save_activevalue_update_last_renew_time')
 
 
 class ReferalRelationship(BaseModel):

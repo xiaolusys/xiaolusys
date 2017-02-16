@@ -1361,12 +1361,12 @@ SHOP_APP_SCHEDULE = {
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
 
-    u'定时检查小鹿妈妈邀请销售额升级': {
-        'task': 'flashsale.xiaolumm.tasks.base.task_update_mama_agency_level_in_condition',
-        'schedule': crontab(minute="45", hour="2"),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
+    # u'定时检查小鹿妈妈邀请销售额升级': {
+    #     'task': 'flashsale.xiaolumm.tasks.base.task_update_mama_agency_level_in_condition',
+    #     'schedule': crontab(minute="45", hour="2"),
+    #     'args': (),
+    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    # },
 
     u'定时检查小鹿妈妈续费状态': {
         'task': 'flashsale.xiaolumm.tasks.base.task_period_check_mama_renew_state',
@@ -1486,36 +1486,36 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
-    u'定时更新小鹿妈妈排名3分钟': {
-        'task': 'flashsale.xiaolumm.tasks.tasks_mama_carry_total.task_schedule_update_carry_total_ranking',
-        'schedule': crontab(minute="30", hour="0"),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
-    u'定时更新妈妈团队排名30分钟': {
-        'task': 'flashsale.xiaolumm.tasks.tasks_mama_carry_total.task_schedule_update_team_carry_total_ranking',
-        'schedule': crontab(minute="59", hour="0"),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
-    u'妈妈及团队妈妈周激励任务更新': {
-        'task': 'flashsale.xiaolumm.tasks.mission.task_update_all_mama_mission_state',
-        'schedule': crontab(minute="0", hour="1"),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_update_all_mama_mission_state'}
-    },
-    u'妈妈及团队未完成任务每日提醒': {
-        'task': 'flashsale.xiaolumm.tasks.mission.task_notify_all_mama_staging_mission',
-        'schedule': crontab(minute="30", hour="19", day_of_week='mon,wed,fri,sat'),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_notify_all_mama_staging_mission'}
-    },
-    u'妈妈及团队周激励任务奖励确认': {
-        'task': 'flashsale.xiaolumm.tasks.mission.task_update_all_mama_mission_award_states',
-        'schedule': crontab(minute="30", hour="23"),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
+    # u'定时更新小鹿妈妈排名3分钟': {
+    #     'task': 'flashsale.xiaolumm.tasks.tasks_mama_carry_total.task_schedule_update_carry_total_ranking',
+    #     'schedule': crontab(minute="30", hour="0"),
+    #     'args': (),
+    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    # },
+    # u'定时更新妈妈团队排名30分钟': {
+    #     'task': 'flashsale.xiaolumm.tasks.tasks_mama_carry_total.task_schedule_update_team_carry_total_ranking',
+    #     'schedule': crontab(minute="59", hour="0"),
+    #     'args': (),
+    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    # },
+    # u'妈妈及团队妈妈周激励任务更新': {
+    #     'task': 'flashsale.xiaolumm.tasks.mission.task_update_all_mama_mission_state',
+    #     'schedule': crontab(minute="0", hour="1"),
+    #     'args': (),
+    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task_update_all_mama_mission_state'}
+    # },
+    # u'妈妈及团队未完成任务每日提醒': {
+    #     'task': 'flashsale.xiaolumm.tasks.mission.task_notify_all_mama_staging_mission',
+    #     'schedule': crontab(minute="30", hour="19", day_of_week='mon,wed,fri,sat'),
+    #     'args': (),
+    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task_notify_all_mama_staging_mission'}
+    # },
+    # u'妈妈及团队周激励任务奖励确认': {
+    #     'task': 'flashsale.xiaolumm.tasks.mission.task_update_all_mama_mission_award_states',
+    #     'schedule': crontab(minute="30", hour="23"),
+    #     'args': (),
+    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    # },
     u'每30分钟刷新微信公众号accesstoken&jsticket': {
         'task': 'shopapp.weixin.tasks.base.task_refresh_weixin_access_token',
         'schedule': crontab(minute="*/30"),
