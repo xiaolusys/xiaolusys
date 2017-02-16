@@ -592,6 +592,9 @@ def coupon_exchange_saleorder(customer, order_id, mama_id, template_ids, coupon_
 
 
 def saleorder_return_coupon_exchange(salerefund, payment):
+    """
+    用户退货的，这个订单被精英妈妈兑换过了，那么兑换订单妈妈的收益需要被扣除，把兑换的券还给她，如果她的零钱不够会把券冻结，账户为负
+    """
     logger.info({
         'message': u'return exchange order:customer=%s, payment=%s refundid=%s' % (
             salerefund.buyer_id, payment, salerefund.id),
@@ -691,6 +694,61 @@ def saleorder_return_coupon_exchange(salerefund, payment):
                                                           int(user_coupon[0].template_id), sale_order.sale_trade.tid)
         create_transfer_coupon_detail(transfer.id, coupon_ids)
 
+
+def transfer_record_return_coupon_exchange(coupons, transfer_record):
+    """
+    小鹿妈妈用钱或用小鹿币购买精品券后退券场景，这个买券订单可能已经被上级妈妈兑换收益走了，现在退券需要把上级妈妈的兑换收益扣掉
+    买券订单可能上级妈妈还没有兑换，那么还是扣上级妈妈收益，她再兑换就补上了
+    """
+    # 从coupon unikey找到saleorder，再找到ordercarry，再找到上级妈妈，只能这样找，因为买券后可能升级sp了或跳级或换上级，这个订单
+    # 还是以前的妈妈兑换的，需要找她来扣除。会不会出现有多个上级妈妈情况，理论上是有可能的，但是概率很低，暂不考虑，有的话就错误提示
+    from flashsale.xiaolumm.models import XiaoluMama, OrderCarry
+    return_payment = 0
+    exchg_mm_id = 0
+    for coupon in coupons:
+        temp_arr = coupon.uniq_id.split('_')
+        order_id = int(temp_arr[2])
+        sale_order = SaleOrder.objects.filter(id=order_id).first()
+        if not sale_order:
+            raise Exception('订单%s不存在' % order_id)
+        return_payment += sale_order.price
+        exchg_ordercarry = OrderCarry.objects.filter(order_id=sale_order.oid, carry_type=OrderCarry.REFERAL_ORDER,
+                                                     status__in=[OrderCarry.CONFIRM], date_field__gt='2016-11-30').first()
+        if not exchg_ordercarry:
+            raise Exception('订单收益%s不存在' % order_id)
+        if exchg_mm_id != 0 and exchg_mm_id != exchg_ordercarry.mama_id:
+            raise Exception('退的多张精品券不属于同一个妈妈%s' % coupons)
+        exchg_mm_id = exchg_ordercarry.mama_id
+
+    # (3)在user钱包写支出 记录
+    from flashsale.pay.models.user import BudgetLog
+    from flashsale.xiaolumm.apis.v1.xiaolumama import get_customer_id_by_mama_id
+    customer_id = get_customer_id_by_mama_id(exchg_mm_id)
+    BudgetLog.create(customer_id=customer_id,
+                     budget_type=BudgetLog.BUDGET_OUT,
+                     flow_amount=round(return_payment * 100),
+                     budget_log_type=BudgetLog.BG_EXCHG_ORDER,
+                     referal_id=transfer_record.id,
+                     uni_key='ctr-%s' % transfer_record.id,
+                     status=BudgetLog.CONFIRMED)
+
+    # (4)此前兑换的那张券需要退回给这个妈妈，先从transfer detail中找到券，然后置为未使用
+    from flashsale.coupon.models.transfercoupondetail import TransferCouponDetail
+    from flashsale.coupon.apis.v1.usercoupon import get_user_coupon_by_id
+    details = TransferCouponDetail.objects.filter(transfer_id=transfer_record.id)
+    for one_detail in details:
+        one_coupon = get_user_coupon_by_id(one_detail.coupon_id)
+        if one_coupon:
+            one_coupon.status = UserCoupon.UNUSED
+            one_coupon.save()
+            from core.options import log_action, CHANGE, ADDITION, get_systemoa_user
+            sys_oa = get_systemoa_user()
+            log_action(sys_oa, one_coupon, CHANGE, u'下级妈妈退券了上级妈妈扣钱退券 from ctrid %s' % (transfer_record.id))
+
+    logger.info({
+        'action': u'transfer_record_return_coupon_exchange',
+        'message': u'exchange order:coupons=%s transfer_id=%s' % (coupons, transfer_record.id),
+    })
 
 @transaction.atomic()
 def apply_pending_return_transfer_coupon(coupon_ids, customer):
@@ -917,7 +975,7 @@ def reject_apply_transfer_record(user, transfer_record_id):
 @transaction.atomic()
 def agree_apply_transfer_record_2_sys(record):
     # type: (CouponTransferRecord) -> bool
-    """ 同意用户的 退券 到系统
+    """ 管理员 同意用户的 退券 到系统
     """
     from .usercoupon import cancel_coupon_by_ids
     from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
@@ -926,7 +984,7 @@ def agree_apply_transfer_record_2_sys(record):
     if not coupons:
         raise Exception('优惠券没有找到')
 
-    #  用户退的券比如有3张，有可能是2张用钱买的，有可能1张是用小鹿币买的，那么用钱的要退到个人零钱，用币的退到小鹿币
+    #  用户退的券比如有3张，根据buy_coupon_type，有可能是2张用钱买的，有可能1张是用小鹿币买的，那么用钱的要退到个人零钱，用币的退到小鹿币
     from flashsale.xiaolumm.models import XiaoluMama
     xlmm = XiaoluMama.objects.filter(
         id=record.coupon_from_mama_id, status=XiaoluMama.EFFECT,
@@ -962,6 +1020,9 @@ def agree_apply_transfer_record_2_sys(record):
     record.transfer_status = CouponTransferRecord.DELIVERED
     record.save(update_fields=['transfer_status', 'modified'])  # 完成流通记录
     task_calc_xlmm_elite_score(record.coupon_from_mama_id)  # 重算积分
+
+    # 退券了，之前买券的订单能够被上级妈妈兑换拿收益的，那么此时需要把这个收益扣回去
+    transfer_record_return_coupon_exchange(coupons, record)
     return True
 
 

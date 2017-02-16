@@ -631,7 +631,7 @@ class XiaoluMama(BaseModel):
         if not hasattr(self, '_mama_customer_'):
             from flashsale.pay.models import Customer
 
-            self._mama_customer_ = Customer.objects.filter(unionid=self.openid).order_by('status').first()
+            self._mama_customer_ = Customer.objects.filter(unionid=self.openid, status=Customer.NORMAL).order_by('status').first()
         return self._mama_customer_
 
     @staticmethod
