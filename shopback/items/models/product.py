@@ -9,7 +9,7 @@ import re
 import hashlib
 
 from django.db import models
-from django.db.models import Sum, Avg, F
+from django.db.models import Sum, Avg, F, Q
 from django.conf import settings
 from django.db.models.signals import pre_save, post_save
 from django.db import transaction
@@ -733,8 +733,7 @@ class Product(models.Model):
         latest_pro = cls.objects.filter(outer_id__startswith=PREFIX).order_by('-outer_id').first()
         inner_no = barcode.gen(digit_num=5, begin=latest_pro and latest_pro.outer_id[2:-2] or 0)
         while True:
-            product_ins = cls.objects.filter(
-                models.Q(outer_id__startswith='SP%s'%inner_no)|models.Q(outer_id__startswith='RMB%s'%inner_no)).count()
+            product_ins = cls.objects.filter(outer_id__startswith='SP%s'%inner_no).count()
             if not product_ins:
                 break
             inner_no = barcode.gen(digit_num=5, begin=inner_no)
@@ -902,9 +901,6 @@ class Product(models.Model):
                 if sku['color'] == pro['name']:
                     color_skus.append(sku)
 
-            if is_boutique_coupon and not outer_id.startswith('RMB'):
-                outer_id = 'RMB%s' % (outer_id)
-
             kwargs = {'name': pro['name'],
                       'pic_path': pro['pic_path'],
                       'elite_score': pro['elite_score'],
@@ -917,7 +913,6 @@ class Product(models.Model):
                       "product_skus_list": []}
             pro_count += 1
             sku_count = 1
-            outer_id = outer_id.replace('RMB','')
             product_skus_list = []
             for color_sku in color_skus:
                 sku_count = _get_valid_procount(outer_id, sku_count, skuid_maps)
