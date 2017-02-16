@@ -245,7 +245,7 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
                                         product_type=ModelProduct.USUAL_TYPE,
                                         status=ModelProduct.NORMAL)
         if parent_cid:
-            queryset = queryset.filter(salecategory__parent_cid=parent_cid)
+            queryset = queryset.filter(salecategory__cid__startswith=parent_cid)
 
         product_ids = list(queryset.values_list('id', flat=True))
         model_products = ModelProductCtl.multiple(ids=product_ids)
