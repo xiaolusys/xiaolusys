@@ -1134,7 +1134,8 @@ class RecruitEliteMamaView(APIView):
             rr.save()
         
         charge_time = datetime.datetime.now()
-        renew_time = charge_time + datetime.timedelta(days=3)
+        renew_time = charge_time
+        # renew_time = charge_time + datetime.timedelta(days=3)
 
         mama.referal_from = 'INDIRECT'
         mama.charge_status = XiaoluMama.CHARGED
