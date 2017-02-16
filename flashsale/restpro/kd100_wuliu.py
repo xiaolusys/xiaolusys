@@ -116,7 +116,7 @@ def confirm_get_by_state(out_sid,status):
     status = int(status)
     if not out_sid or not status or status != 3:
         return
-    psi = PackageSkuItem.objects.filter(out_sid=out_sid, status='finish').first()
+    psi = PackageSkuItem.objects.filter(out_sid=out_sid).first()
     if psi:
         logger.warn({'action': "kdn", 'info': "confirm_psi_finish_kd100:" + str(out_sid)})
         psi.set_status_finish()
