@@ -12,7 +12,7 @@ from core.options import log_action, CHANGE
 from flashsale.coupon.apis.v1.usercoupon import release_coupon_for_deposit
 from flashsale.coupon.models import CouponTransferRecord
 from flashsale.pay.apis.v1.customer import get_customer_by_id
-from flashsale.pay.models import SaleOrder
+from flashsale.pay.models import SaleOrder, Customer
 from ...models import XiaoluMama
 from ...signals import signal_xiaolumama_register_success
 from .potentialmama import update_potential_by_deposit, create_potential_mama
@@ -20,6 +20,10 @@ from flashsale.xiaolumm import constants as CONS
 
 __ALL__ = [
     'get_mama_by_id',
+    'get_mama_id_by_customer_id',
+    'get_mama_by_customer_id',
+    'get_customer_id_by_mama_id',
+    'get_customer_by_mama_id',
     'mama_pay_deposit',
     'set_mama_manager_by_mama_id',
     'get_mama_by_openid',
@@ -30,6 +34,34 @@ __ALL__ = [
 def get_mama_by_id(id):
     # type: (int) -> XiaoluMama
     return XiaoluMama.objects.get(id=id)
+
+
+def get_mama_id_by_customer_id(customer_id):
+    customer = Customer.objects.filter(id=customer_id).first()
+    if not customer:
+        return None
+    return customer.mama_id
+
+
+def get_mama_by_customer_id(customer_id):
+    customer = Customer.objects.filter(id=customer_id).first()
+    if not customer:
+        return None
+    return customer.get_xiaolumm()
+
+
+def get_customer_id_by_mama_id(mama_id):
+    xlmm = XiaoluMama.objects.get(id=mama_id)
+    if not xlmm:
+        return None
+    return xlmm.customer_id
+
+
+def get_customer_by_mama_id(mama_id):
+    xlmm = XiaoluMama.objects.get(id=mama_id)
+    if not xlmm:
+        return None
+    return xlmm.get_mama_customer()
 
 
 def get_mama_by_openid(openid):
