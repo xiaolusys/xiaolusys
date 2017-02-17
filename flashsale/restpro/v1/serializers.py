@@ -368,6 +368,10 @@ class PortalSerializer(serializers.ModelSerializer):
 
     def get_activitys(self, obj):
         category = obj.request_category
+        exclude_fields = obj.request_exclude_fields
+        if exclude_fields == 'activity':
+            return []
+
         from flashsale.promotion.apis.activity import get_landing_effect_activities, get_jingpin_effect_activities
         if category == 'jingpin':
             activitys = get_jingpin_effect_activities()

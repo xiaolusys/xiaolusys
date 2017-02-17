@@ -71,7 +71,7 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
     queryset = NinePicAdver.objects.all()
     serializer_class = serializers.NinePicAdverSerialize
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.IsAuthenticated,)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
     ordering_fields = '__all__'
     filter_class = NinePicAdverFilter
@@ -98,6 +98,56 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
             'view': self,
             "mama_id": xlmm.id if xlmm else 0
         }
+
+    @list_route(methods=['get'])
+    def get_nine_pic_by_modelid(self, request, *args, **kwargs):
+        # type: (HttpRequest, *Any, **Any) -> HttpResponse
+        model_id = request.GET.get('model_id')
+        model_ids = [i.strip() for i in model_id.split(',') if i.isdigit()]
+        ns = get_nine_pic_by_modelids(model_ids)
+        serializer = self.get_serializer(ns, many=True)
+        return Response(serializer.data)
+
+    def list(self, request, *args, **kwargs):
+        xlmm = self.get_xlmm()
+        queryset = self.get_today_queryset(self.get_queryset())
+        if request.data.get('ordering') is None:
+            queryset = queryset.order_by('-start_time')
+        queryset = self.filter_queryset(queryset)
+        serializer = self.get_serializer(queryset, many=True)
+        # 统计代码
+        if xlmm:
+            statsd.incr('xiaolumm.ninepic_count')
+            task_mama_daily_tab_visit_stats.delay(xlmm.id, MamaTabVisitStats.TAB_DAILY_NINEPIC)
+        return Response(serializer.data)
+
+    @transaction.atomic()
+    def update(self, request, *args, **kwargs):
+        """
+        功能: 用户更新分享次数和保存次数
+        """
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        save_times = request.data.get('save_times') or 0
+        share_times = request.data.get('share_times') or 0
+        save_times = min(int(save_times), 1)
+        share_times = min(int(share_times), 1)
+        request_data = request.data.copy()
+        request_data.update({'save_times': instance.save_times + save_times})
+        request_data.update({'share_times': instance.share_times + share_times})
+        serializer = serializers.ModifyTimesNinePicAdverSerialize(instance, data=request_data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        raise exceptions.APIException("方法不允许")
+
+
+class NinePicViewSet(viewsets.GenericViewSet):
+    """
+    """
+    authentication_classes = (authentication.SessionAuthentication,)
 
     @list_route(methods=['get'])
     @method_decorator(cache_page(30))
@@ -168,56 +218,13 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
         group = itertools.groupby(data, lambda x: x['hour'])
         result = []
         for key, items in group:
-           result.append({
-               'hour': key,
-               'items': list(items)
-           })
+            result.append({
+                'hour': key,
+                'items': list(items)
+            })
 
         return Response(result)
 
-    @list_route(methods=['get'])
-    def get_nine_pic_by_modelid(self, request, *args, **kwargs):
-        # type: (HttpRequest, *Any, **Any) -> HttpResponse
-        model_id = request.GET.get('model_id')
-        model_ids = [i.strip() for i in model_id.split(',') if i.isdigit()]
-        ns = get_nine_pic_by_modelids(model_ids)
-        serializer = self.get_serializer(ns, many=True)
-        return Response(serializer.data)
-
-    def list(self, request, *args, **kwargs):
-        xlmm = self.get_xlmm()
-        queryset = self.get_today_queryset(self.get_queryset())
-        if request.data.get('ordering') is None:
-            queryset = queryset.order_by('-start_time')
-        queryset = self.filter_queryset(queryset)
-        serializer = self.get_serializer(queryset, many=True)
-        # 统计代码
-        if xlmm:
-            statsd.incr('xiaolumm.ninepic_count')
-            task_mama_daily_tab_visit_stats.delay(xlmm.id, MamaTabVisitStats.TAB_DAILY_NINEPIC)
-        return Response(serializer.data)
-
-    @transaction.atomic()
-    def update(self, request, *args, **kwargs):
-        """
-        功能: 用户更新分享次数和保存次数
-        """
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        save_times = request.data.get('save_times') or 0
-        share_times = request.data.get('share_times') or 0
-        save_times = min(int(save_times), 1)
-        share_times = min(int(share_times), 1)
-        request_data = request.data.copy()
-        request_data.update({'save_times': instance.save_times + save_times})
-        request_data.update({'share_times': instance.share_times + share_times})
-        serializer = serializers.ModifyTimesNinePicAdverSerialize(instance, data=request_data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        return Response(serializer.data)
-
-    def create(self, request, *args, **kwargs):
-        raise exceptions.APIException("方法不允许")
 
 
 class MamaVebViewConfFilter(filters.FilterSet):
