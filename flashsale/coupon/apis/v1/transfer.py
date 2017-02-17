@@ -1028,8 +1028,9 @@ def agree_apply_transfer_record_2_sys(record):
     record.save(update_fields=['transfer_status', 'modified'])  # 完成流通记录
     task_calc_xlmm_elite_score(record.coupon_from_mama_id)  # 重算积分
 
-    # 退券了，之前买券的订单能够被上级妈妈兑换拿收益的，那么此时需要把这个收益扣回去
-    transfer_record_return_coupon_exchange(coupons, record)
+    # 退券了，之前用币买券的订单能够被上级妈妈兑换拿收益的，那么此时需要把这个收益扣回去
+    if round(return_coin_amount * 100) > 0:
+        transfer_record_return_coupon_exchange(coupons, record)
     return True
 
 
