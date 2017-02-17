@@ -8,6 +8,8 @@ from django.conf import settings
 from django.contrib.auth.models import User as DjangoUser
 from django.db import models, transaction
 from django.db.models import Sum, F
+
+from flashsale.pay.models import BudgetLog
 from flashsale.xiaolumm.managers import XiaoluMamaManager
 
 # Create your models here.
@@ -1331,18 +1333,6 @@ class CashOut(BaseModel):
 
     def is_confirmed(self):
         return self.status == CashOut.APPROVED
-
-
-def cashout_update_mamafortune(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm.tasks import task_cashout_update_mamafortune
-
-    try:
-        transaction.on_commit(lambda: task_cashout_update_mamafortune(instance.xlmm))
-    except Exception, exc:
-        logger.error('cashout error: %s' % exc, exc_info=True)
-
-post_save.connect(cashout_update_mamafortune,
-                  sender=CashOut, dispatch_uid='post_save_cashout_update_mamafortune')
 
 
 class CarryLog(models.Model):

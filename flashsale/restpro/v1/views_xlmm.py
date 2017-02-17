@@ -931,6 +931,8 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
 
         /rest/v1/pmt/cashout
         """
+        return Response({'code': 400, 'info': '该功能已经停止,请将妈妈钱包余额转入个人钱包'})
+
         content = request.data
         cash_type = content.get('choice', None)
         cashout_amount = content.get('cashout_amount', None)
@@ -961,6 +963,8 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         """
         /rest/v1/pmt/cashout/can_cashout_once
         """
+        return Response({'code': 400, 'info': '该功能已经停止,请将妈妈钱包余额转入个人钱包'})
+
         customer, mama = self.get_customer_and_xlmm(request)
         if not (mama and customer):
             info = u'你的帐号异常，请联系管理员！'
@@ -984,6 +988,8 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         amount=1.5 #金额1.5元
         verify_code=123456 #验证码123456
         """
+        return Response({'code': 400, 'info': '该功能已经停止,请将妈妈钱包余额转入个人钱包'})
+
         from shopback.monitor.models import XiaoluSwitch
 
         switch = XiaoluSwitch.objects.filter(id=7).first()
@@ -1015,6 +1021,8 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         amount=1.5 #金额1.5元
         verify_code=123456 #验证码123456
         """
+        return Response({'code': 400, 'info': '该功能已经停止,请将妈妈钱包余额转入个人钱包'})
+
         content = request.data or request.GET
 
         amount = content.get('amount', None)  # 以元为单位
@@ -1223,6 +1231,8 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         """
         代理钱包余额兑换代理费用(续费)
         """
+        return Response({'code': 400, 'info': '该功能已经停止,妈妈钱包余额已经转入个人钱包'})
+
         exchange_type = request.data.get('exchange_type') or None
         exchange_type_map = {'half': 99, 'full': 188}
         days_map = {'half': XiaoluMama.HALF, 'full': XiaoluMama.FULL}
