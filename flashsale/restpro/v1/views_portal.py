@@ -66,12 +66,12 @@ class PortalViewSet(viewsets.ReadOnlyModelViewSet):
 
     @cache_response(timeout=CACHE_VIEW_TIMEOUT, key_func='calc_porter_cache_key')
     def list(self, request, *args, **kwargs):
-        exclude_fields = request.GET.get('exclude_fields')
+        exclude_fields = (request.GET.get('exclude_fields') or '').split(',')
         category = request.GET.get('category')
         poster = self.get_today_poster(category=category)
         poster.request_category = category
         poster.request_exclude_fields = exclude_fields
-        serializer = self.get_serializer(poster, many=False)
+        serializer = self.get_serializer(poster, many=False, exclude=exclude_fields)
         return Response(serializer.data)
 
 
