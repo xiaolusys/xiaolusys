@@ -924,9 +924,13 @@ class MamaAdministratorViewSet(APIView):
         if referal_mama_ids:
             referal_mama_id = referal_mama_ids[0]
             referal_mama = XiaoluMama.objects.filter(id=referal_mama_id).first()
-            referal_customer = referal_mama.get_customer()
-            referal_mama_nick = referal_customer.nick
-            referal_mama_avatar = referal_customer.thumbnail
+            if referal_mama:
+                referal_customer = referal_mama.get_customer()
+                referal_mama_nick = referal_customer.nick
+                referal_mama_avatar = referal_customer.thumbnail
+            else:
+                referal_mama_nick = ''
+                referal_mama_avatar = ''
         else:
             referal_mama_nick = ''
             referal_mama_avatar = ''

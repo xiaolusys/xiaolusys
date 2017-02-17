@@ -828,8 +828,8 @@ def task_statsrecord_update_model_stats(saleorderstatsrecord, review_days=None):
     managers = [sale_manager_detail.schedule_manage for sale_manager_detail in sale_manager_details]
     manager_res = judgement_schedule_manager(managers, saleorderstatsrecord)  # 上下架时间判定
     if not manager_res:
-        logger.error(u'task_statsrecord_update_model_stats : %s '
-                     u' manager schedule not found .' % saleorderstatsrecord.id)
+        # logger.error(u'task_statsrecord_update_model_stats : %s '
+        #              u' manager schedule not found .' % saleorderstatsrecord.id)
         return
     product = get_product(saleorderstatsrecord.outer_id)
     if not product:
