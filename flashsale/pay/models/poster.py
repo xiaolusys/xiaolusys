@@ -80,30 +80,18 @@ class GoodShelf(PayBaseModel):
         cat_pic_maps = dict(lv1_categorys.values_list('cid', 'cat_pic'))
 
         return [
-            {'id': 1, 'name': u'童装专区',
-             'cat_img': cat_pic_maps.get('1', ''),
-             'cat_link': 'com.jimei.xlmm://app/v1/products/category?cid=1'},
-            {'id': 2, 'name': u'女装专区',
-             'cat_img': cat_pic_maps.get('2', ''),
-             'cat_link': 'com.jimei.xlmm://app/v1/products/category?cid=2'},
-            {'id': 3, 'name': u'美食专区',
-             'cat_img': cat_pic_maps.get('3', ''),
-             'cat_link': 'com.jimei.xlmm://app/v1/products/category?cid=3'},
-            {'id': 4, 'name': u'配饰专区',
-             'cat_img': cat_pic_maps.get('4', ''),
-             'cat_link': 'com.jimei.xlmm://app/v1/products/category?cid=4'},
-            {'id': 5, 'name': u'母婴玩具',
-             'cat_img': cat_pic_maps.get('5', ''),
-             'cat_link': 'com.jimei.xlmm://app/v1/products/category?cid=5'},
-            {'id': 6, 'name': u'箱包鞋靴',
-             'cat_img': cat_pic_maps.get('6', ''),
-             'cat_link': 'com.jimei.xlmm://app/v1/products/category?cid=6'},
-            {'id': 7, 'name': u'美妆护肤',
+            {'id': 7, 'name': u'美妆洗护',
              'cat_img': cat_pic_maps.get('7', ''),
              'cat_link': 'com.jimei.xlmm://app/v1/products/category?cid=7'},
-            {'id': 8, 'name': u'温暖家居',
+            {'id': 5, 'name': u'母婴用品',
+             'cat_img': cat_pic_maps.get('5', ''),
+             'cat_link': 'com.jimei.xlmm://app/v1/products/category?cid=5'},
+            {'id': 8, 'name': u'家居百货',
              'cat_img': cat_pic_maps.get('8', ''),
              'cat_link': 'com.jimei.xlmm://app/v1/products/category?cid=8'},
+            {'id': 3, 'name': u'食品保健',
+             'cat_img': cat_pic_maps.get('3', ''),
+             'cat_link': 'com.jimei.xlmm://app/v1/products/category?cid=3'},
         ]
 
     def get_posters(self):
