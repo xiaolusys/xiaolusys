@@ -48,8 +48,11 @@ def task_call_all_sku_delivery_stats(stat_date=None):
 
 
 @app.task
-def task_calc_all_sku_amount_stat(stat_date):
+def task_calc_all_sku_amount_stat(stat_date=None):
     """ 统计sku销售金额 """
+
+    if not stat_date:
+        stat_date = datetime.date.today() - datetime.timedelta(days=1)
 
     order_qs = SaleOrder.objects.active_orders().filter(
         pay_time__range=day_range(stat_date)

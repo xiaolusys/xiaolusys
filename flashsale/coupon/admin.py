@@ -86,7 +86,7 @@ class UserCouponAdmin(admin.ModelAdmin):
         (u'其他信息:', {
             'classes': ('expand',),
             'fields': (('coupon_no', 'trade_tid', 'uniq_id'),
-                       ('coupon_type', 'ufrom', 'is_pushed'),
+                       ('coupon_type', 'ufrom', 'is_pushed', 'is_chained', 'is_buyed'),
                        ('extras', ))
         }),
     )
