@@ -42,7 +42,7 @@ def task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, prod
     template = get_coupon_template_by_id(id=template_id)
     index = 0
 
-    to_mama = customer.get_xiaolumm()
+    to_mama = customer.get_charged_mama()
     _, _, agent_price = get_elite_score_by_templateid(template.id, to_mama)
 
     with transaction.atomic():
@@ -71,7 +71,6 @@ def task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, prod
                 template_id, index),
         })
 
-        to_mama = customer.get_charged_mama()
         to_mama_nick = customer.nick
         to_mama_thumbnail = customer.thumbnail
 
