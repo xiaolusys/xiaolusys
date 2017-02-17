@@ -362,6 +362,18 @@ class PortalSerializer(serializers.ModelSerializer):
     activitys  = serializers.SerializerMethodField(read_only=True)
     promotion_brands   = serializers.SerializerMethodField(read_only=True)
 
+    def __init__(self, *args, **kwargs):
+        print self.fields, kwargs
+        exclude = kwargs.pop('exclude', None)
+
+        super(PortalSerializer, self).__init__(*args, **kwargs)
+
+        if exclude:
+            exclude = filter(lambda x: x, exclude)
+            for item in exclude:
+                if item in self.fields.keys():
+                    self.fields.pop(item)
+
     class Meta:
         model = GoodShelf
         fields = ('id', 'posters', 'categorys', 'activitys', 'promotion_brands' ,'active_time')
@@ -369,7 +381,8 @@ class PortalSerializer(serializers.ModelSerializer):
     def get_activitys(self, obj):
         category = obj.request_category
         exclude_fields = obj.request_exclude_fields
-        if exclude_fields == 'activity':
+
+        if 'activity' in exclude_fields:
             return []
 
         from flashsale.promotion.apis.activity import get_landing_effect_activities, get_jingpin_effect_activities
