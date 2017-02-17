@@ -214,6 +214,7 @@ class NinePicViewSet(viewsets.GenericViewSet):
                 'model_id': model_id
             })
 
+        data = sorted(data, key=lambda x: x['hour'])
         import itertools
         group = itertools.groupby(data, lambda x: x['hour'])
         result = []
