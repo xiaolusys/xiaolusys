@@ -663,7 +663,7 @@ STATISTICS_ROUTES = {
     'supplychain.supplier.tasks.task_calculate_supplier_stats_data': {
         'queue': 'statistics',
         'routing_key': 'statistics.task_calculate_supplier_stats_data',
-    }
+    },
 }
 
 LOGISTICS_ROUTES = {
@@ -1573,6 +1573,21 @@ SHOP_APP_SCHEDULE = {
 
 }
 
+STATISTIC_SCHEDULE = {
+    u'每日统计sku规格发货速度及未发货单数': {
+        'task': 'flashsale.daystats.tasks.saleorder.task_call_all_sku_delivery_stats',
+        'schedule': crontab(minute="15", hour="2"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_call_all_sku_delivery_stats'}
+    },
+    u'每日统计sku规格实际销售金额(分项)': {
+        'task': 'flashsale.daystats.tasks.saleorder.task_calc_all_sku_amount_stat',
+        'schedule': crontab(minute="20", hour="2"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_calc_all_sku_amount_stat'}
+    },
+}
+
 BOUTIQUE_SCHEDULE = {
     u'每日统计昨日精品商品及券库存和销量': {
         'task': 'flashsale.daystats.tasks.boutique.task_all_boutique_stats',
@@ -1655,5 +1670,6 @@ CELERYBEAT_SCHEDULE.update(SHOP_APP_SCHEDULE)
 CELERYBEAT_SCHEDULE.update(WDT_SCHEDULE)
 CELERYBEAT_SCHEDULE.update(BOUTIQUE_SCHEDULE)
 CELERYBEAT_SCHEDULE.update(STATSD_SCHEDULE)
+CELERYBEAT_SCHEDULE.update(STATISTIC_SCHEDULE)
 
 CELERY_BEAT_SCHEDULE = CELERYBEAT_SCHEDULE

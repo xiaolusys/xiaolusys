@@ -18,6 +18,21 @@ def default_coupon_extras():
 
 
 class UserCoupon(BaseModel):
+    """
+    extras:
+        {
+          "origin_price": 0, # buy per coupon payment * 100 (分)
+          "transfer_coupon_pk": "",
+          "user_info": {
+            "nick": "",
+            "id": ,
+            "thumbnail": ""
+          },
+          "buy_coupon_type": 1,
+          "chain": [], #mama id list
+        }
+    """
+
     TYPE_NORMAL = 1
     TYPE_ORDER_SHARE = 2
     TYPE_MAMA_INVITE = 3
@@ -43,7 +58,12 @@ class UserCoupon(BaseModel):
     FREEZE = 2
     PAST = 3
     CANCEL = 4  # 不该发而发了之后回退操作，算。
-    USER_COUPON_STATUS = ((UNUSED, u"未使用"), (USED, u"已使用"), (FREEZE, u"冻结中"), (PAST, u"已经过期"), (CANCEL, u'已经取消'))
+    USER_COUPON_STATUS = (
+        (UNUSED, u"未使用"),
+        (USED, u"已使用"),
+        (FREEZE, u"冻结中"),
+        (PAST, u"已经过期"),
+        (CANCEL, u'已经取消'))
 
     WX = u'wx'
     PYQ = u'pyq'
@@ -62,7 +82,7 @@ class UserCoupon(BaseModel):
 
     template_id = models.IntegerField(db_index=True, verbose_name=u"优惠券id")  # type: int
     title = models.CharField(max_length=64, verbose_name=u"优惠券标题")  # type: text_type
-    coupon_type = models.IntegerField(default=TYPE_NORMAL, choices=COUPON_TYPES, verbose_name=u"优惠券类型")  # type: int
+    coupon_type = models.IntegerField(default=TYPE_NORMAL, db_index=True, choices=COUPON_TYPES, verbose_name=u"优惠券类型")  # type: int
 
     customer_id = models.IntegerField(db_index=True, verbose_name=u"顾客ID")  # type: int
     share_user_id = models.IntegerField(db_index=True, blank=True, null=True,
@@ -87,8 +107,10 @@ class UserCoupon(BaseModel):
     uniq_id = models.CharField(unique=True, max_length=32,  # template_id_customer_id_order_coupon_id_(number_of_tpl)
                                verbose_name=u"优惠券唯一标识")  # type: text_type
     status = models.IntegerField(default=UNUSED, choices=USER_COUPON_STATUS, verbose_name=u"使用状态")  # type: int
-    is_pushed = models.BooleanField(default=False, db_index=True, verbose_name=u'是否推送')  # type: bool
-    is_chained = models.BooleanField(default=False, db_index=True, verbose_name=u'是否转手')  # type: bool
+
+    is_buyed   = models.BooleanField(default=False, db_index=True, verbose_name=u'付费购买') # cash or coin
+    is_pushed  = models.BooleanField(default=False, db_index=True, verbose_name=u'是否推送')  # type: bool
+    is_chained = models.BooleanField(default=False, db_index=True, verbose_name=u'是否流通')  # type: bool
 
     extras = JSONCharMyField(max_length=1024, default=default_coupon_extras, blank=True, null=True,
                              verbose_name=u"附加信息")  # type: text_type

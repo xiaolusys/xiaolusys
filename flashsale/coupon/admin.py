@@ -92,10 +92,9 @@ class UserCouponAdmin(admin.ModelAdmin):
     )
 
     list_display = ('id', 'title', "customer_id", 'status', "uniq_id", 'finished_time',
-                    'expires_time', 'is_pushed', 'is_chained', 'modified',
-                    'created')
+                    'expires_time', 'is_pushed', 'is_chained', 'is_buyed', 'modified', 'created')
 
-    list_filter = ('coupon_type', 'is_chained', 'status', 'expires_time', 'finished_time', ('created', DateFieldListFilter))
+    list_filter = ('coupon_type', 'is_chained', 'is_buyed','status', 'expires_time', 'finished_time', ('created', DateFieldListFilter))
     search_fields = ['=id', '=template_id', '=customer_id']
 
 

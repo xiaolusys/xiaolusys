@@ -52,3 +52,6 @@ class UserCouponManager(BaseManager):
         """获取　冻结状态的　精品券
         """
         return self.get_freeze_coupons().filter(coupon_type=self.model.TYPE_TRANSFER)
+
+    def get_origin_payment_boutique_coupons(self):
+        return self.get_queryset().filter(coupon_type=self.model.TYPE_TRANSFER, is_buyed=True)

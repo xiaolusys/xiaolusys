@@ -171,5 +171,49 @@ class DailyBoutiqueStat(BaseModel):
         db_table = 'flashsale_daily_boutique_stat'
         unique_together = ['model_id', 'stat_date']
         app_label = 'daystats'
-        verbose_name = u'精品/每日销售统计'
-        verbose_name_plural = u'精品/每日销售统计列表'
+        verbose_name = u'精品/每日销售数量统计'
+        verbose_name_plural = u'精品/每日销售数量统计列表'
+
+
+class DailySkuAmountStat(BaseModel):
+    """ 每日库存商品SKU销售统计
+    """
+    sku_id    = models.IntegerField(verbose_name=u'规格ID')
+    model_id  = models.IntegerField(db_index=True, default=0, verbose_name=u'款式ID')
+    stat_date = models.DateField(default=datetime.date.today,
+                                 db_index=True, verbose_name=u'业务日期')
+
+    total_amount = models.IntegerField(default=0, verbose_name=u'总价值')
+    direct_payment = models.IntegerField(default=0, verbose_name=u'直接付款金额')
+    coupon_amount  = models.IntegerField(default=0, verbose_name=u'券使用面额')
+    coupon_payment = models.IntegerField(default=0, db_index=True, verbose_name=u'券实际卖价')
+    exchg_amount   = models.IntegerField(default=0, db_index=True, verbose_name=u'券兑换出额', help_text=u'扣除买券金额')
+
+    class Meta:
+        db_table = 'flashsale_daily_skuamount_stat'
+        unique_together = ['sku_id', 'stat_date']
+        app_label = 'daystats'
+        verbose_name = u'规格SKU/每日销售金额统计'
+        verbose_name_plural = u'规格SKU/每日销售金额统计列表'
+
+
+class DailySkuDeliveryStat(BaseModel):
+    """ 每日库存商品SKU发货统计
+    """
+    sku_id    = models.IntegerField(verbose_name=u'规格ID')
+    model_id  = models.IntegerField(db_index=True, default=0, verbose_name=u'款式ID')
+    stat_date = models.DateField(default=datetime.date.today,
+                                 db_index=True, verbose_name=u'业务日期')
+
+    days = models.IntegerField(default=0, db_index=True, verbose_name=u'间隔天数')
+    post_num  = models.IntegerField(default=0, verbose_name=u'发货单数')
+    wait_num = models.IntegerField(default=0, verbose_name=u'待发单数')
+
+    class Meta:
+        db_table = 'flashsale_daily_skudelivery_stat'
+        unique_together = ['sku_id', 'stat_date', 'days']
+        app_label = 'daystats'
+        verbose_name = u'规格SKU/每日发货状态统计'
+        verbose_name_plural = u'规格SKU/每日发货状态统计列表'
+
+

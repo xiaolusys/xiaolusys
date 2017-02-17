@@ -22,3 +22,9 @@ def week_range(date):
         end_date = datetime.datetime.combine(end_date ,datetime.time.max)
 
     return (start_date, end_date)
+
+def day_range(date):
+    return (
+        datetime.datetime.combine(date, datetime.time.min),
+        datetime.datetime.combine(date, datetime.time.max)
+    )

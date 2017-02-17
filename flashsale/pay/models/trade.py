@@ -964,6 +964,10 @@ class SaleOrder(PayBaseModel):
         (TRADE_CLOSED_BY_SYS, u'交易关闭'),
     )
 
+    NOPAYMENT_STATUS = (TRADE_NO_CREATE_PAY,
+                        WAIT_BUYER_PAY,
+                        TRADE_CLOSED_BY_SYS)
+
     NORMAL_ORDER_STATUS = (WAIT_BUYER_PAY,
                            WAIT_SELLER_SEND_GOODS,
                            WAIT_BUYER_CONFIRM_GOODS,
@@ -1009,6 +1013,8 @@ class SaleOrder(PayBaseModel):
     status = models.IntegerField(choices=ORDER_STATUS, default=TRADE_NO_CREATE_PAY,
                                  db_index=True, blank=True, verbose_name=u'订单状态')
     extras = JSONCharMyField(blank=True, default=default_extras, verbose_name=u'附加信息')
+
+    objects = saletrade.NormalSaleOrderManager()
 
     def __unicode__(self):
         return '<%s>' % (self.id)

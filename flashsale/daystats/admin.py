@@ -1,7 +1,7 @@
 # -*- coding:utf8 -*-
 from django.contrib import admin
 from core.filters import DateFieldListFilter
-from .models import DailyStat, PopularizeCost, DailyBoutiqueStat
+from .models import DailyStat, PopularizeCost, DailyBoutiqueStat, DailySkuAmountStat, DailySkuDeliveryStat
 from django import forms
 
 from flashsale.pay.models import ModelProduct
@@ -96,3 +96,22 @@ class DailyBoutiqueStatAdmin(admin.ModelAdmin):
 
     product_link.allow_tags = True
     product_link.short_description = u"商品名称"
+
+
+@admin.register(DailySkuAmountStat)
+class DailySkuAmountStatAdmin(admin.ModelAdmin):
+    list_display = ('sku_id', 'model_id', 'stat_date',
+                     'total_amount', 'direct_payment','coupon_amount',
+                    'coupon_payment', 'exchg_amount')
+    list_filter = (('stat_date', DateFieldListFilter),)
+    search_fields = ['=sku_id','=model_id']
+    ordering = ('-stat_date',)
+
+
+@admin.register(DailySkuDeliveryStat)
+class DailySkuDeliveryStatAdmin(admin.ModelAdmin):
+    list_display = ('sku_id', 'model_id', 'stat_date',
+                     'days', 'post_num','wait_num')
+    list_filter = (('stat_date', DateFieldListFilter),'days')
+    search_fields = ['=sku_id','=model_id']
+    ordering = ('-stat_date',)
