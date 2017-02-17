@@ -133,6 +133,8 @@ router_urls += format_suffix_patterns([
     url(r'^address/(?P<pk>[0-9]+)/update',
         views.UserAddressViewSet.as_view({'post': 'update'}),
         name="address-update"),
+
+    url(r'^pmt/ninepic/today$', views_mmadver.NinePicViewSet.as_view({'get': 'today'})),
 ])
 
 from flashsale.restpro.v2 import views as views_v2

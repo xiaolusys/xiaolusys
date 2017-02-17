@@ -31,7 +31,7 @@ class PortalViewSet(viewsets.ReadOnlyModelViewSet):
 
     def calc_porter_cache_key(self, view_instance, view_method,
                               request, args, kwargs):
-        key_vals = ['days', 'category']
+        key_vals = ['days', 'category', 'exclude_fields']
         key_maps = kwargs or {}
         for k, v in request.GET.copy().iteritems():
             if k in key_vals and v.strip():
@@ -66,9 +66,11 @@ class PortalViewSet(viewsets.ReadOnlyModelViewSet):
 
     @cache_response(timeout=CACHE_VIEW_TIMEOUT, key_func='calc_porter_cache_key')
     def list(self, request, *args, **kwargs):
+        exclude_fields = request.GET.get('exclude_fields')
         category = request.GET.get('category')
         poster = self.get_today_poster(category=category)
         poster.request_category = category
+        poster.request_exclude_fields = exclude_fields
         serializer = self.get_serializer(poster, many=False)
         return Response(serializer.data)
 
