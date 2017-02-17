@@ -606,7 +606,8 @@ class OrderShareCouponViewSet(viewsets.ModelViewSet):
         if not ufrom:
             logger.warn('customer:{0}, param ufrom is None'.format(customer.id))
 
-        return
+        # not need anymore, 20170217
+        return Response({"code": 11, "msg": '红包停止发放'})
         # 判断当前用户是否有　历史订单
         st = is_old_customer(customer.id)
         # 如果有订单的用户　再次领取的分享优惠券为指定的其他优惠券
@@ -640,7 +641,8 @@ class OrderShareCouponViewSet(viewsets.ModelViewSet):
         if not ufrom:
             logger.warn('customer:{0}, param ufrom is None'.format(customer.id))
 
-        return
+        # not need anymore, 20170217
+        return Response({"code": 11, "msg": '红包停止发放', "coupon_id": ''})
         template_id = coupon_share.template_id
         coupon, code, msg = create_user_coupon(customer_id=customer.id, coupon_template_id=template_id,
                                                order_share_id=coupon_share.id, ufrom=ufrom)
