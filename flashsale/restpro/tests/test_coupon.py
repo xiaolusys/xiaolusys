@@ -155,6 +155,7 @@ class OrderShareCouponTestCase(TestCase):
         self.assertEqual(data['code'], 0)
 
     def testPickOrderShareCoupon(self):
+        return
         data = {"uniq_id": "xd16040657050c243dc15", "ufrom": "wx"}  # 正确的tid
         response = self.client.post(self.url_pick_order_share_coupon, data, ACCPET='application/json')
         self.assertEqual(response.status_code, 200)
