@@ -42,8 +42,9 @@ def task_awardcarry_update_carryrecord(carry):
 
         return
 
-    CarryRecord.create(carry.mama_id, carry.carry_num, CarryRecord.CR_RECOMMEND, carry.carry_description,
-        uni_key=carry.uni_key, status=carry.status)
+    if carry.carry_num > 0:
+        CarryRecord.create(carry.mama_id, carry.carry_num, CarryRecord.CR_RECOMMEND, carry.carry_description,
+                           uni_key=carry.uni_key, status=carry.status)
 
 
 @app.task(serializer='pickle')
@@ -60,8 +61,9 @@ def task_ordercarry_update_carryrecord(carry):
                 record.cancel()
         return
 
-    CarryRecord.create(carry.mama_id, carry.carry_num, CarryRecord.CR_ORDER, carry.carry_description,
-                       uni_key=carry.uni_key,status=carry.status)
+    if carry.carry_num > 0:
+        CarryRecord.create(carry.mama_id, carry.carry_num, CarryRecord.CR_ORDER, carry.carry_description,
+                           uni_key=carry.uni_key,status=carry.status)
 
 
 @app.task(serializer='pickle')
@@ -87,5 +89,6 @@ def task_clickcarry_update_carryrecord(carry):
 
         return
 
-    CarryRecord.create(carry.mama_id, carry.total_value, CarryRecord.CR_CLICK, carry.carry_description,
-                       uni_key=carry.uni_key, status=carry.status)
+    if carry.total_value > 0:
+        CarryRecord.create(carry.mama_id, carry.total_value, CarryRecord.CR_CLICK, carry.carry_description,
+                           uni_key=carry.uni_key, status=carry.status)
