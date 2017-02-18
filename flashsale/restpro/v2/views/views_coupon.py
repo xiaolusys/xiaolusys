@@ -647,7 +647,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                 stock_num += CouponTransferRecord.get_coupon_stock_num(mama_id, oneid)
                 customer_unused_coupon_num += UserCoupon.objects.filter(customer_id=customer.id, template_id=int(oneid),
                                                          status=UserCoupon.UNUSED).count()
-            if stock_num < int(coupon_num) or customer_unused_coupon_num < int(coupon_num):
+            if (stock_num < int(coupon_num)) or (customer_unused_coupon_num < int(coupon_num)):
                 logger.warn({
                     'message': u'exchange order:stock_num=%s customer_unused_coupon_num=%s < exchg coupon_num=%s ,order_id=%s templateid=%s' % (
                         stock_num, customer_unused_coupon_num, coupon_num, order_id, template_ids),
