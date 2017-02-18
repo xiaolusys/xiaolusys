@@ -563,6 +563,8 @@ def coupon_exchange_saleorder(customer, order_id, mama_id, template_ids, coupon_
             user_coupons = UserCoupon.objects.filter(customer_id=customer.id,
                                                      template_id=int(oneid),
                                                      status=UserCoupon.UNUSED)
+            if user_coupons.count() == 0:
+                continue
             if user_coupons.count() >= left_num:
                 user_coupons = user_coupons[0: left_num]
             temp_coupon_ids = [c.id for c in user_coupons]
