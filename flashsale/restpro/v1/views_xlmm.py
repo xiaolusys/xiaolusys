@@ -1114,6 +1114,8 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
     @list_route(methods=['post'])
     def cashout_to_budget(self, request):
         """ 代理提现到用户余额 """
+        return Response({'code': 400, 'info': '该功能已经停止,妈妈钱包余额已经转入个人钱包'})
+
         cashout_amount = request.data.get('cashout_amount', None)
         customer, xlmm = self.get_customer_and_xlmm(request)
         if not (xlmm and customer):
