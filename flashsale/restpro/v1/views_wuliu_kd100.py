@@ -91,6 +91,7 @@ class WuliuViewSet(viewsets.ModelViewSet):
         # 我们的记录不是已签收状态,那么直接在线同步查询,并异步更新我们的数据库
         search_result = kd100_wuliu.kd100_instant_query(company_code,packetid)
         if not json.loads(search_result).get("data"):
+            logger.warn({'action': "kdn100_no_data", 'info': "out_sid:" + str(packetid)+"company_code:"+"company_code"})
             return Response("暂无物流信息")
         # print tradewuliu.content
         # print json.dumps(json.loads(search_result).get("data"))

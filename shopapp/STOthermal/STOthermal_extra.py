@@ -103,11 +103,14 @@ def cancel_exp_number(**kwargs):
 
 
 
-if __name__ == '__main__':
-    visitor_ip = '114.55.3.64'
-    # get_exp_template_test = 'http://192.168.1.8:8005/thermal/STOthermal/get_exp_number?detail=堂主小区&province=福建省&name=杨雪丹&mobile=13956679696&trade_id=1232132131&city=莆田&district=唐山区'
-    # requests.get(get_exp_template_test)
-    # get_delivery_address(cp_code=
-    # a = {'param_waybill_cloud_print_apply_new_request':js'STO')on.dumps(constant_extra.param_waybill_cloud_print_apply_new_request)}
-    # get_exp_template(**a)
-    # cancel_exp_number(cp_code='STO',waybill_code="3315446465418")
+# if __name__ == '__main__':
+# a= {'city': '\xe8\xb5\xa4\xe5\xb3\xb0\xe5\xb8\x82',
+#  'cp_code': 'STO',
+#  'detail': '\xe6\x96\xb0\xe5\x9f\x8e\xe5\x8c\xba\xe4\xb8\xb4\xe6\xbd\xa2\xe5\xa4\xa7\xe8\xa1\x97\xe5\xae\x9d\xe9\x80\x9a\xe5\xa4\xa7\xe5\x8e\xa6\xe5\x9b\x9b\xe6\xa5\xbc',
+#  'district': '\xe6\x9d\xbe\xe5\xb1\xb1\xe5\x8c\xba',
+#  'mobile': '18804764040',
+#  'name': '\xe6\x9d\x83\xe6\xb6\x9b',
+#  'province': '\xe5\x86\x85\xe8\x92\x99\xe5\x8f\xa4',
+#  'trade_id': 168016}
+
+
