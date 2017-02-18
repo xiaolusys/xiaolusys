@@ -93,6 +93,8 @@ class CashOutViewSet(viewsets.ModelViewSet):
         # type: (HttpRequest, *Any, **Any) -> Response
         """妈妈钱包 提现 到 小鹿钱包
         """
+        return Response({'code': 400, 'info': '该功能已经停止,妈妈钱包余额已经转入个人钱包'})
+        
         cash_out_value = request.POST.get('value') or None
         if not cash_out_value:
             return Response({"code": 1, 'info': '参数错误'})

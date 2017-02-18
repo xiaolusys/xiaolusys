@@ -514,6 +514,10 @@ class BudgetLog(PayBaseModel):
     BG_EXCHG_ORDER = 'exchg'
     BG_RETURN_COUPON = 'rtcoup'
     BG_FANDIAN = 'fandian'
+    BG_CLICK = 'click'
+    BG_ORDER = 'order'
+    BG_AWARD = 'award'
+    BG_MAMA_CONSUM = 'mmconsum'
 
     BUDGET_LOG_CHOICES = (
         # 收入
@@ -525,9 +529,13 @@ class BudgetLog(PayBaseModel):
         (BG_RETURN_COUPON, u'退精品券'),
         (BG_ENVELOPE, u'红包'),
         (BG_FANDIAN, u'精品汇返点'),
+        (BG_CLICK, u'点击收益'),
+        (BG_ORDER, u'订单收益'),
+        (BG_AWARD, u'奖金收益'),
         # 支出
         (BG_CONSUM, u'消费'),
         (BG_CASHOUT, u'提现'),
+        (BG_MAMA_CONSUM, u'妈妈消费'),
         # 收入 or 支出
         (BG_EXCHG_ORDER, u'兑换订单'),
     )
@@ -760,6 +768,16 @@ class BudgetLog(PayBaseModel):
             self.save(update_fields=['status', 'modified'])
 
         return True
+
+    def chnage_peding_income_amount(self, new_amount):
+        """
+        修改预计收益金额
+        """
+        if self.status != BudgetLog.PENDING or self.budget_type != BudgetLog.BUDGET_IN:
+            return
+
+        self.flow_amount = new_amount
+        self.save()
 
     @classmethod
     def is_cashout_limited(cls, customer_id):

@@ -8,6 +8,7 @@ from django.db.models.signals import post_save, pre_save
 from django.conf import settings
 import datetime, urlparse
 from core.fields import JSONCharMyField
+from flashsale.pay.models import BudgetLog
 from flashsale.xiaolumm.models.models import XiaoluMama
 from flashsale.xiaolumm.signals import clickcarry_signal
 import logging
@@ -348,15 +349,26 @@ class CarryRecord(BaseModel):
             date_field=date_field, carry_description=desc, uni_key=uni_key, status=status)
         carry_record.save()
 
-        fortune, created = MamaFortune.objects.get_or_create(mama_id=mama_id, defaults={
-            'carry_pending': 0,
-            'carry_confirmed': 0
-        })
-        if status == CarryRecord.PENDING:
-            fortune.carry_pending = F('carry_pending') + carry_num
-        if status == CarryRecord.CONFIRMED:
-            fortune.carry_confirmed = F('carry_confirmed') + carry_num
-        fortune.save()
+        mama = XiaoluMama.objects.get(id=mama_id)
+        customer = mama.get_mama_customer()
+
+        budget_log_type_map = {
+            CarryRecord.CR_CLICK: BudgetLog.BG_CLICK,
+            CarryRecord.CR_ORDER: BudgetLog.BG_ORDER,
+            CarryRecord.CR_RECOMMEND: BudgetLog.BG_AWARD
+        }
+        budget_log_type = budget_log_type_map.get(carry_type)
+        budget_log_status_map = {
+            CarryRecord.PENDING: BudgetLog.PENDING,
+            CarryRecord.CONFIRMED: BudgetLog.CONFIRMED,
+            CarryRecord.CANCEL: BudgetLog.CANCELED
+        }
+        budget_log_status = budget_log_status_map.get(status)
+
+        referal_id = 'carryrecord-%s' % carry_record.id
+        BudgetLog.create(customer.id, BudgetLog.BUDGET_IN, carry_num, budget_log_type,
+                         status=budget_log_status,
+                         referal_id=referal_id)
 
         return carry_record
 
@@ -370,10 +382,9 @@ class CarryRecord(BaseModel):
         self.status = CarryRecord.CONFIRMED
         self.save()
 
-        fortune = MamaFortune.objects.filter(mama_id=self.mama_id).first()
-        fortune.carry_pending = F('carry_pending') - self.carry_num
-        fortune.carry_confirmed = F('carry_confirmed') + self.carry_num
-        fortune.save()
+        referal_id = 'carryrecord-%s' % self.id
+        bg = BudgetLog.objects.get(referal_id=referal_id)
+        bg.confirm_budget_log()
 
     def cancel(self):
         """
@@ -382,15 +393,12 @@ class CarryRecord(BaseModel):
         if self.status == CarryRecord.CANCEL:
             return
 
-        fortune = MamaFortune.objects.filter(mama_id=self.mama_id).first()
-        if self.status == CarryRecord.PENDING:
-            fortune.carry_pending = F('carry_pending') - self.carry_num
-        if self.status == CarryRecord.CONFIRMED:
-            fortune.carry_confirmed = F('carry_confirmed') - self.carry_num
-        fortune.save()
-
         self.status = CarryRecord.CANCEL
         self.save()
+
+        referal_id = 'carryrecord-%s' % self.id
+        bg = BudgetLog.objects.get(referal_id=referal_id)
+        bg.cancel_budget_log()
 
 
     def changePendingCarryAmount(self, new_value):
@@ -403,10 +411,9 @@ class CarryRecord(BaseModel):
         self.carry_num = new_value
         self.save()
 
-        delta = new_value - self.carry_num
-        fortune = MamaFortune.objects.filter(mama_id=self.mama_id).first()
-        fortune.carry_pending = F('carry_pending') + delta
-        fortune.save()
+        referal_id = 'carryrecord-%s' % self.id
+        bg = BudgetLog.objects.get(referal_id=referal_id)
+        bg.chnage_peding_income_amount()
 
 
     def carry_type_name(self):
@@ -446,9 +453,8 @@ class CarryRecord(BaseModel):
 
 
 def carryrecord_update_mamafortune(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm.tasks import task_carryrecord_update_mamafortune, task_carryrecord_update_dailystats
+    from flashsale.xiaolumm.tasks import task_carryrecord_update_dailystats
 
-    # transaction.on_commit(lambda: task_carryrecord_update_mamafortune.delay(instance.mama_id))
     transaction.on_commit(lambda: task_carryrecord_update_dailystats.delay(instance.mama_id, instance.date_field))
 
 post_save.connect(carryrecord_update_mamafortune,

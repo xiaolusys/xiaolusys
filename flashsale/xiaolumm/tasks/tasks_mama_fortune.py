@@ -63,64 +63,6 @@ CASHOUT_HISTORY_LAST_DAY_TIME = datetime.datetime(2016, 3, 30, 23, 59, 59)
 
 
 @app.task(max_retries=3, default_retry_delay=6)
-def task_cashout_update_mamafortune(mama_id):
-    cashout_sum = CashOut.objects.filter(
-        xlmm=mama_id, created__gt=CASHOUT_HISTORY_LAST_DAY_TIME
-    ).values('status').annotate(total=Sum('value'))
-
-    approved_total, pending_total = 0, 0
-    for record in cashout_sum:
-        if record['status'] == CashOut.APPROVED:
-            approved_total = record['total']
-        if record['status'] == CashOut.PENDING:
-            pending_total = record['total']
-    effect_cashout = approved_total + pending_total
-
-    logger.warn("%s - mama_id: %s, effect_cashout: %s|pending:%s,approved:%s" % (
-        get_cur_info(), mama_id, effect_cashout, pending_total, approved_total))
-
-    fortunes = MamaFortune.objects.filter(mama_id=mama_id)
-
-    if fortunes.count() > 0:
-        fortune = fortunes[0]
-        if fortune.carry_cashout != effect_cashout:
-            fortune.carry_cashout = effect_cashout
-            fortune.save(update_fields=['carry_cashout'])
-    else:
-        try:
-            create_mamafortune_with_integrity(mama_id, carry_cashout=effect_cashout)
-        except IntegrityError as exc:
-            logger.warn("IntegrityError - MamaFortune cashout | mama_id: %s" % (mama_id))
-            raise task_cashout_update_mamafortune.retry(exc=exc)
-
-
-@app.task(max_retries=3, default_retry_delay=6)
-def task_carryrecord_update_mamafortune(mama_id):
-
-    carrys = CarryRecord.objects.filter(mama_id=mama_id, date_field__gt=MAMA_FORTUNE_HISTORY_LAST_DAY).values(
-        'status').annotate(carry=Sum('carry_num'))
-    carry_pending, carry_confirmed, carry_cashout = 0, 0, 0
-    for entry in carrys:
-        if entry["status"] == 1:  # pending
-            carry_pending = entry["carry"]
-        elif entry["status"] == 2:  # confirmed
-            carry_confirmed = entry["carry"]
-
-    fortune = MamaFortune.objects.filter(mama_id=mama_id).first()
-    if fortune:
-        if fortune.carry_pending != carry_pending or fortune.carry_confirmed != carry_confirmed:
-            fortune.carry_pending   = carry_pending
-            fortune.carry_confirmed = carry_confirmed
-            fortune.save(update_fields=['carry_pending','carry_confirmed'])
-    else:
-        try:
-            create_mamafortune_with_integrity(mama_id, carry_pending=carry_pending, carry_confirmed=carry_confirmed)
-        except IntegrityError as exc:
-            logger.warn("IntegrityError - MamaFortune carryrecord | mama_id: %s" % (mama_id))
-            raise task_carryrecord_update_mamafortune.retry(exc=exc)
-
-
-@app.task(max_retries=3, default_retry_delay=6)
 def task_activevalue_update_mamafortune(mama_id):
     """
     更新妈妈activevalue
@@ -478,33 +420,4 @@ def task_mama_daily_tab_visit_stats(mama_id, stats_tab):
             pass
     else:
         md.save(update_fields=['modified'])
-
-
-@app.task
-def task_repair_mama_wallet(hour=2):
-    # type: (int) -None
-    """修复妈妈钱包余额不一致问题定时任务,等修改signal代码后删除 2016-12-30
-    """
-    # todo: remove this func after replace signal mechanism
-
-    from flashsale.xiaolumm.tasks import task_cashout_update_mamafortune
-
-    lg = logging.getLogger(__name__)
-
-    t = datetime.datetime.now() - datetime.timedelta(hours=hour)
-
-    carrys = CarryRecord.objects.filter(Q(created__gte=t) | Q(modified__gte=t)).values('mama_id').distinct()
-    cashouts = CashOut.objects.filter(Q(created__gte=t) | Q(modified__gte=t)).values('xlmm').distinct()
-
-    lg.info({
-        'action': 'mama_period_wallet_repair',
-        'time': datetime.datetime.now(),
-        'carry_count': carrys.count(),
-        'cashout_count': cashouts.count()
-    })
-
-    mama_ids = set([x['mama_id'] for x in carrys] + [x['xlmm'] for x in cashouts])
-    for mama_id in mama_ids:
-        task_carryrecord_update_mamafortune(mama_id)
-        # task_cashout_update_mamafortune(mama_id)
 

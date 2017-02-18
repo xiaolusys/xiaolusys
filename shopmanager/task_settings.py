@@ -303,14 +303,6 @@ MAMA_FORTUNE_ROUTES = {
         'queue': 'mamafortune',
         'routing_key': 'mamafortune.task_xiaolumama_update_mamafortune',
     },
-    'flashsale.xiaolumm.tasks.tasks_mama_fortune.task_cashout_update_mamafortune': {
-        'queue': 'mamafortune',
-        'routing_key': 'mamafortune.task_cashout_update_mamafortune',
-    },
-    'flashsale.xiaolumm.tasks.tasks_mama_fortune.task_carryrecord_update_mamafortune': {
-        'queue': 'mamafortune',
-        'routing_key': 'mamafortune.task_carryrecord_update_mamafortune',
-    },
     'flashsale.xiaolumm.tasks.tasks_mama_fortune.task_activevalue_update_mamafortune': {
         'queue': 'mamafortune',
         'routing_key': 'mamafortune.task_activevalue_update_mamafortune',
@@ -1558,12 +1550,6 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_sync_weixin_red_envelopes'}
     },
-    # u'定时检查修复妈妈钱包余额不一致问题': {
-    #     'task': 'flashsale.xiaolumm.tasks.tasks_mama_fortune.task_repair_mama_wallet',
-    #     'schedule': crontab(minute="0"),
-    #     'args': (),
-    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task_repair_mama_wallet'}
-    # },
     u'定时检查用户钱包不一致问题': {
         'task': 'flashsale.pay.tasks.task_schedule_check_user_budget',
         'schedule': crontab(minute="0", hour="10"),
