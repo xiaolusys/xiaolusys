@@ -453,7 +453,8 @@ def prods_position_handler():
             shop = pro.get_customer()
             customer = shop.get_customer()
             try:
-                save_pro_info(product=pro.product, user=customer.user)
+                if customer:
+                    save_pro_info(product=pro.product, user=customer.user)
             except Exception, exc:
                 logger.error(exc)
     up_pro_ids = Product.objects.filter(status=Product.NORMAL, shelf_status=Product.UP_SHELF).values('id')
