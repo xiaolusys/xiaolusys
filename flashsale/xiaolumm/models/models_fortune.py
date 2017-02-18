@@ -334,6 +334,25 @@ class CarryRecord(BaseModel):
         return None
 
     @classmethod
+    def budget_log_status_map(cls, status):
+        budget_log_status_map = {
+            CarryRecord.PENDING: BudgetLog.PENDING,
+            CarryRecord.CONFIRMED: BudgetLog.CONFIRMED,
+            CarryRecord.CANCEL: BudgetLog.CANCELED
+        }
+        return budget_log_status_map.get(status)
+
+    @classmethod
+    def budget_log_type_map(cls, carry_type):
+        budget_log_type_map = {
+            CarryRecord.CR_CLICK: BudgetLog.BG_CLICK,
+            CarryRecord.CR_ORDER: BudgetLog.BG_ORDER,
+            CarryRecord.CR_RECOMMEND: BudgetLog.BG_AWARD
+        }
+        return budget_log_type_map.get(carry_type)
+
+
+    @classmethod
     def create(cls, mama_id, carry_num, carry_type, desc, uni_key=None, status=None):
         """
         创建收益
@@ -352,18 +371,8 @@ class CarryRecord(BaseModel):
         mama = XiaoluMama.objects.get(id=mama_id)
         customer = mama.get_mama_customer()
 
-        budget_log_type_map = {
-            CarryRecord.CR_CLICK: BudgetLog.BG_CLICK,
-            CarryRecord.CR_ORDER: BudgetLog.BG_ORDER,
-            CarryRecord.CR_RECOMMEND: BudgetLog.BG_AWARD
-        }
-        budget_log_type = budget_log_type_map.get(carry_type)
-        budget_log_status_map = {
-            CarryRecord.PENDING: BudgetLog.PENDING,
-            CarryRecord.CONFIRMED: BudgetLog.CONFIRMED,
-            CarryRecord.CANCEL: BudgetLog.CANCELED
-        }
-        budget_log_status = budget_log_status_map.get(status)
+        budget_log_type = cls.budget_log_type_map(carry_type)
+        budget_log_status = cls.budget_log_status_map(status)
 
         referal_id = 'carryrecord-%s' % carry_record.id
         BudgetLog.create(customer.id, BudgetLog.BUDGET_IN, carry_num, budget_log_type,
@@ -382,9 +391,18 @@ class CarryRecord(BaseModel):
         self.status = CarryRecord.CONFIRMED
         self.save()
 
+        customer = self.mama.get_mama_customer()
+        budget_log_type = CarryRecord.budget_log_type_map(self.carry_type)
+        budget_log_status = CarryRecord.budget_log_status_map(self.status)
+
         referal_id = 'carryrecord-%s' % self.id
-        bg = BudgetLog.objects.get(referal_id=referal_id)
-        bg.confirm_budget_log()
+        bg = BudgetLog.objects.filter(referal_id=referal_id).first()
+        if bg:
+            bg.confirm_budget_log()
+        else:
+            BudgetLog.create(customer.id, BudgetLog.BUDGET_IN, self.carry_num, budget_log_type,
+                             status=budget_log_status,
+                             referal_id=referal_id)
 
     def cancel(self):
         """
@@ -397,8 +415,9 @@ class CarryRecord(BaseModel):
         self.save()
 
         referal_id = 'carryrecord-%s' % self.id
-        bg = BudgetLog.objects.get(referal_id=referal_id)
-        bg.cancel_budget_log()
+        bg = BudgetLog.objects.filter(referal_id=referal_id).first()
+        if bg:
+            bg.cancel_budget_log()
 
 
     def changePendingCarryAmount(self, new_value):
@@ -411,9 +430,18 @@ class CarryRecord(BaseModel):
         self.carry_num = new_value
         self.save()
 
+        customer = self.mama.get_mama_customer()
+        budget_log_type = CarryRecord.budget_log_type_map(self.carry_type)
+        budget_log_status = CarryRecord.budget_log_status_map(self.status)
+
         referal_id = 'carryrecord-%s' % self.id
-        bg = BudgetLog.objects.get(referal_id=referal_id)
-        bg.chnage_peding_income_amount()
+        bg = BudgetLog.objects.filter(referal_id=referal_id).first()
+        if bg:
+            bg.chnage_peding_income_amount(new_value)
+        else:
+            BudgetLog.create(customer.id, BudgetLog.BUDGET_IN, self.carry_num, budget_log_type,
+                             status=budget_log_status,
+                             referal_id=referal_id)
 
 
     def carry_type_name(self):
