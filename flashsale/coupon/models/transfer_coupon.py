@@ -443,14 +443,14 @@ class CouponTransferRecord(BaseModel):
         uni_key = sale_order.oid
         order_no = sale_order.oid
 
-        coupon = cls.objects.filter(uni_key=uni_key).first()
-        if coupon:
-            logger.warn({
-                'message': u'create exchange order record:record already exist, order_id=%s ' % (
-                    sale_order.oid),
-                'code': 3
-            })
-            raise exceptions.ValidationError(u'兑换记录已存在')
+        # coupon = cls.objects.filter(uni_key=uni_key).first()
+        # if coupon:
+        #     logger.warn({
+        #         'message': u'create exchange order record:record already exist, order_id=%s ' % (
+        #             sale_order.oid),
+        #         'code': 3
+        #     })
+        #     raise exceptions.ValidationError(u'兑换记录已存在')
 
         ct = CouponTemplate.objects.filter(id=template_id).first()
         coupon_value = ct.value
