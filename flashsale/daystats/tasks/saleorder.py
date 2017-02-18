@@ -55,7 +55,7 @@ def task_calc_all_sku_amount_stat_by_date(stat_date=None):
 
     order_qs = SaleOrder.objects.active_orders().filter(
         pay_time__range=day_range(stat_date),
-        oid__in=('xo1701095872ca932da30', 'xo170109587354504eb5c', 'xo170109587357913f3cd', 'xo17010958739b969a09b'), # TODO@REMOVE
+        # oid__in=('xo1701095872ca932da30', 'xo170109587354504eb5c', 'xo170109587357913f3cd', 'xo17010958739b969a09b'), # TODO@REMOVE
     )
 
     order_stats = order_qs.values('sku_id').annotate(
