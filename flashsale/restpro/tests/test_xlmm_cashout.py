@@ -54,37 +54,37 @@ class MamaCahoutTestCase(TestCase):
         self.assertEqual(cashout['xlmm'], 1461)
         self.assertEqual(cashout['status'], CashOut.COMPLETED)
 
-    def testCashoutChoiceCreate(self):
-        """ 兼容测试 选择提现金额测试 """
-        post_data = {"choice": "c1"}
-        response = self.client.post(self.url_cashout_list, post_data, ACCEPT='application/json')
-        self.assertEqual(response.status_code, 200)
-        data = json.loads(response.content)
-        assert data['code'] == 0
+    # def testCashoutChoiceCreate(self):
+    #     """ 兼容测试 选择提现金额测试 """
+    #     post_data = {"choice": "c1"}
+    #     response = self.client.post(self.url_cashout_list, post_data, ACCEPT='application/json')
+    #     self.assertEqual(response.status_code, 200)
+    #     data = json.loads(response.content)
+    #     assert data['code'] == 0
 
-    def testCashoutInputCreate(self):
-        """ 填写金额提现 """
-        post_data = {"cashout_amount": "1.5"}
-        response = self.client.post(self.url_cashout_list, post_data, ACCEPT='application/json')
-        self.assertEqual(response.status_code, 200)
-        data = json.loads(response.content)
-        assert data['code'] == 0
-        cashouts = CashOut.objects.filter(xlmm=1461, status=CashOut.PENDING)
-        assert cashouts.count() == 1
-        assert cashouts.first().value == 150
+    # def testCashoutInputCreate(self):
+    #     """ 填写金额提现 """
+    #     post_data = {"cashout_amount": "1.5"}
+    #     response = self.client.post(self.url_cashout_list, post_data, ACCEPT='application/json')
+    #     self.assertEqual(response.status_code, 200)
+    #     data = json.loads(response.content)
+    #     assert data['code'] == 0
+    #     cashouts = CashOut.objects.filter(xlmm=1461, status=CashOut.PENDING)
+    #     assert cashouts.count() == 1
+    #     assert cashouts.first().value == 150
 
-    def testCshoutToBudget(self):
-        """ 代理提现到钱包"""
-        post_data = {"cashout_amount": "1.5"}
-        response = self.client.post(self.url_cashout_to_budget, post_data, ACCEPT='application/json')
-        self.assertEqual(response.status_code, 200)
-        data = json.loads(response.content)
-        assert data['code'] == 0
-        cashouts = CashOut.objects.filter(xlmm=1461, status=CashOut.APPROVED)
-        assert cashouts.count() == 1
-        assert cashouts.first().value == 150
-        budget = BudgetLog.objects.order_by('-created').first()
-        assert budget.flow_amount == 150
-        assert budget.budget_type == BudgetLog.BUDGET_IN
-        assert budget.budget_log_type == BudgetLog.BG_MAMA_CASH
-        # 断言 是代理提现类型
+    # def testCshoutToBudget(self):
+    #     """ 代理提现到钱包"""
+    #     post_data = {"cashout_amount": "1.5"}
+    #     response = self.client.post(self.url_cashout_to_budget, post_data, ACCEPT='application/json')
+    #     self.assertEqual(response.status_code, 200)
+    #     data = json.loads(response.content)
+    #     assert data['code'] == 0
+    #     cashouts = CashOut.objects.filter(xlmm=1461, status=CashOut.APPROVED)
+    #     assert cashouts.count() == 1
+    #     assert cashouts.first().value == 150
+    #     budget = BudgetLog.objects.order_by('-created').first()
+    #     assert budget.flow_amount == 150
+    #     assert budget.budget_type == BudgetLog.BUDGET_IN
+    #     assert budget.budget_log_type == BudgetLog.BG_MAMA_CASH
+    #     # 断言 是代理提现类型
