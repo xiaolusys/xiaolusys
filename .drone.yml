@@ -7,7 +7,7 @@ build:
     - /var/lib/drone/data:/data
   commands:
     - mkdir -p /data/log/django
-    - python manage.py test -t . --keepdb --parallel 2
+    - python manage.py test -t . --keepdb --parallel 1
     - python manage.py migrate --noinput
   when:
     branch: [staging, alpha, warden]
