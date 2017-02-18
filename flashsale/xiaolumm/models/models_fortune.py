@@ -1120,9 +1120,10 @@ class ReferalRelationship(BaseModel):
         while to_mama_id != from_mama_id:
             ship = ReferalRelationship.objects.filter(referal_to_mama_id=to_mama_id,
                                                       status=ReferalRelationship.VALID).first()
-            to_mama_id = ship.referal_from_mama_id
-            chain.insert(0, to_mama_id)
-            c_count += 1
+            if ship:
+                to_mama_id = ship.referal_from_mama_id
+                chain.insert(0, to_mama_id)
+                c_count += 1
             if c_count >= 10:
                 break
         return chain

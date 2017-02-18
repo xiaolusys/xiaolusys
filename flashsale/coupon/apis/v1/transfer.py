@@ -563,6 +563,8 @@ def coupon_exchange_saleorder(customer, order_id, mama_id, template_ids, coupon_
             user_coupons = UserCoupon.objects.filter(customer_id=customer.id,
                                                      template_id=int(oneid),
                                                      status=UserCoupon.UNUSED)
+            if user_coupons.count() == 0:
+                continue
             if user_coupons.count() >= left_num:
                 user_coupons = user_coupons[0: left_num]
             temp_coupon_ids = [c.id for c in user_coupons]
@@ -575,7 +577,11 @@ def coupon_exchange_saleorder(customer, order_id, mama_id, template_ids, coupon_
             left_num = left_num - user_coupons.count()
             if left_num <= 0:
                 break
-        use_coupon_by_ids(coupon_ids, tid=sale_order.oid)   # 改为 使用掉
+
+        if len(coupon_ids) == coupon_num:
+            use_coupon_by_ids(coupon_ids, tid=sale_order.oid)   # 改为 使用掉
+        else:
+            raise exceptions.ValidationError(u'精品券数量不足，兑换失败!')
 
         # (3)在user钱包写收入记录
         from flashsale.pay.models.user import BudgetLog
