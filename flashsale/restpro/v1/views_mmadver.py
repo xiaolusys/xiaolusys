@@ -174,7 +174,7 @@ class NinePicViewSet(viewsets.GenericViewSet):
             for model_id in re.split(u',|，', item.detail_modelids):
                 if not model_id or item in items:
                     continue
-                item.model_id = model_id
+                item.model_id = model_id.strip()
                 items.append(item)
 
         virtual_model_products = ModelProduct.objects.get_virtual_modelproducts()  # 虚拟商品
