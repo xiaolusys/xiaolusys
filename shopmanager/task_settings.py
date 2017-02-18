@@ -1567,10 +1567,10 @@ STATISTIC_SCHEDULE = {
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_call_all_sku_delivery_stats'}
     },
     u'每日统计sku规格实际销售金额(分项)': {
-        'task': 'flashsale.daystats.tasks.saleorder.task_calc_all_sku_amount_stat',
+        'task': 'flashsale.daystats.tasks.saleorder.task_calc_all_sku_amount_stat_by_schedule',
         'schedule': crontab(minute="20", hour="2"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_calc_all_sku_amount_stat'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_calc_all_sku_amount_stat_by_schedule'}
     },
 }
 

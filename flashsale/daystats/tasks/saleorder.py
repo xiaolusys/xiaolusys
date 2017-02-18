@@ -47,15 +47,15 @@ def task_call_all_sku_delivery_stats(stat_date=None):
         stat.save()
 
 
-@app.task
-def task_calc_all_sku_amount_stat(stat_date=None):
+def task_calc_all_sku_amount_stat_by_date(stat_date=None):
     """ 统计sku销售金额 """
 
     if not stat_date:
         stat_date = datetime.date.today() - datetime.timedelta(days=1)
 
     order_qs = SaleOrder.objects.active_orders().filter(
-        pay_time__range=day_range(stat_date)
+        pay_time__range=day_range(stat_date),
+        # oid__in=('xo170210589d11ac3fc93','xo170210589da3cab0e72'), # TODO@REMOVE
     )
 
     order_stats = order_qs.values('sku_id').annotate(
@@ -83,7 +83,7 @@ def task_calc_all_sku_amount_stat(stat_date=None):
     boutique_coupon_qs = UserCoupon.objects.get_origin_payment_boutique_coupons()
     usercoupon_values = boutique_coupon_qs.filter(trade_tid__in=tid_list)\
         .values_list('template_id', 'trade_tid', 'extras')
-    # 统计妈妈购买优惠券实际支付金额
+    # TODO@TIPS 统计妈妈购买优惠券实际支付金额
     tid_origin_price_maps = {}
     tid_template_model_masp = {}
     for template_id, tid, extras in usercoupon_values:
@@ -100,12 +100,16 @@ def task_calc_all_sku_amount_stat(stat_date=None):
         sku_origin_price_maps[sku_id] = sku_origin_price_maps.get(sku_id, 0) \
             + (sku_num * 1.0 / sku_sum) * tid_origin_price_maps.get(tid, 0)
 
-    # 统计妈妈兑换优惠券兑出差额 = 兑出金额 - 购券金额
+    # TODO@TIPS 统计妈妈兑换优惠券兑出差额 = 兑出金额 - 购券金额, (兑换金额必须根据订单实际支付金额计算)
     order_exchg_maps = {}
-    oids = order_qs.values_list('oid', flat=True)
-    exchg_coupon_values = boutique_coupon_qs.filter(trade_tid__in=oids).values_list('trade_tid', 'value', 'extras')
+    order_value_list = order_qs.values('oid', 'num', 'payment')
+    order_num_payment_maps = dict([(ol['oid'], ol) for ol in order_value_list])
+    exchg_coupon_values = boutique_coupon_qs.filter(trade_tid__in=order_num_payment_maps.keys())\
+        .values_list('trade_tid', 'value', 'extras')
     for oid, value, extras in exchg_coupon_values:
-        order_exchg_maps[oid] = order_exchg_maps.get(oid, 0) + (value * 100 - extras.get('origin_price', 0))
+        order_value = order_num_payment_maps.get(oid)
+        order_per_payment = order_value.get('num') > 0  and order_value.get('payment') * 100 / order_value.get('num') or 0
+        order_exchg_maps[oid] = order_exchg_maps.get(oid, 0) + (order_per_payment - extras.get('origin_price', 0))
 
     sku_exchg_maps = {}
     for st in sku_tid_num_list:
@@ -125,6 +129,16 @@ def task_calc_all_sku_amount_stat(stat_date=None):
             setattr(stat, k, v)
 
         stat.save()
+
+@app.task
+def task_calc_all_sku_amount_stat_by_schedule():
+    """ 统计sku销售金额 """
+    # calc the last day sku_amount
+    task_calc_all_sku_amount_stat_by_date(datetime.date.today() - datetime.timedelta(days=1))
+
+    # calc the fifth days ago sku_amount
+    task_calc_all_sku_amount_stat_by_date(datetime.date.today() - datetime.timedelta(days=15))
+
 
 
 
