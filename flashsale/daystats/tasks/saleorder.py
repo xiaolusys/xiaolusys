@@ -4,7 +4,7 @@ from __future__ import absolute_import, unicode_literals
 import datetime
 import collections
 from itertools import chain
-from django.db.models import Sum, F
+from django.db.models import Sum, Count, F
 
 from shopmanager import celery_app as app
 
@@ -55,7 +55,7 @@ def task_calc_all_sku_amount_stat_by_date(stat_date=None):
 
     order_qs = SaleOrder.objects.active_orders().filter(
         pay_time__range=day_range(stat_date),
-        # oid__in=('xo170210589d11ac3fc93','xo170210589da3cab0e72'), # TODO@REMOVE
+        oid__in=('xo1701095872ca932da30', 'xo170109587354504eb5c', 'xo170109587357913f3cd', 'xo17010958739b969a09b'), # TODO@REMOVE
     )
 
     order_stats = order_qs.values('sku_id').annotate(
@@ -103,12 +103,16 @@ def task_calc_all_sku_amount_stat_by_date(stat_date=None):
     # TODO@TIPS 统计妈妈兑换优惠券兑出差额 = 兑出金额 - 购券金额, (兑换金额必须根据订单实际支付金额计算)
     order_exchg_maps = {}
     order_value_list = order_qs.values('oid', 'num', 'payment')
-    order_num_payment_maps = dict([(ol['oid'], ol) for ol in order_value_list])
-    exchg_coupon_values = boutique_coupon_qs.filter(trade_tid__in=order_num_payment_maps.keys())\
-        .values_list('trade_tid', 'value', 'extras')
+    order_payment_maps = dict([(ol['oid'], ol) for ol in order_value_list])
+    exchg_coupon_qs = boutique_coupon_qs.filter(trade_tid__in=order_payment_maps.keys())
+    exchg_coupon_values = exchg_coupon_qs.values_list('trade_tid', 'value', 'extras')
+    order_couponnum_maps  = dict(exchg_coupon_qs.values('trade_tid').annotate(Count('id'))
+                                 .values_list('trade_tid', 'id__count'))
+
     for oid, value, extras in exchg_coupon_values:
-        order_value = order_num_payment_maps.get(oid)
-        order_per_payment = order_value.get('num') > 0  and order_value.get('payment') * 100 / order_value.get('num') or 0
+        order_value = order_payment_maps.get(oid)
+        order_num   = order_couponnum_maps.get(oid)
+        order_per_payment = order_value.get('num') > 0  and order_value.get('payment') * 100 / order_num or 0
         order_exchg_maps[oid] = order_exchg_maps.get(oid, 0) + (order_per_payment - extras.get('origin_price', 0))
 
     sku_exchg_maps = {}
