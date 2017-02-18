@@ -13,8 +13,9 @@ class CouponTransferRecordTestCase(TestCase):
     fixtures = [
         "test.flashsale.coupon.transferrecord.json",
         "test.flashsale.coupon.customer.json",
+        'test.flashsale.xiaolumm.cashout.xiaolumm.json',
         'test.flashsale.coupon.usercoupon.json',
-        # 'test.flashsale.xiaolumm.referalrelationship.json',
+        'test.flashsale.xiaolumm.referalrelationship.json',
     ]
 
     transfer_coupon = '/rest/v2/trancoupon/50/transfer_coupon'  # 直接转券
