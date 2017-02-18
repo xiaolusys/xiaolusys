@@ -12,7 +12,7 @@ REPORT_DIR = 'report'
 @app.task()
 def task_make_Manager_Summary_Cvs(file_dir=None):
     print 'summary task is running .....'
-    from ..views import manage_Summar
+    from flashsale.xiaolumm.views.views import manage_Summar
     yestoday = datetime.datetime.today() - datetime.timedelta(days=1)
     date_time = datetime.datetime(yestoday.year, yestoday.month, yestoday.day, 23, 59, 59)
     data = manage_Summar(date_time)  # 字典列表[{"a":1},{"b":2}]
