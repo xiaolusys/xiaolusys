@@ -147,7 +147,7 @@ class CashoutView(WeixinAuthMixin, View):
         return response
 
     def post(self, request):
-        status = {"code": 400, "status": "该功能已经停止,请将妈妈钱包余额转入个人钱包"}
+        status = {"code": 400, "status": "该功能已经停止,妈妈钱包余额已经转入个人钱包"}
         return HttpResponse(json.dumps(status), content_type='application/json')
 
         content = request.POST
