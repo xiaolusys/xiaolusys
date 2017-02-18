@@ -671,19 +671,19 @@ post_save.connect(ordercarry_app_push,
 
 
 # 首单奖励
-def ordercarry_send_first_award(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm.tasks import task_first_order_send_award, task_update_mamafortune_hasale_num
-    from flashsale.xiaolumm.models.models import XiaoluMama
-
-    if not instance.mama:
-        return
-
-    if instance.mama.last_renew_type == XiaoluMama.TRIAL:
-        task_first_order_send_award.delay(instance.mama)
-    task_update_mamafortune_hasale_num.delay(instance.mama_id)
-
-post_save.connect(ordercarry_send_first_award,
-                  sender=OrderCarry, dispatch_uid='post_save_ordercarry_send_first_alwad')
+# def ordercarry_send_first_award(sender, instance, created, **kwargs):
+#     from flashsale.xiaolumm.tasks import task_first_order_send_award, task_update_mamafortune_hasale_num
+#     from flashsale.xiaolumm.models.models import XiaoluMama
+#
+#     if not instance.mama:
+#         return
+#
+#     if instance.mama.last_renew_type == XiaoluMama.TRIAL:
+#         task_first_order_send_award.delay(instance.mama)
+#     task_update_mamafortune_hasale_num.delay(instance.mama_id)
+#
+# post_save.connect(ordercarry_send_first_award,
+#                   sender=OrderCarry, dispatch_uid='post_save_ordercarry_send_first_alwad')
 
 
 def ordercarry_update_ordercarry(sender, instance, created, **kwargs):
@@ -695,14 +695,14 @@ def ordercarry_update_ordercarry(sender, instance, created, **kwargs):
         if referal_relationships.count() > 0:
             referal_relationship = referal_relationships[0]
             task_update_second_level_ordercarry.delay(referal_relationship, instance)
-        else:
-            # 看潜在关系列表
-            from flashsale.xiaolumm.models import PotentialMama
-            try:
-                potential = PotentialMama.objects.filter(potential_mama=instance.mama_id).latest('created')
-            except PotentialMama.DoesNotExist:
-                return
-            task_update_second_level_ordercarry_by_trial.delay(potential, instance)
+        # else:
+        #     # 看潜在关系列表
+        #     from flashsale.xiaolumm.models import PotentialMama
+        #     try:
+        #         potential = PotentialMama.objects.filter(potential_mama=instance.mama_id).latest('created')
+        #     except PotentialMama.DoesNotExist:
+        #         return
+        #     task_update_second_level_ordercarry_by_trial.delay(potential, instance)
 
 
 post_save.connect(ordercarry_update_ordercarry,
