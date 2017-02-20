@@ -44,9 +44,9 @@ class TeamBuyViewSet(viewsets.GenericViewSet, viewsets.mixins.RetrieveModelMixin
             if mama:
                 params.update({'mama_id': mama.id})
             else:
-                params.update({'mama_id': 1})
+                params.update({'mama_id': 0})
         if not params:
-            params.update({'customer': {},'mama_id': 1})
+            params.update({'customer': {},'mama_id': 0})
 
         share_params = active_obj.get_shareparams(**params)
         share_params.update(qrcode_link=active_obj.get_qrcode_page_link(**params))
