@@ -56,7 +56,7 @@ class CustomerShopsViewSet(viewsets.ModelViewSet):
     def customer_shop(self, request):
         decs = ['今天又上新品啦！', '天天都有新品哦！', '上新品啦赶快抢！']
         queryset = self.filter_queryset(self.get_owner_shop(request))
-        mm_linkid = 44
+        mm_linkid = 0
         shop_info = None
         if queryset.exists():
             shop = queryset[0]
