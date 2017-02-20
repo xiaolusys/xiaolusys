@@ -608,6 +608,7 @@ class WeixinPush(object):
                 footer_color = '#ff0000'
                 to_url = ad.url
 
+
         template_data = {
             'first': {
                 'value': header,
@@ -626,7 +627,7 @@ class WeixinPush(object):
                 'color': '#000000',
             },
             'keyword4': {
-                'value': u'%.2f元（可提现）' % (mama.get_wallet_cash() * 0.01),
+                'value': u'%.2f元（可提现）' % (customer.userbudget.amount * 0.01),
                 'color': '#000000',
             },
             'remark': {
