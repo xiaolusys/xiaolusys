@@ -50,8 +50,8 @@ class ChangeUpperMama(APIView):
         if not (mama_id and upper_mama_id and direct_info):
             return Response({'code': 1, 'info': '参数错误'})
 
-        mm = get_mama_by_id(mama_id)
         try:
+            mm = get_mama_by_id(mama_id)
             state = change_mama_follow_elite_mama(mama_id=int(mama_id),
                                                   upper_mama_id=int(upper_mama_id),
                                                   direct_info=direct_info)
