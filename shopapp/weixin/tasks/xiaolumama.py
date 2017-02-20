@@ -91,7 +91,12 @@ def task_get_unserinfo_and_create_accounts(openid, wx_pubid):
         task_create_scan_customer(userinfo)
         task_create_scan_xiaolumama(userinfo)
     except Exception, exc:
-        raise task_get_unserinfo_and_create_accounts.retry(exc=exc)
+        logger.error({
+            'action': u'task_get_unserinfo_and_create_accounts',
+            'message': u'账号创建异常:%s' % exc,
+            'message1': u'openid=%s wx_pubid=%s' % (openid, wx_pubid),
+        })
+        # raise task_get_unserinfo_and_create_accounts.retry(exc=exc)
     
     
 @app.task
