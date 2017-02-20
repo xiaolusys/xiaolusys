@@ -81,7 +81,10 @@ class WuliuViewSet(viewsets.ModelViewSet):
         company_code = str(company_code).strip()
         if company_code not in kd100_exp_map.values():
             kd100_code = LogisticsCompany.objects.filter(code=company_code).first()
-            company_code = kd100_code.kd100_express_key
+            try:
+                company_code = kd100_code.kd100_express_key
+            except:
+                logger.warn({'action': "kdn100_no_code", 'info': "out_sid:" + str(packetid) + "company_code:" + company_code})
         # 如果我们数据库中记录已经是已签收状态,那么直接返回我们数据库中的物流信息
         tradewuliu = TradeWuliu.get_tradewuliu(packetid)
         if tradewuliu and tradewuliu.status == 3:
