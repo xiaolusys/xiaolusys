@@ -88,8 +88,8 @@ def task_get_unserinfo_and_create_accounts(openid, wx_pubid):
         if not userinfo:
             return
 
-        task_create_scan_customer.delay(userinfo)
-        task_create_scan_xiaolumama.delay(userinfo)
+        task_create_scan_customer(userinfo)
+        task_create_scan_xiaolumama(userinfo)
     except Exception, exc:
         raise task_get_unserinfo_and_create_accounts.retry(exc=exc)
     
