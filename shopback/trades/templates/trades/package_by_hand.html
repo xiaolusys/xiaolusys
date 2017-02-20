@@ -232,7 +232,7 @@ function create_package(){
     var ware_by=1;
     var psis = [];
     $(".sku_line").each(function(){
-        var el = $($(".sku_line")[0]);
+        var el = $(this);
         var sku_id = el.data("sku-id");
         var num = el.find(".sku_num").text();
         psis.push([sku_id,num]);
@@ -253,9 +253,8 @@ function create_package(){
                  confirmButtonText: '查看包裹',
                  cancelButtonText: '留在本页'
              }, function(){
-                 window.location.href = '/admin/trades/packageorder?pid=' + res.id;
+                 window.location.href = '/admin/trades/packageorder?id=' + res.id;
              });
-             window.location.reload();
         },
         error:function(err){
             alert(err.responseText);
