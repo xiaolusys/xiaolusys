@@ -1189,7 +1189,7 @@ class SaleOrder(PayBaseModel):
     def confirm_sign_order(self):
         """确认签收 修改该订单状态到 确认签收状态"""
         if self.status != SaleOrder.WAIT_BUYER_CONFIRM_GOODS:
-            raise Exception('没有发货不能签收')
+            raise Exception('订单不是已发货状态，不能签收。%s' % self.status)
         self.status = SaleOrder.TRADE_BUYER_SIGNED
         self.sign_time = datetime.datetime.now()
         self.save(update_fields=['status', 'sign_time'])
