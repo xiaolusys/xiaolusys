@@ -273,6 +273,9 @@ def comfirm_get(out_sid,status):            #根据物流状态自动确认收�
             for i in so:
                 logger.warn({'action': "kdn", 'info': "change_get_goods:" + out_sid})
                 i.confirm_sign_order()
+                from core.options import log_action, CHANGE, ADDITION, get_systemoa_user
+                sys_oa = get_systemoa_user()
+                log_action(sys_oa, i, CHANGE, u'confirm_sign_order comfirm_get')
 
 def confirm_get_by_content(out_sid,content):   #根据物流内容自动确认收货
     out_sid = str(out_sid)
@@ -288,6 +291,9 @@ def confirm_get_by_content(out_sid,content):   #根据物流内容自动确认�
                 for i in so:
                     logger.warn({'action': "kdn", 'info': "confirm_sign_order:" + out_sid})
                     i.confirm_sign_order()
+                    from core.options import log_action, CHANGE, ADDITION, get_systemoa_user
+                    sys_oa = get_systemoa_user()
+                    log_action(sys_oa, i, CHANGE, u'confirm_sign_order confirm_get_by_content')
 
 def confirm_psi_finish(out_sid,status=None,content=None):
     psi = PackageSkuItem.objects.filter(out_sid=out_sid, status='finish').first()
