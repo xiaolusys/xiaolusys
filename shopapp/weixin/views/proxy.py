@@ -79,7 +79,7 @@ class WXMessageHttpProxy(HttpProxy):
         if event == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE.lower() or \
            event == WeiXinAutoResponse.WX_EVENT_SCAN.lower() or \
            event == WeiXinAutoResponse.WX_EVENT_VIEW.lower():
-            tasks.task_get_unserinfo_and_create_accounts.delay(openid, wx_pubid)
+            tasks.task_get_unserinfo_and_create_accounts(openid, wx_pubid)
 
         # 关注/扫描
         if event == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE.lower() or \
