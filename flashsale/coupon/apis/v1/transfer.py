@@ -737,7 +737,7 @@ def transfer_record_return_coupon_exchange(coupons, transfer_record):
             raise Exception('订单%s不存在' % order_id)
 
         exchg_ordercarry = OrderCarry.objects.filter(order_id=sale_order.oid, carry_type=OrderCarry.REFERAL_ORDER,
-                                                     status__in=[OrderCarry.CONFIRM], date_field__gt='2016-11-30').first()
+                                                     status__in=[OrderCarry.CONFIRM]).first()
         if not exchg_ordercarry:
             raise Exception('订单收益%s不存在' % order_id)
         if exchg_mm_id != 0 and exchg_mm_id != exchg_ordercarry.mama_id:
@@ -754,8 +754,7 @@ def transfer_record_return_coupon_exchange(coupons, transfer_record):
             details = TransferCouponDetail.objects.filter(transfer_id=exchg_ctr.id)
             for one_detail in details:
                 one_coupon = get_user_coupon_by_id(one_detail.coupon_id)
-                if one_coupon and one_coupon.extras.has_key('buy_coupon_type') and int(
-                        one_coupon.extras['buy_coupon_type']) == 1 and (one_coupon.status != UserCoupon.UNUSED):
+                if one_coupon and (one_coupon.status != UserCoupon.UNUSED):
                     one_coupon.status = UserCoupon.UNUSED
                     one_coupon.save()
                     from core.options import log_action, CHANGE, ADDITION, get_systemoa_user
@@ -775,7 +774,7 @@ def transfer_record_return_coupon_exchange(coupons, transfer_record):
             sale_order.extras['can_return_num'] = int(sale_order.extras['can_return_num']) - 1
             if int(sale_order.extras['can_return_num']) - 1 == 0:
                 sale_order.extras['exchange'] = False
-        SaleOrder.objects.filter(oid=order_id).update(extras=sale_order.extras)
+        SaleOrder.objects.filter(id=sale_order.id).update(extras=sale_order.extras)
 
     if can_return_num != coupons.count():
         logger.error({
