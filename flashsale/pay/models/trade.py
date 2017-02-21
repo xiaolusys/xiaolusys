@@ -1247,7 +1247,7 @@ class SaleOrder(PayBaseModel):
 
     def is_deposit(self):
         model_product = self.product.get_product_model()
-        if model_product and model_product.is_virtual_product():
+        if model_product and model_product.is_virtual_product:
             return True
         return self.outer_id.startswith('RMB')
 
