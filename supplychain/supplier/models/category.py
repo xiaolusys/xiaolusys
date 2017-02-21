@@ -170,7 +170,7 @@ class SaleCategory(BaseModel):
         cache_value = cache.get(cls.CATEGORY_ID_FULLNAME_MAP_KEY)
         if not cache_value:
             cid_fullname_dict = {}
-            cat_cid_names = cls.get_normal_categorys().order_by('grade').values('id', 'cid', 'parent_cid', 'name')
+            cat_cid_names = cls.objects.order_by('grade').values('id', 'cid', 'parent_cid', 'name')
             cid_id_maps = dict([(item['cid'], item['id'])  for item in cat_cid_names])
             for cat_item in cat_cid_names:
                 cat_name = cat_item['name']
