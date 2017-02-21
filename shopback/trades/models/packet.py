@@ -597,7 +597,7 @@ class PackageOrder(models.Model):
     @staticmethod
     @transaction.atomic
     def create_handle_package(ware_by, receiver_mobile, receiver_name, receiver_state, receiver_city,
-                              receiver_district, receiver_address, user_address_id=None):
+                              receiver_district, receiver_address, logistics_company, user_address_id=None):
         po = PackageOrder()
         if user_address_id:
             user_address_unikey = user_address_id
@@ -629,6 +629,7 @@ class PackageOrder(models.Model):
         po.user_address_id = user_address_id
         po.buyer_id = None
         po.buyer_nick = receiver_name
+        po.logistics_company = logistics_company
         po.can_send_time = datetime.datetime.now()
         po.save()
         return po
