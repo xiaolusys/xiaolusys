@@ -99,7 +99,7 @@ def get_auth_userinfo(code, appid='', secret='', request=None):
 
         # Here we should trigger a task to save userinfo.
         from shopapp.weixin.tasks import task_snsauth_update_weixin_userinfo
-        task_snsauth_update_weixin_userinfo.delay(rs, appid)
+        task_snsauth_update_weixin_userinfo(rs, appid)
 
         return rs
 
