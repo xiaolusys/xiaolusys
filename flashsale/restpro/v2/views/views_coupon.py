@@ -525,8 +525,15 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                 sale_order = SaleOrder.objects.filter(oid=entry.order_id).first()
                 if not sale_order:
                     continue
-                if sale_order and sale_order.extras.has_key('exchange'):
+                if sale_order.extras.has_key('exchange'):
                     continue
+
+                if sale_order.extras.has_key('can_return_num'):
+                    left_exchange_num = int(sale_order.extras['can_return_num'])
+                    if left_exchange_num < 0:
+                        left_exchange_num = 0
+                else:
+                    left_exchange_num = round(sale_order.payment / sale_order.price)
 
                 # APP OR WAP ORDER IS REAL GOODS
                 if entry.carry_type == OrderCarry.APP_ORDER or entry.carry_type == OrderCarry.WAP_ORDER:
@@ -551,7 +558,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                                 #     continue
                                 if round(sale_order.payment / sale_order.price) > 0:
                                     results.append({'exchg_template_id': template_id,
-                                                    'num': round(sale_order.payment / sale_order.price),
+                                                    'num': left_exchange_num,
                                                     'order_id': entry.order_id, 'sku_img': entry.sku_img, 'sku_name': sale_order.title,
                                                     'contributor_nick': entry.contributor_nick, 'status': entry.status,
                                                     'status_display': OrderCarry.STATUS_TYPES[entry.status][1],
@@ -570,7 +577,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                         budget_pay, coin_pay = get_pay_type_from_trade(sale_order.sale_trade)
                         if coin_pay > 0 and round(sale_order.payment / sale_order.price) > 0 and model_product.extras.has_key('template_id'):
                             results.append({'exchg_template_id': model_product.extras['template_id'],
-                                            'num': round(sale_order.payment / sale_order.price),
+                                            'num': left_exchange_num,
                                             'order_id': entry.order_id, 'sku_img': head_img, 'sku_name': sale_order.title,
                                             'contributor_nick': entry.contributor_nick, 'status': entry.status,
                                             'status_display': OrderCarry.STATUS_TYPES[entry.status][1],
@@ -585,18 +592,13 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                 if rmb338_order and (not rmb338_order.extras.has_key('exchange')) \
                         and (rmb338_order.status in [SaleOrder.WAIT_BUYER_CONFIRM_GOODS, SaleOrder.TRADE_BUYER_SIGNED, SaleOrder.TRADE_FINISHED]):
                     template_id = 0
-                    num = 1
-                    if rmb338_order.is_new_elite_deposit():
-                        template_id = 156
-                        num = round(rmb338_order.payment / 68)
-                    elif rmb338_order.is_elite_365_order():
+                    if rmb338_order.is_elite_365_order():
                         template_id = 365
-                        num = 1
                     else:
                         continue
                     buyer_customer = Customer.objects.normal_customer.filter(id=rmb338_order.buyer_id).first()
                     results.append({'exchg_template_id': template_id,
-                                    'num': num,
+                                    'num': 1,
                                     'order_id': ship.order_id, 'sku_img': rmb338_order.pic_path, 'sku_name': rmb338_order.title,
                                     'contributor_nick': buyer_customer.nick, 'status': 2,
                                     'status_display': u'确定收益',
