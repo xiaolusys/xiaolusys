@@ -1246,6 +1246,9 @@ class SaleOrder(PayBaseModel):
                self.refund_status > SaleRefund.REFUND_REFUSE_BUYER
 
     def is_deposit(self):
+        model_product = self.product.get_product_model()
+        if model_product and model_product.is_virtual_product():
+            return True
         return self.outer_id.startswith('RMB')
 
     def is_transfer_coupon(self):

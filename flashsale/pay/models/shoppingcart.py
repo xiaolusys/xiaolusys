@@ -105,7 +105,10 @@ class ShoppingCart(BaseModel):
     #     return sku.std_sale_price
 
     def is_deposite(self):
-        product = Product.objects.get(id=self.item_id)
+        model_product = self.get_modelproduct()
+        if model_product and model_product.is_virtual_product():
+            return True
+        product = self.product
         return product.outer_id.startswith('RMB')
 
     def is_good_enough(self):

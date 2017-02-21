@@ -722,23 +722,26 @@ class Product(models.Model):
         return True
 
     @classmethod
-    def get_inner_outer_id(cls, supplier, item_category):
+    def get_inner_outer_id(cls, prefix):
         """
         功能: 根据规则生成产品编码
         supplier: 选品供应商
         item_category: 产品类别
         """
         from core.utils import barcode
-        PREFIX = 'SP'
-        latest_pro = cls.objects.filter(outer_id__startswith=PREFIX).order_by('-outer_id').first()
-        inner_no = barcode.gen(digit_num=5, begin=latest_pro and latest_pro.outer_id[2:-2] or 0)
+        latest_pro = cls.objects.filter(outer_id__startswith=prefix).order_by('-outer_id').first()
+        number = 0
+        if latest_pro:
+            result = re.compile('^[A-Z]+(?P<number>[0-9]+)').match(latest_pro.outer_id)
+            number = result and result.groupdict().get('number') or 0
+        inner_no = barcode.gen(digit_num=5, begin=number)
         while True:
-            product_ins = cls.objects.filter(outer_id__startswith='SP%s'%inner_no).count()
+            product_ins = cls.objects.filter(outer_id__startswith='%s%s'%(prefix, inner_no)).count()
             if not product_ins:
                 break
             inner_no = barcode.gen(digit_num=5, begin=inner_no)
 
-        return PREFIX + inner_no
+        return prefix + inner_no
 
     @classmethod
     def update_or_create_product_and_skus(cls, model_pro, *args, **kwargs):
@@ -866,7 +869,8 @@ class Product(models.Model):
         supplier = saleproduct.sale_supplier
         sale_category = saleproduct.sale_category
         product_category = sale_category.get_product_category()  # 获取选品类别对应的产品类别
-        inner_outer_id = cls.get_inner_outer_id(supplier, product_category)
+        is_virtual_product  = model_pro.is_virtual_product
+        inner_outer_id = cls.get_inner_outer_id(prefix=is_virtual_product and 'RMBP' or 'SP') #USE RMBP REPLACE
         if not inner_outer_id:
             raise Exception(u'编码出错!!')
 

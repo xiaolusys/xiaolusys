@@ -264,6 +264,10 @@ class ModelProduct(BaseTagModel):
         return self._is_saleout_
 
     @property
+    def is_virtual_product(self):
+        return int(self.product_type) == ModelProduct.VIRTUAL_TYPE or self.model_code.startswith('RMB')
+
+    @property
     def is_boutique_product(self):
         return int(self.product_type) == ModelProduct.USUAL_TYPE and self.is_boutique
 
