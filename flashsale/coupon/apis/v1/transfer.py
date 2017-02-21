@@ -727,6 +727,8 @@ def transfer_record_return_coupon_exchange(coupons, transfer_record):
     from flashsale.xiaolumm.models import XiaoluMama, OrderCarry
     return_payment = 0
     exchg_mm_id = 0
+    can_return_num = 0
+    coupon_ids = []
     for coupon in coupons:
         if not (coupon.extras.has_key('buy_coupon_type') and int(coupon.extras['buy_coupon_type']) == 1):
             continue
@@ -748,7 +750,7 @@ def transfer_record_return_coupon_exchange(coupons, transfer_record):
         from flashsale.coupon.models.transfercoupondetail import TransferCouponDetail
         from flashsale.coupon.models.transfer_coupon import CouponTransferRecord
         from flashsale.coupon.apis.v1.usercoupon import get_user_coupon_by_id
-        can_return_num = 0
+
         exchg_ctr = CouponTransferRecord.objects.filter(transfer_type=CouponTransferRecord.OUT_EXCHG_SALEORDER, uni_key=sale_order.oid).first()
         if exchg_ctr:
             details = TransferCouponDetail.objects.filter(transfer_id=exchg_ctr.id)
@@ -761,6 +763,7 @@ def transfer_record_return_coupon_exchange(coupons, transfer_record):
                     sys_oa = get_systemoa_user()
                     log_action(sys_oa, one_coupon, CHANGE, u'下级妈妈退券了上级妈妈扣钱退券 from ctrid %s' % (exchg_ctr.id))
 
+                    coupon_ids.append(one_coupon.id)
                     can_return_num += 1
                     return_payment += sale_order.price
                     break
@@ -776,15 +779,9 @@ def transfer_record_return_coupon_exchange(coupons, transfer_record):
                 sale_order.extras['exchange'] = False
         SaleOrder.objects.filter(id=sale_order.id).update(extras=sale_order.extras)
 
-    if can_return_num != coupons.count():
-        logger.error({
-            'action': u'transfer_record_return_coupon_exchange',
-            'message': u'exchange order:can_return_num=%s coupon num=%s' % (can_return_num, coupons.count()),
-        })
-
     # (3)在user钱包写支出 记录
     from flashsale.pay.models.user import BudgetLog
-    from flashsale.xiaolumm.apis.v1.xiaolumama import get_customer_id_by_mama_id
+    from flashsale.xiaolumm.apis.v1.xiaolumama import get_customer_id_by_mama_id, get_customer_by_mama_id
     if return_payment > 0:
         customer_id = get_customer_id_by_mama_id(exchg_mm_id)
         BudgetLog.create(customer_id=customer_id,
@@ -794,6 +791,13 @@ def transfer_record_return_coupon_exchange(coupons, transfer_record):
                          referal_id=transfer_record.id,
                          uni_key='ctr-%s' % transfer_record.id,
                          status=BudgetLog.CONFIRMED)
+
+    # (4)上级妈妈的流通记录也需要添加，同实际订单，也使用退货type
+    from .transfercoupondetail import create_transfer_coupon_detail
+    customer = get_customer_by_mama_id(exchg_mm_id)
+    transfer = CouponTransferRecord.gen_return_record(customer, can_return_num,
+                                                          int(coupons[0].template_id), sale_order.sale_trade.tid)
+    create_transfer_coupon_detail(transfer.id, coupon_ids)
 
     logger.info({
         'action': u'transfer_record_return_coupon_exchange',
