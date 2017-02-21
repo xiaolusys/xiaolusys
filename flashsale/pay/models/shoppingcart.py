@@ -106,7 +106,7 @@ class ShoppingCart(BaseModel):
 
     def is_deposite(self):
         model_product = self.get_modelproduct()
-        if model_product and model_product.is_virtual_product():
+        if model_product and model_product.is_virtual_product:
             return True
         product = self.product
         return product.outer_id.startswith('RMB')
