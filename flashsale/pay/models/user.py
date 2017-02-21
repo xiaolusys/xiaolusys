@@ -363,12 +363,6 @@ class UserBudget(PayBaseModel):
                                   referal_id=strade_id,
                                   budget_log_type=BudgetLog.BG_CONSUM)
         except BudgetLog.DoesNotExist:
-            urows = UserBudget.objects.filter(
-                user=self.user,
-                amount__gte=payment
-            ).update(amount=models.F('amount') - payment)
-            if urows == 0:
-                return False
             BudgetLog.create(customer_id=self.user.id,
                              budget_type=BudgetLog.BUDGET_OUT,
                              flow_amount=payment,
