@@ -1015,9 +1015,8 @@ def task_schedule_check_user_budget(days=1):
             return False
         return True
 
-    now = datetime.datetime.now()
-    today = datetime.datetime(now.year, now.month, now.day) - datetime.timedelta(days=days)
-    bgs = BudgetLog.objects.filter(created__gt=today).values('customer_id')
+    now = datetime.datetime.now() - datetime.timedelta(hours=36)
+    bgs = BudgetLog.objects.filter(modified__gt=now).values('customer_id')
 
     customer_ids = set([x['customer_id'] for x in bgs])
     errors = []
@@ -1027,6 +1026,7 @@ def task_schedule_check_user_budget(days=1):
 
     tousers = [
         '02401336675559',  # 伍磊
+        '0550581811782786',  # 张波
     ]
     msg = '定时检查用户钱包数据:\n时间: %s \n历史天数:%s\n钱包记录条数:%s\n错误用户有:%s' % \
           (str(datetime.datetime.now()), str(days), str(bgs.count()), '[%s]' % ','.join(errors))
