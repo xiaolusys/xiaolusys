@@ -553,6 +553,8 @@ def coupon_exchange_saleorder(customer, order_id, mama_id, template_ids, coupon_
     with transaction.atomic():
         # (1)sale order置为已经兑换
         sale_order.extras['exchange'] = True
+        if not sale_order.extras.has_key('can_return_num'):
+            sale_order.extras['can_return_num'] = sale_order.num
         SaleOrder.objects.filter(oid=order_id).update(extras=sale_order.extras)
 
         # (2)用户优惠券需要变成使用状态,如果存在多个券通用情况，还要把多种券给使用掉
@@ -610,9 +612,20 @@ def saleorder_return_coupon_exchange(salerefund, payment):
     from .transfercoupondetail import create_transfer_coupon_detail
 
     sale_order = SaleOrder.objects.filter(id=salerefund.order_id).first()
-    if not (sale_order and sale_order.extras.has_key('exchange') and sale_order.extras['exchange'] == True):
+    if not sale_order:
         res = {}
         return res
+    else:
+        if not (sale_order.extras.has_key('exchange') and sale_order.extras['exchange'] == True):
+            # 默认特卖订单一个saleorder只能退一次,以后不能兑换不能退了
+            sale_order.extras['exchange'] = False
+            if not sale_order.extras.has_key('can_return_num'):
+                sale_order.extras['can_return_num'] = sale_order.num - salerefund.refund_num
+            else:
+                sale_order.extras['can_return_num'] = int(sale_order.extras['can_return_num']) - salerefund.refund_num
+            SaleOrder.objects.filter(id=salerefund.order_id).update(extras=sale_order.extras)
+            res = {}
+            return res
 
     # 找出兑换这个订单的xlmm
     from flashsale.xiaolumm.models import XiaoluMama
@@ -657,6 +670,10 @@ def saleorder_return_coupon_exchange(salerefund, payment):
         # (2)sale order置为已经取消兑换
         if sale_order:
             sale_order.extras['exchange'] = False
+            if not sale_order.extras.has_key('can_return_num'):
+                sale_order.extras['can_return_num'] = sale_order.num - salerefund.refund_num
+            else:
+                sale_order.extras['can_return_num'] = int(sale_order.extras['can_return_num']) - salerefund.refund_num
             SaleOrder.objects.filter(id=salerefund.order_id).update(extras=sale_order.extras)
         else:
             logger.warn({
@@ -748,10 +765,18 @@ def transfer_record_return_coupon_exchange(coupons, transfer_record):
                     can_return_num += 1
                     return_payment += sale_order.price
                     break
+
+        # (1) 如果券都被退了， sale order置为无法兑换
+        if not sale_order.extras.has_key('can_return_num'):
+            sale_order.extras['can_return_num'] = sale_order.num - 1
+            if sale_order.num - 1 == 0:
+                sale_order.extras['exchange'] = False
         else:
-            # (1) 如果还没有兑，sale order置为已经兑换
-            sale_order.extras['exchange'] = True
-            SaleOrder.objects.filter(oid=order_id).update(extras=sale_order.extras)
+            sale_order.extras['can_return_num'] = int(sale_order.extras['can_return_num']) - 1
+            if int(sale_order.extras['can_return_num']) - 1 == 0:
+                sale_order.extras['exchange'] = False
+        SaleOrder.objects.filter(oid=order_id).update(extras=sale_order.extras)
+
     if can_return_num != coupons.count():
         logger.error({
             'action': u'transfer_record_return_coupon_exchange',
@@ -1048,7 +1073,7 @@ def agree_apply_transfer_record_2_sys(record):
     task_calc_xlmm_elite_score(record.coupon_from_mama_id)  # 重算积分
 
     # 退券了，之前用币买券的订单能够被上级妈妈兑换拿收益的，那么此时需要把这个收益扣回去
-    if round(return_coin_amount * 100) > 0:
+    if round(return_coin_amount * 100) > 0 and xlmm.referal_from == XiaoluMama.INDIRECT:
         transfer_record_return_coupon_exchange(coupons, record)
     return True
 

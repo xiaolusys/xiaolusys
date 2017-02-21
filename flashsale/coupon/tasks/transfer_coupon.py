@@ -69,7 +69,7 @@ def task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, prod
             'action': 'transfer_coupon',
             'action_time': datetime.datetime.now(),
             'order_oid': order_oid,
-            'message': u'end:template_id=%s, index=%s' % (
+            'message': u'process:template_id=%s, index=%s' % (
                 template_id, index),
         })
 
