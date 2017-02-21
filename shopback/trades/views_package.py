@@ -24,8 +24,10 @@ class PackageOrderViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def new(self, request, format='html'):
         package = PackageOrder()
-        package = PackageOrderSerializer(package).data
-        return Response(package, template_name=u"trades/package_by_hand.html")
+        logistics_companys = LogisticsCompany.objects.filter(type=1)
+        logistics_companys = LogisticsCompanySerializer(logistics_companys, many=True).data
+        return Response({'package': package, 'logistics_companys': logistics_companys},
+                        template_name="trades/package_by_hand.html")
 
     @list_route(methods=['post'])
     def edit(self, request, pk, format='html'):
@@ -50,13 +52,14 @@ class PackageOrderViewSet(viewsets.ModelViewSet):
         receiver_district = form.cleaned_data['receiver_district']
         receiver_address = form.cleaned_data['receiver_address']
         user_address_id = form.cleaned_data['user_address_id']
+        logistics_company = form.cleaned_data['logistics_company']
         psi_dict = {}
         for psi_line in psis:
             sku = ProductSku.objects.get(id=psi_line[0])
             psi_dict[sku.id] = [sku, int(psi_line[1])]
         package = PackageOrder.create_handle_package(
             ware_by, receiver_mobile, receiver_name, receiver_state, receiver_city,
-                              receiver_district, receiver_address, user_address_id)
+                              receiver_district, receiver_address, logistics_company, user_address_id)
         for sku_id in psi_dict:
             psi = PackageSkuItem.create_by_hand(psi_dict[sku_id][0],
                                                 psi_dict[sku_id][1],

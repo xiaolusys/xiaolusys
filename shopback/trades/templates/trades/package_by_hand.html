@@ -84,7 +84,11 @@
             </div>
             <div class="row col-md-12">
                 <label class="col-md-1" for="logistics_company_id">快递公司:</label>
-                <input id="logistics_company_id" type="text" class="col-md-5" placeholder="填写快递公司ID,会自动用这个快递派件，不填表示默认" value="{{package.logistics_company_id}}">
+                <select id="logistics_company_id">
+                    {%for lc in logistics_companys%}
+                    <option value="{{lc.id}}" {%if lc.id == package_order.logistics_company %}selected="selected"{%endif%}>{{lc.name}}</option>
+                    {%endfor%}
+                </select>
             </div>
         </div>
     </div>
@@ -216,6 +220,7 @@ function get_address(){
     var receiver_city = $("#receiver_city").val();
     var receiver_district = $("#receiver_district").val();
     var receiver_address = $("#receiver_address").val();
+    var logistics_company_id = $("#logistics_company_id").val();
     params = {
         'seller_id': seller_id,
         'ware_by': ware_by,
@@ -224,7 +229,9 @@ function get_address(){
         'receiver_city': receiver_city,
         'receiver_district': receiver_district,
         'receiver_address': receiver_address,
-        'receiver_mobile': receiver_mobile
+        'receiver_mobile': receiver_mobile,
+        'logistics_company': logistics_company_id
+
     }
     return params;
 }

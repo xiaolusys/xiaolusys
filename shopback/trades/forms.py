@@ -65,7 +65,7 @@ class PackageOrderEditForm(forms.ModelForm):
     class Meta:
         model = PackageOrder
         fields = ["ware_by", "receiver_mobile", "receiver_name", "receiver_state", "receiver_city",
-                              "receiver_district", "receiver_address"]
+                              "receiver_district", "receiver_address", "logistics_company"]
         # exclude = ['created']
 
 
