@@ -206,8 +206,8 @@ class NinePicViewSet(viewsets.GenericViewSet):
                 'name': mp.name,
                 'price': mp.lowest_agent_price,
                 'profit': {
-                    'min': mp.lowest_agent_price - max_price,
-                    'max': mp.lowest_agent_price - min_price
+                    'min': round(mp.lowest_agent_price - max_price, 2),
+                    'max': round(mp.lowest_agent_price - min_price, 2)
                 },
                 'start_time': item.start_time,
                 'hour': item.start_time.hour,
