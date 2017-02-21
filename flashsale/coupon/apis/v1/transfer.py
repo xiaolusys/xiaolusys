@@ -772,7 +772,7 @@ def transfer_record_return_coupon_exchange(coupons, transfer_record):
                 sale_order.extras['exchange'] = False
         else:
             sale_order.extras['can_return_num'] = int(sale_order.extras['can_return_num']) - 1
-            if int(sale_order.extras['can_return_num']) - 1 == 0:
+            if int(sale_order.extras['can_return_num']) == 0:
                 sale_order.extras['exchange'] = False
         SaleOrder.objects.filter(id=sale_order.id).update(extras=sale_order.extras)
 
