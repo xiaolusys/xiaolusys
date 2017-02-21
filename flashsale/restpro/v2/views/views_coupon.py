@@ -628,7 +628,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
             return Response({"code": 1, "info": u"coupon_num或exchg_template_id错误！"})
 
         if int(coupon_num) == 0:
-            return Response({"code": 4, "info": u'兑换精品券数量不能为0!'})
+            return Response({"code": 6, "info": u'兑换精品券数量不能为0!'})
 
         mama = get_charged_mama(request.user)
         mama_id = mama.id
@@ -636,6 +636,8 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
         # wtf,有些券是可以流通通用的，那么要找出一组兑换templateid，判断数量是否足够
         template_ids = []
         sale_order = SaleOrder.objects.filter(oid=order_id).first()
+        if int(coupon_num) > sale_order.num:
+            return Response({"code": 7, "info": u'兑换精品券数量不能超过订单商品数量!'})
         model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id, is_boutique=True).first()
         if model_product and model_product.extras.has_key('payinfo') \
                 and model_product.extras['payinfo'].has_key('coupon_template_ids'):
