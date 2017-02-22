@@ -457,6 +457,9 @@ class SaleTrade(BaseModel):
                     user_budget = UserBudget.objects.get(user_id=st.buyer_id)
                     user_budget.charge_confirm(st.id)
 
+                # 如果使用coupon支付,付款成功后则扣除
+                st.set_coupon_2_use_by_trade_confirm()
+
                 logger.info({
                     'action': 'trade_confirm_save',
                     'order_no': self.tid,
@@ -705,6 +708,44 @@ class SaleTrade(BaseModel):
             if not TeamBuyDetail.objects.filter(tid=instance.tid).first():
                 TeamBuy.create_or_join(instance)
 
+    def set_coupon_2_use_by_trade_confirm(self):
+        """订单支付成功设置优惠券为使用状态
+        """
+        coupon_ids = self.extras_info.get('coupon') or []
+        logger.info({
+            'action': 'set_coupon_2_use_by_trade_confirm_start',
+            'coupon_ids': ','.join([str(i) for i in coupon_ids]),
+            'order_no': self.tid,
+            'action_time': datetime.datetime.now()
+        })
+        if not coupon_ids:
+            return
+        coupon_ids = [int(c) for c in coupon_ids]
+        from flashsale.coupon.apis.v1.usercoupon import use_coupon_by_ids, get_user_coupons_by_ids
+        from flashsale.coupon.models import CouponTransferRecord
+        from flashsale.coupon.apis.v1.transfercoupondetail import create_transfer_coupon_detail
+
+        coupons = get_user_coupons_by_ids(coupon_ids)
+        use_coupon_by_ids(coupon_ids, self.tid)  # 使用优惠券
+
+        # 创建 消费流通记录 如果是流通券类型的话
+        template_id = None
+        for coupon in coupons:
+            if coupon.is_transfer_coupon():
+                template_id = coupon.template_id
+                break
+        if template_id:
+            coupon_num = len(coupon_ids)
+            transfer = CouponTransferRecord.create_consume_record(coupon_num, self.buyer_id, self.tid, template_id)
+            create_transfer_coupon_detail(transfer.id, coupon_ids)
+
+        logger.info({
+            'action': 'set_coupon_2_use_by_trade_confirm_end',
+            'action_time': datetime.datetime.now(),
+            'coupons': coupons.values('id', 'status'),
+            'order_no': self.tid,
+        })
+
 
 # def add_renew_deposit_record(sender, obj, **kwargs):
 #     """
@@ -767,33 +808,33 @@ def record_supplier_args(sender, obj, **kwargs):
 signal_saletrade_pay_confirm.connect(record_supplier_args, sender=SaleTrade)
 
 
-def trigger_mama_deposit_action(sender, obj, *args, **kwargs):
-    """根据押金订单处理妈妈记录:
-    """
-    if not (obj.status == SaleTrade.WAIT_SELLER_SEND_GOODS and obj.is_Deposite_Order()):
-        return
-    try:
-        from flashsale.xiaolumm.apis.v1.xiaolumama import mama_pay_deposit
-        order = obj.sale_orders.first()
-        if order.is_1_deposit():
-            deposit_type = 1
-        elif order.is_99_deposit():
-            deposit_type = 99
-        elif order.is_188_deposit():
-            deposit_type = 188
-        else:
-            return
-        referrer = int(str(obj.extras_info.get('mm_linkid', '')).strip() or '0' if obj.extras_info else '0')  # 推荐人id
-        order.status = SaleTrade.TRADE_FINISHED
-        order.save(update_fields=['status'])
-        mama_pay_deposit(obj.buyer_id, deposit_type, referrer, obj.id, oid=order.oid)
-    except Exception as e:
-        logging.error(e)
-
-
-signal_saletrade_pay_confirm.connect(trigger_mama_deposit_action,
-                                     sender=SaleTrade,
-                                     dispatch_uid="signal_trigger_mama_deposit_action")
+# def trigger_mama_deposit_action(sender, obj, *args, **kwargs):
+#     """根据押金订单处理妈妈记录:
+#     """
+#     if not (obj.status == SaleTrade.WAIT_SELLER_SEND_GOODS and obj.is_Deposite_Order()):
+#         return
+#     try:
+#         from flashsale.xiaolumm.apis.v1.xiaolumama import mama_pay_deposit
+#         order = obj.sale_orders.first()
+#         if order.is_1_deposit():
+#             deposit_type = 1
+#         elif order.is_99_deposit():
+#             deposit_type = 99
+#         elif order.is_188_deposit():
+#             deposit_type = 188
+#         else:
+#             return
+#         referrer = int(str(obj.extras_info.get('mm_linkid', '')).strip() or '0' if obj.extras_info else '0')  # 推荐人id
+#         order.status = SaleTrade.TRADE_FINISHED
+#         order.save(update_fields=['status'])
+#         mama_pay_deposit(obj.buyer_id, deposit_type, referrer, obj.id, oid=order.oid)
+#     except Exception as e:
+#         logging.error(e)
+#
+#
+# signal_saletrade_pay_confirm.connect(trigger_mama_deposit_action,
+#                                      sender=SaleTrade,
+#                                      dispatch_uid="signal_trigger_mama_deposit_action")
 
 
 def update_customer_first_paytime(sender, obj, **kwargs):
@@ -812,7 +853,7 @@ signal_saletrade_pay_confirm.connect(update_customer_first_paytime, sender=SaleT
 
 def update_skustock_paid_num(sender, obj, **kwargs):
     """
-    订单支付后，检测用户是否第一次购买，如果是，更新用户第一次购买时间
+    订单支付后，更新skustock
     """
     from shopback.trades.models import SkuStock
     for order in obj.sale_orders.all():
@@ -869,55 +910,14 @@ def tongji_trade_pay_channel(sender, obj, **kwargs):
 signal_saletrade_pay_confirm.connect(tongji_trade_pay_channel, sender=SaleTrade)
 
 
-def set_coupon_2_use_by_trade_confirm(sender, obj, **kwargs):
-    """订单支付成功设置优惠券为使用状态
-    """
-    try:
-        coupon_ids = obj.extras_info.get('coupon') or []
-        logger.info({
-            'action': 'set_coupon_2_use_by_trade_confirm_start',
-            'coupon_ids': ','.join([str(i) for i in coupon_ids]),
-            'order_no': obj.tid,
-            'action_time': datetime.datetime.now()
-        })
-        if not coupon_ids:
-            return
-        coupon_ids = [int(c) for c in coupon_ids]
-        from flashsale.coupon.apis.v1.usercoupon import use_coupon_by_ids, get_user_coupons_by_ids
-        from flashsale.coupon.models import CouponTransferRecord
-        from flashsale.coupon.apis.v1.transfercoupondetail import create_transfer_coupon_detail
-
-        coupons = get_user_coupons_by_ids(coupon_ids)
-        use_coupon_by_ids(coupon_ids, obj.tid)  # 使用优惠券
-
-        # 创建 消费流通记录 如果是流通券类型的话
-        template_id = None
-        for coupon in coupons:
-            if coupon.is_transfer_coupon():
-                template_id = coupon.template_id
-                break
-        if template_id:
-            coupon_num = len(coupon_ids)
-            transfer = CouponTransferRecord.create_consume_record(coupon_num, obj, template_id)
-            create_transfer_coupon_detail(transfer.id, coupon_ids)
-
-        logger.info({
-            'action': 'set_coupon_2_use_by_trade_confirm_end',
-            'action_time': datetime.datetime.now(),
-            'coupons': coupons.values('id', 'status'),
-            'order_no': obj.tid,
-        })
-    except Exception as e:
-        logger.warn({
-            'action': 'set_coupon_2_use_by_trade_confirm_error',
-            'order_no': obj.tid,
-            'action_time': datetime.datetime.now(),
-            'traceback': traceback.format_exc(),
-        })
+# attention:优惠券使用要和订单状态变化、用户钱包支付的transaction一起修改，放到signal里面不合适，signal只处理一些额外工作
+# 2017-2-22 wulei
+# def set_coupon_2_use_by_trade_confirm(sender, obj, **kwargs):
 
 
-signal_saletrade_pay_confirm.connect(set_coupon_2_use_by_trade_confirm, sender=SaleTrade,
-                                     dispatch_uid='signal_set_coupon_2_use_by_trade_confirm')
+
+# signal_saletrade_pay_confirm.connect(set_coupon_2_use_by_trade_confirm, sender=SaleTrade,
+#                                      dispatch_uid='signal_set_coupon_2_use_by_trade_confirm')
 
 
 def update_teambuy(sender, instance, created, **kwargs):
