@@ -44,6 +44,7 @@ class CouponTransferRecord(BaseModel):
     IN_RECHARGE = 9    # 充值/in
     IN_BUY_COUPON_WITH_COIN = 10  # 用币买券/in
     OUT_CASHOUT_COIN = 11  # 退券换币 /out
+    IN_CANCEL_EXCHG = 12  # 取消兑换订单/in
     TRANSFER_TYPES = (
         (OUT_CASHOUT, u'退券换钱'),
         (OUT_TRANSFER, u'转给下属'),
@@ -56,6 +57,7 @@ class CouponTransferRecord(BaseModel):
         (IN_RECHARGE, u'充值'),
         (IN_BUY_COUPON_WITH_COIN, u'用币买券'),
         (OUT_CASHOUT_COIN, u'退券换币'),
+        (IN_CANCEL_EXCHG, u'取消兑换'),
     )
 
     PENDING = 1
@@ -468,10 +470,56 @@ class CouponTransferRecord(BaseModel):
                        product_id=product_id,
                        elite_score=elite_score,
                        uni_key=uni_key, date_field=date_field, transfer_status=transfer_status,
-
                        from_mama_elite_level=from_mama.elite_level,
                        from_mama_price=agent_price
                        )
+        transfer.save()
+        return transfer
+
+    @classmethod
+    def gen_cancel_exchg_record(cls, customer, coupon_num, template_id, order_oid):
+        from flashsale.coupon.models import CouponTemplate
+
+        coupon_from_mama_id = 0
+        from_mama_thumbnail = 'http://7xogkj.com2.z0.glb.qiniucdn.com/222-ohmydeer.png?imageMogr2/thumbnail/60/format/png'
+        from_mama_nick = 'SYSTEM'
+
+        coupon_to_mama_id = customer.mama_id
+        to_mama_thumbnail = customer.thumbnail
+        to_mama_nick = customer.nick
+        init_from_mama_id = coupon_to_mama_id
+        order_no = order_oid
+
+        transfer_type = CouponTransferRecord.IN_CANCEL_EXCHG
+        date_field = datetime.date.today()
+        transfer_status = CouponTransferRecord.DELIVERED
+
+        idx = cls.objects.filter(coupon_from_mama_id=0, coupon_to_mama_id=coupon_to_mama_id, transfer_type=transfer_type,
+                                 template_id=template_id, date_field=date_field, order_no=order_no,
+                                 transfer_status__gte=cls.PROCESSED).count()
+        uni_key = "%s-%s-%s-%s" % (coupon_to_mama_id, transfer_type, order_oid, idx + 1)  # every trade, only return once.
+
+        template = CouponTemplate.objects.get(id=template_id)
+        coupon_value = template.value
+        product_img = template.extras.get("product_img") or ''
+
+        from flashsale.coupon.apis.v1.transfer import get_elite_score_by_templateid
+        mama = customer.get_charged_mama()
+        product_id, elite_score, agent_price = get_elite_score_by_templateid(template_id, mama)
+        elite_score *= int(coupon_num)
+
+        transfer = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id,
+                                        from_mama_thumbnail=from_mama_thumbnail,
+                                        from_mama_nick=from_mama_nick, coupon_to_mama_id=coupon_to_mama_id,
+                                        to_mama_thumbnail=to_mama_thumbnail, to_mama_nick=to_mama_nick,
+                                        coupon_value=coupon_value,
+                                        init_from_mama_id=init_from_mama_id, order_no=order_no, template_id=template_id,
+                                        product_img=product_img, coupon_num=coupon_num, transfer_type=transfer_type,
+                                        product_id=product_id, elite_score=elite_score,
+                                        uni_key=uni_key, date_field=date_field, transfer_status=transfer_status,
+                                        elite_level=mama.elite_level,
+                                        to_mama_price=agent_price,
+                                        )
         transfer.save()
         return transfer
 
