@@ -112,7 +112,7 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
         xlmm = self.get_xlmm()
         queryset = self.get_today_queryset(self.get_queryset())
         if request.data.get('ordering') is None:
-            queryset = queryset.order_by('-start_time')
+            queryset = queryset.order_by('-start_time', '-turns_num')
         queryset = self.filter_queryset(queryset)
         serializer = self.get_serializer(queryset, many=True)
         # 统计代码
