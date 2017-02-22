@@ -728,7 +728,7 @@ def transfer_record_return_coupon_exchange(coupons, transfer_record):
     return_payment = 0
     exchg_mm_id = 0
     can_return_num = 0
-    coupon_ids = []
+    dict_coupon_ids = {}
     for coupon in coupons:
         if not (coupon.extras.has_key('buy_coupon_type') and int(coupon.extras['buy_coupon_type']) == 1):
             continue
@@ -763,7 +763,12 @@ def transfer_record_return_coupon_exchange(coupons, transfer_record):
                     sys_oa = get_systemoa_user()
                     log_action(sys_oa, one_coupon, CHANGE, u'下级妈妈退券了上级妈妈扣钱退券 from ctrid %s' % (exchg_ctr.id))
 
-                    coupon_ids.append(one_coupon.id)
+                    # 注意一次退10张券，可能以前是分2次购买的，那么需要下面生成2条退货记录
+                    if dict_coupon_ids.has_key(order_id):
+                        dict_coupon_ids[order_id].append(one_coupon.id)
+                    else:
+                        dict_coupon_ids[order_id] = []
+                        dict_coupon_ids[order_id].append(one_coupon.id)
                     can_return_num += 1
                     return_payment += sale_order.price
                     break
@@ -795,9 +800,11 @@ def transfer_record_return_coupon_exchange(coupons, transfer_record):
     # (4)上级妈妈的流通记录也需要添加，同实际订单，也使用退货type
     from .transfercoupondetail import create_transfer_coupon_detail
     customer = get_customer_by_mama_id(exchg_mm_id)
-    transfer = CouponTransferRecord.gen_return_record(customer, can_return_num,
-                                                          int(coupons[0].template_id), sale_order.sale_trade.tid)
-    create_transfer_coupon_detail(transfer.id, coupon_ids)
+    for key in dict_coupon_ids:
+        sale_order = SaleOrder.objects.filter(id=key).first()
+        transfer = CouponTransferRecord.gen_return_record(customer, len(dict_coupon_ids[key]),
+                                                              int(coupons[0].template_id), sale_order.sale_trade.tid)
+        create_transfer_coupon_detail(transfer.id, dict_coupon_ids[key])
 
     logger.info({
         'action': u'transfer_record_return_coupon_exchange',
