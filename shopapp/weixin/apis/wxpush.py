@@ -550,7 +550,11 @@ class WeixinPush(object):
         """
         mama_id = clickcarry.mama_id
         customer = utils.get_mama_customer(mama_id)
-        mama = XiaoluMama.objects.get(id=mama_id)
+        try:
+            userbudget = customer.userbudget
+        except Exception:
+            return
+
         if fake:
             event_type = WeixinPushEvent.FAKE_CLICK_CARRY
         else:
@@ -627,7 +631,7 @@ class WeixinPush(object):
                 'color': '#000000',
             },
             'keyword4': {
-                'value': u'%.2f元（可提现）' % (customer.userbudget.amount * 0.01),
+                'value': u'%.2f元（可提现）' % (userbudget.amount * 0.01),
                 'color': '#000000',
             },
             'remark': {
