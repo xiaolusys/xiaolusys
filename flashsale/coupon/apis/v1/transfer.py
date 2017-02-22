@@ -729,82 +729,83 @@ def transfer_record_return_coupon_exchange(coupons, transfer_record):
     exchg_mm_id = 0
     can_return_num = 0
     dict_coupon_ids = {}
-    for coupon in coupons:
-        if not (coupon.extras.has_key('buy_coupon_type') and int(coupon.extras['buy_coupon_type']) == 1):
-            continue
-        temp_arr = coupon.uniq_id.split('_')
-        order_id = int(temp_arr[2])
-        sale_order = SaleOrder.objects.filter(id=order_id).first()
-        if not sale_order:
-            raise Exception('订单%s不存在' % order_id)
+    with transaction.atomic():
+        for coupon in coupons:
+            if not (coupon.extras.has_key('buy_coupon_type') and int(coupon.extras['buy_coupon_type']) == 1):
+                continue
+            temp_arr = coupon.uniq_id.split('_')
+            order_id = int(temp_arr[2])
+            sale_order = SaleOrder.objects.filter(id=order_id).first()
+            if not sale_order:
+                raise Exception('订单%s不存在' % order_id)
 
-        exchg_ordercarry = OrderCarry.objects.filter(order_id=sale_order.oid, carry_type=OrderCarry.REFERAL_ORDER,
-                                                     status__in=[OrderCarry.CONFIRM]).first()
-        if not exchg_ordercarry:
-            raise Exception('订单收益%s不存在' % order_id)
-        if exchg_mm_id != 0 and exchg_mm_id != exchg_ordercarry.mama_id:
-            raise Exception('退的多张精品券不属于同一个妈妈%s' % coupons)
-        exchg_mm_id = exchg_ordercarry.mama_id
+            exchg_ordercarry = OrderCarry.objects.filter(order_id=sale_order.oid, carry_type=OrderCarry.REFERAL_ORDER,
+                                                         status__in=[OrderCarry.CONFIRM]).first()
+            if not exchg_ordercarry:
+                raise Exception('订单收益%s不存在' % order_id)
+            if exchg_mm_id != 0 and exchg_mm_id != exchg_ordercarry.mama_id:
+                raise Exception('退的多张精品券不属于同一个妈妈%s' % coupons)
+            exchg_mm_id = exchg_ordercarry.mama_id
 
-        # (4)此前兑换的那张券需要退回给这个妈妈，先从transfer detail中找到券，然后置为未使用;如果还没有兑，那就修改saleorder兑换状态
-        from flashsale.coupon.models.transfercoupondetail import TransferCouponDetail
-        from flashsale.coupon.models.transfer_coupon import CouponTransferRecord
-        from flashsale.coupon.apis.v1.usercoupon import get_user_coupon_by_id
+            # (4)此前兑换的那张券需要退回给这个妈妈，先从transfer detail中找到券，然后置为未使用;如果还没有兑，那就修改saleorder兑换状态
+            from flashsale.coupon.models.transfercoupondetail import TransferCouponDetail
+            from flashsale.coupon.models.transfer_coupon import CouponTransferRecord
+            from flashsale.coupon.apis.v1.usercoupon import get_user_coupon_by_id
 
-        exchg_ctr = CouponTransferRecord.objects.filter(transfer_type=CouponTransferRecord.OUT_EXCHG_SALEORDER, uni_key=sale_order.oid).first()
-        if exchg_ctr:
-            details = TransferCouponDetail.objects.filter(transfer_id=exchg_ctr.id)
-            for one_detail in details:
-                one_coupon = get_user_coupon_by_id(one_detail.coupon_id)
-                if one_coupon and (one_coupon.status != UserCoupon.UNUSED):
-                    one_coupon.status = UserCoupon.UNUSED
-                    one_coupon.save()
-                    from core.options import log_action, CHANGE, ADDITION, get_systemoa_user
-                    sys_oa = get_systemoa_user()
-                    log_action(sys_oa, one_coupon, CHANGE, u'下级妈妈退券了上级妈妈扣钱退券 from ctrid %s' % (exchg_ctr.id))
+            exchg_ctr = CouponTransferRecord.objects.filter(transfer_type=CouponTransferRecord.OUT_EXCHG_SALEORDER, uni_key=sale_order.oid).first()
+            if exchg_ctr:
+                details = TransferCouponDetail.objects.filter(transfer_id=exchg_ctr.id)
+                for one_detail in details:
+                    one_coupon = get_user_coupon_by_id(one_detail.coupon_id)
+                    if one_coupon and (one_coupon.status != UserCoupon.UNUSED):
+                        one_coupon.status = UserCoupon.UNUSED
+                        one_coupon.save()
+                        from core.options import log_action, CHANGE, ADDITION, get_systemoa_user
+                        sys_oa = get_systemoa_user()
+                        log_action(sys_oa, one_coupon, CHANGE, u'下级妈妈退券了上级妈妈扣钱退券 from ctrid %s' % (exchg_ctr.id))
 
-                    # 注意一次退10张券，可能以前是分2次购买的，那么需要下面生成2条退货记录
-                    if dict_coupon_ids.has_key(order_id):
-                        dict_coupon_ids[order_id].append(one_coupon.id)
-                    else:
-                        dict_coupon_ids[order_id] = []
-                        dict_coupon_ids[order_id].append(one_coupon.id)
-                    can_return_num += 1
-                    return_payment += sale_order.price
-                    break
+                        # 注意一次退10张券，可能以前是分2次购买的，那么需要下面生成2条退货记录
+                        if dict_coupon_ids.has_key(order_id):
+                            dict_coupon_ids[order_id].append(one_coupon.id)
+                        else:
+                            dict_coupon_ids[order_id] = []
+                            dict_coupon_ids[order_id].append(one_coupon.id)
+                        can_return_num += 1
+                        return_payment += sale_order.price
+                        break
 
-        # (1) 如果券都被退了， sale order置为无法兑换
-        if not sale_order.extras.has_key('can_return_num'):
-            sale_order.extras['can_return_num'] = sale_order.num - 1
-            if sale_order.num - 1 == 0:
-                sale_order.extras['exchange'] = False
-        else:
-            sale_order.extras['can_return_num'] = int(sale_order.extras['can_return_num']) - 1
-            if int(sale_order.extras['can_return_num']) == 0:
-                sale_order.extras['exchange'] = False
-        SaleOrder.objects.filter(id=sale_order.id).update(extras=sale_order.extras)
+            # (1) 如果券都被退了， sale order置为无法兑换
+            if not sale_order.extras.has_key('can_return_num'):
+                sale_order.extras['can_return_num'] = sale_order.num - 1
+                if sale_order.num - 1 == 0:
+                    sale_order.extras['exchange'] = False
+            else:
+                sale_order.extras['can_return_num'] = int(sale_order.extras['can_return_num']) - 1
+                if int(sale_order.extras['can_return_num']) == 0:
+                    sale_order.extras['exchange'] = False
+            SaleOrder.objects.filter(id=sale_order.id).update(extras=sale_order.extras)
 
-    # (3)在user钱包写支出 记录
-    from flashsale.pay.models.user import BudgetLog
-    from flashsale.xiaolumm.apis.v1.xiaolumama import get_customer_id_by_mama_id, get_customer_by_mama_id
-    if return_payment > 0:
-        customer_id = get_customer_id_by_mama_id(exchg_mm_id)
-        BudgetLog.create(customer_id=customer_id,
-                         budget_type=BudgetLog.BUDGET_OUT,
-                         flow_amount=round(return_payment * 100),
-                         budget_log_type=BudgetLog.BG_EXCHG_ORDER,
-                         referal_id=transfer_record.id,
-                         uni_key='ctr-%s' % transfer_record.id,
-                         status=BudgetLog.CONFIRMED)
+        # (3)在user钱包写支出 记录
+        from flashsale.pay.models.user import BudgetLog
+        from flashsale.xiaolumm.apis.v1.xiaolumama import get_customer_id_by_mama_id, get_customer_by_mama_id
+        if return_payment > 0:
+            customer_id = get_customer_id_by_mama_id(exchg_mm_id)
+            BudgetLog.create(customer_id=customer_id,
+                             budget_type=BudgetLog.BUDGET_OUT,
+                             flow_amount=round(return_payment * 100),
+                             budget_log_type=BudgetLog.BG_EXCHG_ORDER,
+                             referal_id=transfer_record.id,
+                             uni_key='ctr-%s' % transfer_record.id,
+                             status=BudgetLog.CONFIRMED)
 
-    # (4)上级妈妈的流通记录也需要添加，同实际订单，也使用退货type
-    from .transfercoupondetail import create_transfer_coupon_detail
-    customer = get_customer_by_mama_id(exchg_mm_id)
-    for key in dict_coupon_ids:
-        sale_order = SaleOrder.objects.filter(id=key).first()
-        transfer = CouponTransferRecord.gen_return_record(customer, len(dict_coupon_ids[key]),
-                                                              int(coupons[0].template_id), sale_order.sale_trade.tid)
-        create_transfer_coupon_detail(transfer.id, dict_coupon_ids[key])
+        # (4)上级妈妈的流通记录也需要添加，同实际订单，也使用退货type
+        from .transfercoupondetail import create_transfer_coupon_detail
+        customer = get_customer_by_mama_id(exchg_mm_id)
+        for key in dict_coupon_ids:
+            sale_order = SaleOrder.objects.filter(id=key).first()
+            transfer = CouponTransferRecord.gen_return_record(customer, len(dict_coupon_ids[key]),
+                                                                  int(coupons[0].template_id), sale_order.sale_trade.tid)
+            create_transfer_coupon_detail(transfer.id, dict_coupon_ids[key])
 
     logger.info({
         'action': u'transfer_record_return_coupon_exchange',
