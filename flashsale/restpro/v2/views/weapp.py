@@ -84,7 +84,10 @@ class WeAppViewSet(viewsets.ViewSet):
 
         weapp = WeApp()
         data = weapp.get_session_key(code)
-        openid = data['openid']
+        openid = data.get('openid', None)
+
+        if not openid:
+            return Response(data)
 
         #
         item = WeixinUnionID.objects.filter(app_key=settings.WEAPP_APPID, openid=openid).first()
