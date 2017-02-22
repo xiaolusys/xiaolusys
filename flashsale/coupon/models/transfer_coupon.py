@@ -181,12 +181,12 @@ class CouponTransferRecord(BaseModel):
         return num
 
     @classmethod
-    def create_consume_record(cls, coupon_num, sale_trade, template_id):
+    def create_consume_record(cls, coupon_num, buyer_id, tid, template_id):
         from flashsale.xiaolumm.models import XiaoluMama
         from flashsale.pay.models import Customer
         from flashsale.coupon.models import CouponTemplate
 
-        from_customer_id = sale_trade.buyer_id
+        from_customer_id = buyer_id
         from_customer = Customer.objects.filter(id=from_customer_id).first()
         from_mama = XiaoluMama.objects.filter(openid=from_customer.unionid).first()
         coupon_from_mama_id = from_mama.id
@@ -201,8 +201,8 @@ class CouponTransferRecord(BaseModel):
         transfer_type = cls.OUT_CONSUMED
         date_field = datetime.date.today()
 
-        uni_key = sale_trade.tid
-        order_no = sale_trade.tid
+        uni_key = tid
+        order_no = tid
 
         coupon = cls.objects.filter(uni_key=uni_key).first()
         if coupon:
