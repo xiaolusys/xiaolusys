@@ -201,6 +201,7 @@ class VerifyReturnSysTransfer(APIView):
                 return Response({'code': 1, 'info': '参数错误'})
             return Response({'code': 0, 'info': '审核成功'})
         except Exception as e:
+            logging.error(e)
             return Response({'code': 2, 'info': '审核出错: %s' % e.message})
 
 
