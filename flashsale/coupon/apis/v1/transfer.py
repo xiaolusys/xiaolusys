@@ -712,8 +712,8 @@ def saleorder_return_coupon_exchange(salerefund, payment):
         logger.info({
             'message': u'exchange order:return_coupon_num=%s ' % (return_coupon_num),
         })
-        transfer = CouponTransferRecord.gen_return_record(customer, return_coupon_num,
-                                                          int(user_coupon[0].template_id), sale_order.sale_trade.tid)
+        transfer = CouponTransferRecord.gen_cancel_exchg_record(customer, return_coupon_num,
+                                                          int(user_coupon[0].template_id), sale_order.oid)
         create_transfer_coupon_detail(transfer.id, coupon_ids)
 
 
@@ -803,8 +803,8 @@ def transfer_record_return_coupon_exchange(coupons, transfer_record):
         customer = get_customer_by_mama_id(exchg_mm_id)
         for key in dict_coupon_ids:
             sale_order = SaleOrder.objects.filter(id=key).first()
-            transfer = CouponTransferRecord.gen_return_record(customer, len(dict_coupon_ids[key]),
-                                                                  int(coupons[0].template_id), sale_order.sale_trade.tid)
+            transfer = CouponTransferRecord.gen_cancel_exchg_record(customer, len(dict_coupon_ids[key]),
+                                                                  int(coupons[0].template_id), sale_order.oid)
             create_transfer_coupon_detail(transfer.id, dict_coupon_ids[key])
 
     logger.info({
