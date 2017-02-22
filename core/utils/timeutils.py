@@ -28,3 +28,8 @@ def day_range(date):
         datetime.datetime.combine(date, datetime.time.min),
         datetime.datetime.combine(date, datetime.time.max)
     )
+
+def parse_str2date(date_str, format='%Y-%m-%d'):
+    return datetime.datetime.strptime(date_str, format)
+
+

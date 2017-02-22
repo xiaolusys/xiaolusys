@@ -1,11 +1,31 @@
 # coding: utf-8
-from django.db import models
+from django.db import models, connection
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
 from django.db.models import Sum
 
 from shopback import paramconfig as pcfg
 from core.managers import BaseManager
+
+class ProductSkuMananger(BaseManager):
+
+    def get_sku_and_category_id_maps(self, sku_id_list):
+        sql = """
+            SELECT
+                sku.id, fp.salecategory_id
+            FROM
+                shop_items_productsku sku
+                    LEFT JOIN
+                shop_items_product sp ON sku.product_id = sp.id
+                    LEFT JOIN
+                flashsale_modelproduct fp ON sp.model_id = fp.id
+            WHERE
+                sku.id IN (%s);
+        """
+        with connection.cursor() as cursor:
+            cursor.execute(sql, [','.join(map(str, sku_id_list))])
+            serial_data = cursor.fetchall()
+        return dict(serial_data)
 
 
 class ProductManager(BaseManager):

@@ -14,4 +14,5 @@ urlpatterns = [
     url(r'^pay/', include('flashsale.pay.urls')),
     url(r'^xiaolumm/', include('flashsale.xiaolumm.urls')),
     url(r'^protocol/', include('flashsale.protocol.urls')),
+    url(r'^daystats/', include('flashsale.daystats.urls_api')),
 ]

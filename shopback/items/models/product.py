@@ -1116,6 +1116,8 @@ class ProductSku(models.Model):
         (pcfg.DELETE, u'作废'),
     )
 
+    objects = managers.ProductSkuMananger()
+
     outer_id = models.CharField(max_length=32, blank=False, verbose_name=u'编码')
 
     supplier_skucode = models.CharField(max_length=32, blank=True, db_index=True, verbose_name=u'供应商SKU编码')
