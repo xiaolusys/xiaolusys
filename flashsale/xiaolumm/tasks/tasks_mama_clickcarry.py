@@ -144,7 +144,7 @@ def create_clickcarry_upon_click(mama_id, date_field, fake=False):
         if mama:
             if mama.last_renew_type == XiaoluMama.ELITE and mama.elite_score >= 50:
                 return
-            if mama.last_renew_type < XiaoluMama.ELITE and ((now - mama.charge_time).days > 30):
+            if mama.last_renew_type <= XiaoluMama.ELITE and ((now - mama.charge_time).days > 30):
                 return
         else:
             return
