@@ -142,10 +142,13 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         mama = get_object_or_404(XiaoluMama, pk=pk)
         if not mama:
             raise exceptions.ValidationError(u'此用户并非小鹿妈妈')
+        customer = mama.get_customer()
+        if not customer:
+            raise exceptions.ValidationError(u'此用户账号异常，请关注公众号联系管理员')
         res = {
             'mama_id': mama.id,
-            'nick': mama.get_customer().nick,
-            'thumbnail': mama.get_customer().thumbnail
+            'nick': customer.nick,
+            'thumbnail': customer.thumbnail
         }
         return Response(res)
 
