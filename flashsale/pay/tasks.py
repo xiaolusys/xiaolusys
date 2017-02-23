@@ -1137,3 +1137,58 @@ def task_schedule_check_boutique_modelproduct(days=1):
     dd = DingDingAPI()
     for touser in tousers:
         dd.sendMsg(msg, touser)
+
+@app.task()
+def task_schedule_check_trades_and_budget():
+    wrong_trades = []
+
+    tt = datetime.datetime.now()
+    tf = tt - datetime.timedelta(days=7)
+    # 1.检查已经支付的订单是否零钱／小鹿币／xiaolupay支付记录吻合
+    from flashsale.pay.models.trade import SaleOrder, SaleTrade, Customer
+    trade_qs = SaleTrade.objects.filter(status__in=[SaleTrade.WAIT_SELLER_SEND_GOODS,
+                                                    SaleTrade.WAIT_BUYER_CONFIRM_GOODS,
+                                                    SaleTrade.TRADE_BUYER_SIGNED,
+                                                    SaleTrade.TRADE_FINISHED],
+                                        created__gte=tf)
+
+    # 2.检查零钱支付记录中订单状态是否正常
+    from flashsale.pay.models import BudgetLog
+    budget_logs = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_OUT, budget_log_type=BudgetLog.BG_CONSUM,
+                                           status=BudgetLog.CONFIRMED, created__gte=tf)
+    for log in budget_logs:
+        st = SaleTrade.objects.filter(id=int(log.referal_id)).first()
+        if not st:
+            wrong_trades.append(log.referal_id)
+        if st.status not in [SaleTrade.WAIT_SELLER_SEND_GOODS,
+                             SaleTrade.WAIT_BUYER_CONFIRM_GOODS,
+                             SaleTrade.TRADE_BUYER_SIGNED,
+                             SaleTrade.TRADE_FINISHED]:
+            wrong_trades.append(log.referal_id)
+
+    # 3.检查小鹿币支付记录中订单状态是否正常
+    from flashsale.xiaolumm.models import XiaoluCoinLog
+    coin_logs = XiaoluCoinLog.objects.filter(iro_type=XiaoluCoinLog.OUT, subject=XiaoluCoinLog.CONSUME,
+                                             created__gte=tf)
+
+    for log in coin_logs:
+        st = SaleTrade.objects.filter(id=int(log.referal_id)).first()
+        if not st:
+            wrong_trades.append(log.referal_id)
+        if st.status not in [SaleTrade.WAIT_SELLER_SEND_GOODS,
+                             SaleTrade.WAIT_BUYER_CONFIRM_GOODS,
+                             SaleTrade.TRADE_BUYER_SIGNED,
+                             SaleTrade.TRADE_FINISHED]:
+            wrong_trades.append(log.referal_id)
+
+    # 4.检查xiaolupay支付记录中订单状态是否正常
+
+    from common.dingding import DingDingAPI
+    tousers = [
+        '02401336675559',  # 伍磊
+    ]
+    msg = '定时检查boutique product数据:\n时间:%s\n订单状态错误:%s' % \
+          (str(datetime.datetime.now()), str(wrong_trades))
+    dd = DingDingAPI()
+    for touser in tousers:
+        dd.sendMsg(msg, touser)
