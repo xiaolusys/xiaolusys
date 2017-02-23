@@ -1556,7 +1556,12 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_schedule_check_user_budget'}
     },
-
+    u'定时检查用户支付和订单不一致问题': {
+        'task': 'flashsale.pay.tasks.task_schedule_check_trades_and_budget',
+        'schedule': crontab(minute="0", hour="8"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_schedule_check_trades_and_budget'}
+    },
 }
 
 STATISTIC_SCHEDULE = {
