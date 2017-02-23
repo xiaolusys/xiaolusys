@@ -1040,12 +1040,16 @@ def task_schedule_check_boutique_modelproduct(days=1):
     from flashsale.coupon.models.coupon_template import CouponTemplate
     templates_qs = CouponTemplate.objects.filter(coupon_type=CouponTemplate.TYPE_TRANSFER).only('extras')
     modelproduct_ids = []
+    product_ids = []
     for template in templates_qs:
-        modelproduct_ids.append(template.extras.get('product_model_id'))
+        # modelproduct_ids.append(template.extras.get('product_model_id'))
+        if template.extras.has_key('scopes') and template.extras['scopes'].has_key('product_ids'):
+            product_ids.extend(template.extras['scopes'].get('product_ids').split(','))
 
     from flashsale.pay.models import ModelProduct
     from flashsale.pay.apis.v1.product import get_boutique_goods, get_virtual_modelproducts
     from apis.v1.products import ModelProductCtl
+    from shopback.apis.v1.product import get_product_by_id
     queryset = get_boutique_goods().filter(id__in=modelproduct_ids)
     ids = [i['id'] for i in queryset.values('id')]
     queryset = ModelProductCtl.multiple(ids=ids)
@@ -1072,6 +1076,10 @@ def task_schedule_check_boutique_modelproduct(days=1):
             wrong_product.append(mp.id)
 
     # 反向检查，有些商品忘记或错误设置了精品汇标志
+    for product_id in product_ids:
+        product = get_product_by_id(product_id)
+        if product:
+            modelproduct_ids.append(product.model_id)
     boutique_queryet = ModelProduct.objects.filter(
         id__in=modelproduct_ids,
         product_type=ModelProduct.USUAL_TYPE,
@@ -1115,11 +1123,6 @@ def task_schedule_check_boutique_modelproduct(days=1):
             elif not (mp.extras['saleinfos'].has_key('is_coupon_deny') and
                     mp.extras['saleinfos']['is_coupon_deny'] == True):
                 right = False
-        # 还要检查哪些券的outid不是rmb开头
-        for p in mp.get_products():
-            if not p.outer_id.startswith('RMB'):
-                right = False
-                break
         if (not right) and (mp.id != 25115) and (mp.id != 25339):
             wrong_coupons.append(mp.id)
 

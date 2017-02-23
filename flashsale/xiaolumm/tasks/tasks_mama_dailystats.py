@@ -249,7 +249,9 @@ def task_check_xlmm_exchg_order():
 @app.task()
 def task_check_xlmm_return_exchg_order():
     from flashsale.pay.models.user import BudgetLog
-    exchg_orders = BudgetLog.objects.filter(budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED)
+    start_date_time = datetime.datetime(2017, 2, 22)
+    exchg_orders = BudgetLog.objects.filter(budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED,
+                                            created__gte=start_date_time)
     order_num = 0
     exchg_goods_num = 0
     exchg_goods_payment = 0
@@ -278,7 +280,7 @@ def task_check_xlmm_return_exchg_order():
     res = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_OUT, budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED).aggregate(n=Sum('flow_amount'))
     exchg_budget_sum = res['n'] or 0
     from flashsale.coupon.models.transfer_coupon import CouponTransferRecord
-    trans_records = CouponTransferRecord.objects.filter(transfer_type=CouponTransferRecord.IN_RETURN_GOODS, transfer_status=CouponTransferRecord.DELIVERED)
+    trans_records = CouponTransferRecord.objects.filter(transfer_type=CouponTransferRecord.IN_CANCEL_EXCHG, transfer_status=CouponTransferRecord.DELIVERED)
     trans_num = 0
     for record in trans_records:
         if record.order_no in results:
