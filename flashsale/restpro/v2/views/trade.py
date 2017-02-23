@@ -948,10 +948,28 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             })
             return Response({'code': 5, 'info': u'付款方式有误'})
 
+        logger.info({
+            'message': u'before trade_create:%s' % tuuid,
+            'channel': channel,
+            'user_agent': user_agent,
+            'action': 'trade_create',
+            'action_time': datetime.datetime.now(),
+            'order_no': tuuid,
+            'data': '%s' % content
+        })
         # 创建订单
         try:
             with transaction.atomic():
                 sale_trade, state = self.create_Saletrade(request, content, address, customer, order_type=order_type)
+                logger.info({
+                    'message': u'after create:%s, state=%s,create order' % (tuuid, state),
+                    'channel': channel,
+                    'user_agent': user_agent,
+                    'action': 'trade_create',
+                    'action_time': datetime.datetime.now(),
+                    'order_no': tuuid,
+                    'data': '%s' % content
+                })
                 if state:
                     self.create_Saleorder_By_Shopcart(sale_trade, cart_qs)
         except Exception, exc:
@@ -967,10 +985,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             return Response({'code': 8, 'info': u'订单创建异常'})
 
         logger.info({
-            'message': u'订单创建:%s' % sale_trade.tid,
+            'message': u'shoppingcart_create trade create:%s' % sale_trade.tid,
             'channel': channel,
             'user_agent': user_agent,
-            'action': 'shoppingcart_create trade_create',
+            'action': 'trade_create',
             'action_time': datetime.datetime.now(),
             'order_no': tuuid,
             'data': '%s' % content
