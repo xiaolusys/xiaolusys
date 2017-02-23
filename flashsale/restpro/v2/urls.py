@@ -6,7 +6,7 @@ from rest_framework.urlpatterns import format_suffix_patterns
 
 # 2016-3-2 v2
 from . import views
-from .views.kdn import KdnView
+# from .views.kdn import KdnView
 from flashsale.xiaolumm.views import views_rank, views_message, award, week_rank
 from flashsale.pay.views import teambuy
 from flashsale.restpro.v1 import views_coupon_new
@@ -37,7 +37,7 @@ v2_router.register(r'visitor', views.UniqueVisitorViewSet)
 v2_router.register(r'fans', views.XlmmFansViewSet)
 v2_router.register(r'dailystats', views.DailyStatsViewSet)
 v2_router.register(r'teambuy', teambuy.TeamBuyViewSet)
-v2_router.register(r'express', views.WuliuViewSet)
+# v2_router.register(r'express', views.WuliuViewSet)
 v2_router.register(r'checkin', views.CheckinViewSet)
 v2_router.register(r'qrcode', views.QRcodeViewSet)
 v2_router.register(r'exchgorder', views.CouponExchgOrderViewSet)
@@ -74,7 +74,7 @@ v2_router_urls += format_suffix_patterns([
     url(r'^potential_fans', views.PotentialFansView.as_view()),
     url(r'^request_cashout_verify_code', views.RequestCashoutVerifyCode.as_view()),
     url(r'^administrator', views.xiaolumm.MamaAdministratorViewSet.as_view()),
-    url(r'^kdn', KdnView.as_view()),
+    # url(r'^kdn', KdnView.as_view()),
     url(r'^activate', views.xiaolumm.ActivateMamaView.as_view()),
     url(r'^cashout_to_app', views.xiaolumm.CashOutToAppView.as_view()),
     url(r'^cashout_policy', views.xiaolumm.CashOutPolicyView.as_view()),
