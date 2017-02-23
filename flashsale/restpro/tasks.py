@@ -17,7 +17,7 @@ from flashsale.dinghuo.models_purchase import PurchaseArrangement
 from flashsale.pay.models import SaleRefund
 from shopback.trades.models import TradeWuliu, PackageSkuItem,ReturnWuLiu
 from flashsale.restpro.utils import save_pro_info
-from flashsale.restpro.kdn_wuliu_extra import kdn_subscription,get_reverse_code,kdn_subscription_sub,comfirm_get,get_exp_by_kd100
+# from flashsale.restpro.kdn_wuliu_extra import kdn_subscription,get_reverse_code,kdn_subscription_sub,comfirm_get,get_exp_by_kd100
 from flashsale.restpro import exp_map
 
 
