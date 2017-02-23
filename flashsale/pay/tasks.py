@@ -1077,9 +1077,11 @@ def task_schedule_check_boutique_modelproduct(days=1):
 
     # 反向检查，有些商品忘记或错误设置了精品汇标志
     for product_id in product_ids:
-        product = get_product_by_id(product_id)
+        if product_id:
+            product = get_product_by_id(int(product_id))
         if product:
             modelproduct_ids.append(product.model_id)
+    modelproduct_ids = set(modelproduct_ids)
     boutique_queryet = ModelProduct.objects.filter(
         id__in=modelproduct_ids,
         product_type=ModelProduct.USUAL_TYPE,
