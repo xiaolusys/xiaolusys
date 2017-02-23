@@ -10,7 +10,7 @@ from shopback.items.models.product import Product
 
 def get_product_by_id(id):
     # type: (int) -> Product
-    return Product.objects.get(id=id)
+    return Product.objects.filter(id=id).first()
 
 
 
