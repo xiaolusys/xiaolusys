@@ -175,7 +175,7 @@ class FlashSaleService(LocalService):
         outer_ids = set([o[0] for o in self.trade.normal_orders.values_list('outer_id')])
         if len(outer_ids) == 1 and list(outer_ids)[0].startswith('RMB'):
             return
-        if self.trade.order_type == SaleTrade.SALE_ORDER:
+        if self.trade.order_type == SaleTrade.SALE_ORDER or self.trade.order_type == SaleTrade.ELECTRONIC_GOODS_ORDER:
             return
             ###################################################################
         self.__class__.createMergeTrade(self.trade)
