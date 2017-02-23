@@ -78,3 +78,18 @@ class EliteMamaStatus(BaseModel):
 
     def __unicode__(self):
         return u'<%s,%s>' % (self.mama_id, self.status)
+
+
+class EliteMamaAwardLog(BaseModel):
+
+    customer_id = models.IntegerField(default=0, db_index=True, verbose_name=u"用户编号")
+    mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u"妈妈编号")
+    referal_id = models.CharField(max_length=32, blank=True, verbose_name=u'引用id')
+    remark = models.CharField(max_length=255, blank=True, verbose_name=u'备注')
+
+
+    class Meta:
+        db_table = 'flashsale_xlmm_elitemamaawardlog'
+        app_label = 'xiaolumm'
+        verbose_name = u'精英妈妈奖金记录'
+        verbose_name_plural = u'精英妈妈奖金记录'
