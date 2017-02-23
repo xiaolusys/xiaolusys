@@ -1149,7 +1149,8 @@ def task_schedule_check_trades_and_budget():
     trade_qs = SaleTrade.objects.filter(status__in=[SaleTrade.WAIT_SELLER_SEND_GOODS,
                                                     SaleTrade.WAIT_BUYER_CONFIRM_GOODS,
                                                     SaleTrade.TRADE_BUYER_SIGNED,
-                                                    SaleTrade.TRADE_FINISHED],
+                                                    SaleTrade.TRADE_FINISHED,
+                                                    SaleTrade.TRADE_CLOSED],
                                         created__gte=tf)
 
     # 2.检查零钱支付记录中订单状态是否正常
@@ -1163,7 +1164,8 @@ def task_schedule_check_trades_and_budget():
         if st.status not in [SaleTrade.WAIT_SELLER_SEND_GOODS,
                              SaleTrade.WAIT_BUYER_CONFIRM_GOODS,
                              SaleTrade.TRADE_BUYER_SIGNED,
-                             SaleTrade.TRADE_FINISHED]:
+                             SaleTrade.TRADE_FINISHED,
+                             SaleTrade.TRADE_CLOSED]:
             wrong_trades.append(log.referal_id)
 
     # 3.检查小鹿币支付记录中订单状态是否正常
@@ -1178,7 +1180,8 @@ def task_schedule_check_trades_and_budget():
         if st.status not in [SaleTrade.WAIT_SELLER_SEND_GOODS,
                              SaleTrade.WAIT_BUYER_CONFIRM_GOODS,
                              SaleTrade.TRADE_BUYER_SIGNED,
-                             SaleTrade.TRADE_FINISHED]:
+                             SaleTrade.TRADE_FINISHED,
+                             SaleTrade.TRADE_CLOSED]:
             wrong_trades.append(log.referal_id)
 
     # 4.检查xiaolupay支付记录中订单状态是否正常
