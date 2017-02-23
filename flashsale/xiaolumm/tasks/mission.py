@@ -331,8 +331,9 @@ def task_send_mama_weekly_award(mama_id, mission_record_id):
 @app.task(max_retries=3, default_retry_delay=60)
 def task_cancel_or_finish_mama_mission_award(mission_record_id):
     try:
-        mama_mission = MamaMissionRecord.objects.filter(
-            id=mission_record_id).first()
+        mama_mission = MamaMissionRecord.objects.filter(id=mission_record_id).first()
+        if not mama_mission:
+            return
 
         week_start, week_end = week_range(datetime.datetime.strptime('%s-1'%mama_mission.year_week, '%Y-%W-%w'))
         some_week_finish_value = get_mama_week_sale_amount([mama_mission.mama_id], week_start, week_end)
