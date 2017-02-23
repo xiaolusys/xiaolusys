@@ -13,10 +13,9 @@ from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework.response import Response
 from shopback.trades.models import TradeWuliu
-from flashsale.restpro import wuliu_choice
 import logging
 from shopback.logistics.models import LogisticsCompany
-from flashsale.restpro import kdn_wuliu_extra,exp_map
+from flashsale.restpro import exp_map
 from common.auth import WeAppAuthentication
 from flashsale.restpro import kd100_wuliu
 import json
@@ -202,7 +201,7 @@ class ReturnWuliuViewSet(viewsets.ModelViewSet):
             return Response({"info":"物流单号有误,包含非数字"})
         company_name = exp_map.reverse_map().get(company_code, None)
         if not company_name:
-            company_name = kdn_wuliu_extra.get_logistics_name(company_code)
+            company_name = kd100_wuliu.get_logistics_name(company_code)
         out_sid = packetid
         if company_name:
             logistics_company = company_name
@@ -212,7 +211,7 @@ class ReturnWuliuViewSet(viewsets.ModelViewSet):
             return Response("暂无物流信息")
         company_code = kd100_exp_map.get(str(company_name).strip())
         # 如果我们数据库中记录已经是已签收状态,那么直接返回我们数据库中的物流信息
-        tradewuliu = TradeWuliu.get_tradewuliu(packetid,company_code)
+        tradewuliu = TradeWuliu.get_tradewuliu(packetid)
         if tradewuliu and tradewuliu.status == 3:
             show_data = kd100_wuliu.fomat_wuliu_data_from_db(tradewuliu)
             return Response(show_data)

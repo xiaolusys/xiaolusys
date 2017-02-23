@@ -242,49 +242,50 @@ def get_third_apidata_by_packetid_return(rid,packetid, company_code):   #by huaz
     SaveReturnWuliu_by_packetid.delay(rid,packetid,content)
     return
 
-@app.task()
-def kdn_sub(rid, expName, expNo):
-    logging.warn(expNo)
-    logging.warn("开始订阅了")
-    logger.warn({'action': "kdn", 'info': "kdn_sub_expNo:"+str(expNo)})
-    exp_info = {"expName": expName, "expNo": expNo}
-    kdn_subscription_sub(**exp_info)
+# @app.task()
+# def kdn_sub(rid, expName, expNo):
+#     logging.warn(expNo)
+#     logging.warn("开始订阅了")
+#     logger.warn({'action': "kdn", 'info': "kdn_sub_expNo:"+str(expNo)})
+#     exp_info = {"expName": expName, "expNo": expNo}
+#     kdn_subscription_sub(**exp_info)
 
-@app.task()
-def kdn_search(rid, expName, expNo):
-    logging.warn(expNo)
-    logging.warn("开始查询了")
-    logger.warn({'action': "kdn", 'info': "kdn_search_expNo:"+str(expNo)})
-    exp_info = {"expName": expName, "expNo": expNo}
-    kdn_subscription(**exp_info)
+# @app.task()
+# def kdn_search(rid, expName, expNo):
+#     logging.warn(expNo)
+#     logging.warn("开始查询了")
+#     logger.warn({'action': "kdn", 'info': "kdn_search_expNo:"+str(expNo)})
+#     exp_info = {"expName": expName, "expNo": expNo}
+#     kdn_subscription(**exp_info)
 
-@app.task()
-def kd100_search(expName, expNo):  #expName是拼音
-    logging.warn(expNo)
-    logging.warn("快递100开始查询了")
-    logger.warn({'action': "kd100", 'info': "kd100_search2:" + str(expName) +":"+ str(expNo)})
-    write_info = get_exp_by_kd100(str(expName),expNo)
-    if not write_info:
-        return
-    kdn_get_push(**write_info)
-    time.sleep(2)
+# @app.task()
+# def kd100_search(expName, expNo):  #expName是拼音
+#     logging.warn(expNo)
+#     logging.warn("快递100开始查询了")
+#     logger.warn({'action': "kd100", 'info': "kd100_search2:" + str(expName) +":"+ str(expNo)})
+#     write_info = get_exp_by_kd100(str(expName),expNo)
+#     if not write_info:
+#         return
+#     kdn_get_push(**write_info)
+#     time.sleep(2)
     # if str(expName) in exp_map.kdn_not_support_exp:
     #     write_info = get_exp_by_kd100(str(expName),expNo)
     #     kdn_get_push(**write_info)
-@app.task()
-def kdn_get_push(*args, **kwargs):
-    logger.warn({'action': "kdn", 'info': "kdn_get_push"})
-    tradewuliu = TradeWuliu.objects.filter(out_sid=kwargs['out_sid'])
-    if tradewuliu.first() is None:
-        logger.warn({'action': "kdn", 'info': "tradewuliu_first_is_None:"+kwargs['out_sid']})
-        TradeWuliu.objects.create(**kwargs)
-        if kwargs.get("content"):
-            comfirm_get(kwargs["out_sid"], kwargs["status"])
-    else:
-        if kwargs.get("content"):
-            tradewuliu.update(**kwargs)
-            logger.warn({'action': "kdn", 'info': "tradewuliu_first_update:"+kwargs['out_sid']})
-            comfirm_get(kwargs["out_sid"], kwargs["status"])
+
+# @app.task()
+# def kdn_get_push(*args, **kwargs):
+#     logger.warn({'action': "kdn", 'info': "kdn_get_push"})
+#     tradewuliu = TradeWuliu.objects.filter(out_sid=kwargs['out_sid'])
+#     if tradewuliu.first() is None:
+#         logger.warn({'action': "kdn", 'info': "tradewuliu_first_is_None:"+kwargs['out_sid']})
+#         TradeWuliu.objects.create(**kwargs)
+#         if kwargs.get("content"):
+#             comfirm_get(kwargs["out_sid"], kwargs["status"])
+#     else:
+#         if kwargs.get("content"):
+#             tradewuliu.update(**kwargs)
+#             logger.warn({'action': "kdn", 'info': "tradewuliu_first_update:"+kwargs['out_sid']})
+#             comfirm_get(kwargs["out_sid"], kwargs["status"])
 
 
 @app.task(max_retries=3, default_retry_delay=5)
@@ -332,59 +333,59 @@ def SaveWuliu_by_packetid(packetid, content):
                                       out_sid=content['order'], errcode=content['errcode'],
                                       content=da['content'], time=da['time'])
 
-@app.task(max_retries=3, default_retry_delay=5)  #by huazi
-def SaveReturnWuliu_by_packetid(rid,packetid, content):
-    """
-        用户点击物流信息，进行物流信息存入数据库。
-    """
-    # logger.warn("开始执行准备写入数据库的函数了")
-    wulius = ReturnWuLiu.objects.filter(out_sid=packetid).order_by("-time")
-    datalen = len(content['data'])
-    data = content['data']
-    alread_count = wulius.count()
-    if alread_count >= datalen:  # 已有记录条数大于等于接口给予条数只是更新状态到最后一条记录中
-        if wulius.exists():
-            wuliu = wulius[0]
-            wuliu.status = int(content['status'])
-            wuliu.save()
-            # print "写入成功"
-    else:  # 如果接口数据大于已经存储的条数　则创建　多出来的条目　
-        if wulius.exists():
-            wulius.delete()  # 删除旧数据
-        for da in data:  # 保存新数据
-            ReturnWuLiu.objects.create(tid='', rid=rid,status=content['status'], logistics_company=content['name'],
-                                      out_sid=content['order'], errcode=content['errcode'],
-                                      content=da['content'], time=da['time'])
+# @app.task(max_retries=3, default_retry_delay=5)  #by huazi
+# def SaveReturnWuliu_by_packetid(rid,packetid, content):
+#     """
+#         用户点击物流信息，进行物流信息存入数据库。
+#     """
+#     # logger.warn("开始执行准备写入数据库的函数了")
+#     wulius = ReturnWuLiu.objects.filter(out_sid=packetid).order_by("-time")
+#     datalen = len(content['data'])
+#     data = content['data']
+#     alread_count = wulius.count()
+#     if alread_count >= datalen:  # 已有记录条数大于等于接口给予条数只是更新状态到最后一条记录中
+#         if wulius.exists():
+#             wuliu = wulius[0]
+#             wuliu.status = int(content['status'])
+#             wuliu.save()
+#             # print "写入成功"
+#     else:  # 如果接口数据大于已经存储的条数　则创建　多出来的条目　
+#         if wulius.exists():
+#             wulius.delete()  # 删除旧数据
+#         for da in data:  # 保存新数据
+#             ReturnWuLiu.objects.create(tid='', rid=rid,status=content['status'], logistics_company=content['name'],
+#                                       out_sid=content['order'], errcode=content['errcode'],
+#                                       content=da['content'], time=da['time'])
             # logger.warn("数据库里面有记录更新记录写入成功")
 
 
 #
-@app.task()
-def update_all_logistics():
-    from flashsale.restpro.v1.views_wuliu_new import get_third_apidata_by_packetid
-    sale_trades = SaleTrade.objects.filter(status__in= [SaleTrade.WAIT_SELLER_SEND_GOODS,
-                                                      SaleTrade.WAIT_BUYER_CONFIRM_GOODS])
-    #print 'update_all_logistics %d'%(sale_trades.count())
-    num = 0
-    for t in sale_trades:
-        #print 'get trade_id %s'%(t.tid)
-        if t.tid:
-            psi_queryset = PackageSkuItem.objects.filter(sale_trade_id=t.tid)
-            #print 'psi_queryset count %d'%(psi_queryset.count())
-            if psi_queryset.count() == 0:
-                continue
-            temp_sid = ''
-            for psi in psi_queryset:
-                #print 'get logistics %s %s'%(psi.out_sid, psi.logistics_company_code)
-                if psi.out_sid and psi.logistics_company_code and temp_sid != psi.out_sid:
-                    logger = logging.getLogger(__name__)
-                    logger.warn({"action":"kdn","dingshi_out_sid":psi.out_sid})
-                    num = num+1
-                    kdn_sub(None,psi.logistics_company_name,psi.out_sid)
-                    # get_third_apidata_by_packetid.delay(psi.out_sid, psi.logistics_company_code)
-                    temp_sid = psi.out_sid
-    logger = logging.getLogger(__name__)
-    logger.warn({"action":"kdn",'update_all_logistics_trades':'counts=%d,update_counts=%d' % (sale_trades.count(), num)})
+# @app.task()
+# def update_all_logistics():
+#     from flashsale.restpro.v1.views_wuliu_new import get_third_apidata_by_packetid
+#     sale_trades = SaleTrade.objects.filter(status__in= [SaleTrade.WAIT_SELLER_SEND_GOODS,
+#                                                       SaleTrade.WAIT_BUYER_CONFIRM_GOODS])
+#     #print 'update_all_logistics %d'%(sale_trades.count())
+#     num = 0
+#     for t in sale_trades:
+#         #print 'get trade_id %s'%(t.tid)
+#         if t.tid:
+#             psi_queryset = PackageSkuItem.objects.filter(sale_trade_id=t.tid)
+#             #print 'psi_queryset count %d'%(psi_queryset.count())
+#             if psi_queryset.count() == 0:
+#                 continue
+#             temp_sid = ''
+#             for psi in psi_queryset:
+#                 #print 'get logistics %s %s'%(psi.out_sid, psi.logistics_company_code)
+#                 if psi.out_sid and psi.logistics_company_code and temp_sid != psi.out_sid:
+#                     logger = logging.getLogger(__name__)
+#                     logger.warn({"action":"kdn","dingshi_out_sid":psi.out_sid})
+#                     num = num+1
+#                     kdn_sub(None,psi.logistics_company_name,psi.out_sid)
+#                     # get_third_apidata_by_packetid.delay(psi.out_sid, psi.logistics_company_code)
+#                     temp_sid = psi.out_sid
+#     logger = logging.getLogger(__name__)
+#     logger.warn({"action":"kdn",'update_all_logistics_trades':'counts=%d,update_counts=%d' % (sale_trades.count(), num)})
 
 # @app.task()
 # def update_all_return_logistics():     #by huazi
@@ -409,29 +410,29 @@ def update_all_logistics():
 #                 logging.warn("物流公司express_key%s,物流单号%s" % (company_id.express_key,i.sid))
 #     logger.warn('update_all_return_logistics')
 
-@app.task()
-def update_all_return_logistics_bykdn():
-    from flashsale.restpro.v1.views_wuliu_new import get_third_apidata_by_packetid_return
-    salerefunds = SaleRefund.objects.filter(status__in=[SaleRefund.REFUND_WAIT_RETURN_GOODS,
-                                                        SaleRefund.REFUND_CONFIRM_GOODS])
-    from shopback.logistics.models import LogisticsCompany
-    # logger.warn(len(salerefunds))
-    for i in salerefunds:
-        # logger.warn('遍历salerefunds')
-        if i.company_name:
-            company_id = LogisticsCompany.objects.filter(name=i.company_name).first()
-            if not company_id:
-                lc = LogisticsCompany.objects.values("name")
-                head = i.company_name.encode('gb2312').decode('gb2312')[0:2].encode('utf-8')
-                sim = [j['name'] for j in lc if j['name'].find(head)!=-1]
-                if len(sim):
-                    company_id = LogisticsCompany.objects.get(name=sim[0])
-            if company_id and i.sid:
-                # logging.warn("物流公司代码和物流单号都存在")
-                logger.warn({"action": "kdn", "return_out_sid": i.sid})
-                kdn_sub(i.id,i.company_name,i.sid)
-                logging.warn("物流公司%s,物流单号%s" % (i.company_name,i.sid))
-    logger.warn('update_all_return_logistics')
+# @app.task()
+# def update_all_return_logistics_bykdn():
+#     from flashsale.restpro.v1.views_wuliu_new import get_third_apidata_by_packetid_return
+#     salerefunds = SaleRefund.objects.filter(status__in=[SaleRefund.REFUND_WAIT_RETURN_GOODS,
+#                                                         SaleRefund.REFUND_CONFIRM_GOODS])
+#     from shopback.logistics.models import LogisticsCompany
+#     # logger.warn(len(salerefunds))
+#     for i in salerefunds:
+#         # logger.warn('遍历salerefunds')
+#         if i.company_name:
+#             company_id = LogisticsCompany.objects.filter(name=i.company_name).first()
+#             if not company_id:
+#                 lc = LogisticsCompany.objects.values("name")
+#                 head = i.company_name.encode('gb2312').decode('gb2312')[0:2].encode('utf-8')
+#                 sim = [j['name'] for j in lc if j['name'].find(head)!=-1]
+#                 if len(sim):
+#                     company_id = LogisticsCompany.objects.get(name=sim[0])
+#             if company_id and i.sid:
+#                 # logging.warn("物流公司代码和物流单号都存在")
+#                 logger.warn({"action": "kdn", "return_out_sid": i.sid})
+#                 kdn_sub(i.id,i.company_name,i.sid)
+#                 logging.warn("物流公司%s,物流单号%s" % (i.company_name,i.sid))
+#     logger.warn('update_all_return_logistics')
 
 @app.task()
 def delete_logistics_three_month_ago():

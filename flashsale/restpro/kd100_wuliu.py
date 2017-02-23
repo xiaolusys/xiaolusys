@@ -118,7 +118,7 @@ def confirm_get_by_state(out_sid,status):
         return
     psi = PackageSkuItem.objects.filter(out_sid=out_sid).first()
     if psi:
-        logger.warn({'action': "kdn", 'info': "confirm_psi_finish_kd100:" + str(out_sid)})
+        logger.warn({'action': "kd100", 'info': "confirm_psi_finish_kd100:" + str(out_sid)})
         psi.set_status_finish()
 
     packageskuitem = PackageSkuItem.objects.filter(out_sid=out_sid).values("oid")
@@ -127,11 +127,27 @@ def confirm_get_by_state(out_sid,status):
         so = SaleOrder.objects.filter(oid__in=packageskuitem, status=SaleOrder.WAIT_BUYER_CONFIRM_GOODS)
         if so:
             for i in so:
-                logger.warn({'action': "kdn", 'info': "confirm_sign_order_kd100:" + str(out_sid)})
+                logger.warn({'action': "kd100", 'info': "confirm_sign_order_kd100:" + str(out_sid)})
                 i.confirm_sign_order()
                 from core.options import log_action, CHANGE, ADDITION, get_systemoa_user
                 sys_oa = get_systemoa_user()
                 log_action(sys_oa, i, CHANGE, u'confirm_sign_order_kd100')
+
+
+def get_logistics_name(company_code):
+    try:
+        company_code = int(company_code)
+        lc = LogisticsCompany.objects.filter(id=int(company_code)).first()
+        if lc is None:
+            return lc
+        else:
+            return lc.name
+    except:
+        lc = LogisticsCompany.objects.filter(code=company_code).first()
+        if lc is None:
+            return lc
+        else:
+            return lc.name
 
 
 

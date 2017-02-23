@@ -22,10 +22,9 @@ from rest_framework.response import Response
 import logging
 import  json
 import datetime
-from flashsale.restpro import kdn_wuliu_extra
 from shopback.trades.models import TradeWuliu
 from flashsale.restpro import exp_map
-from flashsale.restpro import wuliu_choice,kd100_wuliu
+from flashsale.restpro import kd100_wuliu
 from shopback.logistics.models import LogisticsCompany
 logger = logging.getLogger(__name__)
 
