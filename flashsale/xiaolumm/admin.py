@@ -7,6 +7,7 @@ from core.filters import DateFieldListFilter
 from core.options import log_action, CHANGE
 from flashsale.clickcount.models import ClickCount
 from flashsale.clickrebeta.models import StatisticsShoppingByDay, StatisticsShopping
+from flashsale.xiaolumm.models.elite_mama import EliteMamaAwardLog
 
 from .models.message import XlmmMessage, XlmmMessageRel
 from .models.models_advertis import MamaVebViewConf
@@ -946,6 +947,14 @@ class XiaoluCoinLogAdmin(admin.ModelAdmin):
     search_fields = ('=mama_id', '=referal_id')
 
 admin.site.register(XiaoluCoinLog, XiaoluCoinLogAdmin)
+
+
+class EliteMamaAwardLogAdmin(admin.ModelAdmin):
+    list_display = ('id', 'customer_id', 'mama_id', 'status', 'referal_id', 'remark', 'created')
+    list_filter = ('created', 'status')
+    search_fields = ('=customer_id', '=mama_id')
+
+admin.site.register(EliteMamaAwardLog, EliteMamaAwardLogAdmin)
 
 
 
