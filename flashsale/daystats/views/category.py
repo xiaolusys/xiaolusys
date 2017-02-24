@@ -1,6 +1,7 @@
 # coding: utf8
 from __future__ import absolute_import, unicode_literals
 
+import copy
 import datetime
 from collections import defaultdict
 from django.db.models import F, Q, Sum, Count
@@ -37,19 +38,19 @@ class CategoryStatViewSet(viewsets.GenericViewSet):
 
     def recurse_calc_serial_data(self, node, node_maps, cat_maps):
         copy_node = node.copy()
-        cat_id  = copy_node['id']
+        cat_id    = copy_node['id']
         child_nodes = node_maps.get(cat_id)
         copy_node.setdefault('children', [])
-        serial_data = DEFAULT_DELIVERY_TPL.copy()
+        serial_data = copy.deepcopy(DEFAULT_DELIVERY_TPL)
         serial_data.update(cat_maps.get(cat_id, {}))
         copy_node['serial_data'] = serial_data
         if not child_nodes:
             return copy_node
 
         for child_node in child_nodes:
-            child_node = self.recurse_calc_serial_data(child_node, node_maps, cat_maps)
-            copy_node['children'].append(child_node)
-            for k, v in child_node['serial_data'].iteritems():
+            sub_node = self.recurse_calc_serial_data(child_node, node_maps, cat_maps)
+            copy_node['children'].append(sub_node)
+            for k, v in sub_node['serial_data'].iteritems():
                 copy_node['serial_data'][k]['post_num'] += v['post_num']
                 copy_node['serial_data'][k]['wait_num'] += v['wait_num']
         return copy_node
@@ -63,7 +64,7 @@ class CategoryStatViewSet(viewsets.GenericViewSet):
         end_date   = data.get('end_date') and parse_str2date(data.get('end_date')) or datetime.date.today()
 
         delivery_qs = DailySkuDeliveryStat.objects.filter(stat_date__range=(start_date, end_date))
-        delivery_skuids = delivery_qs.values_list('sku_id', flat=True)
+        delivery_skuids = list(delivery_qs.values_list('sku_id', flat=True))
         sku_category_maps = ProductSku.objects.get_sku_and_category_id_maps(delivery_skuids)
 
         post_stats = delivery_qs.values('sku_id','days').annotate(Sum('post_num')).values_list('sku_id', 'days', 'post_num__sum')
@@ -73,7 +74,8 @@ class CategoryStatViewSet(viewsets.GenericViewSet):
         for sku_id, days, num in post_stats:
             stat_days = days >= 6 and 'inf' or str(days + 1)
             cat_id    = sku_category_maps.get(sku_id)
-            cat_stat  = category_delivery_maps.get(cat_id, {})
+            category_delivery_maps.setdefault(cat_id, copy.deepcopy(DEFAULT_DELIVERY_TPL))
+            cat_stat  = category_delivery_maps.get(cat_id)
             if not cat_stat:
                 category_delivery_maps[cat_id][stat_days] = {'post_num': num, 'wait_num': 0}
             else:
@@ -82,22 +84,25 @@ class CategoryStatViewSet(viewsets.GenericViewSet):
         for sku_id, days, num in wait_stats:
             stat_days = days >= 6 and 'inf' or str(days + 1)
             cat_id = sku_category_maps.get(sku_id)
-            cat_stat = category_delivery_maps.get(cat_id, {})
+            category_delivery_maps.setdefault(cat_id, copy.deepcopy(DEFAULT_DELIVERY_TPL))
+            cat_stat = category_delivery_maps.get(cat_id)
             if not cat_stat:
                 category_delivery_maps[cat_id][stat_days] = {'post_num': 0, 'wait_num': num}
             else:
                 category_delivery_maps[cat_id][stat_days]['wait_num'] += num
 
         districts = SaleCategory.objects.order_by('parent_cid', 'sort_order')
-        districts_values = districts.values('id', 'parent_cid', 'name')
+        districts_values = districts.values('id', 'cid', 'parent_cid', 'name')
+        cid_id_maps = dict([(v['cid'], v['id']) for v in districts_values])
 
         category_node_maps = defaultdict(list)
         for district in districts_values:
-            parent_id = int(district['parent_cid'].split('-')[-1])
+            parent_id = cid_id_maps.get(district['parent_cid'], 0)
+            print parent_id, type(parent_id)
             category_node_maps[parent_id].append(district)
 
         category_serial_data = self.recurse_calc_serial_data(
-            {'id':0, 'name':'全部类目' }, category_node_maps, category_delivery_maps)
+            {'id': 0, 'name':'全部类目' }, category_node_maps, category_delivery_maps)
 
         return Response({
                 'start_date': start_date.strftime('%Y-%m-%d'),

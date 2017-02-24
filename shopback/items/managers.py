@@ -10,6 +10,9 @@ from core.managers import BaseManager
 class ProductSkuMananger(BaseManager):
 
     def get_sku_and_category_id_maps(self, sku_id_list):
+        if not sku_id_list:
+            return {}
+
         sql = """
             SELECT
                 sku.id, fp.salecategory_id
@@ -20,10 +23,10 @@ class ProductSkuMananger(BaseManager):
                     LEFT JOIN
                 flashsale_modelproduct fp ON sp.model_id = fp.id
             WHERE
-                sku.id IN (%s);
+                sku.id IN %s;
         """
         with connection.cursor() as cursor:
-            cursor.execute(sql, [','.join(map(str, sku_id_list))])
+            cursor.execute(sql, [sku_id_list])
             serial_data = cursor.fetchall()
         return dict(serial_data)
 
@@ -34,7 +37,7 @@ class ProductManager(BaseManager):
         try:
             return self.get(outer_id=outer_id)
         except self.model.DoesNotExist:
-            None
+            return None
 
     def getProductByBarcode(self, barcode):
 
