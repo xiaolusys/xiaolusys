@@ -1174,6 +1174,11 @@ def task_schedule_check_trades_and_budget():
                                              created__gte=tf)
 
     for log in coin_logs:
+        refund_log = XiaoluCoinLog.objects.filter(iro_type=XiaoluCoinLog.IN, subject=XiaoluCoinLog.REFUND,
+                                                  referal_id=log.referal_id, created__gte=tf).first()
+        if refund_log:
+            continue
+
         st = SaleTrade.objects.filter(id=int(log.referal_id)).first()
         if not st:
             wrong_trades.append(log.referal_id)
