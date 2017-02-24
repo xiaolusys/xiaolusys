@@ -1,4 +1,5 @@
 # -*- coding:utf8 -*-
+import re
 import time
 import datetime
 import django_filters
@@ -20,6 +21,7 @@ from rest_framework import filters
 from django_filters import Filter
 from django_filters.fields import Lookup
 from core.options import get_systemoa_user, log_action
+from core.utils.regex import REGEX_LINK
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 from shopback.items.models import Product
@@ -387,14 +389,16 @@ class SaleProductViewSet(viewsets.ModelViewSet):
         instance.set_special_fields_by_skuextras()
 
     def create(self, request, *args, **kwargs):
-        product_link = request.data.get('product_link')
+        product_link = request.data.get('product_link','').strip()
         outer_id  = product_link and hashlib.md5(product_link).hexdigest() or 'OO%d' % time.time()
         request.data.update({
             'outer_id': outer_id,
             'contactor': request.user.id,
             'status': SaleProduct.PASSED
         })
-        if product_link and str(product_link).strip() and self.queryset.filter(outer_id=outer_id).exists():
+        if not re.compile(REGEX_LINK, re.IGNORECASE):
+            raise exceptions.APIException(u'输入链接不合法【请参考: https://www.hao123.com/main.html 】')
+        if product_link and self.queryset.filter(outer_id=outer_id).exists():
             raise exceptions.APIException(u'该款已经录入了[如果要录入多份，请在图片链接尾部加上标注如："#标注1"]!')
         salesupplier_id = request.data.get('sale_supplier')
         salesupplier  = SaleSupplier.objects.get(id=salesupplier_id)
