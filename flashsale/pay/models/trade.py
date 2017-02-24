@@ -467,12 +467,6 @@ class SaleTrade(BaseModel):
                     'action_time': datetime.datetime.now()
                 })
 
-            logger.info({
-                'action': 'trade_confirm_commit',
-                'order_no': self.tid,
-                'action_time': datetime.datetime.now()
-            })
-
             for order in self.sale_orders.all():
                 if order.is_deposit() and order.status == SaleTrade.WAIT_SELLER_SEND_GOODS:
                     order.status = SaleTrade.TRADE_FINISHED
@@ -488,6 +482,11 @@ class SaleTrade(BaseModel):
             })
             raise exc
 
+        logger.info({
+            'action': 'trade_confirm_commit',
+            'order_no': self.tid,
+            'action_time': datetime.datetime.now()
+        })
         # 下面2个函数操作不适合放在transaction里面，这2个函数一个是信号处理，一个是包裹处理，逻辑处理多
         st = SaleTrade.objects.get(id=self.id)
         st.confirm_payment()
