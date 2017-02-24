@@ -1540,7 +1540,7 @@ SHOP_APP_SCHEDULE = {
     },
     u'定时统计小鹿妈妈精品积分': {
         'task': 'flashsale.xiaolumm.tasks.tasks_mama_dailystats.task_calc_all_xlmm_elite_score',
-        'schedule': crontab(minute="00", hour='23'),
+        'schedule': crontab(minute="00", hour='03'),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },

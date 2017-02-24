@@ -425,7 +425,7 @@ class SaleTrade(BaseModel):
             'order_no': self.tid,
             'charge': charge,
             'pay_time': charge_time,
-            'status': self.get_status_display(),
+            'status': self.status,
             'action_time': datetime.datetime.now()
         })
         try:
@@ -435,7 +435,7 @@ class SaleTrade(BaseModel):
                     logger.info({
                         'action': 'trade_confirm_exit',
                         'order_no': self.tid,
-                        'status': self.get_status_display(),
+                        'status': self.status,
                         'action_time': datetime.datetime.now()
                     })
                     return
@@ -463,7 +463,7 @@ class SaleTrade(BaseModel):
                 logger.info({
                     'action': 'trade_confirm_save',
                     'order_no': self.tid,
-                    'status': self.get_status_display(),
+                    'status': self.status,
                     'action_time': datetime.datetime.now()
                 })
 

@@ -137,10 +137,12 @@ class UserCoupon(BaseModel):
         return self._coupon_customer_
 
     def is_transfer_coupon(self):
-        from .coupon_template import CouponTemplate
+        # from .coupon_template import CouponTemplate
+        #
+        # ct = CouponTemplate.objects.filter(id=self.template_id).first()
+        # return ct and ct.coupon_type == CouponTemplate.TYPE_TRANSFER
 
-        ct = CouponTemplate.objects.filter(id=self.template_id).first()
-        return ct and ct.coupon_type == CouponTemplate.TYPE_TRANSFER
+        return self.coupon_type == UserCoupon.TYPE_TRANSFER
 
     @property
     def is_gift_transfer_coupon(self):
