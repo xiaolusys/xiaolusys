@@ -696,6 +696,19 @@ class XiaoluMama(BaseModel):
         ship = ReferalRelationship.objects.filter(referal_to_mama_id=self.id).first()
         return ship
 
+    def get_referal_from_mama(self):
+        """
+        获取上级妈妈
+        """
+        from .models_fortune import ReferalRelationship
+
+        r = ReferalRelationship.objects.filter(referal_to_mama_id=self.id).first()
+        if r:
+            referal_from_mama_id = r.referal_from_mama_id
+            if referal_from_mama_id:
+                return XiaoluMama.objects.filter(id=referal_from_mama_id).first()
+        return None
+
     def get_parent_mama_ids(self):
         res = []
         parent = self.get_refer_to_relationships()

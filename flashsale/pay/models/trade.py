@@ -851,6 +851,84 @@ def update_customer_first_paytime(sender, obj, **kwargs):
 signal_saletrade_pay_confirm.connect(update_customer_first_paytime, sender=SaleTrade)
 
 
+def buy_boutique_register_product(sender, obj, **kwargs):
+    """
+    购买小鹿全球精品会员注册礼包
+    """
+    from flashsale.coupon.apis.v1.transfer import create_new_elite_mama
+    from flashsale.coupon.apis.v1.transfer import create_present_elite_score
+    from flashsale.coupon.apis.v1.coupontemplate import get_coupon_template_by_id
+    from flashsale.pay.models import Envelop
+    from shopapp.weixin.models import WeixinUnionID
+    from flashsale.xiaolumm.models.elite_mama import EliteMamaAwardLog
+
+    def create_envelop(customer, flow_amount, referal_id=''):
+        wx_union = WeixinUnionID.objects.get(app_key=settings.WX_PUB_APPID, unionid=customer.unionid)
+        recipient = wx_union.openid
+        body = u'小鹿全球精品会员注册礼包'
+        Envelop.objects.create(
+            amount=flow_amount,
+            platform=Envelop.WXPUB,
+            recipient=recipient,
+            subject=Envelop.XLAPP_CASHOUT,
+            body=body,
+            receiver=customer.mobile,
+            description=u'购买小鹿全球精品会员注册礼包',
+            referal_id=referal_id
+        )
+
+    def do(customer, saleorder):
+        mama = customer.get_xiaolumm()
+
+        # 生成推荐关系
+        create_new_elite_mama(customer, mama, saleorder)
+
+        # 给推荐人5积分,30红包
+        level_1_mama = mama.get_referal_from_mama()
+        if not level_1_mama:
+            return
+
+        level_1_customer = level_1_mama.get_mama_customer()
+        elite_score = 5
+        template = get_coupon_template_by_id(id=374)
+        create_present_elite_score(level_1_customer, elite_score, template, '')
+        create_envelop(level_1_customer, 3000, referal_id=saleorder.oid)
+
+        # 推荐人上级积分>30,发10元红包
+        level_2_mama = level_1_mama.get_referal_from_mama()
+        if not level_2_mama:
+            return
+
+        if level_2_mama.elite_score > 30:
+            level_2_customer = level_2_mama.get_mama_customer()
+            create_envelop(level_2_customer, 1000, referal_id=saleorder.oid)
+
+        # 推荐人上上级积分>60,记录奖励一次
+        level_3_mama = level_2_mama.get_referal_from_mama()
+        if level_3_mama and level_3_mama.elite_score > 60:
+            level_3_customer = level_3_mama.get_mama_customer()
+            EliteMamaAwardLog.objects.create(
+                customer_id=level_3_customer.id,
+                mama_id=level_3_mama.id,
+                referal_id='saleorder-{}'.format(saleorder.oid),
+                remark=u'妈妈{}购买小鹿全球精品会员注册礼包'.format(mama.id)
+            )
+
+    try:
+        saletrade = obj
+        customer = saletrade.order_buyer
+        saleorders = saletrade.sale_orders.all()
+        for order in saleorders:
+            model_id = order.item_product.model_id
+            if model_id == 25514:
+                do(customer, order)
+                break
+    except Exception, exc:
+        logger.error(exc.message, exc_info=True)
+
+signal_saletrade_pay_confirm.connect(buy_boutique_register_product, sender=SaleTrade)
+
+
 def update_skustock_paid_num(sender, obj, **kwargs):
     """
     订单支付后，更新skustock
