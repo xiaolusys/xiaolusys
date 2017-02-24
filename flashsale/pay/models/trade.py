@@ -907,7 +907,7 @@ def buy_boutique_register_product(sender, obj, **kwargs):
                 mama_id=level_3_mama.id,
                 referal_id='saleorder-{}'.format(saleorder.oid),
                 remark=u'妈妈{}购买小鹿全球精品会员注册礼包'.format(mama.id)
-             )
+            )
 
     try:
         saletrade = obj
