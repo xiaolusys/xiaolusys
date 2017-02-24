@@ -86,7 +86,7 @@ class WuliuViewSet(viewsets.ModelViewSet):
                 logger.warn({'action': "kdn100_no_code", 'info': "out_sid:" + str(packetid) + "company_code:" + company_code})
         # 如果我们数据库中记录已经是已签收状态,那么直接返回我们数据库中的物流信息
         tradewuliu = TradeWuliu.get_tradewuliu(packetid)
-        if tradewuliu and tradewuliu.status == 3:
+        if tradewuliu and tradewuliu.status == 3 and tradewuliu.logistics_company != "auexpress":
             kd100_wuliu.confirm_get_by_state(tradewuliu.out_sid,tradewuliu.status)
             show_data = kd100_wuliu.fomat_wuliu_data_from_db(tradewuliu)
             return Response(show_data)
