@@ -17,7 +17,6 @@ class NormalSaleOrderManager(BaseManager):
 
     def active_orders(self):
         """ 包含已付款,或者已经换货生成的订单(不包含被换货的订单,包含退款订单) """
-        queryset = self.get_queryset()
-        return queryset.filter(pay_time__isnull=False)\
+        return self.filter(pay_time__isnull=False)\
             .exclude(status__in=self.model.NOPAYMENT_STATUS)
 

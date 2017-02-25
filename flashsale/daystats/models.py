@@ -167,6 +167,8 @@ class DailyBoutiqueStat(BaseModel):
 
     sku_stats = JSONCharMyField(max_length=2048, default=[], blank=False, verbose_name=u"规格统计")
 
+    # TODO@MENTION　需要补充券销售额, 退券金额
+
     class Meta:
         db_table = 'flashsale_daily_boutique_stat'
         unique_together = ['model_id', 'stat_date']

@@ -2,9 +2,11 @@
 from __future__ import absolute_import, unicode_literals
 
 import datetime
-from django.db.models import Sum, F
+from django.db.models import Sum, F, Q
 
 from shopmanager import celery_app as app
+
+from core.utils.timeutils import day_range
 
 from flashsale.pay.models import SaleOrder, SaleRefund, ModelProduct
 from flashsale.coupon.models import CouponTemplate, UserCoupon
@@ -104,6 +106,7 @@ def task_boutique_sale_and_refund_stats(stat_date, modelproduct_id):
 
 
 def fresh_coupontemplate_extras_modelproduct_ids():
+    """ 更新精品券模板款式商品ID参数 """
     cptls = CouponTemplate.objects.filter(coupon_type=CouponTemplate.TYPE_TRANSFER)
     for cpt in cptls:
         model_id = cpt.extras['scopes'].get('modelproduct_ids')
@@ -124,16 +127,22 @@ def fresh_coupontemplate_extras_modelproduct_ids():
 
 @app.task
 def task_all_boutique_stats():
-    """ 批量精品汇商品每日数据统计 """
+    """ 统计所有精品汇商品以及系统中有销量的商品 """
 
     fresh_coupontemplate_extras_modelproduct_ids()
+    yesterday = datetime.datetime.today() - datetime.timedelta(days=1)
+
+    product_ids = SaleOrder.objects.active_orders().filter(
+        pay_time__range=day_range(yesterday)
+    ).values_list('item_id', flat=True)
+
+    model_ids = list(Product.objects.filter(id__in=list(product_ids)).values_list('model_id', flat=True))
 
     boutique_products = ModelProduct.objects.filter(
-        is_boutique=True,
-        status=ModelProduct.NORMAL,
+        Q(id__in=model_ids)|Q(is_boutique=True, status=ModelProduct.NORMAL),
         product_type=ModelProduct.USUAL_TYPE
     )
-    yesterday = datetime.datetime.today() - datetime.timedelta(days=1)
+
     for mp in boutique_products.iterator():
         task_boutique_sale_and_refund_stats.delay(yesterday, mp.id)
 
