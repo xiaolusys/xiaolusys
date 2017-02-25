@@ -101,3 +101,9 @@ class XlmmFansManager(BaseManager):
                             fans_thumbnail=current_cu.thumbnail)
                 self.record_fans_num(fans.xlmm, fans.xlmm_cusid)
         return
+
+
+class NinePicAdverManager(BaseManager):
+
+    def filter_by_modelproduct(self, model_id):
+        return self.filter(detail_modelids__regex=r'(,|^)\s*%s\s*(,|$)' % model_id)

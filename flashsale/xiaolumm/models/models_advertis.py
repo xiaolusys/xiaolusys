@@ -10,6 +10,7 @@ from core.models import BaseModel
 
 from core.fields import JSONCharMyField
 from django.db.models.signals import post_save
+from .. import managers
 
 
 class XlmmAdvertis(models.Model):
@@ -81,14 +82,16 @@ class NinePicAdver(models.Model):
     cate_gory = models.IntegerField(choices=CATEGORY_CHOICE, default=Nine_PIC, verbose_name=u"类型")
     sale_category = models.ForeignKey('supplier.SaleCategory', null=True, verbose_name=u'类别')
     pic_arry = JSONCharMyField(max_length=2048, default=[], blank=True, null=True, verbose_name=u'图片链接')
-    start_time = models.DateTimeField(null=True, blank=True, verbose_name=u'开始时间')
-    turns_num = models.IntegerField(verbose_name=u'轮数(第几轮)')
+    start_time = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name=u'开始时间')
+    turns_num = models.IntegerField(db_index=True, verbose_name=u'轮数(第几轮)')
     is_pushed = models.BooleanField(default=False, verbose_name=u'是否已经推送')
     detail_modelids = models.CharField(max_length=128, blank=True, null=True, verbose_name=u'详情页款式id')
     redirect_url = models.CharField(max_length=512, blank=True, null=True, verbose_name=u'跳转地址')
     save_times = models.IntegerField(default=0, verbose_name=u'保存次数')
     share_times = models.IntegerField(default=0, verbose_name=u'分享次数')
     memo = models.CharField(max_length=512, blank=True, verbose_name=u'备注')
+
+    objects = managers.NinePicAdverManager()
 
     class Meta:
         db_table = 'flashsale_xlmm_nine_pic'

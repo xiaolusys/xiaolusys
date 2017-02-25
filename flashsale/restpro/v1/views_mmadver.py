@@ -67,6 +67,8 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
     ### 特卖平台－九张图API:
     - {prefix}[.format] method:get : 获取九张图
     `could_share`: 标记当前的九张图记录是否可以用来分享
+    - page_list :获取特卖推广文案列表(分页支持，截止当前时间已发布的所有推送)
+      - model_id: 款式ID(可选)
     """
     queryset = NinePicAdver.objects.all()
     serializer_class = serializers.NinePicAdverSerialize
@@ -76,12 +78,15 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
     ordering_fields = '__all__'
     filter_class = NinePicAdverFilter
 
+    paginate_by = 10
+    page_query_param = 'page'
+    paginate_by_param = 'page_size'
+
     def get_today_queryset(self, queryset):
         yesetoday = datetime.date.today() - datetime.timedelta(days=1)
-        tomorrow = datetime.date.today() + datetime.timedelta(days=1)
+        # tomorrow = datetime.date.today() + datetime.timedelta(days=1)
         now = datetime.datetime.now()
-        queryset = queryset.filter(start_time__gte=yesetoday,
-                                   start_time__lt=tomorrow).filter(start_time__lt=now)
+        queryset = queryset.filter(start_time__range=(yesetoday, now))
         return queryset
 
     def get_xlmm(self):
@@ -111,7 +116,7 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         xlmm = self.get_xlmm()
         queryset = self.get_today_queryset(self.get_queryset())
-        if request.data.get('ordering') is None:
+        if request.GET.get('ordering') is None:
             queryset = queryset.order_by('-start_time', '-turns_num')
         queryset = self.filter_queryset(queryset)
         serializer = self.get_serializer(queryset, many=True)
@@ -120,6 +125,32 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
             statsd.incr('xiaolumm.ninepic_count')
             task_mama_daily_tab_visit_stats.delay(xlmm.id, MamaTabVisitStats.TAB_DAILY_NINEPIC)
         return Response(serializer.data)
+
+    @list_route(methods=['get'])
+    def page_list(self, request, *args, **kwargs):
+        request_data = request.GET
+        # start_time before now
+        now_dt = datetime.datetime.now()
+        queryset = NinePicAdver.objects
+
+        if request_data.get('model_id'):
+            queryset = queryset.filter_by_modelproduct(request_data.get('model_id'))
+
+        if request_data.get('ordering') is None:
+            queryset = queryset.order_by('-start_time', '-turns_num')
+
+        queryset = queryset.filter(start_time__lte=now_dt)
+        queryset = self.filter_queryset(queryset)
+        pagin_query = self.paginate_queryset(queryset)
+
+        serializer = self.get_serializer(pagin_query, many=True)
+        response = self.get_paginated_response(serializer.data)
+        # 统计代码
+        xlmm = self.get_xlmm()
+        if xlmm:
+            statsd.incr('xiaolumm.ninepic_count')
+            task_mama_daily_tab_visit_stats.delay(xlmm.id, MamaTabVisitStats.TAB_DAILY_NINEPIC)
+        return response
 
     @transaction.atomic()
     def update(self, request, *args, **kwargs):
