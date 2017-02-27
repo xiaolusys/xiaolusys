@@ -492,14 +492,14 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                 sale_order = SaleOrder.objects.filter(oid=entry.uni_key).first()
                 if not sale_order:
                     continue
-                if sale_order and sale_order.extras.has_key('exchange') and (sale_order.extras['exchange'] == True):
-                    buyer_customer = Customer.objects.normal_customer.filter(id=sale_order.buyer_id).first()
-                    results.append({'exchg_template_id': entry.template_id,
-                                    'num': entry.coupon_num,
-                                    'order_id': entry.uni_key, 'sku_img': sale_order.pic_path, 'sku_name': sale_order.title,
-                                    'contributor_nick': buyer_customer.nick, 'status': 2,
-                                    'status_display': u'确定收益',
-                                    'order_value': round(sale_order.payment * 100), 'date_field': entry.created})
+
+                buyer_customer = Customer.objects.normal_customer.filter(id=sale_order.buyer_id).first()
+                results.append({'exchg_template_id': entry.template_id,
+                                'num': entry.coupon_num,
+                                'order_id': entry.uni_key, 'sku_img': sale_order.pic_path, 'sku_name': sale_order.title,
+                                'contributor_nick': buyer_customer.nick, 'status': 2,
+                                'status_display': u'确定收益',
+                                'order_value': round(sale_order.payment * 100), 'date_field': entry.created})
 
         logger.info({
             'message': u'list has exchanged order:result len=%s ' % (len(results)),
