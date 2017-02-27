@@ -17,7 +17,7 @@ def pay_channel_notify(request, channel):
 
     content = request.POST.dict() or request.body
     logger.info({
-        'action': 'notify',
+        'action': 'pay_channel_notify',
         'channel': channel,
         'data': content,
         'action_time': datetime.datetime.now()
