@@ -118,6 +118,9 @@ a.section:link, a.section:visited { color: #666666; }
                 <label class="col-md-1" for="logistics_company">物流公司:</label>
                 <label class="col-md-1" id="logistics_company">{{package_order.logistics_company_name}}</label>
                 <div class="col-md-1" style="float:left"><button type="button" class="btn-mini btn-primary" data-toggle="modal" data-target="#change-logistics-company-modal">修改</button></div>
+                <div class="col-md-1" >
+                    <button id="btn_reset_package_prepare">重设准备发货</button>
+                </div>
                 <label class="col-md-1" for="out_sid">快递单号:</label>
                 <label class="col-md-1" id="out_sid">{{package_order.out_sid}}</label>
                 <label class="col-md-1" for="post_cost">物流成本:</label>
@@ -274,7 +277,7 @@ $(function(){
                 alert(res.responseText);
             }
             });
-            function callback(res) {
+        function callback(res) {
                 dom.removeClass("loading");
                 console.log(res.res);
                 if (res.res) {
@@ -286,10 +289,43 @@ $(function(){
                     alert("卖家备注添加失败")
                 }
             }
+    };
+    function reset_package_prepare(){
+        var dom = $('#btn_reset_package_prepare');
+        if (dom.hasClass("loading")) {
+            return
         }
-
+        var id = $('#pid').val();
+        dom.addClass("loading");
+        var url = "/trades/package_order/change_to_prepare";
+        var data = {"pid": id};
+        $.ajax({
+            "url": url,
+            "data": data,
+            "type": "post",
+            dataType: "json",
+            success: callback,
+            error: function(res){
+                alert(res.responseText);
+            }
+            });
+            function callback(res) {
+                dom.removeClass("loading");
+                console.log(res.res);
+                if (res.res) {
+                    //刷新当前页面
+                    alert("修改成功");
+                    window.location.reload();
+                }
+                else{
+                alert("卖家备注添加失败")
+                }
+            }
+    };
 
     $("#btn_change_logistics_company").click(change_logistics_company);
+
+    $("#btn_reset_package_prepare").click(reset_package_prepare);
 
 });
 </script>
