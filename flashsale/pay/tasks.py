@@ -167,6 +167,7 @@ def task_saleorder_post_update_send_signal(saleorder_id, created, raw):
             'action': 'task_saleorder_post_update_send_signal',
             'action_time': datetime.datetime.now(),
             'order_oid': saleorder.oid,
+            'tid': saleorder.sale_trade.tid,
             'order_status': saleorder.status
         })
 
@@ -181,6 +182,7 @@ def task_saleorder_post_update_send_signal(saleorder_id, created, raw):
             'action': 'task_saleorder_post_update_send_signal_end',
             'action_time': datetime.datetime.now(),
             'order_oid': saleorder.oid,
+            'tid': saleorder.sale_trade.tid,
             'signal_data': '%s'%resp,
         })
     except SaleOrder.DoesNotExist, exc:
@@ -726,34 +728,29 @@ def tasks_set_address_priority_logistics_code(address_id, logistics_company_id):
 
 
 @app.task()
-def tasks_update_sale_trade_status(sale_trade_id):
-    # logger.warn('tasks_update_sale_trade_status check:' + str(sale_trade_id))
+def tasks_update_sale_trade_status(sale_trade_id, tid):
     sale_order_status = [s['status']
                          for s in SaleOrder.objects.filter(
                              sale_trade_id=sale_trade_id).values('status')]
     sale_order_status = list(set(sale_order_status))
-    # if SaleOrder.WAIT_SELLER_SEND_GOODS not in sale_order_status and (SaleOrder.WAIT_BUYER_CONFIRM_GOODS in sale_order_status\
-    #         or SaleOrder.TRADE_BUYER_SIGNED in sale_order_status or SaleOrder.TRADE_FINISHED in sale_order_status):
-    #     logger.warn('tasks_update_sale_trade_status right now:' + str(sale_trade_id))
-    #     SaleTrade.objects.filter(id=sale_trade_id).update(status=SaleTrade.WAIT_BUYER_CONFIRM_GOODS)
 
     #新的逻辑如下,n个saleorder如何影响saletrade状态，付款后已支付》已发货》确认签收》退款关闭》交易成功》交易关闭。
     # 即如果还有1个saleorder处于已支付状态，那么saletrade就是已支付状态；其它状态类似。
 
     if SaleOrder.WAIT_SELLER_SEND_GOODS in sale_order_status:
-        logger.warn('tasks_update_sale_trade_status right now:%s %s' % (sale_trade_id, SaleTrade.WAIT_SELLER_SEND_GOODS))
+        logger.info('tasks_update_sale_trade_status right now:saletrade id=%s tid=%s status=%s' % (sale_trade_id, tid, SaleTrade.WAIT_SELLER_SEND_GOODS))
         SaleTrade.objects.filter(id=sale_trade_id).update(status=SaleTrade.WAIT_SELLER_SEND_GOODS)
     elif SaleOrder.WAIT_BUYER_CONFIRM_GOODS in sale_order_status:
-        logger.warn(
-            'tasks_update_sale_trade_status right now:%s %s' % (sale_trade_id, SaleTrade.WAIT_BUYER_CONFIRM_GOODS))
+        logger.info(
+            'tasks_update_sale_trade_status right now:saletrade id=%s tid=%s status=%s' % (sale_trade_id, tid, SaleTrade.WAIT_BUYER_CONFIRM_GOODS))
         SaleTrade.objects.filter(id=sale_trade_id).update(status=SaleTrade.WAIT_BUYER_CONFIRM_GOODS)
     elif SaleOrder.TRADE_BUYER_SIGNED in sale_order_status:
-        logger.warn(
-            'tasks_update_sale_trade_status right now:%s %s' % (sale_trade_id, SaleTrade.TRADE_BUYER_SIGNED))
+        logger.info(
+            'tasks_update_sale_trade_status right now:saletrade id=%s tid=%s status=%s' % (sale_trade_id, tid, SaleTrade.TRADE_BUYER_SIGNED))
         SaleTrade.objects.filter(id=sale_trade_id).update(status=SaleTrade.TRADE_BUYER_SIGNED)
     elif SaleOrder.TRADE_CLOSED in sale_order_status:
-        logger.warn(
-            'tasks_update_sale_trade_status right now:%s %s' % (sale_trade_id, SaleTrade.TRADE_CLOSED))
+        logger.info(
+            'tasks_update_sale_trade_status right now:saletrade id=%s tid=%s status=%s' % (sale_trade_id, tid, SaleTrade.TRADE_CLOSED))
         SaleTrade.objects.filter(id=sale_trade_id).update(status=SaleTrade.TRADE_CLOSED)
     elif SaleOrder.TRADE_FINISHED in sale_order_status:
         all_finish = True
@@ -762,8 +759,8 @@ def tasks_update_sale_trade_status(sale_trade_id):
                 all_finish = False
                 break
         if all_finish:
-            logger.warn(
-                'tasks_update_sale_trade_status right now:%s %s' % (sale_trade_id, SaleTrade.TRADE_FINISHED))
+            logger.info(
+                'tasks_update_sale_trade_status right now:saletrade id=%s tid=%s status=%s' % (sale_trade_id, tid, SaleTrade.TRADE_FINISHED))
             SaleTrade.objects.filter(id=sale_trade_id).update(status=SaleTrade.TRADE_FINISHED)
     elif SaleOrder.TRADE_CLOSED_BY_SYS in sale_order_status:
         all_finish = True
@@ -772,8 +769,8 @@ def tasks_update_sale_trade_status(sale_trade_id):
                 all_finish = False
                 break
         if all_finish:
-            logger.warn(
-                'tasks_update_sale_trade_status right now:%s %s' % (sale_trade_id, SaleTrade.TRADE_CLOSED_BY_SYS))
+            logger.info(
+                'tasks_update_sale_trade_status right now:saletrade id=%s tid=%s status=%s' % (sale_trade_id, tid, SaleTrade.TRADE_CLOSED_BY_SYS))
             SaleTrade.objects.filter(id=sale_trade_id).update(status=SaleTrade.TRADE_CLOSED_BY_SYS)
 
 
