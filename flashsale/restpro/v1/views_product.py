@@ -195,7 +195,7 @@ class ActivityViewSet(viewsets.ReadOnlyModelViewSet):
             customer = get_object_or_404(Customer, user=request.user.id)
             params.update({'customer': customer})
             mama = customer.get_charged_mama()
-            if mama:
+            if mama and mama.last_renew_type >= XiaoluMama.ELITE:
                 params.update({'mama_id': mama.id})
             else:
                 params.update({'mama_id': 0})
