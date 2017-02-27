@@ -140,8 +140,14 @@ def task_calc_all_sku_amount_stat_by_schedule():
     # calc the last day sku_amount
     task_calc_all_sku_amount_stat_by_date(datetime.date.today() - datetime.timedelta(days=1))
 
+    # calc the three days ago sku_amount
+    task_calc_all_sku_amount_stat_by_date(datetime.date.today() - datetime.timedelta(days=3))
+
     # calc the fifth days ago sku_amount
     task_calc_all_sku_amount_stat_by_date(datetime.date.today() - datetime.timedelta(days=15))
+
+    # calc the thirty days ago sku_amount
+    task_calc_all_sku_amount_stat_by_date(datetime.date.today() - datetime.timedelta(days=30))
 
 
 

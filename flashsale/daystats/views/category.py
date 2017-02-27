@@ -157,23 +157,26 @@ class CategoryStatViewSet(viewsets.GenericViewSet):
         )
 
         #　精品券数量, 库存, 销售数量
-        modelstock_values = skustock_qs.values('model_id').annotate(
+        modelsales_values = skustock_qs.values('model_id').annotate(
             Sum('coupon_sale_num'),
             Sum('coupon_use_num'),
             Sum('coupon_refund_num'),
-            Sum('model_stock_num'),
+            # Sum('model_stock_num'),
             Sum('model_sale_num'),
             Sum('model_refund_num'),
         )
-        modelstock_maps = dict([(s['model_id'], s) for s in modelstock_values ])
+        modelsales_maps = dict([(s['model_id'], s) for s in modelsales_values ])
+
+        modelstock_maps = dict(DailyBoutiqueStat.objects.filter(stat_date=start_date)
+            .values_list('model_id', 'model_stock_num'))
 
         for mvalue in modelamount_values:
             model_id = mvalue['model_id']
-            modelstock_maps[model_id] = modelstock_maps.get(model_id, {})
-            modelstock_maps[model_id].update(mvalue)
+            modelsales_maps[model_id] = modelsales_maps.get(model_id, {})
+            modelsales_maps[model_id].update(mvalue)
 
         category_sales_maps = defaultdict(dict)
-        for mstock in modelstock_maps.iteritems():
+        for mstock in modelsales_maps.iteritems():
             model_id, mvalue = mstock
             mvalue.pop('model_id')
             copy_dict = DEFAULT_SALES_TPL.copy()
@@ -183,6 +186,7 @@ class CategoryStatViewSet(viewsets.GenericViewSet):
             copy_dict['sale_amount'] = (
                 copy_dict.get('direct_payment', 0) + copy_dict.get('coupon_payment', 0)
             )
+            copy_dict['model_stock_num'] = modelstock_maps.get(model_id, 0)
 
             cid = model_category_maps.get(model_id, 0)
             if cid not in category_sales_maps:
