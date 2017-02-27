@@ -63,7 +63,7 @@ class CustomerShopsViewSet(viewsets.ModelViewSet):
             customer = shop.get_customer()
             if customer:
                 xlmm = customer.get_charged_mama()
-                if xlmm:
+                if xlmm and xlmm.last_renew_type >= XiaoluMama.ELITE:
                     mm_linkid = xlmm.id
                     from flashsale.xiaolumm.tasks import task_mama_daily_tab_visit_stats
                     task_mama_daily_tab_visit_stats.delay(xlmm.id, MamaTabVisitStats.TAB_MAMA_SHOP)

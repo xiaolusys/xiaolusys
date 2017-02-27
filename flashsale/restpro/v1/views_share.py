@@ -84,7 +84,7 @@ class CustomShareViewSet(viewsets.ReadOnlyModelViewSet):
                     'share_img': '',
                     'title': '',
                     'desc': '',}
-        xlmm_id = xlmm and xlmm.id or 0
+        xlmm_id = xlmm and xlmm.last_renew_type >= XiaoluMama.ELITE and xlmm.id or 0
         serializer = self.get_serializer(cshare, many=False)
         resp = serializer.data
 
