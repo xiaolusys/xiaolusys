@@ -580,10 +580,14 @@ class ClickLogView(WeixinAuthMixin, View):
 
         if not valid_openid(unionid):
             unionid = get_unionid_by_openid(openid, settings.WX_PUB_APPID)
-        xlmms = XiaoluMama.objects.filter(openid=unionid, status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED)
+        # 2017-2-27 正式的小鹿妈妈为精英妈妈及以上
+        xlmms = XiaoluMama.objects.filter(openid=unionid, status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED,
+                                          last_renew_type__gte=XiaoluMama.ELITE)
         mm_linkid = xlmms.exists() and xlmms[0].id or linkid
 
-        share_url = get_share_url(next_page=next_page, mm_linkid=mm_linkid, ufrom='wx')
+        # 2017-2-27 如果打开链接的人是个小鹿妈妈，以前是会用小鹿妈妈id替换next里面的mamaid，现在不这样做，还是使用原来的linkid
+        # share_url = get_share_url(next_page=next_page, mm_linkid=mm_linkid, ufrom='wx')
+        share_url = get_share_url(next_page=next_page, mm_linkid=linkid, ufrom='wx')
         response = redirect(share_url)
         self.set_cookie_openid_and_unionid(response, openid, unionid)
         response.set_cookie('mm_linkid', linkid, max_age=86400)
