@@ -115,15 +115,21 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         xlmm = self.get_xlmm()
-        queryset = self.get_today_queryset(self.get_queryset())
+        object_id = request.GET.get('id')
+        if object_id:
+            queryset = self.get_queryset().filter(id=object_id)
+        else:
+            queryset = self.get_today_queryset(self.get_queryset())
+
         if request.GET.get('ordering') is None:
             queryset = queryset.order_by('-start_time', '-turns_num')
         queryset = self.filter_queryset(queryset)
         serializer = self.get_serializer(queryset, many=True)
         # 统计代码
-        if xlmm:
+        if not object_id and xlmm:
             statsd.incr('xiaolumm.ninepic_count')
             task_mama_daily_tab_visit_stats.delay(xlmm.id, MamaTabVisitStats.TAB_DAILY_NINEPIC)
+
         return Response(serializer.data)
 
     @list_route(methods=['get'])

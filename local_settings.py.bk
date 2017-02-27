@@ -53,9 +53,9 @@ DATABASES = {
         'NAME': 'xiaoludb',  # Or path to database file if using sqlite3.
         'USER': 'xiaoludev',  # Not used with sqlite3.
         'PASSWORD': 'xxx',  # Not used with sqlite3.
-        'HOST': 'xxx.xiaolumm.com',
+        'HOST': 'xxx.mysql.rds.aliyuncs.com',
         # Set to empty string for localhost. Not used with sqlite3. #192.168.0.28
-        'PORT': '30001',  # Set to empty string for default. Not used with sqlite3.
+        'PORT': '3306',  # Set to empty string for default. Not used with sqlite3.
         'OPTIONS': {
             # 'init_command': 'SET storage_engine=Innodb;',
             'charset': 'utf8',
