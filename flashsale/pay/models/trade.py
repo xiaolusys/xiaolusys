@@ -893,18 +893,18 @@ def buy_boutique_register_product(sender, obj, **kwargs):
         create_present_elite_score(level_1_customer, elite_score, template, '')
         create_envelop(level_1_customer, 3000, referal_id=saleorder.oid)
 
-        # 推荐人上级积分>30,发10元红包
+        # 推荐人上级积分>=30,发10元红包
         level_2_mama = level_1_mama.get_referal_from_mama()
         if not level_2_mama:
             return
 
-        if level_2_mama.elite_score > 30:
+        if level_2_mama.elite_score >= 30:
             level_2_customer = level_2_mama.get_mama_customer()
             create_envelop(level_2_customer, 1000, referal_id=saleorder.oid)
 
-        # 推荐人上上级积分>60,记录奖励一次
+        # 推荐人上上级积分>=60,记录奖励一次
         level_3_mama = level_2_mama.get_referal_from_mama()
-        if level_3_mama and level_3_mama.elite_score > 60:
+        if level_3_mama and level_3_mama.elite_score >= 60:
             level_3_customer = level_3_mama.get_mama_customer()
             EliteMamaAwardLog.objects.create(
                 customer_id=level_3_customer.id,
