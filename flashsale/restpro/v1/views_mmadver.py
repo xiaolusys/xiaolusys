@@ -282,7 +282,6 @@ class NinePicViewSet(viewsets.GenericViewSet):
         return Response(result)
 
 
-
 class MamaVebViewConfFilter(filters.FilterSet):
     class Meta:
         model = MamaVebViewConf
