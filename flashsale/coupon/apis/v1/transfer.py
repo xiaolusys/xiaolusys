@@ -713,6 +713,9 @@ def saleorder_return_coupon_exchange(salerefund, payment):
             else:
                 UserCoupon.objects.filter(uniq_id=coupon.uniq_id).update(status=UserCoupon.UNUSED, trade_tid='',
                                                                          finished_time=datetime.datetime.now())
+            from core.options import log_action, CHANGE, ADDITION, get_systemoa_user
+            sys_oa = get_systemoa_user()
+            log_action(sys_oa, coupon, CHANGE, u'用户退货了上级妈妈扣钱退券 from refundid %s' % (salerefund.id))
             coupon_ids.append(coupon.id)
 
         # (4)在精品券流通记录增加退货退券记录
@@ -731,6 +734,9 @@ def transfer_record_return_coupon_exchange(coupons, transfer_record):
     """
     # 从coupon unikey找到saleorder，再找到ordercarry，再找到上级妈妈，只能这样找，因为买券后可能升级sp了或跳级或换上级，这个订单
     # 还是以前的妈妈兑换的，需要找她来扣除。会不会出现有多个上级妈妈情况，理论上是有可能的，但是概率很低，暂不考虑，有的话就错误提示
+    from core.options import log_action, CHANGE, ADDITION, get_systemoa_user
+    sys_oa = get_systemoa_user()
+
     from flashsale.xiaolumm.models import XiaoluMama, OrderCarry
     return_payment = 0
     exchg_mm_id = 0
@@ -767,8 +773,6 @@ def transfer_record_return_coupon_exchange(coupons, transfer_record):
                     if one_coupon and (one_coupon.status != UserCoupon.UNUSED):
                         one_coupon.status = UserCoupon.UNUSED
                         one_coupon.save()
-                        from core.options import log_action, CHANGE, ADDITION, get_systemoa_user
-                        sys_oa = get_systemoa_user()
                         log_action(sys_oa, one_coupon, CHANGE, u'下级妈妈退券了上级妈妈扣钱退券 from ctrid %s' % (exchg_ctr.id))
 
                         # 注意一次退10张券，可能以前是分2次购买的，那么需要下面生成2条退货记录
@@ -793,11 +797,17 @@ def transfer_record_return_coupon_exchange(coupons, transfer_record):
             SaleOrder.objects.filter(id=sale_order.id).update(extras=sale_order.extras)
 
         # (3)在user钱包写支出 记录
-        from flashsale.pay.models.user import BudgetLog
+        from flashsale.pay.models.user import BudgetLog, UserBudget
         from flashsale.xiaolumm.apis.v1.xiaolumama import get_customer_id_by_mama_id, get_customer_by_mama_id
+        customer = get_customer_by_mama_id(exchg_mm_id)
+        not_enough_budget = False
         if return_payment > 0:
-            customer_id = get_customer_id_by_mama_id(exchg_mm_id)
-            BudgetLog.create(customer_id=customer_id,
+            user_budgets = UserBudget.objects.filter(user=customer)
+            if user_budgets.exists():
+                user_budget = user_budgets[0]
+                if user_budget.amount < round(return_payment * 100):
+                    not_enough_budget = True
+            BudgetLog.create(customer_id=customer.id,
                              budget_type=BudgetLog.BUDGET_OUT,
                              flow_amount=round(return_payment * 100),
                              budget_log_type=BudgetLog.BG_EXCHG_ORDER,
@@ -805,14 +815,24 @@ def transfer_record_return_coupon_exchange(coupons, transfer_record):
                              uni_key='ctr-%s' % transfer_record.id,
                              status=BudgetLog.CONFIRMED)
 
-        # (4)上级妈妈的流通记录也需要添加，同实际订单，也使用退货type
+        # (4)上级妈妈的流通记录也需要添加，同实际订单，也使用cancel exchange type
         from .transfercoupondetail import create_transfer_coupon_detail
-        customer = get_customer_by_mama_id(exchg_mm_id)
+
         for key in dict_coupon_ids:
             sale_order = SaleOrder.objects.filter(id=key).first()
             transfer = CouponTransferRecord.gen_cancel_exchg_record(customer, len(dict_coupon_ids[key]),
                                                                   int(coupons[0].template_id), sale_order.oid)
             create_transfer_coupon_detail(transfer.id, dict_coupon_ids[key])
+            if not_enough_budget and len(dict_coupon_ids[key]) > 0:
+                # 需要冻结还给这个妈妈的券
+                for freeze_coupon_id in dict_coupon_ids[key]:
+                    freeze_coupon = get_user_coupon_by_id(freeze_coupon_id)
+                    extras = freeze_coupon.extras
+                    extras['freeze_type'] = 1
+                    UserCoupon.objects.filter(uniq_id=freeze_coupon.uniq_id).update(status=UserCoupon.FREEZE, trade_tid='',
+                                                                             extras=extras,
+                                                                             finished_time=datetime.datetime.now())
+                    log_action(sys_oa, freeze_coupon, CHANGE, u'下级妈妈退券了上级妈妈freeze券 from ctrid %s' % (transfer.id))
 
     logger.info({
         'action': u'transfer_record_return_coupon_exchange',
