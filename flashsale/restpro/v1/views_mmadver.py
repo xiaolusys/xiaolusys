@@ -92,7 +92,7 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
     def get_xlmm(self):
         if not hasattr(self, '_xlmm_'):
             customer = get_customer_by_django_user(self.request.user)
-            self._xlmm_ = customer.get_xiaolumm()
+            self._xlmm_ = customer and customer.get_xiaolumm() or None
         return self._xlmm_
 
     def get_serializer_context(self):

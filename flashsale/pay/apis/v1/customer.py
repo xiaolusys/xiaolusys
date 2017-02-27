@@ -26,4 +26,4 @@ def get_customer_by_django_user(user):
     # type: (DjangoUser) -> Customer
     from ...models import Customer
 
-    return Customer.objects.get(user=user)
+    return Customer.objects.filter(user=user).first()
