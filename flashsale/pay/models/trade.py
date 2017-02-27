@@ -861,7 +861,8 @@ def buy_boutique_register_product(sender, obj, **kwargs):
     from shopapp.weixin.models import WeixinUnionID
     from flashsale.xiaolumm.models.elite_mama import EliteMamaAwardLog
 
-    def create_envelop(customer, flow_amount, referal_id=''):
+    def create_envelop(customer, flow_amount, subject=None, referal_id='',
+                       buy_mama_id=None, level_1_mama_id=None, level_2_mama_id=None):
         wx_union = WeixinUnionID.objects.get(app_key=settings.WX_PUB_APPID, unionid=customer.unionid)
         recipient = wx_union.openid
         body = u'小鹿全球精品会员注册礼包'
@@ -869,10 +870,10 @@ def buy_boutique_register_product(sender, obj, **kwargs):
             amount=flow_amount,
             platform=Envelop.WXPUB,
             recipient=recipient,
-            subject=Envelop.XLAPP_CASHOUT,
+            subject=subject,
             body=body,
             receiver=customer.mobile,
-            description=u'购买小鹿全球精品会员注册礼包',
+            description=u'购买人{}, 1级推荐人{}, 2级推荐人{}'.format(buy_mama_id, level_1_mama_id, level_2_mama_id),
             referal_id=referal_id
         )
 
@@ -887,20 +888,23 @@ def buy_boutique_register_product(sender, obj, **kwargs):
         if not level_1_mama:
             return
 
+        level_2_mama = level_1_mama.get_referal_from_mama()
         level_1_customer = level_1_mama.get_mama_customer()
         elite_score = 5
         template = get_coupon_template_by_id(id=374)
         create_present_elite_score(level_1_customer, elite_score, template, '')
-        create_envelop(level_1_customer, 3000, referal_id=saleorder.oid)
+        create_envelop(level_1_customer, 3000, subject=Envelop.LEVEL_1, referal_id=saleorder.oid,
+                       buy_mama_id=mama.id, level_1_mama_id=level_1_mama.id, level_2_mama_id=level_2_mama.id)
 
         # 推荐人上级积分>=30,发10元红包
-        level_2_mama = level_1_mama.get_referal_from_mama()
         if not level_2_mama:
             return
 
         if level_2_mama.elite_score >= 30:
             level_2_customer = level_2_mama.get_mama_customer()
-            create_envelop(level_2_customer, 1000, referal_id=saleorder.oid)
+            create_envelop(level_2_customer, 1000, subject=Envelop.LEVEL_2, referal_id=saleorder.oid,
+                           buy_mama_id=mama.id, level_1_mama_id=level_1_mama.id, level_2_mama_id=level_2_mama.id)
+
 
         # 推荐人上上级积分>=60,记录奖励一次
         level_3_mama = level_2_mama.get_referal_from_mama()
@@ -910,7 +914,7 @@ def buy_boutique_register_product(sender, obj, **kwargs):
                 customer_id=level_3_customer.id,
                 mama_id=level_3_mama.id,
                 referal_id='saleorder-{}'.format(saleorder.oid),
-                remark=u'妈妈{}购买小鹿全球精品会员注册礼包'.format(mama.id)
+                remark=u'购买人{}, 1级推荐人{}, 2级推荐人{}'.format(mama.id, level_1_mama.id, level_2_mama.id)
             )
 
     try:
