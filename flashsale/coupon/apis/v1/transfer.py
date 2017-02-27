@@ -251,6 +251,7 @@ def give_gift_score_to_new_elite_mama(customer, to_mama, so):
         'action': 'give_gift_score_to_new_elite_mama',
         'action_time': datetime.datetime.now(),
         'order_oid': so.oid,
+        'tid': so.sale_trade.tid,
         'message': u'add 100 socore end:template_id=%s, order_id=%s order_oid=%s product_id=%s' % (
             template_id, so.id, so.oid, so.item_id),
     })
@@ -296,6 +297,7 @@ def create_new_elite_mama(customer, to_mama, so):
                     'action': 'create_new_elite_mama',
                     'action_time': datetime.datetime.now(),
                     'order_oid': so.oid,
+                    'tid': so.sale_trade.tid,
                     'message': u'relation_ship potential xlmmfan not exist:mama_id=%s' % (to_mama.id),
                 })
 
@@ -338,6 +340,7 @@ def create_new_elite_mama(customer, to_mama, so):
             'action': 'create_new_elite_mama',
             'action_time': datetime.datetime.now(),
             'order_oid': so.oid,
+            'tid': so.sale_trade.tid,
             'message': u'change relation_ship :to mama_id=%s referalmm=%s grandmama=%s' % (
                 to_mama.id, relation_ship.referal_from_mama_id, relation_ship.referal_from_grandma_id),
         })
@@ -362,6 +365,7 @@ def create_new_elite_mama(customer, to_mama, so):
         'action': 'create_new_elite_mama end',
         'action_time': datetime.datetime.now(),
         'order_oid': so.oid,
+        'tid': so.sale_trade.tid,
         'message': u'create_new_elite_mama :to mama_id=%s referalmm=%s grandmama=%s' % (
             to_mama.id, upper_mama_id, grandma_id),
     })
@@ -429,6 +433,7 @@ def send_new_elite_transfer_coupons(customer_id, order_id, order_oid, product_id
             'action': 'send_new_elite_transfer_coupons',
             'action_time': datetime.datetime.now(),
             'order_oid': order_oid,
+            'tid': so.sale_trade.tid,
             'message': u'process:template_id=%s, index=%s' % (
                 template_id, index),
         })
@@ -482,6 +487,7 @@ def send_new_elite_transfer_coupons(customer_id, order_id, order_oid, product_id
         'action': 'send_new_elite_transfer_coupons',
         'action_time': datetime.datetime.now(),
         'order_oid': order_oid,
+        'tid': so.sale_trade.tid,
         'message': u'end:template_id=%s, order_id=%s order_oid=%s product_id=%s' % (
             template_id, order_id, order_oid, product_id),
     })
@@ -524,6 +530,7 @@ def elite_mama_recharge(customer_id, order_id, order_oid, product_id):
         'action': 'elite_mama_recharge',
         'action_time': datetime.datetime.now(),
         'order_oid': order_oid,
+        'tid': so.sale_trade.tid,
         'message': u'end:customer=%s, order_id=%s order_oid=%s product_id=%s' % (
             customer_id, order_id, order_oid, product_id),
     })

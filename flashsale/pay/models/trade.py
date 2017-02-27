@@ -1454,6 +1454,7 @@ def saleorder_notify_update(sender, instance, created, raw, **kwargs):
             'action': 'saleorder_post_save_commit',
             'action_time': datetime.datetime.now(),
             'order_oid': instance.oid,
+            'tid': instance.sale_trade.tid,
         })
         task_saleorder_post_update_send_signal.delay(
             instance.id,
@@ -1482,6 +1483,7 @@ def post_save_order_trigger(sender, instance, created, raw, **kwargs):
             'action': 'task_order_trigger_start',
             'action_time': datetime.datetime.now(),
             'order_oid': instance.oid,
+            'tid': instance.sale_trade.tid,
             'order_status': instance.status,
         })
         try:
@@ -1518,6 +1520,7 @@ def post_save_order_trigger(sender, instance, created, raw, **kwargs):
             'action': 'task_order_trigger_end',
             'action_time': datetime.datetime.now(),
             'order_oid': instance.oid,
+            'tid': instance.sale_trade.tid,
             'order_status': instance.status,
             'traceback': message,
         })
@@ -1551,7 +1554,7 @@ if not settings.CLOSE_CELERY:
 def saleorder_update_saletrade_status(sender, instance, *args, **kwargs):
     if instance.status > SaleOrder.WAIT_BUYER_PAY:
         from flashsale.pay.tasks import tasks_update_sale_trade_status
-        transaction.on_commit(lambda: tasks_update_sale_trade_status(instance.sale_trade_id))
+        transaction.on_commit(lambda: tasks_update_sale_trade_status(instance.sale_trade_id, instance.sale_trade.tid))
 
 
 signal_saleorder_post_update.connect(saleorder_update_saletrade_status, sender=SaleOrder,
