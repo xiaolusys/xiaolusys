@@ -5,8 +5,8 @@ import django_filters
 from django.shortcuts import get_object_or_404
 from django.db import transaction
 from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
 from django_statsd.clients import statsd
+from django.core.cache import cache
 
 from rest_framework import exceptions
 from rest_framework import filters
@@ -181,16 +181,31 @@ class NinePicViewSet(viewsets.GenericViewSet):
     authentication_classes = (authentication.SessionAuthentication,)
 
     @list_route(methods=['get'])
-    @method_decorator(cache_page(30))
     def today(self, req, *args, **kwargs):
         q_hour = req.GET.get('hour')
         today = datetime.date.today()
         tomorrow = today + datetime.timedelta(days=1)
+        show_profit = False
 
         try:
             q_hour = int(q_hour)
         except:
             q_hour = None
+
+        if not req.user.is_anonymous():
+            customer = Customer.objects.filter(user=req.user).first()
+            if customer:
+                mama = customer.get_xiaolumm()
+                if mama and mama.last_renew_type >= 90:
+                    show_profit = True
+
+        if show_profit:
+            resp_result = cache.get('rest/v1/pmt/ninepic/today-%s' % q_hour)
+        else:
+            resp_result = cache.get('rest/v1/pmt/ninepic/today-noprofit-%s' % q_hour)
+
+        if resp_result:
+            return Response(resp_result)
 
         if q_hour:
             start_time = datetime.datetime(today.year, today.month, today.day, q_hour)
@@ -232,7 +247,7 @@ class NinePicViewSet(viewsets.GenericViewSet):
             min_price = min(prices)
             max_price = max(prices)
 
-            data.append({
+            data_item = {
                 'pic': mp.head_img(),
                 'name': mp.name,
                 'price': mp.lowest_agent_price,
@@ -243,7 +258,11 @@ class NinePicViewSet(viewsets.GenericViewSet):
                 'start_time': item.start_time,
                 'hour': item.start_time.hour,
                 'model_id': model_id
-            })
+            }
+            if not show_profit:
+                data_item['profit'] = {'min': 0, 'max': 0}
+
+            data.append(data_item)
 
         data = sorted(data, key=lambda x: x['hour'])
         import itertools
@@ -255,8 +274,12 @@ class NinePicViewSet(viewsets.GenericViewSet):
                 'items': list(items)
             })
 
-        return Response(result)
+        if show_profit:
+            cache.set('rest/v1/pmt/ninepic/today-%s' % q_hour, result, 60*30)
+        else:
+            cache.set('rest/v1/pmt/ninepic/today-noprofit-%s' % q_hour, result, 60*30)
 
+        return Response(result)
 
 
 class MamaVebViewConfFilter(filters.FilterSet):

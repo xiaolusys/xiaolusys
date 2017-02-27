@@ -32,7 +32,15 @@ class Envelop(PayBaseModel):
     CASHOUT = 'cashout'
     ORDER_RED_PAC = 'ordred'
     XLAPP_CASHOUT = 'xlapp'
-    SUBJECT_CHOICES = ((CASHOUT, u'妈妈余额提现'), (ORDER_RED_PAC, u'订单红包'), (XLAPP_CASHOUT, u'个人零钱提现'))
+    LEVEL_1 = 'level1'
+    LEVEL_2 = 'level2'
+    SUBJECT_CHOICES = (
+        (CASHOUT, u'妈妈余额提现'),
+        (ORDER_RED_PAC, u'订单红包'),
+        (XLAPP_CASHOUT, u'个人零钱提现'),
+        (LEVEL_1, u'一级推荐人'),
+        (LEVEL_2, u'二级推荐人')
+    )
 
     UNSEND = 'unsend'
     SENDING = 'sending'
