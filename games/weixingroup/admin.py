@@ -10,18 +10,8 @@ HOST = "http://m.xiaolumeimei.com"
 
 class XiaoluAdministratorAdmin(BaseModelAdmin):
     search_fields = ['id', 'user_id', 'name', 'nick']
-    list_display = ['id', 'user_id', 'username', 'nick', 'admin_link', 'admin_wx_link']
+    list_display = ['id', 'mama_id', 'user_id', 'username', 'nick', 'is_staff']
     list_filter = ['status']
-
-    def admin_link(self, obj):
-        return HOST + '/sale/weixingroup/xiaoluadministrator/mama_join?administrastor_id=' + str(obj.id)
-
-    admin_link.short_description = u'小鹿妈妈报名页面'
-
-    def admin_wx_link(self, obj):
-        return HOST + '/sale/weixingroup/xiaoluadministrator/mamawx_join?administrastor_id=' + str(obj.id)
-
-    admin_wx_link.short_description = u'小鹿妈妈微信报名链接'
 
 
 admin.site.register(XiaoluAdministrator, XiaoluAdministratorAdmin)
