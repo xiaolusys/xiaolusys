@@ -533,6 +533,8 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             xlmm = request.user.customer.get_xiaolumm()
         except Exception, e:
             raise exceptions.ValidationError(u'用户不是小鹿妈妈或者未登录')
+        if not xlmm:
+            raise exceptions.ValidationError(u'用户不是小鹿妈妈')
 
         mama = None
         r = ReferalRelationship.objects.filter(referal_to_mama_id=xlmm.id).first()
