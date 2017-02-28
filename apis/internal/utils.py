@@ -17,6 +17,9 @@ def get_model_by_id(filters, model_class):
 def get_multi_model_by_ids(filters, model_class):
     """ eg: filters = {'id': [1,2,3]} """
     filter_name, model_ids = filters.items()[0]
+    if not model_ids:
+        return []
+
     fetch_keys = map(model_class.API_CACHE_KEY_TPL.format, model_ids)
     cache_results = cache.get_many(fetch_keys)
     cache_values  = []

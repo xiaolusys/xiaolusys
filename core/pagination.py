@@ -7,6 +7,10 @@ from rest_framework.exceptions import NotFound
 from rest_framework.pagination import PageNumberPagination
 
 class PageNumberPkPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 40
+
     def paginate_pks(self, queryset, request, view=None, pk_alias='id'):
         """
         Paginate a queryset if required, either returning a

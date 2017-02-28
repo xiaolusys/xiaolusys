@@ -70,8 +70,7 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = pagination.PageNumberPkPagination
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
     filter_class = ModelProductFilter
-    paginate_by = 10
-    page_query_param = 'page'
+
 
     def paginate_pks(self, queryset, pk_alias='id'):
         """
