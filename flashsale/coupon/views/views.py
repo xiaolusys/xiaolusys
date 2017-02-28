@@ -221,7 +221,7 @@ class SendTransferEliteScore(APIView):
         customer_id = content.get('customer_id') or None
         elite_score = content.get('elite_score') or None
 
-        if not (rank and customer_id):
+        if not customer_id:
             return Response({'code': 1, 'info': '参数错误'})
         try:
             from ..apis.v1.transfer import create_present_elite_score
