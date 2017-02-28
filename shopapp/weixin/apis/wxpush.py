@@ -101,6 +101,22 @@ class WeixinPush(object):
         if not template:
             return
 
+        # 购买小鹿全球精品会员注册礼包
+        is_boutique_register_product = False
+        saleorders = saletrade.sale_orders.all()
+        for order in saleorders:
+            model_id = order.item_product.model_id
+            if model_id == 25514:
+                is_boutique_register_product = True
+                break
+
+        if is_boutique_register_product:
+            footer = u'点我，查看《新手必读！在小鹿美美如何赚钱？》，开始您在小鹿美美的致富之旅 >>'
+            to_url = 'http://m.xiaolumeimei.com/mama_shop/html/intro_march.html'
+        else:
+            footer = template.footer.decode('string_escape')
+            to_url = 'http://m.xiaolumeimei.com/mall/od.html?id=%s' % saletrade.id
+
         template_data = {
             'first': {
                 'value': template.header.format(customer.nick).decode('string_escape'),
@@ -115,11 +131,10 @@ class WeixinPush(object):
                 'color': '#c0392b',
             },
             'Remark': {
-                'value': template.footer.decode('string_escape'),
+                'value': footer,
                 'color': '#000000',
             },
         }
-        to_url = 'http://m.xiaolumeimei.com/mall/od.html?id=%s' % saletrade.id
         return self.push(customer, template_ids, template_data, to_url)
 
     def push_deliver_notify(self, saletrade):
