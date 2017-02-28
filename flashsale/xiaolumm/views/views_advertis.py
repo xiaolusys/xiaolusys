@@ -15,6 +15,8 @@ from rest_framework.decorators import list_route, detail_route
 from rest_framework.response import Response
 from rest_framework import exceptions
 
+from core.pagination import ConsoleResultSetPagination
+
 from flashsale.xiaolumm import serializers
 from flashsale.xiaolumm.models.models_advertis import NinePicAdver
 from shopback.items.models import Product
@@ -52,6 +54,7 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser, permissions.DjangoModelPermissions)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
+    pagination_class = ConsoleResultSetPagination
     search_fields = ('detail_modelids', 'auther', 'start_time', '=id')
     filter_class = NinepicFilter
 

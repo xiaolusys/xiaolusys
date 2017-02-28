@@ -6,7 +6,7 @@ from django.conf import settings
 import pingpp
 pingpp.api_key = settings.PINGPP_APPKEY
 
-ONLY_USE_XIAOLUPAY = getattr(settings, 'XIAOLU_UNIONPAY_SWITH', False)
+ONLY_USE_XIAOLUPAY = getattr(settings, 'XIAOLU_UNIONPAY_SWICH', False)
 
 if ONLY_USE_XIAOLUPAY:
     from .v1.charge import Charge

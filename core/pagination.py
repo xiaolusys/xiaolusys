@@ -35,3 +35,13 @@ class PageNumberPkPagination(PageNumberPagination):
 
         self.request = request
         return self.page.object_list.values_list(pk_alias, flat=True)
+
+class StandardResultsSetPagination(PageNumberPagination):
+    page_size = 15
+    page_size_query_param = 'page_size'
+    max_page_size = 40
+
+class ConsoleResultSetPagination(PageNumberPagination):
+    page_size = 40
+    page_size_query_param = 'page_size'
+    max_page_size = 100

@@ -13,7 +13,7 @@ global_setup.cancel_pingpp_charge_ssl_verify()
 
 DEBUG = False
 DEPLOY_ENV = False
-XIAOLU_UNIONPAY_SWITH = True #切换小鹿支付开关
+XIAOLU_UNIONPAY_SWICH = True #切换小鹿支付开关
 
 ADMINS = ()
 
@@ -362,10 +362,7 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.BrowsableAPIRenderer',
     ),
     'EXCEPTION_HANDLER': 'flashsale.restpro.exceptions.my_exception_handler',
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10, # Default to 10
-    'PAGINATE_BY_PARAM': 'page_size',  # Allow client to override, using `?page_size=xxx`.
-    'MAX_PAGINATE_BY': 100,
+    'DEFAULT_PAGINATION_CLASS': 'core.pagination.StandardResultsSetPagination',
     # 'DEFAULT_AUTHENTICATION_CLASSES': (
     #     'rest_framework.authentication.SessionAuthentication',
     #     'rest_framework.authentication.BasicAuthentication',

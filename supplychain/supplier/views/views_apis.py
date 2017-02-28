@@ -397,7 +397,7 @@ class SaleProductViewSet(viewsets.ModelViewSet):
             'status': SaleProduct.PASSED
         })
         if product_link and not re.compile(REGEX_LINK, re.IGNORECASE):
-            raise exceptions.APIException(u'输入链接不合法【请参考: https://www.hao123.com/main.html 】')
+            raise exceptions.APIException(u'输入链接不合法【请参考格式: https://www.hao123.com/main.html 】')
         if product_link and self.queryset.filter(outer_id=outer_id).exists():
             raise exceptions.APIException(u'该款已经录入了[如果要录入多份，请在图片链接尾部加上标注如："#标注1"]!')
         salesupplier_id = request.data.get('sale_supplier')
