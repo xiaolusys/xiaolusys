@@ -159,15 +159,19 @@ class XiaoluMamaAdmin(ApproxAdmin):
     deposit_infos.short_description = u"押金单"
 
     def manager_info(self, obj):
-        from django.contrib.auth.models import User
+        # from django.contrib.auth.models import User
+        # managers = User.objects.filter(is_staff=True, is_active=True, groups=16)  # 推广组成员
+        # current_manager = managers.filter(id=obj.manager).first()
+        # ma_name = current_manager.last_name + current_manager.first_name if current_manager else '选择管理员'
 
-        managers = User.objects.filter(is_staff=True, is_active=True, groups=16)  # 推广组成员
-        current_manager = managers.filter(id=obj.manager).first()
-        ma_name = current_manager.last_name + current_manager.first_name if current_manager else '选择管理员'
+        from games.weixingroup.models import XiaoluAdministrator
+        managers = XiaoluAdministrator.objects.filter(is_staff=True, status=1)  # 所有管理成员
+        current_manager = managers.filter(mama_id=obj.manager).first()
+        ma_name = current_manager.username if current_manager else '选择管理员'
         selected = '<option value="" selected="selected">%s</option>' % ma_name
         options = []
         for manager in managers:
-            op = '<option value="%s">%s</option>' % (manager.id, manager.last_name + manager.first_name)
+            op = '<option value="%s">%s</option>' % (manager.mama_id, manager.username)
             options.append(op)
         selects = '<select id="select-manager-%s" onchange="changeMamaManager(%s)">%s%s</select>' % (obj.id, obj.id,
                                                                                                      selected,
