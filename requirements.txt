@@ -85,8 +85,8 @@ django-debug-toolbar==1.6
 
 
 ###################### Extras Requirement #########################
-# apt-get update;apt-get install -y gcc libxml2-dev libxslt1-dev python-dev libmysqld-dev  python-pip supervisor git
-# sudo apt-get install libtiff4-dev  libjpeg8-dev zlib1g-dev libfreetype6-dev liblcms1-dev libwebp-dev libjpeg-dev
+# apt-get update;apt-get install -y gcc libxml2-dev libxslt1-dev python-dev libmysqld-dev python-pip supervisor git
+# sudo apt-get install libtiff4-dev libjpeg-dev libjpeg8-dev zlib1g-dev libfreetype6-dev liblcms1-dev libwebp-dev
 # pip install -i http://pypi.oneapm.com/simple --upgrade blueware
 # pip install -i http://pypi.oneapm.com/simple --upgrade oneapm-ci-sdk
 # pip install git+git://github.com/xmeron/django-prometheus.git
