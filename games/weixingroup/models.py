@@ -18,6 +18,8 @@ class XiaoluAdministrator(BaseModel):
                       (1, u'有效'),
                       (2, u'作废'),)
     status = models.IntegerField(choices=STATUS_CHOICES, default=1, verbose_name=u'状态')
+    mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u"妈妈编号")
+    is_staff = models.BooleanField(default=False, db_index=True, verbose_name=u'特殊账号（公司职员）')
 
     class Meta:
         app_label = 'weixingroup'
