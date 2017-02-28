@@ -90,7 +90,7 @@ def create_present_elite_score(customer, elite_score, template, rank):
                                        coupon_value=0,
                                        init_from_mama_id=init_from_mama_id,
                                        order_no=uni_key_in,
-                                       template_id=0,
+                                       template_id=template.id,
                                        product_img=product_img,
                                        coupon_num=0,
                                        transfer_type=CouponTransferRecord.IN_GIFT_COUPON,
