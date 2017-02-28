@@ -1,6 +1,7 @@
 # -*- coding:utf8 -*-
 import re
 import time
+import json
 import datetime
 import django_filters
 import hashlib
@@ -421,12 +422,16 @@ class SaleProductViewSet(viewsets.ModelViewSet):
         model_product = instance.model_product
         if model_product:  # 有款式
             try:
-                model_product.update_fields_with_kwargs(**{
+                params = {
                     'name': instance.title,
-                    'salecategory': instance.sale_category,
+                    'salecategory_id': instance.sale_category.id,
                     'product_type': instance.get_product_type(),
                     'is_boutique': instance.get_boutique_value()
-                })
+                }
+                updated = model_product.update_fields_with_kwargs(**params)
+                if updated:
+                    log_action(request.user, model_product, CHANGE, json.dumps(params, indent=2))
+
                 Product.create_or_update_skus(model_product, request.user)  # 保存saleproduct 之后才做更新
             except Exception, exc:
                 logger.error(str(exc), exc_info=True)

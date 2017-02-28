@@ -239,9 +239,7 @@ class SaleProduct(BaseTagModel):
         return self.extras.get('product_type') or 0
 
     def get_boutique_value(self):
-        if not self.extras:
-            return 0
-        return self.extras.get('is_boutique') or 0
+        return bool(self.extras and self.extras.get('is_boutique') or 0)
 
 
 def change_saleprodut_by_pre_save(sender, instance, raw, *args, **kwargs):

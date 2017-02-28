@@ -341,7 +341,7 @@ class ModelProductSerializer(serializers.ModelSerializer):
                     c += 1
                 values.append(dic)
             obj.extras.setdefault('new_properties', [])
-            if isinstance(obj.extras['new_properties'], list):
+            if isinstance(obj.extras['new_properties'], list) and thead:
                 obj.extras['new_properties'].extend([
                     {'name': '尺码对照参数', 'value': thead},
                     {'name': '尺码表', 'value': values},
