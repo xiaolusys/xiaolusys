@@ -726,7 +726,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     @cache_response(timeout=30, key_func='calc_items_cache_key')
     def promotion_ads(self, request, *args, **kwargs):
         """ 推荐展示商品信息 """
-        content = request.GET
+        content = request.GET.dict()
         category = content.get('category')
         list_num = int(content.get('lnum', '1'))
 
