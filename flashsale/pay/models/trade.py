@@ -862,7 +862,12 @@ def buy_boutique_register_product(sender, obj, **kwargs):
     from flashsale.xiaolumm.models.elite_mama import EliteMamaAwardLog
 
     def create_envelop(customer, flow_amount, subject=None, referal_id='',
-                       buy_mama_id=None, level_1_mama_id=None, level_2_mama_id=None):
+                       buy_mama_id=None, level_1_mama=None, level_2_mama=None):
+        if level_2_mama:
+            desc = u'购买人{} - 1级推荐人{},积分{} - 2级推荐人{},积分{}'.format(buy_mama_id, level_1_mama.id, level_1_mama.elite_score, level_2_mama.id, level_2_mama.elite_score)
+        else:
+            desc = u'购买人{} - 1级推荐人{},积分{} - 2级推荐人无'.format(buy_mama_id, level_1_mama.id, level_1_mama.elite_score)
+
         wx_union = WeixinUnionID.objects.get(app_key=settings.WX_PUB_APPID, unionid=customer.unionid)
         recipient = wx_union.openid
         body = u'小鹿全球精品会员注册礼包'
@@ -873,7 +878,7 @@ def buy_boutique_register_product(sender, obj, **kwargs):
             subject=subject,
             body=body,
             receiver=customer.mobile,
-            description=u'购买人{}, 1级推荐人{}, 2级推荐人{}'.format(buy_mama_id, level_1_mama_id, level_2_mama_id),
+            description=desc,
             referal_id=referal_id
         )
 
@@ -894,7 +899,7 @@ def buy_boutique_register_product(sender, obj, **kwargs):
         template = get_coupon_template_by_id(id=374)
         create_present_elite_score(level_1_customer, elite_score, template, '')
         create_envelop(level_1_customer, 3000, subject=Envelop.LEVEL_1, referal_id=saleorder.oid,
-                       buy_mama_id=mama.id, level_1_mama_id=level_1_mama.id, level_2_mama_id=level_2_mama.id)
+                       buy_mama_id=mama.id, level_1_mama=level_1_mama, level_2_mama=level_2_mama)
 
         # 推荐人上级积分>=30,发10元红包
         if not level_2_mama:
@@ -903,7 +908,7 @@ def buy_boutique_register_product(sender, obj, **kwargs):
         if level_2_mama.elite_score >= 30:
             level_2_customer = level_2_mama.get_mama_customer()
             create_envelop(level_2_customer, 1000, subject=Envelop.LEVEL_2, referal_id=saleorder.oid,
-                           buy_mama_id=mama.id, level_1_mama_id=level_1_mama.id, level_2_mama_id=level_2_mama.id)
+                           buy_mama_id=mama.id, level_1_mama=level_1_mama, level_2_mama=level_2_mama)
 
 
         # 推荐人上上级积分>=60,记录奖励一次
