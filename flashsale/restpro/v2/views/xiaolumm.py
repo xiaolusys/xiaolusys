@@ -904,7 +904,7 @@ class MamaAdministratorViewSet(APIView):
         if mama.last_renew_type < XiaoluMama.ELITE:
             # 非正式妈妈，从公众号进来，那么现在随机从100个团队hash 2个，随机选一个2016-12-20
             from games.weixingroup.models import XiaoluAdministrator
-            administrators = XiaoluAdministrator.objects.filter(id__gte=18, status=1)
+            administrators = XiaoluAdministrator.objects.filter(is_staff=False, status=1)
             if administrators.count() > 0:
                 index = mama.id % administrators.count()
                 back_index = (index + 1) % administrators.count()

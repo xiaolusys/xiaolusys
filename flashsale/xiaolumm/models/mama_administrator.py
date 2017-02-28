@@ -23,17 +23,24 @@ class MamaAdministrator(BaseModel):
     def get_or_create_by_mama(cls, mama):
         from games.weixingroup.models import XiaoluAdministrator
         item = cls.objects.filter(mama_id=mama.id).first()
-        if item:
+        if item and item.administrator.status == 1:
+            # administrator is effective
             administrator = item.administrator
         else:
-            administrators = XiaoluAdministrator.objects.filter(Q(id__gte=11) & Q(id__lte=18))
+            # administrators = XiaoluAdministrator.objects.filter(Q(id__gte=11) & Q(id__lte=18))
+            administrators = XiaoluAdministrator.objects.filter(status=1, is_staff=True)
             num = mama.id % administrators.count()
             administrator = administrators[num]
 
-            ma = MamaAdministrator()
-            ma.administrator = administrator
-            ma.mama = mama
-            ma.save()
+            if item:
+                # old administrator is not effective, change to a new administrator
+                item.administrator = administrator
+                item.save()
+            else:
+                ma = MamaAdministrator()
+                ma.administrator = administrator
+                ma.mama = mama
+                ma.save()
         return administrator
 
     @classmethod
