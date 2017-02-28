@@ -60,6 +60,58 @@ class AccountEntry(BaseModel):
         (OUT, '支出')
     )
 
+    SB_FUND_CASH = '1101'
+    SB_FUND_BANK = '1102'
+    SB_FUND_PLATFORM = '1103'
+    SB_FUND_PLATFORM_WEIXIN = '110301'
+    SB_FUND_PLATFORM_ALIPAY = '110302'
+
+    SB_RECEIVE = '1104'
+    SB_RECEIVE_WALLET = '110401'
+
+    SB_PAY = '1201'
+    SB_PAY_XIAOLU = '120101'
+    SB_PAY_MAMA = '120102'
+    SB_PAY_MAMA_PEDING = '12010201'
+    SB_PAY_MAMA_CONFIRM = '12010202'
+    SB_PAY_CASHOUT = '120103'
+    SB_PAY_CASHOUT_PENDING = '12010301'
+    SB_PAY_CASHOUT_CONFIRM = '12010302'
+
+    SB_INCOME = '1401'
+    SB_INCOME_REFUND = '140101'
+
+    SB_MARKET = '1601'
+    SB_MARKET_ENVELOPE = '160101'
+    SB_MARKET_FANLI = '160102'
+
+    SUBJECTS = [
+        (SB_FUND_CASH, '货币资金-现金', '0'),
+        (SB_FUND_BANK, '货币资金-银行存款', '0'),
+        (SB_FUND_PLATFORM, '货币资金-平台', '0'),
+        (SB_FUND_PLATFORM_WEIXIN, '货币资金-平台-微信', '1103'),
+        (SB_FUND_PLATFORM_ALIPAY, '货币资金-平台-支付宝', '1103'),
+
+        (SB_RECEIVE, '应收账款', '0'),
+        (SB_RECEIVE_WALLET, '应收账款-钱包抵让', '1104'),
+
+        (SB_PAY, '应付账款', '0'),
+        (SB_PAY_XIAOLU, '应付账款-小鹿钱包', '1201'),
+        (SB_PAY_MAMA, '应付账款-妈妈钱包', '1201'),
+        (SB_PAY_MAMA_PEDING, '应付账款-妈妈钱包-待确定', '120102'),
+        (SB_PAY_MAMA_CONFIRM, '应付账款-妈妈钱包-已确定', '120102'),
+        (SB_PAY_CASHOUT, '应付账款-待提现', '1201'),
+        (SB_PAY_CASHOUT_PENDING, '应付账款-待提现-待审核', '120103'),
+        (SB_PAY_CASHOUT_CONFIRM, '应付账款-待提现-已审核', '120103'),
+
+        (SB_INCOME, '主营业务收入', '0'),
+        (SB_INCOME_REFUND, '主营业务收入-退款', '1401'),
+
+        (SB_MARKET, '销售费用', '0'),
+        (SB_MARKET_ENVELOPE, '销售费用-红包', '1601'),
+        (SB_MARKET_FANLI, '销售费用-妈妈返利', '1601'),
+    ]
+
     customer_id = models.IntegerField(default=0, verbose_name=u'用户ID')
     subject = models.ForeignKey(AccountSubject, verbose_name=u'科目')
     amount = models.IntegerField(default=0, verbose_name=u'金额(分)')

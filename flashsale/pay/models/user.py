@@ -612,23 +612,25 @@ class BudgetLog(PayBaseModel):
                 if status == BudgetLog.CONFIRMED:
                     budget.amount = F('amount') + flow_amount
                     budget.total_income = F('total_income') + flow_amount
+                    if budget_log_type in [BudgetLog.BG_CLICK, BudgetLog.BG_ORDER, BudgetLog.BG_AWARD]:
+                        AccountEntry.create(customer_id, AccountEntry.SB_MARKET_FANLI, AccountEntry.SB_PAY_XIAOLU, flow_amount)
                     if budget_log_type == BudgetLog.BG_REFUND:
-                        AccountEntry.create(customer_id, '140101', '120101', flow_amount)
+                        AccountEntry.create(customer_id, AccountEntry.SB_INCOME_REFUND, AccountEntry.SB_PAY_XIAOLU, flow_amount)
                     if budget_log_type == BudgetLog.BG_MAMA_CASH:
-                        AccountEntry.create(customer_id, '12010202', '120101', flow_amount)
+                        AccountEntry.create(customer_id, AccountEntry.SB_PAY_MAMA_CONFIRM, AccountEntry.SB_PAY_XIAOLU, flow_amount)
                     if budget_log_type == BudgetLog.BG_ENVELOPE:
-                        AccountEntry.create(customer_id, '160101', '120101', flow_amount)
+                        AccountEntry.create(customer_id, AccountEntry.SB_MARKET_ENVELOPE, AccountEntry.SB_PAY_XIAOLU, flow_amount)
 
             if budget_type == BudgetLog.BUDGET_OUT:
                 budget.amount = F('amount') - flow_amount
                 budget.total_expense = F('total_expense') + flow_amount
                 if budget_log_type == BudgetLog.BG_CONSUM:
-                    AccountEntry.create(customer_id, '120101', '110401', flow_amount)
+                    AccountEntry.create(customer_id, AccountEntry.SB_PAY_XIAOLU, AccountEntry.SB_RECEIVE_WALLET, flow_amount)
                 if budget_log_type == BudgetLog.BG_CASHOUT:
                     if status == BudgetLog.PENDING:
-                        AccountEntry.create(customer_id, '120101', '12010301', flow_amount)
+                        AccountEntry.create(customer_id, AccountEntry.SB_PAY_XIAOLU, AccountEntry.SB_PAY_CASHOUT_PENDING, flow_amount)
                     if status == BudgetLog.CONFIRMED:
-                        AccountEntry.create(customer_id, '120101', '12010302', flow_amount)
+                        AccountEntry.create(customer_id, AccountEntry.SB_PAY_XIAOLU, AccountEntry.SB_PAY_CASHOUT_CONFIRM, flow_amount)
 
             budget.save()
 
@@ -712,6 +714,9 @@ class BudgetLog(PayBaseModel):
                 if self.status in [BudgetLog.PENDING, BudgetLog.CANCELED]:  # 待确定, 取消 => 确定
                     user_budget.amount = F('amount') + self.flow_amount
                     user_budget.total_income = F('total_income') + self.flow_amount
+                    if self.budget_log_type in [BudgetLog.BG_CLICK, BudgetLog.BG_ORDER, BudgetLog.BG_AWARD]:
+                        AccountEntry.create(self.customer_id, AccountEntry.SB_MARKET_FANLI, AccountEntry.SB_PAY_XIAOLU, self.flow_amount)
+
             if self.budget_type == BudgetLog.BUDGET_OUT:  # 支出
                 if self.status == BudgetLog.CANCELED:  # 取消 => 确定
                     user_budget.amount = F('amount') - self.flow_amount
@@ -719,9 +724,11 @@ class BudgetLog(PayBaseModel):
 
                 if self.budget_log_type == BudgetLog.BG_CASHOUT:
                     if self.status == BudgetLog.PENDING:
-                        AccountEntry.create(self.customer_id, '12010301', '12010302', self.flow_amount)
+                        AccountEntry.create(self.customer_id, AccountEntry.SB_PAY_CASHOUT_PENDING,
+                                            AccountEntry.SB_PAY_CASHOUT_CONFIRM, self.flow_amount)
                     if self.status == BudgetLog.CANCELED:
-                        AccountEntry.create(self.customer_id, '120101', '12010302', self.flow_amount)
+                        AccountEntry.create(self.customer_id, AccountEntry.SB_PAY_XIAOLU,
+                                            AccountEntry.SB_PAY_CASHOUT_CONFIRM, self.flow_amount)
 
 
             user_budget.save()  # 保存用户钱包
@@ -747,15 +754,20 @@ class BudgetLog(PayBaseModel):
                 if self.status == BudgetLog.CONFIRMED:  # 确定 => 取消
                     user_budget.amount = F('amount') - self.flow_amount
                     user_budget.total_income = F('total_income') - self.flow_amount
+                    if self.budget_log_type in [BudgetLog.BG_CLICK, BudgetLog.BG_ORDER, BudgetLog.BG_AWARD]:
+                        AccountEntry.create(self.customer_id, AccountEntry.SB_PAY_XIAOLU, AccountEntry.SB_MARKET_FANLI, self.flow_amount)
+
             if self.budget_type == BudgetLog.BUDGET_OUT:  # 支出
                 if self.status in [BudgetLog.CONFIRMED, BudgetLog.PENDING]:  # 确定, 待确定 => 取消
                     user_budget.amount = F('amount') + self.flow_amount
                     user_budget.total_expense = F('total_expense') - self.flow_amount
                 if self.budget_log_type == BudgetLog.BG_CASHOUT:
                     if self.status == BudgetLog.PENDING:
-                        AccountEntry.create(self.customer_id, '12010301', '120101', self.flow_amount)
+                        AccountEntry.create(self.customer_id, AccountEntry.SB_PAY_CASHOUT_PENDING,
+                                            AccountEntry.SB_PAY_XIAOLU, self.flow_amount)
                     if self.status == BudgetLog.CONFIRMED:
-                        AccountEntry.create(self.customer_id, '12010302', '120101', self.flow_amount)
+                        AccountEntry.create(self.customer_id, AccountEntry.SB_PAY_CASHOUT_CONFIRM,
+                                            AccountEntry.SB_PAY_XIAOLU, self.flow_amount)
             user_budget.save()  # 保存用户钱包
 
             self.status = BudgetLog.CANCELED
