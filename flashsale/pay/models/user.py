@@ -512,6 +512,7 @@ class BudgetLog(PayBaseModel):
     BG_ORDER = 'order'
     BG_AWARD = 'award'
     BG_MAMA_CONSUM = 'mmconsum'
+    BG_RETURN_EXCHG = 'rtexchg'
 
     BUDGET_LOG_CHOICES = (
         # 收入
@@ -526,12 +527,12 @@ class BudgetLog(PayBaseModel):
         (BG_CLICK, u'点击收益'),
         (BG_ORDER, u'订单收益'),
         (BG_AWARD, u'奖金收益'),
+        (BG_EXCHG_ORDER, u'兑换订单'),
         # 支出
         (BG_CONSUM, u'消费'),
         (BG_CASHOUT, u'提现'),
         (BG_MAMA_CONSUM, u'妈妈消费'),
-        # 收入 or 支出
-        (BG_EXCHG_ORDER, u'兑换订单'),
+        (BG_RETURN_EXCHG, u'取消兑换'),
     )
 
     CONFIRMED = 0
