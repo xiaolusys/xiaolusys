@@ -1029,9 +1029,37 @@ class BudgetLogSerialize(serializers.ModelSerializer):
                   'modified')
 
     def get_desc(self, obj):
+        from flashsale.pay.models import SaleOrder, SaleRefund
+        from flashsale.pay.models.user import Customer
+
+        detail_info = ''
+        if obj.budget_type == BudgetLog.BUDGET_IN:
+            if obj.budget_log_type == BudgetLog.BG_EXCHG_ORDER:
+                order_oid = obj.uni_key
+                sale_order = SaleOrder.objects.filter(oid=order_oid).first()
+                if sale_order:
+                    customer = Customer.objects.filter(id=sale_order.buyer_id).first()
+                    detail_info = u'兑换的订单是{0}购买的{1},订单号{2}.'.format(customer.nick, sale_order.sku_name, order_oid)
+        elif obj.budget_type == BudgetLog.BUDGET_OUT:
+            if obj.budget_log_type == BudgetLog.BG_RETURN_EXCHG or obj.budget_log_type == BudgetLog.BG_EXCHG_ORDER:
+                if obj.uni_key.startswith('rf'):
+                    refund_id = obj.referal_id
+                    sale_refund = SaleRefund.objects.filter(id=refund_id).first()
+                    detail_info = u'扣款原因是客户{0}退货商品{1},退款单号{2}.'.format(sale_refund.buyer_nick, sale_refund.sku_name, refund_id)
+                elif obj.uni_key.startswith('ctr'):
+                    from flashsale.coupon.models import CouponTransferRecord, CouponTemplate
+                    ctr_id = obj.referal_id
+                    ctr = CouponTransferRecord.objects.filter(id=ctr_id).first()
+                    if ctr:
+                        ct = CouponTemplate.objects.filter(id=ctr.template_id).first()
+                        if ct:
+                            detail_info = u'扣款原因为团队成员{0}退券{1}{2}张,流水号{3}.'.format(ctr.from_mama_nick, ct.title, ctr.coupon_num, ctr_id)
+            elif obj.budget_log_type == BudgetLog.BG_CONSUM:
+                detail_info = u'消费的订单号{0}.'.format(obj.referal_id)
+
         return u'您通过{0}{1}{2}元.'.format(obj.get_budget_log_type_display(),
             obj.get_budget_type_display(),
-            obj.flow_amount * 0.01)
+            obj.flow_amount * 0.01) + detail_info
 
 
 class XlmmFansCustomerInfoSerialize(serializers.ModelSerializer):

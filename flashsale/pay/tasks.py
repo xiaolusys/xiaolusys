@@ -1049,7 +1049,7 @@ def task_schedule_check_boutique_modelproduct(days=1):
             product_ids.extend(template.extras['scopes'].get('product_ids').split(','))
 
     from flashsale.pay.models import ModelProduct
-    from flashsale.pay.apis.v1.product import get_boutique_goods, get_virtual_modelproducts
+    from flashsale.pay.apis.v1.product import get_boutique_goods, get_virtual_modelproducts, get_onshelf_modelproducts
     from apis.v1.products import ModelProductCtl
     from shopback.apis.v1.product import get_product_by_id
     queryset = get_boutique_goods().filter(id__in=modelproduct_ids)
@@ -1130,12 +1130,22 @@ def task_schedule_check_boutique_modelproduct(days=1):
         if (not right) and (mp.id != 25115) and (mp.id != 25339):
             wrong_coupons.append(mp.id)
 
+    onshelf_products = []
+    onshelf_mps = get_onshelf_modelproducts()
+    for mp in onshelf_mps:
+        if not mp.onshelf_time:
+            onshelf_products.append(mp.id)
+        for one_product in mp.products:
+            if not one_product.upshelf_time:
+                onshelf_products.append(mp.id)
+
+
     from common.dingding import DingDingAPI
     tousers = [
         '02401336675559',  # 伍磊
     ]
-    msg = '定时检查boutique product数据:\n时间:%s\n精品参数设置错误:%s\n非精品设置错误:%s\n精品券设置错误:%s\n' % \
-          (str(datetime.datetime.now()), str(wrong_product), str(non_boutiques), str(wrong_coupons))
+    msg = '定时检查boutique product数据:\n时间:%s\n精品参数设置错误:%s\n非精品设置错误:%s\n精品券设置错误:%s\n上架时间设置错误:%s\n' % \
+          (str(datetime.datetime.now()), str(wrong_product), str(non_boutiques), str(wrong_coupons), str(onshelf_products))
     dd = DingDingAPI()
     for touser in tousers:
         dd.sendMsg(msg, touser)

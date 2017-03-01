@@ -43,3 +43,9 @@ class ModelProductManager(BaseManager):
                                           product_type=self.model.VIRTUAL_TYPE,
                                           shelf_status=self.model.ON_SHELF,
                                           status=self.model.NORMAL)
+
+    def get_onshelf_modelproducts(self):
+        # type: () -> Optional[List[ModelProduct]]
+        """获取上架的商品记录
+        """
+        return self.get_queryset().filter(shelf_status=self.model.ON_SHELF, status=self.model.NORMAL)
