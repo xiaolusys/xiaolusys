@@ -262,9 +262,11 @@ def create_new_elite_mama(customer, to_mama, so):
     新精英妈妈类型和推荐关系填写
     """
     from flashsale.xiaolumm.models.models import XiaoluMama
-    if to_mama.last_renew_type < XiaoluMama.ELITE:
+    if to_mama.last_renew_type < XiaoluMama.ELITE or to_mama.charge_status != XiaoluMama.CHARGED\
+            or to_mama.status != XiaoluMama.EFFECT:
         to_mama.last_renew_type = XiaoluMama.ELITE
         to_mama.charge_status = XiaoluMama.CHARGED
+        to_mama.status = XiaoluMama.EFFECT
     else:
         return
     if not to_mama.charge_time:
