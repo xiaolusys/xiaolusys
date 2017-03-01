@@ -143,7 +143,7 @@ class LogisticsCompany(models.Model):
                 cache_logistics = LogisticsCompany.objects.filter(code__in=('POSTB', 'YUNDA_QR'))
             else:
                 cache_logistics = LogisticsCompany.objects.filter(code__in=('POSTB','YUNDA_QR'))
-            cache.set(cache_key,cache_logistics, 24 * 60 * 60)
+            cache.set(cache_key,cache_logistics, 60)
         return cache_logistics
 
     @classmethod
