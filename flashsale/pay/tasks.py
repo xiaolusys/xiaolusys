@@ -4,6 +4,7 @@ import re
 import datetime
 import logging
 
+from flashsale.xiaolumm.models import AccountEntry
 from shopmanager import celery_app as app
 from django.conf import settings
 from django.db import models
@@ -496,18 +497,22 @@ def task_budgetlog_update_userbudget(budget_log):
     customers = Customer.objects.normal_customer.filter(id=customer_id)
     try:
         if not customers.exists():
-            logger.warn('customer %s　not exists when create user budget!' %
-                        customer_id)
+            logger.warn('customer %s　not exists when create user budget!' % customer_id)
 
-        budgets = UserBudget.objects.filter(user=customer_id)
-        if not budgets.exists():
+        budget = UserBudget.objects.filter(user=customer_id).first()
+        if not budget:
             budget = UserBudget(user=customers[0],
                                 amount=cash,
                                 total_income=in_amount,
                                 total_expense=out_amount)
             budget.save()
         else:
-            budget = budgets[0]
+            delta = cash - budget.amount
+            if delta > 0:
+                AccountEntry.create(customer_id, AccountEntry.SB_RECEIVE_WALLET, AccountEntry.SB_PAY_XIAOLU, delta)
+            if delta < 0:
+                AccountEntry.create(customer_id, AccountEntry.SB_PAY_XIAOLU, AccountEntry.SB_RECEIVE_WALLET, abs(delta))
+
             if budget.amount != cash:
                 budget.amount = cash
             budget.total_income = in_amount

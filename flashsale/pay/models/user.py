@@ -814,7 +814,7 @@ def budgetlog_update_userbudget(sender, instance, created, **kwargs):
     try:
         from flashsale.pay.tasks import task_budgetlog_update_userbudget
 
-        # transaction.on_commit(lambda: task_budgetlog_update_userbudget(instance))
+        transaction.on_commit(lambda: task_budgetlog_update_userbudget(instance))
 
         logger.warning('budgetlog update:%s, %s, %s, %s' %
             (instance.customer_id, instance.flow_amount, instance.referal_id, instance.status))

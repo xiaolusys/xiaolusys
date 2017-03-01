@@ -665,7 +665,7 @@ class EnvelopAdmin(admin.ModelAdmin):
         ('created', DateFieldListFilter),
         MamaCreatedFilter,
     )
-    search_fields = ['=receiver', '=envelop_id', '=recipient']
+    search_fields = ['=receiver', '=envelop_id', '=recipient', '=description']
     list_per_page = 50
     form = EnvelopForm
 
