@@ -1135,10 +1135,11 @@ def task_schedule_check_boutique_modelproduct(days=1):
     for mp in onshelf_mps:
         if not mp.onshelf_time:
             onshelf_products.append(mp.id)
+            continue
         for one_product in mp.products:
             if not one_product.upshelf_time:
                 onshelf_products.append(mp.id)
-
+                break
 
     from common.dingding import DingDingAPI
     tousers = [
