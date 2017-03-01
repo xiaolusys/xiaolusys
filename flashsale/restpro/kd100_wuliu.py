@@ -81,10 +81,15 @@ def format_wuliu_data(wuliu_data):
     return return_data
 
 def fomat_wuliu_data_from_db(tradewuliu):
+    logistic_company = LogisticsCompany.objects.filter(kd100_express_key=tradewuliu.logistics_company)
+    if logistic_company:
+        name = logistic_company.first().name
+    else:
+        name = tradewuliu.logistics_company
     format_exp_info = {
         "status": wuliu_state[str(tradewuliu.status)],
         "status_code": int(tradewuliu.status),
-        "name": tradewuliu.logistics_company,
+        "name": name,
         "errcode": tradewuliu.errcode,
         "id": "",
         "message": "",
