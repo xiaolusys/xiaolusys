@@ -712,32 +712,32 @@ post_save.connect(ordercarry_update_ordercarry,
                   sender=OrderCarry, dispatch_uid='post_save_ordercarry_update_ordercarry')
 
 
-def ordercarry_update_activevalue(sender, instance, created, **kwargs):
-    if instance.carry_type == OrderCarry.WAP_ORDER or instance.carry_type == OrderCarry.APP_ORDER:
-        from flashsale.xiaolumm.tasks import task_ordercarry_update_activevalue
-        task_ordercarry_update_activevalue.delay(instance.uni_key)
-
-
-post_save.connect(ordercarry_update_activevalue,
-                  sender=OrderCarry, dispatch_uid='post_save_ordercarry_update_activevalue')
-
-
-def ordercarry_update_order_number(sender, instance, created, **kwargs):
-    mama_id = instance.mama_id
-    date_field = instance.date_field
-
-    from flashsale.xiaolumm.tasks import task_update_clickcarry_order_number, \
-        task_update_mamafortune_order_num, task_ordercarry_increment_dailystats
-    task_update_clickcarry_order_number.delay(mama_id, date_field)
-
-    task_update_mamafortune_order_num.delay(mama_id)
-
-    if created:
-        task_ordercarry_increment_dailystats.delay(mama_id, date_field)
-
-
-post_save.connect(ordercarry_update_order_number,
-                  sender=OrderCarry, dispatch_uid='post_save_order_carry_update_order_number')
+# def ordercarry_update_activevalue(sender, instance, created, **kwargs):
+#     if instance.carry_type == OrderCarry.WAP_ORDER or instance.carry_type == OrderCarry.APP_ORDER:
+#         from flashsale.xiaolumm.tasks import task_ordercarry_update_activevalue
+#         task_ordercarry_update_activevalue.delay(instance.uni_key)
+#
+#
+# post_save.connect(ordercarry_update_activevalue,
+#                   sender=OrderCarry, dispatch_uid='post_save_ordercarry_update_activevalue')
+#
+#
+# def ordercarry_update_order_number(sender, instance, created, **kwargs):
+#     mama_id = instance.mama_id
+#     date_field = instance.date_field
+#
+#     from flashsale.xiaolumm.tasks import task_update_clickcarry_order_number, \
+#         task_update_mamafortune_order_num, task_ordercarry_increment_dailystats
+#     task_update_clickcarry_order_number.delay(mama_id, date_field)
+#
+#     task_update_mamafortune_order_num.delay(mama_id)
+#
+#     if created:
+#         task_ordercarry_increment_dailystats.delay(mama_id, date_field)
+#
+#
+# post_save.connect(ordercarry_update_order_number,
+#                   sender=OrderCarry, dispatch_uid='post_save_order_carry_update_order_number')
 
 
 class AwardCarry(BaseModel):
@@ -939,20 +939,20 @@ class ClickCarry(BaseModel):
         return None
 
 
-def weixin_push_clickcarry(sender, instance, fake=False, **kwargs):
-    from flashsale.xiaolumm.tasks import task_weixin_push_clickcarry
-    task_weixin_push_clickcarry.delay(instance, fake=fake)
-
-clickcarry_signal.connect(weixin_push_clickcarry, sender=ClickCarry, dispatch_uid='add_clickcarry_weixin_push')
-
-
-def clickcarry_update_carryrecord(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm.tasks import task_clickcarry_update_carryrecord
-    task_clickcarry_update_carryrecord.delay(instance)
-
-
-post_save.connect(clickcarry_update_carryrecord,
-                  sender=ClickCarry, dispatch_uid='post_save_clickcarry_update_carryrecord')
+# def weixin_push_clickcarry(sender, instance, fake=False, **kwargs):
+#     from flashsale.xiaolumm.tasks import task_weixin_push_clickcarry
+#     task_weixin_push_clickcarry.delay(instance, fake=fake)
+#
+# clickcarry_signal.connect(weixin_push_clickcarry, sender=ClickCarry, dispatch_uid='add_clickcarry_weixin_push')
+#
+#
+# def clickcarry_update_carryrecord(sender, instance, created, **kwargs):
+#     from flashsale.xiaolumm.tasks import task_clickcarry_update_carryrecord
+#     task_clickcarry_update_carryrecord.delay(instance)
+#
+#
+# post_save.connect(clickcarry_update_carryrecord,
+#                   sender=ClickCarry, dispatch_uid='post_save_clickcarry_update_carryrecord')
 
 
 def confirm_previous_clickcarry(sender, instance, created, **kwargs):
@@ -1409,8 +1409,8 @@ def visitor_update_clickcarry_and_activevalue(sender, instance, created, **kwarg
     except XiaoluMama.DoesNotExist:
         return
 
-    from flashsale.xiaolumm.tasks import task_visitor_increment_clickcarry
-    task_visitor_increment_clickcarry.delay(mama_id, date_field, fake=is_fake)
+    # from flashsale.xiaolumm.tasks import task_visitor_increment_clickcarry
+    # task_visitor_increment_clickcarry.delay(mama_id, date_field, fake=is_fake)
 
     from flashsale.xiaolumm.tasks import task_visitor_increment_activevalue
     task_visitor_increment_activevalue.delay(mama_id, date_field)
