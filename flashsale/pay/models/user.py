@@ -11,7 +11,7 @@ from django.db import models, transaction
 from django.db.models.signals import post_save
 from django.db.models import Sum, F
 
-from core.models import BaseModel
+from core.models import BaseModel, BaseTagModel
 from .base import PayBaseModel
 from .envelope import Envelop
 from .. import constants
@@ -104,7 +104,7 @@ def genCustomerNickname():
     return ''.join(random.sample(chr_str, 6))
 
 
-class Customer(BaseModel):
+class Customer(BaseTagModel):
     class Meta:
         db_table = 'flashsale_customer'
         app_label = 'pay'
