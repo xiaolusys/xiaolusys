@@ -860,6 +860,7 @@ def buy_boutique_register_product(sender, obj, **kwargs):
     from flashsale.pay.models import Envelop
     from shopapp.weixin.models import WeixinUnionID
     from flashsale.xiaolumm.models.elite_mama import EliteMamaAwardLog
+    from flashsale.xiaolumm.tasks.tasks_mama_push import task_weixin_push_mama_invite_award
 
     def create_envelop(customer, flow_amount, subject=None, referal_id='',
                        buy_mama_id=None, level_1_mama=None, level_2_mama=None):
@@ -897,7 +898,7 @@ def buy_boutique_register_product(sender, obj, **kwargs):
         # 生成推荐关系
         create_new_elite_mama(customer, mama, saleorder)
 
-        # 给推荐人5积分,30红包
+        # 给一级推荐人5积分,30红包
         level_1_mama = mama.get_referal_from_mama()
         if not level_1_mama:
             return
@@ -909,8 +910,9 @@ def buy_boutique_register_product(sender, obj, **kwargs):
         create_present_elite_score(level_1_customer, elite_score, template, '')
         create_envelop(level_1_customer, 3000, subject=Envelop.LEVEL_1, referal_id=saleorder.oid,
                        buy_mama_id=mama.id, level_1_mama=level_1_mama, level_2_mama=level_2_mama)
+        task_weixin_push_mama_invite_award.delay(level_1_mama, customer, 30)
 
-        # 推荐人上级积分>=30,发10元红包
+        # 二级推荐人积分>=30,发10元红包
         if (not level_2_mama) or level_1_mama.referal_from == XiaoluMama.DIRECT:
             return
 
@@ -918,9 +920,10 @@ def buy_boutique_register_product(sender, obj, **kwargs):
             level_2_customer = level_2_mama.get_mama_customer()
             create_envelop(level_2_customer, 1000, subject=Envelop.LEVEL_2, referal_id=saleorder.oid,
                            buy_mama_id=mama.id, level_1_mama=level_1_mama, level_2_mama=level_2_mama)
+            task_weixin_push_mama_invite_award.delay(level_2_mama, customer, 10)
 
 
-        # 推荐人上上级积分>=60,记录奖励一次
+        # 三级推荐人积分>=60,记录奖励一次
         level_3_mama = level_2_mama.get_referal_from_mama()
         if level_3_mama and level_3_mama.elite_score >= 60 and level_2_mama.referal_from == XiaoluMama.INDIRECT:
             level_3_customer = level_3_mama.get_mama_customer()
@@ -930,6 +933,7 @@ def buy_boutique_register_product(sender, obj, **kwargs):
                 referal_id='saleorder-{}'.format(saleorder.oid),
                 remark=u'购买人{}, 1级推荐人{}, 2级推荐人{}'.format(mama.id, level_1_mama.id, level_2_mama.id)
             )
+            task_weixin_push_mama_invite_award.delay(level_3_mama, customer, 0)
 
     try:
         saletrade = obj
