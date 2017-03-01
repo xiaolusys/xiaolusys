@@ -884,6 +884,15 @@ def buy_boutique_register_product(sender, obj, **kwargs):
 
     def do(customer, saleorder):
         mama = customer.get_xiaolumm()
+        if (not mama) and customer.unionid:
+            # 是微信登录的就创建小鹿妈妈账号，用手机号登录的那只能找管理员了
+            from flashsale.xiaolumm.models import XiaoluMama
+            mama = XiaoluMama.objects.create(
+                mobile=customer.mobile,
+                progress=XiaoluMama.PROFILE,
+                openid=customer.unionid,
+                last_renew_type=XiaoluMama.SCAN,
+            )
 
         # 生成推荐关系
         create_new_elite_mama(customer, mama, saleorder)

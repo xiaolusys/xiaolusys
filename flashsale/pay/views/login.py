@@ -58,17 +58,6 @@ def weixin_login(request):
     customer = Customer.objects.get(user=request.user.id)
     openid, unionid = customer.get_openid_and_unoinid_by_appkey(settings.WX_PUB_APPID)
 
-    # 微信登录高级授权后就创建小鹿妈妈账号
-    from flashsale.xiaolumm.models import XiaoluMama
-    xiaolumm = customer.get_xiaolumm()
-    if not xiaolumm:
-        xiaolumm = XiaoluMama.objects.create(
-            mobile=customer.mobile,
-            progress=XiaoluMama.PROFILE,
-            openid=customer.unionid,
-            last_renew_type=XiaoluMama.SCAN,
-        )
-
     options.set_cookie_openid(response, settings.WX_PUB_APPID, openid, unionid)
     return response
 
