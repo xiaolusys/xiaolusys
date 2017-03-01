@@ -9,12 +9,12 @@ class DailyStat(models.Model):
     total_visiter_num = models.IntegerField(default=0, verbose_name=u'日访客数')
     total_new_visiter_num = models.IntegerField(default=0, verbose_name=u'新访客数')
 
-    total_payment = models.IntegerField(default=0, verbose_name=u'日成交额')
-    total_paycash = models.IntegerField(default=0, verbose_name=u'实付现金')
+    total_payment = models.IntegerField(default=0, verbose_name=u'日成交额', help_text=u'所有订单总金额')
+    total_paycash = models.IntegerField(default=0, verbose_name=u'实付现金', help_text=u'所有订单支付现金')
     total_coupon  = models.IntegerField(default=0, verbose_name=u'券支付额')
-    total_coin    = models.IntegerField(default=0, verbose_name=u'小鹿币支付额')
+    total_coin    = models.IntegerField(default=0, verbose_name=u'币支付额', help_text=u'小鹿币支付')
     total_budget  = models.IntegerField(default=0, verbose_name=u'钱包余额')
-    total_boutique = models.IntegerField(default=0, verbose_name=u'购精品券')
+    total_boutique = models.IntegerField(default=0, verbose_name=u'购券&充值', help_text=u'包含小鹿币充值')
     total_deposite  = models.IntegerField(default=0, verbose_name=u'支付押金')
 
     total_order_num = models.IntegerField(default=0, verbose_name=u'日订单数')
@@ -52,6 +52,18 @@ class DailyStat(models.Model):
 
     get_total_payment_display.allow_tags = True
     get_total_payment_display.short_description = u"日成交额"
+
+    def get_total_charge_display(self):
+        return self.total_charge / 100.0
+
+    get_total_charge_display.allow_tags = True
+    get_total_charge_display.short_description = u"小鹿币充值"
+
+    def get_total_coin_display(self):
+        return self.total_coin / 100.0
+
+    get_total_coin_display.allow_tags = True
+    get_total_coin_display.short_description = u"小鹿币支付"
 
     @property
     def price_per_customer(self):

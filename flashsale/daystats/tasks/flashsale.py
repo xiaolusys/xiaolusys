@@ -60,31 +60,44 @@ def task_Push_Sales_To_DailyStat(target_date):
                     total_old_visiter_num += 1
 
     from flashsale.pay.models import SaleTrade
-    order_stats = SaleTrade.objects.filter(
+    order_qs = SaleTrade.objects.filter(
         pay_time__range=(df, dt),
-        order_type__in=(SaleTrade.SALE_ORDER, SaleTrade.RESERVE_ORDER, SaleTrade.TEAMBUY_ORDER)
     )
-    aggrate_data = order_stats.aggregate(
+    aggrate_data = order_qs.aggregate(
         total_payment=Sum('payment'),
         total_paycash=Sum('pay_cash'),
         total_coin=Sum('coin_paid'),
+        total_budget=Sum('budget_paid'),
         total_discount=Sum('discount_fee'),
     )
-    total_order_num = order_stats.count()
-    total_buyer_num = order_stats.values('receiver_mobile').distinct().count()
+    usual_order_qs = order_qs.filter(
+        order_type__in=(
+            SaleTrade.SALE_ORDER,
+            SaleTrade.RESERVE_ORDER,
+            SaleTrade.TEAMBUY_ORDER
+        ))
+    total_order_num = usual_order_qs.count()
+    total_buyer_num = usual_order_qs.values('receiver_mobile').distinct().count()
 
     total_old_buyer_num = 0
     seven_old_buyer_num = 0
     total_old_order_num = 0
 
-    stats_mobiles = SaleTrade.objects.filter(pay_time__range=(df,dt)).values_list('receiver_mobile',flat=True).distinct()
+
+    usual_base_order_qs = SaleTrade.objects.filter(
+        order_type__in=(
+            SaleTrade.SALE_ORDER,
+            SaleTrade.RESERVE_ORDER,
+            SaleTrade.TEAMBUY_ORDER
+        ))
+    stats_mobiles = usual_order_qs.values_list('receiver_mobile',flat=True).distinct()
     for mobile in stats_mobiles:
-        day_ago_stats = SaleTrade.objects.filter(pay_time__lte=df, receiver_mobile=mobile)
+        day_ago_stats = usual_base_order_qs.filter(pay_time__lte=df, receiver_mobile=mobile)
         if day_ago_stats.exists():
             total_old_buyer_num += 1
-            total_old_order_num += order_stats.filter(receiver_mobile=mobile).count()
+            total_old_order_num += usual_order_qs.filter(receiver_mobile=mobile).count()
 
-        seven_day_ago_stats = SaleTrade.objects.filter(pay_time__lte=seven_day_before,
+        seven_day_ago_stats = usual_base_order_qs.filter(pay_time__lte=seven_day_before,
                                                        receiver_mobile=mobile)
         if seven_day_ago_stats.exists():
             seven_old_buyer_num += 1
@@ -99,10 +112,10 @@ def task_Push_Sales_To_DailyStat(target_date):
     dstat.total_paycash = (aggrate_data.get('total_paycash') or 0) * 100
     dstat.total_coupon  = (aggrate_data.get('total_discount') or 0) * 100
     dstat.total_coin    = (aggrate_data.get('total_coin') or 0) * 100
-    dstat.total_budget  = dstat.total_payment - dstat.total_paycash
-    dstat.total_boutique = (order_stats.filter(order_type=SaleTrade.ELECTRONIC_GOODS_ORDER)
+    dstat.total_budget  = (aggrate_data.get('total_budget') or 0) * 100
+    dstat.total_boutique = (order_qs.filter(order_type=SaleTrade.ELECTRONIC_GOODS_ORDER)
                             .aggregate(total_paycash=Sum('pay_cash')).get('total_paycash') or 0 )*100
-    dstat.total_deposite = (order_stats.filter(order_type=SaleTrade.DEPOSITE_ORDER)
+    dstat.total_deposite = (order_qs.filter(order_type=SaleTrade.DEPOSITE_ORDER)
                             .aggregate(total_paycash=Sum('pay_cash')).get('total_paycash') or 0 )*100
 
     dstat.total_order_num = total_order_num
