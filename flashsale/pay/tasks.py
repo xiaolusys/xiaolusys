@@ -1131,15 +1131,25 @@ def task_schedule_check_boutique_modelproduct(days=1):
             wrong_coupons.append(mp.id)
 
     onshelf_products = []
+    onshelf_time = datetime.datetime.now()
+    offshelf_time = onshelf_time + + datetime.timedelta(days=365)
     onshelf_mps = get_onshelf_modelproducts()
     for mp in onshelf_mps:
         if not mp.onshelf_time:
             onshelf_products.append(mp.id)
-            continue
+            mp.onshelf_time = onshelf_time
+            if not mp.offshelf_time:
+                mp.offshelf_time = offshelf_time
+            mp.save(update_fields=['onshelf_time', 'offshelf_time'])
         for one_product in mp.products:
             if not one_product.upshelf_time:
                 onshelf_products.append(mp.id)
-                break
+                one_product.upshelf_time = onshelf_time
+                if not one_product.offshelf_time:
+                    one_product.offshelf_time = offshelf_time
+                one_product.save(update_fields=['upshelf_time', 'offshelf_time'])
+
+    onshelf_products = set(onshelf_products)
 
     from common.dingding import DingDingAPI
     tousers = [
