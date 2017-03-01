@@ -886,6 +886,11 @@ def buy_boutique_register_product(sender, obj, **kwargs):
 
     def do(customer, saleorder):
         mama = customer.get_xiaolumm()
+        # 购买的妈妈已经是一个精英妈妈了，那么就不用给红包和创建推荐关系了
+        from flashsale.xiaolumm.models.models import XiaoluMama
+        if mama and mama.last_renew_type >= XiaoluMama.ELITE and mama.charge_status == XiaoluMama.CHARGED \
+                and mama.status == XiaoluMama.EFFECT:
+            return
         if (not mama) and customer.unionid:
             # 是微信登录的就创建小鹿妈妈账号，用手机号登录的那只能找管理员了
             mama = XiaoluMama.objects.create(
