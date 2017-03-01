@@ -136,6 +136,14 @@ class LogisticsCompany(models.Model):
         # TODO 如过物流记录更新需要更新cache
         cache_key = hashlib.sha1('%s%s-%s'%(__file__,cls.__class__,ware_by)).hexdigest()
         cache_logistics = cache.get(cache_key)
+        sto = LogisticsCompany.objects.filter(code__in=["STO"])
+
+        if cache_logistics and sto :
+            sto = list(sto)[0]
+            if sto in list(cache_logistics):
+                cache_logistics = LogisticsCompany.objects.filter(code__in=('POSTB', 'YUNDA_QR'))
+                cache.set(cache_key, cache_logistics, 24 * 60 * 60)
+
         if not cache_logistics:
             if ware_by == constants.WARE_SH:
                 cache_logistics = LogisticsCompany.objects.filter(code__in=('POSTB','YUNDA_QR'))
@@ -143,7 +151,7 @@ class LogisticsCompany(models.Model):
                 cache_logistics = LogisticsCompany.objects.filter(code__in=('POSTB', 'YUNDA_QR'))
             else:
                 cache_logistics = LogisticsCompany.objects.filter(code__in=('POSTB','YUNDA_QR'))
-            cache.set(cache_key,cache_logistics, 60)
+            cache.set(cache_key,cache_logistics, 24 * 60 * 60)
         return cache_logistics
 
     @classmethod
