@@ -73,6 +73,12 @@ def task_weixin_push_awardcarry(awardcarry):
 
 
 @app.task
+def task_weixin_push_mama_invite_award(mama, buy_customer, amount):
+    wp = WeixinPush()
+    wp.push_mama_invite_award(mama, buy_customer, amount)
+
+
+@app.task
 def task_weixin_push_clickcarry(clickcarry, fake=False):
     wp = WeixinPush()
     wp.push_mama_clickcarry(clickcarry, fake=fake)

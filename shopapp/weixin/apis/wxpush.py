@@ -305,6 +305,49 @@ class WeixinPush(object):
 
         return self.push(customer, template_ids, template_data, to_url)
 
+    def push_mama_invite_award(self, mama, buy_customer, amount):
+        """
+        购买小鹿全球精品会员注册礼包,给推荐人发推送
+
+        {{first.DATA}}
+        任务名称：{{keyword1.DATA}}
+        奖励金额：{{keyword2.DATA}}
+        时间：{{keyword3.DATA}}
+        {{remark.DATA}}
+        """
+        customer = utils.get_mama_customer(mama.id)
+        now = datetime.datetime.now()
+
+        template_ids = {
+            'meimei': 'K2RVQnhIh6psYkGrkjLclLWmNXQ-hqoc-yumdsLuqC4',
+            'temai': 'ATPs2YP1ynKfgtXRl1fhhZ2Kne3AmDmU8Rghax31edg'
+        }
+        template_data = {
+            'first': {
+                'value': u'恭喜你团队增加一名新成员{}，请及时联系你的管理员领取奖励！'.format(buy_customer.nick),
+                'color': '#F87217',
+            },
+            'keyword1': {
+                'value': u'推荐新人',
+                'color': '#000000',
+            },
+            'keyword2': {
+                'value': u'¥%.2f' % amount,
+                'color': '#ff0000',
+            },
+            'keyword3': {
+                'value': u'%s' % now.strftime('%Y-%m-%d %H:%M:%S'),
+                'color': '#000000',
+            },
+            'remark': {
+                'value': u'',
+                'color': '#F87217',
+            },
+        }
+        to_url = 'https://m.xiaolumeimei.com'
+
+        return self.push(customer, template_ids, template_data, to_url)
+
     def push_mama_ordercarry(self, ordercarry, to_url):
         """
         {{first.DATA}}
