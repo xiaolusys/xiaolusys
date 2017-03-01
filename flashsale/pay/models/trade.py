@@ -861,6 +861,7 @@ def buy_boutique_register_product(sender, obj, **kwargs):
     from shopapp.weixin.models import WeixinUnionID
     from flashsale.xiaolumm.models.elite_mama import EliteMamaAwardLog
     from flashsale.xiaolumm.tasks.tasks_mama_push import task_weixin_push_mama_invite_award
+    from flashsale.xiaolumm.models import XiaoluMama
 
     def create_envelop(customer, flow_amount, subject=None, referal_id='',
                        buy_mama_id=None, level_1_mama=None, level_2_mama=None):
@@ -887,7 +888,6 @@ def buy_boutique_register_product(sender, obj, **kwargs):
         mama = customer.get_xiaolumm()
         if (not mama) and customer.unionid:
             # 是微信登录的就创建小鹿妈妈账号，用手机号登录的那只能找管理员了
-            from flashsale.xiaolumm.models import XiaoluMama
             mama = XiaoluMama.objects.create(
                 mobile=customer.mobile,
                 progress=XiaoluMama.PROFILE,
