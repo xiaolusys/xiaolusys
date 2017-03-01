@@ -207,7 +207,7 @@ def task_check_xlmm_exchg_order():
     budget_log1 = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_IN,
                                           budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED, created__gte=tf)
     budget_log2 = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_OUT,
-                                           budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED, created__gte=tf)
+                                           budget_log_type=BudgetLog.BG_RETURN_EXCHG, status=BudgetLog.CONFIRMED, created__gte=tf)
     budget_num = budget_log1.count() - budget_log2.count()
     budget_oids = [i['uni_key'] for i in budget_log1.values('uni_key')]
     res1 = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_IN,
@@ -215,7 +215,7 @@ def task_check_xlmm_exchg_order():
         n=Sum('flow_amount'))
     exchg_budget_sum1 = res1['n'] or 0
     res2 = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_OUT,
-                                   budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED, created__gte=tf).aggregate(
+                                   budget_log_type=BudgetLog.BG_RETURN_EXCHG, status=BudgetLog.CONFIRMED, created__gte=tf).aggregate(
         n=Sum('flow_amount'))
     exchg_budget_sum2 = res2['n'] or 0
     exchg_budget_sum = exchg_budget_sum1 - exchg_budget_sum2
@@ -249,9 +249,9 @@ def task_check_xlmm_exchg_order():
 @app.task()
 def task_check_xlmm_return_exchg_order():
     from flashsale.pay.models.user import BudgetLog
-    start_date_time = datetime.datetime(2017, 2, 22)
+    start_date_time = datetime.datetime(2017, 3, 1)
     exchg_orders = BudgetLog.objects.filter(budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED,
-                                            created__gte=start_date_time)
+                                            created__gt=start_date_time)
     order_num = 0
     exchg_goods_num = 0
     exchg_goods_payment = 0
@@ -274,10 +274,10 @@ def task_check_xlmm_return_exchg_order():
                 results.append(sale_order.sale_trade.tid)
             if sale_order and (sale_order.status == SaleOrder.TRADE_CLOSED or sale_order.refund_status != SaleRefund.NO_REFUND):
                 return_order_num += 1
-    budget_log = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_OUT, budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED)
+    budget_log = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_OUT, budget_log_type=BudgetLog.BG_RETURN_EXCHG, status=BudgetLog.CONFIRMED)
     budget_num = budget_log.count()
     budget_oids = [i['uni_key'] for i in budget_log.values('uni_key')]
-    res = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_OUT, budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED).aggregate(n=Sum('flow_amount'))
+    res = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_OUT, budget_log_type=BudgetLog.BG_RETURN_EXCHG, status=BudgetLog.CONFIRMED).aggregate(n=Sum('flow_amount'))
     exchg_budget_sum = res['n'] or 0
     from flashsale.coupon.models.transfer_coupon import CouponTransferRecord
     trans_records = CouponTransferRecord.objects.filter(transfer_type=CouponTransferRecord.IN_CANCEL_EXCHG, transfer_status=CouponTransferRecord.DELIVERED)

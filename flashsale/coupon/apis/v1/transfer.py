@@ -671,7 +671,7 @@ def saleorder_return_coupon_exchange(salerefund, payment):
         BudgetLog.create(customer_id=customer.id,
                          budget_type=BudgetLog.BUDGET_OUT,
                          flow_amount=int(payment),
-                         budget_log_type=BudgetLog.BG_EXCHG_ORDER,
+                         budget_log_type=BudgetLog.BG_RETURN_EXCHG,
                          referal_id=salerefund.id,
                          uni_key=salerefund.refund_no,
                          status=BudgetLog.CONFIRMED)
@@ -812,7 +812,7 @@ def transfer_record_return_coupon_exchange(coupons, transfer_record):
             BudgetLog.create(customer_id=customer.id,
                              budget_type=BudgetLog.BUDGET_OUT,
                              flow_amount=round(return_payment * 100),
-                             budget_log_type=BudgetLog.BG_EXCHG_ORDER,
+                             budget_log_type=BudgetLog.BG_RETURN_EXCHG,
                              referal_id=transfer_record.id,
                              uni_key='ctr-%s' % transfer_record.id,
                              status=BudgetLog.CONFIRMED)
