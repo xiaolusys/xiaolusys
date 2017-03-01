@@ -911,7 +911,7 @@ def buy_boutique_register_product(sender, obj, **kwargs):
                        buy_mama_id=mama.id, level_1_mama=level_1_mama, level_2_mama=level_2_mama)
 
         # 推荐人上级积分>=30,发10元红包
-        if not level_2_mama:
+        if (not level_2_mama) or level_1_mama.referal_from == XiaoluMama.DIRECT:
             return
 
         if level_2_mama.elite_score >= 30:
@@ -922,7 +922,7 @@ def buy_boutique_register_product(sender, obj, **kwargs):
 
         # 推荐人上上级积分>=60,记录奖励一次
         level_3_mama = level_2_mama.get_referal_from_mama()
-        if level_3_mama and level_3_mama.elite_score >= 60:
+        if level_3_mama and level_3_mama.elite_score >= 60 and level_2_mama.referal_from == XiaoluMama.INDIRECT:
             level_3_customer = level_3_mama.get_mama_customer()
             EliteMamaAwardLog.objects.create(
                 customer_id=level_3_customer.id,
