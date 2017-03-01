@@ -135,12 +135,23 @@ class CategoryStatViewSet(viewsets.GenericViewSet):
     @list_route(methods=['GET'])
     def skusale_stats(self, request, **kwargs):
         data = request.GET
+        product_type = data.get('product_type') or 'all'
         start_date = (data.get('start_date') and parse_str2date(data.get('start_date'))
                       or datetime.date.today() - datetime.timedelta(days=1))
         end_date = data.get('end_date') and parse_str2date(data.get('end_date')) or datetime.date.today()
 
+        virtual_modelids = list(ModelProduct.objects.filter(
+            product_type=ModelProduct.VIRTUAL_TYPE).values_list('id', flat=True))
+
         skustock_qs  = DailyBoutiqueStat.objects.filter(stat_date__range=(start_date, end_date))
         skuamount_qs = DailySkuAmountStat.objects.filter(stat_date__range=(start_date, end_date))
+
+        if (product_type == str(ModelProduct.USUAL_TYPE)):
+            skustock_qs = skustock_qs.exclude(model_id__in=virtual_modelids)
+            skuamount_qs = skuamount_qs.exclude(model_id__in=virtual_modelids)
+        elif (product_type == str(ModelProduct.VIRTUAL_TYPE)):
+            skustock_qs = skustock_qs.filter(model_id__in=virtual_modelids)
+            skuamount_qs = skuamount_qs.filter(model_id__in=virtual_modelids)
 
         model_ids = list(skustock_qs.values_list('model_id', flat=True))
         model_ids.extend(list(skuamount_qs.values_list('model_id', flat=True)))
@@ -167,8 +178,8 @@ class CategoryStatViewSet(viewsets.GenericViewSet):
         )
         modelsales_maps = dict([(s['model_id'], s) for s in modelsales_values ])
 
-        modelstock_maps = dict(DailyBoutiqueStat.objects.filter(stat_date=start_date)
-            .values_list('model_id', 'model_stock_num'))
+        modelstock_maps = dict(skustock_qs.filter(stat_date=start_date)
+        .values_list('model_id', 'model_stock_num'))
 
         for mvalue in modelamount_values:
             model_id = mvalue['model_id']
@@ -202,6 +213,7 @@ class CategoryStatViewSet(viewsets.GenericViewSet):
             {'id': 0, 'name': '全部类目'}, category_node_maps, category_sales_maps)
 
         return Response({
+            'product_type': product_type,
             'start_date': start_date.strftime('%Y-%m-%d'),
             'end_date': end_date.strftime('%Y-%m-%d'),
             'serial_data': category_serial_data,

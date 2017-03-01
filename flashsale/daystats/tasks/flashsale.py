@@ -67,7 +67,8 @@ def task_Push_Sales_To_DailyStat(target_date):
     aggrate_data = order_stats.aggregate(
         total_payment=Sum('payment'),
         total_paycash=Sum('pay_cash'),
-        total_discount=Sum('discount_fee')
+        total_coin=Sum('coin_paid'),
+        total_discount=Sum('discount_fee'),
     )
     total_order_num = order_stats.count()
     total_buyer_num = order_stats.values('receiver_mobile').distinct().count()
@@ -97,6 +98,7 @@ def task_Push_Sales_To_DailyStat(target_date):
     dstat.total_payment = (aggrate_data.get('total_payment') or 0) * 100
     dstat.total_paycash = (aggrate_data.get('total_paycash') or 0) * 100
     dstat.total_coupon  = (aggrate_data.get('total_discount') or 0) * 100
+    dstat.total_coin    = (aggrate_data.get('total_coin') or 0) * 100
     dstat.total_budget  = dstat.total_payment - dstat.total_paycash
     dstat.total_boutique = (order_stats.filter(order_type=SaleTrade.ELECTRONIC_GOODS_ORDER)
                             .aggregate(total_paycash=Sum('pay_cash')).get('total_paycash') or 0 )*100
