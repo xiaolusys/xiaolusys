@@ -138,11 +138,11 @@ class LogisticsCompany(models.Model):
         cache_logistics = cache.get(cache_key)
         if not cache_logistics:
             if ware_by == constants.WARE_SH:
-                cache_logistics = LogisticsCompany.objects.filter(code__in=('POSTB','STO','YUNDA_QR'))
+                cache_logistics = LogisticsCompany.objects.filter(code__in=('POSTB','YUNDA_QR'))
             elif ware_by == constants.WARE_GZ:
                 cache_logistics = LogisticsCompany.objects.filter(code__in=('POSTB', 'YUNDA_QR'))
             else:
-                cache_logistics = LogisticsCompany.objects.filter(code__in=('POSTB','STO','YUNDA_QR'))
+                cache_logistics = LogisticsCompany.objects.filter(code__in=('POSTB','YUNDA_QR'))
             cache.set(cache_key,cache_logistics, 24 * 60 * 60)
         return cache_logistics
 
