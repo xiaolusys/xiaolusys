@@ -58,3 +58,9 @@ def get_virtual_modelproduct_from_boutique_modelproduct(modelid):
             find_mp = md
             break
     return find_mp
+
+def get_onshelf_modelproducts():
+    # type: () -> Optional[List[ModelProduct]]
+    """获取上架商品
+    """
+    return ModelProduct.objects.get_onshelf_modelproducts()
