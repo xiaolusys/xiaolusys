@@ -925,7 +925,7 @@ def buy_boutique_register_product(sender, obj, **kwargs):
             level_2_customer = level_2_mama.get_mama_customer()
             create_envelop(level_2_customer, 1000, subject=Envelop.LEVEL_2, referal_id=saleorder.oid,
                            buy_mama_id=mama.id, level_1_mama=level_1_mama, level_2_mama=level_2_mama)
-            task_weixin_push_mama_invite_award.delay(level_2_mama, customer, 10)
+            task_weixin_push_mama_invite_award.delay(level_2_mama, customer, 10, level_1_customer=level_1_customer)
 
 
         # 三级推荐人积分>=60,记录奖励一次
@@ -938,7 +938,7 @@ def buy_boutique_register_product(sender, obj, **kwargs):
                 referal_id='saleorder-{}'.format(saleorder.oid),
                 remark=u'购买人{}, 1级推荐人{}, 2级推荐人{}'.format(mama.id, level_1_mama.id, level_2_mama.id)
             )
-            task_weixin_push_mama_invite_award.delay(level_3_mama, customer, 0)
+            task_weixin_push_mama_invite_award.delay(level_3_mama, customer, 0, level_1_customer=level_1_customer)
 
     try:
         saletrade = obj

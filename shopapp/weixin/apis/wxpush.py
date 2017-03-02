@@ -111,7 +111,7 @@ class WeixinPush(object):
                 break
 
         if is_boutique_register_product:
-            footer = u'点我，查看《新手必读！在小鹿美美如何赚钱？》，开始您在小鹿美美的致富之旅 >>'
+            footer = u'恭喜你开通小鹿精品代理！活动期间，推荐新代理奖励30元！请点击【详情】查看新手教程如何赚钱！'
             to_url = 'http://m.xiaolumeimei.com/mama_shop/html/intro_march.html'
         else:
             footer = template.footer.decode('string_escape')
@@ -305,7 +305,7 @@ class WeixinPush(object):
 
         return self.push(customer, template_ids, template_data, to_url)
 
-    def push_mama_invite_award(self, mama, buy_customer, amount):
+    def push_mama_invite_award(self, mama, buy_customer, amount, level_1_customer=None):
         """
         购买小鹿全球精品会员注册礼包,给推荐人发推送
 
@@ -318,13 +318,18 @@ class WeixinPush(object):
         customer = utils.get_mama_customer(mama.id)
         now = datetime.datetime.now()
 
+        if level_1_customer:
+            first = u'恭喜你团队{}增加一名新成员{}，请及时联系你的管理员领取奖励！'.format(level_1_customer.nick, buy_customer.nick)
+        else:
+            first = u'恭喜你团队增加一名成员{}, 请邀请你朋友加入到团队群，并及时联系你的管理员领取奖励！'.format(buy_customer.nick)
+
         template_ids = {
             'meimei': 'K2RVQnhIh6psYkGrkjLclLWmNXQ-hqoc-yumdsLuqC4',
             'temai': 'ATPs2YP1ynKfgtXRl1fhhZ2Kne3AmDmU8Rghax31edg'
         }
         template_data = {
             'first': {
-                'value': u'恭喜你团队增加一名新成员{}，请及时联系你的管理员领取奖励！'.format(buy_customer.nick),
+                'value': first,
                 'color': '#F87217',
             },
             'keyword1': {
