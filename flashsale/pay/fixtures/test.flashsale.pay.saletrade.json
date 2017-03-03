@@ -38,7 +38,8 @@
     "total_fee": 29.9,
     "receiver_state": "\u4e0a\u6d77\u5e02",
     "receiver_name": "\u6d4b\u8bd5\u5730\u57401",
-    "buyer_id": 1
+    "buyer_id": 1,
+    "pay_status": 0
   },
   "model": "pay.saletrade",
   "pk": 372487
@@ -82,7 +83,8 @@
     "total_fee": 1009.8,
     "receiver_state": "\u6c5f\u82cf",
     "receiver_name": "\u738b\u7434",
-    "buyer_id": 1
+    "buyer_id": 1,
+    "pay_status": 0
   },
   "model": "pay.saletrade",
   "pk": 332233
@@ -126,7 +128,8 @@
     "total_fee": 109.8,
     "receiver_state": "\u5e7f\u4e1c",
     "receiver_name": "\u674e\u4e39",
-    "buyer_id": 783437
+    "buyer_id": 783437,
+    "pay_status": 0
   },
   "model": "pay.saletrade",
   "pk": 333231
