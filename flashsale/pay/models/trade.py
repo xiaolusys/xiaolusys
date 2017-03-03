@@ -134,6 +134,15 @@ class SaleTrade(BaseModel):
         (TRADE_CLOSED_BY_SYS, u'交易关闭'),
     )
 
+    SALE_TRADE_NOPAY = 0
+    SALE_TRADE_PAYING = 1
+    SALE_TRADE_PAY_FINISHED = 2
+    PAY_STATUS = (
+        (SALE_TRADE_NOPAY, u'订单未支付'),
+        (SALE_TRADE_PAYING, u'订单支付中'),
+        (SALE_TRADE_PAY_FINISHED, u'订单支付完成'),
+    )
+
     id = models.AutoField(primary_key=True, verbose_name=u'订单ID')
     tid = models.CharField(max_length=40, unique=True,
                            default=genTradeUniqueid,
@@ -187,6 +196,8 @@ class SaleTrade(BaseModel):
 
     status = models.IntegerField(choices=TRADE_STATUS, default=TRADE_NO_CREATE_PAY,
                                  db_index=True, blank=True, verbose_name=u'交易状态')
+    pay_status = models.IntegerField(choices=PAY_STATUS, default=SALE_TRADE_NOPAY,
+                                 db_index=True, blank=True, verbose_name=u'支付状态')
 
     #     is_part_consign  = models.BooleanField(db_index=True,default=False,verbose_name=u'分单发货')
     #     consign_parmas   = JSONCharMyField(max_length=512, blank=True, default='[]', verbose_name=u'发货信息')
@@ -441,10 +452,11 @@ class SaleTrade(BaseModel):
                     return
 
                 st.status = SaleTrade.WAIT_SELLER_SEND_GOODS
+                st.pay_status = SaleTrade.SALE_TRADE_PAY_FINISHED
                 if charge:
                     st.charge = charge
                 st.pay_time = charge_time or datetime.datetime.now()
-                st.save(update_fields=['status', 'pay_time', 'charge'])
+                st.save(update_fields=['status', 'pay_status', 'pay_time', 'charge'])
 
                 for order in st.sale_orders.all():
                     order.set_status_paid(st.pay_time)
