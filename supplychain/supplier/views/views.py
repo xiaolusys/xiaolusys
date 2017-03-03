@@ -750,9 +750,7 @@ class ScheduleDetailAPIView(APIView):
             product_outer_ids.append(product.outer_id)
             sale_product = sale_products.get(product.sale_product)
             sale_product['is_verify'] = sale_product['is_verify'] and product.is_verify
-            if product.outer_id and not sale_product.get('outer_id'):
-                sale_product['outer_id'] = product.outer_id[:-1]
-            if product.outer_id and product.outer_id[-1] == '1':
+            if not sale_product.get('outer_id'):
                 sale_product['model_id'] = product.model_id
                 sale_product['outer_id'] = product.outer_id[:-1]
                 if hasattr(product, 'details'):
@@ -863,7 +861,7 @@ class ScheduleDetailAPIView(APIView):
                 model_id = 0
                 for product in Product.objects.filter(sale_product=_id,
                                                       status='normal'):
-                    if product.outer_id and product.outer_id[-1] == '1':
+                    if not model_id:
                         model_id = product.model_id
                     parts = product.name.rsplit('/', 1)
                     if len(parts) > 1:
@@ -1013,8 +1011,6 @@ class ScheduleDetailAPIView(APIView):
             product_outer_ids.append(product.outer_id)
             item['is_verify'] = item['is_verify'] and product.is_verify
             if product.outer_id and not item.get('outer_id'):
-                item['outer_id'] = product.outer_id
-            if product.outer_id and product.outer_id[-1] == '1':
                 item['model_id'] = product.model_id
                 item['outer_id'] = product.outer_id[:-1]
                 if product.model_id:
