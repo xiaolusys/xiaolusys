@@ -36,7 +36,8 @@
     "total_fee": 188.0,
     "receiver_state": "",
     "receiver_name": "",
-    "buyer_id": 9
+    "buyer_id": 9,
+    "pay_status": 0
   },
   "model": "pay.saletrade",
   "pk": 321596
@@ -80,7 +81,8 @@
     "total_fee": 99.8,
     "receiver_state": "\u6e56\u5357\u7701",
     "receiver_name": "\u9ec4\u6842\u829d",
-    "buyer_id": 887781
+    "buyer_id": 887781,
+    "pay_status": 0
   },
   "model": "pay.saletrade",
   "pk": 333449
