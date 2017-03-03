@@ -42,7 +42,8 @@
         "pay_extras": "",
         "mm_linkid": 0
       },
-      "status": 1
+      "status": 1,
+      "pay_status": 0
     }
   }
 ]
