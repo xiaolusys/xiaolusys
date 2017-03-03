@@ -42,7 +42,8 @@
    "pay_extras": "pid:2:couponid:850589:value:6.6;pid:1:value:2.0;",
    "mm_linkid": 0
   },
-  "status": 7
+  "status": 7,
+  "pay_status": 0
  }
 }
 ]
