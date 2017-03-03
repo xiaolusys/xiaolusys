@@ -3,7 +3,9 @@ __author__ = 'yan.huang'
 from django.contrib import admin
 from django.http import HttpResponseRedirect
 from core.admin import BaseModelAdmin
+
 from .models import Complain
+from flashsale.pay.models import Customer
 
 
 class ComplainAdmin(BaseModelAdmin):
@@ -33,8 +35,9 @@ class ComplainAdmin(BaseModelAdmin):
     selfactions.short_description = u'操作'
 
     def insider_link(self, obj):
-        return '<a href="/admin/users/customer/?id={user_id}" target="_blank">{user_id}</a>'.format(**{
-            'user_id': obj.user_id})
+        customer = Customer.objects.filter(user_id=obj.user_id).first()
+        return '<a href="/admin/pay/customer/?id={user_id}" target="_blank">{user_id}</a>'.format(**{
+            'user_id': customer and customer.id or None})
 
     insider_link.allow_tags = True
     insider_link.short_description = u'投诉人'

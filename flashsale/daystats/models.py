@@ -191,8 +191,7 @@ class DailyBoutiqueStat(BaseModel):
 
 
 class DailySkuAmountStat(BaseModel):
-    """ 每日库存商品SKU销售统计
-    """
+    """ 每日库存商品SKU销售统计 """
     sku_id    = models.IntegerField(verbose_name=u'规格ID')
     model_id  = models.IntegerField(db_index=True, default=0, verbose_name=u'款式ID')
     stat_date = models.DateField(default=datetime.date.today,
@@ -213,8 +212,7 @@ class DailySkuAmountStat(BaseModel):
 
 
 class DailySkuDeliveryStat(BaseModel):
-    """ 每日库存商品SKU发货统计
-    """
+    """ 每日库存商品SKU发货统计 """
     sku_id    = models.IntegerField(verbose_name=u'规格ID')
     model_id  = models.IntegerField(db_index=True, default=0, verbose_name=u'款式ID')
     stat_date = models.DateField(default=datetime.date.today,
