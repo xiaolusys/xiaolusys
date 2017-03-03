@@ -113,3 +113,14 @@ class PackageOrderViewSet(viewsets.ModelViewSet):
         package.logistics_company_id = logistics_company_id
         package.save()
         return Response({'res': 'success'})
+
+    @list_route(methods=['post'])
+    def change_to_prepare(self, request, *args, **kwargs):
+        pid = request.POST.get('pid')
+        package = get_object_or_404(PackageOrder, pid=pid)
+        if package.sys_status in [PackageOrder.WAIT_SCAN_WEIGHT_STATUS, PackageOrder.WAIT_CHECK_BARCODE_STATUS]:
+            package.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS
+            package.save()
+            return Response({'res': 'success'})
+        else:
+            return HttpResponseBadRequest(u"必须是待扫描或者待称重状态")
