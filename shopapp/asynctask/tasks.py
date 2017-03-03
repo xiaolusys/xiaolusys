@@ -296,7 +296,7 @@ class AsyncOrderTask(TaobaoAsyncBaseTask):
 def task_async_order(*args, **kwargs):
     return AsyncOrderTask().run(*args, **kwargs)
 
-from core.upload.upload import upload_data_to_remote, generate_private_url
+from core.upload.upload import upload_private_to_remote, generate_private_url
 
 class PrintAsyncTask(object):
     ignore_result = False
@@ -423,7 +423,7 @@ class PrintAsyncTask(object):
             file_pathname = os.path.join('print', 'invoice', 'IN%d.pdf' % print_async.pk)
             #             self.genHtmlPDF(os.path.join(invoice_path, file_name), invoice_html.encode('utf-8'))
             file_stream = self.genHtmlPDFIostream(invoice_html.encode('utf-8'))
-            upload_data_to_remote(file_pathname, file_stream)
+            upload_private_to_remote(file_pathname, file_stream)
 
             print_async.file_path_to = generate_private_url(file_pathname)
             print_async.status = PrintAsyncTaskModel.TASK_SUCCESS
@@ -555,7 +555,7 @@ class PrintAsyncTask2(object):
             file_pathname = os.path.join('print', 'invoice', 'IN%d.pdf' % print_async.pk)
             #             self.genHtmlPDF(os.path.join(invoice_path, file_name), invoice_html.encode('utf-8'))
             file_stream = self.genHtmlPDFIostream(invoice_html.encode('utf-8'))
-            upload_data_to_remote(file_pathname, file_stream)
+            upload_private_to_remote(file_pathname, file_stream)
 
             print_async.file_path_to = generate_private_url(file_pathname)
             print_async.status = PrintAsyncTaskModel.TASK_SUCCESS

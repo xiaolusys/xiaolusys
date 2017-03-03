@@ -319,9 +319,11 @@ class PackagePrintPostView(APIView):
 
         package_order_ids = content.get('package_order_ids')
         package_order_ids = package_order_ids.split(',')
-        package_orders = PackageOrder.objects.filter(pid__in=package_order_ids,
-                                                     status=PackageOrder.WAIT_PREPARE_SEND_STATUS, is_picking_print=True,
-                                                     is_express_print=True)
+        package_orders = PackageOrder.objects.filter(
+            pid__in=package_order_ids,
+            status=PackageOrder.WAIT_PREPARE_SEND_STATUS, is_picking_print=True,
+            is_express_print=True
+        )
         num = package_orders.count()
         if num != len(package_order_ids):
             return Response({'isSuccess': False, 'response_error': u'部分包裹不存在或者未准备好'})

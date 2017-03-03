@@ -4,7 +4,7 @@ from django.conf import settings
 from qiniu import Auth, put_file, put_data, etag, urlsafe_base64_encode
 import qiniu.config
 
-def upload_data_to_remote(filepath, iostream):
+def upload_private_to_remote(filepath, iostream):
     """ 上传私有文件到第三方 """
     #需要填写你的 Access Key 和 Secret Key
     access_key = str(settings.QINIU_ACCESS_KEY)

@@ -4,6 +4,8 @@ from shopmanager import celery_app as app
 
 import datetime
 from django.contrib.auth.models import User
+from django.db import IntegrityError
+
 from flashsale.pay.models import Customer
 from flashsale.xiaolumm.models import XiaoluMama, PotentialMama, XlmmFans, AwardCarry, WeixinPushEvent
 from shopback.monitor.models import XiaoluSwitch
@@ -53,9 +55,14 @@ def task_create_scan_customer(wx_userinfo):
     
     cu = Customer.objects.filter(unionid=unionid).first()
     if not cu:
-        user, state = User.objects.get_or_create(username=unionid, is_active=True)
-        cu = Customer(unionid=unionid, user=user, thumbnail=thumbnail, nick=nick)
-        cu.save()
+        try:
+            user, state = User.objects.get_or_create(username=unionid, is_active=True)
+            Customer.objects.create(unionid=unionid, user=user, thumbnail=thumbnail, nick=nick)
+        except IntegrityError:
+            pass
+        except Exception, exc:
+            logger.error(str(exc), exc_info=True)
+
 
 @app.task
 def task_create_scan_xiaolumama(wx_userinfo):
@@ -95,7 +102,7 @@ def task_get_unserinfo_and_create_accounts(openid, wx_pubid):
             'action': u'task_get_unserinfo_and_create_accounts',
             'message': u'账号创建异常:%s' % exc,
             'message1': u'openid=%s wx_pubid=%s' % (openid, wx_pubid),
-        })
+        }, exc_info=True)
         # raise task_get_unserinfo_and_create_accounts.retry(exc=exc)
     
     
