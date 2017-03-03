@@ -73,9 +73,9 @@ def task_weixin_push_awardcarry(awardcarry):
 
 
 @app.task
-def task_weixin_push_mama_invite_award(mama, buy_customer, amount):
+def task_weixin_push_mama_invite_award(mama, buy_customer, amount, level_1_customer=None):
     wp = WeixinPush()
-    wp.push_mama_invite_award(mama, buy_customer, amount)
+    wp.push_mama_invite_award(mama, buy_customer, amount, level_1_customer=level_1_customer)
 
 
 @app.task
