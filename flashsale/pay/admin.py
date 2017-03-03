@@ -762,7 +762,7 @@ class ModelProductAdmin(ApproxAdmin):
     list_per_page = 50
 
     def get_readonly_fields(self, request, obj=None):
-        if not request.user.is_superuser:
+        if not request.user.is_superuser and not request.user.has_perm('pay.change_modelproduct'):
             self.readonly_fields += ('onshelf_time', 'offshelf_time')
         return self.readonly_fields
 
