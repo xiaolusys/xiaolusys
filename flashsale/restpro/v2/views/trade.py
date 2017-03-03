@@ -245,6 +245,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         """
         小鹿钱包/小鹿币支付实现
         """
+        if sale_trade.status != SaleTrade.WAIT_BUYER_PAY:
+            raise Exception(u'订单状态不是待支付')
+
         with transaction.atomic():
             buyer = Customer.objects.select_for_update().get(pk=sale_trade.buyer_id)
             if check_coupon:
@@ -511,6 +514,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             'charge': '',
             'logistics_company_id':  logistic_company and logistic_company.id or None,
             'status': SaleTrade.WAIT_BUYER_PAY,
+            'pay_status': SaleTrade.SALE_TRADE_PAYING,
             'openid': buyer_openid,
             'is_boutique': is_boutique,
             'extras_info': {
@@ -982,6 +986,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'order_no': tuuid,
                 'data': '%s' % content
             })
+            if sale_trade:
+                sale_trade.pay_status = SaleTrade.SALE_TRADE_PAY_FINISHED
+                sale_trade.save(update_fields=['pay_status'])
             return Response({'code': 8, 'info': u'订单创建异常'})
 
         logger.info({
@@ -1010,6 +1017,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                                     + '?from_page=order_commit'
             else:
                 order_success_url = CONS.MALL_PAY_SUCCESS_URL.format(order_id=sale_trade.id, order_tid=sale_trade.tid)
+            if sale_trade:
+                sale_trade.pay_status = SaleTrade.SALE_TRADE_PAY_FINISHED
+                sale_trade.save(update_fields=['pay_status'])
         except IntegrityError, exc:
             logger.error({
                 'code': 9,
@@ -1020,6 +1030,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'order_no': tuuid,
                 'data': '%s' % content
             }, exc_info=True)
+            if sale_trade:
+                sale_trade.pay_status = SaleTrade.SALE_TRADE_PAY_FINISHED
+                sale_trade.save(update_fields=['pay_status'])
             return Response({'code': 9, 'info': u'订单重复提交'})
         except Exception, exc:
             logger.error({
@@ -1031,6 +1044,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'order_no': tuuid,
                 'data': '%s' % content
             }, exc_info=True)
+            if sale_trade:
+                sale_trade.pay_status = SaleTrade.SALE_TRADE_PAY_FINISHED
+                sale_trade.save(update_fields=['pay_status'])
             return Response({'code': 6, 'info': str(exc) or u'未知支付异常'})
 
         return Response({
@@ -1204,6 +1220,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 if state:
                     self.create_SaleOrder_By_Productsku(sale_trade, product, product_sku, sku_num)
         except exceptions.APIException,exc:
+            if sale_trade:
+                sale_trade.pay_status = SaleTrade.SALE_TRADE_PAY_FINISHED
+                sale_trade.save(update_fields=['pay_status'])
             raise exc
         except Exception,exc:
             logger.error(exc.message,exc_info=True)
@@ -1217,13 +1236,16 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'order_no': tuuid,
                 'data': '%s' % CONTENT
             })
+            if sale_trade:
+                sale_trade.pay_status = SaleTrade.SALE_TRADE_PAY_FINISHED
+                sale_trade.save(update_fields=['pay_status'])
             return Response({'code': 8, 'info': u'订单创建异常'})
 
         logger.info({
-            'message': u'订单创建:%s' % sale_trade.tid,
+            'message': u'buynow trade create:%s' % sale_trade.tid,
             'channel': channel,
             'user_agent': user_agent,
-            'action': 'buynow trade_create',
+            'action': 'trade_create',
             'action_time': datetime.datetime.now(),
             'order_no': tuuid,
             'data': '%s' % CONTENT
@@ -1246,6 +1268,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                                     + '?from_page=order_commit'
             else:
                 order_success_url = CONS.MALL_PAY_SUCCESS_URL.format(order_id=sale_trade.id, order_tid=sale_trade.tid)
+            if sale_trade:
+                sale_trade.pay_status = SaleTrade.SALE_TRADE_PAY_FINISHED
+                sale_trade.save(update_fields=['pay_status'])
         except IntegrityError, exc:
             logger.error({
                 'code': 9,
@@ -1256,6 +1281,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'order_no': tuuid,
                 'data': '%s' % CONTENT
             }, exc_info=True)
+            if sale_trade:
+                sale_trade.pay_status = SaleTrade.SALE_TRADE_PAY_FINISHED
+                sale_trade.save(update_fields=['pay_status'])
             return Response({'code': 9, 'info': u'订单重复提交'})
         except Exception, exc:
             logger.error({
@@ -1267,6 +1295,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'order_no': tuuid,
                 'data': '%s' % CONTENT
             }, exc_info=True)
+            if sale_trade:
+                sale_trade.pay_status = SaleTrade.SALE_TRADE_PAY_FINISHED
+                sale_trade.save(update_fields=['pay_status'])
             return Response({'code': 6, 'info': str(exc) or u'未知支付异常'})
 
         return Response({
@@ -1304,7 +1335,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         if not instance.is_payable():
             logger.error('SaleTradeViewSet charge : code=2, %s' % instance.tid)
             return Response({'code': 2, 'info': _errmsg.get(SaleTrade.TRADE_CLOSED_BY_SYS)})
-
+        sale_trade = instance
         try:
             if instance.channel == SaleTrade.WALLET:
                 # 小鹿钱包支付
@@ -1315,12 +1346,21 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             else:
                 # pingpp 支付
                 response_charge = self.pingpp_charge(instance, check_coupon=False)
+            if sale_trade:
+                sale_trade.pay_status = SaleTrade.SALE_TRADE_PAY_FINISHED
+                sale_trade.save(update_fields=['pay_status'])
         except IntegrityError, exc:
             logger.error('charge duplicate:%s,channel=%s, err=%s' % (
                 instance.tid, instance.channel, exc.message), exc_info=True)
+            if sale_trade:
+                sale_trade.pay_status = SaleTrade.SALE_TRADE_PAY_FINISHED
+                sale_trade.save(update_fields=['pay_status'])
             return Response({'code': 9, 'info': u'订单重复提交'})
         except Exception, exc:
             logger.error('charge error:%s, channel=%s, err=%s' % (instance.tid, channel, exc.message), exc_info=True)
+            if sale_trade:
+                sale_trade.pay_status = SaleTrade.SALE_TRADE_PAY_FINISHED
+                sale_trade.save(update_fields=['pay_status'])
             return Response({'code': 6, 'info': exc.message or u'未知支付异常'})
 
         return Response({'code': 0, 'info': u'支付成功','channel':instance.channel,
@@ -1338,6 +1378,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             notifyTradePayTask.delay(charge)
             return Response({"code": 1, "info": u'订单已支付不支持取消'})
         else:
+            if instance.pay_status == SaleTrade.SALE_TRADE_PAYING:
+                return Response({"code": 2, "info": u'您的订单已经提交小鹿支付系统，正在结算中，为了您的交易安全，暂时不能取消，请等待支付流程完成再尝试'})
             self.perform_destroy(instance)
             log_action(request.user.id, instance, CHANGE, u'取消订单')
             return Response({"code": 0, "info": u'订单已取消'})
