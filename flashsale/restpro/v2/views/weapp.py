@@ -150,12 +150,12 @@ class WeAppViewSet(viewsets.ViewSet):
             with transaction.atomic():
                 user, state = User.objects.get_or_create(username=unionid, is_active=True)
 
-                customer = Customer()
-                customer.unionid = unionid
-                customer.user = user
-                customer.thumbnail = user_info.get('avatarUrl', '')
-                customer.nick = user_info.get('nickName', '')
-                customer.save()
+                Customer.objects.create(
+                    unionid=unionid,
+                    user=user,
+                    thumbnail = user_info.get('avatarUrl', ''),
+                    nick = user_info.get('nickName', '')
+                )
 
         WeixinUnionID.objects.get_or_create(
             app_key=settings.WEAPP_APPID,
