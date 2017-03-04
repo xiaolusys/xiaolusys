@@ -1,21 +1,14 @@
+# coding: utf8
+from __future__ import absolute_import, unicode_literals
+
 __version__ = "1.0"
 __author__ = "Florian Leitner"
 
-from django.db import models
 from django.core import exceptions
-from django.db import connection
 from django.db.models import fields
 from django.db.models.fields import BigIntegerField
 from django.utils.translation import ugettext as _
 
-
-# DatabaseCreation.data_types['AutoField'] = 'bigint(20) AUTO_INCREMENT'
-
-class TimestampField(models.Field):
-    description = 'simple Timestamp field for MYSQL'
-
-    def db_type(self, connection):
-        return 'TIMESTAMP default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP'
 
 class BigAutoField(fields.AutoField):
 
@@ -30,7 +23,6 @@ class BigAutoField(fields.AutoField):
             return "integer"
         else:
             return "bigint AUTO_INCREMENT"
-            raise NotImplemented
 
     def get_internal_type(self):
         return "BigAutoField"
@@ -57,8 +49,4 @@ class BigForeignKey(fields.related.ForeignKey):
             # thereby fixing any AutoField as IntegerField
             return BigIntegerField().db_type(connection)
         return rel_field.db_type(connection)
-
-
-from jsonfield import JSONField as JSONCharMyField
-from tagging.fields import TagField
 

@@ -16,13 +16,6 @@ class BigIntegerAutoField(models.AutoField):
 #    BigIntegerAutoField = models.AutoField
 
 
-class TimestampField(models.Field):
-    description = 'simple Timestamp field for MYSQL'
-
-    def db_type(self, connection):
-        return 'TIMESTAMP default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP'
-
-
 class BigIntegerForeignKey(models.ForeignKey):
     description = "BigInteger foreignkey"
 
