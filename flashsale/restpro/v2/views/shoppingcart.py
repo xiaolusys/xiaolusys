@@ -527,7 +527,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             default_company_code=default_company_code)
 
         max_personalinfo_level = self.calc_personalinfo_level(
-            product.model_product and product.product_model.source_type or 0)
+            product.product_model and product.product_model.source_type or 0)
         product_sku_dict = serializers.ProductSkuSerializer(product_sku).data
         product_sku_dict['product'] = serializers.ProductSerializer(
             product,

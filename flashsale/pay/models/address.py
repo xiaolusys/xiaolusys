@@ -116,9 +116,9 @@ class UserAddress(BaseModel):
     PERSONALINFO_LEVEL_TWO = 2
     PERSONALINFO_LEVEL_THREE = 3
     PERSONALINFO_LEVEL_CHOICES = (
-        (PERSONALINFO_LEVEL_ONE, '基本收货信息'),
-        (PERSONALINFO_LEVEL_TWO, '填写身份证号'),
-        (PERSONALINFO_LEVEL_THREE, '上传身份证图片'),
+        (PERSONALINFO_LEVEL_ONE, '已填写基本收货信息'),
+        (PERSONALINFO_LEVEL_TWO, '已填写身份证号'),
+        (PERSONALINFO_LEVEL_THREE, '已上传身份证图片'),
     )
 
     cus_uid = models.BigIntegerField(db_index=True, null=True, verbose_name=u'客户ID')
@@ -207,7 +207,7 @@ class UserAddress(BaseModel):
         if self.identification_no and idcard_info.get('face') and idcard_info.get('back'):
             return self.PERSONALINFO_LEVEL_THREE
 
-        if self.identification_no or self.idcard_no:
+        if self.receiver_name and (self.identification_no or self.idcard_no):
             return self.PERSONALINFO_LEVEL_TWO
 
         return self.PERSONALINFO_LEVEL_ONE
