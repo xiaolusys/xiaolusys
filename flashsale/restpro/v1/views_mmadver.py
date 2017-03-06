@@ -22,6 +22,9 @@ from flashsale.xiaolumm.tasks import task_mama_daily_tab_visit_stats
 from flashsale.xiaolumm.apis.v1.ninepic import get_nine_pic_by_modelids
 from flashsale.pay.apis.v1.customer import get_customer_by_django_user
 from . import serializers
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class XlmmAdvertisViewSet(viewsets.ModelViewSet):
@@ -234,7 +237,10 @@ class NinePicViewSet(viewsets.GenericViewSet):
         data = []
         for item in items:
             model_id = item.model_id
-            mp = ModelProduct.objects.get(id=model_id)
+            mp = ModelProduct.objects.filter(id=model_id).first()
+            if not mp:
+                logger.error(u'九张图首页接口报错,找不到 model_id %s' % model_id)
+                continue
             coupon_template_id = mp.extras.get('payinfo', {}).get('coupon_template_ids', [])
             coupon_template_id = coupon_template_id[0] if coupon_template_id else None
 
