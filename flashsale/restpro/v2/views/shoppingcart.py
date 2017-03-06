@@ -458,7 +458,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             item_ids.append(str(cart.item_id))
             max_personalinfo_level = max(
                 max_personalinfo_level,
-                self.calc_personalinfo_level(cart.model_product.source_type)
+                self.calc_personalinfo_level(cart.model_product and cart.model_product.source_type or 0)
             )
 
         discount_fee = min(discount_fee, total_fee)
@@ -526,7 +526,8 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             ware_by,
             default_company_code=default_company_code)
 
-        max_personalinfo_level = self.calc_personalinfo_level(product.product_model.source_type)
+        max_personalinfo_level = self.calc_personalinfo_level(
+            product.model_product and product.product_model.source_type or 0)
         product_sku_dict = serializers.ProductSkuSerializer(product_sku).data
         product_sku_dict['product'] = serializers.ProductSerializer(
             product,
