@@ -479,6 +479,20 @@ class UserBudget(PayBaseModel):
 
         return 0, '提交成功'
 
+def userbudget_post_save_unfreeze_coupon(sender, instance, created, **kwargs):
+
+    try:
+        from flashsale.pay.tasks import task_userbudget_post_save_unfreeze_coupon
+
+        transaction.on_commit(lambda: task_userbudget_post_save_unfreeze_coupon(instance))
+        logger.info('userbudget update:%s %s, %s, %s' %
+            (instance.user.id, instance.amount, instance.total_income, instance.total_expense))
+    except Exception,exc:
+        logger.error('budgetlog error: %s'%exc, exc_info=True)
+
+
+post_save.connect(userbudget_post_save_unfreeze_coupon, sender=UserBudget,
+                  dispatch_uid='post_save_userbudget')
 
 class BudgetLog(PayBaseModel):
     """ 特卖用户钱包记录 """
@@ -809,19 +823,3 @@ class BudgetLog(PayBaseModel):
             return mama.id
         return ''
 
-
-def budgetlog_update_userbudget(sender, instance, created, **kwargs):
-
-    try:
-        from flashsale.pay.tasks import task_budgetlog_update_userbudget
-
-        # transaction.on_commit(lambda: task_budgetlog_update_userbudget(instance))
-
-        logger.warning('budgetlog update:%s, %s, %s, %s' %
-            (instance.customer_id, instance.flow_amount, instance.referal_id, instance.status))
-    except Exception,exc:
-        logger.error('budgetlog error: %s'%exc, exc_info=True)
-
-
-post_save.connect(budgetlog_update_userbudget, sender=BudgetLog,
-                  dispatch_uid='post_save_budgetlog_update_userbudget')

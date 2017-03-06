@@ -522,6 +522,18 @@ def task_budgetlog_update_userbudget(budget_log):
         raise task_budgetlog_update_userbudget.retry(exc=exc)
 
 
+@app.task(max_retries=3, default_retry_delay=6)
+def task_userbudget_post_save_unfreeze_coupon(user_budget):
+
+    # cash >=0,unfreeze some user coupn 2016-12-12
+    from flashsale.coupon.apis.v1.usercoupon import unfreeze_user_coupon_by_userbudget
+    try:
+        if user_budget.amount >= 0:
+            unfreeze_user_coupon_by_userbudget(user_budget.user.id)
+    except Exception, exc:
+        raise task_userbudget_post_save_unfreeze_coupon.retry(exc=exc)
+
+
 MSG_REFUND_TPL_MAP = {
     SaleRefund.REFUND_WAIT_RETURN_GOODS: SMS_TYPE.SMS_NOTIFY_REFUND_RETURN,  # 同意申请退货
     SaleRefund.REFUND_REFUSE_BUYER: SMS_TYPE.SMS_NOTIFY_REFUND_DENY,  # 拒绝申请退款
