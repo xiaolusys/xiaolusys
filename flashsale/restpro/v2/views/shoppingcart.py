@@ -421,6 +421,14 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             except Exception, exc:
                 raise exceptions.APIException(exc.message)
 
+    def calc_personalinfo_level(self, source_type):
+        from supplychain.supplier.models import SaleProduct
+        if source_type == SaleProduct.SOURCE_OUTSIDE:
+            return UserAddress.PERSONALINFO_LEVEL_THREE
+        elif source_type == SaleProduct.SOURCE_BONDED:
+            return UserAddress.PERSONALINFO_LEVEL_TWO
+        return UserAddress.PERSONALINFO_LEVEL_ONE
+
     @list_route(methods=['get', 'post'])
     def carts_payinfo(self, request, format=None, *args, **kwargs):
         """ 根据购物车ID列表获取支付信息 """
@@ -433,6 +441,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         if not cart_ids or len(cart_ids) != queryset.count():
             raise exceptions.APIException(u'购物车已失效请重新加入')
 
+        max_personalinfo_level = UserAddress.PERSONALINFO_LEVEL_ONE
         item_ids = []
         total_fee = 0
         discount_fee = 0
@@ -447,6 +456,10 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             total_fee += cart.price * cart.num
             discount_fee += cart.calc_discount_fee(xlmm=xlmm)
             item_ids.append(str(cart.item_id))
+            max_personalinfo_level = max(
+                max_personalinfo_level,
+                self.calc_personalinfo_level(cart.model_product.source_type)
+            )
 
         discount_fee = min(discount_fee, total_fee)
         total_payment = total_fee + post_fee - discount_fee
@@ -474,6 +487,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             'channels': self.get_charge_channels(request, total_payment),
             'cart_ids': ','.join([str(c) for c in cart_ids]),
             'cart_list': cart_serializers.data,
+            'max_personalinfo_level': max_personalinfo_level,
             'logistics_companys': selectable_logistics
         }
         
@@ -501,7 +515,6 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             xlmm = xiaolumms.count() > 0 and xiaolumms[0] or None
 
         discount_fee += product_sku.calc_discount_fee(xlmm=xlmm)
-
         discount_fee = min(discount_fee, total_fee)
         total_payment = total_fee + post_fee - discount_fee
 
@@ -513,6 +526,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             ware_by,
             default_company_code=default_company_code)
 
+        max_personalinfo_level = self.calc_personalinfo_level(product.product_model.source_type)
         product_sku_dict = serializers.ProductSkuSerializer(product_sku).data
         product_sku_dict['product'] = serializers.ProductSerializer(
             product,
@@ -528,6 +542,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             'budget_cash': budget_cash,
             'channels': self.get_charge_channels(request, total_payment),
             'sku': product_sku_dict,
+            'max_personalinfo_level': max_personalinfo_level,
             'logistics_companys': selectable_logistics
         }
         response.update({'pay_extras': self.get_payextras(request, response, [product.id])})

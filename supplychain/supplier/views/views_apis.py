@@ -428,7 +428,8 @@ class SaleProductViewSet(viewsets.ModelViewSet):
                     'name': instance.title,
                     'salecategory_id': instance.sale_category.id,
                     'product_type': instance.get_product_type(),
-                    'is_boutique': instance.get_boutique_value()
+                    'is_boutique': instance.get_boutique_value(),
+                    'source_type': instance.source_type,
                 }
                 updated = model_product.update_fields_with_kwargs(**params)
                 if updated:

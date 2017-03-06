@@ -630,12 +630,16 @@ class SaleRefundSerializer(serializers.HyperlinkedModelSerializer):
 class UserAddressSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='rest_v1:useraddress-detail')
     status = serializers.ChoiceField(choices=UserAddress.STATUS_CHOICES)
+    personalinfo_leve = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = UserAddress
         fields = ('id', 'url', 'cus_uid', 'receiver_name', 'receiver_state', 'receiver_city',
-                  'receiver_district', 'receiver_address', 'receiver_zip', 'receiver_mobile',
+                  'receiver_district', 'receiver_address', 'receiver_zip', 'receiver_mobile', 'personalinfo_leve',
                   'receiver_phone', 'logistic_company_code', 'default', 'status', 'created', 'identification_no')
+
+    def gen_personalinfo_level(self, obj):
+        return obj.get_personal_info_level()
 
 
 class DistrictSerializer(serializers.HyperlinkedModelSerializer):

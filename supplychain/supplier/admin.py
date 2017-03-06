@@ -382,7 +382,7 @@ class SaleProductAdmin(ApproxAdmin):
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
     # ordering = ('-hot_value',)
-    list_filter = ('status', ('sale_time', DateScheduleFilter),CategoryFilter,'is_changed',
+    list_filter = ('status', ('sale_time', DateScheduleFilter),CategoryFilter,'is_changed', 'source_type',
                    ('modified', DateFieldListFilter), 'platform', BuyerGroupFilter,
                    ('created', DateFieldListFilter), 'librarian', "buyer")
     search_fields = ['=id', '^title', '=outer_id']
@@ -396,7 +396,7 @@ class SaleProductAdmin(ApproxAdmin):
                    , ('price', 'sale_price')
                    , ('on_sale_price', 'std_sale_price')
                    , ('supplier_sku', 'stocking_mode')
-                   , ('sale_supplier', 'sale_category')
+                   , ('sale_supplier', 'sale_category', 'source_type')
                    , ('platform', 'hot_value','status','is_changed')
                    , ('sale_time', 'reserve_time', 'contactor')
                    , ('memo',), ('voting','orderlist_show_memo')

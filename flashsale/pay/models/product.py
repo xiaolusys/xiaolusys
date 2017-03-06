@@ -132,8 +132,12 @@ def default_modelproduct_extras_tpl():
         "saleinfos": {
             "is_product_buy_limit": True,
             "per_limit_buy_num": 20,
+            "is_bonded_goods": False, #标识商品是否需要
         },
         "properties": {},
+        "sources": {
+            "source_type": 0,
+        }
     }
 
 
@@ -369,6 +373,10 @@ class ModelProduct(BaseTagModel):
         if not hasattr(self, '_productobj_list_'):
             self._productobj_list_ = list(self.products)
         return self._productobj_list_
+
+    @property
+    def source_type(self):
+        return self.extras.get('sources', {}).get('source_type') or 0
 
     def product_simplejson(self, product):
         sku_list = []
@@ -625,16 +633,29 @@ class ModelProduct(BaseTagModel):
 
     def update_fields_with_kwargs(self, **kwargs):
         update_fields = []
+        source_type = kwargs.pop('source_type', None)
         for k, v in kwargs.iteritems():
-            if hasattr(self, k) and getattr(self, k) != v:
+            if hasattr(self, k) and getattr(self, k) != v :
                 setattr(self, k, v)
                 update_fields.append(k)
+
+        if source_type is not None and source_type != self.source_type:
+            self.set_product_source_type(source_type)
+            update_fields.append('extras')
 
         if update_fields:
             self.save(update_fields=update_fields)
             return True
 
         return False
+
+    def set_product_source_type(self, source_type):
+        from supplychain.supplier.models import SaleProduct
+        self.extras.setdefault('sources', {'source_type': SaleProduct.SOURCE_SELF})
+        self.extras['sources']['source_type'] = source_type
+        self.extras['saleinfos']['is_bonded_good'] = \
+            source_type in (SaleProduct.SOURCE_BONDED, SaleProduct.SOURCE_OUTSIDE)
+
 
     def reset_product_shelf_info(self):
         """

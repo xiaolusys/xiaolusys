@@ -493,6 +493,9 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         model_pro = get_object_or_404(ModelProduct, id=serializer.data.get('id'))
         log_action(request.user.id, model_pro, ADDITION, u'新建特卖款式')
+        if saleproduct.source_type > 0:
+            model_pro.set_product_source_type(saleproduct.source_type)
+            model_pro.save(update_fields=['extras'])
         # 生成sku信息
         creator = request.user
         try:

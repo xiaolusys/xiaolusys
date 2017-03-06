@@ -52,6 +52,17 @@ class SaleProduct(BaseTagModel):
         (IGNORED, u'忽略'),
     )
 
+    SOURCE_SELF = 0  # 自存商品
+    SOURCE_TTP = 1  # 三方仓商品
+    SOURCE_BONDED = 2  # 保税仓商品
+    SOURCE_OUTSIDE = 3  # 关外商品（直邮）
+    SOURCE_CHOICES = (
+        (SOURCE_SELF, u'自储商品'),
+        (SOURCE_TTP, u'第三方仓'),
+        (SOURCE_BONDED, u'保税仓'),
+        (SOURCE_OUTSIDE, u'关外直邮'),
+    )
+
     outer_id = models.CharField(max_length=64, blank=True,
                                 # default=lambda: 'OO%s' % int(time.time() * 10 ** 3),
                                 verbose_name=u'外部ID')
@@ -89,7 +100,8 @@ class SaleProduct(BaseTagModel):
     supplier_sku = models.CharField(max_length=64, blank=True, verbose_name=u'供应商货号')
     # remain_num = models.IntegerField(default=0, verbose_name=u'预留数')
     orderlist_show_memo = models.BooleanField(default=False, verbose_name=u'订货详情显示备注')
-
+    source_type = models.IntegerField(default=SOURCE_SELF, db_index=True, choices=SOURCE_CHOICES, verbose_name=u'商品货源')
+    # TODO@MENTION 之前的比如第三方仓货源信息需要刷新数据, 并且需要更新到modelproduct记录上
     sku_extras = JSONCharMyField(max_length=10240, default=[], verbose_name=u"sku信息")
 
     extras = JSONCharMyField(max_length=512, default={}, verbose_name=u"附加信息")
@@ -240,6 +252,7 @@ class SaleProduct(BaseTagModel):
 
     def get_boutique_value(self):
         return bool(self.extras and self.extras.get('is_boutique') or 0)
+
 
 
 def change_saleprodut_by_pre_save(sender, instance, raw, *args, **kwargs):

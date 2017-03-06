@@ -86,6 +86,8 @@ class ShoppingCart(BaseModel):
             self._modelproduct_ = self.product.get_product_model()
         return self._modelproduct_
 
+    model_product = property(get_modelproduct)
+
     @transaction.atomic
     def close_cart(self, release_locknum=True):
         """ 关闭购物车 """

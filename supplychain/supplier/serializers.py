@@ -287,7 +287,7 @@ class SimpleSaleProductSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'model_id', 'outer_id', 'title', 'price', 'pic_url', 'product_link', 'status', 'sale_supplier', 'contactor',
             'sale_category', 'platform', 'hot_value', 'sale_price', 'on_sale_price', 'std_sale_price', 'memo',
-            'sale_time', 'created', 'modified', 'supplier_sku', 'latest_figures', 'total_figures',
+            'sale_time', 'created', 'modified', 'supplier_sku', 'latest_figures', 'total_figures', 'source_type',
             'in_schedule', 'sku_extras', 'extras')
 
     def get_in_schedule(self, obj):
@@ -364,7 +364,7 @@ class RetrieveSaleProductSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'title', 'product_link', 'price', 'pic_url', 'sale_price', 'on_sale_price',
             'std_sale_price', 'status', 'sale_category', 'sale_supplier', 'contactor', 'platform', 'status',
-            'supplier_sku', 'sku_extras', 'extras', 'model', 'memo', 'created', 'modified')
+            'source_type', 'supplier_sku', 'sku_extras', 'extras', 'model', 'memo', 'created', 'modified')
 
     def get_sku_extras(self, obj):
         return obj.sku_extras_info
