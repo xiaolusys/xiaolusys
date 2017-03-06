@@ -638,7 +638,7 @@ class UserAddressSerializer(serializers.HyperlinkedModelSerializer):
                   'receiver_district', 'receiver_address', 'receiver_zip', 'receiver_mobile', 'personalinfo_level',
                   'receiver_phone', 'logistic_company_code', 'default', 'status', 'created', 'identification_no')
 
-    def gen_personalinfo_level(self, obj):
+    def get_personalinfo_level(self, obj):
         return obj.get_personal_info_level()
 
 
