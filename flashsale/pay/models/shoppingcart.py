@@ -54,14 +54,14 @@ class ShoppingCart(BaseModel):
                                  db_index=True, blank=True, verbose_name=u'订单状态')
     TEAMBUY = 3
     SECONDBUY = 4
-    COUPONBUY = 5
+    BOUTIQUEBUY = 5
     VIRTUALBUY = 6
     TYPE_CHOICES = (
         (0, u'特卖订单'),
         (TEAMBUY, u'团购订单'),
         (SECONDBUY, u'秒杀订单'),
-        (COUPONBUY, u'优惠券订单'),  # 只能使用优惠券购买
-        (VIRTUALBUY, u'券商品订单'),  # 主要指精品券
+        (BOUTIQUEBUY, u'精品汇订单'),  # 精品汇实物商品
+        (VIRTUALBUY, u'券商品订单'),  # 指精品汇券商品
     )
     type = models.IntegerField(choices=TYPE_CHOICES, default=0)
 

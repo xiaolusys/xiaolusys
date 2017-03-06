@@ -110,7 +110,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         try:
             type = int(request.GET.get('type', 0))
         except:
-            type = 0
+            type = ShoppingCart.BOUTIQUEBUY
         queryset = self.filter_queryset(self.get_owner_queryset(request).filter(type=type))
         serializers = self.get_serializer(queryset, many=True)
         return Response(serializers.data)
@@ -218,7 +218,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         try:
             type = int(request.GET.get('type', 0))
         except:
-            type = 0
+            type = ShoppingCart.BOUTIQUEBUY
         queryset = self.filter_queryset(self.get_owner_queryset(request).filter(type=type))
         queryset = queryset.order_by('-created')
         count = 0

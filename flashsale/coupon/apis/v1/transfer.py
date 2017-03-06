@@ -300,7 +300,7 @@ def create_new_elite_mama(customer, to_mama, so):
                     'action_time': datetime.datetime.now(),
                     'order_oid': so.oid,
                     'tid': so.sale_trade.tid,
-                    'message': u'relation_ship potential xlmmfan not exist:mama_id=%s' % (to_mama.id),
+                    'message': u'relation_ship xlmmfan not exist:mama_id=%s' % (to_mama.id),
                 })
 
     referal_mm = XiaoluMama.objects.filter(id=upper_mama_id).first()
