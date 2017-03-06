@@ -414,7 +414,7 @@ class PackageOrder(models.Model):
             self.save()
             return self
 
-    def set_logistics_company(self, logistics_company_id=None):
+    def set_logistics_company(self, logistics_company_id=-2):
         """
             如果指定了logistics_company_id，则按其设置
             否则如果已经有物流公司，设置物流公司和重打
