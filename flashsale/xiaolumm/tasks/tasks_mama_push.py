@@ -143,7 +143,7 @@ def task_weixin_push_ordercarry(ordercarry):
     if ordercarry.carry_type == 1:
         order_type = u'微商城订单'
     elif ordercarry.carry_type == 2:
-        order_type = u'App订单（佣金更高哦！）'
+        order_type = u'App订单'
     elif ordercarry.carry_type == 3:
         order_type = u'下属订单'
 
