@@ -396,6 +396,7 @@ class SaleProductViewSet(viewsets.ModelViewSet):
         outer_id  = product_link and hashlib.md5(product_link).hexdigest() or 'OO%d' % time.time()
         request.data.update({
             'outer_id': outer_id,
+            'title': request.data.get('title','').replace('/',''),
             'contactor': request.user.id,
             'status': SaleProduct.PASSED
         })
@@ -425,7 +426,7 @@ class SaleProductViewSet(viewsets.ModelViewSet):
         if model_product:  # 有款式
             try:
                 params = {
-                    'name': instance.title,
+                    'name': instance.title.replace('/',''),
                     'salecategory_id': instance.sale_category.id,
                     'product_type': instance.get_product_type(),
                     'is_boutique': instance.get_boutique_value(),

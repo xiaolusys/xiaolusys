@@ -380,6 +380,13 @@ class ModifySaleProductSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(u"选品标题不能为空!")
         return value
 
+    def validate_sku_extras(self, value):
+        for item in value:
+            item['color'] = item['color'].replace('/', '')
+            item['properties_name'] = item['properties_name'].replace('/', '')
+            item['properties_alias'] = item['properties_alias'].replace('/', '')
+        return value
+
 
 class SimpleSaleProductManageSerializer(serializers.ModelSerializer):
     # category = SaleCategorySerializer()
