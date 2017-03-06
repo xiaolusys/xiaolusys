@@ -2,7 +2,7 @@
 from __future__ import absolute_import, unicode_literals
 
 from .bigdata import BigAutoField, BigForeignKey
-from .encrypted import (
+from encrypted_fields import (
     EncryptedCharField,
     EncryptedTextField,
     EncryptedDateTimeField,

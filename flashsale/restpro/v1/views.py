@@ -34,6 +34,7 @@ from flashsale.pay.models import (
 from flashsale.restpro import permissions as perms
 from . import serializers
 from core.utils import regex
+from core.ocr import idcard
 
 from flashsale.pay.tasks import tasks_set_user_address_id
 from flashsale.xiaolumm.models import XiaoluMama
@@ -156,6 +157,10 @@ class UserAddressViewSet(viewsets.ModelViewSet):
                 "receiver_name": receiver_name,
                 "receiver_mobile": receiver_mobile,
                 "logistic_company_code":logistic_company_code,
+                "identification_no": [身份证号码],
+                "card_facepath": [身份证正面照图片路径],
+                "card_backpath": [身份证反面照图片路径],
+            }
             }
             ```
         - /get_one_addres： 得到要修改的那一个地址的信息（get请求） data{"id":}
@@ -172,6 +177,9 @@ class UserAddressViewSet(viewsets.ModelViewSet):
                 "receiver_mobile": receiver_mobile,
                 "logistic_company_code":logistic_company_code,
                 "referal_trade_id":referal_trade_id,
+                "identification_no": [身份证号码],
+                "card_facepath": [身份证正面照图片路径],
+                "card_backpath": [身份证反面照图片路径],
             }
             ```
         - /get_logistic_companys: 获取可选快递列表(get)
@@ -222,11 +230,15 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         receiver_phone = content.get('receiver_phone', '').strip()
         referal_trade_id = content.get('referal_trade_id', '').strip()
         identification_no = content.get('identification_no', '').strip()
+        card_facepath  = content.get('card_facepath', '').strip()
+        card_backpath  = content.get('card_backpath', '').strip()
         # logistic_company_code = content.get('logistic_company_code', '').strip()
         if not receiver_state or not receiver_city or not receiver_district or not receiver_name \
                 or not re.compile(regex.REGEX_MOBILE).match(receiver_mobile):
             return Response({'ret': False, "msg": "地址信息不全", "info":"地址信息不全", 'code': 2})
 
+        if identification_no and not idcard.verify(identification_no):
+            return Response({'ret': False, "msg": "身份证填写错误", "info": "身份证填写错误", 'code': 4})
         default = content.get('default') or ''
         if default == 'true':
             default = True
@@ -243,7 +255,6 @@ class UserAddressViewSet(viewsets.ModelViewSet):
                 receiver_mobile=receiver_mobile,
                 receiver_phone=receiver_phone,
                 status=UserAddress.NORMAL,
-                identification_no=identification_no,
             )
             if state:  # 创建成功在将原来的地址改为删除状态 (保留地址)
                 new_address.default = UserAddress.objects.get(pk=pk).default  # 赋值原来的默认地址选择
@@ -252,6 +263,15 @@ class UserAddressViewSet(viewsets.ModelViewSet):
                 UserAddress.objects.filter(pk=new_address.id).update(status=UserAddress.NORMAL)
             if default:  # 选择为默认地址
                 new_address.set_default_address()  # 如果是选择设置默认地址则设置默认地址
+
+            if identification_no or card_facepath or card_backpath:
+                new_address.identification_no = identification_no
+                new_address.idcard_no = identification_no
+                if card_facepath:
+                    new_address.set_idcard_image('face', card_facepath)
+                if card_backpath:
+                    new_address.set_idcard_image('back', card_backpath)
+                new_address.save(update_fields=['identification_no', 'idcard_no', 'extras'])
 
             # new_address.set_logistic_company(logistic_company_code)
             if referal_trade_id:
@@ -350,10 +370,16 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         receiver_mobile = content.get('receiver_mobile', '').strip()
         logistic_company_code = content.get('logistic_company_code', '').strip()
         identification_no = content.get('identification_no', '').strip()
+        card_facepath = content.get('card_facepath', '').strip()
+        card_backpath = content.get('card_backpath', '').strip()
         if not receiver_state or not receiver_city or not receiver_district or not receiver_name \
                 or not re.compile(regex.REGEX_MOBILE).match(receiver_mobile):
             logger.warn('address unmatch: agent=%s, post=%s' % (request.META.get('HTTP_USER_AGENT'), request.data))
             return Response({'ret': False, "msg": "地址信息不全", "info": "地址信息不全", 'code': 2})
+
+        if identification_no and not idcard.verify(identification_no):
+            return Response({'ret': False, "msg": "身份证填写错误", "info": "身份证填写错误", 'code': 4})
+
         try:
             address, state = UserAddress.objects.get_or_create(
                 cus_uid=customer_id, receiver_name=receiver_name,
@@ -363,10 +389,19 @@ class UserAddressViewSet(viewsets.ModelViewSet):
                 receiver_address=receiver_address,
                 receiver_mobile=receiver_mobile,
                 status=UserAddress.NORMAL,
-                identification_no=identification_no,)
+            )
             if default == 'true':  # 设置为默认地址
                 address.set_default_address()
             address.set_logistic_company(logistic_company_code)
+
+            if identification_no or card_facepath or card_backpath:
+                address.identification_no = identification_no
+                address.idcard_no = identification_no
+                if card_facepath:
+                    address.set_idcard_image('face', card_facepath)
+                if card_backpath:
+                    address.set_idcard_image('back', card_backpath)
+                address.save(update_fields=['identification_no', 'idcard_no', 'extras'])
 
             result = {'ret': True, "msg": "添加成功", "info": "添加成功", 'result':{'address_id':address.id}, 'code': 0}
         except Exception,exc:
@@ -415,6 +450,8 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         qs = queryset.filter(status=UserAddress.NORMAL)
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data)
+
+
 
 from rest_framework_extensions.cache.decorators import cache_response
 

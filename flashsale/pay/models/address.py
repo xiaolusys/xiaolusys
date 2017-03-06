@@ -3,8 +3,10 @@ from __future__ import unicode_literals
 
 from django.db import models
 import logging
+
 from .base import PayBaseModel, BaseModel
 from ..managers import useraddress
+from core.fields import EncryptedCharField, JSONCharMyField
 
 logger = logging.getLogger('django.request')
 
@@ -90,6 +92,14 @@ class DistrictVersion(PayBaseModel):
 
 
 class UserAddress(BaseModel):
+    """
+    extras: {
+        idcard: {
+            face: ‘/path/to/image-face’,
+            back: ‘/path/to/image-back’,
+        }
+    }
+    """
     NORMAL = 'normal'
     DELETE = 'delete'
 
@@ -120,7 +130,10 @@ class UserAddress(BaseModel):
     type = models.IntegerField(default=1, choices=TYPE_CHOICES, verbose_name=u'类型')
     status = models.CharField(max_length=8, blank=True, db_index=True, default=NORMAL,
                               choices=STATUS_CHOICES, verbose_name=u'状态')
-    identification_no = models.CharField(max_length=32, blank=True, verbose_name=u'身份证号码')  # type : text_type
+    identification_no = models.CharField(max_length=32, blank=True, verbose_name=u'身份证号码', help_text=u'准备废弃!!!')  # type : text_type
+    idcard_no = EncryptedCharField(max_length=128, blank=True, verbose_name=u'身份证号', help_text=u'自动加密存储、读取解码') # type : text_type
+
+    extras = JSONCharMyField(max_length=256, default={}, verbose_name=u'附加参数')
 
     objects = models.Manager()
     normal_objects = useraddress.NormalUserAddressManager()
@@ -166,6 +179,20 @@ class UserAddress(BaseModel):
                 changed = True
                 setattr(self, attr, val.strip())
         return changed
+
+    def set_idcard_image(self, side, card_imgpath):
+        """ side choices: face and back """
+        self.extras.setdefault('idcard', {
+                'face': '',
+                'back': '',
+        })
+        self.extras['idcard'][side] = card_imgpath
+
+    def get_idcard_image(self, side):
+        if 'idcard' not in self.extras:
+            return ''
+        return self.extras['idcard'][side]
+
 
 
 class UserSingleAddress(BaseModel):
