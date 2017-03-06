@@ -851,10 +851,10 @@ CELERY_ROUTES = {
     'shopapp.smsmgr.tasks.task_notify_package_post': {
         'queue': 'notify',
         'routing_key': 'notify.task_notify_package_post',
-    },  # 包裹发货发送短信通知
-    'flashsale.pay.tasks.task_budgetlog_update_userbudget': {
+    },  # 用户钱包更新后解冻冻结的优惠券
+    'flashsale.pay.tasks.task_userbudget_post_save_unfreeze_coupon': {
         'queue': 'notify',
-        'routing_key': 'notify.task_budgetlog_update_userbudget',
+        'routing_key': 'notify.task_userbudget_post_save_unfreeze_coupon',
     },  # 更新妈妈钱包金额
     #######################################################
     'flashsale.clickcount.tasks.task_Create_Click_Record': {
