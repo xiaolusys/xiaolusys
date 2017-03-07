@@ -14,8 +14,7 @@ from flashsale.protocol import serializers
 from flashsale.protocol.models import APPFullPushMessge
 from .apis.v1.fullpush import create_app_push_msg, delete_app_push_msg_by_id, update_app_push_msg_by_id, \
     push_msg_right_now_by_id
-
-
+import supplychain.supplier.views.perms as perms
 class APPFullPushMessgeFilter(filters.FilterSet):
     class Meta:
         model = APPFullPushMessge
@@ -77,7 +76,8 @@ class APPFullPushMessgeViewSet(viewsets.ModelViewSet):
     queryset = APPFullPushMessge.objects.all().order_by('-push_time')
     serializer_class = serializers.APPPushMessgeSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser, permissions.DjangoModelPermissions)
+    # permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser, permissions.DjangoModelPermissions)
+    permission_classes = (perms.IsAccessAppFullPush,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
     filter_class = APPFullPushMessgeFilter

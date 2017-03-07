@@ -122,8 +122,8 @@ class SaleSupplierViewSet(viewsets.ModelViewSet):
     queryset = SaleSupplier.objects.all()
     serializer_class = serializers.SaleSupplierSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser, permissions.DjangoModelPermissions,)
-    # permission_classes = (permissions.IsAdminUser,perms.IsAccessSaleSupplier,)
+    # permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser, permissions.DjangoModelPermissions,)
+    permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
     ordering_fields = ('id', 'total_refund_num', 'total_sale_num', 'created', 'modified',
@@ -218,7 +218,8 @@ class SaleCategoryViewSet(viewsets.ModelViewSet):
     queryset = SaleCategory.objects.all()
     serializer_class = serializers.SaleCategorySerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser, permissions.DjangoModelPermissions,)
+    # permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser, permissions.DjangoModelPermissions,)
+    permission_classes = (perms.IsAccessSaleCategory,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
     filter_backends = (filters.OrderingFilter,)
     ordering_fields = '__all__'
@@ -324,7 +325,8 @@ class SaleProductViewSet(viewsets.ModelViewSet):
     queryset = SaleProduct.objects.all().order_by('-created')
     serializer_class = serializers.SimpleSaleProductSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser, permissions.DjangoModelPermissions)
+    # permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser, permissions.DjangoModelPermissions)
+    permission_classes = (perms.IsAccessSaleProduct,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
     ordering_fields = ('created', 'modified', 'sale_time', 'remain_num', 'hot_value')
@@ -465,9 +467,10 @@ class SaleScheduleViewSet(viewsets.ModelViewSet):
     queryset = SaleProductManage.objects.all()
     serializer_class = serializers.SimpleSaleProductManageSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated,
-                          permissions.IsAdminUser,
-                          permissions.DjangoModelPermissions)
+    # permission_classes = (permissions.IsAuthenticated,
+    #                       permissions.IsAdminUser,
+    #                       permissions.DjangoModelPermissions)
+    permission_classes = (perms.IsAccessSaleManage,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
     filter_class = SaleProductManageFilter
@@ -601,7 +604,8 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
     queryset = SaleProductManageDetail.objects.all()
     serializer_class = serializers.SaleProductManageDetailSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated, permissions.DjangoModelPermissions, permissions.IsAdminUser)
+    # permission_classes = (permissions.IsAuthenticated, permissions.DjangoModelPermissions, permissions.IsAdminUser)
+    permission_classes = (perms.IsAccessSaleManageDetail,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter)
     ordering_fields = ('order_weight', 'is_promotion', 'sale_category','id')
@@ -781,7 +785,8 @@ class PreferencePoolViewSet(viewsets.ModelViewSet):
     queryset = PreferencePool.objects.all()
     serializer_class = serializers.PreferencePoolSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated, permissions.DjangoModelPermissions, permissions.IsAdminUser)
+    # permission_classes = (permissions.IsAuthenticated, permissions.DjangoModelPermissions, permissions.IsAdminUser)
+    permission_classes = (perms.IsAccessPreferencePool,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter)
     ordering_fields = ('id', )
