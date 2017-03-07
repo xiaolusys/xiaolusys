@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('pay', '0062_saletrade_pay_status'),
+        ('pay', '0064_add_fields_useraddress_extras'),
     ]
 
     operations = [
