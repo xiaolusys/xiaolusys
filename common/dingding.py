@@ -21,6 +21,9 @@ class DingDingAPI(object):
     corpsecret = 'k1LS2LMil27fZz81R66qG7U7wwrOJ0RsbaAJUylDFOgOe46TjKtBn0kB4LCMNG25'
     access_token = None
 
+    GROUP_TECH = '81e7257059a2626b1eda00d3b263f2851be07b40ee188f8b718c606bcdcbc8ae'  # 小鹿技术群
+    GROUP_OPERATE_TECH = 'ceee8be001caa0f452682c4eaa2285617d214d92a07e45f3656816fdf933ea61'  # 运营/技术群
+
     def __init__(self):
         self.getAccessToken()
 
@@ -75,14 +78,81 @@ class DingDingAPI(object):
         print json
 
 
+    def _request(self, url, params):
+        headers = {
+            'Content-Type': 'application/json'
+        }
+        resp = requests.post(url, headers=headers, data=simplejson.dumps(params))
+        json = simplejson.loads(resp.content)
+        return json
+
+
+    def sendGroupMsg(self, msg, group=None, at=None):
+        """
+        群聊机器人
+        """
+        at = at or []
+        group = group or DingDingAPI.GROUP_TECH
+
+        url = 'https://oapi.dingtalk.com/robot/send?access_token=%s' % group
+        params = {
+            "msgtype": "text",
+            "text": {
+                "content": msg
+            },
+            "at": {
+                "atMobiles": at,
+                "isAtAll": False
+            }
+        }
+        print self._request(url, params)
+
+
+    def sendGroupLink(self, text, url, title='', picurl='', group=None):
+        """
+        群聊机器人
+        """
+        group = group or DingDingAPI.GROUP_TECH
+
+        url = 'https://oapi.dingtalk.com/robot/send?access_token=%s' % group
+        params = {
+            "msgtype": "link",
+            "link": {
+                "text": text,
+                "title": title,
+                "picUrl": picurl,
+                "messageUrl": url
+            }
+        }
+        print self._request(url, params)
+
+
+    def sendGroupMarkdown(self, text, title='', group=None):
+        """
+        群聊机器人
+        """
+        group = group or DingDingAPI.GROUP_TECH
+
+        url = 'https://oapi.dingtalk.com/robot/send?access_token=%s' % group
+        params = {
+            "msgtype": "markdown",
+            "markdown": {
+                "title": title,
+                "text": text
+            }
+        }
+        print self._request(url, params)
+
+
 def main():
     dd = DingDingAPI()
-    print dd.getAccessToken()
-    items = dd.getParty()
-    items = dd.getPartyMember(party_id=4483290)
-    print items['hasMore']
-    for item in items['userlist']:
-        print item['userid'], item['name']
+    dd.sendGroupMsg(u'我就是我, 是不一样的烟火')
+    # print dd.getAccessToken()
+    # items = dd.getParty()
+    # items = dd.getPartyMember(party_id=4483290)
+    # print items['hasMore']
+    # for item in items['userlist']:
+    #     print item['userid'], item['name']
 
     # dd.sendMsg('helldddoa', touser='0550581811782786')
     # dd.sendMsg('', touser='01591912287010')
