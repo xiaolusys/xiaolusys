@@ -33,6 +33,7 @@ def task_fortune_update_activity_carry_total(activity, mama_id):
 @app.task()
 def task_schedule_update_carry_total_ranking():
     logger.warn("task_schedule_update_carry_total_ranking: %s" % (get_cur_info(),))
+    return
     # 周一把上周的也重设一次排名
     if datetime.datetime.now().weekday() == 1:
         WeekMamaCarryTotal.reset_rank(WeekRank.last_week_time())
@@ -44,6 +45,7 @@ def task_schedule_update_carry_total_ranking():
 @app.task()
 def task_schedule_update_team_carry_total_ranking():
     logger.warn(" task_schedule_update_carry_total_ranking: %s" % (get_cur_info(),))
+    return
     if datetime.datetime.now().weekday() == 1:
         WeekMamaTeamCarryTotal.reset_rank(WeekRank.last_week_time())
         WeekMamaTeamCarryTotal.reset_duration_rank(WeekRank.last_week_time())
