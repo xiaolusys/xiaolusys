@@ -1191,7 +1191,7 @@ class EnableEliteCouponView(APIView):
             ct.prepare_release_num = 1000
         ct.extras["release"].update({"use_min_payment":0, "limit_after_release_days":365})
         ct.extras["scopes"].update({"product_ids":product_ids})
-        ct.extras.update({"product_model_id":int(product_model_id),"product_img":product_img})
+        ct.extras.update({"product_model_id":int(coupon_product_model_id),"product_img":product_img})
         ct.save()
         
         # 3. Dealing with coupon_product
