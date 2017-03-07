@@ -28,8 +28,8 @@ def update_salesupplier_permissions():
     content_type = ContentType.objects.get(app_label="supplier", model="salesupplier")
     Permission.objects.get_or_create(name="manage sale supplier", content_type=content_type, codename="manage_sale_supplier")
     perm = Permission.objects.get(name="manage sale supplier",codename="manage_sale_supplier")
-    g=Group.objects.get(id=18)
-    g.permissions.add(perm.id)
+    # g=Group.objects.get(id=18)
+    # g.permissions.add(perm.id)
 
 def update_salecategory_permissions():
     content_type = ContentType.objects.get(app_label="supplier", model="salecategory")
