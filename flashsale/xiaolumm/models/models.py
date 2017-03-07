@@ -26,6 +26,7 @@ from django.db.models.signals import post_save, pre_save
 from django.db.models import Q
 import logging
 
+
 logger = logging.getLogger('django.request')
 ROI_CLICK_START = datetime.date(2015, 8, 25)
 ORDER_RATEUP_START = datetime.date(2015, 7, 8)
@@ -211,8 +212,16 @@ class XiaoluMama(BaseModel):
     def mama_manager(self):
         # type: () -> Optional[DjangoUser]
         """获取小鹿妈妈管理员
+
+        self.manager (mama.id)
         """
-        return DjangoUser.objects.filter(id=self.manager).first()
+        mama = XiaoluMama.objects.filter(id=self.manager).first()
+        if not mama:
+            return None
+        customer = mama.get_mama_customer()
+        if not customer:
+            return None
+        return customer.user
 
     def exam_Passed(self):
         """ 妈妈考试是否通过 """
