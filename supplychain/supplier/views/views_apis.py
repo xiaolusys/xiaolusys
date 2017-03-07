@@ -126,8 +126,8 @@ class SaleSupplierViewSet(viewsets.ModelViewSet):
     permission_classes = (perms.IsAccessSaleSupplier,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
-    ordering_fields = ('id', 'total_refund_num', 'total_sale_num', 'created', 'modified',
-                       'figures__payment',
+    ordering_fields = ('id', 'total_refund_num', 'total_sale_num',
+                       'figures__payment', 'created', 'modified',
                        'figures__return_good_rate',
                        'figures__out_stock_num')
     filter_class = SaleSupplierFilter

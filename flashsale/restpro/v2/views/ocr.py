@@ -53,7 +53,7 @@ class OcrIndentifyViewSet(viewsets.GenericViewSet):
         customer = Customer.getCustomerByUser(request.user)
         resp.update({
             'side': card_side,
-            'card_imgpath': 'ocr/idcard_%s_%s.jpg'%(customer.id, datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
+            'card_imgpath': 'ocr/idcard_%s_%s_%s.jpg'%(customer.id, card_side, datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
          })
 
         #　TODO@MERON保存图片base64到七牛云存储
