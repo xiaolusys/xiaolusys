@@ -19,4 +19,5 @@ from .teambuy import TeamBuy, TeamBuyDetail
 from .admanager import ADManager
 from .searchhistory import UserSearchHistory
 from .checkin import Checkin
+from .openapi import OpenAPI
 from flashsale.pay.models.product import ProductSku

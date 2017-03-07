@@ -136,10 +136,11 @@ def update_nine_pic_advertisement_by_id(id, **kwargs):
 def get_nine_pic_by_modelids(modelids):
     # type: (List[int]) -> List[Dict[str, Any]]
     from ...models.models_advertis import NinePicAdver
+    from flashsale.xiaolumm.models.models_advertis import NinePicAdver
 
     ns = []
     for modelid in modelids:
-        x = r'(,|^)\s*' + str(modelid) + r'\s*(,|$)'
+        x = r'(,|^)\s*' + str(modelid) + r'\s*(,|$)*'
         ns.extend(NinePicAdver.objects.filter(detail_modelids__regex=x))
     return ns
 
