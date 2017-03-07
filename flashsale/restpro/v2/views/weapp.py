@@ -150,7 +150,7 @@ class WeAppViewSet(viewsets.ViewSet):
             with transaction.atomic():
                 user, state = User.objects.get_or_create(username=unionid, is_active=True)
 
-                Customer.objects.create(
+                customer = Customer.objects.create(
                     unionid=unionid,
                     user=user,
                     thumbnail = user_info.get('avatarUrl', ''),
