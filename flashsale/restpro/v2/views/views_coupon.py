@@ -484,7 +484,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
             exchg_orders = CouponTransferRecord.objects.filter(coupon_from_mama_id=mama_id,
                                                                transfer_type=CouponTransferRecord.OUT_EXCHG_SALEORDER,
                                                                transfer_status=CouponTransferRecord.DELIVERED,
-                                                               status=CouponTransferRecord.EFFECT)
+                                                               status=CouponTransferRecord.EFFECT).order_by('-created')
         results = []
         if exchg_orders:
             for entry in exchg_orders:
@@ -556,8 +556,10 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                             if template_ids and template_id:
                                 # if use_template_id and use_template_id in template_ids:
                                 #     continue
+                                from flashsale.coupon.apis.v1.coupontemplate import get_boutique_coupon_modelid_by_templateid
+                                coupon_modelid = get_boutique_coupon_modelid_by_templateid(template_id)
                                 if round(sale_order.payment / sale_order.price) > 0:
-                                    results.append({'exchg_template_id': template_id,
+                                    results.append({'exchg_template_id': template_id, 'exchg_model_id': coupon_modelid,
                                                     'num': left_exchange_num,
                                                     'order_id': entry.order_id, 'sku_img': entry.sku_img, 'sku_name': sale_order.title,
                                                     'contributor_nick': entry.contributor_nick, 'status': entry.status,
@@ -576,7 +578,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                         from flashsale.pay.apis.v1.order import get_pay_type_from_trade
                         budget_pay, coin_pay = get_pay_type_from_trade(sale_order.sale_trade)
                         if coin_pay > 0 and round(sale_order.payment / sale_order.price) > 0 and model_product.extras.has_key('template_id'):
-                            results.append({'exchg_template_id': model_product.extras['template_id'],
+                            results.append({'exchg_template_id': model_product.extras['template_id'], 'exchg_model_id': model_product.id,
                                             'num': left_exchange_num,
                                             'order_id': entry.order_id, 'sku_img': head_img, 'sku_name': sale_order.title,
                                             'contributor_nick': entry.contributor_nick, 'status': entry.status,
@@ -597,7 +599,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                     else:
                         continue
                     buyer_customer = Customer.objects.normal_customer.filter(id=rmb338_order.buyer_id).first()
-                    results.append({'exchg_template_id': template_id,
+                    results.append({'exchg_template_id': template_id, 'exchg_model_id': 25408,
                                     'num': 1,
                                     'order_id': ship.order_id, 'sku_img': rmb338_order.pic_path, 'sku_name': rmb338_order.title,
                                     'contributor_nick': buyer_customer.nick, 'status': 2,
