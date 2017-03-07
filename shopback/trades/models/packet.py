@@ -1341,7 +1341,7 @@ class PackageSkuItem(BaseModel):
                 self.package_order_pid = po.pid
                 self.save()
                 po.add_package_sku_item(self)
-                po.set_logistics_company(100)
+                po.set_logistics_company(-2)
 
     def return_merge(self):
         if self.status == PSI_STATUS.ASSIGNED:
@@ -1361,7 +1361,7 @@ class PackageSkuItem(BaseModel):
                     po.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS
                 po.set_redo_sign(save_data=False)
                 po.reset_package_address(save=True)
-                po.set_logistics_company(100)
+                po.set_logistics_company(-2)
             else:
                 user_address_id = return_addr_id
                 buyer_id = return_user_id
