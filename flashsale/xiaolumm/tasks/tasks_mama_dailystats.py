@@ -408,3 +408,30 @@ def check_xlmm_ordercarry(recent_day):
                     log_action(sys_oa, order_carry, CHANGE, logmsg)
                     results.append(order.oid)
     print "ordercarry error is: ", results
+
+
+def check_coupon_modelid():
+    from flashsale.coupon.models import CouponTemplate
+    from flashsale.pay.models.product import ModelProduct
+    wrong_ct1 = []
+    wrong_ct2 = []
+    cts = CouponTemplate.objects.filter(coupon_type=CouponTemplate.TYPE_TRANSFER)
+    for ct in cts:
+        product_model_id = ct.extras.get("product_model_id")
+        virtual_model_products = ModelProduct.objects.get_virtual_modelproducts()
+        find_mp = None
+        for md in virtual_model_products:
+            md_bind_tpl_id = md.extras.get('template_id')
+            if not md_bind_tpl_id:
+                continue
+            if ct.id == md_bind_tpl_id:
+                find_mp = md
+                break
+        if not find_mp:
+            wrong_ct1.append(ct.id)
+        else:
+            if find_mp.id != product_model_id:
+                # ct.extras.update({"product_model_id": find_mp.id})
+                # ct.save()
+                wrong_ct2.append(ct.id)
+    print wrong_ct1, wrong_ct2
