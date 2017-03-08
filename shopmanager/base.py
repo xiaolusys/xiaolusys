@@ -226,7 +226,10 @@ INSTALLED_APPS =[
     # 'shopapp.zhongtong'
     'statistics',
 
-    'mall.xiaolupay'
+    'mall.xiaolupay',
+
+    'outware',
+    'outware.fengchao',
 ]
 
 AUTH_PROFILE_MODULE = 'users.user'

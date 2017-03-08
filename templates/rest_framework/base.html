@@ -1,7 +1,7 @@
 {% load staticfiles %}
 {% load i18n %}
 {% load rest_framework %}
-
+{% load custom_filter %}
 <!DOCTYPE html>
 <html>
   <head>
@@ -134,7 +134,7 @@
                 <h1>{{ name }}</h1>
               </div>
 
-              {% if user.is_authenticated %}
+              {% if request.get_full_path|startswith:'/outware' or user.is_authenticated %}
               <div style="float:left">
                 {% block description %}
                   {{ description }}

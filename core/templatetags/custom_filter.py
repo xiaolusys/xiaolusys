@@ -37,3 +37,7 @@ def jsonify(data):
     return mark_safe(json.dumps(data))
 
 
+@register.filter(name='startswith')
+def startswith(data, arg):
+    return data.startswith(arg)
+
