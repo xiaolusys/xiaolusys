@@ -35,10 +35,17 @@
 <input type="text" id="start_time" size="20" value={{start_time}} />
 <label>结束时间</label>
 <input type="text" id="end_time" size="20"  value={{end_time}} />
+<label>截止天数</label>
+<input id="day" list="days" />
+<datalist id="days">
+  <option value=4>
+  <option value=5>
+  <option value=6>
+</datalist>
 <button onclick="get_time(this)">确认查询</button>
 
 <button><a href="/sale/dinghuo/supplier_sku/{{ supplier_sku.0.salesupplier_id }}/excel?start_time={{start_time}}&&end_time={{end_time}}">下载excel</a></button>
-<div>
+
         <table id="orderdetailtable" border="1" class="table table-striped table-bordered table-hover">
             <thead>
             <th><input type="checkbox" id="action-toggle" onclick="action_toggle(this)" value=""/></th>
@@ -69,7 +76,7 @@
                     <input class="action-select" type="checkbox" data-id={{psi.id}} onclick="can_change(this)">
                 </td>
                 <td><a><button data-id={{psi.id}} onclick="confirm_arrival(this)">确认收货</button></a></td>
-                <td><a>{{psi.id }}</a></td>
+                <td><a href="http://admin.xiaolumm.com/admin/trades/packageorder/?pid={{psi.package_order_pid}}" target="_blank">{{psi.id }}</a></td>
                 <td><a>{{psi.sale_trade_id }}</a></td>
                 <td><a>{{psi.oid }}</a></td>
                 <td><a>{{psi.sku_id }}</a></td>
@@ -92,7 +99,7 @@
             <tfoot>
             </tfoot>
         </table>
-    </div>
+
 
 <script>
         function confirm_arrival(obj){
@@ -121,11 +128,17 @@
         function get_time(object){
         var end_time=document.getElementById("end_time").value;
         var start_time = document.getElementById("start_time").value;
+        var delay_day = document.getElementById("day").value;
         console.log(window.location.href);
         var local_url = window.location.href.split("?");
-        if(end_time&&start_time){
+        if(end_time=="/"&&start_time=="/"&&delay_day){
+        var end_time="";
+        var start_time="";
+        window.location.href=local_url[0]+"?start_time="+start_time+"&end_time="+end_time+"&delay_day="+delay_day;
+        }
+        if(end_time&&start_time&&end_time!="/"&&start_time!="/"){
 
-        window.location.href=local_url[0]+"?start_time="+start_time+"&end_time="+end_time;
+        window.location.href=local_url[0]+"?start_time="+start_time+"&end_time="+end_time+"&delay_day="+delay_day;
         }
         }
 

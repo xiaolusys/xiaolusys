@@ -78,3 +78,18 @@ def update_coupontransferrecord_permissions():  #管理特卖/优惠券/流通�
     content_type = ContentType.objects.get(app_label="coupon", model="transfercoupondetail")
     Permission.objects.get_or_create(name="manage transfer coupondetail", content_type=content_type,codename="manage_transfer_coupondetail")
 
+def update_ninepicadver_permissions():    #设置9张图
+    content_type = ContentType.objects.get(app_label="xiaolumm", model="ninepicadver")
+    Permission.objects.get_or_create(name="manage ninepicadver", content_type=content_type,codename="manage_ninepicadver")
+
+def update_changeuppermama_permissions():  #更改上级妈妈
+    content_type = ContentType.objects.get(app_label="xiaolumm", model="xiaolumama")
+    Permission.objects.get_or_create(name="manage change uppermama", content_type=content_type,codename="manage_change_uppermama")
+
+def update_mallactivity_permissions():
+    content_type = ContentType.objects.get(app_label="pay", model="activityentry")
+    Permission.objects.get_or_create(name="manage mall activity", content_type=content_type,codename="manage_mall_activity")
+
+
+
+

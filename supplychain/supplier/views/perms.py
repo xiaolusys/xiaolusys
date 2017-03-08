@@ -100,7 +100,36 @@ class IsAccessCouponTransferRecord(permissions.BasePermission):
     def has_permission(self, request, view):
         user = request.user
         own_perms = user.get_group_permissions()
-        if user.has_perm("coupon.transfercoupondetail"):
+        if user.has_perm("coupon.manage_transfer_coupondetail"):
             return True
         else:
             return False
+
+class IsAccessNinePicAdver(permissions.BasePermission):
+    def has_permission(self, request, view):
+        user = request.user
+        own_perms = user.get_group_permissions()
+        if user.has_perm("xiaolumm.manage_ninepicadver"):
+            return True
+        else:
+            return False
+
+class IsAccessChangeUpperMama(permissions.BasePermission):
+    def has_permission(self, request, view):
+        user = request.user
+        own_perms = user.get_group_permissions()
+        if user.has_perm("xiaolumm.manage_change_uppermama"):
+            return True
+        else:
+            return False
+
+class IsAccessMallActivity(permissions.BasePermission):
+    def has_permission(self, request, view):
+        user = request.user
+        own_perms = user.get_group_permissions()
+        if user.has_perm("pay.manage_mall_activity"):
+            return True
+        else:
+            return False
+
+
