@@ -14,7 +14,7 @@ import datetime,socket,random,struct
 from exp_map import exp_map,reverse_map,reverse_100_map
 from shopback.logistics.models import LogisticsCompany
 from flashsale.pay.models import SaleTrade,SaleOrder
-from shopback.trades.models import PackageSkuItem
+from shopback.trades.models import PackageSkuItem,PackageOrder
 import logging,time
 import re
 
@@ -124,6 +124,8 @@ def confirm_get_by_state(out_sid,status):
     psi = PackageSkuItem.objects.filter(out_sid=out_sid).first()
     if psi:
         logger.warn({'action': "kd100", 'info': "confirm_psi_finish_kd100:" + str(out_sid)})
+        pid = psi.package_order_pid
+        PackageOrder.objects.filter(pid=pid).update(sys_status = PackageOrder.FINISHED_STATUS)
         psi.set_status_finish()
 
     packageskuitem = PackageSkuItem.objects.filter(out_sid=out_sid).values("oid")

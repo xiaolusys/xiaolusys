@@ -51,6 +51,14 @@ class ArrivalTimeViewSet(viewsets.GenericViewSet):
         sys_note = request.POST.get("sys_note")
         PackageSkuItem.set_sys_note(pk,sys_note)
 
+    @detail_route(methods=['post'])
+    def confirm_arrival(self, request, pk):
+        psi = PackageSkuItem.objects.filter(id=int(pk)).first()
+        pid = psi.package_order_pid
+        po=PackageOrder.objects.filter(pid=pid).first()
+        po.finish()
+        return Response(True)
+
     # @detail_route(methods=['get'])
     # def psi_has_pid(self, request, pk):
     #     content = request.POST
