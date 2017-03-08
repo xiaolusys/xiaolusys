@@ -26,7 +26,6 @@ from django.db.models.signals import post_save, pre_save
 from django.db.models import Q
 import logging
 
-from games.weixingroup.models import XiaoluAdministrator
 
 logger = logging.getLogger('django.request')
 ROI_CLICK_START = datetime.date(2015, 8, 25)
@@ -216,6 +215,8 @@ class XiaoluMama(BaseModel):
 
         self.manager (mama.id)
         """
+        from games.weixingroup.models import XiaoluAdministrator
+        
         mama = XiaoluMama.objects.filter(id=self.manager).first()
         if not mama:
             return None
