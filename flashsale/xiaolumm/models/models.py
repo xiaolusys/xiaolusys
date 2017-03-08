@@ -26,6 +26,7 @@ from django.db.models.signals import post_save, pre_save
 from django.db.models import Q
 import logging
 
+from games.weixingroup.models import XiaoluAdministrator
 
 logger = logging.getLogger('django.request')
 ROI_CLICK_START = datetime.date(2015, 8, 25)
@@ -218,10 +219,7 @@ class XiaoluMama(BaseModel):
         mama = XiaoluMama.objects.filter(id=self.manager).first()
         if not mama:
             return None
-        customer = mama.get_mama_customer()
-        if not customer:
-            return None
-        return customer.user
+        return XiaoluAdministrator.objects.filter(mama_id=mama.id).first()
 
     def exam_Passed(self):
         """ 妈妈考试是否通过 """
