@@ -169,7 +169,7 @@ class CouponTransferRecordAdmin(admin.ModelAdmin):
         mm = get_mama_by_id(obj.coupon_to_mama_id)
         if not mm or not mm.mama_manager:
             return u''
-        return mm.mama_manager.last_name + mm.mama_manager.first_name
+        return mm.mama_manager.username
 
     to_mama_manager.allow_tags = True
     to_mama_manager.short_description = u"归属管理员"
