@@ -215,13 +215,12 @@ class XiaoluMama(BaseModel):
 
         self.manager (mama.id)
         """
+        from games.weixingroup.models import XiaoluAdministrator
+        
         mama = XiaoluMama.objects.filter(id=self.manager).first()
         if not mama:
             return None
-        customer = mama.get_mama_customer()
-        if not customer:
-            return None
-        return customer.user
+        return XiaoluAdministrator.objects.filter(mama_id=mama.id).first()
 
     def exam_Passed(self):
         """ 妈妈考试是否通过 """

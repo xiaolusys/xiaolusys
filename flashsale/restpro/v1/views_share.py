@@ -168,6 +168,9 @@ class CustomShareViewSet(viewsets.ReadOnlyModelViewSet):
         cshare = CustomShare.get_instance_by_type(CustomShare.MODEL_SHARE)
         resp = self.render_share_params(xlmm, cshare, model=product_model)
 
+        profit = product_model.get_model_product_profit()
+        resp['profit'] = profit
+
         if self.is_request_from_weixin(request):
             wxshare_params = self.affix_weixin_share_param(request)
             resp.update(wxshare_params)

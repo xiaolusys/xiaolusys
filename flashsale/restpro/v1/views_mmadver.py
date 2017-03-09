@@ -232,7 +232,7 @@ class NinePicViewSet(viewsets.GenericViewSet):
                 item.model_id = model_id.strip()
                 items.append(item)
 
-        virtual_model_products = ModelProduct.objects.get_virtual_modelproducts()  # 虚拟商品
+        virtual_model_products = ModelProduct.objects.get_virtual_modelproducts()
 
         data = []
         for item in items:
@@ -241,31 +241,16 @@ class NinePicViewSet(viewsets.GenericViewSet):
             if not mp:
                 logger.error(u'九张图首页接口报错,找不到 model_id %s' % model_id)
                 continue
-            coupon_template_id = mp.extras.get('payinfo', {}).get('coupon_template_ids', [])
-            coupon_template_id = coupon_template_id[0] if coupon_template_id else None
 
-            find_mp = None
-
-            for md in virtual_model_products:
-                md_bind_tpl_id = md.extras.get('template_id')
-                if md_bind_tpl_id and coupon_template_id == md_bind_tpl_id:
-                    find_mp = md
-                    break
-
-            if not find_mp:
-                continue
-
-            prices = [x.agent_price for x in find_mp.products]
-            min_price = min(prices)
-            max_price = max(prices)
+            profit = mp.get_model_product_profit(virtual_model_products=virtual_model_products)
 
             data_item = {
                 'pic': mp.head_img(),
                 'name': mp.name,
                 'price': mp.lowest_agent_price,
                 'profit': {
-                    'min': round(mp.lowest_agent_price - max_price, 2),
-                    'max': round(mp.lowest_agent_price - min_price, 2)
+                    'min': profit.get('min', 0),
+                    'max': profit.get('max', 0)
                 },
                 'start_time': item.start_time,
                 'hour': item.start_time.hour,
