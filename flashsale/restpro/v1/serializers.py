@@ -917,6 +917,7 @@ class NinePicAdverSerialize(serializers.ModelSerializer):
     title_content = serializers.SerializerMethodField(read_only=True)
     title = serializers.SerializerMethodField('get_description', read_only=True)
     description = serializers.SerializerMethodField(read_only=True)
+    profit = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = NinePicAdver
@@ -924,7 +925,10 @@ class NinePicAdverSerialize(serializers.ModelSerializer):
                   "turns_num", "pic_arry",
                   'save_times', 'share_times',
                   'sale_category',
-                  'could_share', 'description')
+                  'could_share', 'description', 'profit')
+
+    def get_profit(self, obj):
+        return obj.profit
 
     def get_title_content(self, obj):
         today = obj.start_time

@@ -1,6 +1,8 @@
 # coding=utf-8
 from __future__ import unicode_literals
 
+from flashsale.pay.models import ModelProduct
+
 __ALL__ = [
     'get_nine_pic_advertisement_by_id',
     'get_nine_pic_advertisements_by_ids',
@@ -141,7 +143,16 @@ def get_nine_pic_by_modelids(modelids):
     ns = []
     for modelid in modelids:
         x = r'(,|^)\s*' + str(modelid) + r'\s*(,|$)*'
-        ns.extend(NinePicAdver.objects.filter(detail_modelids__regex=x))
+        nps = NinePicAdver.objects.filter(detail_modelids__regex=x)
+        mp = ModelProduct.objects.filter(id=modelid).first()
+        if mp:
+            profit = mp.get_model_product_profit()
+        else:
+            profit = {'max': 0, 'min': 0}
+        for np in nps:
+            np.model_id = modelid
+            np.profit = profit
+        ns.extend(nps)
     return ns
 
 

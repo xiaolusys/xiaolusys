@@ -462,6 +462,44 @@ class ModelProduct(BaseTagModel):
         tmp_result.sort(key=lambda x:SM.find(x[0][0:2]) if SM.find(x[0][0:2])>-1 else SM.find(x[0][0:1]))
         return result_data + tmp_result
 
+    def get_model_product_profit(self, virtual_model_products=None):
+        """
+        获取精品汇商品利润
+
+        params:
+        - mp <ModelProduct>
+        - vmps <[ModelProduct]> 虚拟商品列表
+        """
+        profit = cache.get('get-model-product-profit-%s' % self.id)
+        if profit:
+            return profit
+
+        virtual_model_products = virtual_model_products or ModelProduct.objects.get_virtual_modelproducts()
+
+        coupon_template_id = self.extras.get('payinfo', {}).get('coupon_template_ids', [])
+        coupon_template_id = coupon_template_id[0] if coupon_template_id else None
+
+        find_mp = None
+        for md in virtual_model_products:
+            md_bind_tpl_id = md.extras.get('template_id')
+            if md_bind_tpl_id and coupon_template_id == md_bind_tpl_id:
+                find_mp = md
+                break
+
+        if not find_mp:
+            return {}
+
+        prices = [x.agent_price for x in find_mp.products]
+        min_price = min(prices)
+        max_price = max(prices)
+
+        profit = {
+            'min': round(self.lowest_agent_price - max_price, 2),
+            'max': round(self.lowest_agent_price - min_price, 2)
+        }
+        cache.set('get-model-product-profit-%s' % self.id, profit, 60*60)
+        return profit
+
     def reset_new_propeties_table_by_comparison(self):
         """
         功能：　设置　extras　的　new_properties 键　的尺码表内容　从　以前的尺码表中读取数据来填充
