@@ -722,7 +722,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         if mm and (mm.referal_from == XiaoluMama.INDIRECT):
             # 排除充值mp
             if mp.id != 25339 and (pay_cash > 0 or budget_payment > 0):
-                return Response({'code': 25, 'info': u'您的精英妈妈账号只能使用小鹿币直接购券，没有现金购券权限，请减少购券数量或充值小鹿币 '})
+                # return Response({'code': 25, 'info': u'您的精英妈妈账号只能使用小鹿币直接购券，没有现金购券权限，请减少购券数量或充值小鹿币 '})  2017-3-9 indirect can buy coupon
+                pass
         elif mm and (mm.referal_from == XiaoluMama.DIRECT):
             if xiaolucoin_payment > 0:
                 if (pay_cash > 0 or budget_payment > 0) and (mm.elite_level != 'Associate') and (goods_num < 5) and (elite_score < 30):
@@ -792,7 +793,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 return Response({'code': 30, 'info': u'购买精品券或虚拟商品时，妈妈等级和价格不匹配，您的等级价格%s，实际支付价格%s' % (mm_level_payment, round(payment / 100.0))})
             if mm and (mm.referal_from == XiaoluMama.INDIRECT):
                 if pay_cash > 0 or budget_payment > 0:
-                    return Response({'code': 25, 'info': u'您的精英妈妈账号只能使用小鹿币直接购券，没有现金购券权限，请减少购券数量或充值小鹿币 '})
+                    # return Response({'code': 25, 'info': u'您的精英妈妈账号只能使用小鹿币直接购券，没有现金购券权限，请减少购券数量或充值小鹿币 '}) 2017-3-9 indirect can buy coupon
+                    pass
             elif mm and (mm.referal_from == XiaoluMama.DIRECT):
                 if xiaolucoin_payment > 0:
                     if (pay_cash > 0 or budget_payment > 0) and (mm.elite_level != 'Associate') and (goods_num < 5) and (elite_score < 30):
