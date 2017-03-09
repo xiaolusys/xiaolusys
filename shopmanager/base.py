@@ -140,6 +140,8 @@ INSTALLED_APPS =[
     'django.contrib.sites',
     'django.contrib.staticfiles',
 
+    'common.group_permissions',
+
     'gunicorn',
     'httpproxy',
     'tagging.apps.TaggingConfig',
