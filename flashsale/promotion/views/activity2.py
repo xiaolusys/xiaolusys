@@ -24,7 +24,7 @@ from ..utils import choice_2_name_value
 from ..deps import get_future_topic_schedules
 
 import logging
-
+from .permission import IsAccessMallActivity
 logger = logging.getLogger(__name__)
 
 
@@ -38,7 +38,8 @@ class ActivityViewSet(viewsets.ModelViewSet):
     queryset = ActivityEntry.objects.all().order_by('-order_val', '-start_time')
     serializer_class = ActivitySerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser, permissions.DjangoModelPermissions)
+    # permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser, permissions.DjangoModelPermissions)
+    permission_classes = (IsAccessMallActivity,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
     filter_class = ActivityEntryFilter

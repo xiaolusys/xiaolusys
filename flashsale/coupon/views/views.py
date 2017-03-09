@@ -14,6 +14,7 @@ from collections import OrderedDict
 from ..apis.v1.usercoupon import create_user_coupon
 from ..apis.v1.transfer import agree_apply_transfer_record_2_sys, cancel_return_2_sys_transfer, get_transfer_record_by_id
 from ..models import UserCoupon, CouponTemplate, CouponTransferRecord
+from .permission import IsAccessUserCoupon,IsAccessCouponTransferRecord
 
 import logging
 
@@ -25,8 +26,8 @@ class ReleaseOmissive(APIView):
     """
     usercoupons = UserCoupon.objects.all()
     renderer_classes = (JSONRenderer, )
-    permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser)
-
+    # permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser)
+    permissions_classes = (IsAccessUserCoupon,)
     def get(self, request):
         from shopback.items.models import Product
 
@@ -208,7 +209,9 @@ class VerifyReturnSysTransfer(APIView):
 class SendTransferEliteScore(APIView):
     transfer_coupons = CouponTransferRecord.objects.all()
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer,)
-    permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser)
+    # permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser)
+    permissions_classes = (IsAccessCouponTransferRecord,)
+
     """赠送精品券积分
     """
 

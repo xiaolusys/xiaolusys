@@ -23,7 +23,7 @@ from flashsale.xiaolumm.apis.v1.ninepic import get_nine_pic_by_modelids
 from flashsale.pay.apis.v1.customer import get_customer_by_django_user
 from . import serializers
 import logging
-
+from .permission import IsAccessNinePicAdver
 logger = logging.getLogger(__name__)
 
 

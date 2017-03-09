@@ -11,6 +11,7 @@ from core.options import log_action, CHANGE
 logger = logging.getLogger(__name__)
 from ..apis.v1.xiaolumama import set_mama_manager_by_mama_id, change_mama_follow_elite_mama, get_mama_by_id
 from ..models import XiaoluMama
+from .permission import IsAccessChangeUpperMama
 
 
 class SetMamaManager(APIView):
@@ -37,7 +38,8 @@ class ChangeUpperMama(APIView):
     """
     queryset = XiaoluMama.objects.all()
     renderer_classes = (JSONRenderer,)
-    permission_classes = (permissions.IsAuthenticated, permissions.DjangoModelPermissions, permissions.IsAdminUser)
+    # permission_classes = (permissions.IsAuthenticated, permissions.DjangoModelPermissions, permissions.IsAdminUser)
+    permission_classes = (IsAccessChangeUpperMama,)
 
     def get(self, request):
         return Response({'direct_info': [XiaoluMama.ELITE_TYPE_CHOICES]})
