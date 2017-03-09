@@ -141,6 +141,7 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
         # start_time before now
         now_dt = datetime.datetime.now()
         queryset = NinePicAdver.objects
+        model_id = request_data.get('model_id')
 
         if request_data.get('model_id'):
             queryset = queryset.filter_by_modelproduct(request_data.get('model_id'))
@@ -151,6 +152,15 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
         queryset = queryset.filter(start_time__lte=now_dt)
         queryset = self.filter_queryset(queryset)
         pagin_query = self.paginate_queryset(queryset)
+
+        profit = {'max': 0, 'min': 0}
+        if model_id:
+            mp = ModelProduct.objects.filter(id=model_id).first()
+            if mp:
+                profit = mp.get_model_product_profit()
+
+        for item in pagin_query:
+            item.profit = profit
 
         serializer = self.get_serializer(pagin_query, many=True)
         response = self.get_paginated_response(serializer.data)
