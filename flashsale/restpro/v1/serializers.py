@@ -928,7 +928,9 @@ class NinePicAdverSerialize(serializers.ModelSerializer):
                   'could_share', 'description', 'profit')
 
     def get_profit(self, obj):
-        return obj.profit
+        if hasattr(obj, 'profit'):
+            return obj.profit
+        return ''
 
     def get_title_content(self, obj):
         today = obj.start_time
