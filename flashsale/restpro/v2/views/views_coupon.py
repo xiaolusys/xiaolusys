@@ -535,7 +535,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                 else:
                     left_exchange_num = round(sale_order.payment / sale_order.price)
 
-                # APP OR WAP ORDER IS REAL GOODS
+                # !!!!APP OR WAP ORDER IS REAL GOODS!!!!
                 if entry.carry_type == OrderCarry.APP_ORDER or entry.carry_type == OrderCarry.WAP_ORDER:
                     user_coupon = UserCoupon.objects.filter(trade_tid=sale_order.sale_trade.tid).first()
                     if user_coupon:
@@ -545,7 +545,8 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
 
                     # find modelproduct, need except 365elite product
                     model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id, is_boutique=True).first()
-                    if model_product and (model_product.id != 25408) and model_product.extras.has_key('payinfo') \
+                    if model_product and (model_product.product_type == ModelProduct.USUAL_TYPE) \
+                            and (model_product.id != 25408) and model_product.extras.has_key('payinfo') \
                             and model_product.extras['payinfo'].has_key('coupon_template_ids'):
                         if model_product.extras['payinfo']['coupon_template_ids'] and len(
                                 model_product.extras['payinfo']['coupon_template_ids']) > 0:
@@ -566,7 +567,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                                                     'status_display': OrderCarry.STATUS_TYPES[entry.status][1],
                                                     'order_value': entry.order_value, 'date_field': entry.date_field})
                 elif entry.carry_type == OrderCarry.REFERAL_ORDER:
-                    # coin buy coupon exchange list
+                    # !!!!buy coupon exchange list, virtual goods!!!!!
                     # find modelproduct
                     model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id,
                                                                 is_boutique=True,
@@ -576,8 +577,8 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                         head_img = imgs[0] if imgs else ''
                         # indirect下级使用小鹿币购买的券，上级可以兑券,因为在保存ordercarry时已经判断了indirect才能保存，此处没有做indirect判断
                         from flashsale.pay.apis.v1.order import get_pay_type_from_trade
-                        budget_pay, coin_pay = get_pay_type_from_trade(sale_order.sale_trade)
-                        if coin_pay > 0 and round(sale_order.payment / sale_order.price) > 0 and model_product.extras.has_key('template_id'):
+                        # budget_pay, coin_pay = get_pay_type_from_trade(sale_order.sale_trade)
+                        if round(sale_order.payment / sale_order.price) > 0 and model_product.extras.has_key('template_id'):
                             results.append({'exchg_template_id': model_product.extras['template_id'], 'exchg_model_id': model_product.id,
                                             'num': left_exchange_num,
                                             'order_id': entry.order_id, 'sku_img': head_img, 'sku_name': sale_order.title,
