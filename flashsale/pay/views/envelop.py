@@ -13,6 +13,7 @@ from rest_framework.response import Response
 
 from core.options import log_action, ADDITION, CHANGE
 from flashsale.pay.models import Envelop, BudgetLog, UserBudget
+from .permission import IsAccessSendBudgetEnvelop
 
 
 class EnvelopConfirmSendView(View):
@@ -53,8 +54,8 @@ class SendBudgetEnvelopAPIView(APIView):
     """
     queryset = UserBudget.objects.all()
     renderer_classes = (JSONRenderer,)
-    permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser, permissions.DjangoModelPermissions)
-
+    # permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser, permissions.DjangoModelPermissions)
+    permission_classes = (IsAccessSendBudgetEnvelop,)
     def get_budget_data(self, customer_id):
         # type: (int) -> UserBudget
         budget = self.queryset.filter(user_id=customer_id).first()
