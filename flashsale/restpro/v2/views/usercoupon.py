@@ -97,9 +97,14 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         for coupon in ubcs:
             template_id = coupon.template_id
             if template_id not in item:
-                product_img = coupon.self_template().extras.get('product_img')
+                ct = coupon.self_template()
+                product_img = ct.extras.get('product_img')
+                title = ct.title
+                product_model_id = ct.extras.get('product_model_id')
                 item[template_id] = {
                     'product_img': product_img,
+                    'title': title,
+                    'product_model_id': product_model_id,
                     'coupon_num': 1,
                     'coupon_ids': [],
                     'gift_transfer_coupon_ids': [],
@@ -121,6 +126,8 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
             data.append({
                 'template_id': k,
                 'can_return_upper': can_return_upper,
+                'title': v['title'],
+                'product_model_id': v['product_model_id'],
                 'product_img': v['product_img'],
                 'coupon_ids': v['coupon_ids'],
                 'coupon_num': v['coupon_num'],
