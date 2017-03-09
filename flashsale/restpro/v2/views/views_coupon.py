@@ -642,15 +642,19 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
         if int(coupon_num) > sale_order.num:
             return Response({"code": 7, "info": u'兑换精品券数量不能超过订单商品数量!'})
         model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id, is_boutique=True).first()
-        if model_product and model_product.extras.has_key('payinfo') \
+        # 普通商品的兑换
+        if model_product and (model_product.product_type == ModelProduct.USUAL_TYPE) \
+                and model_product.extras.has_key('payinfo') \
                 and model_product.extras['payinfo'].has_key('coupon_template_ids'):
             if model_product.extras['payinfo']['coupon_template_ids'] and len(
                     model_product.extras['payinfo']['coupon_template_ids']) > 0:
                 template_ids = model_product.extras['payinfo']['coupon_template_ids']
         if len(template_ids) == 0:
             from flashsale.pay.apis.v1.order import get_pay_type_from_trade
-            budget_pay, coin_pay = get_pay_type_from_trade(sale_order.sale_trade)
-            if coin_pay > 0 and model_product.extras.has_key('template_id'):
+            # budget_pay, coin_pay = get_pay_type_from_trade(sale_order.sale_trade)
+            # 买券订单的兑换
+            if model_product and (model_product.product_type == ModelProduct.VIRTUAL_TYPE) \
+                    and model_product.extras.has_key('template_id'):
                 template_ids.append(model_product.extras['template_id'])
             else:
                 logger.warn({
