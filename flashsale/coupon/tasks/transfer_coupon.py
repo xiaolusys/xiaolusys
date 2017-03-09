@@ -119,7 +119,7 @@ def task_send_transfer_coupons(customer_id, order_id, order_oid, order_num, prod
     # 用币购券的订单，上级是可以兑换的，那么需要写入ordercarry
     from flashsale.xiaolumm.models import XiaoluMama
     from flashsale.xiaolumm.tasks import task_order_trigger
-    if coin_pay and to_mama.referal_from == XiaoluMama.INDIRECT:
+    if to_mama.referal_from == XiaoluMama.INDIRECT:
         task_order_trigger(so)
 
     task_calc_xlmm_elite_score(coupon_to_mama_id)  # 计算妈妈积分
