@@ -70,7 +70,11 @@ def format_wuliu_data(wuliu_data):
     return_data["data"] = []
     wuliu_data = json.loads(wuliu_data)
     return_data["status"] = wuliu_state[wuliu_data["state"]]
-    return_data["name"] = wuliu_data["com"]
+    logistic_company = LogisticsCompany.objects.filter(kd100_express_key=wuliu_data["com"])
+    if logistic_company:
+        return_data["name"] = logistic_company.first().name
+    else:
+        return_data["name"] = wuliu_data["com"]
     return_data["status_code"] = int(wuliu_data["state"])
     return_data["errcode"] = ''
     return_data["order"] = wuliu_data["nu"]
