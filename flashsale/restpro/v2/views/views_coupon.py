@@ -395,9 +395,9 @@ class CouponTransferRecordViewSet(viewsets.ModelViewSet):
             record = get_transfer_record_by_id(transfer_record_id)
 
             if record.coupon_to_mama_id == 0:  # 是退系统记录
-                cancel_return_2_sys_transfer(transfer_record_id, customer=customer)
+                cancel_return_2_sys_transfer(record, customer=customer)
             else:  # 是退上级的记录
-                cancel_return_2_upper_transfer(transfer_record_id, customer=customer)
+                cancel_return_2_upper_transfer(record, customer=customer)
 
             log_action(customer.user, record, CHANGE, u'用户取消申请')
         except Exception as e:
