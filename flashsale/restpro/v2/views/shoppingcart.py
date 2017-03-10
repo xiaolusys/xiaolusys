@@ -108,7 +108,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         """列出购物车中所有的状态为正常的数据"""
         try:
-            type = int(request.GET.get('type', 0))
+            type = int(request.GET.get('type', 5))
         except:
             type = ShoppingCart.BOUTIQUEBUY
         queryset = self.filter_queryset(self.get_owner_queryset(request).filter(type=type))
@@ -152,7 +152,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             s_temp = ShoppingCart.objects.filter(item_id=product_id, sku_id=sku_id,
                                                  status=ShoppingCart.CANCEL, buyer_id=customer.id)
             s_temp.delete()
-        type = data.get("type", 0)
+        type = data.get("type", 5)
         try:
             type = int(type)
         except:
@@ -216,7 +216,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     def show_carts_num(self, request, *args, **kwargs):
         """显示购物车的数量和保留时间"""
         try:
-            type = int(request.GET.get('type', 0))
+            type = int(request.GET.get('type', 5))
         except:
             type = ShoppingCart.BOUTIQUEBUY
         queryset = self.filter_queryset(self.get_owner_queryset(request).filter(type=type))
@@ -233,7 +233,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     def show_carts_history(self, request, *args, **kwargs):
         """显示该用户28个小时内购物清单历史 """
         try:
-            type = int(request.GET.get('type', 0))
+            type = int(request.GET.get('type', 5))
         except:
             type = ShoppingCart.BOUTIQUEBUY
         before = datetime.datetime.now() - datetime.timedelta(hours=28)
