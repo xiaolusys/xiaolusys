@@ -924,7 +924,7 @@ class NinePicAdverSerialize(serializers.ModelSerializer):
         fields = ('id', "title", 'title_content', "start_time", 'sale_category',
                   "turns_num", "pic_arry",
                   'save_times', 'share_times',
-                  'sale_category',
+                  'sale_category', 'show_qrcode',
                   'could_share', 'description', 'profit')
 
     def get_profit(self, obj):
