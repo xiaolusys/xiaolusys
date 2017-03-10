@@ -232,26 +232,30 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def show_carts_history(self, request, *args, **kwargs):
         """显示该用户28个小时内购物清单历史 """
+        try:
+            type = int(request.GET.get('type', 0))
+        except:
+            type = ShoppingCart.BOUTIQUEBUY
         before = datetime.datetime.now() - datetime.timedelta(hours=28)
         customer = get_object_or_404(Customer, user=request.user)
         queryset = ShoppingCart.objects.filter(
             buyer_id=customer.id,
             status=ShoppingCart.CANCEL,
             modified__gt=before,
-            type=0
+            type=type
         ).order_by('-modified')
 
         items = list(queryset)
-        for item in items:
-            if item.title.startswith('RMB'):
-                items.remove(item)
-                continue
-            product = Product.objects.filter(id=item.id).first()
-            if not product:
-                continue
-            model_product = product.product_model
-            if model_product.product_type == ModelProduct.VIRTUAL_TYPE:
-                items.remove(item)
+        # for item in items:
+        #     if item.title.startswith('RMB'):
+        #         items.remove(item)
+        #         continue
+        #     product = Product.objects.filter(id=item.id).first()
+        #     if not product:
+        #         continue
+        #     model_product = product.product_model
+        #     if model_product.product_type == ModelProduct.VIRTUAL_TYPE:
+        #         items.remove(item)
 
         serializers = self.get_serializer(items, many=True)
         return Response(serializers.data)
