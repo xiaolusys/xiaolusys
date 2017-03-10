@@ -1125,8 +1125,8 @@ def cancel_return_2_sys_transfer(record, customer=None):
     """
     if customer:  # 用户提交 校验 用户身份和记录 是否一致
         mama = customer.get_xiaolumm()
-        if not record.coupon_from_mama_id != mama.id:
-            raise Exception('用户记录错误')
+        if record.coupon_from_mama_id != mama.id:
+            raise Exception('提交退券和取消退券用户不一致')
     coupons = get_freeze_boutique_coupons_by_transfer(record.id)
     if not coupons:
         raise Exception('优惠券没有找到')
@@ -1144,8 +1144,8 @@ def cancel_return_2_upper_transfer(record, customer=None):
     """
     if customer:  # 用户提交 校验 用户身份和记录 是否一致
         mama = customer.get_xiaolumm()
-        if not record.coupon_from_mama_id != mama.id:
-            raise Exception('用户记录错误')
+        if record.coupon_from_mama_id != mama.id:
+            raise Exception('提交退券和取消退券用户不一致')
     coupons = get_freeze_boutique_coupons_by_transfer(record.id)
     if not coupons:
         raise Exception('优惠券没有找到')
