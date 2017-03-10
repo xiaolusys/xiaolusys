@@ -90,6 +90,7 @@ class NinePicAdver(models.Model):
     save_times = models.IntegerField(default=0, verbose_name=u'保存次数')
     share_times = models.IntegerField(default=0, verbose_name=u'分享次数')
     memo = models.CharField(max_length=512, blank=True, verbose_name=u'备注')
+    show_qrcode = models.BooleanField(default=False, verbose_name=u"是否显示二维码")
 
     objects = managers.NinePicAdverManager()
 
