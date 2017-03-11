@@ -91,9 +91,11 @@ class APIModelProductSerializer(serializers.Serializer):
     custom_info = serializers.SerializerMethodField()
     teambuy_info = serializers.SerializerMethodField()
     buy_coupon_url = serializers.SerializerMethodField()
+    source_type = serializers.SerializerMethodField()
 
     class Meta:
-        fields = ('id', 'detail_content', 'sku_info', 'comparison', 'extras', 'custom_info', 'teambuy_info', 'buy_coupon_url')  #
+        fields = ('id', 'detail_content', 'sku_info', 'comparison', 'extras', 'custom_info', 'teambuy_info',
+                  'buy_coupon_url', 'source_type')  #
 
     def get_id(self, obj):
         return obj.id
@@ -175,6 +177,9 @@ class APIModelProductSerializer(serializers.Serializer):
         protocol = 'com.jimei.xlmm://app/v1/webview?is_native=1&url={0}'
         url = 'https://m.xiaolumeimei.com/mall/buycoupon?modelid={0}'.format(find_mp.id)
         return protocol.format(url)
+
+    def get_source_type(self, obj):
+        return obj.source_type
 
 
 class APIModelProductListSerializer(serializers.Serializer):
