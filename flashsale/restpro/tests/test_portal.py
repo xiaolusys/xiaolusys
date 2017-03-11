@@ -4,12 +4,14 @@ import json
 
 class PortalTestCase(TestCase):
 
-    fixtures = ['test.flashsale.activity.json',
-                'test.flashsale.brands.json',
-                'test.flashsale.posters.json',
-                'test.shopback.categorys.productcategory.json',
-                'test.shopback.items.product.json',
-                ]
+    fixtures = [
+        'test.flashsale.activity.json',
+        'test.flashsale.brands.json',
+        'test.flashsale.posters.json',
+        'test.flashsale.salecategory.json',
+        'test.shopback.categorys.productcategory.json',
+        'test.shopback.items.product.json',
+    ]
 
     def setUp(self):
         from flashsale.pay.models import GoodShelf

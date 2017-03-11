@@ -1,0 +1,50 @@
+[
+  {
+    "fields": {
+      "cid": "1",
+      "status": "normal",
+      "sort_order": 0,
+      "name": "\u4f18\u5c3c\u4e16\u754c",
+      "is_parent": true,
+      "parent_cid": "0",
+      "is_view": true,
+      "grade": 1,
+      "created": "2016-07-24 00:00:00",
+      "modified": "2016-07-24 00:00:00"
+    },
+    "model": "supplier.SaleCategory",
+    "pk": 1
+  },
+  {
+    "fields": {
+      "cid": "4",
+      "status": "normal",
+      "sort_order": 10,
+      "name": "\u5c0f\u9e7f\u7f8e\u7f8e",
+      "is_parent": true,
+      "parent_cid": "1",
+      "is_view": true,
+      "grade": 2,
+      "created": "2016-07-24 00:00:00",
+      "modified": "2016-07-24 00:00:00"
+    },
+    "model": "supplier.SaleCategory",
+    "pk": 4
+  },
+  {
+    "fields": {
+      "cid": "8",
+      "status": "normal",
+      "sort_order": 0,
+      "name": "\u4f18\u5c3c\u4e16\u754c",
+      "is_parent": true,
+      "parent_cid": "1-4",
+      "is_view": true,
+      "grade": 3,
+      "created": "2016-07-24 00:00:00",
+      "modified": "2016-07-24 00:00:00"
+    },
+    "model": "supplier.SaleCategory",
+    "pk": 8
+  }
+]
