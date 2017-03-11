@@ -29,6 +29,7 @@ class ModelProduct(object):
         self.is_teambuy = kwargs['is_teambuy']
         self.teambuy_price = kwargs['teambuy_price']
         self.teambuy_person_num = kwargs['teambuy_person_num']
+        self.source_type = kwargs['source_type']
         # TODO: Add all fields
 
     def get_products(self):
