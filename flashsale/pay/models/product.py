@@ -835,6 +835,7 @@ class ModelProduct(BaseTagModel):
             'sku_info': self.sku_info,
             'comparison': self.comparison,
             'detail_content': self.detail_content,
+            'source_type': self.source_type,
         })
         return APIModel(**data)
 
