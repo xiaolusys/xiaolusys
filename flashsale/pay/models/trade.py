@@ -1589,15 +1589,15 @@ if not settings.CLOSE_CELERY:
     signal_saleorder_post_update.connect(saleorder_update_productskustats_waitingpay_num, sender=SaleOrder,
                                          dispatch_uid='post_save_aleorder_update_productskustats_waitingpay_num')
 
-
-def saleorder_update_saletrade_status(sender, instance, *args, **kwargs):
-    if instance.status > SaleOrder.WAIT_BUYER_PAY:
-        from flashsale.pay.tasks import tasks_update_sale_trade_status
-        transaction.on_commit(lambda: tasks_update_sale_trade_status(instance.sale_trade_id, instance.sale_trade.tid))
-
-
-signal_saleorder_post_update.connect(saleorder_update_saletrade_status, sender=SaleOrder,
-                                     dispatch_uid='post_save_saleorder_update_saletrade_status')
+# 2017-3-11 创建订单时会更新trade，同时创建order也会更新trade，会导致lock timeout，so此处的这个更新没有必要
+# def saleorder_update_saletrade_status(sender, instance, *args, **kwargs):
+#     if instance.status > SaleOrder.WAIT_BUYER_PAY:
+#         from flashsale.pay.tasks import tasks_update_sale_trade_status
+#         transaction.on_commit(lambda: tasks_update_sale_trade_status(instance.sale_trade_id, instance.sale_trade.tid))
+#
+#
+# signal_saleorder_post_update.connect(saleorder_update_saletrade_status, sender=SaleOrder,
+#                                      dispatch_uid='post_save_saleorder_update_saletrade_status')
 
 
 def saleorder_update_stats_record(sender, instance, *args, **kwargs):
