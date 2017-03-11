@@ -179,7 +179,11 @@ class APIModelProductSerializer(serializers.Serializer):
         return protocol.format(url)
 
     def get_source_type(self, obj):
-        return obj.source_type
+        try:
+            source_type = obj.source_type
+        except:
+            return 0
+        return source_type
 
 
 class APIModelProductListSerializer(serializers.Serializer):
