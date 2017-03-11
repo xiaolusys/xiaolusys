@@ -308,7 +308,8 @@ admin.site.register(SaleSupplier, SaleSupplierAdmin)
 
 
 class SaleCategoryAdmin(admin.ModelAdmin):
-    list_display = ('cid', 'parent_cid', 'category_pic_display', 'full_name', 'grade', 'is_parent', 'status', 'sort_order', 'created')
+    list_display = ('cid', 'parent_cid', 'category_pic_display', 'full_name', 'grade',
+                    'is_parent', 'is_view', 'status', 'sort_order', 'created')
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
     def full_name(self, obj):
@@ -319,7 +320,7 @@ class SaleCategoryAdmin(admin.ModelAdmin):
 
     ordering = ['parent_cid', '-sort_order', ]
 
-    list_filter = ('status', 'is_parent')
+    list_filter = ('status', 'is_parent', 'is_view')
     search_fields = ['=id', '=parent_cid', '=name']
 
     def category_pic_display(self, obj):
@@ -342,7 +343,7 @@ class SaleCategoryVersionAdmin(ApproxAdmin):
         obj.status = False
         if not obj.download_url:
             try:
-                category_data = SaleCategory.get_salecategory_jsontree()
+                category_data = SaleCategory.get_salecategory_viewable_jsontree()
                 districts_jsonstring = json.dumps(category_data, indent=2)
                 string_io = StringIO(districts_jsonstring)
                 resp = upload_public_to_remote(obj.gen_filepath(), string_io)

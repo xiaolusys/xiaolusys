@@ -24,8 +24,8 @@ def recursive_append_child_salecategorys(node, node_maps):
     return copy_node
 
 
-def get_salecategory_json_data():
-    districts = SaleCategory.objects.filter(status=SaleCategory.NORMAL).order_by('parent_cid', 'sort_order')
+def get_salecategory_json_data(salecategory_qs):
+    districts = salecategory_qs.order_by('parent_cid', '-sort_order')
     districts_values = districts.values('cid', 'parent_cid', 'name', 'cat_pic', 'grade')
 
     salecategorys_tree_nodes = defaultdict(list)
@@ -57,6 +57,7 @@ class SaleCategory(BaseModel):
     FIRST_GRADE = 1
     CACHE_TIME = 24 * 60 * 60
     CACHE_KEY = 'suppliychain_salesategory_list_key'
+    VIEWABLE_CACHE_KEY = 'salesategory_viewable_list_key'
     CATEGORY_ID_FULLNAME_MAP_KEY = 'salecategory_id_fullname_map_key'
     SALEPRODUCT_CATEGORY_CACHE_KEY = 'xlmm_saleproduct_category_cache'
     DELIMITER_CHAR = '-'
@@ -73,6 +74,7 @@ class SaleCategory(BaseModel):
     is_parent = models.BooleanField(default=True, verbose_name=u'父类目')
     sort_order = models.IntegerField(default=0, verbose_name=u'权值')
 
+    is_view = models.BooleanField(default=True, verbose_name=u'是否展示给用户')
     status = models.CharField(max_length=7, choices=CAT_STATUS, default=NORMAL, verbose_name=u'状态')
 
     class Meta:
@@ -103,6 +105,10 @@ class SaleCategory(BaseModel):
     @classmethod
     def get_normal_categorys(cls):
         return cls.objects.filter(status=cls.NORMAL)
+
+    @classmethod
+    def get_viewable_categorys(cls):
+        return cls.objects.filter(status=cls.NORMAL, is_view=True)
 
     @property
     def full_name(self):
@@ -161,8 +167,18 @@ class SaleCategory(BaseModel):
     def get_salecategory_jsontree(cls):
         cache_value = cache.get(cls.CACHE_KEY)
         if not cache_value:
-            cache_value = get_salecategory_json_data()
+            cat_qs = SaleCategory.get_normal_categorys()
+            cache_value = get_salecategory_json_data(cat_qs)
             cache.set(cls.CACHE_KEY, cache_value, cls.CACHE_TIME)
+        return cache_value
+
+    @classmethod
+    def get_salecategory_viewable_jsontree(cls):
+        cache_value = cache.get(cls.VIEWABLE_CACHE_KEY)
+        if not cache_value:
+            cat_qs = SaleCategory.get_viewable_categorys()
+            cache_value = get_salecategory_json_data(cat_qs)
+            cache.set(cls.VIEWABLE_CACHE_KEY, cache_value, cls.CACHE_TIME)
         return cache_value
 
     @classmethod
@@ -201,12 +217,10 @@ class SaleCategory(BaseModel):
         return third_cat
 
 
-
-
-
 def invalid_salecategory_data_cache(sender, instance, created, **kwargs):
     logger.info('salecategory: invalid cachekey %s'% SaleCategory.CACHE_KEY)
     cache.delete(SaleCategory.CACHE_KEY)
+    cache.delete(SaleCategory.VIEWABLE_CACHE_KEY)
     cache.delete(SaleCategory.SALEPRODUCT_CATEGORY_CACHE_KEY)
     cache.delete(SaleCategory.CATEGORY_ID_FULLNAME_MAP_KEY)
 

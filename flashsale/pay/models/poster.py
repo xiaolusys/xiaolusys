@@ -76,23 +76,21 @@ class GoodShelf(PayBaseModel):
 
     def get_cat_imgs(self):
         from supplychain.supplier.models.category import SaleCategory
-        lv1_categorys = SaleCategory.objects.filter(grade=1)
-        cat_pic_maps = dict(lv1_categorys.values_list('cid', 'cat_pic'))
 
-        return [
-            {'id': 7, 'name': u'美妆洗护',
-             'cat_img': cat_pic_maps.get('7', ''),
-             'cat_link': 'com.jimei.xlmm://app/v1/products/category?cid=7'},
-            {'id': 5, 'name': u'母婴用品',
-             'cat_img': cat_pic_maps.get('5', ''),
-             'cat_link': 'com.jimei.xlmm://app/v1/products/category?cid=5'},
-            {'id': 8, 'name': u'家居百货',
-             'cat_img': cat_pic_maps.get('8', ''),
-             'cat_link': 'com.jimei.xlmm://app/v1/products/category?cid=8'},
-            {'id': 3, 'name': u'食品保健',
-             'cat_img': cat_pic_maps.get('3', ''),
-             'cat_link': 'com.jimei.xlmm://app/v1/products/category?cid=3'},
-        ]
+        cat_list = []
+        lv1_categorys = SaleCategory.get_viewable_categorys()\
+            .filter(grade=SaleCategory.FIRST_GRADE).order_by('-sort_order')
+        cat_values = lv1_categorys.values('cid', 'name', 'cat_pic')
+
+        for cat in cat_values:
+            cat_list.append({
+                'id': cat['cid'],
+                'name': cat['name'],
+                'cat_img': cat['cat_pic'],
+                'cat_link': 'com.jimei.xlmm://app/v1/products/category?cid={cid}'.format(cid=cat['cid']),
+            })
+
+        return cat_list
 
     def get_posters(self):
         return self.wem_posters + self.chd_posters
