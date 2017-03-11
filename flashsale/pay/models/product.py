@@ -691,7 +691,7 @@ class ModelProduct(BaseTagModel):
         from supplychain.supplier.models import SaleProduct
         self.extras.setdefault('sources', {'source_type': SaleProduct.SOURCE_SELF})
         self.extras['sources']['source_type'] = source_type
-        self.extras['saleinfos']['is_bonded_good'] = \
+        self.extras['saleinfos']['is_bonded_goods'] = \
             source_type in (SaleProduct.SOURCE_BONDED, SaleProduct.SOURCE_OUTSIDE)
 
 
