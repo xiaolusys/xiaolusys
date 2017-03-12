@@ -733,15 +733,17 @@ def task_period_check_mama_renew_state():
     # 续费　状态处理
     effect_mms = XiaoluMama.objects.filter(
         status=XiaoluMama.EFFECT,
-        charge_status=XiaoluMama.CHARGED)  # 有效并接管的
+        charge_status=XiaoluMama.CHARGED,
+        renew_time__lte=now)  # 有效并接管的
     for emm in effect_mms:
         try:
             if now >= emm.renew_time:
                 # 2017-2-7 精英妈妈不冻结,变为单纯精英妈妈，老的99／188妈妈冻结
                 if emm.is_elite_mama:
-                    emm.last_renew_type = XiaoluMama.ELITE
-                    emm.save(update_fields=['last_renew_type'])
-                    log_action(sys_oa, emm, CHANGE, u'定时任务: 检查到期 修改续费类型为精英妈妈')
+                    if emm.last_renew_type != XiaoluMama.ELITE:
+                        emm.last_renew_type = XiaoluMama.ELITE
+                        emm.save(update_fields=['last_renew_type'])
+                        log_action(sys_oa, emm, CHANGE, u'定时任务: 检查到期 修改续费类型为精英妈妈')
                 else:
                     emm.status = XiaoluMama.FROZEN
                     emm.save(update_fields=['status'])
