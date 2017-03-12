@@ -731,23 +731,31 @@ def task_period_check_mama_renew_state():
     sys_oa = get_systemoa_user()
 
     # 续费　状态处理
-    effect_mms = XiaoluMama.objects.filter(
+    effect_elite_mms = XiaoluMama.objects.filter(
         status=XiaoluMama.EFFECT,
         charge_status=XiaoluMama.CHARGED,
-        renew_time__lte=now)  # 有效并接管的
-    for emm in effect_mms:
+        referal_from__in=[XiaoluMama.DIRECT, XiaoluMama.INDIRECT],
+        renew_time__lte=now).exclude(last_renew_type=XiaoluMama.ELITE)  # 有效并接管的
+    for emm in effect_elite_mms:
         try:
             if now >= emm.renew_time:
                 # 2017-2-7 精英妈妈不冻结,变为单纯精英妈妈，老的99／188妈妈冻结
-                if emm.is_elite_mama:
-                    if emm.last_renew_type != XiaoluMama.ELITE:
-                        emm.last_renew_type = XiaoluMama.ELITE
-                        emm.save(update_fields=['last_renew_type'])
-                        log_action(sys_oa, emm, CHANGE, u'定时任务: 检查到期 修改续费类型为精英妈妈')
-                else:
-                    emm.status = XiaoluMama.FROZEN
-                    emm.save(update_fields=['status'])
-                    log_action(sys_oa, emm, CHANGE, u'定时任务: 检查到期 修改状态到冻结')
+                if emm.last_renew_type != XiaoluMama.ELITE:
+                    emm.last_renew_type = XiaoluMama.ELITE
+                    emm.save(update_fields=['last_renew_type'])
+                    log_action(sys_oa, emm, CHANGE, u'schedule task: renew timeout,chg to elitemama')
+        except TypeError as e:
+            logger.error(u"task_period_check_mama_renew_state FROZEN mama:%s, error info: %s" % (emm.id, e))
+    effect_no_elite_mms = XiaoluMama.objects.filter(
+        status=XiaoluMama.EFFECT,
+        charge_status=XiaoluMama.CHARGED,
+        renew_time__lte=now).exclude(referal_from__in=[XiaoluMama.DIRECT, XiaoluMama.INDIRECT])  # 有效并接管的
+    for emm in effect_no_elite_mms:
+        try:
+            if now >= emm.renew_time:
+                emm.status = XiaoluMama.FROZEN
+                emm.save(update_fields=['status'])
+                log_action(sys_oa, emm, CHANGE, u'schedule task: renew timeout,chg to frozen')
         except TypeError as e:
             logger.error(u"task_period_check_mama_renew_state FROZEN mama:%s, error info: %s" % (emm.id, e))
 
