@@ -21,7 +21,8 @@ permission_trades = [
     ('manage_user_coupon', ('coupon', 'usercoupon'), 'manage user coupon', u'管理特卖/优惠券/用户优惠券表'),
     ('manage_transfer_coupondetail', ('coupon', 'transfercoupondetail'), 'manage transfer coupondetail', u'特卖/精品券流通记录'),
     ('manage_ninepicadver', ('xiaolumm', 'ninepicadver'), 'manage ninepicadver', u'设置9张图'),
-    ('manage_mall_activity', ('pay', 'activityentry'), 'manage mall activity', u'管理商城活动')
+    ('manage_mall_activity', ('pay', 'activityentry'), 'manage mall activity', u'管理商城活动'),
+    ('manage_xiaolu_coin', ('xiaolumm', 'xiaolucoin'), 'manage xiaolu coin', u'管理小鹿币')
 ]
 
 permissions = []
@@ -38,12 +39,12 @@ def update_permissions():
 # from django.apps import apps
 # apps.get_models('trades', 'packageorder')
 
-# def update_salesupplier_permissions():  #管理供应商
-#     content_type = ContentType.objects.get(app_label="supplier", model="salesupplier")
-#     Permission.objects.get_or_create(name="manage sale supplier", content_type=content_type, codename="manage_sale_supplier")
-#     perm = Permission.objects.get(name="manage sale supplier",codename="manage_sale_supplier")
-#     g=Group.objects.get(id=18)
-#     g.permissions.add(perm.id)
+def update_salesupplier_permissions():  #管理供应商
+    content_type = ContentType.objects.get(app_label="supplier", model="salesupplier")
+    Permission.objects.get_or_create(name="manage sale supplier", content_type=content_type, codename="manage_sale_supplier")
+    perm = Permission.objects.get(name="manage sale supplier",codename="manage_sale_supplier")
+    g=Group.objects.get(id=18)
+    g.permissions.add(perm.id)
 #
 # def update_salecategory_permissions():  #管理特卖/选品类目
 #     content_type = ContentType.objects.get(app_label="supplier", model="salecategory")
