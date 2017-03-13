@@ -746,19 +746,45 @@ def task_period_check_mama_renew_state():
                     log_action(sys_oa, emm, CHANGE, u'schedule task: renew timeout,chg to elitemama')
         except TypeError as e:
             logger.error(u"task_period_check_mama_renew_state FROZEN mama:%s, error info: %s" % (emm.id, e))
+
+    max_mmid = 0
     effect_no_elite_mms = XiaoluMama.objects.filter(
         status=XiaoluMama.EFFECT,
         charge_status=XiaoluMama.CHARGED,
-        renew_time__lte=now).exclude(referal_from__in=[XiaoluMama.DIRECT, XiaoluMama.INDIRECT])  # 有效并接管的
-    for emm in effect_no_elite_mms:
-        try:
-            if now >= emm.renew_time:
-                emm.status = XiaoluMama.FROZEN
-                emm.save(update_fields=['status'])
-                log_action(sys_oa, emm, CHANGE, u'schedule task: renew timeout,chg to frozen')
-        except TypeError as e:
-            logger.error(u"task_period_check_mama_renew_state FROZEN mama:%s, error info: %s" % (emm.id, e))
-
+        renew_time__lte=now).exclude(referal_from__in=[XiaoluMama.DIRECT, XiaoluMama.INDIRECT])
+    if effect_no_elite_mms.count() > 0:
+        max_mmid = effect_no_elite_mms[effect_no_elite_mms.count() - 1].id
+    else:
+        return
+    if effect_no_elite_mms.count() < 10000:
+        for emm in effect_no_elite_mms:
+            try:
+                if now >= emm.renew_time:
+                    emm.status = XiaoluMama.FROZEN
+                    emm.save(update_fields=['status'])
+                    log_action(sys_oa, emm, CHANGE, u'schedule task: renew timeout,chg to frozen')
+            except TypeError as e:
+                logger.error(u"task_period_check_mama_renew_state FROZEN mama:%s, error info: %s" % (emm.id, e))
+    else:
+        mmid = 100000
+        while True:
+            effect_no_elite_mms = XiaoluMama.objects.filter(
+                status=XiaoluMama.EFFECT,
+                charge_status=XiaoluMama.CHARGED,
+                renew_time__lte=now, id__lte=mmid).exclude(
+                referal_from__in=[XiaoluMama.DIRECT, XiaoluMama.INDIRECT])
+            for emm in effect_no_elite_mms:
+                try:
+                    if now >= emm.renew_time:
+                        emm.status = XiaoluMama.FROZEN
+                        emm.save(update_fields=['status'])
+                        log_action(sys_oa, emm, CHANGE, u'schedule task: renew timeout,chg to frozen')
+                except TypeError as e:
+                    logger.error(u"task_period_check_mama_renew_state FROZEN mama:%s, error info: %s" % (emm.id, e))
+            if mmid < max_mmid:
+                mmid += 100000
+            else:
+                break
 
 @app.task()
 def task_mama_postphone_renew_time_by_active():
