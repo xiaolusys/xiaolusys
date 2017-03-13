@@ -7,7 +7,7 @@ from common.auth import WeAppAuthentication
 from flashsale.pay.models.user import Customer
 from flashsale.xiaolumm.models import XiaoluCoinLog, XiaoluCoin
 from flashsale.restpro.v2.serializers.serializers import XiaoluCoinLogSerializer
-
+from .permissions import IsAccessXiaoluCoin
 
 class XiaoluCoinViewSet(viewsets.GenericViewSet):
     """
