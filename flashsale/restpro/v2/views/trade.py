@@ -245,7 +245,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         """
         小鹿钱包/小鹿币支付实现
         """
-        if sale_trade.status != SaleTrade.WAIT_BUYER_PAY:
+        st = SaleTrade.objects.get(id=sale_trade.id)
+        if st.status != SaleTrade.WAIT_BUYER_PAY:
             raise Exception(u'订单状态不是待支付')
 
         with transaction.atomic():

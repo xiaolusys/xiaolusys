@@ -212,6 +212,8 @@ def use_coupon_by_ids(ids, tid):
     for id in ids:
         with transaction.atomic():
             coupon = UserCoupon.objects.select_for_update().get(id=id)
+            if coupon.status == UserCoupon.USED:
+                raise AssertionError(u"优惠券已使用")
             coupon.status = UserCoupon.USED
             coupon.finished_time = datetime.datetime.now()  # save the finished time
             coupon.trade_tid = tid  # save the trade tid with trade be binding
