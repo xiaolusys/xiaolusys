@@ -16,6 +16,8 @@ from shopback.items.models import Product, SkuStock
 from flashsale.pay.models import ProductSku
 from shopback.warehouse.constants import WARE_CHOICES, WARE_NONE, WARE_GZ
 from supplychain.supplier.models import SaleSupplier
+from flashsale.pay.models import UserAddress
+from core.upload import generate_private_url
 import logging,json
 
 
@@ -714,18 +716,23 @@ class OrderList(models.Model):
         elif format == 'with_card':
             columns = [u'订单号', u'产品条码', u'订单状态', u'买家id', u'子订单编号', u'供应商编码', u'买家昵称', u'商品名称', u'产品规格', u'商品单价',
                        u'商品数量',
-                       u'商品总价', u'运费', u'购买优惠信息', u'总金额', u'买家购买附言', u'收货人姓名', '身份证号码', u'省', u'市', u'区/县', u'收货详细地址',u'邮编',
+                       u'商品总价', u'运费', u'购买优惠信息', u'总金额', u'买家购买附言', u'收货人姓名', '身份证号码', u"身份证图像链接",u'省', u'市', u'区/县', u'收货详细地址',u'邮编',
                        u'收货人手机', u'收货人电话', u'买家选择运送方式', u'卖家备忘内容', u'订单创建时间', u'付款时间', u'物流公司', u'物流单号', u'发货附言',
                        u'发票抬头', u'电子邮件', u'商品链接']
             for p in need_send:
                 o = p.package_order
                 saleproduct = p.product_sku.product.get_sale_product()
+                ua = UserAddress.objects.filter(cus_uid=str(p.sale_trade.buyer_id),receiver_mobile=p.sale_trade.receiver_mobile)
+                idcard_url = '用户未上传个人身份证'
+                for i in ua:
+                    if not i.extras == {}:
+                        idcard_url = generate_private_url(i.extras[u"idcard"]["face"])
                 items.append(
                     [str(o.pid) if o else '', '', p.get_assign_status_display(), str(p.sale_trade.buyer_id), str(p.id),
                      saleproduct.supplier_sku if saleproduct else '', str(p.sale_trade.buyer_nick),
                      str(p.product_sku.product.name), str(p.product_sku.properties_name),
                      str(p.product_sku.cost), str(p.num), '0', '0', '0', '0', '', str(p.sale_trade.receiver_name),
-                     '\'' + str(o.user_address.identification_no) if o and o.user_address else '',
+                     '\'' + str(o.user_address.identification_no) if o and o.user_address else '',idcard_url,
                      str(o.receiver_state), str(o.receiver_city), str(o.receiver_district),
                               str(o.receiver_address), '', p.sale_trade.receiver_mobile, '', '', '', '',
                      p.sale_trade.created.strftime('%Y-%m-%D %H:%M:%S'),
