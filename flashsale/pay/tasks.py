@@ -1230,7 +1230,7 @@ def task_schedule_check_trades_and_budget():
     tousers = [
         '02401336675559',  # 伍磊
     ]
-    msg = '定时检查boutique product数据:\n时间:%s\n订单状态错误:%s' % \
+    msg = '定时检查trades_and_budget数据:\n时间:%s\n订单状态错误:%s' % \
           (str(datetime.datetime.now()), str(wrong_trades))
     dd = DingDingAPI()
     for touser in tousers:

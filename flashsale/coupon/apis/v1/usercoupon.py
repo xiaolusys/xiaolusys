@@ -209,12 +209,15 @@ def use_coupon_by_ids(ids, tid):
 
     for coupon in coupons:
         coupon.coupon_basic_check()  # 检查所有优惠券
-    for coupon in coupons:
-        coupon.status = UserCoupon.USED
-        coupon.finished_time = datetime.datetime.now()  # save the finished time
-        coupon.trade_tid = tid  # save the trade tid with trade be binding
-        coupon.save(update_fields=['finished_time', 'trade_tid', 'status'])
-        task_update_coupon_use_count.delay(coupon.template_id, coupon.order_coupon_id)
+    for id in ids:
+        with transaction.atomic():
+            coupon = UserCoupon.objects.select_for_update().get(id=id)
+            coupon.status = UserCoupon.USED
+            coupon.finished_time = datetime.datetime.now()  # save the finished time
+            coupon.trade_tid = tid  # save the trade tid with trade be binding
+            coupon.save(update_fields=['finished_time', 'trade_tid', 'status'])
+
+    task_update_coupon_use_count.delay(coupons[0].template_id, coupons[0].order_coupon_id)
     return True
 
 
