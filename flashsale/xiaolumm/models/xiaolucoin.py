@@ -77,6 +77,19 @@ class XiaoluCoin(BaseModel):
 
             XiaoluCoinLog.create(self.mama_id, XiaoluCoinLog.IN, amount, XiaoluCoinLog.REFUND, referal_id=referal_id)
 
+    def change(self, amount, subject, referal_id=''):
+        """
+        增加,减少小鹿币余额
+
+        referal_id:
+        """
+        with transaction.atomic():
+            self.amount = F('amount') + amount
+            self.save()
+
+            iro_type = XiaoluCoinLog.IN if amount > 0 else XiaoluCoinLog.OUT
+            XiaoluCoinLog.create(self.mama_id, iro_type, amount, subject, referal_id=referal_id)
+
 
 class XiaoluCoinLog(BaseModel):
     """
@@ -94,11 +107,13 @@ class XiaoluCoinLog(BaseModel):
     RECHARGE = 'recharge'
     CONSUME = 'consume'
     REFUND = 'refund'
+    GIFT = 'gift'
 
     SUBJECT_CHOICES = (
         (RECHARGE, '充值'),
         (CONSUME, '消费'),
-        (REFUND, '退款')
+        (REFUND, '退款'),
+        (GIFT, '赠送')
     )
 
     mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u"妈妈编号")
