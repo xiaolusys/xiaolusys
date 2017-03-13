@@ -57,8 +57,10 @@ class ArrivalTimeViewSet(viewsets.GenericViewSet):
     def confirm_arrival(self, request, pk):
         psi = PackageSkuItem.objects.filter(id=int(pk)).first()
         pid = psi.package_order_pid
+        # out_sid = psi.out_sid
         po=PackageOrder.objects.filter(pid=pid).first()
         po.finish()
+
         return Response(True)
 
     # @detail_route(methods=['get'])

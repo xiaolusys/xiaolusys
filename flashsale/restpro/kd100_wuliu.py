@@ -18,7 +18,7 @@ from shopback.trades.models import PackageSkuItem,PackageOrder
 import logging,time
 import re
 
-wuliu_state = {"0":"在途中","1":"已揽件","2":"疑件","3":"已签收","4":"退签","5":"同城派送中","6":"退回","7":"转单","8":"","9":"","10":"","11":"","12":"","13":""}
+wuliu_state = {"0":"在途中","1":"已揽件","2":"疑件","3":"已签收","4":"退签","5":"同城派送中","6":"退回","7":"转单","8":"","9":"","10":"待清关","11":"清关中","12":"已清关","13":"清关异常"}
 logger = logging.getLogger(__name__)
 
 def get_md5_value(src):
