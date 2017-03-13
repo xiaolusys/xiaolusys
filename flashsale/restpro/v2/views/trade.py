@@ -1380,10 +1380,16 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             notifyTradePayTask.delay(charge)
             return Response({"code": 1, "info": u'订单已支付不支持取消'})
         else:
-            if instance.pay_status == SaleTrade.SALE_TRADE_PAYING:
+            logger.info({
+                'message': u'trade del:tid=%s status=%s pay_status=%s' % (instance.tid, instance.status, instance.pay_status),
+                'action': 'trade_delete',
+                'action_time': datetime.datetime.now(),
+                'order_no': instance.tid,
+            })
+            if instance.pay_status != SaleTrade.SALE_TRADE_PAY_FINISHED:
                 return Response({"code": 2, "info": u'您的订单已经提交小鹿支付系统，正在结算中，为了您的交易安全，暂时不能取消，请等待支付流程完成再尝试'})
             self.perform_destroy(instance)
-            log_action(request.user.id, instance, CHANGE, u'取消订单')
+            log_action(request.user.id, instance, CHANGE, u'user v2取消订单')
             return Response({"code": 0, "info": u'订单已取消'})
 
     @detail_route(methods=['post'])
