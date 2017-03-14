@@ -14,6 +14,8 @@ from . import top_view_api
 from views import views, views_duokefu, views_xlmminfo, views_order_percent, views_register, views_xlmm_active, \
     views_cashout, xiaolumama
 
+from flashsale.restpro.v2.views import xiaolucoin
+
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'ninepic', views_advertis.NinePicAdverViewSet)
 router_urls = router.urls
@@ -97,6 +99,9 @@ urlpatterns = [
        name="xlmm_active"),
     url(r'^cashout_bathandler/', staff_member_required(views_cashout.CashoutBatView.as_view()),
        name="cashout_bat"),
+
+    url(r'^xiaolucoin/change', xiaolucoin.XiaoluCoinViewSet.as_view({'post': 'change'})),
+    url(r'^xiaolucoin/balance', xiaolucoin.XiaoluCoinViewSet.as_view({'get': 'balance'})),
 ]
 
 urlpatterns += [

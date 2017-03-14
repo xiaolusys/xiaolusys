@@ -2,6 +2,7 @@
 import hashlib
 
 from django.contrib.auth.models import User
+from django.http import HttpResponseForbidden
 from rest_framework import authentication
 from rest_framework import exceptions
 from django.core.cache import cache
@@ -66,3 +67,32 @@ def check_md5_sign(data, sign, secret):
     - False 错误
     """
     return md5_sign(data, secret) == sign
+
+
+def group_required(groups):
+    def decorator(func):
+        def wrapper(req, *args, **kwargs):
+            user = req.user
+            in_group = user.groups.filter(id__in=groups).first()
+            if in_group or user.is_superuser:
+                return func(req, *args, **kwargs)
+            return HttpResponseForbidden()
+        return wrapper
+    return decorator
+
+
+def perm_required(perm):
+    """
+    *类方法装饰器*
+    """
+    def decorator(func):
+        def wrapper(obj, req, *args, **kwargs):
+            user = req.user
+            if user.has_perm(perm):
+                return func(obj, req, *args, **kwargs)
+            else:
+                return HttpResponseForbidden()
+        return wrapper
+    return decorator
+
+
