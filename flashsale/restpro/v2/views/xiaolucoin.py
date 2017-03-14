@@ -47,7 +47,7 @@ class XiaoluCoinViewSet(viewsets.GenericViewSet):
         return Response({'balance': coin.amount, 'mama_id': mama_id})
 
     @perm_required('xiaolumm.manage_xiaolu_coin')
-    def change(self, req, *args, **kwargs):
+    def change(self, request, *args, **kwargs):
         """
         POST /rest/v2/xiaolucoin/change
 
@@ -58,10 +58,11 @@ class XiaoluCoinViewSet(viewsets.GenericViewSet):
 
         增加,减少小鹿币余额
         """
-        mama_id = req.POST.get('mama_id') or ''
-        amount = req.POST.get('amount') or None
-        subject = req.POST.get('subject') or None
-        referal_id = req.POST.get('referal_id') or ''
+        content = request.POST or request.data
+        mama_id = content.get('mama_id') or ''
+        amount = content.get('amount') or None
+        subject = content.get('subject') or None
+        referal_id = content.get('referal_id') or ''
 
         if (not amount) or (not amount.isdigit()):
             return Response({'code': 2, 'msg': '金额错误'})
