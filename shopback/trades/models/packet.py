@@ -422,7 +422,7 @@ class PackageOrder(models.Model):
             如果sale_trade里没有指定，那自己设
         :return:
         """
-        if logistics_company_id == 100:
+        if logistics_company_id == 100 or (not logistics_company_id):
             logistics_company_id = -2
         if logistics_company_id and not self.logistics_company_id:
             self.logistics_company_id = logistics_company_id
