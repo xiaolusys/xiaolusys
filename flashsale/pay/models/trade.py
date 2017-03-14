@@ -1390,9 +1390,10 @@ class SaleOrder(PayBaseModel):
         return self.is_deposit() and (self.outer_sku_id == '338' or self.outer_sku_id == '216')
 
     def is_recharge_deposit(self):
+        model_product = self.product.get_product_model()
         return self.is_deposit() and (self.outer_sku_id == '600' or self.outer_sku_id == '3000'
                                       or self.outer_sku_id == '9000' or self.outer_sku_id == '25000'
-                                      or self.outer_sku_id == '80000')
+                                      or self.outer_sku_id == '80000' or self.outer_sku_id == '100' or model_product.id == 25339)
 
     def is_elite_365_order(self):
         return self.item_product.model_id == 25408
