@@ -162,7 +162,10 @@ def xlmm_recharge_cacl_score(price):
     """精英妈妈充值算积分
     """
     score = 0
-    if price == 600:
+
+    if price == 100:
+        score = 10
+    elif price == 600:
         score = 100
     elif price == 3000:
         score = 600
