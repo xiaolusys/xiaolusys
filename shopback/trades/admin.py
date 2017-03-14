@@ -1462,8 +1462,8 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
 
     orderlist_status.short_description = u'订货状态'
 
-    def get_actions(self, request):
-        return [i for i in super(PackageSkuItemAdmin, self).get_actions(request) if i != 'delete_selected']
+    # def get_actions(self, request):
+    #     return [i for i in super(PackageSkuItemAdmin, self).get_actions(request) if i != 'delete_selected']
 
     def package_order_link_to(self, obj):
         if obj.package_order_pid:
@@ -1561,10 +1561,10 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
 
 
     actions = []
-    def get_actions(self, request):
-        actions = super(PackageSkuItemAdmin, self).get_actions(request)
-        actions.pop('delete_selected')
-        return actions
+    # def get_actions(self, request):
+    #     actions = super(PackageSkuItemAdmin, self).get_actions(request)
+    #     actions.pop('delete_selected')
+    #     return actions
 
 
 admin.site.register(PackageSkuItem, PackageSkuItemAdmin)
