@@ -774,7 +774,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             mp = cart.get_modelproduct()
             # 包含virtual的商品
             from flashsale.pay.models.product import ModelProduct
-            if mp and (mp.product_type == ModelProduct.VIRTUAL_TYPE):
+            if mp and (mp.product_type == ModelProduct.VIRTUAL_TYPE) and mp.is_boutique:
                 virtual_num += 1
                 elite_score += cart.num * cart.product.elite_score
                 goods_num += cart.num
