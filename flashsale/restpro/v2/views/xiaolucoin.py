@@ -1,13 +1,13 @@
 # encoding=utf8
 from rest_framework import viewsets
 from rest_framework import authentication, permissions
+from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 
-from common.auth import WeAppAuthentication
+from common.auth import WeAppAuthentication, perm_required
 from flashsale.pay.models.user import Customer
 from flashsale.xiaolumm.models import XiaoluCoinLog, XiaoluCoin
 from flashsale.restpro.v2.serializers.serializers import XiaoluCoinLogSerializer
-from .permissions import IsAccessXiaoluCoin
 
 class XiaoluCoinViewSet(viewsets.GenericViewSet):
     """
@@ -31,6 +31,22 @@ class XiaoluCoinViewSet(viewsets.GenericViewSet):
         serializers = self.get_serializer(queryset, many=True)
         return self.get_paginated_response(serializers.data)
 
+    @perm_required('xiaolumm.manage_xiaolu_coin')
+    def balance(self, req, *args, **kwargs):
+        """
+        GET /apis/xiaolumm/xiaolucoin/balance
+
+        - mama_id
+        """
+        mama_id = req.GET.get('mama_id') or ''
+
+        if not mama_id:
+            return Response({'code': 1, 'msg': '找不到mama_id'})
+        coin = XiaoluCoin.get_or_create(mama_id)
+
+        return Response({'balance': coin.amount, 'mama_id': mama_id})
+
+    @perm_required('xiaolumm.manage_xiaolu_coin')
     def change(self, req, *args, **kwargs):
         """
         POST /rest/v2/xiaolucoin/change
@@ -53,9 +69,9 @@ class XiaoluCoinViewSet(viewsets.GenericViewSet):
         if subject not in dict(XiaoluCoinLog.SUBJECT_CHOICES).keys():
             return Response({'code': 3, 'msg': '收支类型错误'})
 
-        coin = XiaoluCoin.get_or_create(mama_id)
-        if (not mama_id) or (not coin):
+        if not mama_id:
             return Response({'code': 1, 'msg': '找不到mama_id'})
+        coin = XiaoluCoin.get_or_create(mama_id)
 
         amount = int(amount)
 
