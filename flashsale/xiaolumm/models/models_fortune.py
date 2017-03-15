@@ -722,22 +722,22 @@ post_save.connect(ordercarry_update_ordercarry,
 #                   sender=OrderCarry, dispatch_uid='post_save_ordercarry_update_activevalue')
 #
 #
-# def ordercarry_update_order_number(sender, instance, created, **kwargs):
-#     mama_id = instance.mama_id
-#     date_field = instance.date_field
-#
-#     from flashsale.xiaolumm.tasks import task_update_clickcarry_order_number, \
-#         task_update_mamafortune_order_num, task_ordercarry_increment_dailystats
-#     task_update_clickcarry_order_number.delay(mama_id, date_field)
-#
-#     task_update_mamafortune_order_num.delay(mama_id)
-#
-#     if created:
-#         task_ordercarry_increment_dailystats.delay(mama_id, date_field)
-#
-#
-# post_save.connect(ordercarry_update_order_number,
-#                   sender=OrderCarry, dispatch_uid='post_save_order_carry_update_order_number')
+def ordercarry_update_order_number(sender, instance, created, **kwargs):
+    mama_id = instance.mama_id
+    date_field = instance.date_field
+
+    from flashsale.xiaolumm.tasks import task_update_clickcarry_order_number, \
+        task_update_mamafortune_order_num, task_ordercarry_increment_dailystats
+    # task_update_clickcarry_order_number.delay(mama_id, date_field)
+
+    # task_update_mamafortune_order_num.delay(mama_id)
+
+    if created:
+        task_ordercarry_increment_dailystats.delay(mama_id, date_field)
+
+
+post_save.connect(ordercarry_update_order_number,
+                  sender=OrderCarry, dispatch_uid='post_save_order_carry_update_order_number')
 
 
 class AwardCarry(BaseModel):
