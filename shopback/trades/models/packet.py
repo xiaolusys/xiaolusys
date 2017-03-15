@@ -1301,7 +1301,8 @@ class PackageSkuItem(BaseModel):
                 self.save()
                 po.add_package_sku_item(self)
                 SkuStock.set_psi_merged(self.sku_id, self.num)
-                po.set_logistics_company(self.sale_trade.logistics_company_id)
+                if not po.logistics_company:
+                    po.set_logistics_company(self.sale_trade.logistics_company_id)
             if self.type == PSI_TYPE.TIANMAO:
                 self.status = PSI_STATUS.MERGED
                 self.merge_time = datetime.datetime.now()
@@ -1322,7 +1323,8 @@ class PackageSkuItem(BaseModel):
                 self.save()
                 po.add_package_sku_item(self)
                 SkuStock.set_psi_merged(self.sku_id, self.num)
-                po.set_logistics_company()
+                if not po.logistics_company:
+                    po.set_logistics_company()
             if self.type in [2, 3, 4]:
                 self.status = PSI_STATUS.MERGED
                 self.merge_time = datetime.datetime.now()
@@ -1343,7 +1345,8 @@ class PackageSkuItem(BaseModel):
                 self.package_order_pid = po.pid
                 self.save()
                 po.add_package_sku_item(self)
-                po.set_logistics_company(-2)
+                if not po.logistics_company:
+                    po.set_logistics_company(-2)
 
     def return_merge(self):
         if self.status == PSI_STATUS.ASSIGNED:
