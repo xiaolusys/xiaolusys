@@ -70,7 +70,7 @@ class SaleCategory(BaseModel):
     name = models.CharField(max_length=64, blank=True, verbose_name=u'类目名')
     cat_pic = models.CharField(max_length=256, blank=True, verbose_name=u'展示图片')
 
-    grade = models.IntegerField(default=0, db_index=True, verbose_name=u'类目等级')
+    grade = models.IntegerField(default=1, db_index=True, verbose_name=u'类目等级')
     is_parent = models.BooleanField(default=True, verbose_name=u'父类目')
     sort_order = models.IntegerField(default=0, verbose_name=u'权值')
 
