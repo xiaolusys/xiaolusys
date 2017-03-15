@@ -752,6 +752,14 @@ BOUTIQUE_ROUTES = {
         'queue': 'statistics',
         'routing_key': 'statistics.task_boutique_sale_and_refund_stats',
     },
+    'flashsale.xiaolumm.tasks.tasks_mama_dailystats.task_check_xlmm_exchg_order': {
+        'queue': 'statistics',
+        'routing_key': 'statistics.task_check_xlmm_exchg_order',
+    },
+    'flashsale.xiaolumm.tasks.tasks_mama_dailystats.task_check_xlmm_return_exchg_order': {
+        'queue': 'statistics',
+        'routing_key': 'statistics.task_check_xlmm_return_exchg_order',
+    },
 }
 
 CELERY_ROUTES = {

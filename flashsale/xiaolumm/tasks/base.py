@@ -736,7 +736,7 @@ def task_period_check_mama_renew_state():
         charge_status=XiaoluMama.CHARGED,
         referal_from__in=[XiaoluMama.DIRECT, XiaoluMama.INDIRECT],
         renew_time__lte=now).exclude(last_renew_type=XiaoluMama.ELITE)  # 有效并接管的
-    for emm in effect_elite_mms:
+    for emm in effect_elite_mms.iterator():
         try:
             if now >= emm.renew_time:
                 # 2017-2-7 精英妈妈不冻结,变为单纯精英妈妈，老的99／188妈妈冻结
@@ -757,7 +757,7 @@ def task_period_check_mama_renew_state():
     else:
         return
     if effect_no_elite_mms.count() < 10000:
-        for emm in effect_no_elite_mms:
+        for emm in effect_no_elite_mms.iterator():
             try:
                 if now >= emm.renew_time:
                     emm.status = XiaoluMama.FROZEN
@@ -773,7 +773,7 @@ def task_period_check_mama_renew_state():
                 charge_status=XiaoluMama.CHARGED,
                 renew_time__lte=now, id__lte=mmid).exclude(
                 referal_from__in=[XiaoluMama.DIRECT, XiaoluMama.INDIRECT])
-            for emm in effect_no_elite_mms:
+            for emm in effect_no_elite_mms.iterator():
                 try:
                     if now >= emm.renew_time:
                         emm.status = XiaoluMama.FROZEN
