@@ -259,7 +259,7 @@ def task_check_xlmm_return_exchg_order():
     exchg_trancoupon_num = 0
     return_order_num = 0
     results = []
-    if exchg_orders:
+    if exchg_orders.iterator():
         for entry in exchg_orders:
             # find sale trade use coupons
             from flashsale.pay.models.trade import SaleOrder
@@ -282,7 +282,7 @@ def task_check_xlmm_return_exchg_order():
     from flashsale.coupon.models.transfer_coupon import CouponTransferRecord
     trans_records = CouponTransferRecord.objects.filter(transfer_type=CouponTransferRecord.IN_CANCEL_EXCHG, transfer_status=CouponTransferRecord.DELIVERED)
     trans_num = 0
-    for record in trans_records:
+    for record in trans_records.iterator():
         if record.order_no in results:
             trans_num += 1
             exchg_trancoupon_num += record.coupon_num
@@ -367,7 +367,7 @@ def check_xlmm_ordercarry(recent_day):
                                                     SaleOrder.TRADE_CLOSED_BY_SYS],
                                         created__gte=tf)
 
-    for order in queryset:
+    for order in queryset.iterator():
         # 特卖订单有ordercarry或用币买券的inderect mama 虚拟订单有
         coin_buy_order = False
         from flashsale.xiaolumm.models import XiaoluMama
@@ -416,7 +416,7 @@ def check_coupon_modelid():
     wrong_ct1 = []
     wrong_ct2 = []
     cts = CouponTemplate.objects.filter(coupon_type=CouponTemplate.TYPE_TRANSFER)
-    for ct in cts:
+    for ct in cts.iterator():
         product_model_id = ct.extras.get("product_model_id")
         virtual_model_products = ModelProduct.objects.get_virtual_modelproducts()
         find_mp = None
