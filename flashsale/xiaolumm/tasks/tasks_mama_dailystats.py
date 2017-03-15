@@ -259,8 +259,8 @@ def task_check_xlmm_return_exchg_order():
     exchg_trancoupon_num = 0
     return_order_num = 0
     results = []
-    if exchg_orders.iterator():
-        for entry in exchg_orders:
+    if exchg_orders:
+        for entry in exchg_orders.iterator():
             # find sale trade use coupons
             from flashsale.pay.models.trade import SaleOrder
             from flashsale.pay.models.refund import SaleRefund

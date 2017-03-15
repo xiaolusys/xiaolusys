@@ -486,8 +486,8 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                                                                transfer_status=CouponTransferRecord.DELIVERED,
                                                                status=CouponTransferRecord.EFFECT).order_by('-created')
         results = []
-        if exchg_orders:
-            for entry in exchg_orders:
+        if exchg_orders.exists():
+            for entry in exchg_orders.iterator():
                 # find sale trade use coupons
                 sale_order = SaleOrder.objects.filter(oid=entry.uni_key).first()
                 if not sale_order:
@@ -517,10 +517,10 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
             mama_id = mama.id
             exchg_orders = OrderCarry.objects.filter(mama_id=mama_id,
                                                      status__in=[OrderCarry.CONFIRM],
-                                                     date_field__gt='2017-1-30')
+                                                     date_field__gt='2017-1-8')
         results = []
-        if exchg_orders:
-            for entry in exchg_orders:
+        if exchg_orders.exists():
+            for entry in exchg_orders.iterator():
                 # find sale trade use coupons
                 sale_order = SaleOrder.objects.filter(oid=entry.order_id).first()
                 if not sale_order:
@@ -589,7 +589,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
         #从relationship推荐人中找出购买rmb338/216 rmb365的新精英妈妈订单
         from flashsale.xiaolumm.models.models_fortune import ReferalRelationship
         ships = ReferalRelationship.objects.filter(referal_from_mama_id=mama.id, referal_type=XiaoluMama.ELITE, status=ReferalRelationship.VALID)
-        for ship in ships:
+        for ship in ships.iterator():
             if ship.order_id and len(ship.order_id) > 0:
                 rmb338_order = SaleOrder.objects.filter(oid=ship.order_id).first()
                 if rmb338_order and (not rmb338_order.extras.has_key('exchange')) \
