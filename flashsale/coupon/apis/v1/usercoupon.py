@@ -209,6 +209,12 @@ def use_coupon_by_ids(ids, tid):
 
     for coupon in coupons:
         coupon.coupon_basic_check()  # 检查所有优惠券
+
+    logger.info({
+        'action': 'set_coupon_2_use_by_trade_confirm_processing1',
+        'action_time': datetime.datetime.now(),
+        'order_no': tid,
+    })
     for id in ids:
         with transaction.atomic():
             coupon = UserCoupon.objects.select_for_update().get(id=id)
@@ -219,7 +225,17 @@ def use_coupon_by_ids(ids, tid):
             coupon.trade_tid = tid  # save the trade tid with trade be binding
             coupon.save(update_fields=['finished_time', 'trade_tid', 'status'])
 
+    logger.info({
+        'action': 'set_coupon_2_use_by_trade_confirm_processing2',
+        'action_time': datetime.datetime.now(),
+        'order_no': tid,
+    })
     task_update_coupon_use_count.delay(coupons[0].template_id, coupons[0].order_coupon_id)
+    logger.info({
+        'action': 'set_coupon_2_use_by_trade_confirm_processing3',
+        'action_time': datetime.datetime.now(),
+        'order_no': tid,
+    })
     return True
 
 

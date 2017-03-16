@@ -737,11 +737,6 @@ class SaleTrade(BaseModel):
         from flashsale.coupon.apis.v1.transfercoupondetail import create_transfer_coupon_detail
 
         use_coupon_by_ids(coupon_ids, self.tid)  # 使用优惠券
-        logger.info({
-            'action': 'set_coupon_2_use_by_trade_confirm_processing',
-            'action_time': datetime.datetime.now(),
-            'order_no': self.tid,
-        })
 
         # 创建 消费流通记录 如果是流通券类型的话
         coupons = get_user_coupons_by_ids(coupon_ids)
