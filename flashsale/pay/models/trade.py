@@ -32,6 +32,7 @@ from .user import Customer, UserBudget
 from ..managers import saletrade
 import logging
 
+
 logger = logging.getLogger(__name__)
 
 FLASH_SELLER_ID  = 'flashsale'
@@ -1282,6 +1283,10 @@ class SaleOrder(PayBaseModel):
         1，订单发货后超过14天未确认签收,系统自动变成已完成状态；
         2，订单确认签收后，7天之后(最多7天,应在在发货后14天以内)订单状态变成已完成；
         """
+        from shopback.trades.models import PackageSkuItem
+        psi = PackageSkuItem.objects.filter(sale_order_id=self.id).first()
+        if psi.logistics_company_name == u"澳邮中国":
+            return False
         now_time = datetime.datetime.now()
         consign_time = self.consign_time
         sign_time = self.sign_time
@@ -1324,6 +1329,7 @@ class SaleOrder(PayBaseModel):
         if not unsign_orders.exists():
             sale_trade.status = SaleTrade.TRADE_BUYER_SIGNED
             sale_trade.save(update_fields=['status'])
+            logger.warn({'action': "kdn", 'info': "confirm_sign_order:" + str(self.id)})
 
     # def cancel_assign(self):
     #     if self.assign_status == SaleOrder.ASSIGNED:
