@@ -564,7 +564,7 @@ def coupon_exchange_saleorder(customer, order_id, mama_id, template_ids, coupon_
         sale_order.extras['exchange'] = True
         if not sale_order.extras.has_key('can_return_num'):
             sale_order.extras['can_return_num'] = sale_order.num
-        SaleOrder.objects.filter(oid=order_id).update(extras=sale_order.extras)
+            sale_order.save(update_fields=['extras'])
 
         # (2)用户优惠券需要变成使用状态,如果存在多个券通用情况，还要把多种券给使用掉
         left_num = coupon_num
@@ -632,7 +632,7 @@ def saleorder_return_coupon_exchange(salerefund, payment):
                 sale_order.extras['can_return_num'] = sale_order.num - salerefund.refund_num
             else:
                 sale_order.extras['can_return_num'] = int(sale_order.extras['can_return_num']) - salerefund.refund_num
-            SaleOrder.objects.filter(id=salerefund.order_id).update(extras=sale_order.extras)
+            sale_order.save(update_fields=['extras'])
             res = {}
             return res
 
@@ -796,7 +796,7 @@ def transfer_record_return_coupon_exchange(coupons, transfer_record):
                 sale_order.extras['can_return_num'] = int(sale_order.extras['can_return_num']) - 1
                 if int(sale_order.extras['can_return_num']) == 0:
                     sale_order.extras['exchange'] = False
-            SaleOrder.objects.filter(id=sale_order.id).update(extras=sale_order.extras)
+            sale_order.save(update_fields=['extras'])
 
         # (3)在user钱包写支出 记录
         from flashsale.pay.models.user import BudgetLog, UserBudget
