@@ -752,10 +752,9 @@ def task_period_check_mama_renew_state():
         status=XiaoluMama.EFFECT,
         charge_status=XiaoluMama.CHARGED,
         renew_time__lte=now).exclude(referal_from__in=[XiaoluMama.DIRECT, XiaoluMama.INDIRECT])
-    if effect_no_elite_mms.count() > 0:
-        max_mmid = effect_no_elite_mms[effect_no_elite_mms.count() - 1].id
-    else:
-        return
+
+    max_mmid = XiaoluMama.objects.all().count()
+
     if effect_no_elite_mms.count() < 10000:
         for emm in effect_no_elite_mms.iterator():
             try:
