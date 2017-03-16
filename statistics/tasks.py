@@ -5,6 +5,7 @@ from shopmanager import celery_app as app
 import logging
 import datetime
 import calendar
+from django.db import IntegrityError
 from django.db.models import Sum
 from django.contrib.auth.models import User
 from shopback.items.models import Product
@@ -545,7 +546,7 @@ def task_update_agg_sale_stats(sale_stats, time_from, time_to, upper_timely_type
             old_stat.save(update_fields=update_fields)
 
 
-@app.task(serializer='pickle')
+@app.task(max_retries=3, default_retry_delay=6)
 def task_update_product_sku_stats(product_sku_stats):
     """
     :param product_sku_stats: SkuStock instance
@@ -597,7 +598,10 @@ def task_update_product_sku_stats(product_sku_stats):
             record_type=constants.TYPE_SKU,
             timely_type=constants.TIMELY_TYPE_DATE
         )
-        psk_stat.save()
+        try:
+            psk_stat.save()
+        except IntegrityError as exc:
+            raise task_update_product_sku_stats.retry(exc=exc)
 
 
 def create_stock_snapshot_record(stock_stats):
