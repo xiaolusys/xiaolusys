@@ -7,10 +7,10 @@ from .models.refund import RefundOrder
 
 @admin.register(ChargeOrder)
 class ChargeOrderAdmin(admin.ModelAdmin):
-    list_display = ('id', 'order_no', 'channel', 'amount', 'paid', 'refunded', 'failure_code', 'failure_msg',  'modified', 'created')
+    list_display = ('id', 'order_no', 'channel', 'amount', 'paid', 'refunded', 'failure_code', 'failure_msg', 'time_paid', 'created', 'transaction_no')
     ordering = ['-id']
     list_filter = ['paid', 'channel', 'time_paid', 'created']
-    search_fields = ['=id', '=order_no']
+    search_fields = ['=id', '=order_no', '=transaction_no']
 
 
 @admin.register(Credential)

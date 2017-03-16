@@ -46,7 +46,7 @@ class ChargeOrder(BaseModel):
 
     time_paid = models.DateTimeField(db_index=True, blank=True, null=True, verbose_name=u'付款时间')
     time_expire = models.DateTimeField(db_index=True, blank=True, null=True, verbose_name=u'截止付款时间')
-    transaction_no = models.CharField(max_length=64, blank=True, verbose_name=u'支付渠道流水单号')
+    transaction_no = models.CharField(max_length=64, db_index=True, blank=True, verbose_name=u'支付渠道流水单号')
 
     amount_refunded = models.IntegerField(default=0, verbose_name=u'退款金额(分)')
     failure_code = models.CharField(max_length=64, blank=True, verbose_name=u'错误编码')
