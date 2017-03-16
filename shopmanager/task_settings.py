@@ -1162,12 +1162,12 @@ SHOP_APP_SCHEDULE = {
         #         'kwargs':{'pre_day':1},
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
-    u'定时统计昨日小鹿妈妈真实性评分': {
-        'task': 'flashsale.xiaolumm.tasks.tasks_mama_dailystats.task_xlmm_score',
-        'schedule': crontab(minute="00", hour='2'),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
+    # u'定时统计昨日小鹿妈妈真实性评分': {
+    #     'task': 'flashsale.xiaolumm.tasks.tasks_mama_dailystats.task_xlmm_score',
+    #     'schedule': crontab(minute="00", hour='2'),
+    #     'args': (),
+    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    # },
     u'定时统计昨日代理的订单': {
         'task': 'flashsale.clickrebeta.tasks.task_Tongji_User_Order',
         'schedule': crontab(minute="40", hour='0'),
@@ -1392,12 +1392,12 @@ SHOP_APP_SCHEDULE = {
     #     'args': (),
     #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     # },
-    u'定时更新订阅客户退货的物流信息通过快递鸟': {  # by huazi
-        'task': 'flashsale.restpro.tasks.update_all_return_logistics_bykdn',
-        'schedule': crontab(minute="0", hour="2"),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
+    # u'定时更新订阅客户退货的物流信息通过快递鸟': {  # by huazi
+    #     'task': 'flashsale.restpro.tasks.update_all_return_logistics_bykdn',
+    #     'schedule': crontab(minute="0", hour="2"),
+    #     'args': (),
+    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    # },
 
     # u"save gen_order为false":{
     #     'task':'flashsale.restpro.tasks.save_gen_order',
