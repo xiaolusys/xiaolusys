@@ -75,7 +75,7 @@ class SaleSupplierAdmin(ApproxAdmin):
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('level', 'progress', 'status', 'platform', CategoryFilter, 'supplier_type', SupplierZoneFilter)
-    search_fields = ['supplier_name', 'supplier_code', '=id']
+    search_fields = ['supplier_name', '=supplier_code', '=id']
     form = SaleSupplierForm
     list_per_page = 15
 
@@ -184,7 +184,8 @@ class SaleSupplierAdmin(ApproxAdmin):
     # --------设置页面布局----------------\
     fieldsets = ((u'供应商基本信息:', {
                     'classes': ('expand',),
-                    'fields': (('supplier_name', 'product_link', 'supplier_code')
+                    'fields': (('supplier_name', 'product_link')
+                               , ('supplier_code', 'vendor_code')
                                , ('main_page', 'category', 'platform')
                                , ('contact', 'fax')
                                , ('phone', 'mobile')

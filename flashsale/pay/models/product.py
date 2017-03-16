@@ -230,7 +230,7 @@ class ModelProduct(BaseTagModel):
 
     @property
     def content_images(self):
-        return self.content_imgs.split()
+        return [img for img in self.content_imgs.split() if img.strip()]
 
     @property
     def head_images(self):

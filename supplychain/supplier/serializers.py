@@ -326,7 +326,7 @@ class ModelProductSerializer(serializers.ModelSerializer):
     def get_content_imgs(self, obj):
         if not obj.content_imgs:
             return []
-        return obj.content_imgs.split('\n')
+        return [img for img in obj.content_imgs.split('\n') if img.strip()]
 
     def get_extras(self, obj):
         try:

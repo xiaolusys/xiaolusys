@@ -29,6 +29,14 @@ class DictObject(dict):
         for k, v in object_dict.items():
             if isinstance(v, dict) and self._parse_objectable(v):
                 super(DictObject, self).__setitem__(k, DictObject().fresh_form_data(v))
+            elif isinstance(v, list):
+                items = []
+                for item in v:
+                    if isinstance(item, dict) and self._parse_objectable(item):
+                        items.append(DictObject().fresh_form_data(item))
+                    else:
+                        items.append(v)
+                super(DictObject, self).__setitem__(k, items)
             else:
                 super(DictObject, self).__setitem__(k, v)
 

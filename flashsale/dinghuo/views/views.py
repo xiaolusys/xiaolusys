@@ -304,7 +304,7 @@ def data_chart(req):
         stats_time__range=(start_date, end_date)).order_by('stats_time')
 
     return render(
-        request,
+        req,
         "dinghuo/data_grape.html",
           {"a_data": a_data,
            "b_data": b_data,

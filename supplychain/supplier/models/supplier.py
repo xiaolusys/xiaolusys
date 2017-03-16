@@ -76,8 +76,10 @@ class SaleSupplier(models.Model):
                      (BRAND_OWNER, u'品牌'),
                      (CLOTHING_FACTORY, u'源头大厂'))
     supplier_name = models.CharField(max_length=64, unique=True, db_index=True, blank=False, verbose_name=u'供应商名')
-    supplier_code = models.CharField(max_length=64, blank=True, verbose_name=u'品牌缩写')
+    vendor_code  = models.CharField(max_length=32, db_index=True, blank=True, default='',
+                                     verbose_name=u'供应商编码', help_text='后面应改为unique')
 
+    supplier_code = models.CharField(max_length=64, blank=True, verbose_name=u'品牌缩写')
     description = models.CharField(max_length=1024, blank=True, verbose_name=u'品牌简介')
     brand_url = models.CharField(max_length=512, blank=True, verbose_name=u'商标图片')
     main_page = models.CharField(max_length=256, blank=True, verbose_name=u'品牌主页')
@@ -133,7 +135,6 @@ class SaleSupplier(models.Model):
     return_ware_by = models.SmallIntegerField(default=WARE_SH, choices=WARE_CHOICES, verbose_name=u'退货仓库')
 
     delta_arrive_days = models.IntegerField(default=3, verbose_name=u'预计到货天数')
-
     objects = SaleSupplierManager()
 
     class Meta:
@@ -187,6 +188,9 @@ class SaleSupplier(models.Model):
         from shopback.items.models import Product
         sale_products = [sp.id for sp in self.supplier_products.all()]
         return Product.objects.filter(sale_product__in=sale_products)
+
+    def province(self):
+        return self.address.split('/')[0]
 
 
 def update_product_ware_by(sender, instance, created, **kwargs):

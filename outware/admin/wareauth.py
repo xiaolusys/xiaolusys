@@ -8,6 +8,6 @@ from ..models import OutwareAccount
 @admin.register(OutwareAccount)
 class OutwareAccountAdmin(admin.ModelAdmin):
     list_display = ('id', 'nick', 'app_id', 'sign_method')
-    # list_filter = (('stat_date', ),)
+    list_filter = ('created',)
     search_fields = ['=id','=app_id']
     ordering = ('-created',)

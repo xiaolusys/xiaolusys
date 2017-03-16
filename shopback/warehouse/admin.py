@@ -4,11 +4,12 @@ from .models import WareHouse, ReceiptGoods, StockAdjust
 
 
 class WareHouseAdmin(admin.ModelAdmin):
-    list_display = ('id', 'ware_name', 'city', 'address', 'in_active', 'extra_info')
+    list_display = ('id', 'store_code', 'ware_name', 'manager', 'province', 'city',
+                    'district', 'address', 'mobile', 'in_active', 'extra_info')
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('in_active',)
-    search_fields = ['ware_name', 'city']
+    search_fields = ['=store_code','ware_name', 'city']
 
 
 admin.site.register(WareHouse, WareHouseAdmin)

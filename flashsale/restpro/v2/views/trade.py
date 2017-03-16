@@ -1080,6 +1080,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         pay_extras = CONTENT.get('pay_extras')
         order_type   = int(CONTENT.get('order_type', 0))
         teambuy_id = CONTENT.get('teambuy_id')
+
         customer        = get_object_or_404(Customer,user=request.user)
         product         = get_object_or_404(Product,id=item_id)
         product_sku     = get_object_or_404(ProductSku,id=sku_id)

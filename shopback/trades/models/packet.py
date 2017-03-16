@@ -1354,7 +1354,7 @@ class PackageSkuItem(BaseModel):
             self.merge_time = datetime.datetime.now()
             return_addr_id = self.get_return_address_id()
             return_user_id = self.get_return_user_id()
-            supplier_nick = self.get_supplier_nick()
+            supplier_nick  = self.get_supplier_nick()
             return_user_id = return_user_id
             package_order_id = PackageOrder.gen_new_package_id(return_user_id,
                                                                return_addr_id,

@@ -25,9 +25,9 @@ import logging
 
 logger = logging.getLogger('celery.handler')
 LOGISTIC_DIR = 'logistic'
-ORDER_DIR = 'order'
-REPORT_DIR = 'report'
-FINANCE_DIR = 'finance'
+ORDER_DIR    = 'order'
+REPORT_DIR   = 'report'
+FINANCE_DIR  = 'finance'
 
 
 class SubTradePostException(Exception):

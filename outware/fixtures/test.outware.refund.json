@@ -1,0 +1,49 @@
+[
+  {
+  "model": "pay.salerefund",
+  "pk": 64416,
+  "fields": {
+    "created": "2017-02-08T14:45:41",
+    "modified": "2017-02-08T14:45:41",
+    "refund_no": "rf170208589abe94959ae",
+    "trade_id": 501491,
+    "order_id": 559765,
+    "buyer_id": 897477,
+    "buyer_nick": "\u4e91\u513f",
+    "creator_id": null,
+    "mobile": "18621623915",
+    "phone": "18621623915",
+    "refund_id": "",
+    "charge": "59625",
+    "channel": "wx",
+    "refund_channel": "budget",
+    "item_id": 81239,
+    "title": "vivo X9Plus\u624b\u673a/\u7ea2\u8272",
+    "sku_id": 296547,
+    "sku_name": "\u7ea2\u8272",
+    "ware_by": 4,
+    "refund_num": 1,
+    "total_fee": 29.9,
+    "payment": 29.9,
+    "refund_fee": 29.9,
+    "amount_flow": {
+      "desc": ""
+    },
+    "success_time": "2017-02-08T14:45:41",
+    "company_name": "",
+    "sid": "",
+    "reason": "\u9519\u62cd",
+    "proof_pic": [],
+    "desc": "",
+    "feedback": "",
+    "has_good_return": false,
+    "has_good_change": false,
+    "is_lackrefund": false,
+    "lackorder_id": null,
+    "good_status": 0,
+    "status": 7,
+    "postage_num": 0,
+    "coupon_num": 0
+  }
+}
+]

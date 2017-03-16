@@ -8,8 +8,8 @@ from django.db.models.signals import post_save, pre_save
 
 from core.models import BaseModel
 from core.utils.unikey import uniqid
-from core.utils import update_model_fields
 from flashsale.dinghuo.models import OrderList, OrderDetail, InBound, OrderDetailInBoundDetail
+from shopback.warehouse.models import WareHouse
 from .. import constants
 import logging
 
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 def default_forecast_inbound_no(identify_id=None):
     identify_id = identify_id or uniqid()
-    return 'fid' + datetime.datetime.now().strftime('%Y%m%d') + identify_id
+    return 'frd' + datetime.datetime.now().strftime('%Y%m%d') + identify_id
 
 
 def gen_subforecast_inbound_no(parent_id):
@@ -127,6 +127,9 @@ class ForecastInbound(BaseModel):
 
     def get_ware_house_name(self):
         return dict(constants.WARE_CHOICES).get(self.ware_house)
+
+    def get_warehouse_object(self):
+        return WareHouse.objects.filter(id=self.ware_house).first()
 
     @property
     def normal_details(self):
@@ -397,7 +400,7 @@ class ForecastInboundDetail(BaseModel):
     # orderlist = models.ForeignKey(OrderList, related_name='orderlist', verbose_name=u'订货单')
     product_id = models.IntegerField(db_index=True, verbose_name=u'商品ID')
     sku_id = models.IntegerField(verbose_name=u'规格ID')
-    forecast_arrive_num = models.IntegerField(default=0, verbose_name='预测到货数量')
+    forecast_arrive_num = models.IntegerField(default=0, verbose_name=u'预测到货数量')
 
     product_name = models.CharField(max_length=128, blank=True, verbose_name=u'商品全称')
     product_img = models.CharField(max_length=256, blank=True, verbose_name=u'商品图片')

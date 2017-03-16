@@ -83,6 +83,14 @@ class SaletradeTestCase(TestCase):
         data = json.loads(response.content)
         return data
 
+    def getNowPayinfo_V2(self, sku_id='', sku_num=2):
+        response = self.client.get('/rest/v2/carts/now_payinfo',
+                                   {'sku_id': sku_id, 'num': sku_num},
+                                   ACCEPT='application/json; q=0.01')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        return data
+
     def testCartPayInfo_V1(self):
 
         self.addShoppingCart()
@@ -178,8 +186,44 @@ class SaletradeTestCase(TestCase):
             'mm_linkid': '1',
             'ufrom': 'web',
         }
-        logger.debug('charge before:%s' % post_data)
         response = self.client.post('/rest/v2/trades/shoppingcart_create',
+                                    post_data,
+                                    ACCEPT='application/json; q=0.01')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertEqual(data['code'], 0)
+        self.assertEqual(data['charge']['channel'], channel_key)
+        self.assertEqual(data['charge']['amount'], int(post_data['payment'] * 100))
+
+    def testNowpayAlipayCharge_V2(self):
+        addr = self.getUserAddress()
+        scp_info = self.getNowPayinfo_V2(sku_id=self.cart_data['sku_id'], sku_num=2)
+        channel_key = 'alipay_wap'
+        channel = None
+        for cn in scp_info['channels']:
+            if cn['id'] == channel_key:
+                channel = cn
+        self.assertIsNotNone(channel)
+        self.assertTrue(channel['payable'])
+
+        post_data = {
+            'uuid': scp_info['uuid'],
+            'item_id': scp_info['sku']['product']['id'],
+            'sku_id': scp_info['sku']['id'],
+            'num': 2,
+            'payment': scp_info['total_payment'],
+            'post_fee': scp_info['post_fee'],
+            'discount_fee': scp_info['discount_fee'],
+            'total_fee': scp_info['total_fee'],
+            'buyer_message': '',
+            'addr_id': addr['id'],
+            'channel': channel_key,
+            'logistic_company_id': '100',
+            'csrfmiddlewaretoken': 'OoVZZqTFa4d0c1oNhwPyI1ikmYrdGyZF',
+            'mm_linkid': '1',
+            'ufrom': 'web',
+        }
+        response = self.client.post('/rest/v2/trades/buynow_create',
                                     post_data,
                                     ACCEPT='application/json; q=0.01')
         self.assertEqual(response.status_code, 200)

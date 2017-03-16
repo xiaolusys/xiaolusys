@@ -1,0 +1,175 @@
+[
+{
+  "model": "outware.outwareinboundorder",
+  "pk": 1,
+  "fields": {
+    "created": "2017-03-16T11:21:41",
+    "modified": "2017-03-16T11:21:41",
+    "outware_supplier": 1,
+    "inbound_code": "fid201702055896d6ecf0f66",
+    "store_code": "SZWH01",
+    "order_type": 601,
+    "status": 1,
+    "uni_key": "fid201702055896d6ecf0f66-SZWH01-601-1",
+    "extras": {
+      "data": {
+        "order_type": 601,
+        "store_code": "SZWH01",
+        "object": "OutwareInboundOrder",
+        "vendor_code": "lxh111111",
+        "order_items": [
+          {
+            "object": "OutwareInboundSku",
+            "sku_name": "vivo X9Plus\\u624b\\u673a/\\u7ea2\\u8272 \\u7ea2\\u8272",
+            "sku_id": "SP111111AA",
+            "batch_code": "AJEV",
+            "quantity": 3
+          }
+        ],
+        "receiver_info": {
+          "receiver_province": "\\u6c5f\\u82cf",
+          "receiver_city": "\\u82cf\\u5dde",
+          "receiver_area": "\\u5e02\\u533a",
+          "object": "UserAddress",
+          "receiver_mobile": "18621623915",
+          "receiver_address": "\\u8702\\u5de2\\u4ed3\\u5e93",
+          "receiver_phone": "",
+          "receiver_name": "\\u4ed8\\u603b"
+        },
+        "order_code": "fid201702055896d6ecf0f66"
+      }
+    }
+  }
+},
+{
+  "model": "outware.outwareinboundorder",
+  "pk": 2,
+  "fields": {
+    "created": "2017-03-16T11:58:44",
+    "modified": "2017-03-16T11:58:44",
+    "outware_supplier": 1,
+    "inbound_code": "rf170208589abe94959ae",
+    "store_code": "SZWH01",
+    "order_type": 501,
+    "status": 1,
+    "uni_key": "rf170208589abe94959ae-SZWH01-501-1",
+    "extras": {
+      "data": {
+        "prev_order_code": "xd16111358284ace3a74f",
+        "store_code": "SZWH01",
+        "object": "OutwareInboundOrder",
+        "vendor_code": "lxh111111",
+        "order_items": [
+          {
+            "object": "OutwareInboundSku",
+            "sku_name": "vivo X9Plus\\u624b\\u673a/\\u7ea2\\u8272\\u7ea2\\u8272",
+            "sku_id": "SP111111AA",
+            "batch_no": "AJEV",
+            "quantity": 1
+          }
+        ],
+        "receiver_info": {
+          "receiver_province": "\\u6c5f\\u82cf",
+          "receiver_city": "\\u82cf\\u5dde",
+          "receiver_area": "\\u5e02\\u533a",
+          "object": "UserAddress",
+          "receiver_mobile": "18621623915",
+          "receiver_address": "\\u8702\\u5de2\\u4ed3\\u5e93",
+          "receiver_phone": "",
+          "receiver_name": "\\u4ed8\\u603b"
+        },
+        "channel_id": "1",
+        "order_code": "rf170208589abe94959ae"
+      }
+    }
+  }
+},
+{
+  "model": "outware.outwareinboundsku",
+  "pk": 1,
+  "fields": {
+    "created": "2017-03-16T11:21:41",
+    "modified": "2017-03-16T11:21:41",
+    "outware_inboind": 1,
+    "sku_code": "SP111111AA",
+    "batch_no": "AJEV",
+    "push_qty": 3,
+    "pull_good_qty": 0,
+    "pull_bad_qty": 0,
+    "uni_key": "AJEV-SP111111AA-1",
+    "extras": {}
+  }
+},
+{
+  "model": "outware.outwareinboundsku",
+  "pk": 2,
+  "fields": {
+    "created": "2017-03-16T11:58:44",
+    "modified": "2017-03-16T11:58:44",
+    "outware_inboind": 2,
+    "sku_code": "SP111111AA",
+    "batch_no": "AJEV",
+    "push_qty": 2,
+    "pull_good_qty": 0,
+    "pull_bad_qty": 0,
+    "uni_key": "AJEV-SP111111AA-2",
+    "extras": {}
+  }
+},
+{
+  "model": "outware.outwareorder",
+  "pk": 1,
+  "fields": {
+    "created": "2017-03-16T11:35:59",
+    "modified": "2017-03-16T11:35:59",
+    "outware_account": 1,
+    "order_type": 10,
+    "store_code": "",
+    "union_order_code": "xd16111358284ace3a74f",
+    "status": 1,
+    "uni_key": "xd16111358284ace3a74f-1",
+    "extras": {
+      "data": {
+        "order_create_time": "2016-11-13 19:13:32",
+        "order_type": 10,
+        "object": "OutwareOrder",
+        "order_items": [
+          {
+            "sku_id": "SP111111AA",
+            "sku_order_code": "xo16111358284adba911f",
+            "object": "OutwareOrderSku",
+            "quantity": 1
+          }
+        ],
+        "receiver_info": {
+          "receiver_city": "\u6606\u660e\u5e02",
+          "receiver_phone": "",
+          "receiver_province": "\u4e91\u5357\u7701",
+          "receiver_mobile": "18621623915",
+          "receiver_address": "\u6606\u660e\u5e02\u5b66\u5e9c\u8def550\u53f7\u91d1\u9876\u5c71\u519b\u961f\u5e72\u4f11\u6240",
+          "receiver_area": "\u4e94\u534e\u533a",
+          "receiver_name": "\u8463\u78ca"
+        },
+        "channel_id": "1",
+        "pay_time": "2016-11-13 19:13:53",
+        "order_number": "xd16111358284ace3a74f"
+      }
+    }
+  }
+},
+{
+  "model": "outware.outwareordersku",
+  "pk": 1,
+  "fields": {
+    "created": "2017-03-16T11:35:59",
+    "modified": "2017-03-16T11:35:59",
+    "outware_account": 1,
+    "union_order_code": "xd16111358284ace3a74f",
+    "origin_skuorder_no": "xo16111358284adba911f",
+    "sku_code": "SP111111AA",
+    "sku_qty": 1,
+    "uni_key": "xo16111358284adba911f-1",
+    "extras": {}
+  }
+}
+]

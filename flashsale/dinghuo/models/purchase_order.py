@@ -130,7 +130,8 @@ class OrderList(models.Model):
     )
 
     id = models.AutoField(primary_key=True)
-    batch_no = models.CharField(max_length=8, default=gen_batch_no, unique=True, blank=True, verbose_name=u'批次编号') #
+    batch_no = models.CharField(max_length=8, default=gen_batch_no,
+                                unique=True, blank=True, verbose_name=u'批次编号') #
 
     buyer = models.ForeignKey(User,
                               null=True,
@@ -230,6 +231,8 @@ class OrderList(models.Model):
     arrival_process = models.IntegerField(choices=ARRIVAL_CHOICES, default=ARRIVAL_NOT, verbose_name=u'到货处理')
     purchase_total_num = models.IntegerField(default=0, verbose_name=u'订购总件数')
     last_pay_date = models.DateField(null=True, blank=True, verbose_name=u'最后下单日期')
+
+    # receiver_address = models.ForeignKey('pay.UserAddress', null=True, verbose_name='收货人地址')
 
     ware_by = models.IntegerField(choices=WARE_CHOICES, default=WARE_NONE, verbose_name=u'收货仓')
     third_package = models.BooleanField(default=False, verbose_name=u'第三方发货')

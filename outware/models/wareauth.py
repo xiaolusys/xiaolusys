@@ -23,8 +23,8 @@ class OutwareAccount(BaseModel):
 
     nick  = models.CharField(max_length=16, blank=True, verbose_name=u'APP昵称')
 
-    app_id     = models.CharField(max_length=64, unique=True, default=gen_default_appid, verbose_name=u"APP ID")
-    app_secret = models.CharField(max_length=64, blank=True, verbose_name=u"APP SECRET")
+    app_id     = models.CharField(max_length=64, unique=True, default=gen_default_appid, verbose_name=u"回调APPID")
+    app_secret = models.CharField(max_length=64, blank=True, verbose_name=u"回调SECRET")
 
     sign_method = models.CharField(max_length=16, blank=True, default='md5', verbose_name=u'签名方法')
     extras = JSONCharMyField(max_length=512, default={}, verbose_name=u'附加信息')
@@ -36,7 +36,7 @@ class OutwareAccount(BaseModel):
         verbose_name_plural = u'外仓/对接APP'
 
     def __unicode__(self):
-        return '<%s>' % (self.id)
+        return '<%s, %s>' % (self.id, self.nick)
 
     def sign_verify(self, dict_params, sign):
         key_pairs = '&'.join(sorted(['%s=%s'%(k, v) for k, v in dict_params.iteritems()]))
@@ -44,3 +44,7 @@ class OutwareAccount(BaseModel):
             return hashlib.md5(key_pairs + self.app_secret).hexdigest() == sign
 
         return False
+
+    @classmethod
+    def get_fengchao_account(cls):
+        return cls.objects.first()

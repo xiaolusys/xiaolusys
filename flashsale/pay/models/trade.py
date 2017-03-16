@@ -297,6 +297,9 @@ class SaleTrade(BaseModel):
             'identification_no': user_addr and user_addr.identification_no or ''
         }
 
+    def get_useraddress_instance(self):
+        return UserAddress.objects.filter(id=self.user_address_id).first()
+
     def can_refund(self):
         return self.order_type == 0 and self.status in [SaleTrade.WAIT_SELLER_SEND_GOODS]
 

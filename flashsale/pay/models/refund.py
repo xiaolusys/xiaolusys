@@ -293,6 +293,11 @@ class SaleRefund(PayBaseModel):
 
         return BudgetLog.objects.filter(referal_id=self.id, budget_log_type=BudgetLog.BG_REFUND)
 
+    def get_warehouse_object(self):
+        from shopback.warehouse.models import WareHouse
+        return WareHouse.objects.filter(id=self.ware_by).first()
+
+
     @classmethod
     def create_salerefund(cls, saleorder, refund_num, refund_fee, reason, good_status=None,
                           desc='', refund_channel=None, proof_pic=None, creator=None):

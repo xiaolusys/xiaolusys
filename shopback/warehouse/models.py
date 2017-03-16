@@ -1,27 +1,43 @@
 # -*- coding:utf8 -*-
 from __future__ import unicode_literals
 
-import logging
+
+from django.db.models.signals import pre_save, post_save
 from django.utils.encoding import smart_unicode
 from django.db import models
 from django.db.models import Sum
+
 from core.models import AdminModel
 from shopback.warehouse import constants
 from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import ProductSku
-from django.db.models.signals import pre_save, post_save
+
+from core.fields import JSONCharMyField
+
+import logging
 logger = logging.getLogger(__name__)
 
 
 class WareHouse(models.Model):
     """ 仓库 """
 
+    store_code = models.CharField(max_length=32, db_index=True, default='',
+                                  verbose_name=u'仓库编码', help_text='后面应改为unique')
     ware_name = models.CharField(max_length=32, blank=True, verbose_name=u'仓库名')
+
+    manager  = models.CharField(max_length=16, blank=True, verbose_name='负责人')
+    province = models.CharField(max_length=32, blank=True, verbose_name=u'所在省')
     city = models.CharField(max_length=32, blank=True, verbose_name=u'所在城市')
-    address = models.TextField(max_length=256, blank=True, verbose_name=u'详细地址')
+    district = models.CharField(max_length=32, blank=True, verbose_name=u'所在区/县')
+    address = models.CharField(max_length=256, blank=True, verbose_name=u'详细地址')
+
+    mobile = models.CharField(max_length=11, blank=True, verbose_name=u'手机')
+    phone  = models.CharField(max_length=11, blank=True, verbose_name=u'电话')
 
     in_active = models.BooleanField(default=True, verbose_name=u'有效')
     extra_info = models.TextField(blank=True, verbose_name=u'备注')
+
+    extras = JSONCharMyField(max_length=512, default={}, verbose_name='附加信息')
 
     class Meta:
         db_table = 'shop_ware_house'
