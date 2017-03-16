@@ -1499,6 +1499,7 @@ def saleorder_notify_update(sender, instance, created, raw, **kwargs):
             'action': 'saleorder_post_save_commit',
             'action_time': datetime.datetime.now(),
             'order_oid': instance.oid,
+            'status': instance.status,
             'tid': instance.sale_trade.tid,
         })
         task_saleorder_post_update_send_signal.delay(
