@@ -70,9 +70,8 @@ class XlmmEffectScore(BaseModel):
     def batch_generate(stat_time=None):
         if not stat_time:
             stat_time = datetime.datetime.now()
-        # condition = {'charge_status': XiaoluMama.CHARGED, 'status': XiaoluMama.EFFECT,
-        #                                       'progress__in': [XiaoluMama.PAY, XiaoluMama.PASS]}
-        condition = {}
+        condition = {'charge_status': XiaoluMama.CHARGED, 'status': XiaoluMama.EFFECT}
+        # condition = {}
         mama_dict = XiaoluMama.get_customer_dict(condition)
 
         mama_list = mama_dict.items()
