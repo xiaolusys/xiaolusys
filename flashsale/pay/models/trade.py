@@ -1293,6 +1293,7 @@ class SaleOrder(PayBaseModel):
             mp = ModelProduct.objects.filter(id = p.model_id).first()
             if mp.source_type == 3:
                 return False
+            
         now_time = datetime.datetime.now()
         consign_time = self.consign_time
         sign_time = self.sign_time
