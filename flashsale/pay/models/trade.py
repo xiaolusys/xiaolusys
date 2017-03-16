@@ -458,8 +458,6 @@ class SaleTrade(BaseModel):
                 st.pay_time = charge_time or datetime.datetime.now()
                 st.save(update_fields=['status', 'pay_status', 'pay_time', 'charge'])
 
-                for order in st.sale_orders.all():
-                    order.set_status_paid(st.pay_time)
                 # 付款后订单被关闭，则加上锁定数
                 # if trade_close:
                 #     st.increase_lock_skunum()
@@ -472,17 +470,18 @@ class SaleTrade(BaseModel):
                 # 如果使用coupon支付,付款成功后则扣除
                 st.set_coupon_2_use_by_trade_confirm()
 
+                for order in self.sale_orders.all():
+                    order.set_status_paid(st.pay_time)
+                    if order.is_deposit() and order.status == SaleTrade.WAIT_SELLER_SEND_GOODS:
+                        order.status = SaleTrade.TRADE_FINISHED
+                        order.save(update_fields=['status'])
+
                 logger.info({
                     'action': 'trade_confirm_save',
                     'order_no': self.tid,
                     'status': self.status,
                     'action_time': datetime.datetime.now()
                 })
-
-            for order in self.sale_orders.all():
-                if order.is_deposit() and order.status == SaleTrade.WAIT_SELLER_SEND_GOODS:
-                    order.status = SaleTrade.TRADE_FINISHED
-                    order.save(update_fields=['status'])
 
         except Exception, exc:
             logger.error({
@@ -1193,6 +1192,8 @@ class SaleOrder(PayBaseModel):
     def set_status_paid(self, pay_time):
         from shopback.trades.models import SkuStock
         self.status = self.WAIT_SELLER_SEND_GOODS
+        if self.is_deposit():
+            self.status = SaleTrade.TRADE_FINISHED
         self.pay_time = pay_time
         self.save()
 
