@@ -134,7 +134,7 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = self.order_queryset(queryset, order_by=order_by)
         onshelf_qs = queryset.filter(shelf_status=ModelProduct.ON_SHELF, product_type=ModelProduct.USUAL_TYPE)
         q_filter = Q()
-        cids =  [(c.find('-') > 0 and c and '%s-'%c) for c in cid_str.split(',') if c]
+        cids =  [(c.find('-') > 0 and c or '%s-'%c) for c in cid_str.split(',') if c]
         for cid in cids:
             q_filter = q_filter | Q(salecategory__cid__startswith=cid)
 
