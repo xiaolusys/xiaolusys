@@ -15,7 +15,6 @@ from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework import renderers
 from rest_framework.response import Response
 from rest_framework import filters
-
 from core.options import log_action, ADDITION, CHANGE
 from flashsale.pay.models import ModelProduct, Productdetail
 from flashsale.pay.models import default_modelproduct_extras_tpl
@@ -495,8 +494,8 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         request.data.update({
             'saleproduct': saleproduct.id,
             'salecategory': saleproduct.sale_category.id,
-            'is_boutique': sale_extras.get('is_boutique',False),
-            'product_type':sale_extras.get('product_type', 1),
+            'is_boutique': sale_extras.get('is_boutique', False),
+            'product_type': sale_extras.get('product_type', 1),
         })
 
         serializer = serializers.ModelProductUpdateSerializer(data=request.data, partial=True)
