@@ -2,6 +2,7 @@
 from __future__ import absolute_import, unicode_literals
 
 # TODO@MERON 库存调整记录，商品库存信息
+import datetime
 from django.db import models, transaction
 from core.fields import JSONCharMyField
 from .base import BaseWareModel
@@ -22,6 +23,8 @@ class OutwareSkuStock(BaseWareModel):
     package_num = models.IntegerField(default=0, verbose_name=u'发货数量')
     refund_num  = models.IntegerField(default=0, verbose_name=u'退货数量')
     adjust_num  = models.IntegerField(default=0, verbose_name=u'调整数量', help_text=u'跟库存调整值关联')
+
+    last_pull_time = models.DateTimeField(null=False, default=datetime.datetime.now, db_index=True, verbose_name=u'库存最后更新日期')
 
     class Meta:
         db_table = 'outware_skustock'

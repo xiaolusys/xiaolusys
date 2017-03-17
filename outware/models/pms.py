@@ -37,6 +37,7 @@ class OutwareSku(BaseWareModel):
     sku_code = models.CharField(max_length=64, db_index=True, verbose_name=u'内部SKU编号')
     ware_sku_code = models.CharField(max_length=64, db_index=True, verbose_name=u'外部SKU编号')
 
+    is_unioned = models.BooleanField(default=False, verbose_name=u'是否同步供应商与sku关系')
     uni_key = models.CharField(max_length=128, unique=True, verbose_name=u'唯一标识')
     extras = JSONCharMyField(max_length=1024, default={}, verbose_name=u'附加信息') #商品的基础资料及款式信息
 
@@ -52,6 +53,9 @@ class OutwareSku(BaseWareModel):
 
     def set_ware_sku_code(self, ware_sku_code):
         self.ware_sku_code = ware_sku_code
+
+    def finish_unioned(self):
+        self.is_unioned =True
 
 
 

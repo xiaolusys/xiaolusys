@@ -5,6 +5,8 @@ from core.apis import DictObject
 from outware.adapter.ware.pull import pms
 from .... import constants
 
+from ....tasks import task_outware_union_supplier_and_sku
+
 def push_ware_sku_by_saleproduct(sale_product):
 
     vendor_code = sale_product.sale_supplier.vendor_code
@@ -25,9 +27,12 @@ def push_ware_sku_by_saleproduct(sale_product):
             }
             # TODO@MERON ,现默认所有SKU为商品类型，没有区分赠品包材
             dict_params = DictObject().fresh_form_data(params)
-            resp = pms.create_and_union_sku_and_supplier(sku_code, vendor_code, dict_params)
+            resp = pms.create_sku_and_supplier(sku_code, vendor_code, dict_params)
             if resp.get('success'):
                 success_skucode_list.append(sku_code)
+
+    #　十秒后执行union操作
+    task_outware_union_supplier_and_sku.apply_async(countdown=10)
 
     return success_skucode_list
 

@@ -6,7 +6,7 @@ import json
 import requests
 
 from ... import constants
-from ...utils import action_decorator
+from outware.models.base import log_ware_action
 
 from .exceptions import FengchaoApiException
 
@@ -42,9 +42,10 @@ def request_getway(data, notify_type, account):
     return content
 
 
-@action_decorator(constants.ATION_ORDER_CHANNEL_CREATE['code'])
+# @action_decorator(constants.ATION_ORDER_CHANNEL_CREATE['code'])
 def create_fengchao_order_channel(channel_client_id, channel_name, channel_type, channel_id):
     """　创建蜂巢订单来源渠道 """
+    # TODO 该方法已失效，channelid 通过两个商议来对接
 
     from ..models import FengchaoOrderChannel
     from outware.models import OutwareAccount
@@ -76,3 +77,33 @@ def create_fengchao_order_channel(channel_client_id, channel_name, channel_type,
     channel.save()
 
     return {'success': True, 'object': channel, 'message': '' }
+
+
+def get_skustock_by_qureyparams(sku_codes, vendor_code=None):
+    """　创建蜂巢订单来源渠道 """
+    if not sku_codes:
+        return []
+
+    from outware.models import OutwareAccount
+    ware_account = OutwareAccount.get_fengchao_account()
+
+    sku_querys = {'skus':[]}
+    if vendor_code:
+        sku_querys['vendor_code'] = vendor_code
+
+    for sku_code in sku_codes:
+        sku_querys['skus'].append({
+            'sku_id': sku_code,
+            'sku_type': 20
+        })
+
+    action_code = constants.ACTION_SKU_STOCK_PULL['code']
+
+    try:
+        resp = request_getway(sku_querys, action_code, ware_account)
+    except Exception, exc:
+        logger.error(str(exc), exc_info=True)
+        log_ware_action(action_code, state_code=constants.ERROR, message=str(exc))
+        return []
+
+    return resp['inventory']

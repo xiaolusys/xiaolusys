@@ -28,7 +28,6 @@ def update_outware_inbound_by_po_confirm(inbound_code, order_type, dict_obj):
     ow_inbound.status = constants.ARRIVED
     ow_inbound.save()
 
-    store_code = ow_inbound.store_code
     for inbound_sku in dict_obj.inbound_skus:
         ow_sku, state = OutwareInboundSku.objects.get_or_create(
             outware_inboind=ow_inbound,
@@ -41,7 +40,6 @@ def update_outware_inbound_by_po_confirm(inbound_code, order_type, dict_obj):
 
     # secondly, update outware skustock qty
     for inbound_sku in dict_obj.inbound_skus:
-        supplier = ow_inbound.outware_supplier
         skustock, state = OutwareSkuStock.objects.get_or_create(
             sku_code=inbound_sku.sku_code
         )

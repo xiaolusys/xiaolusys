@@ -40,15 +40,14 @@ def create_supplier(vendor_code, dict_obj):
 
 
 @action_decorator(constants.ACTION_SKU_CREATE['code'])
-def create_and_union_sku_and_supplier(sku_code, vendor_code, dict_obj):
+def create_sku_and_supplier(sku_code, vendor_code, dict_obj):
     # 包含sku信息以及与供应商的关系
 
     ware_account = OutwareAccount.get_fengchao_account()
-
     ow_supplier = OutwareSupplier.objects.get(outware_account=ware_account, vendor_code=vendor_code)
 
     try:
-        action_code = constants.ACTION_SKU_EDIT['code']#ACTION_SKU_CREATE['code']
+        action_code = constants.ACTION_SKU_CREATE['code']
         with transaction.atomic():
             # for solution of An error occurred in the current transaction.
             # You can't execute queries until the end of the 'atomic' block
@@ -75,21 +74,30 @@ def create_and_union_sku_and_supplier(sku_code, vendor_code, dict_obj):
         ow_sku.set_ware_sku_code(resp.get('sku_id'))
         ow_sku.save()
 
-    if action_code == constants.ACTION_SKU_CREATE['code']:
-        # 创建sku与供应商关联
-        try:
-            sdks.request_getway(
-                {
-                    'vendor_name': ow_supplier.vendor_name,
-                    'vendor_code': ow_supplier.vendor_code,
-                    'sku_code': dict_obj.sku_code,
-                 },
-                constants.ACTION_UNION_SKU_AND_SUPPLIER['code'], ware_account)
-        except Exception, exc:
-            logger.error(str(exc), exc_info=True)
-            return {'success': False, 'object': ow_sku, 'message': str(exc)}
+    return {'success': True, 'object': ow_sku, 'message': ''}
+
+
+@action_decorator(constants.ACTION_UNION_SKU_AND_SUPPLIER['code'])
+def union_sku_and_supplier(ow_sku):
+    # 创建sku与供应商关联
+    ware_account = OutwareAccount.get_fengchao_account()
+    ow_supplier  = ow_sku.outware_supplier
+    try:
+        sdks.request_getway(
+            {
+                'vendor_name': ow_supplier.vendor_name,
+                'vendor_code': ow_supplier.vendor_code,
+                'sku_code': ow_sku.sku_code,
+            },
+            constants.ACTION_UNION_SKU_AND_SUPPLIER['code'], ware_account)
+    except Exception, exc:
+        logger.error(str(exc), exc_info=True)
+        return {'success': False, 'object': ow_sku, 'message': str(exc)}
+    # 确定sku还有供应商已关联
+    ow_sku.finish_unioned()
 
     return {'success': True, 'object': ow_sku, 'message': ''}
+
 
 @action_decorator(constants.ACTION_PO_CREATE['code'])
 def create_inbound_order(inbound_code, vendor_code, dict_obj):

@@ -2,7 +2,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import datetime
-
+import json
 from rest_framework import viewsets
 from rest_framework import authentication, permissions
 from rest_framework.decorators import detail_route, list_route
@@ -36,22 +36,24 @@ class FengchaoCallbackViewSet(viewsets.GenericViewSet):
         return Response({'code': 0, 'info': 'success'})
 
     def verify_request(self, data):
-        owapp = OutwareAccount.objects.get(app_id=data.get('app_id'))
-        sign = data.pop('sign')
+        print 'verify_request:', data
+        owapp = OutwareAccount.objects.get(app_id=data.get('app_id',''))
+        sign = data.get('sign', '')
         return owapp.sign_verify(data, sign)
 
     @list_route(methods=['POST'])
     def po_confirm(self, request, *args, **kwargs):
-        data = request.POST.dict()
-        if not self.verify_request(data):
+        req_data = request.POST.dict()
+        if not self.verify_request(req_data):
             return Response({'code': 1, 'info': '签名无效'})
 
+        data = json.loads(req_data['data'])
         order_code = data['order_code']
         logger.info({
             'action': 'fengchao_poconfirm',
             'action_time': datetime.datetime.now(),
             'order_no': order_code,
-            'data': data,
+            'data': req_data,
         })
 
         order_type = (constants.ORDER_PURCHASE['code'], constants.ORDER_REFUND['code']
@@ -102,7 +104,7 @@ class FengchaoCallbackViewSet(viewsets.GenericViewSet):
             return Response({'code': 1, 'info': '签名无效'})
 
         oms.update_outware_order_by_order_delivery(data['order_number'], data['status'])
-
+        print 'order_state:', data
         return Response({'code': 0, 'info': 'success'})
 
     @list_route(methods=['POST'])
@@ -123,7 +125,7 @@ class FengchaoCallbackViewSet(viewsets.GenericViewSet):
         data = request.POST.dict()
         if not self.verify_request(data):
             return Response({'code': 1, 'info': '签名无效'})
-
+        print 'order_goodlack:', data
         oms.update_outware_order_by_order_delivery(data['order_number'], data['status'])
 
         return Response({'code': 0, 'info': 'success'})
@@ -134,6 +136,7 @@ class FengchaoCallbackViewSet(viewsets.GenericViewSet):
         if not self.verify_request(data):
             return Response({'code': 1, 'info': '签名无效'})
 
+        print 'order_delivery:', data
         order_code = data['order_code']
         logger.info({
             'action': 'package_delivery',

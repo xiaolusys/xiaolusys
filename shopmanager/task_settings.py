@@ -762,6 +762,13 @@ BOUTIQUE_ROUTES = {
     },
 }
 
+OUTWARE_ROUTES = {
+    'outware.tasks.async.task_outware_union_supplier_and_sku': {
+        'queue': 'outware',
+        'routing_key': 'outware.task_outware_union_supplier_and_sku',
+    },
+}
+
 CELERY_ROUTES = {
     'flashsale.xiaolumm.tasks.base.task_Push_Pending_Carry_Cash': {
         'queue': 'peroid',
@@ -977,6 +984,7 @@ CELERY_ROUTES.update(DINGHUO_ROUTES)
 CELERY_ROUTES.update(QRCODE_ROUTES)
 CELERY_ROUTES.update(BOUTIQUE_ROUTES)
 CELERY_ROUTES.update(XIAOLUPAY_ROUTES)
+CELERY_ROUTES.update(OUTWARE_ROUTES)
 
 CELERY_TASK_ROUTES = CELERY_ROUTES
 
@@ -1617,6 +1625,7 @@ WDT_SCHEDULE = {
     }
 
 }
+
 # 业务指数据标监控任务
 STATSD_SCHEDULE = {
     u'每分钟发送任务队列待处理消息数量': {
