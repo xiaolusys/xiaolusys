@@ -1518,6 +1518,13 @@ def saleorder_notify_update(sender, instance, created, raw, **kwargs):
             created,
             raw
         )
+        logger.info({
+            'action': 'saleorder_post_save_commit end',
+            'action_time': datetime.datetime.now(),
+            'order_oid': instance.oid,
+            'status': instance.status,
+            'tid': instance.sale_trade.tid,
+        })
 
     transaction.on_commit(_trans_commit_send_signal)
 
