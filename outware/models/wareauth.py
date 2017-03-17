@@ -41,7 +41,9 @@ class OutwareAccount(BaseModel):
     def sign_verify(self, dict_params, sign):
         key_pairs = '&'.join(sorted(['%s=%s'%(k, v) for k, v in dict_params.iteritems()]))
         if self.sign_method == 'md5':
-            return hashlib.md5(key_pairs + self.app_secret).hexdigest() == sign
+            ow_sign = hashlib.md5(key_pairs + self.app_secret).hexdigest()
+            logger.info('小鹿sign:%s'%ow_sign)
+            return ow_sign == sign
 
         return False
 

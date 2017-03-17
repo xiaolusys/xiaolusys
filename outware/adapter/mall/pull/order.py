@@ -14,3 +14,7 @@ def update_saletrade_by_outware_packages(order_code, dict_obj):
 
 def update_salerefund_by_outware_inbound(order_code, dict_obj):
     pass
+
+
+def update_outware_order_by_goodlack_notify(order_code, dict_obj):
+    pass

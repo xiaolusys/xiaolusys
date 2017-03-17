@@ -15,6 +15,7 @@ class OutwareOrder(BaseWareModel):
     STATUS_CHOICES = (
         (constants.NORMAL,   '待推送'),
         (constants.RECEIVED, '已接单'),
+        (constants.LACKGOODS, '订单缺货'),
         (constants.PACKING, '打包中'),
         (constants.LOADING, '装车中'),
         (constants.SENDED,  '已发货'),
@@ -29,7 +30,6 @@ class OutwareOrder(BaseWareModel):
 
     status = models.SmallIntegerField(db_index=True, default=constants.NORMAL,
                                       choices=STATUS_CHOICES, verbose_name='订单状态')
-
     uni_key = models.CharField(max_length=128, unique=True, verbose_name=u'唯一标识' )
     extras  = JSONCharMyField(max_length=1024, default={}, verbose_name=u'附加信息')
 

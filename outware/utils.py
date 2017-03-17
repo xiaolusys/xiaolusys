@@ -12,7 +12,7 @@ def action_decorator(action_code):
     def _func(func):
         def _wrapper(*args, **kwargs):
             resp = func(*args, **kwargs)
-            if resp.get('object'):
+            if resp and resp.get('object'):
                 log_ware_action(
                     resp.get('object'),
                     action_code,

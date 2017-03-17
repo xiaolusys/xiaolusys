@@ -28,7 +28,7 @@ def update_outware_order_by_order_delivery(order_code, order_type, dict_obj):
         )
 
         if not state:
-            return
+            continue
 
         ow_package.package_order_code = order_code
         ow_package.package_type = order_type
@@ -72,10 +72,31 @@ def update_outware_order_by_order_delivery(order_code, order_type, dict_obj):
 @transaction.atomic
 def update_outware_order_by_order_state_change(order_code, order_status):
 
-    ow_order = OutwareOrder.objects.filter(order_code=order_code)
+    ow_order = OutwareOrder.objects.get(union_order_code=order_code)
     success = ow_order.change_order_status(order_status)
 
-    return {'success': True, 'object': ow_order,
-            'message': not success and 'unchangeable status: %s(cur: %s)'%(
-                dict(OutwareOrder.STATUS_CHOICES).get(order_code), ow_order.get_status_display()) or ''}
+    message = ''
+    if success:
+        message = 'unchangeable status: %s(cur: %s)'%(
+                dict(OutwareOrder.STATUS_CHOICES).get(order_code), ow_order.get_status_display())
+
+    return {'success': True, 'object': ow_order, 'message': message}
+
+
+@action_decorator(constants.ACTION_ORDER_GOODLACK_FEEDBACK['code'])
+@transaction.atomic
+def update_outware_order_by_order_goodlacks(order_code, lack_goods):
+    ow_order = OutwareOrder.objects.get(union_order_code=order_code)
+    try:
+        ow_order.extras['lackgoods'] = dict(lack_goods)
+        ow_order.change_order_status(constants.LACKGOODS)
+        ow_order.save()
+
+        order.update_outware_order_by_goodlack_notify(order_code, lack_goods)
+    except Exception, exc:
+        logger.error(str(exc), exc_info=True)
+        return {'success': False, 'object': ow_order, 'message': str(exc)}
+
+    return {'success': True, 'object': ow_order, 'message': ''}
+
 

@@ -6,7 +6,8 @@ ERROR = 2
 
 NORMAL  = 1
 RECEIVED = 2
-ARRIVED = 3
+LACKGOODS = 3
+ARRIVED = 4
 PACKING = 50
 LOADING = 65
 SENDED  = 80
@@ -40,9 +41,10 @@ ACTION_PO_RETURN_FEEDBACK = {'code': 306, 'name': '退仓出库回调'}
 ACTION_ORDER_CREATE = {'code': 20, 'name': '推送订单'}
 ACTION_ORDER_CANCEL = {'code': 21, 'name': '取消订单'}
 ACTION_ORDER_REFUND = {'code': 23, 'name': '创建销退单'}
-ACTION_ORDER_SEND_FEEDBACK   = {'code': 404, 'name': '订单发货回调'}
-ACTION_ORDER_STATE_FEEDBACK  = {'code': 405, 'name': '订单状态变更回调'}
-ACTION_ORDER_RETURN_FEEDBACK = {'code': 406, 'name': '销退入库回调'}
+ACTION_ORDER_SEND_FEEDBACK   = {'code': 101, 'name': '订单发货回调'}
+ACTION_ORDER_STATE_FEEDBACK  = {'code': 102, 'name': '订单状态变更回调'}
+ACTION_ORDER_RETURN_FEEDBACK = {'code': 103, 'name': '销退入库回调'}
+ACTION_ORDER_GOODLACK_FEEDBACK  = {'code': 104, 'name': '订单缺货回调'}
 
 ATION_ORDER_CHANNEL_CREATE   = {'code': 150, 'name': '销售渠道创建'}
 

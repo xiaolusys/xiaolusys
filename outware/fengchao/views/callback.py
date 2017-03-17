@@ -36,25 +36,23 @@ class FengchaoCallbackViewSet(viewsets.GenericViewSet):
         return Response({'code': 0, 'info': 'success'})
 
     def verify_request(self, data):
-        print 'verify_request:', data
-        owapp = OutwareAccount.objects.get(app_id=data.get('app_id',''))
-        sign = data.get('sign', '')
-        return owapp.sign_verify(data, sign)
+        owapp = OutwareAccount.objects.filter(app_id=data.get('app_id','')).first()
+        sign = data.pop('sign', '')
+        return owapp and owapp.sign_verify(data, sign) or False
 
     @list_route(methods=['POST'])
     def po_confirm(self, request, *args, **kwargs):
         req_data = request.POST.dict()
+        logger.info({
+            'action': 'fengchao_poconfirm',
+            'action_time': datetime.datetime.now(),
+            'data': req_data,
+        })
         if not self.verify_request(req_data):
             return Response({'code': 1, 'info': '签名无效'})
 
         data = json.loads(req_data['data'])
         order_code = data['order_code']
-        logger.info({
-            'action': 'fengchao_poconfirm',
-            'action_time': datetime.datetime.now(),
-            'order_no': order_code,
-            'data': req_data,
-        })
 
         order_type = (constants.ORDER_PURCHASE['code'], constants.ORDER_REFUND['code']
             )[data['order_type'].lower() == 'refund' and 1 or 0]
@@ -82,7 +80,7 @@ class FengchaoCallbackViewSet(viewsets.GenericViewSet):
             logging.error(str(exc), exc_info=True)
             return Response({'code': 1, 'info': str(exc)})
 
-        return Response({'code': resp['success'] and 1 or 0, 'info': resp['message']})
+        return Response({'code': not resp['success'] and 1 or 0, 'info': resp.get('message','')})
 
     @list_route(methods=['POST'])
     def order_state(self, request, *args, **kwargs):
@@ -99,12 +97,22 @@ class FengchaoCallbackViewSet(viewsets.GenericViewSet):
         Sended(80, "已发货"),
         received(85, "收货确认"),
         """
-        data = request.POST.dict()
-        if not self.verify_request(data):
+        req_data = request.POST.dict()
+        logger.info({
+            'action': 'fengchao_orderstate',
+            'action_time': datetime.datetime.now(),
+            'data': req_data,
+        })
+        if not self.verify_request(req_data):
             return Response({'code': 1, 'info': '签名无效'})
 
-        oms.update_outware_order_by_order_delivery(data['order_number'], data['status'])
-        print 'order_state:', data
+        try:
+            data = json.loads(req_data['data'])
+            oms.update_outware_order_by_order_state_change(data['order_number'], data['status'])
+        except Exception, exc:
+            logging.error(str(exc), exc_info=True)
+            return Response({'code': 1, 'info': str(exc)})
+
         return Response({'code': 0, 'info': 'success'})
 
     @list_route(methods=['POST'])
@@ -122,21 +130,46 @@ class FengchaoCallbackViewSet(viewsets.GenericViewSet):
             ]
         }
         """
-        data = request.POST.dict()
-        if not self.verify_request(data):
+        req_data = request.POST.dict()
+        logger.info({
+            'action': 'fengchao_goodlack',
+            'action_time': datetime.datetime.now(),
+            'data': req_data,
+        })
+        if not self.verify_request(req_data):
             return Response({'code': 1, 'info': '签名无效'})
-        print 'order_goodlack:', data
-        oms.update_outware_order_by_order_delivery(data['order_number'], data['status'])
+
+        try:
+            data = json.loads(req_data['data'])
+            params = {
+                'order_code': data['order_number'],
+                'lack_goods': [],
+                'object': 'OutWareLackOrder'
+            }
+            for good in data['lack_goods']:
+                good.update({'object': 'OutWareLackOrderGood'})
+                params['lack_goods'].append(good)
+
+            dict_params = DictObject().fresh_form_data(params)
+            oms.update_outware_order_by_order_goodlacks(data['order_number'], dict_params)
+        except Exception, exc:
+            logging.error(str(exc), exc_info=True)
+            return Response({'code': 1, 'info': str(exc)})
 
         return Response({'code': 0, 'info': 'success'})
 
     @list_route(methods=['POST'])
     def order_delivery(self, request, *args, **kwargs):
-        data = request.POST.dict()
-        if not self.verify_request(data):
+        req_data = request.POST.dict()
+        logger.info({
+            'action': 'fengchao_orderdelivery',
+            'action_time': datetime.datetime.now(),
+            'data': req_data,
+        })
+        if not self.verify_request(req_data):
             return Response({'code': 1, 'info': '签名无效'})
 
-        print 'order_delivery:', data
+        data = json.loads(req_data['data'])
         order_code = data['order_code']
         logger.info({
             'action': 'package_delivery',
@@ -151,7 +184,7 @@ class FengchaoCallbackViewSet(viewsets.GenericViewSet):
         params = {
             'order_code': order_code,
             'order_type': order_type,
-            'pacakges': [],
+            'packages': [],
             'object': 'OutwareObject',
         }
         for package in data['packages']:
@@ -178,7 +211,7 @@ class FengchaoCallbackViewSet(viewsets.GenericViewSet):
             logging.error(str(exc), exc_info=True)
             return Response({'code': 1, 'info': str(exc)})
 
-        return Response({'code': resp['success'] and 1 or 0, 'info': resp['message']})
+        return Response({'code': not resp['success'] and 1 or 0, 'info': resp['message']})
 
 
 
