@@ -106,6 +106,29 @@ class FengchaoCallbackViewSet(viewsets.GenericViewSet):
         return Response({'code': 0, 'info': 'success'})
 
     @list_route(methods=['POST'])
+    def order_goodlack(self, request, *args, **kwargs):
+        """
+        return :
+        {
+            'order_number': xxxx,
+            'lack_goods': [
+                {
+                    'sku_code': xxx,
+                    'sku_name': xxx,
+                    'lack_qty': 1
+                }
+            ]
+        }
+        """
+        data = request.POST.dict()
+        if not self.verify_request(data):
+            return Response({'code': 1, 'info': '签名无效'})
+
+        oms.update_outware_order_by_order_delivery(data['order_number'], data['status'])
+
+        return Response({'code': 0, 'info': 'success'})
+
+    @list_route(methods=['POST'])
     def order_delivery(self, request, *args, **kwargs):
         data = request.POST.dict()
         if not self.verify_request(data):
@@ -153,6 +176,8 @@ class FengchaoCallbackViewSet(viewsets.GenericViewSet):
             return Response({'code': 1, 'info': str(exc)})
 
         return Response({'code': resp['success'] and 1 or 0, 'info': resp['message']})
+
+
 
 
 

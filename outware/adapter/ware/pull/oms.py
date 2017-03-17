@@ -1,7 +1,7 @@
 # coding: utf8
 from __future__ import absolute_import, unicode_literals
 
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from outware.fengchao import sdks
 
 from ....models import (
@@ -29,28 +29,54 @@ def create_order(order_code, store_code, dict_obj):
 
     order_type = dict_obj.order_type
     with transaction.atomic():
-        ow_order = OutwareOrder.objects.create(
-            outware_account=ware_account,
-            store_code=store_code,
-            union_order_code=order_code,
-            order_type=order_type,
-            extras={'data': dict(dict_obj)},
-            uni_key=OutwareOrder.generate_unikey(ware_account.id, order_code),
-        )
+        try:
+            ow_order = OutwareOrder.objects.create(
+                outware_account=ware_account,
+                store_code=store_code,
+                union_order_code=order_code,
+                order_type=order_type,
+                extras={'data': dict(dict_obj)},
+                uni_key=OutwareOrder.generate_unikey(ware_account.id, order_code, order_type),
+            )
+        except IntegrityError:
+            ow_order = OutwareOrder.objects.get(
+                outware_account=ware_account,
+                union_order_code=order_code,
+                order_type=order_type
+            )
+            if not ow_order.is_reproducible():
+                raise Exception('该订单已存在，请先取消后重新创建:order_code=%s'%order_code)
+
+            ow_order.extras['data'] = dict(dict_obj)
+            ow_order.save()
 
         for sku_item in dict_obj.order_items:
             sku_order_code = sku_item.sku_order_code
             ow_sku = OutwareSku.objects.filter(sku_code=sku_item.sku_id).first()
             if not ow_sku:
                 raise Exception('供应商商品规格信息未录入:sku_code=%s'%sku_item.sku_id)
-            OutwareOrderSku.objects.create(
-                outware_account=ware_account,
-                union_order_code=order_code,
-                origin_skuorder_no=sku_order_code,
-                sku_code=sku_item.sku_id,
-                sku_qty=sku_item.quantity,
-                uni_key=OutwareOrderSku.generate_unikey(ware_account.id, sku_order_code),
-            )
+            try:
+                OutwareOrderSku.objects.create(
+                    outware_account=ware_account,
+                    union_order_code=order_code,
+                    origin_skuorder_no=sku_order_code,
+                    sku_code=sku_item.sku_id,
+                    sku_qty=sku_item.quantity,
+                    uni_key=OutwareOrderSku.generate_unikey(ware_account.id, sku_order_code),
+                )
+            except IntegrityError:
+                ow_ordersku = OutwareOrderSku.objects.get(
+                    outware_account=ware_account,
+                    sku_order_code=sku_order_code,
+                    sku_code=sku_item.sku_id
+                )
+                if not ow_ordersku.is_reproducible():
+                    raise Exception('该SKU订单已存在，请先取消后重新创建:sku_order_code=%s' % sku_order_code)
+
+                ow_ordersku.is_valid = True
+                ow_ordersku.union_order_code = order_code
+                ow_ordersku.sku_qty = sku_item.quantity
+                ow_ordersku.save()
 
     try:
         sdks.request_getway(dict(dict_obj), constants.ACTION_ORDER_CREATE['code'], ware_account)

@@ -13,7 +13,7 @@ class OutwareOrder(BaseWareModel):
     ORDER_TYPE_CHOICES = ((s['code'], s['name']) for s in [constants.ORDER_SALE, constants.ORDER_RETURN])
 
     STATUS_CHOICES = (
-        (constants.NORMAL,   '已推单'),
+        (constants.NORMAL,   '待推送'),
         (constants.RECEIVED, '已接单'),
         (constants.PACKING, '打包中'),
         (constants.LOADING, '装车中'),
@@ -25,7 +25,7 @@ class OutwareOrder(BaseWareModel):
 
     order_type = models.IntegerField(db_index=True, choices=ORDER_TYPE_CHOICES, verbose_name=u'包裹类型')
     store_code = models.CharField(max_length=32, blank=True, db_index=True, verbose_name=u'外部仓库编号')
-    union_order_code = models.CharField(max_length=32, blank=True, db_index=True, verbose_name=u'组合订单编号')
+    union_order_code = models.CharField(max_length=64, blank=True, db_index=True, verbose_name=u'组合订单编号')
 
     status = models.SmallIntegerField(db_index=True, default=constants.NORMAL,
                                       choices=STATUS_CHOICES, verbose_name='订单状态')
@@ -40,28 +40,44 @@ class OutwareOrder(BaseWareModel):
         verbose_name_plural = u'外仓/推送订单'
 
     @classmethod
-    def generate_unikey(self, account_id, order_code):
-        return '{order_code}-{account_id}'.format(
-            order_code=order_code, account_id=account_id)
+    def generate_unikey(self, account_id, order_code, order_type):
+        return '{order_code}-{order_type}-{account_id}'.format(
+            order_code=order_code, order_type=order_type, account_id=account_id)
+
+    @property
+    def order_skus(self):
+        return OutwareOrderSku.objects.filter(union_order_code=self.union_order_code, is_valid=True)
+
+    def is_reproducible(self):
+        return self.status == constants.CANCEL
 
     def change_order_status(self, status_code):
+
         if self.status < int(status_code):
             self.status = status_code
             self.save()
+
+            for order_sku in self.order_skus:
+                order_sku.set_invalid()
+                order_sku.save()
+
             return True
         return False
 
 
 class OutwareOrderSku(BaseWareModel):
     """ 实际推送给外仓的组合销售订单sku """
+
     outware_account = models.ForeignKey('outware.OutwareAccount', verbose_name=u'关联账号')
 
-    union_order_code = models.CharField(max_length=32, blank=True, db_index=True, verbose_name=u'关联组合订单编号')
+    union_order_code = models.CharField(max_length=64, blank=True, db_index=True, verbose_name=u'关联组合订单编号')
 
     origin_skuorder_no  = models.CharField(max_length=32, db_index=True, verbose_name=u'原始SKU订单编号')
 
     sku_code = models.CharField(max_length=64, blank=True, db_index=True, verbose_name=u'内部SKU编号')
     sku_qty  = models.IntegerField(default=0, verbose_name=u'推送订单SKU数量')
+
+    is_valid  = models.BooleanField(default=True, db_index=True, verbose_name=u'是否有效')
 
     uni_key = models.CharField(max_length=128, unique=True, verbose_name=u'唯一标识' )
     extras  = JSONCharMyField(max_length=1024, default={}, verbose_name=u'附加信息')
@@ -75,6 +91,16 @@ class OutwareOrderSku(BaseWareModel):
     @classmethod
     def generate_unikey(self, account_id, origin_skuorder_no):
         return '{origin_skuorder_no}-{account_id}'.format(origin_skuorder_no=origin_skuorder_no, account_id=account_id)
+
+    def set_invalid(self):
+        self.is_valid = False
+
+
+    def set_valid(self):
+        self.is_valid = True
+        
+    def is_reproducible(self):
+        return self.is_valid == False
 
 
 class OutwarePackage(BaseWareModel):

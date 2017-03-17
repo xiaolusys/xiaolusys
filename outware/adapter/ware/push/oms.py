@@ -50,15 +50,8 @@ def update_outware_order_by_order_delivery(order_code, order_type, dict_obj):
             if not inbound_sku:
                 logger.error('未找到出库包裹商品对应的入库批次:batch_no=%s, sku_code=%s'%(item.batch_no, item.sku_code))
                 continue
-            store_code = inbound_sku.outware_inboind.store_code
-            supplier = inbound_sku.outware_inboind.outware_supplier
             skustock, state = OutwareSkuStock.objects.get_or_create(
-                outware_supplier=supplier,
-                store_code=store_code,
-                sku_code=inbound_sku.sku_code,
-                batch_no=inbound_sku.batch_no,
-                uni_key=OutwareSkuStock.generate_unikey(
-                    supplier.id, store_code, inbound_sku.sku_code, inbound_sku.batch_no)
+                sku_code=inbound_sku.sku_code
             )
             # TODO 目前库存控制默认只支持所有的正品数量, 如果要处理次品问题需要对订单做处理
             skustock.minus_good_available_qty(item.sku_qty)

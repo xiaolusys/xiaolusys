@@ -46,19 +46,27 @@ def create_and_union_sku_and_supplier(sku_code, vendor_code, dict_obj):
     ware_account = OutwareAccount.get_fengchao_account()
 
     ow_supplier = OutwareSupplier.objects.get(outware_account=ware_account, vendor_code=vendor_code)
+
     try:
-        ow_sku = OutwareSku.objects.create(
-            outware_supplier=ow_supplier,
-            sku_code=sku_code,
-            extras={'data': dict(dict_obj)},
-            uni_key=OutwareSku.generate_unikey(ware_account.id, sku_code),
-        )
+        action_code = constants.ACTION_SKU_EDIT['code']#ACTION_SKU_CREATE['code']
+        with transaction.atomic():
+            # for solution of An error occurred in the current transaction.
+            # You can't execute queries until the end of the 'atomic' block
+            ow_sku = OutwareSku.objects.create(
+                outware_supplier=ow_supplier,
+                sku_code=sku_code,
+                extras={'data': dict(dict_obj)},
+                uni_key=OutwareSku.generate_unikey(ow_supplier.id, sku_code),
+            )
     except IntegrityError:
-        ow_sku = OutwareSku.objects.get(outware_account=ware_account, sku_code=sku_code)
+        action_code = constants.ACTION_SKU_EDIT['code']
+        ow_sku = OutwareSku.objects.get(outware_supplier=ow_supplier, sku_code=sku_code)
+        ow_sku.extras['data'] = dict(dict_obj)
+        ow_sku.save()
 
     # 创建sku
     try:
-        resp = sdks.request_getway(dict(dict_obj), constants.ACTION_SKU_CREATE['code'], ware_account)
+        resp = sdks.request_getway(dict(dict_obj), action_code, ware_account)
     except Exception, exc:
         logger.error(str(exc), exc_info=True)
         return {'success': False, 'object': ow_sku, 'message': str(exc)}
@@ -67,18 +75,19 @@ def create_and_union_sku_and_supplier(sku_code, vendor_code, dict_obj):
         ow_sku.set_ware_sku_code(resp.get('sku_id'))
         ow_sku.save()
 
-    # 创建sku与供应商关联
-    try:
-        sdks.request_getway(
-            {
-                'vendor_name': ow_supplier.vendor_name,
-                'vendor_code': ow_supplier.vendor_code,
-                'sku_code': dict_obj.sku_code,
-             },
-            constants.ACTION_UNION_SKU_AND_SUPPLIER['code'], ware_account)
-    except Exception, exc:
-        logger.error(str(exc), exc_info=True)
-        return {'success': False, 'object': ow_sku, 'message': str(exc)}
+    if action_code == constants.ACTION_SKU_CREATE['code']:
+        # 创建sku与供应商关联
+        try:
+            sdks.request_getway(
+                {
+                    'vendor_name': ow_supplier.vendor_name,
+                    'vendor_code': ow_supplier.vendor_code,
+                    'sku_code': dict_obj.sku_code,
+                 },
+                constants.ACTION_UNION_SKU_AND_SUPPLIER['code'], ware_account)
+        except Exception, exc:
+            logger.error(str(exc), exc_info=True)
+            return {'success': False, 'object': ow_sku, 'message': str(exc)}
 
     return {'success': True, 'object': ow_sku, 'message': ''}
 

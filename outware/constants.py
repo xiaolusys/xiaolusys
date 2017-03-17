@@ -27,6 +27,7 @@ ORDER_PURCHASE = {'code': 601, 'name': '采购入仓单'}
 ACTION_SUPPLIER_CREATE = {'code': 40, 'name': '创建供应商'}
 
 ACTION_SKU_CREATE = {'code': 30, 'name': '创建商品SKU信息'}
+ACTION_SKU_EDIT  = {'code': 31,  'name': '修改商品SKU信息'}
 ACTION_UNION_SKU_AND_SUPPLIER  = {'code': 45, 'name': '商品SKU供应商品关联'}
 ACTION_SKU_STOCK_PULL = {'code': 65, 'name': 'SKU库存拉取'}
 

@@ -47,8 +47,8 @@ class OutwareSku(BaseWareModel):
         verbose_name_plural = u'外仓/对接商品SKU'
 
     @classmethod
-    def generate_unikey(self, account_id, sku_code):
-        return '{sku_code}-{account_id}'.format(sku_code=sku_code, account_id=account_id)
+    def generate_unikey(self, supplier_id, sku_code):
+        return '{sku_code}-{supplier_id}'.format(sku_code=sku_code, supplier_id=supplier_id)
 
     def set_ware_sku_code(self, ware_sku_code):
         self.ware_sku_code = ware_sku_code

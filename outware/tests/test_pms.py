@@ -7,6 +7,8 @@ from django.test import TestCase
 from supplychain.supplier.models import SaleSupplier, SaleProduct
 from shopback.items.models import Product, ProductSku
 from ..adapter.mall.push import supplier, product, inbound
+from ..adapter.ware.pull import pms
+from .. import constants
 from flashsale.forecast.models import ForecastInbound
 
 class PMSTestCase(TestCase):
@@ -42,16 +44,25 @@ class PMSTestCase(TestCase):
     def testCreateProductsku(self):
         self.setForSupplierAndSku()
         self.createSupplier()
-
+        # create productsku
         sale_product = SaleProduct.objects.first()
         resp = product.push_ware_sku_by_saleproduct(sale_product)
         self.assertGreater(len(resp), 0)
 
-    def testWareInbound(self):
+        # recreat productsku ,不能马上执行,蜂巢不能及时更新sku资料
+        # resp = product.push_ware_sku_by_saleproduct(sale_product)
+        # self.assertGreater(len(resp), 0)
+
+    def testCreateAndCancelPurchaseInbound(self):
         forestib = ForecastInbound.objects.first()
         resp = inbound.push_outware_inbound_by_forecast_order(forestib)
         self.assertTrue(resp['success'])
 
+        # resp = pms.cancel_inbound_order(
+        #     forestib.forecast_no ,
+        #     forestib.supplier.vendor_code,
+        #     constants.ORDER_PURCHASE['code'])
+        # self.assertTrue(resp['success'])
 
 
 

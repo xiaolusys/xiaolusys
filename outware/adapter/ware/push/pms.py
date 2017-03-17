@@ -43,12 +43,7 @@ def update_outware_inbound_by_po_confirm(inbound_code, order_type, dict_obj):
     for inbound_sku in dict_obj.inbound_skus:
         supplier = ow_inbound.outware_supplier
         skustock, state = OutwareSkuStock.objects.get_or_create(
-            outware_supplier=ow_inbound.outware_supplier,
-            store_code=store_code,
-            sku_code=inbound_sku.sku_code,
-            batch_no=inbound_sku.batch_no,
-            uni_key=OutwareSkuStock.generate_unikey(
-                supplier.id, store_code, inbound_sku.sku_code, inbound_sku.batch_no)
+            sku_code=inbound_sku.sku_code
         )
         skustock.push_sku_good_qty += inbound_sku.pull_good_qty
         skustock.push_sku_bad_qty  += inbound_sku.pull_bad_qty

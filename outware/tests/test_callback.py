@@ -46,8 +46,7 @@ class CallbackTestCase(TestCase):
         self.assertEqual(ow_inbound.store_code, data['store_code'])
 
         for sku in data['inbound_skus']:
-            ow_stock = OutwareSkuStock.objects.get(
-                store_code=data['store_code'], sku_code=sku['sku_code'], batch_no=sku['batch_no'])
+            ow_stock = OutwareSkuStock.objects.get(sku_code=sku['sku_code'])
             self.assertEqual(ow_stock.pull_good_available_qty, sku['pull_good_qty'])
             self.assertEqual(ow_stock.pull_bad_qty, sku['pull_bad_qty'])
 
@@ -75,8 +74,7 @@ class CallbackTestCase(TestCase):
         self.assertEqual(ow_inbound.store_code, data['store_code'])
 
         for sku in data['inbound_skus']:
-            ow_stock = OutwareSkuStock.objects.get(
-                store_code=data['store_code'], sku_code=sku['sku_code'], batch_no=sku['batch_no'])
+            ow_stock = OutwareSkuStock.objects.get(sku_code=sku['sku_code'])
             self.assertEqual(ow_stock.pull_good_available_qty, sku['pull_good_qty'])
             self.assertEqual(ow_stock.pull_bad_qty, sku['pull_bad_qty'])
 
