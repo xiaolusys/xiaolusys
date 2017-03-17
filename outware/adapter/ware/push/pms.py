@@ -19,7 +19,7 @@ def update_outware_inbound_by_po_confirm(inbound_code, order_type, dict_obj):
 
     # firstly, update outware inbound status and sku qty
     ow_inbound = OutwareInboundOrder.objects.select_for_update().get(inbound_code=inbound_code, order_type=order_type)
-    if ow_inbound.status != constants.RECEIVED:
+    if ow_inbound.status not in (constants.NORMAL, constants.RECEIVED):
         raise Exception('外仓通知单对应内部外仓入仓单状态异常:%s'%inbound_code)
 
     if not ow_inbound.store_code:

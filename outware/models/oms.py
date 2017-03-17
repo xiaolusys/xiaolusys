@@ -52,17 +52,14 @@ class OutwareOrder(BaseWareModel):
         return self.status == constants.CANCEL
 
     def change_order_status(self, status_code):
+        self.status = status_code
+        self.save()
 
-        if self.status < int(status_code):
-            self.status = status_code
-            self.save()
-
+        if status_code == constants.CANCEL:
             for order_sku in self.order_skus:
-                order_sku.set_invalid()
+                order_sku.set_valid()
                 order_sku.save()
 
-            return True
-        return False
 
 
 class OutwareOrderSku(BaseWareModel):
@@ -94,7 +91,6 @@ class OutwareOrderSku(BaseWareModel):
 
     def set_invalid(self):
         self.is_valid = False
-
 
     def set_valid(self):
         self.is_valid = True

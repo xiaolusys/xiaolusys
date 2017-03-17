@@ -100,6 +100,7 @@ class OutwareInboundOrder(BaseWareModel):
 
     def change_order_status(self, status_code):
         self.status = status_code
+        self.save()
 
 
 class OutwareInboundSku(BaseWareModel):
