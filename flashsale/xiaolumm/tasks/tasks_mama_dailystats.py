@@ -274,13 +274,13 @@ def task_check_xlmm_return_exchg_order():
                 results.append(sale_order.sale_trade.tid)
             if sale_order and (sale_order.status == SaleOrder.TRADE_CLOSED or sale_order.refund_status != SaleRefund.NO_REFUND):
                 return_order_num += 1
-    budget_log = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_OUT, budget_log_type=BudgetLog.BG_RETURN_EXCHG, status=BudgetLog.CONFIRMED)
+    budget_log = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_OUT, budget_log_type=BudgetLog.BG_RETURN_EXCHG, status=BudgetLog.CONFIRMED, created__gt=start_date_time)
     budget_num = budget_log.count()
     budget_oids = [i['uni_key'] for i in budget_log.values('uni_key')]
-    res = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_OUT, budget_log_type=BudgetLog.BG_RETURN_EXCHG, status=BudgetLog.CONFIRMED).aggregate(n=Sum('flow_amount'))
+    res = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_OUT, budget_log_type=BudgetLog.BG_RETURN_EXCHG, status=BudgetLog.CONFIRMED, created__gt=start_date_time).aggregate(n=Sum('flow_amount'))
     exchg_budget_sum = res['n'] or 0
     from flashsale.coupon.models.transfer_coupon import CouponTransferRecord
-    trans_records = CouponTransferRecord.objects.filter(transfer_type=CouponTransferRecord.IN_CANCEL_EXCHG, transfer_status=CouponTransferRecord.DELIVERED)
+    trans_records = CouponTransferRecord.objects.filter(transfer_type=CouponTransferRecord.IN_CANCEL_EXCHG, transfer_status=CouponTransferRecord.DELIVERED, created__gt=start_date_time)
     trans_num = 0
     for record in trans_records.iterator():
         if record.order_no in results:
