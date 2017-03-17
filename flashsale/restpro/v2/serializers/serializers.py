@@ -525,6 +525,78 @@ class SimpleModelProductSerializer(serializers.ModelSerializer):
         return []
 
 
+class CreateModelProductSerializer(serializers.Serializer):
+    extras = serializers.JSONField()
+    is_onsale = serializers.BooleanField(required=False)
+    is_teambuy = serializers.BooleanField(required=False)
+    is_recommend = serializers.BooleanField(required=False)
+    is_topic = serializers.BooleanField(required=False)
+    is_flatten = serializers.BooleanField(required=False)
+    is_boutique = serializers.BooleanField(required=False)
+    product_id = serializers.IntegerField()
+    teambuy_price = serializers.IntegerField(required=False)
+    teambuy_person_num = serializers.IntegerField(required=False)
+    # class Meta:
+    #     model = ModelProduct
+    #     fields = ('product_id', 'name', 'extras')
+
+    def save(self, data, user, instance=None):
+        product = Product.objects.get(id=data.get('product_id'))
+        if instance:
+            instance.product = product
+            instance.extras['new_properties'] = data.get('extras', {}).get('new_properties', [])
+            instance.extras['sources'] = data.get('extras', {}).get('sources', [])
+            instance.is_onsale = bool(data.get('is_onsale'))
+            instance.is_teambuy = bool(data.get('is_teambuy'))
+            instance.is_recommend = bool(data.get('is_recommend'))
+            instance.is_topic = bool(data.get('is_topic'))
+            instance.is_flatten = bool(data.get('is_flatten'))
+            instance.is_boutique = bool(data.get('is_boutique'))
+            if instance.is_teambuy:
+                instance.teambuy_price = int(data.get('teambuy_price', 0))
+                instance.teambuy_person_num = int(data.get('teambuy_person_num', 0))
+            if int(data.get('is_outside', 0)):
+                instance.set_product_source_type(3)
+            instance.save()
+            instance.set_title_imgs_key()
+            instance.save()
+            if instance.is_boutique and not instance.extras.get("template_id"):
+                instance.set_boutique_coupon()
+            return instance
+        else:
+            modelproduct = ModelProduct.create(
+                product=product,
+                extras=data.get('extras'),
+                is_onsale=bool(data.get('is_onsale')),
+                is_teambuy=bool(data.get('is_teambuy')),
+                is_recommend=bool(data.get('is_recommend')),
+                is_topic=bool(data.get('is_topic')),
+                is_flatten=bool(data.get('is_flatten')),
+                is_boutique=bool(data.get('is_boutique')),
+            )
+
+            return modelproduct
+
+
+class ProductPictureSerializer(serializers.Serializer):
+    # product_id = serializers.CharField()
+    content_imgs = serializers.ListField()
+    respective_imgs = serializers.ListField()
+    detail_first_img = serializers.CharField(allow_blank=True)
+    head_imgs = serializers.CharField()
+
+    def save(self, data, model_product):
+        model_product.head_imgs = data.get('head_imgs')
+        content_imgs = [model_product.detail_first_img] if model_product.detail_first_img else []
+        content_imgs.extend(data.get('content_imgs', []))
+        model_product.content_imgs = '\n'.join(content_imgs)
+        model_product.detail_first_img = data.get('detail_first_img')
+        respective_imgs = dict(data.get('respective_imgs', []))
+        model_product.set_title_imgs_values(respective_imgs)
+        model_product.save()
+        return model_product
+
+
 class ActivityProductSerializer(serializers.ModelSerializer):
     web_url = serializers.SerializerMethodField(read_only=True)
 
@@ -1285,3 +1357,4 @@ class XiaoluCoinLogSerializer(serializers.ModelSerializer):
 
     def get_iro_type(self, obj):
         return dict(XiaoluCoinLog.IRO_CHOICES).get(obj.iro_type, '')
+

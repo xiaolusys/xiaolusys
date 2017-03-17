@@ -7,18 +7,18 @@ from django.views.decorators.cache import cache_page
 from django.contrib.admin.views.decorators import staff_member_required
 from .decorators import sale_buyer_required
 from . import views
+from .views import model_product
 from rest_framework import routers
 from flashsale.pay.views import refund
 
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'salerefund', refund.SaleRefundViewSet)
+router.register(r'modelproduct', model_product.ModelProductViewSet)
 router_urls = router.urls
-
 
 urlpatterns = [
     url(r'^v1/', include(router_urls, namespace='flashsale_pay_v1')),
-
     url(r'^callback/$', csrf_exempt(views.PINGPPCallbackView.as_view())),
     url(r'^cancel/$', csrf_exempt(views.PINGPPCallbackView.as_view())),
     url(r'^wxwarn/$', csrf_exempt(views.WXPayWarnView.as_view())),

@@ -20,7 +20,7 @@ from shopback.trades.models import TradeWuliu
 from models import TRADE_TYPE, TAOBAO_TRADE_STATUS
 from django.contrib.auth.models import User
 from flashsale.restpro.kd100_subscription import kd100_subscription
-
+from django.utils.functional import cached_property
 
 logger = logging.getLogger('django.request')
 logger = logging.getLogger(__name__)
@@ -779,6 +779,11 @@ class PackageOrder(models.Model):
         from shopback.trades.tasks import task_update_package_stat_num
         task_update_package_stat_num.delay(self.pstat_id)
 
+def cancel(self):
+    self.status = PO_STATUS.DELETE
+    self.save()
+    self.package_sku_items.filter(assign_status__in=[0, 1]).update(assign_status=3, status=PSI_STATUS.CANCEL)
+            
 
 def is_merge_trade_package_order_diff(package):
     merge_trade = package.get_merge_trade()
@@ -1044,11 +1049,9 @@ class PackageSkuItem(BaseModel):
                 self._order_list_ = None
         return self._order_list_
 
-    @property
+    @cached_property
     def product_sku(self):
-        if not hasattr(self, '_product_sku_'):
-            self._product_sku_ = ProductSku.objects.get(id=self.sku_id)
-        return self._product_sku_
+        return ProductSku.objects.get(id=self.sku_id)
 
     @property
     def product(self):
@@ -1294,6 +1297,7 @@ class PackageSkuItem(BaseModel):
                         po.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS
                     po.set_redo_sign(save_data=False)
                     po.reset_package_address()
+                    # 假如合单时包裹已经有物流信息，则不需要重设物流公司
                 else:
                     po = PackageOrder.create(package_order_id, self.sale_trade, self)
                 self.package_order_id = po.id

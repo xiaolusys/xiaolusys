@@ -374,3 +374,5 @@ class ProductSkuStatsSupplierNameFilter(SimpleListFilter):
             return queryset
         else:
             return queryset.filter(product_id__in=SkuStock.filter_by_supplier(supplier.id))
+
+

@@ -16,12 +16,13 @@ class SimpleModelProductSerializer(serializers.HyperlinkedModelSerializer):
     category_id = serializers.IntegerField(source='salecategory.id', read_only=True)
     is_saleout  = serializers.BooleanField(source='is_sale_out', read_only=True)
     web_url     = serializers.CharField(source='get_web_url', read_only=True)
+    is_boutique = serializers.CharField(read_only=True)
     watermark_op = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = ModelProduct
         fields = ('id', 'url', 'name', 'category_id', 'lowest_agent_price', 'lowest_std_sale_price',
-                  'onshelf_time', 'offshelf_time', 'is_saleout', 'sale_state',
+                  'onshelf_time', 'offshelf_time', 'is_saleout', 'sale_state', 'is_boutique',
                   'head_img', 'web_url', 'watermark_op')
 
     def get_watermark_op(self, obj):

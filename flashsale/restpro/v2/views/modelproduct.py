@@ -11,6 +11,7 @@ from rest_framework import filters
 from rest_framework import viewsets
 from rest_framework import authentication
 from rest_framework import permissions
+from rest_framework import status as rest_status
 from rest_framework.decorators import list_route
 from rest_framework.response import Response
 from rest_framework_extensions.cache.decorators import cache_response
@@ -347,3 +348,10 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        serializer = serializers_v2.CreateModelProductSerializer(request.data)
+        serializer.is_valid(raise_exception=True)
+        model_product = serializer.save(serializer.data, request.user)
+        serializers_v2.SimpleModelProductSerializer(model_product)
+        return Response(serializer.data, status=rest_status.HTTP_201_CREATED)

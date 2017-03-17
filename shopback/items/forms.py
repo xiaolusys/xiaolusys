@@ -237,3 +237,12 @@ class ProductScheduleAPIForm(BaseForm):
     price = forms.FloatField(required=False)
     type = forms.IntegerField(required=False)
     flag = forms.IntegerField(required=False)
+
+
+class ProductEditForm(BaseForm, forms.ModelForm):
+    id = forms.IntegerField(required=False)
+    skus = forms.CharField()
+
+    class Meta:
+        model = Product
+        fields = ('name', 'category', 'type', 'pic_path', 'ref_link', 'memo')

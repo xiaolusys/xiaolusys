@@ -20,11 +20,13 @@ from core.options import log_action, ADDITION, CHANGE
 from flashsale.pay.models import ModelProduct, Productdetail
 from flashsale.pay.models import default_modelproduct_extras_tpl
 from flashsale.pay.signals import signal_record_supplier_models
+from core.filters import ConditionFilter
 from shopback.categorys.models import ProductCategory
 from shopback.items import constants
 from shopback.items.models import (Product, ProductSku, SkuStock)
 from supplychain.supplier.models import SaleSupplier, SaleProduct, SaleCategory, SaleProductManageDetail
 from shopback.items import serializers
+from shopback.items.forms import ProductEditForm
 
 logger = logging.getLogger(__name__)
 
@@ -391,6 +393,16 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
+    @list_route(methods=["get"])
+    def model_products(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
     def destroy(self, request, *args, **kwargs):
         raise exceptions.APIException(u'Method Not Allowed!')
 
@@ -484,7 +496,7 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
             'saleproduct': saleproduct.id,
             'salecategory': saleproduct.sale_category.id,
             'is_boutique': sale_extras.get('is_boutique',False),
-            'product_type':sale_extras.get('product_type',False),
+            'product_type':sale_extras.get('product_type', 1),
         })
 
         serializer = serializers.ModelProductUpdateSerializer(data=request.data, partial=True)
@@ -536,4 +548,38 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         log_action(request.user, instance, CHANGE, u'修改款式信息')
+        return Response(serializer.data)
+
+
+class ProductViewSet(viewsets.ModelViewSet):
+    queryset = Product.objects.all()
+    serializer_class = serializers.ProductEditSerializer
+    authentication_classes = (authentication.BasicAuthentication, authentication.SessionAuthentication)
+    permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser, permissions.DjangoModelPermissions)
+    filter_backends = (ConditionFilter, filters.DjangoFilterBackend, filters.OrderingFilter)
+    search_fields = ['name', 'id', 'model_id', 'sale_product', 'outer_id', 'category_id', 'type', 'shelf_status']
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        serializer = serializers.CreateProductSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = serializers.CreateProductSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        product = serializer.save(product_id=instance.pk)
+        serializer = self.get_serializer(product)
         return Response(serializer.data)

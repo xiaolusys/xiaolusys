@@ -150,6 +150,11 @@ class SaleSupplierViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         ordering = request.GET.get('ordering') or '-created'
+        if request.GET.get('product_id'):
+            product_id = request.GET.get('product_id')
+            product = get_object_or_404(Product, pk=product_id)
+            suppliers = product.get_suppliers()
+            queryset = queryset.filter(id__in=[s.id for s in suppliers])
         queryset = queryset.exclude(progress=SaleSupplier.REJECTED)\
             .extra(select={'refund_rate': 'total_refund_num/total_sale_num'}).order_by(ordering)
         page = self.paginate_queryset(queryset)
@@ -373,6 +378,11 @@ class SaleProductViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.exclude(status=SaleProduct.REJECTED)  # 排除淘汰的产品
+        if request.GET.get('product_id'):
+            product_id = request.GET.get('product_id')
+            product = get_object_or_404(Product, pk=product_id)
+            saleProducts = SaleProduct.get_by_product(product)
+            queryset = queryset.filter(id__in=[s.id for s in saleProducts])
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True, context={'request': request})
@@ -395,7 +405,7 @@ class SaleProductViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         product_link = request.data.get('product_link','').strip()
-        outer_id  = product_link and hashlib.md5(product_link).hexdigest() or 'OO%d' % time.time()
+        outer_id = product_link and hashlib.md5(product_link).hexdigest() or 'OO%d' % time.time()
         request.data.update({
             'outer_id': outer_id,
             'title': request.data.get('title','').replace('/',''),
@@ -416,6 +426,23 @@ class SaleProductViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         self.set_instance_special_fields(serializer)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    @list_route(methods=['post'])
+    def new_create(self, request, *args, **kwargs):
+        serializer = serializers.CreateSaleProductSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        sale_product = serializer.save(serializer.data, request.user)
+        serializer = serializers.SimpleSaleProductSerializer(sale_product)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @detail_route(methods=['post'])
+    def new_update(self, request, pk, *args, **kwargs):
+        instance = self.get_object()
+        serializer = serializers.SaleProductEditSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        sale_product = serializer.save(serializer.data, request.user, instance)
+        serializer = serializers.SimpleSaleProductSerializer(sale_product)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)

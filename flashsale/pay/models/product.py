@@ -134,7 +134,7 @@ def default_modelproduct_extras_tpl():
             "per_limit_buy_num": 20,
             "is_bonded_goods": False, #标识商品是否需要
         },
-        "properties": {},
+        "new_properties": {},
         "sources": {
             "source_type": 0,
         }
@@ -172,8 +172,9 @@ class ModelProduct(BaseTagModel):
     name = models.CharField(max_length=64, db_index=True, verbose_name=u'款式名称')
 
     head_imgs = models.TextField(blank=True, verbose_name=u'题头照(多张请换行)')
-    content_imgs = models.TextField(blank=True, verbose_name=u'内容照(多张请换行)')
-
+    content_imgs = models.TextField(blank=True, verbose_name=u'内容照(多张请换行)',  help_text=u"多色则多图，单色则单图")
+    detail_first_img = models.TextField(blank=True, verbose_name=u'详情首图')
+    title_imgs = JSONCharMyField(max_length=5000, verbose_name=u'主图', help_text=u"多色则多图，单色则单图")
     salecategory = models.ForeignKey('supplier.SaleCategory', null=True, default=None,
                                      related_name='modelproduct_set', verbose_name=u'分类')
 
@@ -378,6 +379,42 @@ class ModelProduct(BaseTagModel):
     def source_type(self):
         return self.extras.get('sources', {}).get('source_type') or 0
 
+    @property
+    def respective_imgs(self):
+        # 等同于title_imgs, 用于处理老商品多个product的情况。
+        if self.title_imgs:
+            return self.title_imgs
+        res = {p.properties_name: p.pic_path for p in self.products}
+        return res
+
+    def set_title_imgs_values(self, respective_imgs):
+        self.title_imgs = respective_imgs
+
+    def set_title_imgs_key(self):
+        # title_imgs同时支持了颜色放在Product(每颜色一种)上和颜色放在ProductSku上的情况。
+        # 一般使用颜色或规格名为key，如果该名为空，则使用img为key
+        if len(self.products) == 0:
+            return
+        elif len(self.products) > 1:
+            keys = list(self.products.values_list('properties_name',flat=True).distinct())
+        else:
+            product_ids = [pro.id for pro in self.products]
+            properties_names = list(ProductSku.objects.filter(product_id__in=product_ids).values_list('properties_name',flat=True).distinct())
+            if '|' in properties_names[0]:
+                colors = [name.split('|')[0] for name in properties_names]
+                colors = list(set(colors))
+            else:
+                colors = [properties_names[0]]
+            keys = [(color if color != '' else 'img') for color in colors]
+        initial_imgs_dict = dict(zip(keys, [''] * len(keys)))
+        if not self.title_imgs:
+            self.title_imgs = initial_imgs_dict
+        else:
+            _title_imgs = {}
+            for key in initial_imgs_dict:
+                _title_imgs[key] = self.title_imgs.get(key, initial_imgs_dict[key])
+            self.title_imgs = _title_imgs
+
     def product_simplejson(self, product):
         sku_list = []
         skuobj_list = product.normal_skus
@@ -441,6 +478,36 @@ class ModelProduct(BaseTagModel):
         for p in self.productobj_list:
             product_list.append(self.product_simplejson(p))
         return product_list
+
+    def set_boutique_coupon(self):
+        if self.extras.get('template_id'):
+            raise Exception(u'已有优惠券不允许设置精品券')
+        from flashsale.coupon.services import get_or_create_boutique_template
+        # 创建精品券
+        coupon_template = get_or_create_boutique_template(
+            self.id, self.lowest_agent_price, model_title=self.name,
+            modelproduct_ids=str(self.id), product_ids=[p.id for p in self.products],
+            model_img=self.head_img_url)
+
+        # 设置精品商品只可使用指定优惠券
+        # TODO save次数是否过多
+        self.set_boutique_coupon_only(coupon_template.id)
+        self.save()
+        # 设置精品券商品不不允许使用优惠券
+        self.as_boutique_coupon_product(coupon_template.id)
+        self.save()
+
+        for product in self.products:
+            product.shelf_status = Product.UP_SHELF
+            product.save(update_fields=['shelf_status'])
+        # 如果时精品汇商品 修改商品设置
+        if self.is_boutique_product:
+            self.is_onsale = True
+            self.rebeta_scheme_id = 12
+            self.save(update_fields=['is_onsale', 'rebeta_scheme_id'])
+
+    def delete_boutique_coupon(self):
+        raise
 
     def format_contrast2table(self, origin_contrast):
         result_data = []
@@ -850,6 +917,45 @@ class ModelProduct(BaseTagModel):
             return is_coupon_deny
         return False
 
+    @staticmethod
+    def create(product, extras=extras, is_onsale=False, is_teambuy=False, is_recommend=False,
+               is_topic=False, is_flatten=False, is_boutique=False):
+        """
+        :param product:
+        :param extras:
+        :param is_onsale:
+        :param is_teambuy:
+        :param is_recommend:
+        :param is_topic:
+        :param is_flatten:
+        :param is_boutique:
+        :return:
+        """
+        # 目前一个商品只能对应一个售卖款式
+        if product.model_id:
+            raise Exception(u'当前商品已有对应的售卖款式，无法再创建一个。')
+        model_product = ModelProduct(name=product.name,
+            product_type=product.type,
+            lowest_agent_price=product.get_lowest_agent_price(),
+            lowest_std_sale_price=product.get_lowest_std_sale_price(),
+            is_onsale=is_onsale,
+            is_teambuy=is_teambuy,
+            is_recommend=is_recommend,
+            is_topic=is_topic,
+            is_flatten=is_flatten,
+            is_boutique=is_boutique)
+        if not extras:
+            model_product.extras = default_modelproduct_extras_tpl()
+        else:
+            model_product.extras = extras
+        model_product.save()
+        product.model_id = model_product.id
+        product.save()
+        if model_product.is_boutique:
+            model_product.set_boutique_coupon()
+        model_product.set_title_imgs_key()
+        model_product.save()
+        return model_product
 
 def invalid_apimodelproduct_cache(sender, instance, *args, **kwargs):
     if hasattr(sender, 'API_CACHE_KEY_TPL'):

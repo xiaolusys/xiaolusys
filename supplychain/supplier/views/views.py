@@ -71,8 +71,8 @@ def chargeSupplier(request, pk):
     if charged:
         result = {'success': True,
                   'brand_links':
-                  '/supplychain/supplier/product/?status=wait&sale_supplier=%s'
-                  % pk}
+                      '/supplychain/supplier/product/?status=wait&sale_supplier=%s'
+                      % pk}
 
         log_action(request.user.id, supplier, CHANGE, u'接管品牌')
 
@@ -116,11 +116,11 @@ class SaleProductList(generics.ListCreateAPIView):
             progress = request.GET.get('progress', '')
             status = request.GET.get('status', '')
             if (progress and progress != supplier.progress and
-                    progress in dict(SaleSupplier.PROGRESS_CHOICES).keys()):
+                        progress in dict(SaleSupplier.PROGRESS_CHOICES).keys()):
                 supplier.progress = progress
                 supplier.save()
             supplier = serializers.SaleSupplierSerializer(supplier,
-                                              context={'request': request}).data
+                                                          context={'request': request}).data
             queryset = queryset.filter(sale_supplier_id=supplier_id)
             if status:
                 queryset = queryset.filter(status=status)
@@ -200,11 +200,11 @@ class SaleProductAdd(generics.ListCreateAPIView):
             supplier = get_object_or_404(SaleSupplier, pk=supplier_id)
             progress = request.GET.get('progress', '')
             if (progress and progress != supplier.progress and
-                    progress in dict(SaleSupplier.PROGRESS_CHOICES).keys()):
+                        progress in dict(SaleSupplier.PROGRESS_CHOICES).keys()):
                 supplier.progress = progress
                 supplier.save()
             supplier = serializers.SaleSupplierSerializer(supplier,
-                                              context={'request': request}).data
+                                                          context={'request': request}).data
         result_data = {'request_data': request.GET.dict(),
                        'supplier': supplier,
                        'sale_category': sale_category,
@@ -301,7 +301,7 @@ class SaleProductDetail(generics.RetrieveUpdateDestroyAPIView):
 
     @classmethod
     def get_category_mapping(cls):
-        cache_key = '%s.get_category_mapping'%__name__
+        cache_key = '%s.get_category_mapping' % __name__
 
         def _load():
             parent_product_categories = {}
@@ -388,7 +388,7 @@ class FetchAndCreateProduct(APIView):
         pic_path_pattern = re.compile(r'(.+\.jpg)_.+')
         container = soup.findAll(attrs={'class': re.compile(
             '^(deteilpic|zoomPad|SPSX_bian3|goods-detail-pic|container|florid-goods-page-container|m-item-grid|jqzoom|cloud-zoom)')
-                                        })
+        })
 
         for c in container:
             for img in c.findAll('img'):
@@ -398,8 +398,8 @@ class FetchAndCreateProduct(APIView):
                     if not image_url_components.netloc:
                         fetch_url_components = urlparse.urlparse(fetch_url)
                         return '%s://%s%s' % (fetch_url_components.scheme,
-                                           fetch_url_components.netloc,
-                                           image_url_components.path)
+                                              fetch_url_components.netloc,
+                                              image_url_components.path)
                     return img_src
 
         alinks = soup.findAll('a')
@@ -413,8 +413,8 @@ class FetchAndCreateProduct(APIView):
                 if not image_url_components.netloc:
                     fetch_url_components = urlparse.urlparse(fetch_url)
                     return '%s://%s%s' % (fetch_url_components.scheme,
-                                       fetch_url_components.netloc,
-                                       image_url_components.path)
+                                          fetch_url_components.netloc,
+                                          image_url_components.path)
                 return img_src
         return ''
 
@@ -507,7 +507,6 @@ class FetchAndCreateProduct(APIView):
             sproduct.platform = SaleProduct.MANUAL
             sproduct.contactor = request.user
 
-
         for k, v in content.iteritems():
             if k == 'sale_category':
                 v = SaleCategory.objects.get(id=v)
@@ -527,8 +526,8 @@ class FetchAndCreateProduct(APIView):
                                                             '%Y-%m-%d %H:%M:%S')
 
         data = {'record':
-                serializers.SaleProductSerializer(sproduct,
-                                      context={'request': request}).data, 'is_exists': is_exists}
+                    serializers.SaleProductSerializer(sproduct,
+                                                      context={'request': request}).data, 'is_exists': is_exists}
         log_action(request.user.id, sproduct, ADDITION, u'创建品牌商品')
 
         return Response(data)
@@ -798,26 +797,25 @@ class ScheduleDetailAPIView(APIView):
              pcfg.WAIT_CHECK_BARCODE_STATUS, pcfg.WAIT_SCAN_WEIGHT_STATUS,
              pcfg.REGULAR_REMAIN_STATUS],
             sys_status=pcfg.IN_EFFECT, outer_id__in=product_outer_ids).values(
-                'outer_id', 'outer_sku_id').annotate(sale_num=Sum('num'))
+            'outer_id', 'outer_sku_id').annotate(sale_num=Sum('num'))
         for s in sale_stats:
             sku_dict = skus_dict.get('%s-%s' % (s['outer_id'], s['outer_sku_id']))
             if sku_dict:
                 sku_dict['sale_num'] = s['sale_num']
 
         dinghuo_stats = OrderDetail.objects \
-          .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI]) \
-          .filter(chichu_id__in=map(lambda x: str(x['id']), skus_dict.values())) \
-          .values('product_id', 'chichu_id') \
-          .annotate(buy_quantity=Sum('buy_quantity'), arrival_quantity=Sum('arrival_quantity'),
-                        inferior_quantity=Sum('inferior_quantity'))
+            .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI]) \
+            .filter(chichu_id__in=map(lambda x: str(x['id']), skus_dict.values())) \
+            .values('product_id', 'chichu_id') \
+            .annotate(buy_quantity=Sum('buy_quantity'), arrival_quantity=Sum('arrival_quantity'),
+                      inferior_quantity=Sum('inferior_quantity'))
         for s in dinghuo_stats:
             s_key = '%s-%s' % (s['product_id'], s['chichu_id'])
             if s_key in skus_dict2:
                 skus_dict2[s_key]['buy_num'] = s['buy_quantity'] - \
-                  min(s['buy_quantity'], s['arrival_quantity']) - s['inferior_quantity']
+                                               min(s['buy_quantity'], s['arrival_quantity']) - s['inferior_quantity']
             else:
                 skus_dict2[s_key] = {'buy_num': 0}
-
 
         items = []
         for k in sorted(sale_products.keys(), reverse=True):
@@ -930,7 +928,7 @@ class ScheduleDetailAPIView(APIView):
                         log_action(request.user.id, product, CHANGE, u'修改采购价: %.2f' % product.cost)
                         ProductSku.objects.filter(product_id=product.id,
                                                   status='normal').update(
-                                                      cost=typed_value)
+                            cost=typed_value)
                         for sku in product.prod_skus.filter(status='normal'):
                             log_action(request.user.id, sku, CHANGE, u'修改采购价: %.2f' % sku.cost)
 
@@ -957,7 +955,7 @@ class ScheduleDetailAPIView(APIView):
                         log_action(request.user.id, product, CHANGE, u'修改售价: %.2f' % product.agent_price)
                         ProductSku.objects.filter(product_id=product.id,
                                                   status='normal').update(
-                                                      agent_price=typed_value)
+                            agent_price=typed_value)
                         for sku in product.prod_skus.filter(status='normal'):
                             log_action(request.user.id, sku, CHANGE, u'修改售价: %.2f' % sku.agent_price)
             except:
@@ -1024,7 +1022,7 @@ class ScheduleDetailAPIView(APIView):
                 item['has_product'] = 1
                 item[
                     'pic_path'] = '%s?imageView2/0/w/120' % product.pic_path.strip(
-                    )
+                )
                 product_detail, _ = Productdetail.objects.get_or_create(
                     product=product)
                 item['order_weight'] = product_detail.order_weight
@@ -1051,21 +1049,23 @@ class ScheduleDetailAPIView(APIView):
              pcfg.WAIT_CHECK_BARCODE_STATUS, pcfg.WAIT_SCAN_WEIGHT_STATUS,
              pcfg.REGULAR_REMAIN_STATUS],
             sys_status=pcfg.IN_EFFECT, outer_id__in=product_outer_ids).values(
-                'outer_id', 'outer_sku_id').annotate(sale_num=Sum('num'))
+            'outer_id', 'outer_sku_id').annotate(sale_num=Sum('num'))
         for s in sale_stats:
             sku_dict = skus_dict.get('%s-%s' % (s['outer_id'], s['outer_sku_id']))
             if sku_dict:
                 sku_dict['sale_num'] = s['sale_num']
 
         dinghuo_stats = OrderDetail.objects \
-          .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI]) \
-          .filter(chichu_id__in=map(lambda x: str(x['id']), skus_dict.values())) \
-          .values('product_id', 'chichu_id') \
-          .annotate(buy_quantity=Sum('buy_quantity'), arrival_quantity=Sum('arrival_quantity'),
-                        inferior_quantity=Sum('inferior_quantity'))
+            .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI]) \
+            .filter(chichu_id__in=map(lambda x: str(x['id']), skus_dict.values())) \
+            .values('product_id', 'chichu_id') \
+            .annotate(buy_quantity=Sum('buy_quantity'), arrival_quantity=Sum('arrival_quantity'),
+                      inferior_quantity=Sum('inferior_quantity'))
         for s in dinghuo_stats:
             skus_dict2['%s-%s' % (s['product_id'], s['chichu_id'])]['buy_num'] = s['buy_quantity'] - \
-              min(s['buy_quantity'], s['arrival_quantity']) - s['inferior_quantity']
+                                                                                 min(s['buy_quantity'],
+                                                                                     s['arrival_quantity']) - s[
+                                                                                     'inferior_quantity']
 
         is_sync_stock = bool(skus_dict.values())
         for sku_dict in skus_dict.values():
@@ -1155,7 +1155,7 @@ class RemainNumAPIView(APIView):
                 'remain_num': sku.remain_num,
                 'sale_num': 0,
                 'buy_num': 0,
-                'num': SkuStock.get_by_sku(sku).realtime_quantity#sku.quantity
+                'num': SkuStock.get_by_sku(sku).realtime_quantity  # sku.quantity
             }
             skus_dict['%s-%s' % (product['outer_id'], sku.outer_id)] = sku_dict
             skus_dict2['%d-%d' % (product['product_id'], sku.id)] = sku_dict
@@ -1169,22 +1169,23 @@ class RemainNumAPIView(APIView):
              pcfg.WAIT_CHECK_BARCODE_STATUS, pcfg.WAIT_SCAN_WEIGHT_STATUS,
              pcfg.REGULAR_REMAIN_STATUS],
             sys_status=pcfg.IN_EFFECT, outer_id__in=map(lambda x: x['outer_id'], products_dict.values())).values(
-                'outer_id', 'outer_sku_id').annotate(sale_num=Sum('num'))
+            'outer_id', 'outer_sku_id').annotate(sale_num=Sum('num'))
         for s in sale_stats:
             sku_dict = skus_dict.get('%s-%s' % (s['outer_id'], s['outer_sku_id']))
             if sku_dict:
                 sku_dict['sale_num'] = s['sale_num']
 
-
         dinghuo_stats = OrderDetail.objects \
-          .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI]) \
-          .filter(chichu_id__in=map(lambda x: str(x['sku_id']), skus_dict.values())) \
-          .values('product_id', 'chichu_id') \
-          .annotate(buy_quantity=Sum('buy_quantity'), arrival_quantity=Sum('arrival_quantity'),
-                        inferior_quantity=Sum('inferior_quantity'))
+            .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI]) \
+            .filter(chichu_id__in=map(lambda x: str(x['sku_id']), skus_dict.values())) \
+            .values('product_id', 'chichu_id') \
+            .annotate(buy_quantity=Sum('buy_quantity'), arrival_quantity=Sum('arrival_quantity'),
+                      inferior_quantity=Sum('inferior_quantity'))
         for s in dinghuo_stats:
             skus_dict2['%s-%s' % (s['product_id'], s['chichu_id'])]['buy_num'] = s['buy_quantity'] - \
-              min(s['buy_quantity'], s['arrival_quantity'] + s['inferior_quantity'])
+                                                                                 min(s['buy_quantity'],
+                                                                                     s['arrival_quantity'] + s[
+                                                                                         'inferior_quantity'])
 
         items = []
         for k in sorted(products_dict.keys(), reverse=True):
@@ -1245,18 +1246,18 @@ class RemainNumAPIView(APIView):
              pcfg.WAIT_CHECK_BARCODE_STATUS, pcfg.WAIT_SCAN_WEIGHT_STATUS,
              pcfg.REGULAR_REMAIN_STATUS],
             sys_status=pcfg.IN_EFFECT, outer_id=sku.product.outer_id, outer_sku_id=sku.outer_id).values(
-                'outer_id', 'outer_sku_id').annotate(sale_num=Sum('num'))[:1]
+            'outer_id', 'outer_sku_id').annotate(sale_num=Sum('num'))[:1]
         if not sale_stats:
             sale_num = 0
         else:
             sale_num = sale_stats[0].get('sale_num') or 0
 
         dinghuo_stats = OrderDetail.objects \
-          .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI]) \
-          .filter(chichu_id=str(sku.id)) \
-          .values('product_id', 'chichu_id') \
-          .annotate(buy_quantity=Sum('buy_quantity'), arrival_quantity=Sum('arrival_quantity'),
-                        inferior_quantity=Sum('inferior_quantity'))[:1]
+                            .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI]) \
+                            .filter(chichu_id=str(sku.id)) \
+                            .values('product_id', 'chichu_id') \
+                            .annotate(buy_quantity=Sum('buy_quantity'), arrival_quantity=Sum('arrival_quantity'),
+                                      inferior_quantity=Sum('inferior_quantity'))[:1]
         if not dinghuo_stats:
             buy_num = 0
         else:
@@ -1312,20 +1313,21 @@ class SyncStockAPIView(APIView):
              pcfg.WAIT_CHECK_BARCODE_STATUS, pcfg.WAIT_SCAN_WEIGHT_STATUS,
              pcfg.REGULAR_REMAIN_STATUS],
             sys_status=pcfg.IN_EFFECT, outer_id__in=product_outer_ids).values(
-                'outer_id', 'outer_sku_id').annotate(sale_num=Sum('num'))
+            'outer_id', 'outer_sku_id').annotate(sale_num=Sum('num'))
         for s in sale_stats:
             skus_dict['%s-%s' % (s['outer_id'], s['outer_sku_id'])]['sale_num'] = s['sale_num']
 
         dinghuo_stats = OrderDetail.objects \
-          .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI]) \
-          .filter(product_id__in=map(str, product_ids)) \
-          .values('product_id', 'chichu_id') \
-          .annotate(buy_quantity=Sum('buy_quantity'), arrival_quantity=Sum('arrival_quantity'),
-                        inferior_quantity=Sum('inferior_quantity'))
+            .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI]) \
+            .filter(product_id__in=map(str, product_ids)) \
+            .values('product_id', 'chichu_id') \
+            .annotate(buy_quantity=Sum('buy_quantity'), arrival_quantity=Sum('arrival_quantity'),
+                      inferior_quantity=Sum('inferior_quantity'))
         for s in dinghuo_stats:
             skus_dict2['%s-%s' % (s['product_id'], s['chichu_id'])]['buy_num'] = s['buy_quantity'] - \
-              min(s['buy_quantity'], s['arrival_quantity']) - s['inferior_quantity']
-
+                                                                                 min(s['buy_quantity'],
+                                                                                     s['arrival_quantity']) - s[
+                                                                                     'inferior_quantity']
 
         for product in Product.objects.filter(sale_product=sale_product_id,
                                               status='normal'):
@@ -1385,7 +1387,7 @@ class ScheduleExportView(APIView):
         sale_products = {}
         for sale_product in SaleProduct.objects.select_related(
                 'sale_supplier', 'contactor').filter(
-                    pk__in=list(sale_product_ids)):
+            pk__in=list(sale_product_ids)):
             if sale_product.contactor:
                 contactor_name = '%s%s' % (sale_product.contactor.last_name,
                                            sale_product.contactor.first_name)
@@ -1447,13 +1449,14 @@ class ScheduleExportView(APIView):
 
 
 class SaleProductScheduleDateView(APIView):
-    permission_classes = (permissions.IsAuthenticated, )
+    permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request):
         saleproduct_id = int(request.GET['saleproduct_id'])
 
         schedule_ids = set()
-        for schedule_detail in SaleProductManageDetail.objects.filter(sale_product_id=saleproduct_id, today_use_status=SaleProductManageDetail.NORMAL):
+        for schedule_detail in SaleProductManageDetail.objects.filter(sale_product_id=saleproduct_id,
+                                                                      today_use_status=SaleProductManageDetail.NORMAL):
             schedule_ids.add(schedule_detail.schedule_manage_id)
 
         sale_dates = set()
@@ -1464,9 +1467,8 @@ class SaleProductScheduleDateView(APIView):
         return Response({'select_dates': sale_date_strs})
 
 
-
 class SaleProductNoteView(APIView):
-    permission_classes = (permissions.IsAuthenticated, )
+    permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request):
         saleproduct_id = int(request.GET['saleproduct_id'])
@@ -1491,8 +1493,9 @@ class SaleProductNoteView(APIView):
                 product.details.save()
         return Response({'note': note})
 
+
 class SaleProductSaleQuantityView(APIView):
-    permission_classes = (permissions.IsAuthenticated, )
+    permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request):
         saleproduct_id = int(request.GET['saleproduct_id'])
@@ -1503,7 +1506,8 @@ class SaleProductSaleQuantityView(APIView):
 
         product_ids = [str(x) for x in product_ids]
         pay_dates_dict = {}
-        for saleorder in SaleOrder.objects.filter(item_id__in=product_ids, status__gte=SaleOrder.WAIT_SELLER_SEND_GOODS):
+        for saleorder in SaleOrder.objects.filter(item_id__in=product_ids,
+                                                  status__gte=SaleOrder.WAIT_SELLER_SEND_GOODS):
             if not saleorder.pay_time:
                 continue
             date_str = saleorder.pay_time.strftime('%y年%m月%d')

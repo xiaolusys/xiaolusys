@@ -37,6 +37,159 @@ class ProductSerializer(serializers.ModelSerializer):
         exclude = ('created',)
 
 
+class ProductEditSerializer(serializers.ModelSerializer):
+    id = serializers.CharField()
+    barcode = serializers.CharField(source='BARCODE', read_only=True)
+    status = serializers.CharField(source='get_status_display', read_only=True)
+    sale_category = serializers.SerializerMethodField(read_only=True)
+    category = serializers.CharField()
+    sku_extras = serializers.SerializerMethodField(read_only=True)
+    # skus = serializers.SerializerMethodField()
+    name = serializers.CharField()
+    created = serializers.DateTimeField()
+    type = serializers.CharField()
+    pic_path = serializers.CharField()
+    model_id = serializers.CharField()
+    ref_link = serializers.CharField(allow_blank=True)
+    memo = serializers.CharField(allow_blank=True)
+
+    class Meta:
+        model = Product
+        fields = ('id', 'name', 'category', 'sale_category', 'created', 'sku_extras', 'type', 'pic_path', 'ref_link', 'memo', 'status', 'barcode', 'model_id')
+
+    def get_sale_category(self, obj):
+        category = obj.category.get_sale_category()
+        from supplychain.supplier.serializers import SaleCategorySerializer
+        return SaleCategorySerializer(category).data
+
+    def get_sku_extras(self, obj):
+        return obj.sku_extras_info
+
+    def save(self, product_id=None):
+        from supplychain.supplier.models import SaleCategory
+        try:
+            content = self.data
+            name = content['name']
+            sale_category = content['category']
+            product_category = SaleCategory.objects.get(id=sale_category).get_product_category()
+            type = content['type']
+            pic_path = content['pic_path']
+            ref_link = content['ref_link']
+            memo = content['memo']
+            skus = content['sku_extras']
+            if product_id:
+                product = Product.objects.get(id=product_id)
+                product.name = name
+                product.product_category = product_category
+                product.type = type
+                product.pic_path = pic_path
+                product.ref_link = ref_link
+                product.memo = memo
+                product.save()
+                product.update_skus(skus)
+            else:
+                product = Product.create(name, product_category, type, pic_path,
+                       ref_link, memo, skus)
+            return product
+        except Exception, e:
+            raise e
+
+
+class UpdateProductSerializer(serializers.ModelSerializer):
+    id = serializers.CharField()
+    barcode = serializers.CharField(source='BARCODE', read_only=True)
+    status = serializers.CharField(source='get_status_display', read_only=True)
+    sale_category = serializers.SerializerMethodField(read_only=True)
+    category = serializers.CharField()
+    sku_extras = serializers.SerializerMethodField(read_only=True)
+    name = serializers.CharField()
+    type = serializers.CharField()
+    pic_path = serializers.CharField()
+    ref_link = serializers.CharField(allow_blank=True)
+    memo = serializers.CharField(allow_blank=True)
+
+    class Meta:
+        model = Product
+        fields = ('id', 'name', 'category', 'sale_category', 'sku_extras', 'type', 'pic_path', 'ref_link', 'memo', 'status', 'barcode', )
+
+    def get_sale_category(self, obj):
+        category = obj.category.get_sale_category()
+        from supplychain.supplier.serializers import SaleCategorySerializer
+        return SaleCategorySerializer(category).data
+
+    def get_sku_extras(self, obj):
+        return obj.sku_extras_info
+
+    def save(self, product_id=None):
+        from supplychain.supplier.models import SaleCategory
+        try:
+            content = self.data
+            name = content['name']
+            sale_category = content['category']
+            product_category = SaleCategory.objects.get(id=sale_category).get_product_category()
+            type = content['type']
+            pic_path = content['pic_path']
+            ref_link = content['ref_link']
+            memo = content['memo']
+            skus = content['sku_extras']
+            if product_id:
+                product = Product.objects.get(id=product_id)
+                product.name = name
+                product.product_category = product_category
+                product.type = type
+                product.pic_path = pic_path
+                product.ref_link = ref_link
+                product.memo = memo
+                product.save()
+                product.update_skus(skus)
+            else:
+                product = Product.create(name, product_category, type, pic_path,
+                       ref_link, memo, skus)
+            return product
+        except Exception, e:
+            raise e
+
+
+
+class CreateProductSerializer(serializers.Serializer):
+    sku_extras = serializers.ListField()
+    name = serializers.CharField()
+    category = serializers.CharField()
+    type = serializers.CharField()
+    pic_path = serializers.CharField()
+    ref_link = serializers.CharField(allow_blank=True)
+    memo = serializers.CharField(allow_blank=True)
+
+    def save(self, product_id=None):
+        from supplychain.supplier.models import SaleCategory
+        try:
+            content = self.data
+            name = content['name']
+            sale_category = content['category']
+            product_category = SaleCategory.objects.get(id=sale_category).get_product_category()
+            type = content['type']
+            pic_path = content['pic_path']
+            ref_link = content['ref_link']
+            memo = content['memo']
+            skus = content['sku_extras']
+            if product_id:
+                product = Product.objects.get(id=product_id)
+                product.name = name
+                product.category = product_category
+                product.type = type
+                product.pic_path = pic_path
+                product.ref_link = ref_link
+                product.memo = memo
+                product.save()
+                product.update_skus(skus)
+            else:
+                product = Product.create(name, product_category, type, pic_path,
+                       ref_link, memo, skus)
+            return product
+        except Exception, e:
+            raise e
+
+
 class ProductItemSerializer(serializers.ModelSerializer):
     """ docstring for ProductItem ModelResource """
 
