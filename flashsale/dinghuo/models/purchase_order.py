@@ -982,6 +982,7 @@ class OrderDetail(models.Model):
     buy_unitprice = models.FloatField(default=0, verbose_name=u'买入单价')
     total_price = models.FloatField(default=0, verbose_name=u'此项总价')
     arrival_quantity = models.IntegerField(default=0, verbose_name=u'正品数量')
+    assign_quantity = models.IntegerField(default=0, verbose_name=u'分配数量')
     inferior_quantity = models.IntegerField(default=0, verbose_name=u'次品数量')
     non_arrival_quantity = models.IntegerField(default=0, verbose_name=u'未到数量')
 

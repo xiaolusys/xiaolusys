@@ -444,75 +444,75 @@ class PrintAsyncTask2(object):
     def genExpressData(self, trade_list):
         pass
 
-    def genInvoiceData(self, package_orders):
+def genInvoiceData(self, package_orders):
 
-        picking_data_list = []
-        for trade in package_orders:
+    picking_data_list = []
+    for trade in package_orders:
 
-            dt = datetime.datetime.now()
-            trade_data = {'ins': trade,
-                          'today': dt,
-                          'juhuasuan': False,
-                          'order_nums': 0,
-                          'total_fee': 0,
-                          'discount_fee': 0,
-                          'payment': 0,}
+        dt = datetime.datetime.now()
+        trade_data = {'ins': trade,
+                      'today': dt,
+                      'juhuasuan': False,
+                      'order_nums': 0,
+                      'total_fee': 0,
+                      'discount_fee': 0,
+                      'payment': 0,}
 
-            prompt_set = set()
-            order_items = {}
-            for sku_item in trade.package_sku_items.filter(assign_status=PackageSkuItem.ASSIGNED):
+        prompt_set = set()
+        order_items = {}
+        for sku_item in trade.package_sku_items.filter(assign_status=PackageSkuItem.ASSIGNED):
 
-                trade_data['order_nums'] += sku_item.num
-                trade_data['discount_fee'] += float(sku_item.discount_fee or 0)
-                trade_data['total_fee'] += float(sku_item.total_fee or 0)
-                trade_data['payment'] += float(sku_item.payment or 0)
+            trade_data['order_nums'] += sku_item.num
+            trade_data['discount_fee'] += float(sku_item.discount_fee or 0)
+            trade_data['total_fee'] += float(sku_item.total_fee or 0)
+            trade_data['payment'] += float(sku_item.payment or 0)
 
-                outer_id = sku_item.outer_id
-                outer_sku_id = sku_item.outer_sku_id or str(sku_item.sku_id)
+            outer_id = sku_item.outer_id
+            outer_sku_id = sku_item.outer_sku_id or str(sku_item.sku_id)
 
-                prod_sku = sku_item.product_sku
-                product = prod_sku.product
+            prod_sku = sku_item.product_sku
+            product = prod_sku.product
 
-                promptmsg = (prod_sku and prod_sku.buyer_prompt) or (product and product.buyer_prompt) or ''
-                if promptmsg:
-                    prompt_set.add(promptmsg)
+            promptmsg = (prod_sku and prod_sku.buyer_prompt) or (product and product.buyer_prompt) or ''
+            if promptmsg:
+                prompt_set.add(promptmsg)
 
-                product_location = product and product.get_districts_code() or ''
-                product_sku_location = prod_sku and prod_sku.get_districts_code() or ''
+            product_location = product and product.get_districts_code() or ''
+            product_sku_location = prod_sku and prod_sku.get_districts_code() or ''
 
-                if order_items.has_key(outer_id):
-                    order_items[outer_id]['num'] += sku_item.num
-                    skus = order_items[outer_id]['skus']
-                    if skus.has_key(outer_sku_id):
-                        skus[outer_sku_id]['num'] += sku_item.num
-                    else:
-                        prod_sku_name = prod_sku and prod_sku.name or sku_item.sku_properties_name
-                        skus[outer_sku_id] = {'sku_name': prod_sku_name,
-                                              'num': sku_item.num,
-                                              'location': product_sku_location}
+            if order_items.has_key(outer_id):
+                order_items[outer_id]['num'] += sku_item.num
+                skus = order_items[outer_id]['skus']
+                if skus.has_key(outer_sku_id):
+                    skus[outer_sku_id]['num'] += sku_item.num
                 else:
                     prod_sku_name = prod_sku and prod_sku.name or sku_item.sku_properties_name
-                    order_items[outer_id] = {
+                    skus[outer_sku_id] = {'sku_name': prod_sku_name,
+                                          'num': sku_item.num,
+                                          'location': product_sku_location}
+            else:
+                prod_sku_name = prod_sku and prod_sku.name or sku_item.sku_properties_name
+                order_items[outer_id] = {
+                    'num': sku_item.num,
+                    'location': product_location,
+                    'title': product.name if product else sku_item.title,
+                    'skus': {outer_sku_id: {
+                        'sku_name': prod_sku_name,
                         'num': sku_item.num,
-                        'location': product_location,
-                        'title': product.name if product else sku_item.title,
-                        'skus': {outer_sku_id: {
-                            'sku_name': prod_sku_name,
-                            'num': sku_item.num,
-                            'location': product_sku_location}
-                        }
+                        'location': product_sku_location}
                     }
-            # if:
-            #    prompt_set.add(u'客官，您的订单已拆单分批发货，其它宝贝正在陆续赶来，请您耐心等候')
+                }
+        # if:
+        #    prompt_set.add(u'客官，您的订单已拆单分批发货，其它宝贝正在陆续赶来，请您耐心等候')
 
-            trade_data['buyer_prompt'] = prompt_set and ','.join(list(prompt_set)) or ''
-            order_list = sorted(order_items.items(), key=lambda d: d[1]['location'])
-            for trade in order_list:
-                skus = trade[1]['skus']
-                trade[1]['skus'] = sorted(skus.items(), key=lambda d: d[1]['location'])
+        trade_data['buyer_prompt'] = prompt_set and ','.join(list(prompt_set)) or ''
+        order_list = sorted(order_items.items(), key=lambda d: d[1]['location'])
+        for trade in order_list:
+            skus = trade[1]['skus']
+            trade[1]['skus'] = sorted(skus.items(), key=lambda d: d[1]['location'])
 
-            trade_data['orders'] = order_list
-            picking_data_list.append(trade_data)
+        trade_data['orders'] = order_list
+        picking_data_list.append(trade_data)
 
         return picking_data_list
 

@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 from __future__ import unicode_literals
-
+import time
+import hashlib
 from django.core.cache import cache
 from django.db import models
 from django.db.models import Sum
@@ -253,7 +254,42 @@ class SaleProduct(BaseTagModel):
     def get_boutique_value(self):
         return bool(self.extras and self.extras.get('is_boutique') or 0)
 
+    def gen_outer_id(self):
+        if self.product_link:
+            self.outer_id = hashlib.md5(self.product_link).hexdigest()
+        else:
+            self.outer_id = 'OO%d' % time.time()
 
+    @staticmethod
+    def get_by_product(product):
+        spids = list(SaleProductRelation.objects.filter(product_id=product.id).values_list('sale_product_id', flat=True))
+        spids = spids + [product.sale_product]
+        return SaleProduct.objects.filter(id__in=spids)
+
+    @staticmethod
+    def create(product, title, supplier_id, supplier_sku, product_link, memo, creater, platform=MANUAL):
+        if supplier_id in list(SaleProduct.get_by_product(product).values_list("sale_supplier_id", flat=True)):
+            raise Exception(u'此商品已向该供应商订货，应该进行编辑而非新增')
+        sp = SaleProduct(
+            title=title,
+            sale_supplier_id=supplier_id,
+            product_link=product_link,
+            supplier_sku=supplier_sku,
+            memo=memo,
+            librarian=creater.username,
+            platform=platform,
+            price=product.std_purchase_price,
+        )
+        sp.gen_outer_id()
+        sp.save()
+        sp.sale_category = product.category.get_sale_category()
+        sp.save()
+        SaleProductRelation(sale_product=sp, product_id=product.id).save()
+        return sp
+
+    def delete(self):
+        self.status = SaleProduct.REJECTED
+        self.save()
 
 def change_saleprodut_by_pre_save(sender, instance, raw, *args, **kwargs):
     try:
@@ -343,3 +379,12 @@ class PreferencePool(BaseModel):
         return '<%s-%s>' % (self.id, self.name)
 
 
+class SaleProductRelation(BaseModel):
+    sale_product = models.ForeignKey(SaleProduct)
+    product_id = models.IntegerField(verbose_name=u'商品id')
+
+    class Meta:
+        unique_together = [("sale_product", "product_id")]
+        app_label = 'supplier'
+        verbose_name = u'商品选品关系'
+        verbose_name_plural = u'商品选品关联列表'

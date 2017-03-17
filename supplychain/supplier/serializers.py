@@ -293,11 +293,58 @@ class SimpleSaleProductSerializer(serializers.ModelSerializer):
     def get_in_schedule(self, obj):
         """ 判断选品是否在指定排期里面 """
         request = self.context.get('request')
-        schedule_id = request.GET.get('schedule_id') or None
-        if not schedule_id:
+        if request:
+            schedule_id = request.GET.get('schedule_id') or None
+            if not schedule_id:
+                return False
+            schedule = SaleProductManage.objects.get(id=schedule_id)
+            return obj.id in schedule.get_sale_product_ids()
+        else:
             return False
-        schedule = SaleProductManage.objects.get(id=schedule_id)
-        return obj.id in schedule.get_sale_product_ids()
+
+
+class CreateSaleProductSerializer(serializers.ModelSerializer):
+    product_id = serializers.IntegerField(source='product.id')
+    title = serializers.CharField(required=False)
+    supplier_id = serializers.IntegerField()
+    product_link = serializers.CharField(required=False)
+    memo = serializers.CharField(required=False)
+    platform = serializers.CharField(required=False)
+    supplier_sku = serializers.CharField(required=False)
+
+    class Meta:
+        model = SaleProduct
+        fields = ("product_id", "title", "supplier_id", "product_link", "memo", "platform", "supplier_sku")
+
+    def save(self, obj, user):
+        from shopback.items.models import Product
+        product = Product.objects.get(id=obj['product_id'])
+        return SaleProduct.create(
+            product, obj.get('title', product.title), obj['supplier_id'], obj.get('supplier_sku', ''),
+            obj.get('product_link', ''), obj.get('memo', ''), user, obj.get('platform', SaleProduct.MANUAL),
+        )
+
+
+class SaleProductEditSerializer(serializers.ModelSerializer):
+    title = serializers.CharField(required=False)
+    product_link = serializers.CharField(required=False)
+    memo = serializers.CharField(required=False)
+    platform = serializers.CharField(required=False)
+    supplier_sku = serializers.CharField(required=False)
+
+    class Meta:
+        model = SaleProduct
+        fields = ("title", "product_link", "memo", "platform", "supplier_sku")
+
+    def save(self, obj, user, saleproduct):
+        saleproduct.title = obj.get('title') if obj.get('title') else saleproduct.title
+        saleproduct.supplier_sku = obj.get('supplier_sku', '')
+        saleproduct.product_link = obj.get('product_link', '')
+        saleproduct.memo = obj.get('memo', '')
+        saleproduct.librarian = user.username
+        saleproduct.platform = obj.get('platform', SaleProduct.MANUAL)
+        saleproduct.save()
+        return saleproduct
 
 
 class ModelProductSerializer(serializers.ModelSerializer):
@@ -310,10 +357,13 @@ class ModelProductSerializer(serializers.ModelSerializer):
             'id',
             'head_imgs',
             'content_imgs',
+            'detail_first_img',
+            'respective_imgs',
             'is_onsale',
             'is_boutique',
             'is_teambuy',
             'is_recommend',
+            'is_flatten',
             'is_topic',
             'teambuy_price',
             'teambuy_person_num',
@@ -326,7 +376,10 @@ class ModelProductSerializer(serializers.ModelSerializer):
     def get_content_imgs(self, obj):
         if not obj.content_imgs:
             return []
-        return [img for img in obj.content_imgs.split('\n') if img.strip()]
+        if obj.detail_first_img:
+            return [img for img in obj.content_imgs.replace(obj.detail_first_img + '\n', '').split('\n') if img.strip()]
+        else:
+            return [img for img in obj.content_imgs.split('\n') if img.strip()]
 
     def get_extras(self, obj):
         try:

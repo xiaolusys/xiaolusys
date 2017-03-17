@@ -15,6 +15,7 @@ from django.db.models.signals import pre_save, post_save
 from django.db import transaction
 from django.forms.models import model_to_dict
 from django.core.cache import cache
+from django.utils.functional import cached_property
 
 from shopapp.taobao import apis
 from common.modelutils import update_model_fields
@@ -149,6 +150,7 @@ class Product(models.Model):
 
     match_reason = models.CharField(max_length=80, blank=True, verbose_name=u'匹配原因')
     buyer_prompt = models.CharField(max_length=60, blank=True, verbose_name=u'客户提示')
+    ref_link = models.CharField(max_length=1024, blank=True, verbose_name=u'参考链接')
     memo = models.TextField(max_length=1000, blank=True, verbose_name=u'备注')
 
     sale_charger = models.CharField(max_length=32, db_index=True, blank=True,
@@ -243,6 +245,14 @@ class Product(models.Model):
         for sku in self.pskus:
             sale_out &= sku.sale_out
         return sale_out
+
+    @property
+    def is_standard(self):
+        # 是否标品
+        return self.eskus.count() == 1
+
+    def get_sale_category_id(self):
+        return 
 
     def get_product_link(self):
         return SaleProduct.objects.get(id=self.sale_product).product_link
@@ -347,6 +357,12 @@ class Product(models.Model):
     def realtime_quantity(self):
         return sum(self.productskustats_set.all().values_list('realtime_quantity', flat=True))
 
+    def get_lowest_agent_price(self):
+        return min([sku.agent_price for sku in self.eskus.all()])
+
+    def get_lowest_std_sale_price(self):
+        return min([sku.std_sale_price for sku in self.eskus.all()])
+
     def pro_sale_supplier(self):
         """ 返回产品的选品和供应商　"""
         try:
@@ -376,6 +392,13 @@ class Product(models.Model):
         sp = SaleProduct.objects.filter(id=self.sale_product).first()
         if sp:
             return sp.sale_supplier
+
+    def get_suppliers(self):
+        sp = SaleProduct.objects.filter(id=self.sale_product).first()
+        if sp:
+            return [sp.sale_supplier]
+        else:
+            return []
 
     @staticmethod
     def get_by_supplier(supplier_id):
@@ -475,6 +498,39 @@ class Product(models.Model):
         wait_post_num = self.wait_post_num > 0 and self.wait_post_num or 0
         sync_num = collect_num - remain_num - wait_post_num
         return self.warn_num > 0 and self.warn_num >= sync_num
+
+    @cached_property
+    def properties_name(self):
+        try:
+            res = self.name.split('\\')[1]
+        except:
+            res = self.name
+        return res
+
+    @property
+    def sku_extras_info(self):
+        """ 更新数据库　sku 信息　到　sku_extras 字段"""
+        sku_list = []
+        for psku in self.normal_skus:
+            if '|' not in psku.properties_name:
+                color = ''
+                size = psku.properties_name
+            else:
+                color = psku.properties_name.split('|')[0]
+                size = psku.properties_name.split('|')[1] if len(psku.properties_name.split('|')) == 2 else ''
+            sku_list.append({'sku_id': psku.id,
+                             'color': color,
+                             'size': size,
+                             'pic_path': self.pic_path,
+                             'agent_price': psku.agent_price,
+                             'remain_num': psku.remain_num,
+                             'std_sale_price': psku.std_sale_price,
+                             'cost': psku.cost,
+                             'elite_score': self.elite_score,
+                             'supplier_skucode': psku.supplier_skucode,
+                             'properties_alias': psku.properties_alias,
+                             'properties_name': psku.properties_name})
+        return sku_list
 
     def get_district_list(self):
         from .storage import ProductLocation
@@ -944,7 +1000,7 @@ class Product(models.Model):
         model_pro.set_lowest_price()  # 设置款式最低价格
         from flashsale.pay.models import ModelProduct
         # 如果时精品券商品
-        if is_boutique_coupon :
+        if is_boutique_coupon:
             with transaction.atomic():
                 model_pro = ModelProduct.objects.select_for_update().get(id=model_pro.id)
                 if model_pro.extras.get('template_id'):
@@ -1015,6 +1071,60 @@ class Product(models.Model):
         if update_fields:
             self.save(update_fields=update_fields)
         return
+
+    def set_outer_id(self):
+        self.outer_id = Product.get_inner_outer_id('SP')
+
+    @staticmethod
+    def create(name, category, type, pic_path, ref_link, memo, skus):
+        if Product.objects.filter(name=name).exists():
+            raise Exception('已存在的商品名，请更换名称')
+        product = Product(name=name, category=category, type=type, pic_path=pic_path,
+                ref_link=ref_link, memo=memo)
+        product.set_outer_id()
+        product.save()
+        product.update_skus(skus)
+        return product
+
+    def update(self, name, category, type, pic_path, ref_link, memo, skus):
+        self.name = name
+        self.product_category = category
+        self.type = type
+        self.pic_path = pic_path
+        self.ref_link = ref_link
+        self.memo = memo
+        self.save()
+        self.update_skus(skus)
+        return self
+
+    def update_skus(self, skus):
+        """
+            颜色尺码都移到了sku里
+        """
+        sku_ids = [sku.id for sku in self.eskus.all()]
+        for item in skus:
+            sku_id = item.get('sku_id')
+            if sku_id:
+                sku = self.eskus.get(id=sku_id)
+            else:
+                sku = ProductSku()
+                sku.product = self
+                sku.set_outer_id()
+            color = item.get('color', '')
+            size = item.get('size', '')
+            sku.properties_name = color + '|' + size
+            sku.cost = item.get('cost', 0)
+            sku.std_purchase_price = item.get('std_purchase_price', 0)
+            sku.std_sale_price = item.get('std_sale_price', 0)
+            sku.agent_price = item.get('agent_price', 0)
+            sku.supplier_skucode = item.get('supplier_skucode', '')
+            sku.barcode = sku.outer_id
+            sku.save()
+            if sku.id in sku_ids:
+                sku_ids.remove(sku.id)
+        if sku_ids:
+            ProductSku.objects.filter(id__in=sku_ids).update(status=pcfg.DELETE)
+        return self
 
 
 def invalid_apiproduct_cache(sender, instance, *args, **kwargs):
@@ -1150,7 +1260,6 @@ class ProductSku(models.Model):
 
     properties_name = models.TextField(max_length=200, blank=True, verbose_name='线上规格名称')
     properties_alias = models.TextField(max_length=200, blank=True, verbose_name='系统规格名称')
-
     is_split = models.BooleanField(default=False, verbose_name='需拆分')
     is_match = models.BooleanField(default=False, verbose_name='有匹配')
 
@@ -1291,6 +1400,39 @@ class ProductSku(models.Model):
     @property
     def not_assign_num(self):
         return self.stat.not_assign_num
+
+    @property
+    def pic_path(self):
+        model_product = self.product.get_product_model()
+        if not model_product.title_imgs:
+            return ''
+        if '|' in self.properties_name:
+            key = self.properties_name.split('|')[0]
+        else:
+            key = ''
+        if key == '':
+            key = 'img'
+        return model_product.title_imgs.get(key, '')
+
+    def set_outer_id(self):
+        """
+            编码规则: SP[product_outer_id][sku_now_order]
+            sku_now_order 只能为数字和大写字母构成的字符串
+        """
+        def _num2char(number):
+            # number 应该是大于1的自然数
+            S = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+            L = len(S)
+            res = []
+            while number > L:
+                res.append(number % L)
+                number = int(number) / L
+            res.append(number)
+            return ''.join([S[r-1] for r in res])
+        if not self.outer_id:
+            cnt = ProductSku.objects.filter(outer_id__startswith=self.product.outer_id).count()
+            now_order = cnt + 1
+            self.outer_id = self.product.outer_id + _num2char(now_order)
 
     def set_remain_num(self, remain_num):
         self.remain_num = remain_num
