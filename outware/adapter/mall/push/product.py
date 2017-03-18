@@ -32,7 +32,7 @@ def push_ware_sku_by_saleproduct(sale_product):
                 success_skucode_list.append(sku_code)
 
     #　十秒后执行union操作
-    task_outware_union_supplier_and_sku.apply_async(countdown=10)
+    task_outware_union_supplier_and_sku.apply_async(countdown=3)
 
     return success_skucode_list
 
