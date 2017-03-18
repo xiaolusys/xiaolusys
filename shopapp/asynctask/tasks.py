@@ -514,7 +514,7 @@ class PrintAsyncTask2(object):
             trade_data['orders'] = order_list
             picking_data_list.append(trade_data)
 
-            return picking_data_list
+        return picking_data_list
 
     def genHtmlPDF(self, file_path, html_text):
 
@@ -544,11 +544,12 @@ class PrintAsyncTask2(object):
         user_code = params_json['user_code'].lower()
         package_orders = PackageOrder.objects.filter(pid__in=trade_ids).order_by('out_sid')
         if print_async.task_type == PrintAsyncTaskModel.INVOICE:
-            logging.info({'action':'print_invoice',
-                          'action_time': datetime.datetime.now(),
-                          'package_orders': package_orders
-                          })
             invoice_data = self.genInvoiceData(package_orders)
+            logging.info({'action': 'print_invoice',
+                          'action_time': datetime.datetime.now(),
+                          'trade_ids': trade_ids,
+                          'package_data': invoice_data
+                          })
             invoice_html = render_to_string('asynctask/print/invoice_%s_template2.html' % user_code,
                                             {'trade_list': invoice_data})
             #             invoice_path = os.path.join(settings.DOWNLOAD_ROOT,'print','invoice')
