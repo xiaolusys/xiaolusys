@@ -544,7 +544,10 @@ class PrintAsyncTask2(object):
         user_code = params_json['user_code'].lower()
         package_orders = PackageOrder.objects.filter(pid__in=trade_ids).order_by('out_sid')
         if print_async.task_type == PrintAsyncTaskModel.INVOICE:
-
+            logging.info({'action':'print_invoice',
+                          'action_time': datetime.datetime.now(),
+                          'package_orders': package_orders
+                          })
             invoice_data = self.genInvoiceData(package_orders)
             invoice_html = render_to_string('asynctask/print/invoice_%s_template2.html' % user_code,
                                             {'trade_list': invoice_data})
