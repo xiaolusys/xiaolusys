@@ -198,7 +198,9 @@ class DailySkuAmountStat(BaseModel):
                                  db_index=True, verbose_name=u'业务日期')
 
     total_amount = models.IntegerField(default=0, verbose_name=u'总价值')
+    total_cost = models.IntegerField(default=0, verbose_name=u'商品进价', help_text=u'按商品最后一次采购价计算')
     direct_payment = models.IntegerField(default=0, verbose_name=u'直接付款金额')
+    coin_payment   = models.IntegerField(default=0, verbose_name=u'支付小鹿币', help_text=u'小鹿币只可用于买券')
     coupon_amount  = models.IntegerField(default=0, verbose_name=u'券使用面额')
     coupon_payment = models.IntegerField(default=0, db_index=True, verbose_name=u'券实际卖价')
     exchg_amount   = models.IntegerField(default=0, db_index=True, verbose_name=u'券兑换出额', help_text=u'扣除买券金额')

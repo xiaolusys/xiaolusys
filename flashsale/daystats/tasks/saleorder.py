@@ -4,6 +4,7 @@ from __future__ import absolute_import, unicode_literals
 import datetime
 import collections
 from itertools import chain
+from django.db import connection
 from django.db.models import Sum, Count, F
 
 from shopmanager import celery_app as app
@@ -48,24 +49,44 @@ def task_call_all_sku_delivery_stats(stat_date=None):
 
 
 def task_calc_all_sku_amount_stat_by_date(stat_date=None):
-    """ 统计sku销售金额 """
+    """
+        统计sku销售金额
+        注意: 这里统计的商品进价不考虑不同批次采购的价格波动,只根据商品sku设置的成本价计算
+    """
 
     if not stat_date:
         stat_date = datetime.date.today() - datetime.timedelta(days=1)
 
+    date_tuple = day_range(stat_date)
     order_qs = SaleOrder.objects.active_orders().filter(
-        pay_time__range=day_range(stat_date),
+        pay_time__range=date_tuple,
         # oid__in=('xo1701095872ca932da30', 'xo170109587354504eb5c', 'xo170109587357913f3cd', 'xo17010958739b969a09b'), # TODO@REMOVE
     )
 
-    order_stats = order_qs.values('sku_id').annotate(
-        total_amount=Sum(F('total_fee') * 100),
-        direct_payment=Sum(F('payment') * 100),
-        coupon_amount=Sum(F('discount_fee') * 100),
-    )
+    order_amount_query_sql = """
+        SELECT so.`sku_id`,
+          sum(so.`total_fee`*100),
+          sum(so.`payment`*100),
+          sum(so.`discount_fee`*100),
+          sum(so.`payment`*st.`coin_paid`*100/ st.`payment`)
+          count(so.`id`)
+          FROM flashsale_order so
+          LEFT JOIN flashsale_trade st on so.`sale_trade_id`= st.id
+         where
+           so.status != %s and
+           so.`pay_time` BETWEEN %s and %s
+         GROUP BY so.`sku_id`;
+    """
 
-    sku_ids = [l['sku_id'] for l in order_stats]
-    sku_model_maps = dict(ProductSku.objects.filter(id__in=list(sku_ids)).values_list('id', 'product__model_id'))
+    cursor = connection.cursor()  # 获得一个游标(cursor)对象
+    # 更新操作
+    cursor.execute(order_amount_query_sql, [SaleOrder.TRADE_CLOSED_BY_SYS, date_tuple[0], date_tuple[1]])
+    order_stats = cursor.fetchall()
+
+    sku_ids = [l[0] for l in order_stats]
+    sku_valuelist = ProductSku.objects.filter(id__in=list(sku_ids)).values_list('id', 'cost', 'product__model_id')
+    sku_model_maps = dict([(v[0], v[2]) for v in sku_valuelist])
+    sku_price_maps = dict([(v[0], v[1]) for v in sku_valuelist])
 
     sku_tid_num_list = order_qs.values_list('sku_id', 'sale_trade__tid', 'num', 'oid')
     tid_list = []
@@ -121,22 +142,26 @@ def task_calc_all_sku_amount_stat_by_date(stat_date=None):
         sku_exchg_maps[sku_id] = sku_exchg_maps.get(sku_id, 0) + order_exchg_maps.get(oid, 0)
 
     for value in order_stats:
-        sku_id = int(value['sku_id'])
+        sku_id = int(value[0])
         stat, state = DailySkuAmountStat.objects.get_or_create(
             sku_id=sku_id, stat_date=stat_date
         )
-        value['model_id'] = sku_model_maps.get(sku_id)
-        value['coupon_payment'] = sku_origin_price_maps.get(sku_id, 0)
-        value['exchg_amount']   = sku_exchg_maps.get(sku_id, 0)
+        stat.total_amount   = value[1]
+        stat.direct_payment = value[2]
+        stat.coupon_amount  = value[3]
+        stat.coin_payment   = value[4]
 
-        for k, v in value.items():
-            setattr(stat, k, v)
+        stat.total_cost   = sku_price_maps.get(sku_id) * value[5]
+        stat.model_id     = sku_model_maps.get(sku_id)
+        stat.coupon_payment = sku_origin_price_maps.get(sku_id, 0)
+        stat.exchg_amount   = sku_exchg_maps.get(sku_id, 0)
 
         stat.save()
 
+
 @app.task
 def task_calc_all_sku_amount_stat_by_schedule():
-    """ 统计sku销售金额 """
+    """ 统计sku销售金额,由于小鹿币的兑换时间不确定,所以这里不能做任何处理 """
     # calc the last day sku_amount
     task_calc_all_sku_amount_stat_by_date(datetime.date.today() - datetime.timedelta(days=1))
 
