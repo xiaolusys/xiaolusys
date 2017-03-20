@@ -51,34 +51,38 @@ class FengchaoCallbackViewSet(viewsets.GenericViewSet):
         if not self.verify_request(req_data):
             return Response({'code': 1, 'info': '签名无效'})
 
-        data = json.loads(req_data['data'])
-        order_code = data['order_code']
+        try:
+            data = json.loads(req_data['data'])
+            order_code = data['order_code']
 
-        order_type = (constants.ORDER_PURCHASE['code'], constants.ORDER_REFUND['code']
-            )[data['order_type'].lower() == 'refund' and 1 or 0]
-        params = {
-            'order_code': order_code,
-            'store_code': data['store_code'],
-            'order_type': order_type,
-            'inbound_skus': [],
-            'object': 'OutwareInboundOrder',
-        }
+            order_type = (constants.ORDER_PURCHASE['code'], constants.ORDER_REFUND['code']
+                )[data['order_type'].lower() == 'refund' and 1 or 0]
+            params = {
+                'order_code': order_code,
+                'store_code': data['store_code'],
+                'order_type': order_type,
+                'inbound_skus': [],
+                'object': 'OutwareInboundOrder',
+            }
 
-        for item in data['warehouse_warrant_items']:
-            params['inbound_skus'].append({
-                'sku_code': item['sku_id'],
-                'batch_no': item['batch_no'],
-                'pull_good_qty': item['available_qty'],
-                'pull_bad_qty': item['bad_qty'],
-                'object': 'OutwareInboundSku',
-            })
+            for item in data['warehouse_warrant_items']:
+                params['inbound_skus'].append({
+                    'sku_code': item['sku_id'],
+                    'batch_no': item['batch_no'],
+                    'pull_good_qty': item['available_qty'],
+                    'pull_bad_qty': item['bad_qty'],
+                    'object': 'OutwareInboundSku',
+                })
+            dict_params = DictObject().fresh_form_data(params)
+        except Exception, exc:
+            logging.error('响应数据格式不对: %s' % str(exc), exc_info=True)
+            return Response({'code': 2, 'info': '响应数据格式不对: %s' % str(exc)})
 
-        dict_params = DictObject().fresh_form_data(params)
         try:
             resp = pms.update_outware_inbound_by_po_confirm(order_code, order_type, dict_params)
         except Exception, exc:
             logging.error(str(exc), exc_info=True)
-            return Response({'code': 1, 'info': str(exc)})
+            return Response({'code': 0, 'info': str(exc)})
 
         return Response({'code': not resp['success'] and 1 or 0, 'info': resp.get('message','')})
 
@@ -108,10 +112,15 @@ class FengchaoCallbackViewSet(viewsets.GenericViewSet):
 
         try:
             data = json.loads(req_data['data'])
+        except Exception, exc:
+            logging.error('响应数据格式不对: %s' % str(exc), exc_info=True)
+            return Response({'code': 1, 'info': '响应数据格式不对: %s' % str(exc)})
+
+        try:
             oms.update_outware_order_by_order_state_change(data['order_number'], data['status'])
         except Exception, exc:
             logging.error(str(exc), exc_info=True)
-            return Response({'code': 1, 'info': str(exc)})
+            return Response({'code': 0, 'info': str(exc)})
 
         return Response({'code': 0, 'info': 'success'})
 
@@ -151,10 +160,15 @@ class FengchaoCallbackViewSet(viewsets.GenericViewSet):
                 params['lack_goods'].append(good)
 
             dict_params = DictObject().fresh_form_data(params)
+        except Exception, exc:
+            logging.error('响应数据格式不对: %s' % str(exc), exc_info=True)
+            return Response({'code': 2, 'info': '响应数据格式不对: %s' % str(exc)})
+
+        try:
             oms.update_outware_order_by_order_goodlacks(data['order_number'], dict_params)
         except Exception, exc:
             logging.error(str(exc), exc_info=True)
-            return Response({'code': 1, 'info': str(exc)})
+            return Response({'code': 0, 'info': str(exc)})
 
         return Response({'code': 0, 'info': 'success'})
 
@@ -169,47 +183,45 @@ class FengchaoCallbackViewSet(viewsets.GenericViewSet):
         if not self.verify_request(req_data):
             return Response({'code': 1, 'info': '签名无效'})
 
-        data = json.loads(req_data['data'])
-        order_code = data['order_code']
-        logger.info({
-            'action': 'package_delivery',
-            'action_time': datetime.datetime.now(),
-            'order_no': order_code,
-            'data': data,
-        })
+        try:
+            data = json.loads(req_data['data'])
+            order_code = data['order_code']
 
-        order_type = (constants.ORDER_RETURN['code'], constants.ORDER_SALE['code'])\
-            [data['order_type'].lower() == 'user_pack' and 1 or 0]
+            order_type = (constants.ORDER_RETURN['code'], constants.ORDER_SALE['code'])\
+                [data['order_type'].lower() == 'user_pack' and 1 or 0]
 
-        params = {
-            'order_code': order_code,
-            'order_type': order_type,
-            'packages': [],
-            'object': 'OutwareObject',
-        }
-        for package in data['packages']:
-            package_params = {
-                'store_code': package['whse_code'],
-                'logistics_no': package['logistics_no'],
-                'carrier_code': package['carrier_code'],
-                'package_items': [],
-                'object': 'OutwarePackage',
+            params = {
+                'order_code': order_code,
+                'order_type': order_type,
+                'packages': [],
+                'object': 'OutwareObject',
             }
-            params['packages'].append(package_params)
-            for item in package['package_items']:
-                package_params['package_items'].append({
-                    'sku_code': item['sku_id'],
-                    'batch_no': item['batch_no'],
-                    'sku_qty': item['send_qty'],
-                    'object': 'OutwarePackageSku',
-                })
+            for package in data['packages']:
+                package_params = {
+                    'store_code': package['whse_code'],
+                    'logistics_no': package['logistics_no'],
+                    'carrier_code': package['carrier_code'],
+                    'package_items': [],
+                    'object': 'OutwarePackage',
+                }
+                params['packages'].append(package_params)
+                for item in package['package_items']:
+                    package_params['package_items'].append({
+                        'sku_code': item['sku_id'],
+                        'batch_no': item.get('batch_no',''),
+                        'sku_qty': item['send_qty'],
+                        'object': 'OutwarePackageSku',
+                    })
+            dict_params = DictObject().fresh_form_data(params)
+        except Exception, exc:
+            logging.error('响应数据格式不对: %s'%str(exc), exc_info=True)
+            return Response({'code': 2, 'info': '响应数据格式不对: %s'%str(exc)})
 
-        dict_params = DictObject().fresh_form_data(params)
         try:
             resp = oms.update_outware_order_by_order_delivery(order_code, order_type, dict_params)
         except Exception, exc:
             logging.error(str(exc), exc_info=True)
-            return Response({'code': 1, 'info': str(exc)})
+            return Response({'code': 0, 'info': str(exc)})
 
         return Response({'code': not resp['success'] and 1 or 0, 'info': resp['message']})
 

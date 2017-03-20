@@ -8,7 +8,7 @@ from core.fields import JSONCharMyField
 from .base import BaseWareModel
 
 class OutwareSkuStock(BaseWareModel):
-    """ 商品库存需要跟具体的批次号关联 """
+    """ 外仓商品库存 """
 
     sku_code = models.CharField(max_length=64, unique=True, verbose_name=u'内部SKU编号')
 

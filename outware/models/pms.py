@@ -24,6 +24,9 @@ class OutwareSupplier(BaseWareModel):
         verbose_name = u'外仓/对接供应商'
         verbose_name_plural = u'外仓/对接供应商'
 
+    def __unicode__(self):
+        return '<%s, %s>'%(self.id, self.vendor_code)
+
     @classmethod
     def generate_unikey(cls, account_id, vdr_code):
         return '{vendor_code}-{account_id}'.format(vendor_code=vdr_code, account_id=account_id)
@@ -37,6 +40,7 @@ class OutwareSku(BaseWareModel):
     sku_code = models.CharField(max_length=64, db_index=True, verbose_name=u'内部SKU编号')
     ware_sku_code = models.CharField(max_length=64, db_index=True, verbose_name=u'外部SKU编号')
 
+    # is_batch_mgt = models.BooleanField(default=False, verbose_name=u'是否启用批次管理')
     is_unioned = models.BooleanField(default=False, verbose_name=u'是否同步供应商与sku关系')
     uni_key = models.CharField(max_length=128, unique=True, verbose_name=u'唯一标识')
     extras = JSONCharMyField(max_length=1024, default={}, verbose_name=u'附加信息') #商品的基础资料及款式信息
@@ -46,6 +50,9 @@ class OutwareSku(BaseWareModel):
         app_label = 'outware'
         verbose_name = u'外仓/对接商品SKU'
         verbose_name_plural = u'外仓/对接商品SKU'
+
+    def __unicode__(self):
+        return '<%s, %s>' % (self.outware_supplier, self.sku_code)
 
     @classmethod
     def generate_unikey(self, supplier_id, sku_code):
@@ -89,14 +96,18 @@ class OutwareInboundOrder(BaseWareModel):
         verbose_name = u'外仓/推送入仓单'
         verbose_name_plural = u'外仓/推送入仓单'
 
+    def __unicode__(self):
+        return '<%s, %s>' % (self.outware_supplier, self.inbound_code)
+
     @classmethod
-    def generate_unikey(self, account_id, inbound_code, store_code, order_type):
-        return '{inbound_code}-{store_code}-{order_type}-{account_id}'.format(
+    def generate_unikey(self, inbound_code, order_type):
+        return '{inbound_code}-{order_type}'.format(
             inbound_code=inbound_code,
-            store_code=store_code,
             order_type=order_type,
-            account_id=account_id,
         )
+
+    def is_reproducible(self):
+        return self.status in (constants.NORMAL, constants.CANCEL)
 
     def change_order_status(self, status_code):
         self.status = status_code
@@ -123,6 +134,9 @@ class OutwareInboundSku(BaseWareModel):
         app_label = 'outware'
         verbose_name = u'外仓/推送入仓SKU'
         verbose_name_plural = u'外仓/推送入仓SKU'
+
+    def __unicode__(self):
+        return '<inbound_id:%s, %s>' % (self.outware_inboind_id, self.sku_code)
 
     @classmethod
     def generate_unikey(self, inbound_id, sku_code, batch_no):

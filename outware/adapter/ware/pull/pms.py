@@ -95,6 +95,7 @@ def union_sku_and_supplier(ow_sku):
         return {'success': False, 'object': ow_sku, 'message': str(exc)}
     # 确定sku还有供应商已关联
     ow_sku.finish_unioned()
+    ow_sku.save()
 
     return {'success': True, 'object': ow_sku, 'message': ''}
 
@@ -107,28 +108,46 @@ def create_inbound_order(inbound_code, vendor_code, dict_obj):
 
     ware_account = OutwareAccount.get_fengchao_account()
 
-    dict_obj.order_type = order_type = constants.ORDER_PURCHASE['code']
+    order_type = dict_obj.order_type
     ow_supplier = OutwareSupplier.objects.get(outware_account=ware_account, vendor_code=vendor_code)
     with transaction.atomic():
-        ow_inbound = OutwareInboundOrder.objects.create(
-            outware_supplier=ow_supplier,
-            inbound_code=inbound_code,
-            store_code=dict_obj.store_code,
-            order_type=order_type,
-            extras={'data': dict(dict_obj)},
-            uni_key=OutwareInboundOrder.generate_unikey(ware_account.id, inbound_code, dict_obj.store_code, order_type),
-        )
+        try:
+            # 　TODO@TIPS, use atomic inner for fix django model create bug
+            # referl: http://stackoverflow.com/questions/21458387/transactionmanagementerror-you-cant-execute-queries-until-the-end-of-the-atom
+            with transaction.atomic():
+                ow_inbound = OutwareInboundOrder.objects.create(
+                    outware_supplier=ow_supplier,
+                    inbound_code=inbound_code,
+                    store_code=dict_obj.store_code,
+                    order_type=order_type,
+                    extras={'data': dict(dict_obj)},
+                    uni_key=OutwareInboundOrder.generate_unikey(inbound_code, order_type),
+                )
+        except IntegrityError:
+            ow_order = OutwareInboundOrder.objects.get(
+                inbound_code=inbound_code,
+                order_type=order_type
+            )
+            if not ow_order.is_reproducible():
+                return {'success': True, 'object': ow_order, 'message': '订单不可重复推送，如果需要修改请先取消'}
+
+            ow_order.extras['data'] = dict(dict_obj)
+            ow_order.save()
 
         for sku_item in dict_obj.order_items:
             sku_code = sku_item.sku_id
             batch_no = sku_item.batch_code
-            OutwareInboundSku.objects.create(
-                outware_inboind=ow_inbound,
-                sku_code=sku_code,
-                batch_no=batch_no,
-                push_qty=sku_item.quantity,
-                uni_key=OutwareInboundSku.generate_unikey(ow_inbound.id, sku_code, batch_no),
-            )
+            try:
+                with transaction.atomic():
+                    OutwareInboundSku.objects.create(
+                        outware_inboind=ow_inbound,
+                        sku_code=sku_code,
+                        batch_no=batch_no,
+                        push_qty=sku_item.quantity,
+                        uni_key=OutwareInboundSku.generate_unikey(ow_inbound.id, sku_code, batch_no),
+                    )
+            except IntegrityError:
+                pass
 
     # TODO@MERON 入仓单取消后重新创建是否更换inbound_code?
     try:

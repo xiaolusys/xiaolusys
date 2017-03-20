@@ -57,6 +57,7 @@ def genTradeUniqueid():
 class SaleTrade(BaseModel):
     """ payment (实付金额) = total_fee (商品总金额) + post_fee (邮费) - discount_fee (优惠金额) """
     PREFIX_NO = 'xd'
+
     WX = 'wx'
     WEAPP = 'weapp'
     ALIPAY = 'alipay'
@@ -213,6 +214,10 @@ class SaleTrade(BaseModel):
 
     def __unicode__(self):
         return '<%s,%s>' % (str(self.id), self.buyer_nick)
+
+    @classmethod
+    def gen_unikey(cls):
+        return genTradeUniqueid()
 
     @property
     def normal_orders(self):

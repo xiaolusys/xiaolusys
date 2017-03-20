@@ -194,7 +194,8 @@ REST_FRAMEWORK.update({
 
 
 LOGGER_HANDLERS = [
-    ('service', 'jsonfile'),
+    ('outware', 'sentry,jsonfile'),
+    ('service', 'sentry,jsonfile'),
     ('shopback', 'sentry,file'),
     ('shopapp', 'sentry,file'),
     ('flashsale', 'sentry,file'),

@@ -7,8 +7,25 @@ from django.db import models
 from core.models import BaseModel
 from core.fields import JSONCharMyField
 
+from global_setup import is_undeploy_enviroment
+
 import logging
 logger = logging.getLogger(__name__)
+
+FENGCHAO_SLYC_VENDOR_CODE  = 'slyc'
+FENGCHAO_SLYC_CHANNEL_CODE = 'shiliyangchang' # 十里洋场的订单channel
+
+if is_undeploy_enviroment():
+    FENGCHAO_DEFAULT_CHANNEL_CODE = '1' # 小鹿特卖的订单channel
+else:
+    FENGCHAO_DEFAULT_CHANNEL_CODE = 'xiaolumeimei'
+
+def get_channelid(order_platform, vendor_codes=[]):
+    # order_platform: 订单来自平台, 目前默认为自有商城
+    for vendor_code in vendor_codes:
+        if vendor_code.lower() == FENGCHAO_SLYC_VENDOR_CODE:
+            return FENGCHAO_SLYC_CHANNEL_CODE
+    return FENGCHAO_DEFAULT_CHANNEL_CODE
 
 class FengchaoOrderChannel(BaseModel):
 

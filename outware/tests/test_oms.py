@@ -19,7 +19,9 @@ class OMSTestCase(TestCase):
     ]
 
     def setUp(self):
-        pass
+        st = SaleTrade.objects.first()
+        st.tid = SaleTrade.gen_unikey()
+        st.save(update_fields=['tid'])
 
     def testCreateAndCancelWareOrder(self):
         sale_trade = SaleTrade.objects.first()
@@ -29,6 +31,23 @@ class OMSTestCase(TestCase):
         resp = oms.cancel_order(sale_trade.tid)
         self.assertTrue(resp['success'])
 
+class SlycTestCase(TestCase):
+
+    fixtures = [
+        'test.outware.base.json',
+        'test.outware.slyc.json'
+    ]
+
+    def setUp(self):
+        pass
+
+    def testCreateAndCancelWareOrder(self):
+        sale_trade = SaleTrade.objects.first()
+        resp = order.push_outware_order_by_sale_trade(sale_trade)
+        self.assertTrue(resp['success'])
+
+        resp = oms.cancel_order(sale_trade.tid)
+        self.assertTrue(resp['success'])
 
 class OMSRefundTestCase(TestCase):
     # TODO@MERON 退款单创建不能自动测试, 只能手动修改测试

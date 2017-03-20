@@ -30,14 +30,16 @@ def create_order(order_code, store_code, dict_obj):
     order_type = dict_obj.order_type
     with transaction.atomic():
         try:
-            ow_order = OutwareOrder.objects.create(
-                outware_account=ware_account,
-                store_code=store_code,
-                union_order_code=order_code,
-                order_type=order_type,
-                extras={'data': dict(dict_obj)},
-                uni_key=OutwareOrder.generate_unikey(ware_account.id, order_code, order_type),
-            )
+            #　TODO@TIPS, use atomic inner for fix django model create bug
+            with transaction.atomic():
+                ow_order = OutwareOrder.objects.create(
+                    outware_account=ware_account,
+                    store_code=store_code,
+                    union_order_code=order_code,
+                    order_type=order_type,
+                    extras={'data': dict(dict_obj)},
+                    uni_key=OutwareOrder.generate_unikey(ware_account.id, order_code, order_type),
+                )
         except IntegrityError:
             ow_order = OutwareOrder.objects.get(
                 outware_account=ware_account,
@@ -45,7 +47,7 @@ def create_order(order_code, store_code, dict_obj):
                 order_type=order_type
             )
             if not ow_order.is_reproducible():
-                raise Exception('该订单已存在，请先取消后重新创建:order_code=%s'%order_code)
+                return {'success': True, 'object': ow_order, 'message': '订单不可重复推送'}
 
             ow_order.extras['data'] = dict(dict_obj)
             ow_order.save()
@@ -56,18 +58,19 @@ def create_order(order_code, store_code, dict_obj):
             if not ow_sku:
                 raise Exception('供应商商品规格信息未录入:sku_code=%s'%sku_item.sku_id)
             try:
-                OutwareOrderSku.objects.create(
-                    outware_account=ware_account,
-                    union_order_code=order_code,
-                    origin_skuorder_no=sku_order_code,
-                    sku_code=sku_item.sku_id,
-                    sku_qty=sku_item.quantity,
-                    uni_key=OutwareOrderSku.generate_unikey(ware_account.id, sku_order_code),
-                )
+                with transaction.atomic():
+                    OutwareOrderSku.objects.create(
+                        outware_account=ware_account,
+                        union_order_code=order_code,
+                        origin_skuorder_no=sku_order_code,
+                        sku_code=sku_item.sku_id,
+                        sku_qty=sku_item.quantity,
+                        uni_key=OutwareOrderSku.generate_unikey(ware_account.id, sku_order_code),
+                    )
             except IntegrityError:
                 ow_ordersku = OutwareOrderSku.objects.get(
                     outware_account=ware_account,
-                    sku_order_code=sku_order_code,
+                    origin_skuorder_no=sku_order_code,
                     sku_code=sku_item.sku_id
                 )
                 if not ow_ordersku.is_reproducible():

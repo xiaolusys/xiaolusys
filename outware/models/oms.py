@@ -49,7 +49,7 @@ class OutwareOrder(BaseWareModel):
         return OutwareOrderSku.objects.filter(union_order_code=self.union_order_code, is_valid=True)
 
     def is_reproducible(self):
-        return self.status == constants.CANCEL
+        return self.status in (constants.NORMAL, constants.CANCEL)
 
     def change_order_status(self, status_code):
         self.status = status_code
@@ -57,7 +57,7 @@ class OutwareOrder(BaseWareModel):
 
         if status_code == constants.CANCEL:
             for order_sku in self.order_skus:
-                order_sku.set_valid()
+                order_sku.set_invalid()
                 order_sku.save()
 
 

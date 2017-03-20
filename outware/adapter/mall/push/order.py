@@ -4,9 +4,9 @@ from __future__ import absolute_import, unicode_literals
 from shopback.items.models import ProductSku
 from supplychain.supplier.models import SaleSupplier
 from outware.adapter.ware.pull import oms, pms
-from outware.fengchao.models import FengchaoOrderChannel
+from outware.fengchao.models import base
 from flashsale.pay.models import UserAddress, SaleOrder
-from outware.models.oms import OutwarePackageSku
+from outware.models import OutwarePackageSku, OutwareOrderSku, OutwareSku
 
 from core.apis import DictObject
 from .... import constants
@@ -14,20 +14,35 @@ from .... import constants
 
 def push_outware_order_by_sale_trade(sale_trade):
     """ 创建订单 """
-    fc_order_channel = FengchaoOrderChannel.get_default_channel()
-    if not fc_order_channel:
-        raise Exception('需要添加蜂巢订单来源渠道')
+    # fc_order_channel = FengchaoOrderChannel.get_default_channel()
+    # if not fc_order_channel:
+    #     raise Exception('需要添加蜂巢订单来源渠道')
 
     order_code = sale_trade.tid
     store_code = '' # TODO#MERON 暂不指定仓库, 后面需要再变更
     address = sale_trade.get_useraddress_instance()
+
+    sku_codes = []
+    order_items = []
+    for order in sale_trade.normal_orders:
+        order_items.append({
+            'sku_order_code': order.oid,
+            'sku_id': order.outer_sku_id,
+            'quantity': order.num,
+            'object': 'OutwareOrderSku',
+        })
+        sku_codes.append(order.outer_sku_id)
+
+    vendor_codes = OutwareSku.objects.filter(sku_code__in=sku_codes)\
+        .values_list('outware_supplier__vendor_code',flat=True)
+
     params = {
         # 'store_code': warehouse.store_code,
         'order_number': sale_trade.tid,
         'order_create_time': sale_trade.created.strftime('%Y-%m-%d %H:%M:%S'),
         'pay_time': sale_trade.pay_time.strftime('%Y-%m-%d %H:%M:%S'),
         'order_type': constants.ORDER_TYPE_USUAL['code'], # TODO@MERON　是否考虑预售
-        'channel_id': fc_order_channel.channel_id,
+        'channel_id': base.get_channelid('', vendor_codes=vendor_codes),
         'receiver_info': {
             'receiver_province': address.receiver_state,
             'receiver_city': address.receiver_city,
@@ -37,17 +52,9 @@ def push_outware_order_by_sale_trade(sale_trade):
             'receiver_mobile': address.receiver_mobile,
             'receiver_phone': address.receiver_phone,
         },
-        'order_items': [],
+        'order_items': order_items,
         'object': 'OutwareOrder',
     }
-    normal_orders = sale_trade.normal_orders
-    for order in normal_orders:
-        params['order_items'].append({
-            'sku_order_code':order.oid,
-            'sku_id': order.outer_sku_id,
-            'quantity': order.num,
-            'object': 'OutwareOrderSku',
-        })
 
     dict_obj = DictObject().fresh_form_data(params)
     response = oms.create_order(order_code, store_code, dict_obj)
@@ -62,18 +69,22 @@ def push_outware_inbound_by_sale_refund(sale_refund):
     sale_order = SaleOrder.objects.get(id=sale_refund.order_id)
 
     fc_order_channel = FengchaoOrderChannel.get_default_channel()
-    ow_packagesku = OutwarePackageSku.objects.filter(origin_skuorder_no=sale_order).first()
-    if not ow_packagesku:
-        raise Exception('用户订单包裹信息未找到:order_id=%s'%sale_refund.order_id)
 
-    sale_supplier = SaleSupplier.objects.get(batch_no=ow_packagesku.batch_no).only('id','vendor_code')
+    # TODO@meron 退货申请时需要客服判断具体时哪个供应商的商品,目前默认设置成最近一次供货的供应商
+    ow_ordersku = OutwareOrderSku.objects.get(origin_skuorder_no=sale_order.oid)
+    ow_sku = OutwareSku.objects.filter(sku_code=ow_ordersku.sku_code).order_by('-modified').first()
+    # ow_packagesku = OutwarePackageSku.objects.filter(origin_skuorder_no=ow_ordersku.union_order_code).first()
+    # if not ow_packagesku:
+    #     raise Exception('用户订单包裹信息未找到:order_id=%s'%sale_refund.order_id)
+
+    sale_supplier = ow_sku.outware_supplier
     params = {
         'store_code': warehouse.store_code,
         'order_code': sale_refund.refund_no,
         'vendor_code': sale_supplier.vendor_code,
         'channel_id': fc_order_channel.channel_id,
         'order_type': constants.ORDER_REFUND['code'],
-        'prev_order_code': ow_packagesku.package.package_order_code,
+        'prev_order_code': ow_ordersku.union_order_code,
         'receiver_info': {
             'receiver_province': warehouse.province,
             'receiver_city': warehouse.city,
@@ -88,7 +99,7 @@ def push_outware_inbound_by_sale_refund(sale_refund):
             'sku_id': sale_order.outer_sku_id,
             'sku_name': sale_order.title + sale_order.sku_name,
             'quantity': sale_refund.refund_num,
-            'batch_no': ow_packagesku.batch_no,
+            'batch_code': '', #ow_packagesku.batch_no, 当前批次号不确定，可以不传
             'object': 'OutwareInboundSku',
         }],
         'object': 'OutwareInboundOrder',

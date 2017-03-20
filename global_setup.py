@@ -7,6 +7,10 @@ import urllib2
 
 TARGET = os.environ.get('TARGET')
 
+def is_undeploy_enviroment():
+    """　是否非正式环境 """
+    return TARGET not in ('production', 'prometheus', 'django18')
+
 def is_staging_environment():
     return TARGET == 'staging'
 

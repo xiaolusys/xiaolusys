@@ -4,6 +4,7 @@ from __future__ import absolute_import, unicode_literals
 import hashlib
 import json
 import requests
+import datetime
 
 from ... import constants
 from outware.models.base import log_ware_action
@@ -21,6 +22,11 @@ def sign_string(string, secret):
     return hashlib.md5(str(string + secret)).hexdigest().upper()
 
 def request_getway(data, notify_type, account):
+    logger.info({
+        'action': 'fengchao_notify_type_%s'%notify_type,
+        'action_time': datetime.datetime.now(),
+        'data': data,
+    })
 
     data_str = str(json.dumps(data, ensure_ascii=False, encoding='utf8'))
     req_params = {

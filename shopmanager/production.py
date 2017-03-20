@@ -207,7 +207,8 @@ ALIYUN_APPCODE = '6dc0d0df019d4e83a704b434391e42b1'
 IDCARD_OCR_URL = 'https://dm-51.data.aliyun.com/rest/160601/ocr/ocr_idcard.json'
 
 LOGGER_HANDLERS = [
-    ('service', 'jsonfile'),
+    ('outware', 'sentry,jsonfile'),
+    ('service', 'sentry,jsonfile'),
     ('shopback', 'sentry,file'),
     ('shopapp', 'sentry,file'),
     ('flashsale', 'sentry,file'),

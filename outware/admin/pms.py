@@ -40,7 +40,7 @@ class OutwareSkuAdmin(admin.ModelAdmin):
 
 @admin.register(OutwareInboundOrder)
 class OutwareInboundOrderAdmin(admin.ModelAdmin):
-    list_display = ('inbound_code', 'store_code', 'order_type', 'outware_supplier' )
+    list_display = ('inbound_code', 'store_code', 'order_type', 'outware_supplier' ,'status', 'created')
     list_filter = ('order_type',)
     search_fields = ['=id','=inbound_code']
     ordering = ('-created',)

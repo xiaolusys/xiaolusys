@@ -75,5 +75,36 @@
     "status": false,
     "extras": {}
   }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 111,
+  "fields": {
+    "created": "2016-09-07T15:05:13",
+    "modified": "2017-02-11T11:05:47",
+    "cid": "8-139-111",
+    "parent_cid": "8-139",
+    "name": "\u5c0f\u7535\u5668",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/jiaju/dianqi.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "categorys.productcategory",
+  "pk": 91,
+  "fields": {
+    "created": "2017-02-18T16:14:15",
+    "modified": "2017-02-18T16:14:15",
+    "parent_cid": 90,
+    "name": "\u7efc\u5408\u767e\u8d27",
+    "grade": 0,
+    "is_parent": true,
+    "status": "normal",
+    "sort_order": 0
+  }
 }
 ]
