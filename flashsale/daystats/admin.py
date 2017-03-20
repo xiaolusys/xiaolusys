@@ -101,8 +101,8 @@ class DailyBoutiqueStatAdmin(admin.ModelAdmin):
 @admin.register(DailySkuAmountStat)
 class DailySkuAmountStatAdmin(admin.ModelAdmin):
     list_display = ('sku_id', 'model_id', 'stat_date',
-                     'total_amount', 'direct_payment','coupon_amount',
-                    'coupon_payment', 'exchg_amount')
+                    'total_amount', 'total_cost', 'direct_payment', 'coin_payment',
+                    'coupon_amount', 'coupon_payment', 'exchg_amount')
     list_filter = (('stat_date', DateFieldListFilter),)
     search_fields = ['=sku_id','=model_id']
     ordering = ('-stat_date',)

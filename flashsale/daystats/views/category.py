@@ -31,8 +31,8 @@ DEFAULT_DELIVERY_TPL = {
 }
 
 DEFAULT_SALES_TPL = {
-    'total_amount': 0, 'direct_payment': 0, 'coupon_amount': 0,
-    'coupon_payment': 0, 'exchg_amount': 0, 'coupon_sale_num': 0,
+    'total_amount': 0, 'direct_payment': 0, 'coupon_amount': 0, 'total_cost':0,
+    'coin_payment':0, 'coupon_payment': 0, 'exchg_amount': 0, 'coupon_sale_num': 0,
     'coupon_use_num': 0, 'coupon_refund_num': 0, 'model_stock_num': 0,
     'model_sale_num': 0, 'model_refund_num': 0, 'sale_amount': 0
 }
@@ -165,6 +165,8 @@ class CategoryStatViewSet(viewsets.GenericViewSet):
             Sum('coupon_amount'),
             Sum('coupon_payment'),
             Sum('exchg_amount'),
+            Sum('total_cost'),
+            Sum('coin_payment'),
         )
 
         #　精品券数量, 库存, 销售数量
