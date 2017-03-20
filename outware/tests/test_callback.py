@@ -75,6 +75,7 @@ class CallbackTestCase(TestCase):
             u'sign_type': u'md5',
             u'data': json.dumps({
                 "order_number":"xd16111358284ace3a74f",
+                "order_type": constants.ORDER_LACKGOOD['code'],
                 "lack_goods":[
                     {
                         "sku_code":"SP11111AAA",

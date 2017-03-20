@@ -58,9 +58,9 @@ def update_outware_order_by_order_delivery(order_code, order_type, dict_obj):
             skustock.save()
     try:
         # thirdly , update saletrade or return store status
-        if order_type == constants.ORDER_SALE:
+        if int(order_type) == constants.ORDER_RETURN['code']:
             inbound.update_return_store_by_outware_packages(order_code, dict_obj)
-        else:
+        elif int(order_type) == constants.ORDER_SALE['code']:
             order.update_saletrade_by_outware_packages(order_code, dict_obj)
     except Exception, exc:
         logger.error(str(exc), exc_info=True)

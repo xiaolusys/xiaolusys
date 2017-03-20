@@ -152,6 +152,7 @@ class FengchaoCallbackViewSet(viewsets.GenericViewSet):
             data = json.loads(req_data['data'])
             params = {
                 'order_code': data['order_number'],
+                'order_type': constants.ORDER_LACKGOOD['code'],
                 'lack_goods': [],
                 'object': 'OutWareLackOrder'
             }
