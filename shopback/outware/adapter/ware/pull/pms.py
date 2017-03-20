@@ -3,14 +3,14 @@ from __future__ import absolute_import, unicode_literals
 
 from django.db import transaction, IntegrityError
 
-from outware.models import (
+from ....models import (
     OutwareSupplier,
     OutwareAccount,
     OutwareSku,
     OutwareInboundOrder,
     OutwareInboundSku
 )
-from outware.fengchao import sdks
+from shopback.outware.fengchao import sdks
 
 from .... import constants
 from ....utils import action_decorator

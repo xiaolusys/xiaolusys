@@ -4,7 +4,7 @@ from __future__ import absolute_import, unicode_literals
 from shopmanager import celery_app as app
 
 from ..adapter.ware.pull.pms import union_sku_and_supplier
-from outware.models import OutwareSku
+from ..models import OutwareSku
 
 import logging
 logger = logging.getLogger(__name__)

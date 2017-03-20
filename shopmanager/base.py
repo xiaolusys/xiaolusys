@@ -228,8 +228,8 @@ INSTALLED_APPS =[
 
     'mall.xiaolupay',
 
-    'outware',
-    'outware.fengchao',
+    'shopback.outware',
+    'shopback.outware.fengchao',
 ]
 
 AUTH_PROFILE_MODULE = 'users.user'

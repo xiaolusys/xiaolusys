@@ -3,7 +3,7 @@ from __future__ import absolute_import, unicode_literals
 
 from django.db import transaction
 
-from outware.adapter.mall.pull import inbound, order
+from ...mall.pull import inbound, order
 
 from ....models import OutwareInboundOrder, OutwareInboundSku, OutwareSkuStock
 from .... import constants

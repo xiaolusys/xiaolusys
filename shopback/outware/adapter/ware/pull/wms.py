@@ -51,7 +51,7 @@ def get_skustocks(sku_codes):
 
 def get_outware_stock(sku_codes, vendor_code=None):
 
-    from outware.fengchao import sdks
+    from shopback.outware.fengchao import sdks
     inventorys = sdks.get_skustock_by_qureyparams(sku_codes, vendor_code=vendor_code)
 
     for inventory in inventorys:

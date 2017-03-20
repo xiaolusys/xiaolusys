@@ -10,8 +10,8 @@ from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
 from rest_framework.response import Response
 from rest_framework.serializers import BaseSerializer
 
-from outware.models import OutwareAccount
-from outware.adapter.ware.push import pms, oms
+from shopback.outware.models import OutwareAccount
+from shopback.outware.adapter.ware.push import pms, oms
 from ... import constants
 from core.apis.models import DictObject
 

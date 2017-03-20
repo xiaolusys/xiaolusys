@@ -2,7 +2,7 @@
 from __future__ import absolute_import, unicode_literals
 
 from django.db import transaction, IntegrityError
-from outware.fengchao import sdks
+from shopback.outware.fengchao import sdks
 
 from ....models import (
     OutwareSku,

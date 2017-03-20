@@ -2,7 +2,7 @@
 from __future__ import absolute_import, unicode_literals
 
 from shopback.items.models import ProductSku
-from outware.adapter.ware.pull import pms
+from shopback.outware.adapter.ware.pull import pms
 from .... import constants
 
 from core.apis import DictObject

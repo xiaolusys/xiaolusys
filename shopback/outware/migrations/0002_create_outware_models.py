@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 from django.db import migrations, models
 import django.db.models.deletion
 import jsonfield.fields
-import outware.models.wareauth
+import shopback.outware.models.wareauth
 
 
 class Migration(migrations.Migration):
@@ -212,7 +212,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='outwareaccount',
             name='app_id',
-            field=models.CharField(default=outware.models.wareauth.gen_default_appid, max_length=64, unique=True, verbose_name='\u56de\u8c03APPID'),
+            field=models.CharField(default=shopback.outware.models.wareauth.gen_default_appid, max_length=64, unique=True, verbose_name='\u56de\u8c03APPID'),
         ),
         migrations.AlterField(
             model_name='outwareaccount',

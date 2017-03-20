@@ -20,12 +20,15 @@ if is_undeploy_enviroment():
 else:
     FENGCHAO_DEFAULT_CHANNEL_CODE = 'xiaolumeimei'
 
-def get_channelid(order_platform, vendor_codes=[]):
-    # order_platform: 订单来自平台, 目前默认为自有商城
+def get_channelid_by_vendor_codes(vendor_codes):
+    # vendor_codes: 根据vendor_code　返回对应的channel字典
+    channel_maps = {}
     for vendor_code in vendor_codes:
         if vendor_code.lower() == FENGCHAO_SLYC_VENDOR_CODE:
-            return FENGCHAO_SLYC_CHANNEL_CODE
-    return FENGCHAO_DEFAULT_CHANNEL_CODE
+            channel_maps[vendor_code] = FENGCHAO_SLYC_CHANNEL_CODE
+        else:
+            channel_maps[vendor_code] = FENGCHAO_DEFAULT_CHANNEL_CODE
+    return channel_maps
 
 class FengchaoOrderChannel(BaseModel):
 

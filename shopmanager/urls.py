@@ -75,7 +75,7 @@ urlpatterns = [
     url(r'^rest/', include('flashsale.restpro.urls')),
     url(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     url(r'^apis/', include('shopmanager.urls_api')),
-    url(r'^outware/', include('outware.urls_out')),
+    url(r'^outware/', include('shopback.outware.urls_out')),
     url(r'^qrcode/(?P<url>.*)', HttpProxy.as_view(base_url='http://%s/qrcode' % settings.QINIU_PUBLIC_DOMAIN)),
     # (r'^admin/doc/', include('django.contrib.admindocs.urls')),
     url('', include('django_prometheus.urls')),

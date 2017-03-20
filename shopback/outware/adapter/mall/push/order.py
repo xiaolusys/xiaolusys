@@ -3,10 +3,10 @@ from __future__ import absolute_import, unicode_literals
 
 from shopback.items.models import ProductSku
 from supplychain.supplier.models import SaleSupplier
-from outware.adapter.ware.pull import oms, pms
-from outware.fengchao.models import base
+from shopback.outware.adapter.ware.pull import oms, pms
+from shopback.outware.fengchao.models import base
 from flashsale.pay.models import UserAddress, SaleOrder
-from outware.models import OutwarePackageSku, OutwareOrderSku, OutwareSku
+from ....models import OutwarePackageSku, OutwareOrderSku, OutwareSku
 
 from core.apis import DictObject
 from .... import constants
@@ -35,6 +35,9 @@ def push_outware_order_by_sale_trade(sale_trade):
 
     vendor_codes = OutwareSku.objects.filter(sku_code__in=sku_codes)\
         .values_list('outware_supplier__vendor_code',flat=True)
+    channel_maps = base.get_channelid_by_vendor_codes(vendor_codes)
+    if not channel_maps or len(set(channel_maps.values())) > 1:
+        raise Exception('同一订单只能有且只有一个channelid属性')
 
     params = {
         # 'store_code': warehouse.store_code,
@@ -42,7 +45,7 @@ def push_outware_order_by_sale_trade(sale_trade):
         'order_create_time': sale_trade.created.strftime('%Y-%m-%d %H:%M:%S'),
         'pay_time': sale_trade.pay_time.strftime('%Y-%m-%d %H:%M:%S'),
         'order_type': constants.ORDER_TYPE_USUAL['code'], # TODO@MERON　是否考虑预售
-        'channel_id': base.get_channelid('', vendor_codes=vendor_codes),
+        'channel_id': channel_maps.values()[0],
         'receiver_info': {
             'receiver_province': address.receiver_state,
             'receiver_city': address.receiver_city,
@@ -68,21 +71,18 @@ def push_outware_inbound_by_sale_refund(sale_refund):
     warehouse = sale_refund.get_warehouse_object()
     sale_order = SaleOrder.objects.get(id=sale_refund.order_id)
 
-    fc_order_channel = FengchaoOrderChannel.get_default_channel()
-
     # TODO@meron 退货申请时需要客服判断具体时哪个供应商的商品,目前默认设置成最近一次供货的供应商
     ow_ordersku = OutwareOrderSku.objects.get(origin_skuorder_no=sale_order.oid)
     ow_sku = OutwareSku.objects.filter(sku_code=ow_ordersku.sku_code).order_by('-modified').first()
-    # ow_packagesku = OutwarePackageSku.objects.filter(origin_skuorder_no=ow_ordersku.union_order_code).first()
-    # if not ow_packagesku:
-    #     raise Exception('用户订单包裹信息未找到:order_id=%s'%sale_refund.order_id)
+    vendor_code = ow_sku.outware_supplier.vendor_code
+    channel_maps = base.get_channelid_by_vendor_codes([vendor_code])
 
     sale_supplier = ow_sku.outware_supplier
     params = {
         'store_code': warehouse.store_code,
         'order_code': sale_refund.refund_no,
-        'vendor_code': sale_supplier.vendor_code,
-        'channel_id': fc_order_channel.channel_id,
+        'vendor_code': vendor_code,
+        'channel_id': channel_maps.values()[0],
         'order_type': constants.ORDER_REFUND['code'],
         'prev_order_code': ow_ordersku.union_order_code,
         'receiver_info': {

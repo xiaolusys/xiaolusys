@@ -2,7 +2,7 @@
 from __future__ import absolute_import, unicode_literals
 
 from core.apis import DictObject
-from outware.adapter.ware.pull import pms
+from ....adapter.ware.pull import pms
 
 def push_ware_supplier_by_mall_supplier(mall_supplier):
 

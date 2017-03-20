@@ -7,7 +7,7 @@ import requests
 import datetime
 
 from ... import constants
-from outware.models.base import log_ware_action
+from shopback.outware.models.base import log_ware_action
 
 from .exceptions import FengchaoApiException
 
@@ -54,7 +54,7 @@ def create_fengchao_order_channel(channel_client_id, channel_name, channel_type,
     # TODO 该方法已失效，channelid 通过两个商议来对接
 
     from ..models import FengchaoOrderChannel
-    from outware.models import OutwareAccount
+    from shopback.outware.models import OutwareAccount
     ware_account = OutwareAccount.get_fengchao_account()
 
     channel, state = FengchaoOrderChannel.objects.get_or_create(
@@ -90,7 +90,7 @@ def get_skustock_by_qureyparams(sku_codes, vendor_code=None):
     if not sku_codes:
         return []
 
-    from outware.models import OutwareAccount
+    from shopback.outware.models import OutwareAccount
     ware_account = OutwareAccount.get_fengchao_account()
 
     sku_querys = {'skus':[]}

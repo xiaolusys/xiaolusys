@@ -5,5 +5,5 @@ from django.conf.urls import include, url
 
 
 urlpatterns = [
-    url(r'^fengchao/', include('outware.fengchao.urls')),
+    url(r'^fengchao/', include('shopback.outware.fengchao.urls')),
 ]

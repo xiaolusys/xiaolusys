@@ -3,8 +3,15 @@ from __future__ import absolute_import, unicode_literals
 
 from django.db import transaction
 
-from outware.models import OutwareOrder, OutwarePackage, OutwarePackageSku, OutwareAccount, OutwareSkuStock, OutwareInboundSku
-from outware.adapter.mall.pull import inbound, order
+from ....models import (
+    OutwareOrder,
+    OutwarePackage,
+    OutwarePackageSku,
+    OutwareAccount,
+    OutwareSkuStock,
+    OutwareInboundSku
+)
+from shopback.outware.adapter.mall.pull import inbound, order
 from .... import constants
 from ....utils import action_decorator
 
