@@ -77,7 +77,7 @@ class MMCarryViewSet(viewsets.GenericViewSet):
         and ctr.transfer_type = 8
         and ctd.transfer_type = 8
         """.format(customer.id)
-        items = execute_sql(get_cursor(), sql)
+        items = execute_sql(get_cursor(conn='default'), sql)
         items = process_items(items)
 
         for item in items:
@@ -97,7 +97,7 @@ class MMCarryViewSet(viewsets.GenericViewSet):
          	bg.customer_id = "{}"
         and bg.budget_log_type = 'rtexchg'
         """.format(customer.id)
-        items = execute_sql(get_cursor(), sql)
+        items = execute_sql(get_cursor(conn='default'), sql)
         items = process_items(items)
 
         for item in items:
