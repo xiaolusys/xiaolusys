@@ -246,30 +246,31 @@ class NinePicViewSet(viewsets.GenericViewSet):
 
         data = []
         for item in items:
-            model_id = item.model_id
-            mp = ModelProduct.objects.filter(id=model_id).first()
-            if not mp:
-                logger.error(u'九张图首页接口报错,找不到 model_id %s' % model_id)
+            try:
+                model_id = item.model_id
+                mp = ModelProduct.objects.filter(id=model_id).first()
+                profit = mp.get_model_product_profit(virtual_model_products=virtual_model_products)
+
+                data_item = {
+                    'pic': mp.head_img(),
+                    'name': mp.name,
+                    'price': mp.lowest_agent_price,
+                    'profit': {
+                        'min': profit.get('min', 0),
+                        'max': profit.get('max', 0)
+                    },
+                    'start_time': item.start_time,
+                    'hour': item.start_time.hour,
+                    'model_id': model_id
+                }
+                if not show_profit:
+                    data_item['profit'] = {'min': 0, 'max': 0}
+
+                data.append(data_item)
+            except Exception, exc:
+                logger.error(u'九张图首页接口报错,err=%s' % exc.message, exc_info=True)
                 continue
 
-            profit = mp.get_model_product_profit(virtual_model_products=virtual_model_products)
-
-            data_item = {
-                'pic': mp.head_img(),
-                'name': mp.name,
-                'price': mp.lowest_agent_price,
-                'profit': {
-                    'min': profit.get('min', 0),
-                    'max': profit.get('max', 0)
-                },
-                'start_time': item.start_time,
-                'hour': item.start_time.hour,
-                'model_id': model_id
-            }
-            if not show_profit:
-                data_item['profit'] = {'min': 0, 'max': 0}
-
-            data.append(data_item)
 
         data = sorted(data, key=lambda x: x['hour'])
         import itertools
