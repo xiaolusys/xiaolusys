@@ -938,6 +938,26 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                     'data': '%s' % content
                 })
                 return Response({'code': 7, 'info': u'请选择收货地址'})
+
+            need_level = UserAddress.PERSONALINFO_LEVEL_ONE
+            for cart in cart_qs:
+                mp = cart.get_modelproduct()
+                if mp.source_type == 2:
+                    need_level = UserAddress.PERSONALINFO_LEVEL_TWO
+                elif mp.source_type == 3:
+                    need_level = UserAddress.PERSONALINFO_LEVEL_THREE
+                    break
+
+            if address.get_personal_info_level() != need_level:
+                logger.warn({
+                    'code': 10,
+                    'message': u'订单中包含海关清关商品，根据海关要求，保税区发货商品需要提供身份证，海外直邮商品需要提供身份证正反面照片，请修改收货地址后重新提交订单',
+                    'user_agent': user_agent,
+                    'action': 'trade_create',
+                    'order_no': tuuid,
+                    'data': '%s' % content
+                })
+                return Response({'code': 10, 'info': u'订单中包含海关清关商品，根据海关要求，保税区发货商品需要提供身份证，海外直邮商品需要提供身份证正反面照片，请修改收货地址后重新提交订单'})
         else:
             address = None
 
