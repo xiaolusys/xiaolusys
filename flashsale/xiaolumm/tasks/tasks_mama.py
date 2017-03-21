@@ -88,14 +88,9 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
     uni_key = util_unikey.gen_ordercarry_unikey(carry_type, order_carry.order_id)
     record = OrderCarry.objects.filter(uni_key=uni_key).first()
     if record:
-        # Then we just have to update status: only order_carry has modified time greater than
-        # the current record, we do update.
-        if order_carry.modified > record.modified:
-            if record.status != order_carry.status:
-                record.status = order_carry.status
-                record.save(update_fields=['status', 'modified'])
-        else:
-            logger.error("%s|order_carry: %s,%s,%s;record:%s,%s,%s" % (get_cur_info(), order_carry.id, order_carry.modified,order_carry.status, record.id, record.modified,record.status))
+        if record.status != order_carry.status:
+            record.status = order_carry.status
+            record.save(update_fields=['status', 'modified'])
         return
 
     mama_id = parent_mama_id
