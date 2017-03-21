@@ -54,7 +54,7 @@ def get_transfer_record_by_id(id):
     return CouponTransferRecord.objects.get(id=id)
 
 
-def create_present_elite_score(customer, elite_score, template, rank):
+def create_present_elite_score(customer, elite_score, template, rank, uni_key_prefix=None):
     # type: (Customer, int, CouponTemplate, text_type) -> Tuple[CouponTransferRecord, CouponTransferRecord]
     """赠送积分
     """
@@ -77,8 +77,10 @@ def create_present_elite_score(customer, elite_score, template, rank):
 
 
     idx = idx + 1
-    uni_key_in = "elite_in-%s-%s-%s" % (customer.id, date_field, idx)
-    uni_key_out = "elite_out-%s-%s-%s" % (customer.id, date_field, idx)
+    if not uni_key_prefix:
+        uni_key_in = "elite_in-%s-%s-%s" % (customer.id, date_field, idx)
+    else:
+        uni_key_in = "elite_in-%s-%s" % (customer.id, uni_key_prefix)
     product_img = template.extras.get("product_img") or ''
     # 入券
     transfer_in = CouponTransferRecord(coupon_from_mama_id=coupon_from_mama_id,
@@ -98,26 +100,7 @@ def create_present_elite_score(customer, elite_score, template, rank):
                                        date_field=datetime.date.today(),
                                        elite_score=elite_score,
                                        transfer_status=CouponTransferRecord.DELIVERED)
-    # 用券
-    # transfer_out = CouponTransferRecord(coupon_from_mama_id=coupon_to_mama_id,
-    #                                     from_mama_thumbnail=to_mama_thumbnail,
-    #                                     from_mama_nick=to_mama_nick,
-    #
-    #                                     coupon_to_mama_id=coupon_from_mama_id,
-    #                                     to_mama_thumbnail=from_mama_thumbnail,
-    #                                     to_mama_nick=from_mama_nick,
-    #
-    #                                     coupon_value=template.value,
-    #                                     init_from_mama_id=0,
-    #                                     order_no=uni_key_out,
-    #                                     template_id=template.id,
-    #                                     product_img=product_img,
-    #                                     coupon_num=1,
-    #                                     transfer_type=CouponTransferRecord.OUT_CONSUMED,
-    #                                     uni_key=uni_key_out,
-    #                                     date_field=datetime.date.today(),
-    #                                     elite_score=elite_score,
-    #                                     transfer_status=CouponTransferRecord.DELIVERED)
+
     with transaction.atomic():
         transfer_in.save()
         # transfer_out.save()
@@ -564,7 +547,7 @@ def coupon_exchange_saleorder(customer, order_id, mama_id, template_ids, coupon_
         sale_order.extras['exchange'] = True
         if not sale_order.extras.has_key('can_return_num'):
             sale_order.extras['can_return_num'] = sale_order.num
-            sale_order.save(update_fields=['extras'])
+        sale_order.save(update_fields=['extras'])
 
         # (2)用户优惠券需要变成使用状态,如果存在多个券通用情况，还要把多种券给使用掉
         left_num = coupon_num

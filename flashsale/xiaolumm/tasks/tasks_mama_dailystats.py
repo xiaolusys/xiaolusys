@@ -353,6 +353,58 @@ def task_calc_all_xlmm_elite_score():
     task_check_xlmm_return_exchg_order.delay()
 
 
+def task_auto_exchg_xlmm_order():
+    import datetime
+    tt = datetime.datetime.now()
+    tf = tt - datetime.timedelta(days=5)
+    from flashsale.pay.models.trade import SaleOrder, SaleTrade, Customer
+    from flashsale.xiaolumm.models.models_fortune import OrderCarry
+    from flashsale.pay.models import ModelProduct
+    exchg_orders = OrderCarry.objects.filter(carry_type=OrderCarry.REFERAL_ORDER,
+                                             status__in=[OrderCarry.CONFIRM],
+                                             created__range=(datetime.date(2017, 2, 1), tf))
+    unexchg_goods_num = 0
+    unexchg_coupon_num = 0
+    if exchg_orders.exists():
+        for entry in exchg_orders.iterator():
+            sale_order = SaleOrder.objects.filter(oid=entry.order_id).first()
+            if not sale_order:
+                continue
+            if sale_order.extras.has_key('exchange'):
+                continue
+            model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id,
+                                                        is_boutique=True,
+                                                        product_type=ModelProduct.VIRTUAL_TYPE).first()
+            if model_product:
+                from flashsale.pay.apis.v1.order import get_pay_type_from_trade
+                if round(sale_order.payment / sale_order.price) > 0 and model_product.extras.has_key('template_id'):
+                    unexchg_coupon_num += 1
+                    from flashsale.xiaolumm.apis.v1.xiaolumama import get_mama_by_id
+                    level1_mama = get_mama_by_id(entry.contributor_id)
+                    level2_mama = get_mama_by_id(entry.mama_id)
+                    if level2_mama:
+                        level3_mama = level2_mama.get_referal_from_mama()
+                    if level1_mama and level2_mama \
+                            and level1_mama.get_level_lowest_elite() >= level2_mama.get_level_lowest_elite():
+                        from flashsale.coupon.apis.v1.transfer import create_present_elite_score, get_elite_score_by_templateid
+                        from flashsale.coupon.apis.v1.coupontemplate import get_coupon_template_by_id
+                        customer = level2_mama.get_customer()
+                        template = get_coupon_template_by_id(model_product.extras['template_id'])
+                        product_id, elite_score, agent_price = get_elite_score_by_templateid(template.id, level2_mama)
+                        uni_key_prefix = "%s" % (sale_order.id)
+                        create_present_elite_score(customer, elite_score, template, '', uni_key_prefix)
+                        if level3_mama and level3_mama.is_elite_mama:
+                            entry.mama_id = level3_mama.id
+                            entry.save(update_fields=['mama_id'])
+                            print 'add level3', sale_order.oid, level1_mama.id, level2_mama.id, level3_mama.id
+                        else:
+                            sale_order.extras['exchange'] = False
+                            sale_order.save(update_fields=['extras'])
+                            print 'chg so', sale_order.oid, level1_mama.id, level2_mama.id
+                        unexchg_goods_num += 1
+                        break
+    print unexchg_goods_num, unexchg_coupon_num
+
 def check_xlmm_ordercarry(recent_day):
     results = []
 
