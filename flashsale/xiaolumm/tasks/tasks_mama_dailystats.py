@@ -391,7 +391,7 @@ def task_auto_exchg_xlmm_order():
                         customer = level2_mama.get_customer()
                         template = get_coupon_template_by_id(model_product.extras['template_id'])
                         product_id, elite_score, agent_price = get_elite_score_by_templateid(template.id, level2_mama)
-                        uni_key_prefix = "%s" % (sale_order.id)
+                        uni_key_prefix = "autoexchg-%s" % (sale_order.id)
                         create_present_elite_score(customer, elite_score, template, '', uni_key_prefix)
                         if level3_mama and level3_mama.is_elite_mama:
                             entry.mama_id = level3_mama.id
