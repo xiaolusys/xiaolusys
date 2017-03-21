@@ -1283,14 +1283,20 @@ class PackageSkuItem(BaseModel):
                     po.set_redo_sign(save_data=False)
                     po.reset_package_address()
                     # 假如合单时包裹已经有物流信息，则不需要重设物流公司
+                    self.package_order_id = po.id
+                    self.package_order_pid = po.pid
+                    self.save()
+                    po.add_package_sku_item(self)
+                    SkuStock.set_psi_merged(self.sku_id, self.num)
+                    if po.logistics_company_id is not None and po.logistics_company_id != self.sale_trade.logistics_company_id:
+                        po.set_logistics_company(self.sale_trade.logistics_company_id)
                 else:
                     po = PackageOrder.create(package_order_id, self.sale_trade, self)
-                self.package_order_id = po.id
-                self.package_order_pid = po.pid
-                self.save()
-                po.add_package_sku_item(self)
-                SkuStock.set_psi_merged(self.sku_id, self.num)
-                if not po.logistics_company:
+                    self.package_order_id = po.id
+                    self.package_order_pid = po.pid
+                    self.save()
+                    po.add_package_sku_item(self)
+                    SkuStock.set_psi_merged(self.sku_id, self.num)
                     po.set_logistics_company(self.sale_trade.logistics_company_id)
             if self.type == PSI_TYPE.TIANMAO:
                 self.status = PSI_STATUS.MERGED
@@ -1305,23 +1311,15 @@ class PackageSkuItem(BaseModel):
                         po.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS
                     po.set_redo_sign(save_data=False)
                     po.reset_package_address(save=True)
-                    # 假如合单时包裹已经有物流信息，则不需要重设物流公司
-                    self.package_order_id = po.id
-                    self.package_order_pid = po.pid
-                    self.save()
-                    po.add_package_sku_item(self)
-                    SkuStock.set_psi_merged(self.sku_id, self.num)
-                    if not po.logistics_company_id is None and \
-                                    po.logistics_company_id != self.sale_trade.logistics_company_id:
-                        po.set_logistics_company(self.sale_trade.logistics_company_id)
                 else:
                     po = PackageOrder.create_tianmao_package(package_order_id, trade, WARE_SH, self)
-                    self.package_order_id = po.id
-                    self.package_order_pid = po.pid
-                    self.save()
-                    po.add_package_sku_item(self)
-                    SkuStock.set_psi_merged(self.sku_id, self.num)
-                    po.set_logistics_company(self.sale_trade.logistics_company_id)
+                self.package_order_id = po.id
+                self.package_order_pid = po.pid
+                self.save()
+                po.add_package_sku_item(self)
+                SkuStock.set_psi_merged(self.sku_id, self.num)
+                if not po.logistics_company:
+                    po.set_logistics_company()
             if self.type in [2, 3, 4]:
                 self.status = PSI_STATUS.MERGED
                 self.merge_time = datetime.datetime.now()
