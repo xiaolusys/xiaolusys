@@ -942,9 +942,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             need_level = UserAddress.PERSONALINFO_LEVEL_ONE
             for cart in cart_qs:
                 mp = cart.get_modelproduct()
-                if mp.source_type == 2:
+                if mp and mp.source_type == 2:
                     need_level = UserAddress.PERSONALINFO_LEVEL_TWO
-                elif mp.source_type == 3:
+                elif mp and mp.source_type == 3:
                     need_level = UserAddress.PERSONALINFO_LEVEL_THREE
                     break
 
