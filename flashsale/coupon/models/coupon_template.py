@@ -267,7 +267,7 @@ class CouponTemplate(BaseModel):
 
         tpl_product_ids = self.bind_product_ids  # 设置的绑定的产品
         if tpl_product_ids:
-            tpl_product_ids.replace(' ', '')    # 把中间的空格页去掉了，防止设置时带入的空格
+            tpl_product_ids = tpl_product_ids.replace(' ', '')    # 把中间的空格页去掉了，防止设置时带入的空格
         tpl_bind_pros = tpl_product_ids.strip().split(',') if tpl_product_ids else []  # 绑定的产品list
         if not tpl_bind_pros != []:  # 如果优惠券没有绑定产品
             self.check_category(product_ids)  # 没有限制产品则检查分类限制
