@@ -926,6 +926,7 @@ def buy_boutique_register_product(sender, obj, **kwargs):
         # 给一级推荐人5积分,30红包
         level_1_mama = mama.get_referal_from_mama()
         if not level_1_mama:
+            logger.error(u'{}没有一级推荐人'.format(mama.id))
             return
 
         level_2_mama = level_1_mama.get_referal_from_mama()
@@ -967,8 +968,9 @@ def buy_boutique_register_product(sender, obj, **kwargs):
         for order in saleorders:
             model_id = order.item_product.model_id
             if model_id == 25514:
-                do(customer, order)
-                break
+                with transaction.atomic():
+                    do(customer, order)
+                    break
     except Exception, exc:
         logger.error(exc.message, exc_info=True)
 
