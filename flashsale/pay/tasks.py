@@ -1064,7 +1064,7 @@ def task_schedule_check_boutique_modelproduct(days=1):
     from flashsale.pay.apis.v1.product import get_boutique_goods, get_virtual_modelproducts, get_onshelf_modelproducts
     from apis.v1.products import ModelProductCtl
     from shopback.apis.v1.product import get_product_by_id
-    queryset = get_boutique_goods().filter(id__in=modelproduct_ids)
+    queryset = get_boutique_goods()
     ids = [i['id'] for i in queryset.values('id')]
     queryset = ModelProductCtl.multiple(ids=ids)
 
