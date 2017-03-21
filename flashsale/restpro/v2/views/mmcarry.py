@@ -112,4 +112,8 @@ class MMCarryViewSet(viewsets.GenericViewSet):
 
         result = sorted(result, key=lambda x: x['created'], reverse=True)
         total = sum([x['amount'] for x in result])
-        return Response({'detail': result, 'total': total})
+
+        queryset = self.paginate_queryset(result)
+        resp = self.get_paginated_response(queryset)
+        resp.data['total'] = total
+        return resp
