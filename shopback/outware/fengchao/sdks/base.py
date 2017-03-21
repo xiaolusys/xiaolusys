@@ -109,7 +109,7 @@ def get_skustock_by_qureyparams(sku_codes, vendor_code=None):
         resp = request_getway(sku_querys, action_code, ware_account)
     except Exception, exc:
         logger.error(str(exc), exc_info=True)
-        log_ware_action(action_code, state_code=constants.ERROR, message=str(exc))
+        log_ware_action(ware_account, action_code, state_code=constants.ERROR, message=str(exc))
         return []
 
     return resp['inventory']

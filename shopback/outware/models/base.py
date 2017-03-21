@@ -35,9 +35,11 @@ class OutwareActionRecord(BaseModel):
         (constants.ERROR, '出错'),
     )
 
+    ACTION_CODE_CHOICES = [(str(action['code']), action['name']) for action in constants.ACTION_LIST]
+
     record_obj  = models.ForeignKey(ContentType, blank=True, null=True, verbose_name=u'关联对象')
     object_id   = models.IntegerField(db_index=True, verbose_name=u'记录对象id')
-    action_code = models.CharField(max_length=8, db_index=True, verbose_name=u'操作编号')
+    action_code = models.CharField(max_length=8, db_index=True, choices=ACTION_CODE_CHOICES, verbose_name=u'操作编号')
     state_code  = models.IntegerField(db_index=True, choices=STATE_CHOICES, verbose_name='状态编码')
     message     =  models.CharField(max_length=256, verbose_name='操作信息')
 

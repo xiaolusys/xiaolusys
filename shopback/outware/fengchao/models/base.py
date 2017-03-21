@@ -7,28 +7,10 @@ from django.db import models
 from core.models import BaseModel
 from core.fields import JSONCharMyField
 
-from global_setup import is_undeploy_enviroment
-
 import logging
 logger = logging.getLogger(__name__)
 
-FENGCHAO_SLYC_VENDOR_CODE  = 'slyc'
-FENGCHAO_SLYC_CHANNEL_CODE = 'shiliyangchang' # 十里洋场的订单channel
 
-if is_undeploy_enviroment():
-    FENGCHAO_DEFAULT_CHANNEL_CODE = '1' # 小鹿特卖的订单channel
-else:
-    FENGCHAO_DEFAULT_CHANNEL_CODE = 'xiaolumeimei'
-
-def get_channelid_by_vendor_codes(vendor_codes):
-    # vendor_codes: 根据vendor_code　返回对应的channel字典
-    channel_maps = {}
-    for vendor_code in vendor_codes:
-        if vendor_code.lower() == FENGCHAO_SLYC_VENDOR_CODE:
-            channel_maps[vendor_code] = FENGCHAO_SLYC_CHANNEL_CODE
-        else:
-            channel_maps[vendor_code] = FENGCHAO_DEFAULT_CHANNEL_CODE
-    return channel_maps
 
 class FengchaoOrderChannel(BaseModel):
 

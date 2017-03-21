@@ -16,7 +16,7 @@ def action_decorator(action_code):
                 log_ware_action(
                     resp.get('object'),
                     action_code,
-                    state_code=resp.get('success', constants.ERROR),
+                    state_code=resp.get('success') and constants.GOOD or constants.ERROR,
                     message=resp.get('message')
                 )
             return resp

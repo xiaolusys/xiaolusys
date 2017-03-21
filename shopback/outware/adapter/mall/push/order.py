@@ -4,9 +4,9 @@ from __future__ import absolute_import, unicode_literals
 from shopback.items.models import ProductSku
 from supplychain.supplier.models import SaleSupplier
 from shopback.outware.adapter.ware.pull import oms, pms
-from shopback.outware.fengchao.models import base
 from flashsale.pay.models import UserAddress, SaleOrder
 from ....models import OutwarePackageSku, OutwareOrderSku, OutwareSku
+from shopback.outware.fengchao import sdks
 
 from core.apis import DictObject
 from .... import constants
@@ -35,7 +35,7 @@ def push_outware_order_by_sale_trade(sale_trade):
 
     vendor_codes = OutwareSku.objects.filter(sku_code__in=sku_codes)\
         .values_list('outware_supplier__vendor_code',flat=True)
-    channel_maps = base.get_channelid_by_vendor_codes(vendor_codes)
+    channel_maps = sdks.get_channelid_by_vendor_codes(vendor_codes)
     if not channel_maps or len(set(channel_maps.values())) > 1:
         raise Exception('同一订单只能有且只有一个channelid属性')
 
@@ -75,7 +75,7 @@ def push_outware_inbound_by_sale_refund(sale_refund):
     ow_ordersku = OutwareOrderSku.objects.get(origin_skuorder_no=sale_order.oid)
     ow_sku = OutwareSku.objects.filter(sku_code=ow_ordersku.sku_code).order_by('-modified').first()
     vendor_code = ow_sku.outware_supplier.vendor_code
-    channel_maps = base.get_channelid_by_vendor_codes([vendor_code])
+    channel_maps = sdks.get_channelid_by_vendor_codes([vendor_code])
 
     sale_supplier = ow_sku.outware_supplier
     params = {
@@ -85,6 +85,7 @@ def push_outware_inbound_by_sale_refund(sale_refund):
         'channel_id': channel_maps.values()[0],
         'order_type': constants.ORDER_REFUND['code'],
         'prev_order_code': ow_ordersku.union_order_code,
+        'tms_order_code': sale_refund.sid,
         'receiver_info': {
             'receiver_province': warehouse.province,
             'receiver_city': warehouse.city,

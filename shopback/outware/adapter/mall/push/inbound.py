@@ -19,6 +19,7 @@ def push_outware_inbound_by_forecast_order(forecast_inbound_order):
         'order_code': forecast_inbound_order.forecast_no,
         'vendor_code': supplier.vendor_code,
         'order_type': constants.ORDER_PURCHASE['code'],
+        'tms_order_code': forecast_inbound_order.express_no,
         'receiver_info': {
             'receiver_province': warehouse.province,
             'receiver_city': warehouse.city,

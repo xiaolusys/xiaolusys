@@ -26,7 +26,7 @@ def get_order_packages(origin_skuorder_codes):
 
 
 def get_skustocks(sku_codes):
-    # 创建销退订单接口
+    # 获取对接外仓维护库存接口
 
     sku_dicts = {}
     ow_skus = OutwareSkuStock.objects.filter(sku_code__in=sku_codes).values(
@@ -49,7 +49,7 @@ def get_skustocks(sku_codes):
     return sku_dicts
 
 
-def get_outware_stock(sku_codes, vendor_code=None):
+def get_outware_stocks(sku_codes, vendor_code=None):
 
     from shopback.outware.fengchao import sdks
     inventorys = sdks.get_skustock_by_qureyparams(sku_codes, vendor_code=vendor_code)

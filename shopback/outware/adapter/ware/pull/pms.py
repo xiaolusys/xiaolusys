@@ -8,7 +8,8 @@ from ....models import (
     OutwareAccount,
     OutwareSku,
     OutwareInboundOrder,
-    OutwareInboundSku
+    OutwareInboundSku,
+    OutwareSkuStock,
 )
 from shopback.outware.fengchao import sdks
 
@@ -57,6 +58,7 @@ def create_sku_and_supplier(sku_code, vendor_code, dict_obj):
                 extras={'data': dict(dict_obj)},
                 uni_key=OutwareSku.generate_unikey(ow_supplier.id, sku_code),
             )
+            OutwareSkuStock.objects.get_or_create(sku_code=sku_code)
     except IntegrityError:
         action_code = constants.ACTION_SKU_EDIT['code']
         ow_sku = OutwareSku.objects.get(outware_supplier=ow_supplier, sku_code=sku_code)

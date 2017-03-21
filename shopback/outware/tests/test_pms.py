@@ -36,14 +36,16 @@ class PMSTestCase(TestCase):
             sku.supplier_skucode = '%s' % int(time.time() * 1000)
             sku.save()
 
-    def createSupplier(self):
+    def testCreateSupplier(self):
+        self.setForSupplierAndSku()
         sale_supplier = SaleSupplier.objects.first()
         resp = supplier.push_ware_supplier_by_mall_supplier(sale_supplier)
         self.assertTrue(resp['success'])
 
-    def testCreateProductsku(self):
+    def createProductsku(self):
+        # 该接口暂不做测试，由于蜂巢方面商品资料信息录入与响应属于异步操作
         self.setForSupplierAndSku()
-        self.createSupplier()
+        self.testCreateSupplier()
         # create productsku
         sale_product = SaleProduct.objects.first()
         resp = product.push_ware_sku_by_saleproduct(sale_product)

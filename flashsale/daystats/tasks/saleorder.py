@@ -151,7 +151,7 @@ def task_calc_all_sku_amount_stat_by_date(stat_date=None):
         stat.coupon_amount  = value[3]
         stat.coin_payment   = value[4]
 
-        stat.total_cost   = int(sku_price_maps.get(sku_id)) * value[5] * 100
+        stat.total_cost   = int(sku_price_maps.get(sku_id) * value[5] * 100)
         stat.model_id     = sku_model_maps.get(sku_id)
         stat.coupon_payment = sku_origin_price_maps.get(sku_id, 0)
         stat.exchg_amount   = sku_exchg_maps.get(sku_id, 0)
