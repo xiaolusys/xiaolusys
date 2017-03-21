@@ -414,7 +414,7 @@ class PackageOrder(models.Model):
             self.save()
             return self
 
-    def set_logistics_company(self, logistics_company_id=-2):
+    def set_logistics_company(self, logistics_company_id=None):
         """
             如果指定了logistics_company_id，则按其设置
             否则如果已经有物流公司，设置物流公司和重打
@@ -422,8 +422,6 @@ class PackageOrder(models.Model):
             如果sale_trade里没有指定，那自己设
         :return:
         """
-        if logistics_company_id == 100 or (not logistics_company_id):
-            logistics_company_id = -2
         if logistics_company_id and not self.logistics_company_id:
             self.logistics_company_id = logistics_company_id
             self.save(update_fields=['logistics_company_id'])
@@ -451,20 +449,7 @@ class PackageOrder(models.Model):
                 else:
                     self.save(update_fields=['logistics_company_id'])
         elif not old_logistics_company_id:
-            from shopback.logistics.models import LogisticsCompanyProcessor
-            from shopback.warehouse import WARE_GZ
-            try:
-                if self.ware_by == WARE_GZ:
-                    self.logistics_company_id = LogisticsCompanyProcessor.getGZLogisticCompany(
-                        self.receiver_state, self.receiver_city, self.receiver_district,
-                        self.shipping_type, self.receiver_address).id
-                else:
-                    self.logistics_company_id = LogisticsCompanyProcessor.getSHLogisticCompany(
-                        self.receiver_state, self.receiver_city, self.receiver_district,
-                        self.shipping_type, self.receiver_address).id
-            except:
-                from shopback.logistics.models import LogisticsCompany
-                self.logistics_company_id = LogisticsCompany.objects.get(code='YUNDA_QR').id  # -2
+            self.logistics_company_id = LogisticsCompany.objects.get(code='YUNDA_QR').id
             self.save(update_fields=['logistics_company_id'])
 
     def update_relase_package_sku_item(self):
@@ -1320,15 +1305,23 @@ class PackageSkuItem(BaseModel):
                         po.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS
                     po.set_redo_sign(save_data=False)
                     po.reset_package_address(save=True)
+                    # 假如合单时包裹已经有物流信息，则不需要重设物流公司
+                    self.package_order_id = po.id
+                    self.package_order_pid = po.pid
+                    self.save()
+                    po.add_package_sku_item(self)
+                    SkuStock.set_psi_merged(self.sku_id, self.num)
+                    if not po.logistics_company_id is None and \
+                                    po.logistics_company_id != self.sale_trade.logistics_company_id:
+                        po.set_logistics_company(self.sale_trade.logistics_company_id)
                 else:
                     po = PackageOrder.create_tianmao_package(package_order_id, trade, WARE_SH, self)
-                self.package_order_id = po.id
-                self.package_order_pid = po.pid
-                self.save()
-                po.add_package_sku_item(self)
-                SkuStock.set_psi_merged(self.sku_id, self.num)
-                if not po.logistics_company:
-                    po.set_logistics_company()
+                    self.package_order_id = po.id
+                    self.package_order_pid = po.pid
+                    self.save()
+                    po.add_package_sku_item(self)
+                    SkuStock.set_psi_merged(self.sku_id, self.num)
+                    po.set_logistics_company(self.sale_trade.logistics_company_id)
             if self.type in [2, 3, 4]:
                 self.status = PSI_STATUS.MERGED
                 self.merge_time = datetime.datetime.now()
