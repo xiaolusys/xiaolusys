@@ -1087,10 +1087,12 @@ def task_schedule_check_boutique_modelproduct(days=1):
                     mp.extras['payinfo']['coupon_template_ids']) > 0):
                 right = False
 
-            if mp.detail_content['name'].find('保税区') != -1 and (
+            s = u'保税区'
+            if mp.detail_content['name'].find(s) != -1 and (
                     not (mp.extras.has_key('sources') and mp.extras['sources']['source_type'] == 2)):
                 right = False
-            if mp.detail_content['name'].find('直邮') != -1 and (
+            s = u'直邮'
+            if mp.detail_content['name'].find(s) != -1 and (
                     not (mp.extras.has_key('sources') and mp.extras['sources']['source_type'] == 3)):
                 right = False
         if not right:
