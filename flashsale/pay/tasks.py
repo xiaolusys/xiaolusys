@@ -1086,6 +1086,13 @@ def task_schedule_check_boutique_modelproduct(days=1):
             elif not (mp.extras.has_key('payinfo') and mp.extras['payinfo'].has_key('coupon_template_ids') and len(
                     mp.extras['payinfo']['coupon_template_ids']) > 0):
                 right = False
+
+            if mp.detail_content['name'].find('保税区') != -1 and (
+                    not (mp.extras.has_key('sources') and mp.extras['sources']['source_type'] == 2)):
+                right = False
+            if mp.detail_content['name'].find('直邮') != -1 and (
+                    not (mp.extras.has_key('sources') and mp.extras['sources']['source_type'] == 3)):
+                right = False
         if not right:
             wrong_product.append(mp.id)
 
@@ -1144,7 +1151,7 @@ def task_schedule_check_boutique_modelproduct(days=1):
 
     onshelf_products = []
     onshelf_time = datetime.datetime.now()
-    offshelf_time = onshelf_time + + datetime.timedelta(days=365)
+    offshelf_time = onshelf_time + datetime.timedelta(days=365)
     onshelf_mps = get_onshelf_modelproducts()
     for mp in onshelf_mps:
         if not mp.onshelf_time:
