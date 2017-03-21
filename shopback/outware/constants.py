@@ -18,6 +18,7 @@ SKU_TYPE_GIFTS   = {'code': 20, 'name': '赠品'}
 SKU_TYPE_METARIAL = {'code': 30, 'name': '包材'}
 
 ORDER_TYPE_USUAL = {'code': 10, 'name': '普通订单'}
+ORDER_TYPE_CROSSBOADER = {'code': 40, 'name': '跨境订单'}
 ORDER_TYPE_BOOKING = {'code': 50, 'name': '预售订单'}
 
 ORDER_RETURN   = {'code': 301, 'name': '退仓单'}

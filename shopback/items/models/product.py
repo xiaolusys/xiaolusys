@@ -833,8 +833,9 @@ class Product(models.Model):
         product_skus = kwargs['product_skus_list']
         for sku in product_skus:
             product_sku = ProductSku.objects.filter(
-                product=product,
-                properties_name=sku['properties_name']).first()
+                models.Q(properties_name=sku['properties_name']) | models.Q(outer_id=sku['outer_id']),
+                product=product
+            ).first()
             if not product_sku:
                 product_sku = ProductSku()
             sku.update({'product': product})
@@ -899,10 +900,10 @@ class Product(models.Model):
             return '0ABCDEFGHIJKLMNOPQRSTUVWXYZ'[int(number)%27]
 
         def _get_valid_procount(outerid, pro_count, id_maps):
-            next_id = outerid + str(pro_count)
+            next_id = outerid + _num2char(pro_count)
             while next_id in id_maps or 'RMB%s'%next_id in id_maps:
                 pro_count += 1
-                next_id = outerid + str(pro_count)
+                next_id = outerid + _num2char(pro_count)
             return pro_count
 
         is_boutique_coupon = model_pro.is_boutique_coupon
@@ -949,7 +950,6 @@ class Product(models.Model):
 
         skuname_maps = dict([(e['name'], e) for e in productsku_valuelist])
         skuid_maps = dict([(e['outer_id'], e) for e in productsku_valuelist])
-
         for pro in products_list:
             if (pro_count % 10) == 1 and pro_count > 1:  # product除第一个颜色外, 其余的颜色的outer_id末尾不能为1
                 pro_count += 1
@@ -979,7 +979,6 @@ class Product(models.Model):
                 sku_dict = skuname_maps.get('%s-%s' % (pro['name'], color_sku['properties_name']))
                 sku_outer_id = sku_dict and sku_dict['outer_id'] or outer_id + _num2char(sku_count)
                 barcode = sku_dict and sku_dict['barcode'] or sku_outer_id
-
                 product_skus_list.append({
                     'outer_id': sku_outer_id,
                     'remain_num': color_sku['remain_num'],

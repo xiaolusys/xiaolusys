@@ -27,6 +27,8 @@ def create_order(order_code, store_code, dict_obj):
     if not dict_obj.receiver_info or not dict_obj.order_items:
         raise Exception('缺少收货地址信息/商品SKU信息:order_no=%s'%order_code)
 
+    # if dict_obj.declare_type
+
     order_type = dict_obj.order_type
     with transaction.atomic():
         try:

@@ -434,9 +434,12 @@ class ModifySaleProductSerializer(serializers.ModelSerializer):
         return value
 
     def validate_sku_extras(self, value):
+        # color and properties_name must  be both had
         for item in value:
-            item['color'] = item['color'].replace('/', '')
-            item['properties_name'] = item['properties_name'].replace('/', '')
+            pro_name = item['color'].replace('/', '')
+            sku_name = item['properties_name'].replace('/', '')
+            item['color'] = pro_name or sku_name
+            item['properties_name'] = sku_name or pro_name
             item['properties_alias'] = item['properties_alias'].replace('/', '')
         return value
 
