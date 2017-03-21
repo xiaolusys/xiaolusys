@@ -508,6 +508,71 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
         return Response(results)
 
     @list_route(methods=['GET'])
+    def list_waiting_exchg_orders(self, request, *args, **kwargs):
+        content = request.GET
+        exchg_orders = None
+        customer = Customer.objects.normal_customer.filter(user=request.user).first()
+        if customer:
+            mama = get_charged_mama(request.user)
+            mama_id = mama.id
+            exchg_orders = OrderCarry.objects.filter(mama_id=mama_id,
+                                                     status__in=[OrderCarry.ESTIMATE],
+                                                     date_field__gt='2017-1-8')
+        results = []
+        if exchg_orders.exists():
+            for entry in exchg_orders.iterator():
+                # find sale trade use coupons
+                sale_order = SaleOrder.objects.filter(oid=entry.order_id).first()
+                if not sale_order:
+                    continue
+                if sale_order.extras.has_key('exchange'):
+                    continue
+
+                if sale_order.extras.has_key('can_return_num'):
+                    left_exchange_num = int(sale_order.extras['can_return_num'])
+                    if left_exchange_num < 0:
+                        left_exchange_num = 0
+                else:
+                    left_exchange_num = round(sale_order.payment / sale_order.price)
+
+                # !!!!APP OR WAP ORDER IS REAL GOODS!!!!
+                if entry.carry_type == OrderCarry.APP_ORDER or entry.carry_type == OrderCarry.WAP_ORDER:
+                    user_coupon = UserCoupon.objects.filter(trade_tid=sale_order.sale_trade.tid).first()
+                    if user_coupon:
+                        use_template_id = user_coupon.template_id
+                    else:
+                        use_template_id = None
+
+                    # find modelproduct, need except 365elite product
+                    model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id,
+                                                                is_boutique=True).first()
+                    if model_product and (model_product.product_type == ModelProduct.USUAL_TYPE) \
+                            and (model_product.id != 25408) and model_product.extras.has_key('payinfo') \
+                            and model_product.extras['payinfo'].has_key('coupon_template_ids'):
+                        if model_product.extras['payinfo']['coupon_template_ids'] and len(
+                                model_product.extras['payinfo']['coupon_template_ids']) > 0:
+
+                            template_ids = model_product.extras['payinfo']['coupon_template_ids']
+                            template_id = model_product.extras['payinfo']['coupon_template_ids'][0]
+                            # 用的券全部是精品券那就无法兑换，部分用券部分现金还是能兑换的
+                            if template_ids and template_id:
+                                # if use_template_id and use_template_id in template_ids:
+                                #     continue
+                                from flashsale.coupon.apis.v1.coupontemplate import \
+                                    get_boutique_coupon_modelid_by_templateid
+                                coupon_modelid = get_boutique_coupon_modelid_by_templateid(template_id)
+                                if round(sale_order.payment / sale_order.price) > 0:
+                                    results.append({'exchg_template_id': template_id, 'exchg_model_id': coupon_modelid,
+                                                    'num': left_exchange_num,
+                                                    'order_id': entry.order_id, 'sku_img': entry.sku_img,
+                                                    'sku_name': sale_order.title,
+                                                    'contributor_nick': entry.contributor_nick, 'status': entry.status,
+                                                    'status_display': OrderCarry.STATUS_TYPES[entry.status][1],
+                                                    'order_value': entry.order_value, 'date_field': entry.date_field})
+
+        return Response(results)
+
+    @list_route(methods=['GET'])
     def list_can_exchg_orders(self, request, *args, **kwargs):
         content = request.GET
         exchg_orders = None
