@@ -64,7 +64,7 @@ class InBound(models.Model):
                                 null=True,
                                 related_name='inbounds',
                                 verbose_name=u'创建人')
-    ware_by = models.IntegerField(default=WARE_SH, db_index=True, choices=WARE_CHOICES, verbose_name=u'所属仓库')
+    ware_by = models.IntegerField(default=None, db_index=True, null=True, choices=WARE_CHOICES, verbose_name=u'所属仓库')
     memo = models.TextField(max_length=1024, blank=True, verbose_name=u'备注')
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建时间')
     modified = models.DateTimeField(auto_now=True, verbose_name=u'修改时间')
@@ -206,11 +206,11 @@ class InBound(models.Model):
         return optimize_forecast_id
 
     @staticmethod
-    def create(ibds, optimize_forecast_id, express_no):
+    def create(ibds, optimize_forecast_id, express_no, type):
         now = datetime.datetime.now()
         tmp = ['-->%s %s: 创建入仓单' % (now.strftime('%m月%d %H:%M'), "系统")]
         from flashsale.forecast.models.forecast import ForecastInbound
-        forecast = ForecastInbound.objects.get(id=optimize_forecast_id)
+        forecast = ForecastInbound.objects.get(forecast_no=optimize_forecast_id)
         supplier_id = forecast.supplier_id
         orderlist_id = forecast.orderlist_id
         inbound = InBound(supplier_id=supplier_id,
@@ -218,19 +218,24 @@ class InBound(models.Model):
                           express_no=express_no,
                           forecast_inbound_id=optimize_forecast_id,
                           ori_orderlist_id=orderlist_id,
-                          memo='\n'.join(tmp))
+                          memo='\n'.join(tmp),
+                          type=type)
         inbound.save()
         for ibd in ibds:
             ibd.inbound = inbound
             ibd.save()
+        if inbound.type == InBound.AUTOMATIC:
+            pass
+            # inbound.allocate()
+            # inbound.finish_check()
         return inbound
 
     @staticmethod
-    def create(self, inbound_skus, orderlist_id, express_no, relate_orderids, supplier_id, user, memo=''):
+    def create1(inbound_skus, orderlist_id, express_no, relate_orderids, supplier_id, user, memo=''):
         inbound_skus_dict = {int(k): v for k, v in inbound_skus.iteritems()}
         for sku in ProductSku.objects.filter(id__in=inbound_skus_dict.keys()):
             inbound_skus_dict[sku.id]['product_id'] = sku.product_id
-        optimize_forecast_id = self.get_optimize_forecast_id(inbound_skus)
+        optimize_forecast_id = InBound.get_optimize_forecast_id(inbound_skus)
         now = datetime.datetime.now()
         tmp = ['-->%s %s: 创建入仓单' % (now.strftime('%m月%d %H:%M'), user.username)]
         if memo:

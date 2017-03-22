@@ -10,7 +10,7 @@ from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
 from rest_framework.response import Response
 from rest_framework.serializers import BaseSerializer
 
-from shopback.outware.models import OutwareAccount
+from shopback.outware.models import OutwareAccount, OutwarePackage
 from shopback.outware.adapter.ware.push import pms, oms
 from ... import constants
 from core.apis.models import DictObject
@@ -217,14 +217,13 @@ class FengchaoCallbackViewSet(viewsets.GenericViewSet):
         except Exception, exc:
             logging.error('响应数据格式不对: %s'%str(exc), exc_info=True)
             return Response({'code': 2, 'info': '响应数据格式不对: %s'%str(exc)})
-
         try:
-            resp = oms.update_outware_order_by_order_delivery(order_code, order_type, dict_params)
+            ow_package = OutwarePackage.create_by_push_info(order_code, order_type, dict_params)
         except Exception, exc:
             logging.error(str(exc), exc_info=True)
             return Response({'code': 0, 'info': str(exc)})
 
-        return Response({'code': not resp['success'] and 1 or 0, 'info': resp['message']})
+        return Response({'code': 1, 'info': ''})
 
 
 

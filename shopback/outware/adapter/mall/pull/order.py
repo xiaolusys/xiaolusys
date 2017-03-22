@@ -4,6 +4,7 @@ from __future__ import absolute_import, unicode_literals
 from flashsale.pay.models import SaleTrade, SaleOrder, SaleRefund
 from ....models import OutwareOrder, OutwareOrderSku
 from shopback.outware import constants
+from shopback.items.models import ProductSku
 from shopback.logistics.models import LogisticsCompany
 from flashsale.dinghuo.models import InBound, InBoundDetail
 
@@ -33,8 +34,12 @@ def update_saletrade_by_outware_packages(order_code, dict_obj):
           "object": "OutwareObject"
         }
     """
-    out_sid = order_code['dict_obj']['logistics_no']
-    logistics_company = LogisticsCompany.get_by_fengchao_code(order_code['dict_obj']['carrier_code']) # order_code['dict_obj']['carrier_code']
+    out_sid = order_code['dict_obj']['packages'][0]['logistics_no']
+    logistics_company = LogisticsCompany.get_by_fengchao_code(order_code['dict_obj']['carrier_code'])# order_code['dict_obj']['carrier_code']
+    sku_dict = {}
+    for line in order_code['dict_obj']['packages']:
+        sku = ProductSku.get_by_outer_id(line['store_code'])
+
     outware_order = OutwareOrder.objects.filter(union_order_code=order_code).first()
     outware_order.get_package.finish_third_package(out_sid, logistics_company)
     outware_order.change_order_status(constants.SENDED)

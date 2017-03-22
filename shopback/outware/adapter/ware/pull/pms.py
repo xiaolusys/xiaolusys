@@ -29,7 +29,7 @@ def create_supplier(vendor_code, dict_obj):
         vendor_name=dict_obj.vendor_name,
         vendor_code=dict_obj.vendor_code,
         extras={'data': dict(dict_obj)},
-        uni_key=OutwareSupplier.generate_unikey(ware_account.id, vendor_code),
+            uni_key=OutwareSupplier.generate_unikey(ware_account.id, vendor_code),
     )
     try:
         sdks.request_getway(dict(dict_obj), constants.ACTION_SUPPLIER_CREATE['code'], ware_account)

@@ -754,7 +754,7 @@ class SkuStock(models.Model):
 
 class SkuWareStock(models.Model):
     class Meta:
-        db_table = 'shop_items_productskustats'
+        db_table = 'shop_items_ware_stock'
         app_label = 'items'
         verbose_name = u'SKU库存'
         verbose_name_plural = u'SKU库存列表'

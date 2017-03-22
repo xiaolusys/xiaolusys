@@ -30,7 +30,7 @@ def update_forecast_inbound_by_outware_inbound(order_code, dict_obj):
         sku = ProductSku.objects.filter(outer_id=line['sku_code']).first()
         ibd = InBoundDetail.create(sku, line['pull_good_qty'], line.get('pull_bad_qty', 0))
         ibds.append(ibd)
-    InBound.create(ibds, order_code, 'fengchao')
+    InBound.create(ibds, order_code, 'fengchao', InBound.AUTOMATIC)
 
 
 def update_return_store_by_outware_packages(return_code, dict_obj):

@@ -1,11 +1,16 @@
 # coding: utf8
 from __future__ import absolute_import, unicode_literals
 
-from django.db import models
+from django.db import models, transaction
 
 from core.fields import JSONCharMyField
 from .base import BaseWareModel
 from .. import constants
+from shopback.outware.utils import action_decorator
+from shopback.outware.adapter.ware.push import runner
+import logging
+logger = logging.getLogger(__name__)
+
 
 class OutwareOrder(BaseWareModel):
     """ 实际推送给外仓的组合销售订单 """
@@ -125,6 +130,43 @@ class OutwarePackage(BaseWareModel):
     def generate_unikey(self, account_id, logistics_no, carrier_code):
         return '{logistics_no}-{carrier_code}-{account_id}'.format(
             logistics_no=logistics_no, carrier_code=carrier_code, account_id=account_id)
+
+    def get_sku_dict(self):
+        return {skuitem.sku_code: skuitem.sku_qty for skuitem in self.outwarepackagesku_set.all()}
+
+    @staticmethod
+    def create_by_push_info(order_code, order_type, dict_obj):
+        """ 包含入仓单/销退单到仓确认 """
+        from shopback.outware.models.wareauth import OutwareAccount
+        ware_account = OutwareAccount.get_fengchao_account()
+        ow_packages = []
+        for package in dict_obj.packages:
+            # firstly, update outware package status and sku qty
+            ow_package, state = OutwarePackage.objects.get_or_create(
+                outware_account=ware_account,
+                carrier_code=package.carrier_code,
+                logistics_no=package.logistics_no,
+                uni_key=OutwarePackage.generate_unikey(ware_account.id, package.logistics_no, package.carrier_code)
+            )
+            # 忽略重复单
+            if not state:
+                continue
+            ow_package.package_order_code = order_code
+            ow_package.package_type = order_type
+            ow_package.store_code   = package.store_code
+            ow_package.save()
+
+            for item in package.package_items:
+                OutwarePackageSku.objects.create(
+                    package=ow_package,
+                    sku_code=item.sku_code,
+                    batch_no=item.batch_no,
+                    sku_qty=item.sku_qty,
+                    uni_key=OutwarePackageSku.generate_unikey(item.sku_code, item.batch_no, ow_package.id)
+                )
+            ow_packages.append(ow_package)
+        ow_packages = runner.get_runner(order_type)(ow_packages).execute()
+        return ow_packages
 
 
 class OutwarePackageSku(BaseWareModel):

@@ -62,12 +62,16 @@ class PSI_TYPE:
     RETURN_OUT_ORDER = 3
     RETURN_INFERIOR = 4
     TIANMAO = 5
+    # DIVIDE = 6
+    # DIVIDED = 7
     CHOICES = (
         (0, u'普通订单'),
         (1, u'手工发件'),
         (2, u'清库存'),
         (3, u'退多货'),
         (4, u'退次品'),
-        (5, u'天猫商城单')
+        (5, u'天猫商城单'),
+        # (6, u'分割新生单'),
+        # (7, u'分割老单')
     )
 

@@ -126,7 +126,7 @@ class Refund(models.Model):
                                     choices=CS_STATUS_CHOICES, verbose_name='客服介入状态')
     status = models.CharField(max_length=32, blank=True,
                               choices=REFUND_STATUS, verbose_name='退货状态')
-    ware_by = models.IntegerField(choices=WARE_CHOICES, verbose_name=u'退货仓库')
+    ware_by = models.IntegerField(choices=WARE_CHOICES, null=True, default=None, verbose_name=u'退货仓库')
 
     class Meta:
         db_table = 'shop_refunds_refund'

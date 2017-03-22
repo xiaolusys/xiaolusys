@@ -7,12 +7,12 @@ import urlparse
 import traceback
 from django.db import models
 from django.conf import settings
-from django.db.models import F
+from django.db.models import F, Sum
 from django.shortcuts import get_object_or_404
 from django.db.models.signals import post_save, pre_save
 from django.db import transaction
 from django.dispatch import receiver
-
+from django.utils.functional import cached_property
 from .base import PayBaseModel, BaseModel
 from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import Product
@@ -1177,6 +1177,15 @@ class SaleOrder(PayBaseModel):
                 self._package_order_ = None
         return self._package_order_
 
+    @cached_property
+    def need_send_num(self):
+        if self.status == SaleOrder.WAIT_SELLER_SEND_GOODS:
+            if self.package_skus.filter(assign_status=2).exists():
+                has_sent_num = self.package_skus.filter(assign_status=2).aggregate(Sum('num')).get('num__sum', 0)
+                return self.num - has_sent_num
+            return self.num
+        return 0
+
     def is_packaged(self):
         """ 是否打包 """
         from shopback.trades.models import PackageSkuItem
@@ -1495,6 +1504,11 @@ class SaleOrder(PayBaseModel):
             from shopback.trades.models import PackageSkuItem
             self._package_sku_ = PackageSkuItem.objects.filter(sale_order_id=self.id).first()
         return self._package_sku_
+
+    @cached_property
+    def package_skus(self):
+        from shopback.trades.models import PackageSkuItem
+        return list(PackageSkuItem.objects.filter(sale_order_id=self.id))
 
     @property
     def product_sku(self):

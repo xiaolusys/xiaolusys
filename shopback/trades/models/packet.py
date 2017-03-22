@@ -4,6 +4,7 @@ import datetime
 import logging
 import time
 import hashlib
+from copy import deepcopy
 from django.db import models, transaction
 from django.db.models import Q, Sum, F, Manager
 from django.db.models.signals import post_save
@@ -182,6 +183,56 @@ class PackageOrder(models.Model):
     def return_goods_id(self):
         return self.tid.replace('rg', '')
 
+    def divide(self, sku_dict):
+        """
+            从包裹中切分一部分变成一个新包裹。
+        :param sku_dict:
+        :return:
+        """
+        ori_sku_dict = [{item.sku_id: item.num} for item in self.package_sku_items.all()]
+        new_dict = {}
+        for sku_id in ori_sku_dict:
+            now_num = ori_sku_dict[sku_id] - sku_dict[sku_id]
+            if now_num <= 0:
+                raise Exception(u'%s此sku%s数目%s超出包裹数%s'% (self.id, self.sku_id, new_dict['num'], ori_sku_dict['num']))
+            new_dict[sku_id] = now_num
+        if not new_dict or new_dict == ori_sku_dict:
+            return None
+        # 无需切psi
+        if len(new_dict) + len(sku_dict) == len(ori_sku_dict):
+            psi = self.package_sku_items.filter(sku_id__in=sku_dict.key()).first()
+            psi.clear_order_info()
+            new_package = psi.gen_package(merge=False)
+            for psi in self.package_sku_items.filter(sku_id__in=sku_dict.key()).exclude(id=psi.id):
+                psi.package_order_pid = new_package.pid
+                psi.package_order_id = new_package.id
+                psi.save()
+        else:
+            sku_ids = set(new_dict.keys()) & set(sku_dict.keys())
+            psi = self.package_sku_items.filter(sku_id__in=sku_ids[0]).first()
+            new_psi = deepcopy(psi)
+            new_psi.num = sku_dict[sku_ids[0]]
+            psi.clear_order_info()
+            new_package = psi.gen_package(merge=False)
+            for sku_id in sku_ids[1:]:
+                psi = self.package_sku_items.filter(sku_id__in=sku_id).first()
+                new_psi = deepcopy(psi)
+                new_psi.num = sku_dict[sku_ids[0]]
+                psi.num -= sku_dict[sku_ids[0]]
+                psi.save()
+                new_psi.clear_order_info()
+                new_psi.package_order_pid = new_package.pid
+                new_psi.package_order_id = new_package.id
+                new_psi.save()
+            for sku_id in set(sku_dict.keys()) - set(new_dict.keys()):
+                psi = self.package_sku_items.filter(sku_id__in=sku_id).first()
+                psi.clear_order_info()
+                psi.package_order_pid = new_package.pid
+                psi.package_order_id = new_package.id
+                psi.save()
+        self.refresh_stat()
+        return new_package
+
     def set_return_goods_id(self, return_goods_id):
         # '退货类都需要特殊处理，算作特殊发货（退库存要检查库存，退次品要从次品区取货）'
         self.action_type = 1
@@ -236,11 +287,12 @@ class PackageOrder(models.Model):
                                                           assign_status__in=[PackageSkuItem.ASSIGNED,
                                                                              PackageSkuItem.VIRTUAL_ASSIGNED])
         for sku_item in package_sku_items:
-            sku_item.finish_third_send(self.out_sid, self.logistics_company)
             sale_order = sku_item.sale_order
-            sale_order.status = SaleOrder.WAIT_BUYER_CONFIRM_GOODS
-            sale_order.consign_time = datetime.datetime.now()
-            sale_order.save()
+            sku_item.finish_third_send(self.out_sid, self.logistics_company)
+            if sale_order.need_send_num == sku_item.num:
+                sale_order.status = SaleOrder.WAIT_BUYER_CONFIRM_GOODS
+                sale_order.consign_time = datetime.datetime.now()
+                sale_order.save()
             psku = ProductSku.objects.get(id=sku_item.sku_id)
             psku.update_quantity(sku_item.num, dec_update=True)
             psku.update_wait_post_num(sku_item.num, dec_update=True)
@@ -1217,7 +1269,7 @@ class PackageSkuItem(BaseModel):
         self.assign_status = PackageSkuItem.VIRTUAL_ASSIGNED
         self.purchase_order_unikey = purchase_order_unikey
         self.save()
-        self.gen_package()
+        self.gen_package(merge=False)
         SkuStock.set_psi_booked(self.sku_id, self.num)
 
     def set_status_booked_2_assigned(self, save=False, stat=True):

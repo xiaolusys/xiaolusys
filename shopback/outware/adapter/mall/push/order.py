@@ -32,7 +32,7 @@ def push_outware_order_by_package(package):
 
     vendor_codes = OutwareSku.objects.filter(sku_code__in=sku_codes)\
         .values_list('outware_supplier__vendor_code', flat=True)
-    channel_maps = base.get_channelid_by_vendor_codes(vendor_codes)
+    channel_maps = sdks.get_channelid_by_vendor_codes(vendor_codes)
     if not channel_maps or len(set(channel_maps.values())) > 1:
         raise Exception('同一订单只能有且只有一个channelid属性')
 
@@ -54,7 +54,7 @@ def push_outware_order_by_package(package):
         'order_items': order_items,
         'object': 'OutwareOrder',
     }
-
+    print params
     dict_obj = DictObject().fresh_form_data(params)
     response = oms.create_order(order_code, store_code, dict_obj)
 
