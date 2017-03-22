@@ -652,7 +652,7 @@ class PackageOrder(models.Model):
         self.save()
 
     @staticmethod
-    def gen_new_package_id(buyer_unikey, address_unikey, ware_by_id):
+    def gen_new_package_id(buyer_unikey, address_unikey, ware_by_id, merge=True):
         """
             提供用户唯一识别串/地址唯一识别串/仓库id
         :param buyer_id:
@@ -665,13 +665,13 @@ class PackageOrder(models.Model):
             now_num = PackageStat.get_package_num(id) + 1
         else:
             now_num = PackageStat.get_sended_package_num(id) + 1
-        # pstat = PackageStat.objects.get_or_create(id=id)[0]
-        # now_num = pstat.num + 1
         res = id + '-' + str(now_num)
-
+        sys_status_ins = [PO_STATUS.FINISHED_STATUS, PO_STATUS.WAIT_CUSTOMER_RECEIVE]
+        if not merge:
+            sys_status_ins.extend([PO_STATUS.WAIT_PREPARE_SEND_STATUS, PO_STATUS.WAIT_CHECK_BARCODE_STATUS,
+                                   PO_STATUS.WAIT_SCAN_WEIGHT_STATUS, PO_STATUS.DELETE])
         while True:
-            if PackageOrder.objects.filter(id=res, sys_status__in=
-            [PackageOrder.FINISHED_STATUS, PackageOrder.WAIT_CUSTOMER_RECEIVE]).exists():
+            if PackageOrder.objects.filter(id=res, sys_status__in=sys_status_ins).exists():
                 logger.error('gen_new_package_id error: sku order smaller than count:' + str(res))
                 now_num += 1
                 res = id + '-' + str(now_num)
@@ -1429,12 +1429,21 @@ class PackageSkuItem(BaseModel):
 
     @staticmethod
     def batch_merge(type=PSI_TYPE.NORMAL):
+        """
+            合单规则：
+                第三方仓　全不合单
+                其它仓　全合
+                注意gen_new_package_id方法
+        :param type:
+        :return:
+        """
+        to_merge_wares = [1, 2, 3, 4, 5]
         if type is None:
             type = PSI_TYPE.NORMAL
         if type in [PSI_TYPE.NORMAL, PSI_TYPE.TIANMAO]:
-            psi_ids = PackageSkuItem.objects.filter(status=PSI_STATUS.ASSIGNED, type=type).values_list('id', flat=True)
+            psi_ids = PackageSkuItem.objects.filter(status=PSI_STATUS.ASSIGNED, type=type, ware_by__in=to_merge_wares).values_list('id', flat=True)
         else:
-            psi_ids = PackageSkuItem.objects.filter(status=PSI_STATUS.ASSIGNED, type__in=[2, 3, 4]).values_list('id',
+            psi_ids = PackageSkuItem.objects.filter(status=PSI_STATUS.ASSIGNED, type__in=[2, 3, 4], ware_by__in=to_merge_wares).values_list('id',
                                                                                                                 flat=True)
         psi_ids = list(psi_ids)
         for psi_id in psi_ids:
@@ -1573,7 +1582,7 @@ class PackageSkuItem(BaseModel):
                                                              finish_time=datetime.datetime.now())
             SkuStock.objects.filter(sku_id=self.sku_id).update(post_num=F('post_num') + self.num)
 
-    def gen_package(self):
+    def gen_package(self, merge=True):
         """
             仅适用于普通订单
         :return:
@@ -1584,7 +1593,7 @@ class PackageSkuItem(BaseModel):
         if not (sale_trade.buyer_id and sale_trade.user_address_id and self.product_sku.ware_by):
             raise Exception('packagize_sku_item error: sale_trade loss some info:' + str(sale_trade.id))
         package_order_id = PackageOrder.gen_new_package_id(sale_trade.buyer_id, sale_trade.user_address_id,
-                                                           self.product_sku.ware_by)
+                                                           self.product_sku.ware_by, merge)
         package_order = PackageOrder.objects.filter(id=package_order_id).first()
         if not package_order:
             package_order = PackageOrder.create(package_order_id, sale_trade, self)

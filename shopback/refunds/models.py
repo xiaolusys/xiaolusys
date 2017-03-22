@@ -11,6 +11,7 @@ from django.utils.functional import cached_property
 from django.db.models import Sum
 from shopback import paramconfig as pcfg
 from shopback.users.models import User
+from shopback.warehouse.constants import WARE_CHOICES
 from django.db.models.signals import post_save
 from shopapp.taobao import apis
 import logging
@@ -124,7 +125,8 @@ class Refund(models.Model):
     cs_status = models.IntegerField(default=1,
                                     choices=CS_STATUS_CHOICES, verbose_name='客服介入状态')
     status = models.CharField(max_length=32, blank=True,
-                              choices=REFUND_STATUS, verbose_name='退款状态')
+                              choices=REFUND_STATUS, verbose_name='退货状态')
+    ware_by = models.IntegerField(choices=WARE_CHOICES, verbose_name=u'退货仓库')
 
     class Meta:
         db_table = 'shop_refunds_refund'
@@ -132,6 +134,21 @@ class Refund(models.Model):
         app_label = 'refunds'
         verbose_name = u'退货款单'
         verbose_name_plural = u'退货款单列表'
+
+    @staticmethod
+    def create(rps, customer, reason, mobile, desc, has_good_return):
+        refund = Refund(
+            user=customer.nick,
+            reason=reason,
+            mobile=mobile,
+            desc=desc,
+            has_good_return=has_good_return,
+        )
+        refund.save()
+        for rp in rps:
+            rp.refund = refund
+            rp.save()
+        return refund
 
     def __unicode__(self):
         return '<%s,%s,%s>' % (self.tid, self.buyer_nick, self.refund_fee)
@@ -263,7 +280,6 @@ class RefundProduct(models.Model):
             if isinstance(field, (models.CharField, models.TextField)):
                 setattr(self, field.name, getattr(self, field.name).strip())
 
-
     @staticmethod
     def refund_change(origin_sku_id, changed_sku_id, changed_outer_id, changed_outer_sku_id, changed_title,
                       change_property):
@@ -287,6 +303,22 @@ class RefundProduct(models.Model):
         res = RefundProduct.objects.filter(
             sku_id=sku_id, can_reuse=can_reuse, created__gt=begin_time).aggregate(n=Sum("num")).get('n',0)
         return res or 0
+
+    @staticmethod
+    def create(sku_id, num=1, can_reuse=True, reason=''):
+        from shopback.items.models import ProductSku
+        sku = ProductSku.objects.get(id=sku_id)
+        rp = RefundProduct(
+            outer_id=sku.product.outer_id,
+            outer_sku_id=sku.outer_id,
+            sku_id=sku.id,
+            num=num,
+            can_reuse=can_reuse,
+            title=sku.product.name,
+            property=sku.properties_name,
+            reason=reason,
+        )
+        return rp
 
     @cached_property
     def sale_trade(self):

@@ -7,6 +7,8 @@ from django.test import TestCase
 from flashsale.pay.models import SaleTrade, SaleOrder, SaleRefund
 from ..adapter.mall.push import order
 from ..adapter.ware.pull import oms
+from shopback.trades.models import PackageOrder
+
 
 class OMSTestCase(TestCase):
 
@@ -30,6 +32,15 @@ class OMSTestCase(TestCase):
 
         resp = oms.cancel_order(sale_trade.tid)
         self.assertTrue(resp['success'])
+
+    def testCreateAndCancelWarePackage(self):
+        package_order = PackageOrder.objects.first()
+        resp = order.push_outware_order_by_package(package_order)
+        self.assertTrue(resp['success'])
+
+        resp = oms.cancel_order(package_order.pid)
+        self.assertTrue(resp['success'])
+
 
 class SlycTestCase(TestCase):
 

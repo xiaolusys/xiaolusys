@@ -56,7 +56,7 @@ def update_outware_inbound_by_po_confirm(inbound_code, order_type, dict_obj):
         if int(order_type) == constants.ORDER_PURCHASE['code']:
             inbound.update_forecast_inbound_by_outware_inbound(inbound_code, dict_obj)
         elif int(order_type) == constants.ORDER_REFUND['code']:
-            order.update_salerefund_by_outware_inbound(inbound_code, dict_obj)
+            order.update_refundproduct_by_outware_inbound(inbound_code, dict_obj)
     except Exception, exc:
         logger.error(str(exc), exc_info=True)
         return {'success': False, 'object': ow_inbound, 'message': str(exc)}

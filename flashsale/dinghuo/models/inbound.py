@@ -29,7 +29,10 @@ class InBound(models.Model):
 
     SUPPLIER = 1
     REFUND = 2
-
+    NORMAL = 0
+    AUTOMATIC = 1
+    TYPE_CHOICES = ((NORMAL, 0), (AUTOMATIC, 1))
+    type = models.IntegerField(default=0, verbose_name=u'类型')
     STATUS_CHOICES = ((INVALID, u'作废'),
                       (PENDING, u'待分配'),
                       (WAIT_CHECK, u'待质检'),
@@ -58,6 +61,7 @@ class InBound(models.Model):
                                      blank=True,
                                      verbose_name=u'退货单')
     creator = models.ForeignKey(User,
+                                null=True,
                                 related_name='inbounds',
                                 verbose_name=u'创建人')
     ware_by = models.IntegerField(default=WARE_SH, db_index=True, choices=WARE_CHOICES, verbose_name=u'所属仓库')
@@ -200,6 +204,26 @@ class InBound(models.Model):
             optimize_groups = forecast_group_sum
         optimize_forecast_id = max(optimize_groups, key=lambda x: optimize_groups.get(x))
         return optimize_forecast_id
+
+    @staticmethod
+    def create(ibds, optimize_forecast_id, express_no):
+        now = datetime.datetime.now()
+        tmp = ['-->%s %s: 创建入仓单' % (now.strftime('%m月%d %H:%M'), "系统")]
+        from flashsale.forecast.models.forecast import ForecastInbound
+        forecast = ForecastInbound.objects.get(id=optimize_forecast_id)
+        supplier_id = forecast.supplier_id
+        orderlist_id = forecast.orderlist_id
+        inbound = InBound(supplier_id=supplier_id,
+                          creator_id=None,
+                          express_no=express_no,
+                          forecast_inbound_id=optimize_forecast_id,
+                          ori_orderlist_id=orderlist_id,
+                          memo='\n'.join(tmp))
+        inbound.save()
+        for ibd in ibds:
+            ibd.inbound = inbound
+            ibd.save()
+        return inbound
 
     @staticmethod
     def create(self, inbound_skus, orderlist_id, express_no, relate_orderids, supplier_id, user, memo=''):
@@ -920,6 +944,19 @@ class InBoundDetail(models.Model):
             sku_id=sku_id, check_time__gte=begin_time, checked=True).aggregate(
             n=Sum("inferior_quantity")).get('n', 0)
         return res or 0
+
+    @staticmethod
+    def create(sku, arrival_quantity, inferior_quantity):
+        ibd = InBoundDetail(
+            sku=sku,
+            product=sku.product,
+            product_name=sku.product.name,
+            outer_id=sku.product.outer_id,
+            properties_name=sku.properties_name,
+            arrival_quantity=arrival_quantity,
+            inferior_quantity=inferior_quantity,
+        )
+        return ibd
 
 
 def update_inferiorsku_inbound_quantity(sender, instance, created, **kwargs):

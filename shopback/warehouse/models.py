@@ -33,7 +33,12 @@ class WareHouse(models.Model):
 
     mobile = models.CharField(max_length=11, blank=True, verbose_name=u'手机')
     phone  = models.CharField(max_length=11, blank=True, verbose_name=u'电话')
-
+    TYPE_CHOICES = (
+        ("normal", u"普通仓库"),
+        ("bonded", u'保税仓库'),
+        ("direct", u'直邮仓库'),
+    )
+    declare_type = models.CharField(choices=TYPE_CHOICES, default=0, max_length=64, verbose_name=u"类型")
     in_active = models.BooleanField(default=True, verbose_name=u'有效')
     extra_info = models.TextField(blank=True, verbose_name=u'备注')
 

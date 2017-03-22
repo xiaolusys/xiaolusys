@@ -3,6 +3,10 @@ from __future__ import absolute_import, unicode_literals
 
 from flashsale.pay.models import SaleTrade, SaleOrder, SaleRefund
 from ....models import OutwareOrder, OutwareOrderSku
+from shopback.outware import constants
+from shopback.logistics.models import LogisticsCompany
+from flashsale.dinghuo.models import InBound, InBoundDetail
+
 
 def update_saletrade_by_outware_packages(order_code, dict_obj):
     """
@@ -29,14 +33,14 @@ def update_saletrade_by_outware_packages(order_code, dict_obj):
           "object": "OutwareObject"
         }
     """
-    pass
-    # outware_skuorders = OutwareOrderSku.objects.filter(union_order_code=order_code)
-    # for sku_order in outware_skuorders:
-    #     so = SaleOrder.objects.get(oid=sku_order.origin_skuorder_no)
-    #     so.finish_sent()
+    out_sid = order_code['dict_obj']['logistics_no']
+    logistics_company = LogisticsCompany.get_by_fengchao_code(order_code['dict_obj']['carrier_code']) # order_code['dict_obj']['carrier_code']
+    outware_order = OutwareOrder.objects.filter(union_order_code=order_code).first()
+    outware_order.get_package.finish_third_package(out_sid, logistics_company)
+    outware_order.change_order_status(constants.SENDED)
 
 
-def update_salerefund_by_outware_inbound(order_code, dict_obj):
+def update_refundproduct_by_outware_inbound(order_code, dict_obj):
     """
     order_code: fid201702055896d6ecf0f66
     dict_obj:{
@@ -55,6 +59,12 @@ def update_salerefund_by_outware_inbound(order_code, dict_obj):
           "store_code": "SZWH01"
         }
     """
+    # inbound_skus =
+    # orderlist_id =
+    # express_no =
+    # relate_orderids =
+    # supplier_id =
+    # user =
     pass
 
 

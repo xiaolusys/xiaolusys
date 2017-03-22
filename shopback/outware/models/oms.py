@@ -61,7 +61,6 @@ class OutwareOrder(BaseWareModel):
                 order_sku.save()
 
 
-
 class OutwareOrderSku(BaseWareModel):
     """ 实际推送给外仓的组合销售订单sku """
 

@@ -752,6 +752,68 @@ class SkuStock(models.Model):
                 SkuStock.set_psi_not_assigned(self.sku_id, 0, stat=True, warning=True)
 
 
+class SkuWareStock(models.Model):
+    class Meta:
+        db_table = 'shop_items_productskustats'
+        app_label = 'items'
+        verbose_name = u'SKU库存'
+        verbose_name_plural = u'SKU库存列表'
+
+    API_CACHE_KEY_TPL = 'api_productskustat_{0}'
+    STATUS = ((0, 'EFFECT'), (1, 'DISCARD'))
+    sku = models.ForeignKey('ProductSku', null=True, verbose_name=u'SKU')
+    product = models.ForeignKey('Product', null=True, verbose_name=u'商品')
+    ware_by = models.IntegerField(db_index=True, choices=WARE_CHOICES, verbose_name=u'所属仓库')
+
+    psi_paid_num = models.IntegerField(default=0, verbose_name=u'待处理数')
+    psi_prepare_book_num = models.IntegerField(default=0, verbose_name=u'待订货数')
+    psi_booked_num = models.IntegerField(default=0, verbose_name=u'已订货数')
+    psi_ready_num = models.IntegerField(default=0, verbose_name=u'待分配数')
+    psi_third_send_num = models.IntegerField(default=0, verbose_name=u'待供应商发货数')
+    psi_assigned_num = models.IntegerField(default=0, verbose_name=u'待合单数')
+    psi_merged_num = models.IntegerField(default=0, verbose_name=u'待打单数')
+    psi_waitscan_num = models.IntegerField(default=0, verbose_name=u'待扫描数')
+    psi_waitpost_num = models.IntegerField(default=0, verbose_name=u'待称重数')
+    psi_sent_num = models.IntegerField(default=0, verbose_name=u'待签收数')
+    psi_finish_num = models.IntegerField(default=0, verbose_name=u'完成数')
+
+    # 仓库库存数
+    adjust_quantity = models.IntegerField(default=0, verbose_name=u'调整数')  #
+    history_quantity = models.IntegerField(default=0, verbose_name=u'历史库存数')  #
+    inbound_quantity = models.IntegerField(default=0, verbose_name=u'入仓库存数')  #
+    return_quantity = models.IntegerField(default=0, verbose_name=u'客户退货数')  #
+    rg_quantity = models.IntegerField(default=0, verbose_name=u'退还供应商货数')  #
+    assign_num = models.IntegerField(default=0, verbose_name=u'已分配数')  # 未出库包裹单中已分配的sku数量【已经】
+    post_num = models.IntegerField(default=0, verbose_name=u'已发货数')  #
+
+    created = models.DateTimeField(null=True, blank=True, db_index=True, auto_now_add=True, verbose_name=u'创建时间')
+    modified = models.DateTimeField(null=True, blank=True, auto_now=True, verbose_name=u'修改时间')
+    status = models.IntegerField(default=0, db_index=True, choices=STATUS, verbose_name=u'状态')
+
+    def __unicode__(self):
+        return '<%s,%s:%s>' % (self.id, self.product_id, self.sku_id)
+
+    @property
+    def realtime_quantity(self):
+        return self.history_quantity + self.inbound_quantity + self.adjust_quantity + self.return_quantity\
+               - self.post_num - self.rg_quantity
+
+    @staticmethod
+    def get_by_sku(sku_id, ware_by):
+        stat = SkuWareStock.objects.filter(sku_id=sku_id, ware_by=ware_by).first()
+        if stat:
+            return stat
+        else:
+            try:
+                from shopback.items.models import ProductSku
+                sku = ProductSku.objects.get(id=sku_id)
+                stat = SkuWareStock(sku_id=sku.id, product_id=sku.product_id, ware_by=ware_by)
+                stat.save()
+            except IntegrityError:
+                stat = SkuWareStock.objects.filter(sku_id=sku_id, ware_by=ware_by).first()
+            return stat
+
+
 def invalid_apiskustat_cache(sender, instance, *args, **kwargs):
     if hasattr(sender, 'API_CACHE_KEY_TPL'):
         logger.debug('invalid_apiskustat_cache: %s' % instance.sku_id)
