@@ -205,20 +205,14 @@ def task_check_xlmm_exchg_order():
 
     from flashsale.pay.models.user import BudgetLog
     budget_log1 = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_IN,
-                                          budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED, created__gte=tf)
-    budget_log2 = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_OUT,
-                                           budget_log_type=BudgetLog.BG_RETURN_EXCHG, status=BudgetLog.CONFIRMED, created__gte=tf)
-    budget_num = budget_log1.count() - budget_log2.count()
+                                           budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED, created__gte=tf)
+    budget_num = budget_log1.count()
     budget_oids = [i['uni_key'] for i in budget_log1.values('uni_key')]
     res1 = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_IN,
-                                   budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED, created__gte=tf).aggregate(
+                                    budget_log_type=BudgetLog.BG_EXCHG_ORDER, status=BudgetLog.CONFIRMED, created__gte=tf).aggregate(
         n=Sum('flow_amount'))
     exchg_budget_sum1 = res1['n'] or 0
-    res2 = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_OUT,
-                                   budget_log_type=BudgetLog.BG_RETURN_EXCHG, status=BudgetLog.CONFIRMED, created__gte=tf).aggregate(
-        n=Sum('flow_amount'))
-    exchg_budget_sum2 = res2['n'] or 0
-    exchg_budget_sum = exchg_budget_sum1 - exchg_budget_sum2
+    exchg_budget_sum = exchg_budget_sum1
     from flashsale.coupon.models.transfer_coupon import CouponTransferRecord
     trans_num = CouponTransferRecord.objects.filter(transfer_type=CouponTransferRecord.OUT_EXCHG_SALEORDER, transfer_status=CouponTransferRecord.DELIVERED, created__gte=tf).count()
     res = CouponTransferRecord.objects.filter(transfer_type=CouponTransferRecord.OUT_EXCHG_SALEORDER, transfer_status=CouponTransferRecord.DELIVERED, created__gte=tf).aggregate(
@@ -229,18 +223,18 @@ def task_check_xlmm_exchg_order():
     retD = list(set(budget_oids).difference(set(results)))
     print "budget_oids more is: ", retD
 
-    logger.info({'message': u'check exchg order | order_num=%s == budget_num=%s == trans_num=%s ?' % (order_num,budget_log1.count(),trans_num),
+    logger.info({'message': u'check exchg order | order_num=%s  budget_num=%s == trans_num=%s ?' % (order_num, budget_num, trans_num),
                  'message2': u' exchg_goods_num=%s == exchg_trancoupon_num=%s' % (exchg_goods_num, exchg_trancoupon_num),
                  'message3': u'succ_coupon_record_num=%s == succ budget_num=%s' % (succ_coupon_record_num, budget_num),
                  'message4': u'exchged_goods_payment(include return exchg)=%s == exchg_budget_sum=%s , succ_exchg_goods_payment=%s == exchg_budget_sum=%s' % (exchg_goods_payment, exchg_budget_sum1, succ_exchg_goods_payment, exchg_budget_sum)
                 })
-    if order_num != budget_log1.count() or order_num != trans_num:
+    if budget_num != trans_num or exchg_goods_num != trans_num:
         from common.dingding import DingDingAPI
         tousers = [
             '02401336675559',  # 伍磊
         ]
-        msg = '定时检查boutique exchange数据:\n时间: %s \norder_num=%s == budget_num=%s == trans_num=%s\n' % \
-              (str(datetime.datetime.now()), order_num, budget_log1.count(), trans_num)
+        msg = '定时检查boutique exchange数据:\n时间: %s \nbudget_num=%s == trans_num=%s exchg_goods_num=%s == exchg_trancoupon_num=%s\n' % \
+              (str(datetime.datetime.now()), budget_num, trans_num, exchg_goods_num, exchg_trancoupon_num)
         dd = DingDingAPI()
         for touser in tousers:
             dd.sendMsg(msg, touser)
@@ -287,7 +281,9 @@ def task_check_xlmm_return_exchg_order():
             trans_num += 1
             exchg_trancoupon_num += record.coupon_num
     retD = list(set(results).difference(set(budget_oids)))
+    print "results more is: ", retD
     retD = list(set(budget_oids).difference(set(results)))
+    print "budget_oids more is: ", retD
 
     logger.info({'message': u'check return exchg order | order_num=%s == budget_num=%s == trans_num=%s maybe!= return_order_num(include not finish refund) %s?' % (order_num,budget_num,trans_num,return_order_num),
                  'message2': u' exchg_goods_num=%s == exchg_trancoupon_num=%s' % (exchg_goods_num, exchg_trancoupon_num),
