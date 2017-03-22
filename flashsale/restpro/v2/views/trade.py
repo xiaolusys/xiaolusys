@@ -986,6 +986,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         })
         # 创建订单
         try:
+            sale_trade = None
             with transaction.atomic():
                 sale_trade, state = self.create_Saletrade(request, content, address, customer, order_type=order_type)
                 logger.info({
