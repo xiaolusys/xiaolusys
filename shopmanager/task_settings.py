@@ -1608,6 +1608,12 @@ BOUTIQUE_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_schedule_check_boutique_modelproduct'}
     },
+    u'定时检查超过5天未兑换的券订单': {
+        'task': 'flashsale.xiaolumm.tasks.tasks_mama_dailystats.task_auto_exchg_xlmm_order',
+        'schedule': crontab(minute="0", hour="19"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_auto_exchg_xlmm_order'}
+    },
 }
 
 WDT_SCHEDULE = {
