@@ -230,21 +230,17 @@ class NinePicViewSet(viewsets.GenericViewSet):
         if q_hour:
             start_time = datetime.datetime(today.year, today.month, today.day, q_hour)
             end_time = start_time + datetime.timedelta(hours=1)
-            queryset = ActivityEntry.objects.filter(start_time__gte=start_time, start_time__lt=end_time,
-                                                    act_type=ActivityEntry.ACT_FOCUS)
-        else:
-            queryset = ActivityEntry.objects.filter(start_time__lt=today, end_time__gt=today,
-                                                    act_type=ActivityEntry.ACT_FOCUS)
 
-        print 1111, queryset
+            queryset = NinePicAdver.objects.filter(start_time__gte=start_time, start_time__lt=end_time)
+        else:
+            queryset = NinePicAdver.objects.filter(start_time__gte=today, start_time__lt=tomorrow)
+
         items = []
         for item in queryset:
-            products = item.activity_products.all()
-            for product in products:
-                model_id = product.model_id
+            for model_id in re.split(u',|，', item.detail_modelids):
                 if not model_id or item in items:
                     continue
-                item.model_id = model_id
+                item.model_id = model_id.strip()
                 items.append(item)
 
         virtual_model_products = ModelProduct.objects.get_virtual_modelproducts()
