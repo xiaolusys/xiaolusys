@@ -956,7 +956,8 @@ class ActivateMamaView(APIView):
 
     def get(self, request, *args, **kwargs):
         customer = Customer.objects.normal_customer.filter(user=request.user).first()
-        mama = customer.get_xiaolumm()
+        if customer:
+            mama = customer.get_xiaolumm()
 
         redirect_link = "/mall/"
         if mama:
