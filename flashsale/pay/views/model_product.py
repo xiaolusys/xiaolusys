@@ -9,7 +9,7 @@ from rest_framework.decorators import list_route, detail_route
 from flashsale.pay.models import ModelProduct, Customer, CuShopPros
 from flashsale.restpro.v2 import serializers as serializers_v2
 from supplychain.supplier.serializers import ModelProductSerializer
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, Http404
 
 import logging
 
@@ -64,3 +64,14 @@ class ModelProductViewSet(viewsets.ModelViewSet):
         mproduct = serializer.save(serializer.data, mproduct)
         serializer = self.get_serializer(mproduct)
         return Response(serializer.data)
+
+    @list_route(methods=['get'])
+    def get_headimg(self, request, *args, **kwargs):
+        """ 查询头图接口 """
+        modelId = request.GET.get('modelId', '')
+        if not modelId.isdigit():
+            raise Http404
+        from apis.v1.products import ModelProductCtl
+        obj = ModelProductCtl.retrieve(modelId)
+        data = serializers_v2.APIModelProductListSerializer(obj).data
+        return Response([data])
