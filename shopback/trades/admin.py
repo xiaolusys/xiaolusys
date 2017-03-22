@@ -1302,7 +1302,7 @@ class PackageOrderAdmin(BaseModelAdmin):
     list_display = (
         'pid_link', 'id_link', 'sys_status', 'type', 'out_sid', 'logistics_company_name', 'receiver_name', 'receiver_mobile',
         'receiver_address_info',
-        'payment', 'operator', 'is_picking_print', 'is_express_print', 'redo_sign',
+        'operator', 'is_picking_print', 'is_express_print', 'redo_sign',
         'is_send_sms', 'has_refund', 'ware_by_select', 'created', 'send_time', 'weight_time',
         'consign_time', 'weight', 'merge_trade_id')
 
