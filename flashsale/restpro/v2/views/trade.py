@@ -829,7 +829,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             logger.warn({
                 'code': 1,
                 'message': u'购物车已结算',
-                'action':'trade_create',
+                'action':'shoppingcart_create',
                 'order_no': tuuid,
                 'data': '%s' % content
             })
@@ -856,7 +856,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 logger.warn({
                     'code': 2,
                     'message': u'商品刚被抢光了',
-                    'action':'trade_create',
+                    'action':'shoppingcart_create',
                     'user_agent': user_agent,
                     'order_no': tuuid,
                     'data': '%s' % content
@@ -879,7 +879,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             logger.warn({
                 'code': 3,
                 'message': exc,
-                'action':'trade_create',
+                'action':'shoppingcart_create',
                 'user_agent': user_agent,
                 'order_no': tuuid,
                 'data': '%s' % content
@@ -892,7 +892,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'code': 4,
                 'message': u'优惠金额异常:discount_fee=%s, cart_discount=%s' % (discount_fee, cart_discount),
                 'user_agent': user_agent,
-                'action':'trade_create',
+                'action':'shoppingcart_create',
                 'order_no': tuuid,
                 'data': '%s' % content
             })
@@ -905,7 +905,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'code': 11,
                 'message': u'付款金额异常:payment=%s, cart_payment=%s' % (payment, cart_payment),
                 'user_agent': user_agent,
-                'action':'trade_create',
+                'action':'shoppingcart_create',
                 'order_no': tuuid,
                 'data': '%s' % content
             })
@@ -933,7 +933,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                     'code': 7,
                     'message': u'请选择收货地址',
                     'user_agent': user_agent,
-                    'action':'trade_create',
+                    'action':'shoppingcart_create',
                     'order_no': tuuid,
                     'data': '%s' % content
                 })
@@ -953,7 +953,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                     'code': 10,
                     'message': u'订单中包含海关清关商品，根据海关要求，保税区发货商品需要提供身份证，海外直邮商品需要提供身份证正反面照片，请修改收货地址后重新提交订单',
                     'user_agent': user_agent,
-                    'action': 'trade_create',
+                    'action': 'shoppingcart_create',
                     'order_no': tuuid,
                     'data': '%s' % content
                 })
@@ -969,7 +969,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'message': u'付款方式有误',
                 'channel': channel,
                 'user_agent': user_agent,
-                'action':'trade_create',
+                'action':'shoppingcart_create',
                 'order_no': tuuid,
                 'data': '%s' % content
             })
@@ -979,7 +979,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             'message': u'before trade_create:%s' % tuuid,
             'channel': channel,
             'user_agent': user_agent,
-            'action': 'trade_create',
+            'action': 'shoppingcart_create',
             'action_time': datetime.datetime.now(),
             'order_no': tuuid,
             'data': '%s' % content
@@ -993,7 +993,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                     'message': u'after create:%s, state=%s,create order' % (tuuid, state),
                     'channel': channel,
                     'user_agent': user_agent,
-                    'action': 'trade_create',
+                    'action': 'shoppingcart_create',
                     'action_time': datetime.datetime.now(),
                     'order_no': tuuid,
                     'data': '%s' % content
@@ -1006,7 +1006,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'message': u'订单创建异常:%s' % exc,
                 'channel': channel,
                 'user_agent': user_agent,
-                'action':'trade_create',
+                'action':'shoppingcart_create',
                 'order_no': tuuid,
                 'data': '%s' % content
             })
@@ -1019,7 +1019,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             'message': u'shoppingcart_create trade create:%s' % sale_trade.tid,
             'channel': channel,
             'user_agent': user_agent,
-            'action': 'trade_create',
+            'action': 'shoppingcart_create',
             'action_time': datetime.datetime.now(),
             'order_no': tuuid,
             'data': '%s' % content
@@ -1050,7 +1050,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'message': u'订单重复提交:%s' % exc,
                 'channel': channel,
                 'user_agent': user_agent,
-                'action':'trade_create',
+                'action':'shoppingcart_create',
                 'order_no': tuuid,
                 'data': '%s' % content
             }, exc_info=True)
@@ -1064,7 +1064,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'message': u'未知支付异常:%s' % exc,
                 'channel': channel,
                 'user_agent': user_agent,
-                'action':'trade_create',
+                'action':'shoppingcart_create',
                 'order_no': tuuid,
                 'data': '%s' % content
             }, exc_info=True)
@@ -1120,7 +1120,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             logger.warn({
                 'code': 12,
                 'message': u'该商品已限购',
-                'action':'trade_create',
+                'action':'buynow_create',
                 'user_agent': user_agent,
                 'order_no': tuuid,
                 'data': '%s' % CONTENT
@@ -1132,7 +1132,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             logger.warn({
                 'code': 2,
                 'message': u'商品刚被抢光了',
-                'action':'trade_create',
+                'action':'buynow_create',
                 'user_agent': user_agent,
                 'order_no': tuuid,
                 'data': '%s' % CONTENT
@@ -1154,7 +1154,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             logger.warn({
                 'code': 3,
                 'message': exc,
-                'action':'trade_create',
+                'action':'buynow_create',
                 'user_agent': user_agent,
                 'order_no': tuuid,
                 'data': '%s' % CONTENT
@@ -1167,7 +1167,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'code': 4,
                 'message': u'优惠金额异常:discount_fee=%s, cart_discount=%s' % (discount_fee, bn_discount),
                 'user_agent': user_agent,
-                'action':'trade_create',
+                'action':'buynow_create',
                 'order_no': tuuid,
                 'data': '%s' % CONTENT
             })
@@ -1180,7 +1180,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'code': 11,
                 'message': u'付款金额异常:payment=%s, cart_payment=%s' % (payment, bn_payment),
                 'user_agent': user_agent,
-                'action':'trade_create',
+                'action':'buynow_create',
                 'order_no': tuuid,
                 'data': '%s' % CONTENT
             })
@@ -1207,7 +1207,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                     'code': 7,
                     'message': u'请选择收货地址',
                     'user_agent': user_agent,
-                    'action':'trade_create',
+                    'action':'buynow_create',
                     'order_no': tuuid,
                     'data': '%s' % CONTENT
                 })
@@ -1222,7 +1222,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'message': u'付款方式有误',
                 'channel': channel,
                 'user_agent': user_agent,
-                'action':'trade_create',
+                'action':'buynow_create',
                 'order_no': tuuid,
                 'data': '%s' % CONTENT
             })
@@ -1234,7 +1234,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 logger.warn({
                     'code': 2,
                     'message': u'商品刚被抢光了',
-                    'action':'trade_create',
+                    'action':'buynow_create',
                     'user_agent': user_agent,
                     'order_no': tuuid,
                     'data': '%s' % CONTENT
@@ -1257,7 +1257,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'message': u'订单创建异常:%s' % exc,
                 'channel': channel,
                 'user_agent': user_agent,
-                'action':'trade_create',
+                'action':'buynow_create',
                 'order_no': tuuid,
                 'data': '%s' % CONTENT
             })
@@ -1270,7 +1270,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             'message': u'buynow trade create:%s' % sale_trade.tid,
             'channel': channel,
             'user_agent': user_agent,
-            'action': 'trade_create',
+            'action': 'buynow_create',
             'action_time': datetime.datetime.now(),
             'order_no': tuuid,
             'data': '%s' % CONTENT
@@ -1302,7 +1302,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'message': u'订单重复提交:%s' % exc,
                 'channel': channel,
                 'user_agent': user_agent,
-                'action':'trade_create',
+                'action':'buynow_create',
                 'order_no': tuuid,
                 'data': '%s' % CONTENT
             }, exc_info=True)
@@ -1316,7 +1316,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'message': u'未知支付异常:%s' % exc,
                 'channel': channel,
                 'user_agent': user_agent,
-                'action':'trade_create',
+                'action':'buynow_create',
                 'order_no': tuuid,
                 'data': '%s' % CONTENT
             }, exc_info=True)
@@ -1348,18 +1348,37 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                    'default': u'订单不在可支付状态'}
         channel = request.data.get('channel','')
         instance = self.get_object()
-        logger.warn('charge:%s, %s' % (instance.tid, request.data))
+        logger.info({
+                    'action': 'charge',
+                    'tid': instance.tid,
+                    'data': ' %s' % request.data
+        })
         if channel and channel != instance.channel:
             instance.channel = channel
             instance.save(update_fields=['channel'])
 
         if instance.status != SaleTrade.WAIT_BUYER_PAY:
-            logger.error('SaleTradeViewSet charge : code=1, %s' % instance.tid)
+            logger.error({
+                    'action': 'charge',
+                    'tid': instance.tid,
+                    'message': 'SaleTradeViewSet charge : code=1, status not wait buy, status=%s' % instance.status
+            })
             return Response({'code': 1, 'info': _errmsg.get(instance.status, _errmsg.get('default'))})
 
         if not instance.is_payable():
-            logger.error('SaleTradeViewSet charge : code=2, %s' % instance.tid)
+            logger.error({
+                'action': 'charge',
+                'tid': instance.tid,
+                'message': 'SaleTradeViewSet charge : code=2, status not payable, status=%s' % instance.status
+            })
             return Response({'code': 2, 'info': _errmsg.get(SaleTrade.TRADE_CLOSED_BY_SYS)})
+        if instance.pay_status == SaleTrade.SALE_TRADE_PAYING:
+            logger.error({
+                'action': 'charge',
+                'tid': instance.tid,
+                'message': 'SaleTradeViewSet charge : code=3, pay_status %s is paying, status=%s, cannot charge' % (instance.pay_status, instance.status)
+            })
+            return Response({'code': 3, 'info': _errmsg.get(instance.status, _errmsg.get('default'))})
         sale_trade = instance
         try:
             if instance.channel == SaleTrade.WALLET:
@@ -1375,21 +1394,30 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 sale_trade.pay_status = SaleTrade.SALE_TRADE_PAY_FINISHED
                 sale_trade.save(update_fields=['pay_status'])
         except IntegrityError, exc:
-            logger.error('charge duplicate:%s,channel=%s, err=%s' % (
-                instance.tid, instance.channel, exc.message), exc_info=True)
+            logger.error({
+                'action': 'charge',
+                'tid': instance.tid,
+                'message': 'charge duplicate code=9:%s,channel=%s, err=%s' % (
+                instance.tid, instance.channel, exc.message)
+            }, exc_info=True)
             if sale_trade:
                 sale_trade.pay_status = SaleTrade.SALE_TRADE_PAY_FINISHED
                 sale_trade.save(update_fields=['pay_status'])
             return Response({'code': 9, 'info': u'订单重复提交'})
         except Exception, exc:
-            logger.error('charge error:%s, channel=%s, err=%s' % (instance.tid, channel, exc.message), exc_info=True)
+            logger.error({
+                'action': 'charge',
+                'tid': instance.tid,
+                'message': 'charge err code=6:%s,channel=%s, err=%s' % (
+                    instance.tid, instance.channel, exc.message)
+            }, exc_info=True)
             if sale_trade:
                 sale_trade.pay_status = SaleTrade.SALE_TRADE_PAY_FINISHED
                 sale_trade.save(update_fields=['pay_status'])
             return Response({'code': 6, 'info': exc.message or u'未知支付异常'})
 
-        return Response({'code': 0, 'info': u'支付成功','channel':instance.channel,
-                         'trade':{'id':instance.id, 'tid':instance.tid, 'channel':instance.channel,},
+        return Response({'code': 0, 'info': u'支付成功', 'channel': instance.channel,
+                         'trade': {'id': instance.id, 'tid': instance.tid, 'channel': instance.channel, },
                          'charge': response_charge})
 
     def perform_destroy(self, instance):
