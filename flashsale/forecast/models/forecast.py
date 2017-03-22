@@ -5,7 +5,7 @@ import random
 from django.db import models, transaction
 from django.db.models import Q, F
 from django.db.models.signals import post_save, pre_save
-
+from django.utils.functional import cached_property
 from core.models import BaseModel
 from core.utils.unikey import uniqid
 from flashsale.dinghuo.models import OrderList, OrderDetail, InBound, OrderDetailInBoundDetail
@@ -124,6 +124,10 @@ class ForecastInbound(BaseModel):
                                                              status=RealInboundDetail.NORMAL) \
             .values_list('arrival_quantity', flat=True)
         return arrival_quantitys and sum(arrival_quantitys) or 0
+
+    @cached_property
+    def orderlist_id(self):
+        return self.relate_order_set.first().id
 
     def get_ware_house_name(self):
         return dict(constants.WARE_CHOICES).get(self.ware_house)

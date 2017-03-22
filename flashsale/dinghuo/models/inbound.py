@@ -10,6 +10,7 @@ from django.db import models
 from django.db.models import Sum, Count, F, Q
 from django.db.models.signals import post_save
 from django.contrib.auth.models import User
+from django.utils.functional import cached_property
 from core.fields import JSONCharMyField
 from shopback.items.models import ProductSku, Product
 from supplychain.supplier.models import SaleSupplier, SaleProduct
@@ -147,6 +148,10 @@ class InBound(models.Model):
             self._order_lists_ = OrderList.objects.filter(id__in=self.order_list_ids)
         return self._order_lists_
 
+    @cached_property
+    def ori_order_list(self):
+        return OrderList.objects.filter(id=self.ori_orderlist_id).first()
+
     @property
     def order_list_items(self):
         """
@@ -186,6 +191,9 @@ class InBound(models.Model):
         return {item['sku_id']: item['arrival_quantity'] + item['inferior_quantity']
                 for item in self.details.values('sku_id', 'arrival_quantity', 'inferior_quantity')}
 
+    def get_sku_dict(self):
+        return {ibounddetail.sku_id: ibounddetail.arrival_quantity for ibounddetail in self.details.all()}
+
     @staticmethod
     def get_optimize_forecast_id(inbound_skus):
         from collections import defaultdict
@@ -216,7 +224,7 @@ class InBound(models.Model):
         inbound = InBound(supplier_id=supplier_id,
                           creator_id=None,
                           express_no=express_no,
-                          forecast_inbound_id=optimize_forecast_id,
+                          forecast_inbound_id=forecast.id,
                           ori_orderlist_id=orderlist_id,
                           memo='\n'.join(tmp),
                           type=type)
@@ -225,9 +233,8 @@ class InBound(models.Model):
             ibd.inbound = inbound
             ibd.save()
         if inbound.type == InBound.AUTOMATIC:
-            pass
-            # inbound.allocate()
-            # inbound.finish_check()
+            inbound.allocate()
+            inbound.finish_check()
         return inbound
 
     @staticmethod
@@ -284,7 +291,10 @@ class InBound(models.Model):
                           status=InBoundDetail.PROBLEM).save()
         return inbound
 
-    def allocate(self, data):
+    def allocate(self, data=None):
+        if data is None:
+            sku_dict = self.get_sku_dict()
+            data = {self.ori_order_list.order_list.filter(chichu_id=sku).first().id: sku_dict[sku] for sku in sku_dict}
         request_all_sku = {}
         for orderdetail_id in data:
             orderdetail = OrderDetail.objects.get(id=orderdetail_id)
@@ -306,31 +316,38 @@ class InBound(models.Model):
         except Exception, e0:
             logger.error(u'更新入仓单%s预测单错误' % (self.id,) + e0.message, exc_info=True)
 
-    def finish_check(self, data):
+    def finish_check(self, data=None):
         """
             完成质检
         :return:
         """
-        err_sku_ids = []
-        for inbound_detail_id in data:
-            inbound_detail = InBoundDetail.objects.get(id=inbound_detail_id)
-            if inbound_detail.get_overload_orderlist_ids():
-                err_sku_ids.append(inbound_detail.sku_id)
-        if err_sku_ids:
-            raise Exception(u'分配的SKU数量超过了订货数，请重新分配:' + str(err_sku_ids))
-        for inbound_detail_id in data:
-            inbound_detail = InBoundDetail.objects.get(id=inbound_detail_id)
-            if inbound_detail.checked:
-                inbound_detail.set_quantity(data[inbound_detail_id]["arrivalQuantity"],
-                                            data[inbound_detail_id]["inferiorQuantity"], update_stock=True)
-                inbound_detail.save()
-            else:
-                inbound_detail.set_quantity(data[inbound_detail_id]["arrivalQuantity"],
-                                            data[inbound_detail_id]["inferiorQuantity"], update_stock=False)
+        if data is None:
+            for inbound_detail in self.details.all():
                 inbound_detail.checked = True
                 inbound_detail.check_time = datetime.datetime.now()
                 inbound_detail.status = InBoundDetail.NORMAL
                 inbound_detail.save()
+        else:
+            err_sku_ids = []
+            for inbound_detail_id in data:
+                inbound_detail = InBoundDetail.objects.get(id=inbound_detail_id)
+                if inbound_detail.get_overload_orderlist_ids():
+                    err_sku_ids.append(inbound_detail.sku_id)
+            if err_sku_ids:
+                raise Exception(u'分配的SKU数量超过了订货数，请重新分配:' + str(err_sku_ids))
+            for inbound_detail_id in data:
+                inbound_detail = InBoundDetail.objects.get(id=inbound_detail_id)
+                if inbound_detail.checked:
+                    inbound_detail.set_quantity(data[inbound_detail_id]["arrivalQuantity"],
+                                                data[inbound_detail_id]["inferiorQuantity"], update_stock=True)
+                    inbound_detail.save()
+                else:
+                    inbound_detail.set_quantity(data[inbound_detail_id]["arrivalQuantity"],
+                                                data[inbound_detail_id]["inferiorQuantity"], update_stock=False)
+                    inbound_detail.checked = True
+                    inbound_detail.check_time = datetime.datetime.now()
+                    inbound_detail.status = InBoundDetail.NORMAL
+                    inbound_detail.save()
         self.status = InBound.COMPLETED
         self.checked = True
         self.check_time = datetime.datetime.now()
