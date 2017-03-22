@@ -400,7 +400,7 @@ def task_auto_exchg_xlmm_order():
                             sys_oa = get_systemoa_user()
                             log_action(sys_oa, entry, CHANGE,
                                        u'auto exchange ordercarry=%s,so=%s,level1 %s >= level2 %s,level2 %s to level3 %s' % (entry.id, sale_order.oid, level1_mama.get_level_lowest_elite(), level2_mama.get_level_lowest_elite(), level2_mama.id, level3_mama.id))
-                            print 'add level3', sale_order.oid, level1_mama.id, level2_mama.id, level3_mama.id
+                            # print 'add level3', sale_order.oid, level1_mama.id, level2_mama.id, level3_mama.id
                         else:
                             sale_order.extras['exchange'] = False
                             sale_order.save(update_fields=['extras'])
@@ -408,7 +408,7 @@ def task_auto_exchg_xlmm_order():
                             sys_oa = get_systemoa_user()
                             log_action(sys_oa, sale_order, CHANGE,
                                        u'auto exchange ordercarry=%s,level1 %s >= level2 %s,level2 %s, level3 none or not elite, so %s exchg finish' % (entry.id, level1_mama.get_level_lowest_elite(), level2_mama.get_level_lowest_elite(), level2_mama.id, sale_order.oid))
-                            print 'chg so', sale_order.oid, level1_mama.id, level2_mama.id
+                            # print 'chg so', sale_order.oid, level1_mama.id, level2_mama.id
     print unexchg_coupon_num
 
 
