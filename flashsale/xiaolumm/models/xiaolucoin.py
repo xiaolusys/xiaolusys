@@ -88,7 +88,7 @@ class XiaoluCoin(BaseModel):
             self.save()
 
             iro_type = XiaoluCoinLog.IN if amount > 0 else XiaoluCoinLog.OUT
-            XiaoluCoinLog.create(self.mama_id, iro_type, amount, subject, referal_id=referal_id)
+            XiaoluCoinLog.create(self.mama_id, iro_type, abs(amount), subject, referal_id=referal_id)
 
 
 class XiaoluCoinLog(BaseModel):
