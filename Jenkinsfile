@@ -1,0 +1,11 @@
+node {
+  checkout scm
+  withCredentials([usernamePassword(credentialsId: 'docker', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+    sh("docker login -u ${env.DOCKER_USERNAME} -p ${env.DOCKER_PASSWORD} registry.aliyuncs.com")
+  }
+  sh("docker build -t xiaolusys:latest .")
+  sh("docker run -e TARGET=k8s xiaolusys:latest python manage.py test -t . --keepdb --parallel 2")
+  sh("docker tag xiaolusys:latest registry.aliyuncs.com/xiaolu-img/xiaolusys:`git rev-parse HEAD`")
+  sh("docker push registry.aliyuncs.com/xiaolu-img/xiaolusys:`git rev-parse HEAD`")
+}
+
