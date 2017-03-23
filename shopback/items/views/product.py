@@ -582,3 +582,13 @@ class ProductViewSet(viewsets.ModelViewSet):
         product = serializer.save(product_id=instance.pk)
         serializer = self.get_serializer(product)
         return Response(serializer.data)
+
+    @detail_route(methods=['GET'])
+    def get_sale_products(self, request, *args, **kwargs):
+        product = self.get_object()
+        from supplychain.supplier.serializers import SaleProductSerializer
+        sale_products = SaleProduct.get_by_product(product)
+        res = SaleProductSerializer(sale_products, many=True).data
+        for line in res:
+            line['main_supplier'] = line['id'] == product.sale_product
+        return Response(res)
