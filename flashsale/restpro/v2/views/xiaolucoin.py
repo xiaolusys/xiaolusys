@@ -66,8 +66,17 @@ class XiaoluCoinViewSet(viewsets.GenericViewSet):
         subject = content.get('subject') or None
         referal_id = content.get('referal_id') or ''
 
-        if (not amount) or (not amount.isdigit()):
+        if not amount:
             return Response({'code': 2, 'msg': '金额错误'})
+        try:
+            x = int(amount)
+            isdigit = isinstance(x, int)
+        except ValueError:
+            isdigit = False
+        if not isdigit:
+            return Response({'code': 2, 'msg': '金额错误'})
+        if abs(x) > 10000:
+            return Response({'code': 2, 'msg': '超出手工操作金额，请联系管理员'})
 
         if subject not in dict(XiaoluCoinLog.SUBJECT_CHOICES).keys():
             return Response({'code': 3, 'msg': '收支类型错误'})
