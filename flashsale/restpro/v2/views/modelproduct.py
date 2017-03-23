@@ -250,7 +250,10 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         product_ids = list(queryset.values_list('id', flat=True))
         model_products = ModelProductCtl.multiple(ids=product_ids)
 
-        next_mama_level_info = mama.next_agencylevel_info()
+        if mama:
+            next_mama_level_info = mama.next_agencylevel_info()
+        else:
+            next_mama_level_info = []
         for md in model_products:
             rebate_scheme = md.get_rebetaschema()
             lowest_agent_price = md.detail_content['lowest_agent_price']
@@ -259,7 +262,10 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
                 next_rebet_amount = 0
             else:
                 rebet_amount = rebate_scheme.calculate_carry(mama.agencylevel, lowest_agent_price)
-                next_rebet_amount = rebate_scheme.calculate_carry(next_mama_level_info[0], lowest_agent_price) or 0.0
+                if len(next_mama_level_info) > 0:
+                    next_rebet_amount = rebate_scheme.calculate_carry(next_mama_level_info[0], lowest_agent_price) or 0.0
+                else:
+                    next_rebet_amount = 0.0
 
             total_remain_num = sum([len(p.sku_ids) for p in md.get_products()]) * 30
             sale_num = total_remain_num * 19 + random.randint(1,19)
