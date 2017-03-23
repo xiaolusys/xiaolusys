@@ -1223,14 +1223,13 @@ def task_schedule_check_trades_and_budget():
         if refund_log:
             continue
 
-        st = SaleTrade.objects.filter(id=int(log.referal_id)).first()
-        if not st:
-            wrong_trades.append(log.referal_id)
-        if st.status not in [SaleTrade.WAIT_SELLER_SEND_GOODS,
-                             SaleTrade.WAIT_BUYER_CONFIRM_GOODS,
-                             SaleTrade.TRADE_BUYER_SIGNED,
-                             SaleTrade.TRADE_FINISHED,
-                             SaleTrade.TRADE_CLOSED]:
+        if log.referal_id:
+            st = SaleTrade.objects.filter(id=int(log.referal_id)).first()
+        if st and st.status not in [SaleTrade.WAIT_SELLER_SEND_GOODS,
+                                    SaleTrade.WAIT_BUYER_CONFIRM_GOODS,
+                                    SaleTrade.TRADE_BUYER_SIGNED,
+                                    SaleTrade.TRADE_FINISHED,
+                                    SaleTrade.TRADE_CLOSED]:
             wrong_trades.append(log.referal_id)
 
     # 4.检查xiaolupay支付记录中订单状态是否正常
