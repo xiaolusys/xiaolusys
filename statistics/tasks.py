@@ -87,7 +87,7 @@ def task_statistics_product_sale_num(sale_time_left, sale_time_right, category):
     return {"data": data, "time_consuming": str(end_time - start_time)}
 
 
-@app.task(serializer='pickle')
+@app.task(max_retries=3, default_retry_delay=6)
 def task_update_sale_order_stats_record(sale_order):
     """
     更新统计模块的 SaleOrderStatsRecord 记录
@@ -112,22 +112,25 @@ def task_update_sale_order_stats_record(sale_order):
     product = get_product(sale_order.outer_id)
     sale_product = product.sale_product if product else 0
     if not record:
-        record = SaleOrderStatsRecord(
-            oid=sale_order.oid,
-            outer_id=sale_order.outer_id,
-            sku_id=sale_order.outer_id + '/' + sale_order.outer_sku_id,
-            name=sale_order.title + '/' + sale_order.sku_name,
-            pic_path=sale_order.pic_path,
-            num=sale_order.num,
-            payment=sale_order.payment,
-            pay_time=pay_time,
-            date_field=date_field,
-            status=status,
-            sale_product=sale_product
-        )
-        if status == constants.RETURN_GOODS:
-            record.return_goods = constants.HAS_RETURN
-        record.save()
+        try:
+            record = SaleOrderStatsRecord(
+                oid=sale_order.oid,
+                outer_id=sale_order.outer_id,
+                sku_id=sale_order.outer_id + '/' + sale_order.outer_sku_id,
+                name=sale_order.title + '/' + sale_order.sku_name,
+                pic_path=sale_order.pic_path,
+                num=sale_order.num,
+                payment=sale_order.payment,
+                pay_time=pay_time,
+                date_field=date_field,
+                status=status,
+                sale_product=sale_product
+            )
+            if status == constants.RETURN_GOODS:
+                record.return_goods = constants.HAS_RETURN
+            record.save()
+        except IntegrityError as exc:
+            raise task_update_sale_order_stats_record.retry(exc=exc)
     else:
         # 付款时间取　去订单的付款时间　如果 订单的付款时间为空则默认为订单的创建时间
         if not pay_time:
