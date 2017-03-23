@@ -1,5 +1,5 @@
 from .address import UserAddress, District, UserAddressChange, DistrictVersion
-from .brand import BrandEntry, BrandProduct
+from .brand import ProductBrand
 from .coupon import CouponTemplate, UserCoupon, CouponsPool, default_coupon_no
 from .envelope import Envelop
 from .external import TradeCharge

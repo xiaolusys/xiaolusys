@@ -90,11 +90,11 @@ class Product(models.Model):
                      (DOWN_SHELF, u'未上架'))
     NORMAL_SALE = 0
     VIRTUAL_SALE = 1
-    NO_SALE = 2
+    METARIAL = 2
     TYPE_CHOICES = (
-        (0, u'商品'),
-        (1, u'虚拟商品'),
-        (2, u'非卖品'),
+        (NORMAL_SALE, u'商品'),
+        (VIRTUAL_SALE, u'虚拟商品'),
+        (METARIAL, u'包材辅料'),
     )
     ProductCodeDefect = ProductDefectException
     DIPOSITE_CODE_PREFIX = 'RMB'  # 押金商品编码前缀
@@ -961,16 +961,19 @@ class Product(models.Model):
                 if sku['color'] == pro['name']:
                     color_skus.append(sku)
 
-            kwargs = {'name': pro['name'],
-                      'pic_path': pro['pic_path'],
-                      'elite_score': pro['elite_score'],
-                      'outer_id': outer_id,
-                      'model_id': model_pro.id,
-                      'sale_charger': creator.username,
-                      'category': product_category,
-                      'ware_by': supplier.ware_by,
-                      'sale_product': saleproduct.id,
-                      "product_skus_list": []}
+            kwargs = {
+                'name': pro['name'],
+                'pic_path': pro['pic_path'],
+                'elite_score': pro['elite_score'],
+                'outer_id': outer_id,
+                'model_id': model_pro.id,
+                'sale_charger': creator.username,
+                'category': product_category,
+                'ware_by': supplier.ware_by,
+                'sale_product': saleproduct.id,
+                'type': model_pro.product_type,
+                "product_skus_list": [],
+            }
             pro_count += 1
             sku_count = 1
             product_skus_list = []
@@ -989,7 +992,6 @@ class Product(models.Model):
                     'properties_name': color_sku['properties_name'] or pro['name'] ,
                     'properties_alias': color_sku['properties_alias'],
                     'barcode': barcode,
-
                 })
                 sku_count += 1
             kwargs.update({'product_skus_list': product_skus_list})

@@ -2,5 +2,4 @@ from .promotion import XLSampleapplyView, APPDownloadView, XlSampleOrderView, Cu
     PromotionResultMixin, PromotionShortResult, PromotionResult, ReceiveAwardView, QrCodeView
 from .activity import *
 from .activity_goods import *
-from .promotion_goods import *
 from .stock_sale import *

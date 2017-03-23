@@ -7,6 +7,9 @@ from ....adapter.ware.pull import pms
 def push_ware_supplier_by_mall_supplier(mall_supplier):
 
     vendor_code = mall_supplier.vendor_code
+    if not vendor_code:
+        raise Exception(u'供应商编码不能为空:vendor_name=%s'%mall_supplier.supplier_name)
+
     params = {
         'vendor_code': vendor_code,
         'vendor_name': mall_supplier.supplier_name,

@@ -20,7 +20,7 @@ from rest_framework import viewsets
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response
 from rest_framework_extensions.cache.decorators import cache_response
-from flashsale.pay.models import GoodShelf, BrandProduct, Customer
+from flashsale.pay.models import GoodShelf, Customer
 from flashsale.promotion.models import ActivityEntry
 from flashsale.xiaolumm.models import XiaoluMama, MamaTabVisitStats
 from flashsale.mmexam.models import DressProduct
@@ -751,24 +751,23 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
 
     @list_route(methods=['get'])
     def brandlist(self, request, *args, **kwargs):
-        """ 品牌推广展示商品信息 """
+        """ deprecated 品牌推广展示商品信息 """
         content = request.GET
-        brand_id = content.get('brand')
-
-        tnow = datetime.datetime.now()
-        queryset = BrandProduct.objects.filter(brand_id=brand_id)
-        resultset = Product.objects.none()
-        for brand in queryset:
-            resultset = resultset | (Product.objects.filter(id=brand.product_id))
-        pagin_query = self.paginate_queryset(resultset)
-        if pagin_query is not None:
-            object_list = self.objets_from_cache(pagin_query)
-            serializer = self.get_serializer(object_list, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        object_list = self.objets_from_cache(queryset, value_keys=['pk', 'is_saleout'])
-        serializer = self.get_serializer(object_list, many=True)
-        return Response(serializer.data)
+        # brand_id = content.get('brand')
+        # tnow = datetime.datetime.now()
+        # queryset = BrandProduct.objects.filter(brand_id=brand_id)
+        # resultset = Product.objects.none()
+        # for brand in queryset:
+        #     resultset = resultset | (Product.objects.filter(id=brand.product_id))
+        # pagin_query = self.paginate_queryset(resultset)
+        # if pagin_query is not None:
+        #     object_list = self.objets_from_cache(pagin_query)
+        #     serializer = self.get_serializer(object_list, many=True)
+        #     return self.get_paginated_response(serializer.data)
+        #
+        # object_list = self.objets_from_cache(queryset, value_keys=['pk', 'is_saleout'])
+        # serializer = self.get_serializer(object_list, many=True)
+        return Response([])
 
 
 class ProductShareView(generics.RetrieveAPIView):

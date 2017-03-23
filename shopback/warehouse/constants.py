@@ -20,12 +20,14 @@ WARE_COMPANY = 3
 WARE_FCSZ = 4
 WARE_FCGZ = 5
 WARE_THIRD = 9
+WARE_FCSLYC = 10
 WARE_CHOICES = (
     (WARE_NONE, u'未选仓'),
     (WARE_SH, u'上海仓'),
     (WARE_GZ, u'广州仓'),
+    (WARE_COMPANY, u'公司仓'),
     (WARE_FCSZ, u'蜂巢苏州仓'),
     (WARE_FCGZ, u'蜂巢广州仓'),
-    (WARE_COMPANY, u'公司仓'),
     (WARE_THIRD, u'第三方仓'),
+    (WARE_FCSLYC, u'蜂巢十里洋场'),
 )

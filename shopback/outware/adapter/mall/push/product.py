@@ -2,6 +2,9 @@
 from __future__ import absolute_import, unicode_literals
 
 from core.apis import DictObject
+
+from supplychain.supplier.models import SaleProduct
+from shopback.items.models import Product
 from ....adapter.ware.pull import pms
 from .... import constants
 
@@ -13,21 +16,39 @@ def push_ware_sku_by_saleproduct(sale_product):
 
     success_skucode_list = []
     products = sale_product.item_products
+    modelproduct = sale_product.model_product
+    brand_name = ''
+    if modelproduct and modelproduct.brand:
+        brand_name = modelproduct.brand.brand_name
+
     for product in products:
+        sku_type = constants.SKU_TYPE_PRODUCT['code']
+        if product.type == Product.METARIAL:
+            sku_type = constants.SKU_TYPE_METARIAL['code']
+
+        declare_type = constants.DECLARE_TYPE_NONE
+        if modelproduct.source_type == SaleProduct.SOURCE_BONDED:
+            declare_type = constants.DECLARE_TYPE_BOUND
+        elif modelproduct.source_type == SaleProduct.SOURCE_OUTSIDE:
+            declare_type = constants.DECLARE_TYPE_DIRECT
+
         for sku in product.normal_skus:
             sku_code = sku.outer_id
             params = {
                 'sku_code': sku_code,
                 'bar_code': sku.supplier_skucode,
                 'sku_name': product.name + sku.name,
-                'sku_type': constants.SKU_TYPE_PRODUCT['code'],
+                'sku_type': sku_type,
+                'brand_name': brand_name,
+                'is_batch_mgt': modelproduct.is_batch_mgt_on,
+                'is_xpire_mgt': modelproduct.is_expire_mgt_on,
+                'vdr_flag': modelproduct.is_vendor_mgt_on,
+                'shelf_life': modelproduct.shelf_life_days,
                 'object': 'OutwareSku',
-                # 'is_xpire_mgt': True, #保质期管理
-                # 'shelf_life': ''
             }
             # TODO@MERON ,现默认所有SKU为商品类型，没有区分赠品包材
             dict_params = DictObject().fresh_form_data(params)
-            resp = pms.create_sku_and_supplier(sku_code, vendor_code, dict_params)
+            resp = pms.create_sku_and_supplier(sku_code, vendor_code, sku_type, declare_type, dict_params)
             if resp.get('success'):
                 success_skucode_list.append(sku_code)
 

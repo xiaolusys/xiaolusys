@@ -7,8 +7,8 @@ import datetime
 from django.db import models
 
 # from django.db import models
-from core.models import BaseModel
 from core.fields import JSONCharMyField
+from .base import BaseWareModel
 
 import logging
 logger = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ def gen_default_appid():
         randchar=''.join(random.sample('abcdefghijklmnopqrstuvwxyz', 8))
     )
 
-class OutwareAccount(BaseModel):
+class OutwareAccount(BaseWareModel):
 
     nick  = models.CharField(max_length=16, blank=True, verbose_name=u'APP昵称')
 

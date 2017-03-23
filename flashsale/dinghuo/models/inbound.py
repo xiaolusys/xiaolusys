@@ -12,6 +12,7 @@ from django.db.models.signals import post_save
 from django.contrib.auth.models import User
 from django.utils.functional import cached_property
 from core.fields import JSONCharMyField
+from core.options import get_systemoa_user
 from shopback.items.models import ProductSku, Product
 from supplychain.supplier.models import SaleSupplier, SaleProduct
 from .purchase_order import OrderList, OrderDetail
@@ -222,11 +223,11 @@ class InBound(models.Model):
         supplier_id = forecast.supplier_id
         orderlist_id = forecast.orderlist_id
         inbound = InBound(supplier_id=supplier_id,
-                          creator_id=None,
                           express_no=express_no,
                           forecast_inbound_id=forecast.id,
                           ori_orderlist_id=orderlist_id,
                           memo='\n'.join(tmp),
+                          creator=get_systemoa_user(),
                           type=type)
         inbound.save()
         for ibd in ibds:

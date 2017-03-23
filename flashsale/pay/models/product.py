@@ -133,10 +133,25 @@ def default_modelproduct_extras_tpl():
             "is_product_buy_limit": True,
             "per_limit_buy_num": 20,
             "is_bonded_goods": False, #标识商品是否需要
+            "is_coupon_deny": True,
         },
-        "new_properties": {},
+        "new_properties": [],
         "sources": {
             "source_type": 0,
+        },
+        # "template_id": 530, 对应优惠券id
+        "tables": [
+            {
+                "table": [
+                    []
+                ]
+            }
+        ],
+        "consoles": {
+            "is_batch_mgt": False, #启动批次管理
+            "is_expire_mgt": False, #启动保质期管理
+            "is_vendor_mgt": False, #启动多供应商管理(支持同SKU多供应商供货)
+            "shelf_life_days": 0, #保质期(天数)
         }
     }
 
@@ -162,11 +177,11 @@ class ModelProduct(BaseTagModel):
 
     USUAL_TYPE    = 0
     VIRTUAL_TYPE  = 1
-    NOT_SALE_TYPE = 2
+    METARIAL_TYPE = 2
     TYPE_CHOICES = (
         (USUAL_TYPE, u'商品'),
         (VIRTUAL_TYPE, u'虚拟商品'),
-        (NOT_SALE_TYPE, u'非卖品'),
+        (METARIAL_TYPE, u'包材辅料'),
     )
 
     name = models.CharField(max_length=64, db_index=True, verbose_name=u'款式名称')
@@ -177,6 +192,7 @@ class ModelProduct(BaseTagModel):
     title_imgs = JSONCharMyField(max_length=5000, verbose_name=u'主图', help_text=u"多色则多图，单色则单图")
     salecategory = models.ForeignKey('supplier.SaleCategory', null=True, default=None,
                                      related_name='modelproduct_set', verbose_name=u'分类')
+    brand = models.ForeignKey('pay.ProductBrand', null=True, default=None, on_delete=models.SET_NULL, verbose_name=u'品牌')
 
     lowest_agent_price = models.FloatField(default=0.0, db_index=True, verbose_name=u'最低售价')
     lowest_std_sale_price = models.FloatField(default=0.0, verbose_name=u'最低原价')
@@ -279,6 +295,22 @@ class ModelProduct(BaseTagModel):
     @property
     def is_boutique_coupon(self):
         return int(self.product_type) == ModelProduct.VIRTUAL_TYPE and self.is_boutique
+
+    @property
+    def is_batch_mgt_on(self):
+        return self.extras.get('consoles', {}).get('is_batch_mgt') or 0
+
+    @property
+    def is_expire_mgt_on(self):
+        return self.extras.get('consoles', {}).get('is_expire_mgt') or 0
+
+    @property
+    def is_vendor_mgt_on(self):
+        return self.extras.get('consoles', {}).get('is_vendor_mgt') or 0
+
+    @property
+    def shelf_life_days(self):
+        return self.extras.get('consoles', {}).get('shelf_life_days') or 0
 
     def get_web_url(self):
         return urlparse.urljoin(settings.M_SITE_URL, Product.MALL_PRODUCT_TEMPLATE_URL.format(self.id))

@@ -21,6 +21,7 @@ def push_outware_order_by_package(package):
     address = package.user_address
     sku_codes = []
     order_items = []
+    print 'package:', package, dir(package)
     for psi in package.package_sku_items.all():
         order_items.append({
             'sku_order_code': psi.oid,
@@ -34,7 +35,7 @@ def push_outware_order_by_package(package):
         .values_list('outware_supplier__vendor_code', flat=True)
     channel_maps = sdks.get_channelid_by_vendor_codes(vendor_codes)
     if not channel_maps or len(set(channel_maps.values())) > 1:
-        raise Exception('同一订单只能有且只有一个channelid属性')
+        raise Exception('同一订单只能有且只有一个channelid属性:packageorder=%s'%order_code)
 
     params = {
         'order_number': package.pid,
@@ -54,7 +55,7 @@ def push_outware_order_by_package(package):
         'order_items': order_items,
         'object': 'OutwareOrder',
     }
-    print params
+
     dict_obj = DictObject().fresh_form_data(params)
     response = oms.create_order(order_code, store_code, dict_obj)
 
@@ -95,6 +96,7 @@ def push_outware_order_by_sale_trade(sale_trade):
         'pay_time': sale_trade.pay_time.strftime('%Y-%m-%d %H:%M:%S'),
         'order_type': constants.ORDER_TYPE_USUAL['code'], # TODO@MERON　是否考虑预售
         'channel_id': channel_maps.values()[0],
+        # 'declare_type': constants.DECLARE_TYPE_BOUND, # TODO 跨境需传
         'receiver_info': {
             'receiver_province': address.receiver_state,
             'receiver_city': address.receiver_city,
@@ -103,6 +105,8 @@ def push_outware_order_by_sale_trade(sale_trade):
             'receiver_name': address.receiver_name,
             'receiver_mobile': address.receiver_mobile,
             'receiver_phone': address.receiver_phone,
+            # 'order_person_idname': address.receiver_mobile, # TODO 跨境需传
+            # 'order_person_idcard': address.receiver_phone, # TODO 跨境需传
         },
         'order_items': order_items,
         'object': 'OutwareOrder',

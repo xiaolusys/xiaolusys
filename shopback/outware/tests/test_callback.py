@@ -100,7 +100,7 @@ class CallbackTestCase(TestCase):
         data = {
             u'sign_type': u'md5',
             u'data': json.dumps({
-                "order_code": "xd16111358284ace3a74f",
+                "order_code": "166271",
                 "order_type": 'user_pack',
                 "packages": [{
                     "whse_code": "SZWH01",
@@ -114,7 +114,7 @@ class CallbackTestCase(TestCase):
                 }]
             }),
             u'app_id': u'app20170308hnabcpls',
-            u'sign': u'3cd9f4da6b6123bba53ad3b4e49e7567'}
+            u'sign': u'b904623bcbb0b59d089a42892246e855'}
 
         response = self.client.post(
             reverse('honeycomb:callback-order-delivery'),

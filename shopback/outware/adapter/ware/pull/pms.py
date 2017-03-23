@@ -41,27 +41,49 @@ def create_supplier(vendor_code, dict_obj):
 
 
 @action_decorator(constants.ACTION_SKU_CREATE['code'])
-def create_sku_and_supplier(sku_code, vendor_code, dict_obj):
+def create_sku_and_supplier(sku_code, vendor_code, sku_type, declare_type, dict_obj):
     # 包含sku信息以及与供应商的关系
 
     ware_account = OutwareAccount.get_fengchao_account()
     ow_supplier = OutwareSupplier.objects.get(outware_account=ware_account, vendor_code=vendor_code)
+    action_code = constants.ACTION_SKU_CREATE['code']
+    is_batch_mgt  = dict_obj.get('is_batch_mgt', False)
+    is_expire_mgt = dict_obj.get('is_xpire_mgt', False)
+    is_vendor_mgt = dict_obj.get('vdr_flag', False)
+
+    if not getattr(dict_obj, 'bar_code'):
+        raise Exception(u"请传入商品条码(多条码请使用逗号分隔)")
+
+    if is_expire_mgt and dict_obj.shelf_life <= 0:
+        raise Exception(u"如启动有效期管理请输入正确的有效期天数")
 
     try:
-        action_code = constants.ACTION_SKU_CREATE['code']
         with transaction.atomic():
             # for solution of An error occurred in the current transaction.
             # You can't execute queries until the end of the 'atomic' block
             ow_sku = OutwareSku.objects.create(
                 outware_supplier=ow_supplier,
                 sku_code=sku_code,
+                sku_type=sku_type,
+                declare_type=declare_type,
+                is_batch_mgt=is_batch_mgt,
+                is_expire_mgt=is_expire_mgt,
+                is_vendor_mgt=is_vendor_mgt,
                 extras={'data': dict(dict_obj)},
                 uni_key=OutwareSku.generate_unikey(ow_supplier.id, sku_code),
             )
             OutwareSkuStock.objects.get_or_create(sku_code=sku_code)
     except IntegrityError:
-        action_code = constants.ACTION_SKU_EDIT['code']
         ow_sku = OutwareSku.objects.get(outware_supplier=ow_supplier, sku_code=sku_code)
+
+        if ow_sku.is_action_success(action_code):
+            action_code = constants.ACTION_SKU_EDIT['code']
+
+        ow_sku.sku_type = sku_type
+        ow_sku.declare_type = declare_type
+        ow_sku.is_batch_mgt =is_batch_mgt
+        ow_sku.is_expire_mgt = is_expire_mgt
+        ow_sku.is_vendor_mgt = is_vendor_mgt
         ow_sku.extras['data'] = dict(dict_obj)
         ow_sku.save()
 
@@ -139,6 +161,10 @@ def create_inbound_order(inbound_code, vendor_code, dict_obj):
         for sku_item in dict_obj.order_items:
             sku_code = sku_item.sku_id
             batch_no = sku_item.batch_code
+            ow_sku = OutwareSku.objects.get(outware_supplier=ow_supplier, sku_code=sku_code)
+            if ow_sku.is_batch_mgt_on and not batch_no:
+                raise Exception(u'SKU商品已启用批次管理，请设置入仓商品的批次号')
+
             try:
                 with transaction.atomic():
                     OutwareInboundSku.objects.create(
@@ -177,11 +203,12 @@ def cancel_inbound_order(inbound_code, vendor_code, order_type):
         order_type=order_type,
     )
 
-    try:
-        sdks.request_getway({'order_code': inbound_code}, constants.ACTION_PO_CANCEL['code'], ware_account)
-    except Exception, exc:
-        logger.error(str(exc), exc_info=True)
-        return {'success': False, 'object': ow_inbound, 'message': str(exc)}
+    if ow_inbound.is_action_success(constants.ACTION_PO_CREATE['code']):
+        try:
+            sdks.request_getway({'order_code': inbound_code}, constants.ACTION_PO_CANCEL['code'], ware_account)
+        except Exception, exc:
+            logger.error(str(exc), exc_info=True)
+            return {'success': False, 'object': ow_inbound, 'message': str(exc)}
 
     # 确认采购入仓单已接收
     ow_inbound.change_order_status(constants.CANCEL)

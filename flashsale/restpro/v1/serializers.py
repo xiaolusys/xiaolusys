@@ -9,7 +9,6 @@ from flashsale.xiaolumm.models.models_advertis import MamaVebViewConf
 from rest_framework import serializers
 
 from flashsale.coupon.models import OrderShareCoupon
-from flashsale.pay.models import BrandEntry, BrandProduct
 from flashsale.pay.models import (
     SaleTrade,
     SaleOrder,
@@ -227,30 +226,6 @@ class SimpleActivityEntrySerializer(serializers.ModelSerializer):
         fields = ('id', 'title', 'login_required', 'act_desc', 'act_img', 'act_logo', 'mask_link', 'act_link',
                   'act_type', 'act_applink', 'start_time', 'end_time', 'order_val',
                   'total_member_num', 'friend_member_num', 'is_active', 'extras')
-
-
-class BrandEntrySerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = BrandEntry
-        fields = ('id', 'brand_name', 'brand_desc', 'brand_pic', 'brand_post',
-                  'brand_applink', 'start_time', 'end_time')
-
-
-class BrandProductSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = BrandProduct
-        fields = ('id', 'product_id', 'model_id', 'product_name', 'product_img', 'product_lowest_price', 'product_std_sale_price')
-
-
-class BrandPortalSerializer(serializers.ModelSerializer):
-
-    brand_products = BrandProductSerializer(many=True)
-    class Meta:
-        model = BrandEntry
-        fields = ('id', 'brand_name', 'brand_desc', 'brand_pic', 'brand_post',
-                  'brand_applink', 'brand_products', 'start_time', 'end_time')
 
 
 class ProductSerializer(serializers.HyperlinkedModelSerializer):

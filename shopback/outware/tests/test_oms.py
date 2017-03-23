@@ -21,12 +21,13 @@ class OMSTestCase(TestCase):
     ]
 
     def setUp(self):
-        st = SaleTrade.objects.first()
-        st.tid = SaleTrade.gen_unikey()
-        st.save(update_fields=['tid'])
+        pass
 
-    def testCreateAndCancelWareOrder(self):
+
+    def createAndCancelWareOrder(self):
+        # user the following test
         sale_trade = SaleTrade.objects.first()
+        sale_trade.tid = SaleTrade.gen_unikey()
         resp = order.push_outware_order_by_sale_trade(sale_trade)
         self.assertTrue(resp['success'])
 
@@ -35,6 +36,7 @@ class OMSTestCase(TestCase):
 
     def testCreateAndCancelWarePackage(self):
         package_order = PackageOrder.objects.first()
+        package_order.pid = '%s'%(time.time())
         resp = order.push_outware_order_by_package(package_order)
         self.assertTrue(resp['success'])
 
@@ -54,6 +56,7 @@ class SlycTestCase(TestCase):
 
     def testCreateAndCancelWareOrder(self):
         sale_trade = SaleTrade.objects.first()
+        sale_trade.tid = SaleTrade.gen_unikey()
         resp = order.push_outware_order_by_sale_trade(sale_trade)
         self.assertTrue(resp['success'])
 

@@ -11,8 +11,25 @@ from .base import PayBaseModel, BaseModel
 import logging
 logger = logging.getLogger(__name__)
 
+class ProductBrand(BaseModel):
+    """ 商品品牌 """
+    brand_name = models.CharField(max_length=64, unique=True, blank=True, verbose_name=u'品牌名称(国内)')
+    brand_desc = models.TextField(blank=True, null=True, verbose_name=u'品牌简介')
+    extras= JSONCharMyField(max_length=1024, blank=True, default={}, verbose_name=u'附加信息')
+
+    class Meta:
+        db_table = 'flashsale_product_brand'
+        app_label = 'pay'
+        verbose_name = u'特卖/商品品牌'
+        verbose_name_plural = u'特卖/商品品牌'
+
+    def __unicode__(self):
+        return u'<%s,%s>' % (self.id, self.brand_name)
+
+
+######################### 下面部分model已停止使用到时删除 #########################
 class BrandEntry(BaseModel):
-    """ 专题活动入口 这个结构不再使用了"""
+    """  deprecated 专题活动入口 这个结构不再使用了"""
 
     PROMOTION_TOP10 = 1
     PROMOTION_TOPIC = 2
@@ -73,7 +90,7 @@ class BrandEntry(BaseModel):
 
 
 class BrandProduct(BaseModel):
-    """ 品牌商品信息 这个结构不再使用了"""
+    """ deprecated 品牌商品信息 这个结构不再使用了"""
 
     BANNER_PIC_TYPE = 0  # Banner picture
     COUPON_GETBEFORE_PIC_TYPE = 1

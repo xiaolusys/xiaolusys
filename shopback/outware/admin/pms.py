@@ -17,8 +17,9 @@ class OutwareSupplierAdmin(admin.ModelAdmin):
 
 @admin.register(OutwareSku)
 class OutwareSkuAdmin(admin.ModelAdmin):
-    list_display = ('sku_code', 'ware_sku_code', 'outware_supplier', 'is_unioned')
-    list_filter = ('is_unioned',)
+    list_display = ('sku_code', 'ware_sku_code', 'outware_supplier', 'sku_type', 'is_unioned',
+                    'is_batch_mgt', 'is_expire_mgt', 'is_vendor_mgt', 'created')
+    list_filter = ('is_unioned', 'is_batch_mgt', 'is_expire_mgt', 'is_vendor_mgt')
     search_fields = ['=id','=sku_code']
     ordering = ('-created',)
 

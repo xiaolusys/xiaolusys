@@ -27,6 +27,14 @@ class BaseWareModel(models.Model):
 
         return super(BaseWareModel, self).save( *args, **kwargs)
 
+    def is_action_success(self, action_code):
+        return OutwareActionRecord.objects.filter(
+            record_obj=ContentType.objects.get_for_model(self),
+            object_id=self.id,
+            action_code=action_code,
+            state_code=constants.GOOD
+        ).exists()
+
 
 class OutwareActionRecord(BaseModel):
 

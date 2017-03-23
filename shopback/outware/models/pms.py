@@ -35,13 +35,34 @@ class OutwareSupplier(BaseWareModel):
 class OutwareSku(BaseWareModel):
     """ 商品信息直接跟供应商关联 """
 
+    SKU_TYPE_CHOICES = ((s['code'], s['name']) for s in [
+        constants.SKU_TYPE_PRODUCT,
+        constants.SKU_TYPE_GIFTS,
+        constants.SKU_TYPE_METARIAL,
+    ])
+
+    DECLARE_TYPE_CHOICES = ((s['code'], s['name']) for s in [
+        constants.DECLARE_TYPE_NONE,
+        constants.DECLARE_TYPE_BOUND,
+        constants.DECLARE_TYPE_DIRECT,
+    ])
+
     outware_supplier = models.ForeignKey(OutwareSupplier, verbose_name=u'关联供应商')
 
     sku_code = models.CharField(max_length=64, db_index=True, verbose_name=u'内部SKU编号')
     ware_sku_code = models.CharField(max_length=64, db_index=True, verbose_name=u'外部SKU编号')
 
-    # is_batch_mgt = models.BooleanField(default=False, verbose_name=u'是否启用批次管理')
-    is_unioned = models.BooleanField(default=False, verbose_name=u'是否同步供应商与sku关系')
+    sku_type  = models.IntegerField(default=constants.SKU_TYPE_PRODUCT['code'], choices=SKU_TYPE_CHOICES,
+                                    db_index=True, verbose_name=u'SKU类型')
+
+    declare_type = models.IntegerField(default=constants.DECLARE_TYPE_NONE['code'], choices=DECLARE_TYPE_CHOICES,
+                                    db_index=True, verbose_name=u'报关类型')
+
+    is_batch_mgt  = models.BooleanField(default=False, verbose_name=u'是否启用批次管理', help_text=u'支持批次先到先出')
+    is_expire_mgt = models.BooleanField(default=False, verbose_name=u'是否启用有效期管理', help_text=u'支持商品过期不能出单')
+    is_vendor_mgt = models.BooleanField(default=False, verbose_name=u'是否启用供应商管理', help_text=u'支持同SKU多供应商供货')
+    is_unioned    = models.BooleanField(default=False, verbose_name=u'是否同步供应商与sku关系')
+
     uni_key = models.CharField(max_length=128, unique=True, verbose_name=u'唯一标识')
     extras = JSONCharMyField(max_length=1024, default={}, verbose_name=u'附加信息') #商品的基础资料及款式信息
 
@@ -57,6 +78,17 @@ class OutwareSku(BaseWareModel):
     @classmethod
     def generate_unikey(self, supplier_id, sku_code):
         return '{sku_code}-{supplier_id}'.format(sku_code=sku_code, supplier_id=supplier_id)
+
+    @property
+    def is_batch_mgt_on(self):
+        return self.is_batch_mgt
+
+    @property
+    def is_expire_mgt_on(self):
+        return self.is_expire_mgt
+
+    def is_vendor_mgt_on(self):
+        return self.is_vendor_mgt
 
     def set_ware_sku_code(self, ware_sku_code):
         self.ware_sku_code = ware_sku_code

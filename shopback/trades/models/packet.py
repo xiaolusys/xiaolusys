@@ -183,56 +183,56 @@ class PackageOrder(models.Model):
     def return_goods_id(self):
         return self.tid.replace('rg', '')
 
-def divide(self, sku_dict):
-    """
-        从包裹中切分一部分变成一个新包裹。
-        注意　sku_id使用字符串
-    :param sku_dict:
-    :return:
-    """
-    ori_sku_dict = {item.sku_id: item.num for item in self.package_sku_items.all()}
-    new_dict = {}
-    for sku_id in ori_sku_dict:
-        now_num = ori_sku_dict[sku_id] - sku_dict.get(sku_id, 0)
-        if now_num < 0:
-            raise Exception(u'%s此sku%s数目%s超出包裹数%s'% (self.id, self.sku_id, new_dict['num'], ori_sku_dict['num']))
-        new_dict[sku_id] = now_num
-    if not new_dict or new_dict == ori_sku_dict:
-        return None
-    # 无需切psi
-    if len(new_dict) + len(sku_dict) == len(ori_sku_dict):
-        psi = self.package_sku_items.filter(sku_id__in=sku_dict.key()).first()
-        psi.clear_order_info()
-        new_package = psi.gen_package(merge=False)
-        for psi in self.package_sku_items.filter(sku_id__in=sku_dict.key()).exclude(id=psi.id):
-            psi.package_order_pid = new_package.pid
-            psi.package_order_id = new_package.id
-            psi.save()
-    else:
-        sku_ids = list(set(new_dict.keys()) & set(sku_dict.keys()))
-        psi = self.package_sku_items.filter(sku_id=sku_ids[0]).first()
-        new_psi = deepcopy(psi)
-        new_psi.num = sku_dict[sku_ids[0]]
-        psi.clear_order_info()
-        new_package = psi.gen_package(merge=False)
-        for sku_id in sku_ids[1:]:
-            psi = self.package_sku_items.filter(sku_id=sku_id).first()
+    def divide(self, sku_dict):
+        """
+            从包裹中切分一部分变成一个新包裹。
+            注意　sku_id使用字符串
+        :param sku_dict:
+        :return:
+        """
+        ori_sku_dict = {item.sku_id: item.num for item in self.package_sku_items.all()}
+        new_dict = {}
+        for sku_id in ori_sku_dict:
+            now_num = ori_sku_dict[sku_id] - sku_dict.get(sku_id, 0)
+            if now_num < 0:
+                raise Exception(u'%s此sku%s数目%s超出包裹数%s'% (self.id, self.sku_id, new_dict['num'], ori_sku_dict['num']))
+            new_dict[sku_id] = now_num
+        if not new_dict or new_dict == ori_sku_dict:
+            return None
+        # 无需切psi
+        if len(new_dict) + len(sku_dict) == len(ori_sku_dict):
+            psi = self.package_sku_items.filter(sku_id__in=sku_dict.key()).first()
+            psi.clear_order_info()
+            new_package = psi.gen_package(merge=False)
+            for psi in self.package_sku_items.filter(sku_id__in=sku_dict.key()).exclude(id=psi.id):
+                psi.package_order_pid = new_package.pid
+                psi.package_order_id = new_package.id
+                psi.save()
+        else:
+            sku_ids = list(set(new_dict.keys()) & set(sku_dict.keys()))
+            psi = self.package_sku_items.filter(sku_id=sku_ids[0]).first()
             new_psi = deepcopy(psi)
             new_psi.num = sku_dict[sku_ids[0]]
-            psi.num -= sku_dict[sku_ids[0]]
-            psi.save()
-            new_psi.clear_order_info()
-            new_psi.package_order_pid = new_package.pid
-            new_psi.package_order_id = new_package.id
-            new_psi.save()
-        for sku_id in list(set(sku_dict.keys()) - set(new_dict.keys())):
-            psi = self.package_sku_items.filter(sku_id=sku_id).first()
             psi.clear_order_info()
-            psi.package_order_pid = new_package.pid
-            psi.package_order_id = new_package.id
-            psi.save()
-    self.refresh_stat()
-    return new_package
+            new_package = psi.gen_package(merge=False)
+            for sku_id in sku_ids[1:]:
+                psi = self.package_sku_items.filter(sku_id=sku_id).first()
+                new_psi = deepcopy(psi)
+                new_psi.num = sku_dict[sku_ids[0]]
+                psi.num -= sku_dict[sku_ids[0]]
+                psi.save()
+                new_psi.clear_order_info()
+                new_psi.package_order_pid = new_package.pid
+                new_psi.package_order_id = new_package.id
+                new_psi.save()
+            for sku_id in list(set(sku_dict.keys()) - set(new_dict.keys())):
+                psi = self.package_sku_items.filter(sku_id=sku_id).first()
+                psi.clear_order_info()
+                psi.package_order_pid = new_package.pid
+                psi.package_order_id = new_package.id
+                psi.save()
+        self.refresh_stat()
+        return new_package
 
     def set_return_goods_id(self, return_goods_id):
         # '退货类都需要特殊处理，算作特殊发货（退库存要检查库存，退次品要从次品区取货）'
@@ -817,10 +817,10 @@ def divide(self, sku_dict):
         from shopback.trades.tasks import task_update_package_stat_num
         task_update_package_stat_num.delay(self.pstat_id)
 
-def cancel(self):
-    self.status = PO_STATUS.DELETE
-    self.save()
-    self.package_sku_items.filter(assign_status__in=[0, 1]).update(assign_status=3, status=PSI_STATUS.CANCEL)
+    def cancel(self):
+        self.status = PO_STATUS.DELETE
+        self.save()
+        self.package_sku_items.filter(assign_status__in=[0, 1]).update(assign_status=3, status=PSI_STATUS.CANCEL)
             
 
 def is_merge_trade_package_order_diff(package):

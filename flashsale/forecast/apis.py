@@ -120,7 +120,6 @@ def api_create_or_update_realinbound_by_inbound(inbound_id):
         if inbound.orderlist_ids and not forecast_inbound:
             forecast_inbound = ForecastInbound.objects.filter(relate_order_set__in=inbound.orderlist_ids).first()
         real_inbound.forecast_inbound = forecast_inbound
-
         real_inbound.supplier = inbound.supplier
         real_inbound.express_no = inbound.express_no
         real_inbound.creator = inbound.creator.username

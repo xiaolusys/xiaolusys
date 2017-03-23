@@ -4,7 +4,7 @@ from rest_framework import serializers
 
 from shopback.items.models import Product
 from flashsale.pay.models import ProductSku
-from ..models import SaleTrade, District, UserAddress, ModelProduct, BrandProduct, SaleRefund
+from ..models import SaleTrade, District, UserAddress, ModelProduct, SaleRefund
 
 
 class DetailInfoField(serializers.Field):
@@ -140,12 +140,6 @@ class ModelProductSerializer(serializers.ModelSerializer):
         model = ModelProduct
         fields = ('id', 'name', 'head_imgs', 'content_imgs', 'sale_time')
         # , 'std_sale_price', 'agent_price', 'shelf_status', 'status')
-
-
-class BrandProductSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = BrandProduct
-        fields = ('id', 'model_id', 'product_name', 'product_img', 'location_id', 'pic_type', 'jump_url')
 
 
 class SaleRefundSerializer(serializers.ModelSerializer):

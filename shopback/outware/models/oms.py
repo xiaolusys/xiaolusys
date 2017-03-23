@@ -140,31 +140,32 @@ class OutwarePackage(BaseWareModel):
         from shopback.outware.models.wareauth import OutwareAccount
         ware_account = OutwareAccount.get_fengchao_account()
         ow_packages = []
-        for package in dict_obj.packages:
-            # firstly, update outware package status and sku qty
-            ow_package, state = OutwarePackage.objects.get_or_create(
-                outware_account=ware_account,
-                carrier_code=package.carrier_code,
-                logistics_no=package.logistics_no,
-                uni_key=OutwarePackage.generate_unikey(ware_account.id, package.logistics_no, package.carrier_code)
-            )
-            # 忽略重复单
-            if not state:
-                continue
-            ow_package.package_order_code = order_code
-            ow_package.package_type = order_type
-            ow_package.store_code   = package.store_code
-            ow_package.save()
-
-            for item in package.package_items:
-                OutwarePackageSku.objects.create(
-                    package=ow_package,
-                    sku_code=item.sku_code,
-                    batch_no=item.batch_no,
-                    sku_qty=item.sku_qty,
-                    uni_key=OutwarePackageSku.generate_unikey(item.sku_code, item.batch_no, ow_package.id)
+        with transaction.atomic():
+            for package in dict_obj.packages:
+                # firstly, update outware package status and sku qty
+                ow_package, state = OutwarePackage.objects.get_or_create(
+                    outware_account=ware_account,
+                    carrier_code=package.carrier_code,
+                    logistics_no=package.logistics_no,
+                    uni_key=OutwarePackage.generate_unikey(ware_account.id, package.logistics_no, package.carrier_code)
                 )
-            ow_packages.append(ow_package)
+                # 忽略重复单
+                if not state:
+                    continue
+                ow_package.package_order_code = order_code
+                ow_package.package_type = order_type
+                ow_package.store_code   = package.store_code
+                ow_package.save()
+
+                for item in package.package_items:
+                    OutwarePackageSku.objects.create(
+                        package=ow_package,
+                        sku_code=item.sku_code,
+                        batch_no=item.batch_no,
+                        sku_qty=item.sku_qty,
+                        uni_key=OutwarePackageSku.generate_unikey(item.sku_code, item.batch_no, ow_package.id)
+                    )
+                ow_packages.append(ow_package)
         ow_packages = runner.get_runner(order_type)(ow_packages).execute()
         return ow_packages
 

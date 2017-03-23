@@ -43,7 +43,8 @@ from .models import (
     IntegralLog,
     TeamBuy,
     ADManager,
-    UserSearchHistory
+    UserSearchHistory,
+    ModelProduct, ProductBrand,
 )
 
 import cStringIO as StringIO
@@ -719,14 +720,6 @@ class EnvelopAdmin(admin.ModelAdmin):
 
 admin.site.register(Envelop, EnvelopAdmin)
 
-from flashsale.pay.models import ModelProduct, BrandEntry, BrandProduct
-
-
-class BrandProductInline(admin.TabularInline):
-    model = BrandProduct
-    fields = ('product_name', 'product_img', 'model_id', 'start_time', 'end_time',)
-
-
 class ModelProductAdmin(ApproxAdmin):
     list_display = ('id', 'name', 'sale_time', 'salecategory', 'product_type', 'is_onsale', 'is_recommend', 'is_topic',
                     'is_flatten', 'is_teambuy', 'is_boutique', 'product_type', 'status', 'shelf_status', 'onshelf_time', 'offshelf_time',
@@ -747,7 +740,7 @@ class ModelProductAdmin(ApproxAdmin):
                   {'classes': ('expand',),
                    'fields': (
                        ('name', 'salecategory', 'saleproduct'),
-                       ('lowest_agent_price', 'lowest_std_sale_price'),
+                       ('lowest_agent_price', 'lowest_std_sale_price', 'brand'),
                        ('is_onsale', 'is_recommend', 'is_topic', 'is_flatten', 'is_teambuy', 'is_boutique', 'product_type'),
                        ('shelf_status', 'onshelf_time', 'offshelf_time'),
                        ('order_weight', 'rebeta_scheme_id', 'status'),
@@ -792,38 +785,12 @@ class GoodShelfAdmin(admin.ModelAdmin):
 admin.site.register(GoodShelf, GoodShelfAdmin)
 
 
-class BrandEntryAdmin(admin.ModelAdmin):
-    list_display = ('id', 'brand_name', 'start_time', 'end_time', 'created', 'is_active')
-
-    list_filter = ('is_active', ('start_time', DateFieldListFilter), ('created', DateFieldListFilter))
+@admin.register(ProductBrand)
+class ProductBrandAdmin(admin.ModelAdmin):
+    list_display = ('id', 'brand_name', 'created')
+    list_filter = (('created', DateFieldListFilter),)
     search_fields = ['brand_name']
-    list_per_page = 25
-
-    inlines = [BrandProductInline]
-
-    formfield_overrides = {
-        models.CharField: {'widget': TextInput(attrs={'size': 128})},
-        models.TextField: {'widget': Textarea(attrs={'rows': 6, 'cols': 128})},
-    }
-
-
-# admin.site.register(BrandEntry, BrandEntryAdmin)
-
-
-class BrandProductAdmin(ApproxAdmin):
-    list_display = ('id', 'brand_name', 'product_name', 'product_img', 'model_id', 'start_time', 'end_time')
-
-    list_filter = (('start_time', DateFieldListFilter), ('end_time', DateFieldListFilter))
-    search_fields = ['brand_name']
-    list_per_page = 25
-
-    formfield_overrides = {
-        models.CharField: {'widget': TextInput(attrs={'size': 128})},
-        models.TextField: {'widget': Textarea(attrs={'rows': 6, 'cols': 128})},
-    }
-
-
-# admin.site.register(BrandProduct, BrandProductAdmin)
+    list_per_page = 100
 
 
 class IntegralAdmin(admin.ModelAdmin):

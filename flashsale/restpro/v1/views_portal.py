@@ -14,7 +14,7 @@ from rest_framework import exceptions
 from rest_framework_extensions.cache.decorators import cache_response
 
 
-from flashsale.pay.models import GoodShelf, BrandEntry, BrandProduct
+from flashsale.pay.models import GoodShelf
 
 from . import serializers
 
@@ -76,12 +76,12 @@ class PortalViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class BrandProductViewSet(viewsets.ReadOnlyModelViewSet):
-    """
+    """ deprecated
     ###品牌商品入口：
     - {prefix}/list[.format]: 获取品牌商品列表;
     """
-    queryset = BrandProduct.objects.all()
-    serializer_class = serializers.BrandProductSerializer
+    queryset = GoodShelf.objects.all()
+    # serializer_class = serializers.BrandProductSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
@@ -89,29 +89,27 @@ class BrandProductViewSet(viewsets.ReadOnlyModelViewSet):
         """
         品牌商品列表
         """
-        qs = self.queryset.filter(brand_id=brand_id)
-        queryset = self.filter_queryset(qs)
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        # qs = self.queryset.filter(brand_id=brand_id)
+        # queryset = self.filter_queryset(qs)
+        # page = self.paginate_queryset(queryset)
+        # if page is not None:
+        #     serializer = self.get_serializer(page, many=True)
+        #     return self.get_paginated_response(serializer.data)
+        #
+        # serializer = self.get_serializer(queryset, many=True)
+        return Response({})
 
 
 class BrandEntryViewSet(viewsets.ReadOnlyModelViewSet):
-    """
+    """ deprecated
      ###品牌入口：
     - {prefix}/list[.format]: 获取品牌列表;
     - {prefix}/{brand_id}/products[.format]: 获取品牌商品列表;
     """
-    queryset = BrandEntry.objects.all()
-    serializer_class = serializers.BrandEntrySerializer
+    queryset = GoodShelf.objects.all()
+    # serializer_class = serializers.BrandEntrySerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
-    def get_queryset(self):
-        return self.queryset.filter(is_active=True)
 
 

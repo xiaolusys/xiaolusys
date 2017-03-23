@@ -12,6 +12,17 @@ from core.fields import JSONCharMyField
 from core.utils import update_model_fields
 from supplychain.supplier.constants import STOCKING_MODE_CHOICES
 
+def set_saleproduct_default_extras():
+    return {
+        "is_boutique": False, #　是否精品汇商品
+        "product_type": "0",  # 商品类型
+        "consoles": {
+            "is_batch_mgt": False,  # 启动批次管理
+            "is_xpire_mgt": False,  # 启动保质期管理
+            "is_vendor_mgt": False,  # 启动多供应商管理(支持同SKU多供应商供货)
+            "shelf_life_days": 0,  # 保质期(天数)
+        },
+    }
 
 class SaleProduct(BaseTagModel):
     MANUAL = 'manual'

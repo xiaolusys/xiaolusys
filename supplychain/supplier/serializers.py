@@ -438,8 +438,8 @@ class ModifySaleProductSerializer(serializers.ModelSerializer):
         for item in value:
             pro_name = item['color'].replace('/', '')
             sku_name = item['properties_name'].replace('/', '')
-            item['color'] = pro_name or sku_name
-            item['properties_name'] = sku_name or pro_name
+            item['color'] = pro_name or u'经典'
+            item['properties_name'] = sku_name or  u'经典'
             item['properties_alias'] = item['properties_alias'].replace('/', '')
         return value
 

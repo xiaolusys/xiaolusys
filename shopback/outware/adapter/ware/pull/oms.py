@@ -27,9 +27,15 @@ def create_order(order_code, store_code, dict_obj):
     if not dict_obj.receiver_info or not dict_obj.order_items:
         raise Exception('缺少收货地址信息/商品SKU信息:order_no=%s'%order_code)
 
-    # if dict_obj.declare_type
-
+    action_code = constants.ACTION_ORDER_CREATE['code']
     order_type = dict_obj.order_type
+    if order_type == constants.ORDER_TYPE_CROSSBOADER:
+        action_code = constants.ACTION_CROSSORDER_CREATE['code']
+        if not all([dict_obj.declare_type,
+                   dict_obj.receiver_info.order_person_idname,
+                   dict_obj.receiver_info.order_person_idcard]):
+            raise Exception('跨境订单需要传入报关方式以及用户身份信息:order_no=%s'%order_code)
+
     with transaction.atomic():
         try:
             #　TODO@TIPS, use atomic inner for fix django model create bug
@@ -84,7 +90,7 @@ def create_order(order_code, store_code, dict_obj):
                 ow_ordersku.save()
 
     try:
-        sdks.request_getway(dict(dict_obj), constants.ACTION_ORDER_CREATE['code'], ware_account)
+        sdks.request_getway(dict(dict_obj), action_code, ware_account)
     except Exception, exc:
         logger.error(str(exc), exc_info=True)
         return {'success': False, 'object': ow_order, 'message': str(exc)}
@@ -101,14 +107,16 @@ def cancel_order(order_code):
     ware_account = OutwareAccount.get_fengchao_account()
 
     ow_order = OutwareOrder.objects.get(union_order_code=order_code)
+    action_code = constants.ACTION_ORDER_CREATE['code']
 
-    try:
-        sdks.request_getway({
-            'order_number': order_code,
-        }, constants.ACTION_ORDER_CANCEL['code'], ware_account)
-    except Exception, exc:
-        logger.error(str(exc), exc_info=True)
-        return {'success': False, 'object': ow_order, 'message': str(exc)}
+    if ow_order.is_action_success(action_code):
+        try:
+            sdks.request_getway({
+                'order_number': order_code,
+            }, constants.ACTION_ORDER_CANCEL['code'], ware_account)
+        except Exception, exc:
+            logger.error(str(exc), exc_info=True)
+            return {'success': False, 'object': ow_order, 'message': str(exc)}
 
     # 取消订单
     ow_order.change_order_status(constants.CANCEL)

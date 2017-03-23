@@ -11,7 +11,7 @@ class ReturnStoreRunner(object):
 
     def execute(self):
         for outware_package in self.outware_packages:
-            package_order = PackageOrder.objects.get(id=outware_package.package_order_code)
+            package_order = PackageOrder.objects.get(pid=outware_package.package_order_code)
             new_package = package_order.divide(outware_package.get_sku_dict())
             if new_package:
                 package_order = new_package
@@ -29,7 +29,8 @@ class SaleOutRunner(object):
 
     def execute(self):
         for outware_package in self.outware_packages:
-            package_order = PackageOrder.objects.get(id=outware_package.package_order_code)
+            print 'outware_package', outware_package.package_order_code
+            package_order = PackageOrder.objects.get(pid=outware_package.package_order_code)
             sku_ori_dict = outware_package.get_sku_dict()
             sku_dict = {str(ProductSku.objects.get(outer_id=key).id): sku_ori_dict[key] for key in sku_ori_dict}
             new_package = package_order.divide(sku_dict)
