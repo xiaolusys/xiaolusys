@@ -90,11 +90,11 @@ class Product(models.Model):
                      (DOWN_SHELF, u'未上架'))
     NORMAL_SALE = 0
     VIRTUAL_SALE = 1
-    METARIAL = 2
+    NO_SALE = 2
     TYPE_CHOICES = (
-        (NORMAL_SALE, u'商品'),
-        (VIRTUAL_SALE, u'虚拟商品'),
-        (METARIAL, u'包材辅料'),
+        (0, u'商品'),
+        (1, u'虚拟商品'),
+        (2, u'非卖品'),
     )
     ProductCodeDefect = ProductDefectException
     DIPOSITE_CODE_PREFIX = 'RMB'  # 押金商品编码前缀
@@ -961,19 +961,16 @@ class Product(models.Model):
                 if sku['color'] == pro['name']:
                     color_skus.append(sku)
 
-            kwargs = {
-                'name': pro['name'],
-                'pic_path': pro['pic_path'],
-                'elite_score': pro['elite_score'],
-                'outer_id': outer_id,
-                'model_id': model_pro.id,
-                'sale_charger': creator.username,
-                'category': product_category,
-                'ware_by': supplier.ware_by,
-                'sale_product': saleproduct.id,
-                'type': model_pro.product_type,
-                "product_skus_list": [],
-            }
+            kwargs = {'name': pro['name'],
+                      'pic_path': pro['pic_path'],
+                      'elite_score': pro['elite_score'],
+                      'outer_id': outer_id,
+                      'model_id': model_pro.id,
+                      'sale_charger': creator.username,
+                      'category': product_category,
+                      'ware_by': supplier.ware_by,
+                      'sale_product': saleproduct.id,
+                      "product_skus_list": []}
             pro_count += 1
             sku_count = 1
             product_skus_list = []
@@ -992,6 +989,7 @@ class Product(models.Model):
                     'properties_name': color_sku['properties_name'] or pro['name'] ,
                     'properties_alias': color_sku['properties_alias'],
                     'barcode': barcode,
+
                 })
                 sku_count += 1
             kwargs.update({'product_skus_list': product_skus_list})
@@ -1610,10 +1608,12 @@ class ProductSku(models.Model):
         return '%s,%s' % (color, size)
 
     @staticmethod
-    def get_by_outer_id(outer_id, outer_sku_id):
-        product = Product.objects.get(outer_id=outer_id)
-        # return ProductSku.objects.filter(outer_id=outer_sku_id, product_id=product.id).first()
-        return ProductSku.objects.get(outer_id=outer_sku_id, product_id=product.id)
+    def get_by_outer_id(outer_sku_id, outer_id=None):
+        if outer_id is None:
+            return ProductSku.objects.get(outer_id=outer_sku_id)
+        else:
+            product = Product.objects.get(outer_id=outer_id)
+            return ProductSku.objects.get(outer_id=outer_sku_id, product_id=product.id)
 
     def is_deposite(self):
         return self.product.outer_id.startswith(Product.DIPOSITE_CODE_PREFIX)

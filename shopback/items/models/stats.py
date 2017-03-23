@@ -62,7 +62,7 @@ class SkuStock(models.Model):
         verbose_name_plural = u'SKU库存列表'
 
     API_CACHE_KEY_TPL = 'api_productskustat_{0}'
-    STATUS = ((0, 'EFFECT'), (1, 'DISCARD'))
+    STATUS_CHOICES = ((0, 'EFFECT'), (1, 'DISCARD'))
     PRODUCT_SKU_STATS_COMMIT_TIME = datetime.datetime(2016, 4, 20, 01, 00, 00)
 
     # sku_id = models.IntegerField(null=True, unique=True, verbose_name=u'SKUID')
@@ -114,7 +114,7 @@ class SkuStock(models.Model):
     inferior_num = models.IntegerField(default=0, verbose_name=u"次品数", help_text=u"已作废的数据")  # 保存对应sku的次品数量
     created = models.DateTimeField(null=True, blank=True, db_index=True, auto_now_add=True, verbose_name=u'创建时间')
     modified = models.DateTimeField(null=True, blank=True, auto_now=True, verbose_name=u'修改时间')
-    status = models.IntegerField(default=0, db_index=True, choices=STATUS, verbose_name=u'状态')
+    status = models.IntegerField(default=0, db_index=True, choices=STATUS_CHOICES, verbose_name=u'状态')
     _objects = Manager()
     objects = Manager()
 
@@ -186,6 +186,14 @@ class SkuStock(models.Model):
     @property
     def realtime_lock_num(self):
         return self.shoppingcart_num + self.waitingpay_num + self.sold_num - self.post_num
+
+    def to_dict(self):
+        attrs = ['psi_paid_num', 'psi_prepare_book_num', 'psi_booked_num', 'psi_ready_num', 'psi_third_send_num',
+                 'psi_assigned_num', 'psi_merged_num', 'psi_waitscan_num', 'psi_waitpost_num', 'psi_sent_num',
+                 'psi_finish_num', 'adjust_quantity', 'history_quantity', 'inbound_quantity', 'return_quantity',
+                 'rg_quantity', 'assign_num', 'post_num', 'shoppingcart_num', 'waitingpay_num', 'sold_num', 'paid_num',
+                 'sku_id', 'modified', 'status']
+        return {attr: getattr(self, attr) for attr in attrs}
 
     def restat(self, need_stat=[]):
         """
@@ -843,7 +851,7 @@ class InferiorSkuStats(models.Model):
         verbose_name = u'次品记录'
         verbose_name_plural = u'次品库存列表'
 
-    STATUS = ((0, 'EFFECT'), (1, 'DISCARD'))
+    STATUS_CHOICES = ((0, 'EFFECT'), (1, 'DISCARD'))
     sku = models.OneToOneField('ProductSku', null=True, verbose_name=u'SKU')
     product = models.ForeignKey('Product', null=True, verbose_name=u'商品')
     ware_by = models.IntegerField(default=WARE_SH, db_index=True, choices=WARE_CHOICES, verbose_name=u'所属仓库')
@@ -854,7 +862,7 @@ class InferiorSkuStats(models.Model):
     adjust_num = models.IntegerField(default=0, verbose_name=u'调整数')
     created = models.DateTimeField(null=True, blank=True, db_index=True, auto_now_add=True, verbose_name=u'创建时间')
     modified = models.DateTimeField(null=True, blank=True, auto_now=True, verbose_name=u'修改时间')
-    status = models.IntegerField(default=0, db_index=True, choices=STATUS, verbose_name=u'状态')
+    status = models.IntegerField(default=0, db_index=True, choices=STATUS_CHOICES, verbose_name=u'状态')
 
     def __unicode__(self):
         return '<%s,%s:%s>' % (self.id, self.product_id, self.sku_id)
@@ -888,6 +896,11 @@ class InferiorSkuStats(models.Model):
     @property
     def realtime_quantity(self):
         return self.history_quantity + self.inbound_quantity + self.return_quantity + self.adjust_num - self.rg_quantity
+
+    def to_dict(self):
+        attrs = ['history_quantity', 'inbound_quantity', 'return_quantity', 'rg_quantity', 'adjust_num', 'created',
+                 'modified', 'status']
+        return {attr: getattr(self, attr) for attr in attrs}
 
     @staticmethod
     def update_adjust_num(sku_id, adjust_quantity):

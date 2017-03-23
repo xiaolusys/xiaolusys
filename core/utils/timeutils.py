@@ -1,5 +1,7 @@
 import datetime
+import json
 from datetime import timedelta
+
 
 def week_range(date):
     if isinstance(date, datetime.datetime):
@@ -19,9 +21,10 @@ def week_range(date):
     # Now, add 6 for the last day of the week (i.e., count up to Saturday)
     end_date = start_date + timedelta(6)
     if isinstance(start_date, datetime.datetime):
-        end_date = datetime.datetime.combine(end_date ,datetime.time.max)
+        end_date = datetime.datetime.combine(end_date, datetime.time.max)
 
     return (start_date, end_date)
+
 
 def day_range(date):
     return (
@@ -29,7 +32,16 @@ def day_range(date):
         datetime.datetime.combine(date, datetime.time.max)
     )
 
+
 def parse_str2date(date_str, format='%Y-%m-%d'):
     return datetime.datetime.strptime(date_str, format)
 
 
+class CJsonEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime.datetime):
+            return obj.strftime('%Y-%m-%d %H:%M:%S')
+        elif isinstance(obj, datetime.date):
+            return obj.strftime('%Y-%m-%d')
+        else:
+            return json.JSONEncoder.default(self, obj)

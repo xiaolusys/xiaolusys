@@ -37,7 +37,7 @@ class SaleOutRunner(object):
             if new_package:
                 package_order = new_package
             logistics_company = LogisticsCompany.get_by_fengchao_code(outware_package.carrier_code)
-            package_order.finish_third_send(outware_package.logistics_no, logistics_company)
+            package_order.finish_third_package(outware_package.logistics_no, logistics_company)
         return self.outware_packages
 
 

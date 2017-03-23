@@ -398,7 +398,7 @@ def update_productskustats_refund_quantity(sender, instance, created, **kwargs):
 
     from shopback.items.models import ProductSku
     if not instance.sku_id:
-        sku_id = ProductSku.get_by_outer_id(instance.outer_id, instance.outer_sku_id).id
+        sku_id = ProductSku.get_by_outer_id(instance.outer_sku_id, instance.outer_id).id
         RefundProduct.objects.filter(id=instance.id).update(sku_id=sku_id)
         instance.sku_id = sku_id
     if instance.sku_id:

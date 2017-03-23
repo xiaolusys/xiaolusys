@@ -767,6 +767,10 @@ OUTWARE_ROUTES = {
         'queue': 'outware',
         'routing_key': 'outware.task_outware_union_supplier_and_sku',
     },
+    'outware.tasks.async.task_sync_sku_stocks': {
+        'queue': 'outware',
+        'routing_key': 'outware.task_sync_sku_stocks',
+    },
 }
 
 CELERY_ROUTES = {

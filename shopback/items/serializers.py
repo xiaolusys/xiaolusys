@@ -51,7 +51,7 @@ class ProductEditSerializer(serializers.ModelSerializer):
     pic_path = serializers.CharField()
     model_id = serializers.CharField()
     ref_link = serializers.CharField(allow_blank=True)
-    memo = serializers.CharField(allow_blank=True)
+    memo = serializers.CharField(allow_blank=True, required=False)
 
     class Meta:
         model = Product

@@ -195,7 +195,7 @@ class PackageOrder(models.Model):
         for sku_id in ori_sku_dict:
             now_num = ori_sku_dict[sku_id] - sku_dict.get(sku_id, 0)
             if now_num < 0:
-                raise Exception(u'%s此sku%s数目%s超出包裹数%s'% (self.id, self.sku_id, new_dict['num'], ori_sku_dict['num']))
+                raise Exception(u'%s此sku%s数目%s超出包裹数%s'% (self.id, sku_id, new_dict['num'], ori_sku_dict['num']))
             new_dict[sku_id] = now_num
         if not new_dict or new_dict == ori_sku_dict:
             return None
@@ -282,7 +282,6 @@ class PackageOrder(models.Model):
             self.weighter = weighter
         self.status = pcfg.WAIT_BUYER_CONFIRM_GOODS
         self.save()
-        kd100_subscription(logistics_company.kd100_express_key,out_sid)
         # 为了承接过去的package_sku_item的数据, assign_status__in还要考虑 PackageSkuItem.ASSIGNED的情况
         package_sku_items = PackageSkuItem.objects.filter(package_order_id=self.id,
                                                           assign_status__in=[PackageSkuItem.ASSIGNED,
@@ -298,6 +297,7 @@ class PackageOrder(models.Model):
             psku.update_quantity(sku_item.num, dec_update=True)
             psku.update_wait_post_num(sku_item.num, dec_update=True)
         self.refresh_stat()
+        kd100_subscription(logistics_company.kd100_express_key, out_sid)
 
     def is_ready_completion(self):
         if self.sku_num == self.order_sku_num:
@@ -322,6 +322,9 @@ class PackageOrder(models.Model):
     def can_merge(self):
         '''
             是否能向包裹中加入sku订单
+            状态不对不能合单
+            12345仓可以合单，第三方仓同个供应商可以合单
+            已经推送的不能合单，不同供应商不能合单
         '''
         return self.sys_status not in [PackageOrder.WAIT_CUSTOMER_RECEIVE, PackageOrder.FINISHED_STATUS,
                                        PackageOrder.DELETE]

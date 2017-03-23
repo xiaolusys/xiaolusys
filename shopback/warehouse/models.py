@@ -63,7 +63,7 @@ class StockAdjust(AdminModel):
     num = models.IntegerField(default=0, verbose_name=u'调整数')
     inferior = models.BooleanField(default=False, verbose_name=u'次品')
     status = models.IntegerField(choices=((0, u'初始'), (1, u'已处理'), (-1, u'已作废')), default=0, blank=True)
-    note = models.CharField(max_length=1000, verbose_name=u'备注', default='', blank=True)
+    note = models.CharField(max_length=3000, verbose_name=u'备注', default='', blank=True)
 
     class Meta:
         db_table = 'shop_ware_stock_adjust'
@@ -72,13 +72,14 @@ class StockAdjust(AdminModel):
         verbose_name_plural = u'库存调整列表'
 
     @staticmethod
-    def create(creator, sku_id, num, ware_by=constants.WARE_NONE, inferior=False):
+    def create(creator, sku_id, num, ware_by=constants.WARE_NONE, inferior=False, note=''):
         StockAdjust(
             creator=creator,
             sku_id=sku_id,
             num=num,
             ware_by=ware_by,
-            inferior=inferior
+            inferior=inferior,
+            note=note
         ).save()
 
 
