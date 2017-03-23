@@ -27,6 +27,9 @@ def setup_djagno_environ():
     elif TARGET in ('prometheus',):
         os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shopmanager.prometheus")
 
+    elif TARGET in ('k8s',):
+        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shopmanager.k8s")
+
     else:
         os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shopmanager.local_settings")
 
