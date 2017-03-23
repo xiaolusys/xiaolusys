@@ -1225,6 +1225,8 @@ def task_schedule_check_trades_and_budget():
 
         if log.referal_id:
             st = SaleTrade.objects.filter(id=int(log.referal_id)).first()
+        else:
+            st = None
         if st and st.status not in [SaleTrade.WAIT_SELLER_SEND_GOODS,
                                     SaleTrade.WAIT_BUYER_CONFIRM_GOODS,
                                     SaleTrade.TRADE_BUYER_SIGNED,
