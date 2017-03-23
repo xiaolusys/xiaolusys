@@ -4,6 +4,8 @@ from rest_framework import authentication, permissions
 from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 
+from django.db import IntegrityError
+
 from common.auth import WeAppAuthentication, perm_required
 from flashsale.pay.models.user import Customer
 from flashsale.xiaolumm.models import XiaoluCoinLog, XiaoluCoin
@@ -75,6 +77,8 @@ class XiaoluCoinViewSet(viewsets.GenericViewSet):
         coin = XiaoluCoin.get_or_create(mama_id)
 
         amount = int(amount)
-
-        coin.change(amount, subject, referal_id=referal_id)
+        try:
+            coin.change(amount, subject, referal_id=referal_id)
+        except IntegrityError, exc:
+            return Response({'code': 4, 'msg': '已经有相同的赠送记录，每天只能赠送一次'})
         return Response({'code': 0, 'msg': '修改成功'})
