@@ -231,16 +231,22 @@ class NinePicViewSet(viewsets.GenericViewSet):
             start_time = datetime.datetime(today.year, today.month, today.day, q_hour)
             end_time = start_time + datetime.timedelta(hours=1)
 
-            queryset = NinePicAdver.objects.filter(start_time__gte=start_time, start_time__lt=end_time)
+            queryset = ActivityEntry.objects.filter(start_time__gte=start_time, start_time__lt=end_time,
+                                                    act_type = ActivityEntry.ACT_FOCUS)
         else:
-            queryset = NinePicAdver.objects.filter(start_time__gte=today, start_time__lt=tomorrow)
+            queryset = ActivityEntry.objects.filter(start_time__lt=today, end_time__gt=today,
+                                                    act_type = ActivityEntry.ACT_FOCUS)
 
         items = []
         for item in queryset:
-            for model_id in re.split(u',|，', item.detail_modelids):
+            products = item.activity_products.all()
+            activity_id = item.id
+            for product in products:
+                model_id = product.model_id
                 if not model_id or item in items:
                     continue
-                item.model_id = model_id.strip()
+                item.model_id = model_id
+                item.activity_id = activity_id
                 items.append(item)
 
         virtual_model_products = ModelProduct.objects.get_virtual_modelproducts()
@@ -262,7 +268,8 @@ class NinePicViewSet(viewsets.GenericViewSet):
                     },
                     'start_time': item.start_time,
                     'hour': item.start_time.hour,
-                    'model_id': model_id
+                    'model_id': model_id,
+                    'activity_id': item.activity_id
                 }
                 if not show_profit:
                     data_item['profit'] = {'min': 0, 'max': 0}
