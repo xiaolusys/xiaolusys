@@ -164,6 +164,22 @@ class LogisticsCompany(models.Model):
 
         return company
 
+    @staticmethod
+    def get_by_fengchao_code(carrier_code):
+        return {
+            'OTHER': 'OTHER',
+            'EMS': 'EMS',
+            'ZTO': 'ZTO',
+            'SF': 'SF',
+            'STO': 'STO',
+            'CBWL': 'CBWL',
+            'ZKWL': 'ZKWL',
+            'TTK': 'TTKDEX',
+            'POSTB': 'POSTB',
+            'YUNDA': 'YUNDA_QR',
+            'YTO': 'YTO',
+        }.get(carrier_code)
+
     @classmethod
     def get_recommend_express(cls, state, city, district):
 

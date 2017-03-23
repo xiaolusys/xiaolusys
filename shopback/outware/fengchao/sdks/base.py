@@ -14,6 +14,10 @@ from .exceptions import FengchaoApiException
 import logging
 logger = logging.getLogger(__name__)
 
+FENGCHAO_SLYC_VENDOR_CODE  = 'slyc'
+FENGCHAO_SLYC_CHANNEL_CODE = 'shiliyangchang' # 十里洋场的订单channel
+FENGCHAO_DEFAULT_CHANNEL_CODE = 'xiaolumeimei'
+
 API_GETWAY = 'http://fctest02.fcgylapp.cn:30003/api/'
 FENGCHAO_APPID = '0d14d2b6-042f-48d1-a0f2-fc5592883ec6'
 FENGCHAO_SECRET = 'b4ca5a2a-4b76-456b-b01f-4443fddad28a'
@@ -113,3 +117,32 @@ def get_skustock_by_qureyparams(sku_codes, vendor_code=None):
         return []
 
     return resp['inventory']
+
+
+def get_channelid_by_vendor_codes(vendor_codes):
+    # vendor_codes: 根据vendor_code　返回对应的channel字典
+    channel_maps = {}
+    for vendor_code in vendor_codes:
+        if vendor_code.lower() == FENGCHAO_SLYC_VENDOR_CODE:
+            channel_maps[vendor_code] = FENGCHAO_SLYC_CHANNEL_CODE
+        else:
+            channel_maps[vendor_code] = FENGCHAO_DEFAULT_CHANNEL_CODE
+    return channel_maps
+
+
+def get_carrier_code_by_logistics_company_code(logistic_company_code):
+    """ 系统快递编码对应蜂巢快递编码,返回空字符串表示不支持该快递 """
+    maps = {
+        'OTHER': 'OTHER',
+        'EMS': 'EMS',
+        'ZTO': 'ZTO',
+        'SF': 'SF',
+        'STO': 'STO',
+        'CBWL': 'CBWL',
+        'ZKWL': 'ZKWL',
+        'TTKDEX': 'TTK',
+        'POSTB': 'POSTB',
+        'YUNDA_QR': 'YUNDA',
+        'YTO': 'YTO',
+    }
+    return maps.get(logistic_company_code,'')
