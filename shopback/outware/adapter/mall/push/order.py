@@ -21,7 +21,6 @@ def push_outware_order_by_package(package):
     address = package.user_address
     sku_codes = []
     order_items = []
-    print 'package:', package, dir(package)
     for psi in package.package_sku_items.all():
         order_items.append({
             'sku_order_code': psi.oid,

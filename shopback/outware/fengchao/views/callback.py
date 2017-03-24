@@ -221,9 +221,9 @@ class FengchaoCallbackViewSet(viewsets.GenericViewSet):
             ow_package = OutwarePackage.create_by_push_info(order_code, order_type, dict_params)
         except Exception, exc:
             logging.error(str(exc), exc_info=True)
-            return Response({'code': 0, 'info': str(exc)})
+            return Response({'code': 3, 'info': str(exc)})
 
-        return Response({'code': 1, 'info': ''})
+        return Response({'code': 0, 'info': ''})
 
 
 
