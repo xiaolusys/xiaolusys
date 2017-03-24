@@ -238,15 +238,20 @@ class NinePicViewSet(viewsets.GenericViewSet):
                                                     act_type = ActivityEntry.ACT_FOCUS)
 
         items = []
-        for item in queryset:
-            products = item.activity_products.all()
-            activity_id = item.id
+        for activity in queryset:
+            products = activity.activity_products.all()
+            activity_id = activity.id
             for product in products:
                 model_id = product.model_id
-                if not model_id or item in items:
+                if not model_id:
                     continue
-                item.model_id = model_id
-                item.activity_id = activity_id
+                item = {
+                    'model_id': model_id,
+                    'activity_id': activity_id,
+                    'start_time': activity.start_time
+                }
+                if item in items:
+                    continue
                 items.append(item)
 
         virtual_model_products = ModelProduct.objects.get_virtual_modelproducts()
@@ -254,7 +259,7 @@ class NinePicViewSet(viewsets.GenericViewSet):
         data = []
         for item in items:
             try:
-                model_id = item.model_id
+                model_id = item['model_id']
                 mp = ModelProduct.objects.filter(id=model_id).first()
                 profit = mp.get_model_product_profit(virtual_model_products=virtual_model_products)
 
@@ -266,10 +271,10 @@ class NinePicViewSet(viewsets.GenericViewSet):
                         'min': profit.get('min', 0),
                         'max': profit.get('max', 0)
                     },
-                    'start_time': item.start_time,
-                    'hour': item.start_time.hour,
+                    'start_time': item['start_time'],
+                    'hour': item['start_time'].hour,
                     'model_id': model_id,
-                    'activity_id': item.activity_id
+                    'activity_id': item['activity_id']
                 }
                 if not show_profit:
                     data_item['profit'] = {'min': 0, 'max': 0}
