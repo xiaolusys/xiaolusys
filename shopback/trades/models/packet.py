@@ -918,6 +918,8 @@ class PackageSkuItem(BaseModel):
         ### 获得时间段内已发货,没签收状态的packageskuitem
         sent_packageskuitem = PackageSkuItem.objects.filter(weight_time__gte=start_time, weight_time__lte=end_time,
                                                             status='sent', type=0)
+        booked_packageskuitem = PackageSkuItem.objects.filter(booked_time__gte=start_time, booked_time__lte=end_time,
+                                                            status='sent', type=0)
         ###判断已发货的packageskuitem,用户是否已经收到货
         delay_packageskuitem = list()
         for i in sent_packageskuitem:
@@ -927,6 +929,16 @@ class PackageSkuItem(BaseModel):
             elif (trade_wuliu.content.find("\u5df2\u7b7e\u6536") == -1 or trade_wuliu.content.find(
                     "\u59a5\u6295") == -1):
                 delay_packageskuitem.append(i)
+
+        for i in booked_packageskuitem:
+            trade_wuliu = TradeWuliu.objects.filter(out_sid=i.out_sid).order_by("-id").first()
+            if not trade_wuliu:
+                delay_packageskuitem.append(i)
+            elif (trade_wuliu.content.find("\u5df2\u7b7e\u6536") == -1 or trade_wuliu.content.find(
+                    "\u59a5\u6295") == -1):
+                delay_packageskuitem.append(i)
+
+
         return delay_packageskuitem
 
     @staticmethod
