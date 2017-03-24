@@ -3,7 +3,7 @@ import json
 import datetime
 
 from django.db.models import Count
-from django.test import TransactionTestCase
+from django.test import TransactionTestCase, tag
 from django.core.management import call_command
 
 from flashsale.xiaolumm.models import (
@@ -40,6 +40,7 @@ class MamaWeeklyAwardTestCase(TransactionTestCase):
         self.referal_from_mama_id = 1
         self.year_week = datetime.datetime.now().strftime('%Y-%W')
 
+    @tag('C')
     def testUpdateAllMamaMissionState(self):
         task_update_all_mama_mission_state()
 
@@ -57,7 +58,7 @@ class MamaWeeklyAwardTestCase(TransactionTestCase):
         self.assertIsNone(missions_agg.get(MamaMission.CAT_GROUP_MAMA))
         self.assertIsNone(missions_agg.get(MamaMission.CAT_SALE_GROUP))
 
-
+    @tag('C')
     def testFinishMamaMissionReferalAward(self):
         """ 测试妈妈邀请任务及　团队妈妈邀请 """
         # test trial mama mission
@@ -106,6 +107,7 @@ class MamaWeeklyAwardTestCase(TransactionTestCase):
         # TODO@meron　团队妈妈测试
         # self.assertGreaterEqual(mama_record.mission.award_amount, mama_award.carry_num) # >=
 
+    @tag('C')
     def testFinishMamaMissionSaleAward(self):
         """ 测试妈妈销售激励　团队妈妈销售激励 """
         XiaoluMama.objects.update(charge_time=datetime.datetime.now() - datetime.timedelta(days=7),

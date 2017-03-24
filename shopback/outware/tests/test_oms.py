@@ -2,7 +2,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import datetime, time
-from django.test import TestCase
+from django.test import TestCase, tag
 
 from flashsale.pay.models import SaleTrade, SaleOrder, SaleRefund
 from ..adapter.mall.push import order
@@ -23,8 +23,8 @@ class OMSTestCase(TestCase):
     def setUp(self):
         pass
 
-
-    def createAndCancelWareOrder(self):
+    @tag('C')
+    def testCreateAndCancelWareOrder(self):
         # user the following test
         sale_trade = SaleTrade.objects.first()
         sale_trade.tid = SaleTrade.gen_unikey()
@@ -34,6 +34,7 @@ class OMSTestCase(TestCase):
         resp = oms.cancel_order(sale_trade.tid)
         self.assertTrue(resp['success'])
 
+    @tag('B')
     def testCreateAndCancelWarePackage(self):
         package_order = PackageOrder.objects.first()
         package_order.pid = '%s'%(time.time())
@@ -54,6 +55,7 @@ class SlycTestCase(TestCase):
     def setUp(self):
         pass
 
+    @tag('B')
     def testCreateAndCancelWareOrder(self):
         sale_trade = SaleTrade.objects.first()
         sale_trade.tid = SaleTrade.gen_unikey()

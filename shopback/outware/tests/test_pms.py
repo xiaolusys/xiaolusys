@@ -2,7 +2,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import datetime, time
-from django.test import TestCase
+from django.test import TestCase, tag
 
 from supplychain.supplier.models import SaleSupplier, SaleProduct
 from shopback.items.models import Product, ProductSku
@@ -24,6 +24,7 @@ class PMSTestCase(TestCase):
     def setUp(self):
         pass
 
+
     def setForSupplierAndSku(self):
         sale_supplier = SaleSupplier.objects.first()
         sale_supplier.vendor_code = 'lxh%s' % (int(time.time()))
@@ -36,12 +37,14 @@ class PMSTestCase(TestCase):
             sku.supplier_skucode = '%s' % int(time.time() * 1000)
             sku.save()
 
+    @tag('B')
     def testCreateSupplier(self):
         self.setForSupplierAndSku()
         sale_supplier = SaleSupplier.objects.first()
         resp = supplier.push_ware_supplier_by_mall_supplier(sale_supplier)
         self.assertTrue(resp['success'])
 
+    @tag('B')
     def createProductsku(self):
         # 该接口暂不做测试，由于蜂巢方面商品资料信息录入与响应属于异步操作
         self.setForSupplierAndSku()
@@ -55,6 +58,7 @@ class PMSTestCase(TestCase):
         # resp = product.push_ware_sku_by_saleproduct(sale_product)
         # self.assertGreater(len(resp), 0)
 
+    @tag('B')
     def testCreateAndCancelPurchaseInbound(self):
         forestib = ForecastInbound.objects.first()
         resp = inbound.push_outware_inbound_by_forecast_order(forestib)

@@ -166,7 +166,7 @@ class LogisticsCompany(models.Model):
 
     @staticmethod
     def get_by_fengchao_code(carrier_code):
-        return {
+        logistic_code = {
             'OTHER': 'OTHER',
             'EMS': 'EMS',
             'ZTO': 'ZTO',
@@ -179,6 +179,8 @@ class LogisticsCompany(models.Model):
             'YUNDA': 'YUNDA_QR',
             'YTO': 'YTO',
         }.get(carrier_code)
+        return LogisticsCompany.objects.filter(code=logistic_code).first()
+
 
     @classmethod
     def get_recommend_express(cls, state, city, district):
