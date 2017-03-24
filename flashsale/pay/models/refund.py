@@ -504,7 +504,10 @@ class SaleRefund(PayBaseModel):
                     return_by = sproduct.get_supplier().return_ware_by
                     if return_by in [WARE_SH, WARE_GZ, WARE_COMPANY]:
                         ware_by = return_by
-                return WareHouse.objects.get(id=ware_by).address
+                address = WareHouse.objects.get(id=ware_by).address
+                if not address:
+                    address = WareHouse.objects.get(id=WARE_SH).address
+                return address
         except WareHouse.DoesNotExist:
             logger.warn('order product ware_by not found:saleorder=%s' % sorder)
         return u'退货地址请咨询小鹿美美客服哦'
