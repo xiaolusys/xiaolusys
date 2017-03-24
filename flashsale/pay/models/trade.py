@@ -1508,7 +1508,7 @@ class SaleOrder(PayBaseModel):
     @cached_property
     def package_skus(self):
         from shopback.trades.models import PackageSkuItem
-        return list(PackageSkuItem.objects.filter(sale_order_id=self.id))
+        return PackageSkuItem.objects.filter(sale_order_id=self.id)
 
     @property
     def product_sku(self):
