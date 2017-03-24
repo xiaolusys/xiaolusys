@@ -28,6 +28,7 @@ class CashOutSerializer(serializers.ModelSerializer):
         fields = ('xlmm', 'value', 'value_money', 'status', 'created')
 
 
+
 class CarryLogSerializer(serializers.ModelSerializer):
     carry_date = serializers.DateTimeField(format="%y-%m-%d")
 
