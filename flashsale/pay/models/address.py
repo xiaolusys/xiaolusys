@@ -112,6 +112,7 @@ class UserAddress(BaseModel):
     TYPE_CHOICES = ((CUS,u'用户'),
                    (SUPPLIER,u'供应商'))
 
+    PERSONALINFO_LEVEL_ZERO = 0  # 无需填写地址信息
     PERSONALINFO_LEVEL_ONE = 1
     PERSONALINFO_LEVEL_TWO = 2
     PERSONALINFO_LEVEL_THREE = 3

@@ -425,8 +425,11 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             except Exception, exc:
                 raise exceptions.APIException(exc.message)
 
-    def calc_personalinfo_level(self, source_type):
+    def calc_personalinfo_level(self, source_type, product_type):
         from supplychain.supplier.models import SaleProduct
+        if product_type == ModelProduct.VIRTUAL_TYPE:
+            return UserAddress.PERSONALINFO_LEVEL_ZERO
+
         if source_type == SaleProduct.SOURCE_OUTSIDE:
             return UserAddress.PERSONALINFO_LEVEL_THREE
         elif source_type == SaleProduct.SOURCE_BONDED:
@@ -445,7 +448,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         if not cart_ids or len(cart_ids) != queryset.count():
             raise exceptions.APIException(u'购物车已失效请重新加入')
 
-        max_personalinfo_level = UserAddress.PERSONALINFO_LEVEL_ONE
+        max_personalinfo_level = UserAddress.PERSONALINFO_LEVEL_ZERO
         item_ids = []
         total_fee = 0
         discount_fee = 0
@@ -460,9 +463,10 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             total_fee += cart.price * cart.num
             discount_fee += cart.calc_discount_fee(xlmm=xlmm)
             item_ids.append(str(cart.item_id))
+            model_product = cart.model_product
             max_personalinfo_level = max(
                 max_personalinfo_level,
-                self.calc_personalinfo_level(cart.model_product and cart.model_product.source_type or 0)
+                self.calc_personalinfo_level(model_product.source_type, model_product.product_type)
             )
 
         discount_fee = min(discount_fee, total_fee)
@@ -531,8 +535,9 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             ware_by,
             default_company_code=default_company_code)
 
+        model_product = product.product_model
         max_personalinfo_level = self.calc_personalinfo_level(
-            product.product_model and product.product_model.source_type or 0)
+            model_product.source_type , model_product.product_type)
         product_sku_dict = serializers.ProductSkuSerializer(product_sku).data
         product_sku_dict['product'] = serializers.ProductSerializer(
             product,
