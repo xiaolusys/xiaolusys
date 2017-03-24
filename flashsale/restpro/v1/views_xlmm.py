@@ -510,6 +510,8 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             fortune = MamaFortune.get_by_mamaid(mama.id)
             # 只有indirect才是下属精英，direct表示独立成团了，不属于本团队了；其它字段的表明根本还未加入精英妈妈
             if mama.referal_from == XiaoluMama.INDIRECT:
+                from flashsale.xiaolumm.models import MamaDailyAppVisit
+                app_visit = MamaDailyAppVisit.objects.filter(mama_id=mama.id).order_by('-created')
                 item = {
                     'mama_id': mama.id,
                     'thumbnail': mama.thumbnail,
@@ -520,6 +522,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
                     'total': fortune.cash_total,
                     'total_display': '%.2f' % fortune.cash_total,
                     'elite_score': mama.elite_score,
+                    'latest_visit': (app_visit.count() > 0) and app_visit[0].date_field or ''
                 }
                 res.append(item)
         return Response(res)
