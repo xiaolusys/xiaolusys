@@ -9,6 +9,11 @@ from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 from supplychain.supplier.constants import STOCKING_MODE_CHOICES
 
 
+def gen_vendor_code(start=None):
+    if start is None:
+        start = SaleSupplier.objects.count() + 1
+    return 'GYS%06d' % start
+
 class SaleSupplier(models.Model):
     CHARGED = 'charged'
     UNCHARGE = 'uncharge'
@@ -75,8 +80,8 @@ class SaleSupplier(models.Model):
                      (WHOLESALER, u'经销批发'),
                      (BRAND_OWNER, u'品牌'),
                      (CLOTHING_FACTORY, u'源头大厂'))
-    supplier_name = models.CharField(max_length=64, unique=True, db_index=True, blank=False, verbose_name=u'供应商名')
-    vendor_code  = models.CharField(max_length=32, db_index=True, blank=True, default='',
+    supplier_name = models.CharField(max_length=64, unique=True, blank=False, verbose_name=u'供应商名')
+    vendor_code  = models.CharField(max_length=32, unique=True, blank=True, default=gen_vendor_code,
                                      verbose_name=u'供应商编码', help_text='后面应改为unique')
 
     supplier_code = models.CharField(max_length=64, blank=True, verbose_name=u'品牌缩写')

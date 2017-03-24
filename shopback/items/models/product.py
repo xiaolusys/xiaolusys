@@ -1646,42 +1646,39 @@ post_save.connect(invalid_apiproductsku_cache, sender=ProductSku, dispatch_uid='
 
 def calculate_product_stock_num(sender, instance, *args, **kwargs):
     """修改SKU库存后，更新库存商品的总库存 """
-    product = instance.product
-    if not product:
-        return
-
-    product_skus = product.pskus
-    if product_skus.exists():
-        product_dict = product_skus.aggregate(total_collect_num=Sum('quantity'),
-                                              total_warn_num=Sum('warn_num'),
-                                              total_remain_num=Sum('remain_num'),
-                                              total_post_num=Sum('wait_post_num'),
-                                              total_reduce_num=Sum('reduce_num'),
-                                              total_lock_num=Sum('lock_num'),
-                                              total_inferior_num=Sum('sku_inferior_num'),
-                                              avg_cost=Avg('cost'),
-                                              avg_purchase_price=Avg('std_purchase_price'),
-                                              avg_sale_price=Avg('std_sale_price'),
-                                              avg_agent_price=Avg('agent_price'),
-                                              avg_staff_price=Avg('staff_price'))
-
-        product.collect_num = product_dict.get('total_collect_num') or 0
-        product.warn_num = product_dict.get('total_warn_num') or 0
-        product.remain_num = product_dict.get('total_remain_num') or 0
-        product.wait_post_num = product_dict.get('total_post_num') or 0
-        product.reduce_num = product_dict.get('reduce_num') or 0
-        product.lock_num = product_dict.get('total_lock_num') or 0
-        product.inferior_num = product_dict.get('total_inferior_num') or 0
-
-        product.cost = "{0:.2f}".format(product_dict.get('avg_cost') or 0)
-        product.std_purchase_price = "{0:.2f}".format(product_dict.get('avg_purchase_price') or 0)
-        product.std_sale_price = "{0:.2f}".format(product_dict.get('avg_sale_price') or 0)
-        product.agent_price = "{0:.2f}".format(product_dict.get('avg_agent_price') or 0)
-        product.staff_price = "{0:.2f}".format(product_dict.get('avg_staff_price') or 0)
-
-        update_model_fields(product, ["collect_num", "warn_num", "remain_num", "wait_post_num",
-                                      "lock_num", "inferior_num", "reduce_num", "std_purchase_price",
-                                      "cost", "std_sale_price", "agent_price", "staff_price"])
+    pass
+    # product_skus = product.pskus
+    # if product_skus.exists():
+    #     product_dict = product_skus.aggregate(total_collect_num=Sum('quantity'),
+    #                                           total_warn_num=Sum('warn_num'),
+    #                                           total_remain_num=Sum('remain_num'),
+    #                                           total_post_num=Sum('wait_post_num'),
+    #                                           total_reduce_num=Sum('reduce_num'),
+    #                                           total_lock_num=Sum('lock_num'),
+    #                                           total_inferior_num=Sum('sku_inferior_num'),
+    #                                           avg_cost=Avg('cost'),
+    #                                           avg_purchase_price=Avg('std_purchase_price'),
+    #                                           avg_sale_price=Avg('std_sale_price'),
+    #                                           avg_agent_price=Avg('agent_price'),
+    #                                           avg_staff_price=Avg('staff_price'))
+    #
+    #     product.collect_num = product_dict.get('total_collect_num') or 0
+    #     product.warn_num = product_dict.get('total_warn_num') or 0
+    #     product.remain_num = product_dict.get('total_remain_num') or 0
+    #     product.wait_post_num = product_dict.get('total_post_num') or 0
+    #     product.reduce_num = product_dict.get('reduce_num') or 0
+    #     product.lock_num = product_dict.get('total_lock_num') or 0
+    #     product.inferior_num = product_dict.get('total_inferior_num') or 0
+    #
+    #     product.cost = "{0:.2f}".format(product_dict.get('avg_cost') or 0)
+    #     product.std_purchase_price = "{0:.2f}".format(product_dict.get('avg_purchase_price') or 0)
+    #     product.std_sale_price = "{0:.2f}".format(product_dict.get('avg_sale_price') or 0)
+    #     product.agent_price = "{0:.2f}".format(product_dict.get('avg_agent_price') or 0)
+    #     product.staff_price = "{0:.2f}".format(product_dict.get('avg_staff_price') or 0)
+    #
+    #     update_model_fields(product, ["collect_num", "warn_num", "remain_num", "wait_post_num",
+    #                                   "lock_num", "inferior_num", "reduce_num", "std_purchase_price",
+    #                                   "cost", "std_sale_price", "agent_price", "staff_price"])
         # product.save()
 
 
