@@ -192,7 +192,8 @@ class ModelProduct(BaseTagModel):
     title_imgs = JSONCharMyField(max_length=5000, verbose_name=u'主图', help_text=u"多色则多图，单色则单图")
     salecategory = models.ForeignKey('supplier.SaleCategory', null=True, default=None,
                                      related_name='modelproduct_set', verbose_name=u'分类')
-    brand = models.ForeignKey('pay.ProductBrand', null=True, default=None, on_delete=models.SET_NULL, verbose_name=u'品牌')
+    brand = models.ForeignKey('pay.ProductBrand', null=True, blank=True, default=None,
+                              on_delete=models.SET_NULL, verbose_name=u'品牌')
 
     lowest_agent_price = models.FloatField(default=0.0, db_index=True, verbose_name=u'最低售价')
     lowest_std_sale_price = models.FloatField(default=0.0, verbose_name=u'最低原价')
