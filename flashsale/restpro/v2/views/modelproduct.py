@@ -297,6 +297,10 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = queryset.filter(q_filter)
         ids = [i['id'] for i in queryset.values('id')]
         queryset = ModelProductCtl.multiple(ids=ids)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = serializers_v2.ElectronicProductSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
         object_list = serializers_v2.ElectronicProductSerializer(queryset, context={}, many=True).data
         response = Response(object_list)
         return response
