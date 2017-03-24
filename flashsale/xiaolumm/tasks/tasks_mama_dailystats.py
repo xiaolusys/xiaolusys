@@ -162,6 +162,7 @@ def task_check_xlmm_exchg_order():
     exchg_goods_payment = 0
     exchg_budget_sum = 0
     exchg_trancoupon_num = 0
+    auto_exchg_num = 0
     results = []
     if exchg_orders:
         for order_id in exchg_orders:
@@ -202,6 +203,8 @@ def task_check_xlmm_exchg_order():
                                 print 'error1', sale_order.oid
                         else:
                             print 'error2', sale_order.oid
+                    if sale_order.extras['exchg_type'] == 1:
+                        auto_exchg_num += 1
 
     from flashsale.pay.models.user import BudgetLog
     budget_log1 = BudgetLog.objects.filter(budget_type=BudgetLog.BUDGET_IN,
@@ -228,13 +231,13 @@ def task_check_xlmm_exchg_order():
                  'message3': u'succ_coupon_record_num=%s == succ budget_num=%s' % (succ_coupon_record_num, budget_num),
                  'message4': u'exchged_goods_payment(include return exchg)=%s == exchg_budget_sum=%s , succ_exchg_goods_payment=%s == exchg_budget_sum=%s' % (exchg_goods_payment, exchg_budget_sum1, succ_exchg_goods_payment, exchg_budget_sum)
                 })
-    if budget_num != trans_num or exchg_goods_num != trans_num:
+    if budget_num != trans_num or succ_coupon_record_num != trans_num + auto_exchg_num:
         from common.dingding import DingDingAPI
         tousers = [
             '02401336675559',  # 伍磊
         ]
-        msg = '定时检查boutique exchange数据:\n时间: %s \nbudget_num=%s == trans_num=%s exchg_goods_num=%s == exchg_trancoupon_num=%s\n' % \
-              (str(datetime.datetime.now()), budget_num, trans_num, exchg_goods_num, exchg_trancoupon_num)
+        msg = '定时检查boutique exchange数据:\n时间: %s \nbudget_num=%s == trans_num=%s succ_coupon_record_num=%s == exchg_trancoupon_num=%s + autoexchg %s\n' % \
+              (str(datetime.datetime.now()), budget_num, trans_num, succ_coupon_record_num, exchg_trancoupon_num, auto_exchg_num)
         dd = DingDingAPI()
         for touser in tousers:
             dd.sendMsg(msg, touser)
@@ -353,7 +356,7 @@ def task_calc_all_xlmm_elite_score():
 def task_auto_exchg_xlmm_order():
     import datetime
     tt = datetime.datetime.now()
-    tf = tt - datetime.timedelta(days=5)
+    tf = tt - datetime.timedelta(days=3)
     from flashsale.pay.models.trade import SaleOrder, SaleTrade, Customer
     from flashsale.xiaolumm.models import OrderCarry, XiaoluMama
     from flashsale.pay.models import ModelProduct
@@ -361,6 +364,7 @@ def task_auto_exchg_xlmm_order():
                                              status__in=[OrderCarry.CONFIRM],
                                              created__range=(datetime.date(2017, 2, 1), tf))
     unexchg_coupon_num = 0
+    autoexchg_coupon_num = 0
     if exchg_orders.exists():
         for entry in exchg_orders.iterator():
             sale_order = SaleOrder.objects.filter(oid=entry.order_id).first()
@@ -384,6 +388,7 @@ def task_auto_exchg_xlmm_order():
                             and level1_mama.get_level_lowest_elite() >= level2_mama.get_level_lowest_elite():
                         from flashsale.coupon.apis.v1.transfer import create_present_elite_score, get_elite_score_by_templateid
                         from flashsale.coupon.apis.v1.coupontemplate import get_coupon_template_by_id
+                        autoexchg_coupon_num += 1
                         customer = level2_mama.get_customer()
                         template = get_coupon_template_by_id(model_product.extras['template_id'])
                         product_id, elite_score, agent_price = get_elite_score_by_templateid(template.id, level2_mama)
@@ -398,14 +403,15 @@ def task_auto_exchg_xlmm_order():
                                        u'auto exchange ordercarry=%s,so=%s,level1 %s >= level2 %s,level2 %s to level3 %s' % (entry.id, sale_order.oid, level1_mama.get_level_lowest_elite(), level2_mama.get_level_lowest_elite(), level2_mama.id, level3_mama.id))
                             # print 'add level3', sale_order.oid, level1_mama.id, level2_mama.id, level3_mama.id
                         else:
-                            sale_order.extras['exchange'] = False
+                            sale_order.extras['exchange'] = True
+                            sale_order.extras['exchg_type'] = 1  #auto exchg type
                             sale_order.save(update_fields=['extras'])
                             from core.options import log_action, CHANGE, ADDITION, get_systemoa_user
                             sys_oa = get_systemoa_user()
                             log_action(sys_oa, sale_order, CHANGE,
                                        u'auto exchange ordercarry=%s,level1 %s >= level2 %s,level2 %s, level3 none or not elite, so %s exchg finish' % (entry.id, level1_mama.get_level_lowest_elite(), level2_mama.get_level_lowest_elite(), level2_mama.id, sale_order.oid))
                             # print 'chg so', sale_order.oid, level1_mama.id, level2_mama.id
-    print unexchg_coupon_num
+        logger.info({'message': u'task_auto_exchg_xlmm_order | mama unexchg_coupon_num=%s autoexchg_coupon_num=%s' % (unexchg_coupon_num, autoexchg_coupon_num),})
 
 
 def check_xlmm_ordercarry(recent_day):
