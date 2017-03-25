@@ -51,14 +51,14 @@ def get_mama_by_customer_id(customer_id):
 
 
 def get_customer_id_by_mama_id(mama_id):
-    xlmm = XiaoluMama.objects.get(id=mama_id)
+    xlmm = XiaoluMama.objects.filter(id=mama_id).first()
     if not xlmm:
         return None
     return xlmm.customer_id
 
 
 def get_customer_by_mama_id(mama_id):
-    xlmm = XiaoluMama.objects.get(id=mama_id)
+    xlmm = XiaoluMama.objects.filter(id=mama_id).first()
     if not xlmm:
         return None
     return xlmm.get_mama_customer()
