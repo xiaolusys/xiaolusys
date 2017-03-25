@@ -6,6 +6,7 @@ import datetime
 import sys
 
 from django.db.models import F
+from django.db import IntegrityError
 from flashsale.xiaolumm import util_description, util_unikey
 from flashsale.xiaolumm.models.models_fortune import ActiveValue, OrderCarry, UniqueVisitor
 
@@ -35,7 +36,10 @@ def task_fans_update_activevalue(mama_id, fans_customer_id, date_field):
     active_value = ActiveValue(mama_id=mama_id, value_num=value_num, value_type=value_type,
                                value_description=description,
                                uni_key=uni_key, date_field=date_field, status=status)
-    active_value.save()
+    try:
+        active_value.save()
+    except IntegrityError:
+        return
 
 
 @app.task()
