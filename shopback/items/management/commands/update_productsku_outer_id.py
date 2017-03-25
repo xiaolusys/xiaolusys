@@ -23,19 +23,20 @@ class Command(BaseCommand):
         # ).values_list('id', flat=True))
         #
         # product_ids = list(Product.objects.filter(model_id__in=model_ids).values_list('id', flat=True))
-
-        product_skus  = ProductSku.objects.all()
+        codes = open('/home/meron/Desktop/dumpdata/2017-03-25/SKU2017-03-25.csv','r').readlines()
+        codes = [s.strip() for s in codes]
+        product_skus  = ProductSku.objects.filter(outer_id__in=codes)
         # sku_product_code_maps = dict(product_skus.values_list('id', 'product__outer_id'))
 
         print 'total productskus:', product_skus.count()
-        cnt = 0
+        cnt = 1
         for sku in product_skus.only('id', 'outer_id', 'barcode').iterator():
 
             product_code = sku.product.outer_id
             origin_skucode = sku.outer_id
-            if not sku.outer_id.startswith(product_code):
-                sku.outer_id = product_code + sku.outer_id
-
+            # if not sku.outer_id.startswith(product_code):
+            #     sku.outer_id = product_code + sku.outer_id
+            sku.outer_id = sku.outer_id.replace(' ','') + str(cnt)
             if not sku.barcode:
                 sku.barcode = sku.outer_id
 

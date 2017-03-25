@@ -1209,7 +1209,7 @@ class ProductSku(models.Model):
 
     class Meta:
         db_table = 'shop_items_productsku'
-        unique_together = ("outer_id", "product")
+        # unique_together = ("outer_id", "product")
         app_label = 'items'
         verbose_name = u'库存商品规格'
         verbose_name_plural = u'库存商品规格列表'
@@ -1226,8 +1226,7 @@ class ProductSku(models.Model):
     )
 
     objects = managers.ProductSkuMananger()
-
-    outer_id = models.CharField(max_length=32, blank=False, verbose_name=u'编码')
+    outer_id = models.CharField(max_length=32, unique=True, blank=False, verbose_name=u'编码')
 
     supplier_skucode = models.CharField(max_length=32, blank=True, db_index=True, verbose_name=u'供应商SKU编码')
     barcode = models.CharField(max_length=64, blank=True, db_index=True, verbose_name='条码')
