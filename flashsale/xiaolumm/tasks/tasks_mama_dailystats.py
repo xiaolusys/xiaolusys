@@ -203,7 +203,7 @@ def task_check_xlmm_exchg_order():
                                 print 'error1', sale_order.oid
                         else:
                             print 'error2', sale_order.oid
-                    if sale_order.extras['exchg_type'] == 1:
+                    if sale_order.extras.has_key('exchg_type') and sale_order.extras['exchg_type'] == 1:
                         auto_exchg_num += 1
 
     from flashsale.pay.models.user import BudgetLog
