@@ -147,12 +147,6 @@ def default_modelproduct_extras_tpl():
                 ]
             }
         ],
-        "consoles": {
-            "is_batch_mgt": False, #启动批次管理
-            "is_expire_mgt": False, #启动保质期管理
-            "is_vendor_mgt": False, #启动多供应商管理(支持同SKU多供应商供货)
-            "shelf_life_days": 0, #保质期(天数)
-        }
     }
 
 
@@ -296,22 +290,6 @@ class ModelProduct(BaseTagModel):
     @property
     def is_boutique_coupon(self):
         return int(self.product_type) == ModelProduct.VIRTUAL_TYPE and self.is_boutique
-
-    @property
-    def is_batch_mgt_on(self):
-        return self.extras.get('consoles', {}).get('is_batch_mgt') or 0
-
-    @property
-    def is_expire_mgt_on(self):
-        return self.extras.get('consoles', {}).get('is_expire_mgt') or 0
-
-    @property
-    def is_vendor_mgt_on(self):
-        return self.extras.get('consoles', {}).get('is_vendor_mgt') or 0
-
-    @property
-    def shelf_life_days(self):
-        return self.extras.get('consoles', {}).get('shelf_life_days') or 0
 
     def get_web_url(self):
         return urlparse.urljoin(settings.M_SITE_URL, Product.MALL_PRODUCT_TEMPLATE_URL.format(self.id))

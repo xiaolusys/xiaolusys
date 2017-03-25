@@ -151,6 +151,22 @@ class SaleProduct(BaseTagModel):
                                                                    status=ModelProduct.NORMAL).first()
         return self._pay_model_product_
 
+    @property
+    def is_batch_mgt_on(self):
+        return self.extras.get('consoles', {}).get('is_batch_mgt') or 0
+
+    @property
+    def is_expire_mgt_on(self):
+        return self.extras.get('consoles', {}).get('is_expire_mgt') or 0
+
+    @property
+    def is_vendor_mgt_on(self):
+        return self.extras.get('consoles', {}).get('is_vendor_mgt') or 0
+
+    @property
+    def shelf_life_days(self):
+        return self.extras.get('consoles', {}).get('shelf_life_days') or 0
+
     def sale_product_figures(self):
         """ 选品排期数据 """
         if not hasattr(self, '_product_figures_'):

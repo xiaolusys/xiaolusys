@@ -4,14 +4,15 @@
   "pk": 1,
   "fields": {
     "created": "2014-12-09T06:25:20",
-    "modified": "2016-12-26T10:10:44",
+    "modified": "2017-03-15T20:46:58",
     "cid": "1",
     "parent_cid": "0",
-    "name": "\u7ae5\u88c5",
-    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/child1013.png",
+    "name": "\u6570\u7801\u5bb6\u7535",
+    "cat_pic": "https://img.xiaolumeimei.com/shumajiadian.jpg",
     "grade": 1,
     "is_parent": true,
-    "sort_order": 80,
+    "sort_order": 5,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -20,15 +21,16 @@
   "pk": 2,
   "fields": {
     "created": "2014-12-09T06:49:09",
-    "modified": "2016-12-26T10:10:51",
+    "modified": "2017-03-11T20:48:09",
     "cid": "2",
     "parent_cid": "0",
-    "name": "\u5973\u88c5",
+    "name": "\u5973\u88c5xxxxx",
     "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/women1013.png",
     "grade": 1,
     "is_parent": true,
-    "sort_order": 100,
-    "status": "normal"
+    "sort_order": 99,
+    "is_view": false,
+    "status": "delete"
   }
 },
 {
@@ -36,14 +38,15 @@
   "pk": 3,
   "fields": {
     "created": "2016-07-22T22:38:38",
-    "modified": "2017-02-10T21:24:54",
+    "modified": "2017-03-15T16:01:12",
     "cid": "3",
     "parent_cid": "0",
     "name": "\u98df\u54c1\u4fdd\u5065",
-    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/meishi1013.png",
+    "cat_pic": "https://img.xiaolumeimei.com/shipinbaojian.jpg",
     "grade": 1,
     "is_parent": true,
-    "sort_order": 0,
+    "sort_order": 10,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -52,15 +55,16 @@
   "pk": 4,
   "fields": {
     "created": "2014-12-29T12:43:44",
-    "modified": "2016-12-26T10:10:05",
+    "modified": "2017-03-11T20:49:04",
     "cid": "4",
     "parent_cid": "0",
-    "name": "\u9970\u54c1",
+    "name": "\u9970\u54c1xxxxx",
     "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/peishi1013.png",
     "grade": 1,
     "is_parent": true,
     "sort_order": 0,
-    "status": "normal"
+    "is_view": false,
+    "status": "delete"
   }
 },
 {
@@ -76,6 +80,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 93,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -92,6 +97,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 94,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -108,6 +114,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 95,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -124,6 +131,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 96,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -140,6 +148,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 79,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -156,6 +165,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 75,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -172,6 +182,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 76,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -188,6 +199,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 78,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -204,6 +216,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 70,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -220,6 +233,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 74,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -236,6 +250,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 97,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -252,6 +267,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 98,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -268,6 +284,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 71,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -284,6 +301,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 99,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -300,6 +318,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 72,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -316,6 +335,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 73,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -324,15 +344,16 @@
   "pk": 81,
   "fields": {
     "created": "2016-08-04T09:34:09",
-    "modified": "2016-12-26T10:10:12",
+    "modified": "2017-03-11T20:48:44",
     "cid": "6",
     "parent_cid": "0",
-    "name": "\u7bb1\u5305",
+    "name": "\u7bb1\u5305xxxxx",
     "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/bag1013.png",
     "grade": 1,
     "is_parent": true,
     "sort_order": 0,
-    "status": "normal"
+    "is_view": false,
+    "status": "delete"
   }
 },
 {
@@ -348,6 +369,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -364,6 +386,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -380,6 +403,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -396,6 +420,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -412,6 +437,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -428,6 +454,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -444,6 +471,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -460,6 +488,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -476,6 +505,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -484,14 +514,15 @@
   "pk": 91,
   "fields": {
     "created": "2016-08-16T14:05:50",
-    "modified": "2017-02-10T21:25:13",
+    "modified": "2017-03-15T16:01:23",
     "cid": "5",
     "parent_cid": "0",
     "name": "\u6bcd\u5a74\u7528\u54c1",
-    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/muying1013.png",
+    "cat_pic": "http://img.xiaolumeimei.com//category/image/muying20170217.jpg",
     "grade": 1,
     "is_parent": true,
-    "sort_order": 0,
+    "sort_order": 8,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -508,6 +539,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -524,6 +556,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -540,6 +573,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -556,6 +590,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -572,6 +607,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 77,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -580,14 +616,15 @@
   "pk": 97,
   "fields": {
     "created": "2016-08-24T14:06:06",
-    "modified": "2017-02-10T21:24:12",
+    "modified": "2017-03-15T16:01:47",
     "cid": "7",
     "parent_cid": "0",
     "name": "\u7f8e\u5986\u6d17\u62a4",
-    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/meizhuang1013.png",
+    "cat_pic": "https://img.xiaolumeimei.com/meizhuangxihu.jpg",
     "grade": 1,
     "is_parent": true,
-    "sort_order": 0,
+    "sort_order": 9,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -596,14 +633,15 @@
   "pk": 98,
   "fields": {
     "created": "2016-08-24T14:07:46",
-    "modified": "2017-02-11T11:00:38",
+    "modified": "2017-03-15T17:19:44",
     "cid": "8",
     "parent_cid": "0",
     "name": "\u5bb6\u5c45\u767e\u8d27",
-    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/jiaju1013.png",
+    "cat_pic": "https://img.xiaolumeimei.com/jiajubaihuo.jpg",
     "grade": 1,
     "is_parent": true,
-    "sort_order": 0,
+    "sort_order": 6,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -620,6 +658,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -636,6 +675,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -652,6 +692,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -668,6 +709,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -684,6 +726,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -700,6 +743,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -716,6 +760,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -732,6 +777,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -748,6 +794,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -764,6 +811,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -780,6 +828,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -796,6 +845,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -812,6 +862,7 @@
     "grade": 2,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "delete"
   }
 },
@@ -828,6 +879,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -844,6 +896,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -860,6 +913,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -876,6 +930,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -892,6 +947,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -908,6 +964,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -924,6 +981,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -940,6 +998,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -956,6 +1015,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -972,6 +1032,7 @@
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -980,15 +1041,16 @@
   "pk": 127,
   "fields": {
     "created": "2016-11-22T15:38:18",
-    "modified": "2016-11-22T15:38:18",
+    "modified": "2017-03-11T20:49:24",
     "cid": "9",
     "parent_cid": "0",
-    "name": "\u978b\u5b50",
+    "name": "\u978b\u5b50xxxxx",
     "cat_pic": "http://img.xiaolumeimei.com/TT1479800267214lALOiKULgs0Ce80Cmw_667_635.png",
     "grade": 1,
     "is_parent": true,
     "sort_order": 0,
-    "status": "normal"
+    "is_view": false,
+    "status": "delete"
   }
 },
 {
@@ -996,14 +1058,15 @@
   "pk": 128,
   "fields": {
     "created": "2016-11-23T10:32:38",
-    "modified": "2017-02-11T11:31:11",
+    "modified": "2017-02-20T15:25:51",
     "cid": "5-145-128",
     "parent_cid": "5-145",
     "name": "\u5973\u978b",
-    "cat_pic": "",
+    "cat_pic": "http://img.xiaolumeimei.com/category/image/nvxie.png",
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -1012,14 +1075,15 @@
   "pk": 129,
   "fields": {
     "created": "2016-11-23T10:33:06",
-    "modified": "2017-02-11T11:31:07",
+    "modified": "2017-02-20T15:25:36",
     "cid": "5-145-129",
     "parent_cid": "5-145",
     "name": "\u7537\u978b",
-    "cat_pic": "",
+    "cat_pic": "http://img.xiaolumeimei.com/category/image/nanxie.png",
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -1028,14 +1092,15 @@
   "pk": 130,
   "fields": {
     "created": "2016-11-23T10:33:42",
-    "modified": "2017-02-11T11:31:01",
+    "modified": "2017-02-20T15:25:21",
     "cid": "5-145-130",
     "parent_cid": "5-145",
     "name": "\u7ae5\u978b",
-    "cat_pic": "",
+    "cat_pic": "http://img.xiaolumeimei.com/category/image/tongxie.png",
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -1044,14 +1109,15 @@
   "pk": 131,
   "fields": {
     "created": "2016-11-23T10:34:18",
-    "modified": "2017-02-11T11:30:57",
+    "modified": "2017-02-20T15:25:07",
     "cid": "5-145-131",
     "parent_cid": "5-145",
     "name": "\u62d6\u978b",
-    "cat_pic": "",
+    "cat_pic": "http://img.xiaolumeimei.com/category/image/tuoxie.png",
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -1060,14 +1126,15 @@
   "pk": 132,
   "fields": {
     "created": "2016-12-08T17:47:05",
-    "modified": "2017-02-11T11:11:46",
-    "cid": "5-143-132",
-    "parent_cid": "5-143",
-    "name": "\u5976\u7c89",
-    "cat_pic": "",
+    "modified": "2017-03-15T20:41:15",
+    "cid": "153-154-132",
+    "parent_cid": "153-154",
+    "name": "\u8fdb\u53e3\u5976\u7c89",
+    "cat_pic": "http://img.xiaolumeimei.com/category/image/naifen.png",
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -1076,14 +1143,15 @@
   "pk": 133,
   "fields": {
     "created": "2017-01-23T18:09:58",
-    "modified": "2017-02-11T10:54:44",
+    "modified": "2017-02-20T15:24:29",
     "cid": "7-134-133",
     "parent_cid": "7-134",
     "name": "\u4e2a\u4eba\u62a4\u7406",
-    "cat_pic": "",
+    "cat_pic": "http://img.xiaolumeimei.com/category/image/huli.png",
     "grade": 3,
     "is_parent": false,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -1092,15 +1160,16 @@
   "pk": 134,
   "fields": {
     "created": "2017-02-11T10:53:06",
-    "modified": "2017-02-11T10:53:06",
+    "modified": "2017-03-15T20:43:22",
     "cid": "7-134",
     "parent_cid": "7",
     "name": "\u62a4\u80a4\u4fdd\u517b",
-    "cat_pic": "",
+    "cat_pic": "http://img.xiaolumeimei.com//category/image/baoyang20170217.png",
     "grade": 2,
     "is_parent": true,
     "sort_order": 0,
-    "status": "normal"
+    "is_view": true,
+    "status": "delete"
   }
 },
 {
@@ -1108,15 +1177,16 @@
   "pk": 135,
   "fields": {
     "created": "2017-02-11T10:58:08",
-    "modified": "2017-02-11T10:58:08",
+    "modified": "2017-03-15T20:43:10",
     "cid": "7-135",
     "parent_cid": "7",
     "name": "\u7f8e\u5986\u9632\u62a4",
-    "cat_pic": "",
+    "cat_pic": "http://img.xiaolumeimei.com//category/image/fanghu20170217.png",
     "grade": 2,
     "is_parent": true,
     "sort_order": 0,
-    "status": "normal"
+    "is_view": true,
+    "status": "delete"
   }
 },
 {
@@ -1124,15 +1194,16 @@
   "pk": 136,
   "fields": {
     "created": "2017-02-11T10:59:39",
-    "modified": "2017-02-11T10:59:39",
+    "modified": "2017-03-15T20:43:00",
     "cid": "7-136",
     "parent_cid": "7",
     "name": "\u4e2a\u4eba\u6d17\u62a4",
-    "cat_pic": "",
+    "cat_pic": "http://img.xiaolumeimei.com//category/image/xihu20170217.png",
     "grade": 2,
     "is_parent": true,
     "sort_order": 0,
-    "status": "normal"
+    "is_view": true,
+    "status": "delete"
   }
 },
 {
@@ -1140,15 +1211,16 @@
   "pk": 137,
   "fields": {
     "created": "2017-02-11T11:01:14",
-    "modified": "2017-02-11T11:01:14",
+    "modified": "2017-03-15T20:44:06",
     "cid": "8-137",
     "parent_cid": "8",
     "name": "\u65e5\u5e38\u6e05\u6d01",
-    "cat_pic": "",
+    "cat_pic": "http://img.xiaolumeimei.com//category/image/qingjie20170217.png",
     "grade": 2,
     "is_parent": true,
     "sort_order": 0,
-    "status": "normal"
+    "is_view": true,
+    "status": "delete"
   }
 },
 {
@@ -1156,15 +1228,16 @@
   "pk": 138,
   "fields": {
     "created": "2017-02-11T11:02:35",
-    "modified": "2017-02-11T11:02:35",
+    "modified": "2017-03-15T20:43:54",
     "cid": "8-138",
     "parent_cid": "8",
     "name": "\u5bb6\u5c45\u5bb6\u7eba",
-    "cat_pic": "",
+    "cat_pic": "http://img.xiaolumeimei.com//category/image/jiafang20170217.png",
     "grade": 2,
     "is_parent": true,
     "sort_order": 0,
-    "status": "normal"
+    "is_view": true,
+    "status": "delete"
   }
 },
 {
@@ -1172,15 +1245,16 @@
   "pk": 139,
   "fields": {
     "created": "2017-02-11T11:04:20",
-    "modified": "2017-02-11T11:04:20",
+    "modified": "2017-03-15T20:43:37",
     "cid": "8-139",
     "parent_cid": "8",
     "name": "\u7efc\u5408\u767e\u8d27",
-    "cat_pic": "",
+    "cat_pic": "http://img.xiaolumeimei.com//category/image/baihuo20170217.png",
     "grade": 2,
     "is_parent": true,
     "sort_order": 0,
-    "status": "normal"
+    "is_view": true,
+    "status": "delete"
   }
 },
 {
@@ -1188,15 +1262,16 @@
   "pk": 140,
   "fields": {
     "created": "2017-02-11T11:06:51",
-    "modified": "2017-02-11T11:06:51",
+    "modified": "2017-03-15T20:42:17",
     "cid": "3-140",
     "parent_cid": "3",
     "name": "\u98df\u54c1\u96f6\u98df",
-    "cat_pic": "",
+    "cat_pic": "http://img.xiaolumeimei.com//category/image/linshi20170217.png",
     "grade": 2,
     "is_parent": true,
     "sort_order": 0,
-    "status": "normal"
+    "is_view": true,
+    "status": "delete"
   }
 },
 {
@@ -1204,15 +1279,16 @@
   "pk": 141,
   "fields": {
     "created": "2017-02-11T11:08:11",
-    "modified": "2017-02-11T11:08:35",
+    "modified": "2017-03-15T20:42:04",
     "cid": "3-141",
     "parent_cid": "3",
     "name": "\u996e\u54c1\u51b2\u5242",
-    "cat_pic": "",
+    "cat_pic": "http://img.xiaolumeimei.com//category/image/yinpin20170217.png",
     "grade": 2,
     "is_parent": true,
     "sort_order": 0,
-    "status": "normal"
+    "is_view": true,
+    "status": "delete"
   }
 },
 {
@@ -1220,15 +1296,16 @@
   "pk": 142,
   "fields": {
     "created": "2017-02-11T11:09:48",
-    "modified": "2017-02-11T11:09:48",
+    "modified": "2017-03-15T20:41:32",
     "cid": "3-142",
     "parent_cid": "3",
     "name": "\u4fdd\u5065\u54c1",
-    "cat_pic": "",
+    "cat_pic": "http://img.xiaolumeimei.com//category/image/baojian20170217.png",
     "grade": 2,
     "is_parent": true,
     "sort_order": 0,
-    "status": "normal"
+    "is_view": true,
+    "status": "delete"
   }
 },
 {
@@ -1236,14 +1313,15 @@
   "pk": 143,
   "fields": {
     "created": "2017-02-11T11:11:33",
-    "modified": "2017-02-11T11:11:33",
+    "modified": "2017-03-15T16:09:56",
     "cid": "5-143",
     "parent_cid": "5",
-    "name": "\u65b0\u751f\u7528\u54c1",
-    "cat_pic": "",
+    "name": "\u6bcd\u5a74\u7528\u54c1",
+    "cat_pic": "https://img.xiaolumeimei.com/2weiyangxihu.jpg",
     "grade": 2,
     "is_parent": true,
     "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 },
@@ -1252,15 +1330,16 @@
   "pk": 144,
   "fields": {
     "created": "2017-02-11T11:12:20",
-    "modified": "2017-02-11T11:12:20",
+    "modified": "2017-03-15T20:42:44",
     "cid": "5-144",
     "parent_cid": "5",
     "name": "\u5b55\u5987\u7528\u54c1",
-    "cat_pic": "",
+    "cat_pic": "http://img.xiaolumeimei.com//category/image/yunfu20170217.png",
     "grade": 2,
     "is_parent": true,
     "sort_order": 0,
-    "status": "normal"
+    "is_view": true,
+    "status": "delete"
   }
 },
 {
@@ -1268,14 +1347,780 @@
   "pk": 145,
   "fields": {
     "created": "2017-02-11T11:13:15",
-    "modified": "2017-02-11T11:13:15",
+    "modified": "2017-03-15T20:42:32",
     "cid": "5-145",
     "parent_cid": "5",
     "name": "\u6bcd\u5a74\u5bb6\u5c45",
-    "cat_pic": "",
+    "cat_pic": "http://img.xiaolumeimei.com//category/image/mather20170217.png",
     "grade": 2,
     "is_parent": true,
     "sort_order": 0,
+    "is_view": true,
+    "status": "delete"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 146,
+  "fields": {
+    "created": "2017-03-08T09:43:34",
+    "modified": "2017-03-11T23:08:02",
+    "cid": "146",
+    "parent_cid": "0",
+    "name": "\u865a\u62df\u5546\u54c1",
+    "cat_pic": "http://img.xiaolumeimei.com/nine_pic1484727592348",
+    "grade": 1,
+    "is_parent": true,
+    "sort_order": 0,
+    "is_view": false,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 147,
+  "fields": {
+    "created": "2017-03-08T09:45:03",
+    "modified": "2017-03-08T10:37:24",
+    "cid": "146-147",
+    "parent_cid": "146",
+    "name": "\u7cbe\u54c1\u5238",
+    "cat_pic": "",
+    "grade": 1,
+    "is_parent": true,
+    "sort_order": 0,
+    "is_view": true,
+    "status": "delete"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 148,
+  "fields": {
+    "created": "2017-03-08T09:45:28",
+    "modified": "2017-03-11T23:26:25",
+    "cid": "146-148",
+    "parent_cid": "146",
+    "name": "\u5c0f\u9e7f\u5e01\u5145\u503c",
+    "cat_pic": "http://img.xiaolumeimei.com/nine_pic1484727592348",
+    "grade": 2,
+    "is_parent": true,
+    "sort_order": 0,
+    "is_view": false,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 149,
+  "fields": {
+    "created": "2017-03-08T09:56:43",
+    "modified": "2017-03-08T09:56:43",
+    "cid": "146-147-149",
+    "parent_cid": "146-147",
+    "name": "\u5bb6\u5c45\u767e\u8d27",
+    "cat_pic": "",
+    "grade": 2,
+    "is_parent": false,
+    "sort_order": 0,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 150,
+  "fields": {
+    "created": "2017-03-08T09:57:08",
+    "modified": "2017-03-08T09:57:08",
+    "cid": "146-147-150",
+    "parent_cid": "146-147",
+    "name": "\u7f8e\u5986\u6d17\u62a4",
+    "cat_pic": "",
+    "grade": 2,
+    "is_parent": false,
+    "sort_order": 0,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 151,
+  "fields": {
+    "created": "2017-03-08T09:57:33",
+    "modified": "2017-03-08T09:57:33",
+    "cid": "146-147-151",
+    "parent_cid": "146-147",
+    "name": "\u6bcd\u5a74\u7528\u54c1",
+    "cat_pic": "",
+    "grade": 2,
+    "is_parent": false,
+    "sort_order": 0,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 152,
+  "fields": {
+    "created": "2017-03-08T09:57:53",
+    "modified": "2017-03-08T09:57:53",
+    "cid": "146-147-152",
+    "parent_cid": "146-147",
+    "name": "\u98df\u54c1\u4fdd\u5065",
+    "cat_pic": "",
+    "grade": 2,
+    "is_parent": false,
+    "sort_order": 0,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 153,
+  "fields": {
+    "created": "2017-03-11T18:10:09",
+    "modified": "2017-03-15T16:01:17",
+    "cid": "153",
+    "parent_cid": "0",
+    "name": "\u5976\u7c89\u5c3f\u88e4",
+    "cat_pic": "https://img.xiaolumeimei.com/category/imagenaifenniaoku20170313.jpg",
+    "grade": 1,
+    "is_parent": true,
+    "sort_order": 9,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 154,
+  "fields": {
+    "created": "2017-03-11T18:11:55",
+    "modified": "2017-03-11T23:21:59",
+    "cid": "153-154",
+    "parent_cid": "153",
+    "name": "\u5976\u7c89\u5c3f\u88e4",
+    "cat_pic": "http://img.xiaolumeimei.com/category/image/naifen.png",
+    "grade": 2,
+    "is_parent": true,
+    "sort_order": 0,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 155,
+  "fields": {
+    "created": "2017-03-11T18:14:36",
+    "modified": "2017-03-13T16:10:13",
+    "cid": "153-154-155",
+    "parent_cid": "153-154",
+    "name": "\u7eb8\u5c3f\u88e4",
+    "cat_pic": "https://img.xiaolumeimei.com/category/image/niaobu.png",
+    "grade": 3,
+    "is_parent": true,
+    "sort_order": 5,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 156,
+  "fields": {
+    "created": "2017-03-11T18:16:19",
+    "modified": "2017-03-13T16:09:45",
+    "cid": "153-154-156",
+    "parent_cid": "153-154",
+    "name": "\u76f4\u90ae\u5976\u7c89",
+    "cat_pic": "https://img.xiaolumeimei.com/category/image/naifen_direct_post.png",
+    "grade": 3,
+    "is_parent": true,
+    "sort_order": 5,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 157,
+  "fields": {
+    "created": "2017-03-14T19:23:21",
+    "modified": "2017-03-14T19:59:28",
+    "cid": "3-157",
+    "parent_cid": "3",
+    "name": "\u98df\u54c1\u4fdd\u5065",
+    "cat_pic": "https://img.xiaolumeimei.com/%E9%A3%9F%E5%93%81%E4%BF%9D%E5%81%A5%E5%B0%8F%E5%9B%BE.jpg",
+    "grade": 2,
+    "is_parent": true,
+    "sort_order": 5,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 158,
+  "fields": {
+    "created": "2017-03-14T19:24:29",
+    "modified": "2017-03-14T20:42:35",
+    "cid": "3-157-158",
+    "parent_cid": "3-157",
+    "name": "\u9ea6\u7247\u4e73\u54c1",
+    "cat_pic": "https://img.xiaolumeimei.com/maipianrupinxiaotu.jpg",
+    "grade": 3,
+    "is_parent": true,
+    "sort_order": 1,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 159,
+  "fields": {
+    "created": "2017-03-14T20:36:52",
+    "modified": "2017-03-14T20:46:46",
+    "cid": "3-157-159",
+    "parent_cid": "3-157",
+    "name": "\u8fdb\u53e3\u4fdd\u5065",
+    "cat_pic": "https://img.xiaolumeimei.com/jinkoubaojian.jpg",
+    "grade": 3,
+    "is_parent": true,
+    "sort_order": 5,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 160,
+  "fields": {
+    "created": "2017-03-14T20:38:31",
+    "modified": "2017-03-14T20:38:31",
+    "cid": "3-157-160",
+    "parent_cid": "3-157",
+    "name": "\u4f11\u95f2\u96f6\u98df",
+    "cat_pic": "https://img.xiaolumeimei.com/xiuxianlingshi.jpg",
+    "grade": 3,
+    "is_parent": true,
+    "sort_order": 3,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 161,
+  "fields": {
+    "created": "2017-03-14T20:42:21",
+    "modified": "2017-03-14T21:08:54",
+    "cid": "3-157-161",
+    "parent_cid": "3-157",
+    "name": "\u517b\u751f\u8336\u996e",
+    "cat_pic": "https://img.xiaolumeimei.com/yangshengchayin.jpg",
+    "grade": 3,
+    "is_parent": true,
+    "sort_order": 0,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 162,
+  "fields": {
+    "created": "2017-03-15T14:49:15",
+    "modified": "2017-03-15T14:49:33",
+    "cid": "8-162",
+    "parent_cid": "8",
+    "name": "\u5bb6\u5c45\u767e\u8d27",
+    "cat_pic": "https://img.xiaolumeimei.com/jiajubaihuo2.jpg",
+    "grade": 2,
+    "is_parent": true,
+    "sort_order": 10,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 163,
+  "fields": {
+    "created": "2017-03-15T14:50:12",
+    "modified": "2017-03-15T14:50:12",
+    "cid": "8-162-163",
+    "parent_cid": "8-162",
+    "name": "\u5bb6\u5c45\u6e05\u6d01",
+    "cat_pic": "https://img.xiaolumeimei.com/jiajuqingjie.jpg",
+    "grade": 3,
+    "is_parent": true,
+    "sort_order": 0,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 164,
+  "fields": {
+    "created": "2017-03-15T14:51:00",
+    "modified": "2017-03-15T14:51:00",
+    "cid": "8-162-164",
+    "parent_cid": "8-162",
+    "name": "\u5bb6\u7eba\u5bb6\u9970",
+    "cat_pic": "https://img.xiaolumeimei.com/jiafangjiashi.jpg",
+    "grade": 3,
+    "is_parent": true,
+    "sort_order": 0,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 165,
+  "fields": {
+    "created": "2017-03-15T14:51:57",
+    "modified": "2017-03-15T14:51:57",
+    "cid": "8-162-165",
+    "parent_cid": "8-162",
+    "name": "\u53a8\u5177\u6c34\u676f",
+    "cat_pic": "https://img.xiaolumeimei.com/chujushuibei.jpg",
+    "grade": 3,
+    "is_parent": true,
+    "sort_order": 0,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 166,
+  "fields": {
+    "created": "2017-03-15T14:52:44",
+    "modified": "2017-03-15T14:52:44",
+    "cid": "8-162-166",
+    "parent_cid": "8-162",
+    "name": "\u7bb1\u5305\u914d\u9970",
+    "cat_pic": "https://img.xiaolumeimei.com/xiangbaopeishi.jpg",
+    "grade": 3,
+    "is_parent": true,
+    "sort_order": 0,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 167,
+  "fields": {
+    "created": "2017-03-15T14:54:20",
+    "modified": "2017-03-15T14:54:33",
+    "cid": "7-167",
+    "parent_cid": "7",
+    "name": "\u7f8e\u5986\u6d17\u62a4",
+    "cat_pic": "https://img.xiaolumeimei.com/meizhuangxihu2.jpg",
+    "grade": 2,
+    "is_parent": true,
+    "sort_order": 10,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 168,
+  "fields": {
+    "created": "2017-03-15T14:55:19",
+    "modified": "2017-03-15T14:55:19",
+    "cid": "7-167-168",
+    "parent_cid": "7-167",
+    "name": "\u6d17\u53d1\u6c90\u6d74",
+    "cat_pic": "https://img.xiaolumeimei.com/gerenxihu.jpg",
+    "grade": 3,
+    "is_parent": true,
+    "sort_order": 0,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 169,
+  "fields": {
+    "created": "2017-03-15T14:55:54",
+    "modified": "2017-03-15T14:55:54",
+    "cid": "7-167-169",
+    "parent_cid": "7-167",
+    "name": "\u7259\u818f\u7259\u5237",
+    "cat_pic": "https://img.xiaolumeimei.com/yagaoyashua.jpg",
+    "grade": 3,
+    "is_parent": true,
+    "sort_order": 0,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 170,
+  "fields": {
+    "created": "2017-03-15T14:57:35",
+    "modified": "2017-03-15T15:12:25",
+    "cid": "7-167-170",
+    "parent_cid": "7-167",
+    "name": "\u5973\u6027\u79c1\u62a4",
+    "cat_pic": "https://img.xiaolumeimei.com/nvxingsihu.jpg",
+    "grade": 3,
+    "is_parent": true,
+    "sort_order": 0,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 171,
+  "fields": {
+    "created": "2017-03-15T14:58:20",
+    "modified": "2017-03-15T14:58:20",
+    "cid": "7-167-171",
+    "parent_cid": "7-167",
+    "name": "\u9762\u819c",
+    "cat_pic": "https://img.xiaolumeimei.com/mianmo.jpg",
+    "grade": 3,
+    "is_parent": true,
+    "sort_order": 0,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 172,
+  "fields": {
+    "created": "2017-03-15T14:59:13",
+    "modified": "2017-03-15T14:59:13",
+    "cid": "7-167-172",
+    "parent_cid": "7-167",
+    "name": "\u9762\u90e8\u62a4\u7406",
+    "cat_pic": "https://img.xiaolumeimei.com/mianbuhuli.jpg",
+    "grade": 3,
+    "is_parent": true,
+    "sort_order": 0,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 173,
+  "fields": {
+    "created": "2017-03-15T15:04:44",
+    "modified": "2017-03-15T15:04:44",
+    "cid": "7-167-173",
+    "parent_cid": "7-167",
+    "name": "\u5f69\u5986",
+    "cat_pic": "https://img.xiaolumeimei.com/caizhuang.jpg",
+    "grade": 3,
+    "is_parent": true,
+    "sort_order": 0,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 174,
+  "fields": {
+    "created": "2017-03-15T15:06:22",
+    "modified": "2017-03-15T15:06:22",
+    "cid": "7-167-174",
+    "parent_cid": "7-167",
+    "name": "\u62a4\u80a4\u4e30\u80f8",
+    "cat_pic": "https://img.xiaolumeimei.com/hufufengxiong.jpg",
+    "grade": 3,
+    "is_parent": true,
+    "sort_order": 0,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 176,
+  "fields": {
+    "created": "2017-03-15T15:08:26",
+    "modified": "2017-03-15T18:23:57",
+    "cid": "1-176",
+    "parent_cid": "1",
+    "name": "\u6570\u7801\u5bb6\u7535",
+    "cat_pic": "https://img.xiaolumeimei.com/shumajiadian2.jpg",
+    "grade": 2,
+    "is_parent": true,
+    "sort_order": 11,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 177,
+  "fields": {
+    "created": "2017-03-15T15:10:34",
+    "modified": "2017-03-15T22:42:02",
+    "cid": "1-176-177",
+    "parent_cid": "1-176",
+    "name": "iPhone",
+    "cat_pic": "https://img.xiaolumeimei.com/iPhone.jpg",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 178,
+  "fields": {
+    "created": "2017-03-15T15:46:16",
+    "modified": "2017-03-15T22:42:22",
+    "cid": "1-176-178",
+    "parent_cid": "1-176",
+    "name": "vivo",
+    "cat_pic": "https://img.xiaolumeimei.com/vivo.jpg",
+    "grade": 3,
+    "is_parent": true,
+    "sort_order": 0,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 179,
+  "fields": {
+    "created": "2017-03-15T15:46:47",
+    "modified": "2017-03-15T22:42:48",
+    "cid": "1-176-179",
+    "parent_cid": "1-176",
+    "name": "oppo",
+    "cat_pic": "https://img.xiaolumeimei.com/oppo.jpg",
+    "grade": 3,
+    "is_parent": true,
+    "sort_order": 0,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 180,
+  "fields": {
+    "created": "2017-03-15T15:47:28",
+    "modified": "2017-03-15T18:21:39",
+    "cid": "1-176-180",
+    "parent_cid": "1-176",
+    "name": "\u7535\u8bdd\u624b\u8868",
+    "cat_pic": "https://img.xiaolumeimei.com/dianhuashoubiao.jpg",
+    "grade": 3,
+    "is_parent": true,
+    "sort_order": 0,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 181,
+  "fields": {
+    "created": "2017-03-15T15:50:25",
+    "modified": "2017-03-15T15:50:25",
+    "cid": "5-143-181",
+    "parent_cid": "5-143",
+    "name": "\u5b55\u4ea7\u7528\u54c1",
+    "cat_pic": "https://img.xiaolumeimei.com/1yunchanyongpin.jpg",
+    "grade": 3,
+    "is_parent": true,
+    "sort_order": 0,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 182,
+  "fields": {
+    "created": "2017-03-15T15:51:24",
+    "modified": "2017-03-15T15:51:24",
+    "cid": "5-143-182",
+    "parent_cid": "5-143",
+    "name": "\u5582\u517b\u6d17\u62a4",
+    "cat_pic": "https://img.xiaolumeimei.com/weiyangxihu.jpg",
+    "grade": 3,
+    "is_parent": true,
+    "sort_order": 0,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 183,
+  "fields": {
+    "created": "2017-03-15T15:52:52",
+    "modified": "2017-03-15T15:52:52",
+    "cid": "5-143-183",
+    "parent_cid": "5-143",
+    "name": "\u7ae5\u8f66\u51fa\u884c",
+    "cat_pic": "https://img.xiaolumeimei.com/tuiche.jpg",
+    "grade": 3,
+    "is_parent": true,
+    "sort_order": 0,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 184,
+  "fields": {
+    "created": "2017-03-15T15:53:28",
+    "modified": "2017-03-15T16:26:44",
+    "cid": "5-143-184",
+    "parent_cid": "5-143",
+    "name": "\u5e8a\u54c1\u7761\u888b",
+    "cat_pic": "https://img.xiaolumeimei.com/4yingtongshuidai.jpg",
+    "grade": 3,
+    "is_parent": true,
+    "sort_order": 0,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 185,
+  "fields": {
+    "created": "2017-03-15T15:54:37",
+    "modified": "2017-03-15T15:54:37",
+    "cid": "5-143-185",
+    "parent_cid": "5-143",
+    "name": "\u56fe\u4e66\u73a9\u5177",
+    "cat_pic": "https://img.xiaolumeimei.com/5tushuwanju2.jpg",
+    "grade": 3,
+    "is_parent": true,
+    "sort_order": 0,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 186,
+  "fields": {
+    "created": "2017-03-15T15:56:06",
+    "modified": "2017-03-15T17:20:32",
+    "cid": "5-143-186",
+    "parent_cid": "5-143",
+    "name": "\u7ae5\u88c5\u5bb6\u5c45",
+    "cat_pic": "https://img.xiaolumeimei.com/muying.jpg",
+    "grade": 3,
+    "is_parent": true,
+    "sort_order": 0,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 187,
+  "fields": {
+    "created": "2017-03-15T16:13:22",
+    "modified": "2017-03-15T18:22:14",
+    "cid": "1-176-187",
+    "parent_cid": "1-176",
+    "name": "\u751f\u6d3b\u7535\u5668",
+    "cat_pic": "https://img.xiaolumeimei.com/gerenjiankang.jpg",
+    "grade": 3,
+    "is_parent": true,
+    "sort_order": 0,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 188,
+  "fields": {
+    "created": "2017-03-15T17:00:04",
+    "modified": "2017-03-15T17:00:04",
+    "cid": "8-162-188",
+    "parent_cid": "8-162",
+    "name": "\u7efc\u5408\u767e\u8d27",
+    "cat_pic": "https://img.xiaolumeimei.com/zonghebaihuo.jpg",
+    "grade": 3,
+    "is_parent": true,
+    "sort_order": 0,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 190,
+  "fields": {
+    "created": "2017-03-15T22:59:24",
+    "modified": "2017-03-16T10:29:37",
+    "cid": "8-162-190",
+    "parent_cid": "8-162",
+    "name": "\u8db3\u8d34",
+    "cat_pic": "https://img.xiaolumeimei.com/zutie",
+    "grade": 3,
+    "is_parent": true,
+    "sort_order": 0,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 191,
+  "fields": {
+    "created": "2017-03-21T18:31:45",
+    "modified": "2017-03-21T18:39:59",
+    "cid": "153-154-191",
+    "parent_cid": "153-154",
+    "name": "\u500d\u5eb7\u7eb8\u5c3f\u88e4",
+    "cat_pic": "http://7xrst8.com1.z0.glb.clouddn.com/beikangzhiniaoku.jpg",
+    "grade": 3,
+    "is_parent": true,
+    "sort_order": 0,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 192,
+  "fields": {
+    "created": "2017-03-21T18:32:17",
+    "modified": "2017-03-21T18:40:33",
+    "cid": "3-157-192",
+    "parent_cid": "3-157",
+    "name": "\u7cae\u6cb9\u526f\u98df",
+    "cat_pic": "http://7xrst8.com1.z0.glb.clouddn.com/liangyoufushi.jpg",
+    "grade": 3,
+    "is_parent": true,
+    "sort_order": 0,
+    "is_view": true,
     "status": "normal"
   }
 }

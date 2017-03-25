@@ -67,7 +67,7 @@ class SaleSupplierChangeList(ChangeList):
 
 
 class SaleSupplierAdmin(ApproxAdmin):
-    list_display = ('id', 'supplier_code', 'supplier_name_link', 'charge_link',
+    list_display = ('id', 'supplier_code', 'vendor_code', 'supplier_name_link', 'charge_link',
                     'total_select_num', 'total_sale_amount', 'total_refund_amount', 'avg_post_days',
                     'category_select', 'progress', 'last_select_time', 'last_schedule_time',
                     'supplier_type_choice', 'supplier_zone_choice', 'address', 'ware_by', 'return_ware_by', 'memo_well')

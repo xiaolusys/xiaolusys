@@ -96,6 +96,7 @@ class SaleSupplierSerializer(serializers.ModelSerializer):
                   'main_page',
                   'supplier_name',
                   'supplier_code',
+                  'vendor_code',
                   'brand_url',
                   'platform',
                   "supplier_type",

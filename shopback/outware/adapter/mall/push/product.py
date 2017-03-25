@@ -40,10 +40,10 @@ def push_ware_sku_by_saleproduct(sale_product):
                 'sku_name': product.name + sku.name,
                 'sku_type': sku_type,
                 'brand_name': brand_name,
-                'is_batch_mgt': modelproduct.is_batch_mgt_on,
-                'is_xpire_mgt': modelproduct.is_expire_mgt_on,
-                'vdr_flag': modelproduct.is_vendor_mgt_on,
-                'shelf_life': modelproduct.shelf_life_days,
+                'is_batch_mgt': sale_product.is_batch_mgt_on,
+                'is_xpire_mgt': sale_product.is_expire_mgt_on,
+                'vdr_flag': sale_product.is_vendor_mgt_on,
+                'shelf_life': sale_product.shelf_life_days,
                 'object': 'OutwareSku',
             }
             # TODO@MERON ,现默认所有SKU为商品类型，没有区分赠品包材
