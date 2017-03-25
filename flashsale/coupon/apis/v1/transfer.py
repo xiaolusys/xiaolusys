@@ -729,7 +729,7 @@ def transfer_record_return_coupon_exchange(coupons, transfer_record):
     dict_coupon_ids = {}
     with transaction.atomic():
         for coupon in coupons:
-            if not (coupon.extras.has_key('buy_coupon_type') and int(coupon.extras['buy_coupon_type']) == 1):
+            if not coupon.extras.has_key('buy_coupon_type'):
                 continue
             temp_arr = coupon.uniq_id.split('_')
             order_id = int(temp_arr[2])

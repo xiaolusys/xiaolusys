@@ -850,6 +850,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             order_type = int(order_type)
 
         # 计算购物车价格
+        virtual_coupon_num = 0
         item_ids = []
         for cart in cart_qs:
             if not cart.is_good_enough():
@@ -864,6 +865,13 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 return Response({'code': 2, 'info': u'商品刚被抢光了'})
             cart_total_fee += round(cart.price * cart.num * 100)
             item_ids.append(cart.item_id)
+
+            mp = cart.get_modelproduct()
+            if mp and mp.is_boutique_coupon:
+                virtual_coupon_num += 1
+
+        if virtual_coupon_num == cart_qs.count():
+            order_type = SaleTrade.ELECTRONIC_GOODS_ORDER
 
         extra_params = {
             'item_ids': item_ids,
