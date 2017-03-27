@@ -755,7 +755,7 @@ class PortalSerializer(serializers.ModelSerializer):
 class LogisticsCompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = LogisticsCompany
-        fields = ('id', 'code', 'name')
+        fields = ('code', 'name')
 
 
 class ShoppingCartSerializer(serializers.HyperlinkedModelSerializer):
