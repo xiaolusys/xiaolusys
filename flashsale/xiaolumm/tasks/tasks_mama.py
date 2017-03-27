@@ -523,4 +523,5 @@ def carryrecord_update_xiaolumama_active_hasale(mmid):
             mama.set_hasale()
 
     for mm_id in mama.get_parent_mama_ids():
-        tasks_mama_fortune.task_update_mamafortune_active_num(mm_id)
+        if mm_id > 0:
+            tasks_mama_fortune.task_update_mamafortune_active_num(mm_id)
