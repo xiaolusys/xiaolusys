@@ -288,8 +288,9 @@ class PackageOrder(models.Model):
                                                                              PackageSkuItem.VIRTUAL_ASSIGNED])
         for sku_item in package_sku_items:
             sale_order = sku_item.sale_order
+            all_send = sale_order.need_send_num == sku_item.num # 一个sale_order被完整地发货
             sku_item.finish_third_send(self.out_sid, self.logistics_company)
-            if sale_order.need_send_num == sku_item.num:
+            if all_send:
                 sale_order.status = SaleOrder.WAIT_BUYER_CONFIRM_GOODS
                 sale_order.consign_time = datetime.datetime.now()
                 sale_order.save()
