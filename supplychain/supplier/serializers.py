@@ -252,7 +252,7 @@ class SaleProductSerializer(serializers.ModelSerializer):
             'id', 'outer_id', 'title', 'price', 'pic_url', 'product_link', 'sale_supplier', 'contactor',
             'sale_category', 'platform', 'hot_value', 'sale_price', 'on_sale_price', 'std_sale_price',
             'memo', 'status', 'sale_time', 'created', 'modified', 'reserve_time', 'supplier_sku',
-            'orderlist_show_memo')
+            'orderlist_show_memo', 'is_batch_mgt_on', 'is_expire_mgt_on', 'is_vendor_mgt_on', 'shelf_life_days')
 
 
 class SaleProductUpdateSerializer(serializers.ModelSerializer):
@@ -312,17 +312,30 @@ class CreateSaleProductSerializer(serializers.ModelSerializer):
     memo = serializers.CharField(required=False)
     platform = serializers.CharField(required=False)
     supplier_sku = serializers.CharField(required=False)
+    is_batch_mgt = serializers.BooleanField(required=False)
+    is_expire_mgt = serializers.BooleanField(required=False)
+    is_vendor_mgt = serializers.BooleanField(required=False)
+    shelf_life_days = serializers.IntegerField(required=False)
 
     class Meta:
         model = SaleProduct
-        fields = ("product_id", "title", "supplier_id", "product_link", "memo", "platform", "supplier_sku")
+        fields = ("product_id", "title", "supplier_id", "product_link", "memo", "platform", "supplier_sku",
+                  "is_batch_mgt", "is_expire_mgt", "is_vendor_mgt", "shelf_life_days")
 
     def save(self, obj, user):
         from shopback.items.models import Product
         product = Product.objects.get(id=obj['product_id'])
+        extras = {
+            "consoles": {
+                "is_batch_mgt": obj.get('is_batch_mgt', False),  # 启动批次管理
+                "is_expire_mgt": obj.get('is_expire_mgt', False),  # 启动保质期管理
+                "is_vendor_mgt": obj.get('is_vendor_mgt', False),  # 启动多供应商管理(支持同SKU多供应商供货)
+                "shelf_life_days": obj.get('shelf_life_days', 0),  # 保质期(天数)
+            }
+        }
         return SaleProduct.create(
             product, obj.get('title', product.title), obj['supplier_id'], obj.get('supplier_sku', ''),
-            obj.get('product_link', ''), obj.get('memo', ''), user, obj.get('platform', SaleProduct.MANUAL),
+            obj.get('product_link', ''), obj.get('memo', ''), user, obj.get('platform', SaleProduct.MANUAL), extras
         )
 
 

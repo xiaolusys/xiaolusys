@@ -14,11 +14,11 @@ from supplychain.supplier.constants import STOCKING_MODE_CHOICES
 
 def set_saleproduct_default_extras():
     return {
-        "is_boutique": False, #　是否精品汇商品
-        "product_type": "0",  # 商品类型
+        # "is_boutique": False, #　是否精品汇商品
+        # "product_type": "0",  # 商品类型
         "consoles": {
             "is_batch_mgt": False,  # 启动批次管理
-            "is_xpire_mgt": False,  # 启动保质期管理
+            "is_expire_mgt": False,  # 启动保质期管理
             "is_vendor_mgt": False,  # 启动多供应商管理(支持同SKU多供应商供货)
             "shelf_life_days": 0,  # 保质期(天数)
         },
@@ -110,7 +110,6 @@ class SaleProduct(BaseTagModel):
     sale_time = models.DateTimeField(null=True, blank=True, verbose_name=u'上架日期')
     reserve_time = models.DateTimeField(null=True, blank=True, verbose_name=u'预留时间')
     supplier_sku = models.CharField(max_length=64, blank=True, verbose_name=u'供应商货号')
-    # remain_num = models.IntegerField(default=0, verbose_name=u'预留数')
     orderlist_show_memo = models.BooleanField(default=False, verbose_name=u'订货详情显示备注')
     source_type = models.IntegerField(default=SOURCE_SELF, db_index=True, choices=SOURCE_CHOICES, verbose_name=u'商品货源')
     # TODO@MENTION 之前的比如第三方仓货源信息需要刷新数据, 并且需要更新到modelproduct记录上
@@ -294,7 +293,7 @@ class SaleProduct(BaseTagModel):
         return SaleProduct.objects.filter(id__in=spids)
 
     @staticmethod
-    def create(product, title, supplier_id, supplier_sku, product_link, memo, creater, platform=MANUAL):
+    def create(product, title, supplier_id, supplier_sku, product_link, memo, creater, platform=MANUAL, extras=None):
         if supplier_id in list(SaleProduct.get_by_product(product).values_list("sale_supplier_id", flat=True)):
             raise Exception(u'此商品已向该供应商订货，应该进行编辑而非新增')
         sp = SaleProduct(
@@ -307,6 +306,10 @@ class SaleProduct(BaseTagModel):
             platform=platform,
             price=product.std_purchase_price,
         )
+        if extras is None:
+            sp.extras = set_saleproduct_default_extras()
+        else:
+            sp.extras = extras
         sp.gen_outer_id()
         sp.save()
         sp.sale_category = product.category.get_sale_category()

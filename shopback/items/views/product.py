@@ -588,7 +588,13 @@ class ProductViewSet(viewsets.ModelViewSet):
         product = self.get_object()
         from supplychain.supplier.serializers import SaleProductSerializer
         sale_products = SaleProduct.get_by_product(product)
-        res = SaleProductSerializer(sale_products, many=True).data
-        for line in res:
-            line['main_supplier'] = line['id'] == product.sale_product
-        return Response(res)
+        queryset = self.filter_queryset(sale_products)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = SaleProductSerializer(page, many=True)
+            res = serializer.data
+            for line in res:
+                line['main_supplier'] = line['id'] == product.sale_product
+            return self.get_paginated_response(res)
+        serializer = SaleProductSerializer(queryset, many=True)
+        return Response(serializer.data)

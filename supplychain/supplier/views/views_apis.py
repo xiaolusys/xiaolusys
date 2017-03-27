@@ -365,6 +365,20 @@ class SaleProductViewSet(viewsets.ModelViewSet):
         }
         return Response(data)
 
+    @list_route(methods=['get'])
+    def fetch_taobao_product(self, request):
+        fetch_url = request.GET.get('fetch_url', '').strip()
+        if not fetch_url or not fetch_url.startswith(('http://', 'https://')):
+            raise exceptions.APIException(u'请输入合法的URL')
+        tsoup, response = fetch_urls.getBeaSoupByCrawUrl(fetch_url)
+        data = {
+            'title': fetch_urls.getItemTitle(tsoup),
+            'pic_url': fetch_urls.getItemPic(fetch_url, tsoup),
+            'price': fetch_urls.getItemPrice(tsoup),
+            'fetch_url': fetch_url,
+        }
+        return Response(data)
+
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         model_product = instance.model_product
