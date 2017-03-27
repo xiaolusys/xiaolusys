@@ -61,7 +61,7 @@ class OutwareSku(BaseWareModel):
     is_batch_mgt  = models.BooleanField(default=False, verbose_name=u'是否启用批次管理', help_text=u'支持批次先到先出')
     is_expire_mgt = models.BooleanField(default=False, verbose_name=u'是否启用有效期管理', help_text=u'支持商品过期不能出单')
     is_vendor_mgt = models.BooleanField(default=False, verbose_name=u'是否启用供应商管理', help_text=u'支持同SKU多供应商供货')
-    is_unioned    = models.BooleanField(default=False, verbose_name=u'是否同步供应商与sku关系')
+    is_unioned    = models.BooleanField(default=False, verbose_name=u'关联供应商', help_text=u'是否同步供应商与sku关系')
 
     uni_key = models.CharField(max_length=128, unique=True, verbose_name=u'唯一标识')
     extras = JSONCharMyField(max_length=1024, default={}, verbose_name=u'附加信息') #商品的基础资料及款式信息
@@ -87,11 +87,18 @@ class OutwareSku(BaseWareModel):
     def is_expire_mgt_on(self):
         return self.is_expire_mgt
 
+    @property
     def is_vendor_mgt_on(self):
         return self.is_vendor_mgt
 
     def set_ware_sku_code(self, ware_sku_code):
         self.ware_sku_code = ware_sku_code
+
+    @property
+    def is_pushed_ok(self):
+        from .wms import OutwareSkuStock
+        ow_skustock = OutwareSkuStock.objects.filter(sku_code=self.sku_code).first()
+        return ow_skustock and ow_skustock.is_action_success(constants.ACTION_SKU_CREATE['code']) or False
 
     def finish_unioned(self):
         self.is_unioned =True
@@ -102,8 +109,9 @@ class OutwareInboundOrder(BaseWareModel):
 
     ORDER_TYPE_CHOICES = ((s['code'], s['name']) for s in [constants.ORDER_PURCHASE, constants.ORDER_REFUND])
 
+    NORMAL = constants.NORMAL
     STATUS_CHOICES = (
-        (constants.NORMAL, '新建'),
+        (constants.NORMAL, '未推送'),
         (constants.RECEIVED, '接收'),
         (constants.ARRIVED, '到仓'),
         (constants.CANCEL, '取消'),
@@ -144,6 +152,9 @@ class OutwareInboundOrder(BaseWareModel):
     def change_order_status(self, status_code):
         self.status = status_code
         self.save()
+
+    def is_pushed_ok(self):
+        return self.status in (constants.RECEIVED, constants.ARRIVED)
 
 
 class OutwareInboundSku(BaseWareModel):

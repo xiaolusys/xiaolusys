@@ -176,4 +176,17 @@ def task_calc_all_sku_amount_stat_by_schedule():
 
 
 
+@app.task
+def task_calc_today_sku_boutique_sales_delivery_stats():
+
+    from .boutique import task_all_boutique_stats
+    today = datetime.date.today()
+
+    task_all_boutique_stats(stat_date=today)
+
+    task_call_all_sku_delivery_stats(stat_date=today)
+
+    task_calc_all_sku_amount_stat_by_date(stat_date=today)
+
+
 

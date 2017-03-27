@@ -1,4 +1,5 @@
 # coding=utf-8
+from __future__ import absolute_import, unicode_literals
 import re
 import datetime
 import random
@@ -128,6 +129,14 @@ class ForecastInbound(BaseModel):
     @cached_property
     def orderlist_id(self):
         return self.relate_order_set.first().id
+
+    def get_outware_status_pair(self):
+        from shopback.outware.models import OutwareInboundOrder
+        ow_inbound = OutwareInboundOrder.objects.filter(inbound_code=self.forecast_no).first()
+        status_display_dict = dict(OutwareInboundOrder.STATUS_CHOICES)
+        if not ow_inbound:
+            return (OutwareInboundOrder.NORMAL, status_display_dict.get(OutwareInboundOrder.NORMAL))
+        return (ow_inbound.status, status_display_dict.get(ow_inbound.status))
 
     def get_ware_house_name(self):
         return dict(constants.WARE_CHOICES).get(self.ware_house)

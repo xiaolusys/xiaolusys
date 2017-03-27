@@ -6,7 +6,6 @@ import datetime
 import json
 from core.utils.timeutils import CJsonEncoder
 from django.db import models, transaction
-from core.fields import JSONCharMyField
 from .base import BaseWareModel
 
 

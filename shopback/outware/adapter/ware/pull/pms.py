@@ -72,33 +72,37 @@ def create_sku_and_supplier(sku_code, vendor_code, sku_type, declare_type, dict_
                 extras={'data': dict(dict_obj)},
                 uni_key=OutwareSku.generate_unikey(ow_supplier.id, sku_code),
             )
-            OutwareSkuStock.objects.get_or_create(sku_code=sku_code)
+            ow_skustock, state = OutwareSkuStock.objects.get_or_create(sku_code=sku_code)
     except IntegrityError:
         ow_sku = OutwareSku.objects.get(outware_supplier=ow_supplier, sku_code=sku_code)
+        ow_skustock, state = OutwareSkuStock.objects.get_or_create(sku_code=sku_code)
 
-        if ow_sku.is_action_success(action_code):
+        if ow_skustock.is_action_success(action_code):
             action_code = constants.ACTION_SKU_EDIT['code']
 
         ow_sku.sku_type = sku_type
         ow_sku.declare_type = declare_type
-        ow_sku.is_batch_mgt =is_batch_mgt
-        ow_sku.is_expire_mgt = is_expire_mgt
+        # is_batch_mgt and is_expire_mgt, if start ,can't be canceled
+        if not ow_sku.is_batch_mgt:
+            ow_sku.is_batch_mgt =is_batch_mgt
+        if not ow_sku.is_expire_mgt:
+            ow_sku.is_expire_mgt = is_expire_mgt
         ow_sku.is_vendor_mgt = is_vendor_mgt
         ow_sku.extras['data'] = dict(dict_obj)
         ow_sku.save()
 
-    # 创建sku
+    # TODO创建sku, 是否推送成功消息保存到skustock记录上
     try:
         resp = sdks.request_getway(dict(dict_obj), action_code, ware_account)
     except Exception, exc:
         logger.error(str(exc), exc_info=True)
-        return {'success': False, 'object': ow_sku, 'message': str(exc)}
+        return {'success': False, 'object': ow_skustock, 'message': str(exc), 'action_code': action_code}
 
     if resp.get('sku_id'):
         ow_sku.set_ware_sku_code(resp.get('sku_id'))
         ow_sku.save()
 
-    return {'success': True, 'object': ow_sku, 'message': ''}
+    return {'success': True, 'object': ow_skustock, 'message': '', 'action_code': action_code}
 
 
 @action_decorator(constants.ACTION_UNION_SKU_AND_SUPPLIER['code'])

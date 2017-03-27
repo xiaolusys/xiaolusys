@@ -56,12 +56,20 @@ STATUS_LABEL_DICT = dict((
     (ForecastInbound.ST_FINISHED, 'label')
 ))
 
+OUTWARE_STATUS_LABEL_DICT = dict((
+    (1, 'label label-info'),
+    (2, 'label label-success'),
+    (3, 'label label-primary'),
+    (4, 'label label-default'),
+))
+
+@admin.register(ForecastInbound)
 class ForecastInboundAdmin(BaseAdmin):
 
     list_display = (
         'id', 'forecast_no', 'supplier', 'ware_house', 'express_no', 'forecast_arrive_time','total_forecast_num',
-        'total_arrival_num', 'status_label', 'orderlist_link', 'purchaser', 'has_lack', 'has_defact', 'has_overhead',
-        'has_wrong', 'created', 'arrival_time', 'delivery_time'
+        'total_arrival_num', 'status_label', 'orderlist_link', 'purchaser', 'has_lack', 'has_defact',
+        'outware_status_label', 'created', 'arrival_time', 'delivery_time'
     )
     list_filter = ('status', 'ware_house', ('created', DateFieldListFilter),
                    ('forecast_arrive_time',DateScheduleFilter),
@@ -99,6 +107,13 @@ class ForecastInboundAdmin(BaseAdmin):
     status_label.allow_tags = True
     status_label.short_description = u'状态'
     status_label.ordering = 'status'
+
+    def outware_status_label(self, obj):
+        outware_status_pair = obj.get_outware_status_pair()
+        return '<label class="%s">%s</label>'%(OUTWARE_STATUS_LABEL_DICT.get(outware_status_pair[0]), outware_status_pair[1])
+
+    outware_status_label.allow_tags = True
+    outware_status_label.short_description = u'蜂巢订单状态'
 
     actions = ['action_merge_or_split',
                'action_strip_inbound',
@@ -270,9 +285,7 @@ class ForecastInboundAdmin(BaseAdmin):
     action_purchaseorder_refresh_data.short_description = u"根据订货单刷新预测单"
 
 
-admin.site.register(ForecastInbound, ForecastInboundAdmin)
-
-
+@admin.register(ForecastInboundDetail)
 class ForecastInboundDetailAdmin(admin.ModelAdmin):
 
     list_display = (
@@ -281,8 +294,6 @@ class ForecastInboundDetailAdmin(admin.ModelAdmin):
     list_filter = ('status', ('created', DateFieldListFilter))
     search_fields = ['product_id']
 
-
-admin.site.register(ForecastInboundDetail, ForecastInboundDetailAdmin)
 
 
 class RealInboundAdmin(BaseAdmin):

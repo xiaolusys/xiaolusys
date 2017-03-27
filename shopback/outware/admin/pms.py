@@ -1,9 +1,10 @@
 # coding: utf8
 from __future__ import absolute_import, unicode_literals
 
-
 from django.contrib import admin
+from django.db.models import Q
 from django.shortcuts import redirect
+from django.contrib.admin.views.main import ChangeList
 
 from ..models import OutwareAccount, OutwareSupplier, OutwareSku, OutwareInboundOrder, OutwareInboundSku
 from ..adapter.ware.pull.pms import union_sku_and_supplier
@@ -14,14 +15,34 @@ class OutwareSupplierAdmin(admin.ModelAdmin):
     search_fields = ['=id','=vendor_code']
     ordering = ('-modified',)
 
+class OutwareSkuChangeList(ChangeList):
+    def get_queryset(self, request):
+        search_q = request.GET.get('q', '').strip()
+        if search_q.lower().startswith(':'):
+            model_code = search_q.repalce(':','')
+            from shopback.items.models import ProductSku
+            productskus = ProductSku.objects.filter(Q(product__model_id=model_code)|Q(product__outer_id__startswith=model_code))
+            sku_codes = productskus.values_list('outer_id', flat=True)
+            return OutwareSku.objects.filter(sku_code__in=sku_codes)
+
+        return super(OutwareSkuChangeList, self).get_queryset(request)
 
 @admin.register(OutwareSku)
 class OutwareSkuAdmin(admin.ModelAdmin):
     list_display = ('sku_code', 'ware_sku_code', 'outware_supplier', 'sku_type', 'is_unioned',
-                    'is_batch_mgt', 'is_expire_mgt', 'is_vendor_mgt', 'created')
+                    'is_pushed_success', 'is_batch_mgt', 'is_expire_mgt', 'is_vendor_mgt', 'created')
     list_filter = ('is_unioned', 'is_batch_mgt', 'is_expire_mgt', 'is_vendor_mgt')
     search_fields = ['=id','=sku_code']
     ordering = ('-created',)
+
+    def get_changelist(self, request, **kwargs):
+        return OutwareSkuChangeList
+
+    def is_pushed_success(self, obj):
+        return obj.is_pushed_ok
+
+    is_pushed_success.boolean = True
+    is_pushed_success.short_description = '已接收'
 
     def union_sku_and_supplier(self, request, queryset):
         """ 更新订单到订单总表 """

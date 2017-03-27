@@ -28,7 +28,7 @@ def push_outware_inbound_by_forecast_order(forecast_inbound_order):
             'receiver_name': warehouse.manager,
             'receiver_mobile': warehouse.mobile,
             'receiver_phone': warehouse.phone,
-            'object': 'UserAddress',
+            'object': 'WareAddress',
         },
         'order_items': [],
         'object': 'OutwareInboundOrder',

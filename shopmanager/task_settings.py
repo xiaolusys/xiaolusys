@@ -1597,6 +1597,12 @@ STATISTIC_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_calc_all_sku_amount_stat_by_schedule'}
     },
+    u'每半小时统计商城精品券sku销量及发货速度': {
+        'task': 'flashsale.daystats.tasks.saleorder.task_calc_today_sku_boutique_sales_delivery_stats',
+        'schedule': crontab(minute="*/30", hour=','.join([str(i) for i in range(9, 23)])),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_calc_today_sku_boutique_sales_delivery_stats'}
+    },
 }
 
 BOUTIQUE_SCHEDULE = {

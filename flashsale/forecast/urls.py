@@ -2,7 +2,7 @@
 from django.conf.urls import include, url
 from rest_framework import routers, viewsets
 
-from .views import StagingInboundViewSet, ForecastManageViewSet, InBoundViewSet, ForecastStatsViewSet
+from .views import StagingInboundViewSet, ForecastManageViewSet, InBoundViewSet, ForecastStatsViewSet, OutwareManageViewSet
 
 
 router = routers.DefaultRouter(trailing_slash=False)
@@ -10,6 +10,7 @@ router.register(r'staging', StagingInboundViewSet)
 router.register(r'manage', ForecastManageViewSet)
 router.register(r'inbound', InBoundViewSet)
 router.register(r'stats', ForecastStatsViewSet)
+router.register(r'outware', OutwareManageViewSet)
 
 
 router_urls = router.urls

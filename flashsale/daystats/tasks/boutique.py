@@ -126,14 +126,15 @@ def fresh_coupontemplate_extras_modelproduct_ids():
 
 
 @app.task
-def task_all_boutique_stats():
+def task_all_boutique_stats(stat_date=None):
     """ 统计所有精品汇商品以及系统中有销量的商品 """
 
     fresh_coupontemplate_extras_modelproduct_ids()
-    yesterday = datetime.datetime.today() - datetime.timedelta(days=1)
+    if not stat_date:
+        stat_date = datetime.datetime.today() - datetime.timedelta(days=1)
 
     product_ids = SaleOrder.objects.active_orders().filter(
-        pay_time__range=day_range(yesterday)
+        pay_time__range=day_range(stat_date)
     ).values_list('item_id', flat=True)
 
     model_ids = list(Product.objects.filter(id__in=list(product_ids)).values_list('model_id', flat=True))
@@ -144,7 +145,7 @@ def task_all_boutique_stats():
     )
 
     for mp in boutique_products.iterator():
-        task_boutique_sale_and_refund_stats.delay(yesterday, mp.id)
+        task_boutique_sale_and_refund_stats.delay(stat_date, mp.id)
 
 
 

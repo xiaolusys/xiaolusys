@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css"  href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" media="screen" />
+    <link rel="stylesheet" type="text/css"  href="//cdn.bootcss.com/bootstrap-datepicker/1.6.1/css/bootstrap-datepicker.min.css" />
+    <link rel="stylesheet" type="text/css"  href="{{ STATIC_URL }}DataTables/DataTables-1.10.11/css/dataTables.bootstrap.min.css"/>
+    <title>推送预测单到外仓</title>
+    <style>
+    * {
+        padding: 0 0;
+        margin: 0 0;
+    }
+    a:visited {
+        color: #000;
+    }
+    a:clicked{
+        color:  #f69c55;
+    }
+    a.gloomy{
+        color: rgba(102, 102, 102, 0.25);
+    }
+    .inline {
+        display: inline;
+    }
+    .popover{
+        max-width:450px;
+        max-height:900px;
+    }
+    ul.vertical {
+        list-style: none;
+        clear: both;
+    }
+    ul.vertical li{
+        display: block;
+        border: none;
+    }
+    ul.horizental, ul.vertical{
+        list-style: none;
+        border: none;
+        margin-bottom:0px;
+    }
+    ul.horizental > li{
+        display: block;
+        float: left;
+        border: none;
+    }
+    ul.horizental > li+li{
+        border-left: 1px solid #eee;
+    }
+    ul .list-group-item {
+        padding: 10px 10px;
+    }
+    .label-badge{
+        display: inline-block;
+        min-width: 10px;
+        padding: 3px 7px;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1;
+        color: #fff;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: middle;
+        border-radius: 10px;
+    }
+    .container-body-left{
+        border-top: 1px solid #eee;
+        border-left: 1px solid #eee;
+        padding: 10px 0px;
+    }
+    .panel-body{
+        padding: 10px 5px;
+    }
+    .panel-heading, .panel-footer{
+        padding: 0px 10px;
+    }
+    .panel-footer .btn {
+        margin: 0 10px;
+    }
+    .group-line{
+        padding: 0 20px 0;
+        margin: 20px 0;
+        line-height: 1px;
+        border-left: 250px solid #ddd;
+        border-right: 250px solid #ddd;
+        text-align: center;
+    }
+    .modal-lg{
+        width: 1000px;
+    }
+    #table-1 >tbody > tr.selected {
+        background-color: #777;
+    }
+    table tr td > p{
+        margin: 0 0 ;
+    }
+    table td p > a{
+        text-decoration: underline;
+    }
+    input[type=number]{
+        line-height: 30px;
+    }
+    ul.list-style-1 {
+        list-style: none;
+    }
+    ul.list-style-1 li{
+        width: 50%;
+        float: left;
+    }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="page-header">
+        <h1>推送预测到货单前注意事项
+            <small ><div class="alert alert-danger">请检查对接仓库及收货人信息，商品是否需要启动批次及有效期管理，确认无误后再确认提交！！！</div></small>
+        </h1>
+    </div>
+    <div class="container-body">
+        <form class="form-horizontal">
+            <div class="panel panel-info">
+              <div class="panel-heading">订单基本信息</div>
+              <div class="panel-body">
+                  <input type="hidden" class="form-control" id="supplier_id" value="">
+                  <ul class="list-style-1">
+                    <li>
+                      <div class="form-group">
+                        <label for="order_code" class="col-sm-3 control-label">订单编号</label>
+                        <div class="col-sm-9">
+                          <input type="text" class="form-control" id="order_code" placeholder="" value="" readonly>
+                        </div>
+                      </div>
+                      </li>
+                      <li>
+                          <div class="form-group">
+                            <label for="tms_order_code" class="col-sm-3 control-label">到货物流单号</label>
+                            <div class="col-sm-9">
+                              <input type="text" class="form-control" id="tms_order_code" placeholder="" value="" readonly>
+                            </div>
+                          </div>
+                      </li>
+                      <li>
+                      <div class="form-group">
+                        <label for="vendor_code" class="col-sm-3 control-label">供应商编号</label>
+                        <div class="col-sm-9">
+                          <input type="text" class="form-control" id="vendor_code" placeholder="" value="" readonly>
+                        </div>
+                      </div>
+                      </li>
+                      <li>
+                          <div class="form-group">
+                            <label for="vendor_name" class="col-sm-3 control-label">供应商名称</label>
+                            <div class="col-sm-9">
+                              <input type="text" class="form-control" id="vendor_name" placeholder="" value="" readonly>
+                            </div>
+                          </div>
+                      </li>
+                    </ul>
+              </div>
+            </div>
+            <div class="panel panel-default">
+              <div class="panel-heading">收货信息</div>
+              <div class="panel-body">
+                  <input type="hidden" class="form-control" id="warehouse_id" value="">
+                  <ul class="list-style-1">
+                    <li>
+                      <div class="form-group">
+                        <label for="ware_name" class="col-sm-2 control-label">仓库名称</label>
+                        <div class="col-sm-10">
+                          <input type="text" class="form-control" id="ware_name" placeholder="仓库名称" value="" readonly>
+                        </div>
+                      </div>
+                    </li>
+                    <li>
+                      <div class="form-group">
+                        <label for="receiver_name" class="col-sm-2 control-label">收货人</label>
+                        <div class="col-sm-10">
+                          <input type="text" class="form-control" id="receiver_name" placeholder="收货人" value="" readonly>
+                        </div>
+                      </div>
+                    </li>
+                    <li>
+                      <div class="form-group">
+                        <label for="receiver_mobile" class="col-sm-2 control-label">手机</label>
+                        <div class="col-sm-10">
+                          <input type="text" class="form-control" id="receiver_mobile" placeholder="手机" value="" readonly>
+                        </div>
+                      </div>
+                    </li>
+                    <li>
+                      <div class="form-group">
+                        <label for="receiver_phone" class="col-sm-2 control-label">联系电话</label>
+                        <div class="col-sm-10">
+                          <input type="text" class="form-control" id="receiver_phone" placeholder="" value="" readonly>
+                        </div>
+                      </div>
+                    </li>
+                    <li>
+                      <div class="form-group">
+                        <label for="receiver_province" class="col-sm-2 control-label">省</label>
+                        <div class="col-sm-10">
+                          <input type="text" class="form-control" id="receiver_province" placeholder="" value="" readonly>
+                        </div>
+                      </div>
+                    </li>
+                    <li>
+                      <div class="form-group">
+                        <label for="receiver_city" class="col-sm-2 control-label">城市</label>
+                        <div class="col-sm-10">
+                          <input type="text" class="form-control" id="receiver_city" placeholder="" value="" readonly>
+                        </div>
+                      </div>
+                    </li>
+                    <li>
+                      <div class="form-group">
+                        <label for="receiver_area" class="col-sm-2 control-label">区/县</label>
+                        <div class="col-sm-10">
+                          <input type="text" class="form-control" id="receiver_area" placeholder="" value="" readonly>
+                        </div>
+                      </div>
+                    </li>
+                    <li>
+                      <div class="form-group">
+                        <label for="receiver_address" class="col-sm-2 control-label">详细地址</label>
+                        <div class="col-sm-10">
+                          <area class="form-control" id="receiver_address" readonly> </area>
+                        </div>
+                      </div>
+                    </li>
+                  </ul>
+              </div>
+            </div>
+            <div class="panel panel-primary">
+              <div class="panel-heading">入仓明细</div>
+              <div class="panel-body">
+                <table class="table table-condensed">
+                  <thead><tr><td>商品图片</td><td>商品编码</td><td>商品名称</td><td>入仓数量</td><td>控制信息</td></tr></thead>
+                  <tbody><tr><td></td><td></td><td></td><td></td><td></td></tr></tbody>
+                  <tfoot><tr><td colspan="5"></td></tr></tfoot>
+                </table>
+              </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-10">
+                  <button type="submit" class="btn btn-primary">推送预测到货单到蜂巢供应链</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}DataTables/datatables.min.js"></script>
+<script>
+$(function(){
+  $('[data-toggle="popover"]').popover({
+     //trigger: 'hover',
+  });
+  $('a').click(function(){
+     $(this).addClass('clicked');
+  });
+  $('a.btn-account').click(function(){
+     var dataSrc = $(this).attr('data-src');
+     $.get(dataSrc,
+        function(resp){
+            $('#modal_dialog div.modal-body').html(resp);
+        },'html'
+     );
+     $('#modal_dialog').modal('show');
+  });
+  $('#modal_dialog').on('hidden.bs.modal', function(){
+     $('#modal_dialog div.modal-body').html('');
+  });
+})
+</script>
+</body>
+</html>

@@ -13,9 +13,12 @@ def action_decorator(action_code):
         def _wrapper(*args, **kwargs):
             resp = func(*args, **kwargs)
             if resp and resp.get('object'):
+                code = action_code
+                if resp.get('action_code') is not None:
+                    code = resp.get('action_code')
                 log_ware_action(
                     resp.get('object'),
-                    action_code,
+                    code,
                     state_code=resp.get('success') and constants.GOOD or constants.ERROR,
                     message=resp.get('message')
                 )
