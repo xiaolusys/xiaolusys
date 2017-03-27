@@ -755,7 +755,7 @@ class PortalSerializer(serializers.ModelSerializer):
 class LogisticsCompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = LogisticsCompany
-        fields = ('code', 'name')
+        fields = ('id','code', 'name')
 
 
 class ShoppingCartSerializer(serializers.HyperlinkedModelSerializer):
@@ -960,6 +960,9 @@ class SaleTradeDetailSerializer(serializers.HyperlinkedModelSerializer):
         if obj.status not in SaleTrade.INGOOD_STATUS:
             return []
         package_list = PackageOrderSerializer(obj.package_orders, many=True).data
+        package_list[0]['logistics_company']["id"] = 0
+        # package_list["package_orders"]["logistics_company"]["id"] = 0
+
 
         for sale_order in obj.sale_orders.all():
             if not sale_order.is_packaged():
