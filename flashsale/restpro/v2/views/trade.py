@@ -924,13 +924,13 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         if error:
             return error
 
-        # 检测是否只允许优惠券购买商品，参数是否异常
-        coupon_ids = parse_coupon_ids_from_pay_extras(pay_extras)
-        coupon_template_ids = self.get_coupon_template_ids(coupon_ids)
-        coupon_template_id = coupon_template_ids[0] if coupon_template_ids else None
-        error = self.check_use_coupon_only(cart_qs, cart_discount, cart_total_fee, coupon_template_id)
-        if error:
-            return error
+        # 检测是否只允许优惠券购买商品，参数是否异常  现在精品汇商品都能加入购物车购买，此校验不需要了2017-3-27
+        # coupon_ids = parse_coupon_ids_from_pay_extras(pay_extras)
+        # coupon_template_ids = self.get_coupon_template_ids(coupon_ids)
+        # coupon_template_id = coupon_template_ids[0] if coupon_template_ids else None
+        # error = self.check_use_coupon_only(cart_qs, cart_discount, cart_total_fee, coupon_template_id)
+        # if error:
+        #     return error
 
         # 检查收货地址
         if order_type != SaleTrade.ELECTRONIC_GOODS_ORDER:
