@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 def default_forecast_inbound_no(identify_id=None):
     identify_id = identify_id or uniqid()
-    return 'frd' + datetime.datetime.now().strftime('%Y%m%d') + identify_id
+    return 'frd' + datetime.datetime.now().strftime('%y%m%d') + identify_id
 
 
 def gen_subforecast_inbound_no(parent_id):
@@ -179,6 +179,12 @@ class ForecastInbound(BaseModel):
             if self.delivery_time > self.arrival_time:
                 self.delivery_time = self.arrival_time
         self.status = self.ST_ARRIVED
+
+    def push_fengchao_update_status_approved(self):
+        self.status = self.ST_APPROVED
+
+    def cancel_fengchao_update_status_draft(self):
+        self.status = self.ST_DRAFT
 
     def inbound_arrive_confirm_finish(self):
         if self.status != self.ST_ARRIVED:

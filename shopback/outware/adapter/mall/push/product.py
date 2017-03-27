@@ -23,14 +23,14 @@ def push_ware_sku_by_saleproduct(sale_product):
 
     for product in products:
         sku_type = constants.SKU_TYPE_PRODUCT['code']
-        if product.type == Product.METARIAL:
+        if product.type == Product.NO_SALE:
             sku_type = constants.SKU_TYPE_METARIAL['code']
 
-        declare_type = constants.DECLARE_TYPE_NONE
+        declare_type = constants.DECLARE_TYPE_NONE['code']
         if modelproduct.source_type == SaleProduct.SOURCE_BONDED:
-            declare_type = constants.DECLARE_TYPE_BOUND
+            declare_type = constants.DECLARE_TYPE_BOUND['code']
         elif modelproduct.source_type == SaleProduct.SOURCE_OUTSIDE:
-            declare_type = constants.DECLARE_TYPE_DIRECT
+            declare_type = constants.DECLARE_TYPE_DIRECT['code']
 
         for sku in product.normal_skus:
             sku_code = sku.outer_id

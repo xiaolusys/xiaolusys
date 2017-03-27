@@ -21,6 +21,7 @@ def push_outware_inbound_by_forecast_order(forecast_inbound_order):
         'order_type': constants.ORDER_PURCHASE['code'],
         'tms_order_code': forecast_inbound_order.express_no,
         'receiver_info': {
+            'warehouse_name': warehouse.ware_name,
             'receiver_province': warehouse.province,
             'receiver_city': warehouse.city,
             'receiver_area': warehouse.district,
@@ -52,6 +53,14 @@ def push_outware_inbound_by_forecast_order(forecast_inbound_order):
     response = pms.create_inbound_order(dict_obj.order_code, dict_obj.vendor_code, dict_obj)
 
     return response
+
+def cancel_outware_inbound_by_forecast(forecast):
+    supplier = forecast.supplier
+    vendor_code = supplier.vendor_code
+
+    resp = pms.cancel_inbound_order(forecast.forecast_no, vendor_code, constants.ORDER_PURCHASE['code'])
+
+    return resp
 
 
 

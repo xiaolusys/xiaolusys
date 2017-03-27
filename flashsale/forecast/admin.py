@@ -110,7 +110,7 @@ class ForecastInboundAdmin(BaseAdmin):
 
     def outware_status_label(self, obj):
         outware_status_pair = obj.get_outware_status_pair()
-        return '<label class="%s">%s</label>'%(OUTWARE_STATUS_LABEL_DICT.get(outware_status_pair[0]), outware_status_pair[1])
+        return '<a href="/apis/forecast/v1/outware?forecast_id=%s" class="%s">%s</a>'%(obj.id, OUTWARE_STATUS_LABEL_DICT.get(outware_status_pair[0]), outware_status_pair[1])
 
     outware_status_label.allow_tags = True
     outware_status_label.short_description = u'蜂巢订单状态'

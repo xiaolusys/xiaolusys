@@ -152,15 +152,15 @@ def create_inbound_order(inbound_code, vendor_code, dict_obj):
                     uni_key=OutwareInboundOrder.generate_unikey(inbound_code, order_type),
                 )
         except IntegrityError:
-            ow_order = OutwareInboundOrder.objects.get(
+            ow_inbound = OutwareInboundOrder.objects.get(
                 inbound_code=inbound_code,
                 order_type=order_type
             )
-            if not ow_order.is_reproducible():
-                return {'success': True, 'object': ow_order, 'message': '订单不可重复推送，如果需要修改请先取消'}
+            if not ow_inbound.is_reproducible:
+                return {'success': True, 'object': ow_inbound, 'message': '订单不可重复推送，如果需要修改请先取消'}
 
-            ow_order.extras['data'] = dict(dict_obj)
-            ow_order.save()
+            ow_inbound.extras['data'] = dict(dict_obj)
+            ow_inbound.save()
 
         for sku_item in dict_obj.order_items:
             sku_code = sku_item.sku_id

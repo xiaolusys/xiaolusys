@@ -1,125 +1,114 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <link rel="stylesheet" type="text/css"  href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" media="screen" />
-    <link rel="stylesheet" type="text/css"  href="//cdn.bootcss.com/bootstrap-datepicker/1.6.1/css/bootstrap-datepicker.min.css" />
-    <link rel="stylesheet" type="text/css"  href="{{ STATIC_URL }}DataTables/DataTables-1.10.11/css/dataTables.bootstrap.min.css"/>
-    <title>推送预测单到外仓</title>
-    <style>
-    * {
-        padding: 0 0;
-        margin: 0 0;
-    }
-    a:visited {
-        color: #000;
-    }
-    a:clicked{
-        color:  #f69c55;
-    }
-    a.gloomy{
-        color: rgba(102, 102, 102, 0.25);
-    }
-    .inline {
-        display: inline;
-    }
-    .popover{
-        max-width:450px;
-        max-height:900px;
-    }
-    ul.vertical {
-        list-style: none;
-        clear: both;
-    }
-    ul.vertical li{
-        display: block;
-        border: none;
-    }
-    ul.horizental, ul.vertical{
-        list-style: none;
-        border: none;
-        margin-bottom:0px;
-    }
-    ul.horizental > li{
-        display: block;
-        float: left;
-        border: none;
-    }
-    ul.horizental > li+li{
-        border-left: 1px solid #eee;
-    }
-    ul .list-group-item {
-        padding: 10px 10px;
-    }
-    .label-badge{
-        display: inline-block;
-        min-width: 10px;
-        padding: 3px 7px;
-        font-size: 12px;
-        font-weight: 700;
-        line-height: 1;
-        color: #fff;
-        text-align: center;
-        white-space: nowrap;
-        vertical-align: middle;
-        border-radius: 10px;
-    }
-    .container-body-left{
-        border-top: 1px solid #eee;
-        border-left: 1px solid #eee;
-        padding: 10px 0px;
-    }
-    .panel-body{
-        padding: 10px 5px;
-    }
-    .panel-heading, .panel-footer{
-        padding: 0px 10px;
-    }
-    .panel-footer .btn {
-        margin: 0 10px;
-    }
-    .group-line{
-        padding: 0 20px 0;
-        margin: 20px 0;
-        line-height: 1px;
-        border-left: 250px solid #ddd;
-        border-right: 250px solid #ddd;
-        text-align: center;
-    }
-    .modal-lg{
-        width: 1000px;
-    }
-    #table-1 >tbody > tr.selected {
-        background-color: #777;
-    }
-    table tr td > p{
-        margin: 0 0 ;
-    }
-    table td p > a{
-        text-decoration: underline;
-    }
-    input[type=number]{
-        line-height: 30px;
-    }
-    ul.list-style-1 {
-        list-style: none;
-    }
-    ul.list-style-1 li{
-        width: 50%;
-        float: left;
-    }
-    </style>
+<meta charset="UTF-8">
+<link rel="stylesheet" type="text/css"  href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" media="screen" />
+<link rel="stylesheet" type="text/css"  href="//cdn.bootcss.com/bootstrap-datepicker/1.6.1/css/bootstrap-datepicker.min.css" />
+<link rel="stylesheet" type="text/css"  href="{{ STATIC_URL }}DataTables/DataTables-1.10.11/css/dataTables.bootstrap.min.css"/>
+<title>推送预测单到外仓</title>
+<style>
+* {
+    padding: 0 0;
+    margin: 0 0;
+}
+a:visited {
+    color: #000;
+}
+a:clicked{
+    color:  #f69c55;
+}
+a.gloomy{
+    color: rgba(102, 102, 102, 0.25);
+}
+.inline {
+    display: inline;
+}
+.popover{
+    max-width:450px;
+    max-height:900px;
+}
+ul.vertical {
+    list-style: none;
+    clear: both;
+}
+ul.vertical li{
+    display: block;
+    border: none;
+}
+ul.horizental, ul.vertical{
+    list-style: none;
+    border: none;
+    margin-bottom:0px;
+}
+ul.horizental > li{
+    display: block;
+    float: left;
+    border: none;
+}
+ul.horizental > li+li{
+    border-left: 1px solid #eee;
+}
+ul .list-group-item {
+    padding: 10px 10px;
+}
+.label-badge{
+    display: inline-block;
+    min-width: 10px;
+    padding: 3px 7px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    border-radius: 10px;
+}
+.group-line{
+    padding: 0 20px 0;
+    margin: 20px 0;
+    line-height: 1px;
+    border-left: 250px solid #ddd;
+    border-right: 250px solid #ddd;
+    text-align: center;
+}
+.modal-lg{
+    width: 1000px;
+}
+#table-1 >tbody > tr.selected {
+    background-color: #777;
+}
+table tr td > p{
+    margin: 0 0 ;
+}
+table td p > a{
+    text-decoration: underline;
+}
+input[type=number]{
+    line-height: 30px;
+}
+ul.list-style-1 {
+    list-style: none;
+}
+ul.list-style-1 li{
+    width: 50%;
+    float: left;
+}
+.red {
+    color: red;
+}
+</style>
 </head>
 <body>
 <div class="container">
     <div class="page-header">
-        <h1>推送预测到货单前注意事项
+        <h1>推送预测到货单
             <small ><div class="alert alert-danger">请检查对接仓库及收货人信息，商品是否需要启动批次及有效期管理，确认无误后再确认提交！！！</div></small>
         </h1>
     </div>
     <div class="container-body">
-        <form class="form-horizontal">
-            <div class="panel panel-info">
+        <form class="form-horizontal" action="" method="POST">
+            <div class="panel panel-default">
               <div class="panel-heading">订单基本信息</div>
               <div class="panel-body">
                   <input type="hidden" class="form-control" id="supplier_id" value="">
@@ -128,7 +117,7 @@
                       <div class="form-group">
                         <label for="order_code" class="col-sm-3 control-label">订单编号</label>
                         <div class="col-sm-9">
-                          <input type="text" class="form-control" id="order_code" placeholder="" value="" readonly>
+                          <input type="text" class="form-control" id="order_code" placeholder="" value="{{order_code}}" readonly>
                         </div>
                       </div>
                       </li>
@@ -136,7 +125,7 @@
                           <div class="form-group">
                             <label for="tms_order_code" class="col-sm-3 control-label">到货物流单号</label>
                             <div class="col-sm-9">
-                              <input type="text" class="form-control" id="tms_order_code" placeholder="" value="" readonly>
+                              <input type="text" class="form-control" id="tms_order_code" placeholder="" value="{{tms_order_code}}" readonly>
                             </div>
                           </div>
                       </li>
@@ -144,7 +133,7 @@
                       <div class="form-group">
                         <label for="vendor_code" class="col-sm-3 control-label">供应商编号</label>
                         <div class="col-sm-9">
-                          <input type="text" class="form-control" id="vendor_code" placeholder="" value="" readonly>
+                          <input type="text" class="form-control" id="vendor_code" placeholder="" value="{{vendor_code}}" readonly>
                         </div>
                       </div>
                       </li>
@@ -152,23 +141,23 @@
                           <div class="form-group">
                             <label for="vendor_name" class="col-sm-3 control-label">供应商名称</label>
                             <div class="col-sm-9">
-                              <input type="text" class="form-control" id="vendor_name" placeholder="" value="" readonly>
+                              <input type="text" class="form-control" id="vendor_name" placeholder="" value="{{vendor_name}}" readonly>
                             </div>
                           </div>
                       </li>
                     </ul>
               </div>
             </div>
-            <div class="panel panel-default">
-              <div class="panel-heading">收货信息</div>
+            <div class="panel panel-info">
+              <div class="panel-heading">仓库收货信息</div>
               <div class="panel-body">
                   <input type="hidden" class="form-control" id="warehouse_id" value="">
                   <ul class="list-style-1">
                     <li>
                       <div class="form-group">
-                        <label for="ware_name" class="col-sm-2 control-label">仓库名称</label>
+                        <label for="warehouse_name" class="col-sm-2 control-label">仓库名称</label>
                         <div class="col-sm-10">
-                          <input type="text" class="form-control" id="ware_name" placeholder="仓库名称" value="" readonly>
+                          <input type="text" class="form-control" id="warehouse_name" placeholder="仓库名称" value="{{receiver_info.warehouse_name}}" readonly>
                         </div>
                       </div>
                     </li>
@@ -176,7 +165,7 @@
                       <div class="form-group">
                         <label for="receiver_name" class="col-sm-2 control-label">收货人</label>
                         <div class="col-sm-10">
-                          <input type="text" class="form-control" id="receiver_name" placeholder="收货人" value="" readonly>
+                          <input type="text" class="form-control" id="receiver_name" placeholder="收货人" value="{{receiver_info.receiver_name}}" readonly>
                         </div>
                       </div>
                     </li>
@@ -184,7 +173,7 @@
                       <div class="form-group">
                         <label for="receiver_mobile" class="col-sm-2 control-label">手机</label>
                         <div class="col-sm-10">
-                          <input type="text" class="form-control" id="receiver_mobile" placeholder="手机" value="" readonly>
+                          <input type="text" class="form-control" id="receiver_mobile" placeholder="手机" value="{{receiver_info.receiver_mobile}}" readonly>
                         </div>
                       </div>
                     </li>
@@ -192,7 +181,7 @@
                       <div class="form-group">
                         <label for="receiver_phone" class="col-sm-2 control-label">联系电话</label>
                         <div class="col-sm-10">
-                          <input type="text" class="form-control" id="receiver_phone" placeholder="" value="" readonly>
+                          <input type="text" class="form-control" id="receiver_phone" placeholder="" value="{{receiver_info.receiver_phone}}" readonly>
                         </div>
                       </div>
                     </li>
@@ -200,7 +189,7 @@
                       <div class="form-group">
                         <label for="receiver_province" class="col-sm-2 control-label">省</label>
                         <div class="col-sm-10">
-                          <input type="text" class="form-control" id="receiver_province" placeholder="" value="" readonly>
+                          <input type="text" class="form-control" id="receiver_province" placeholder="" value="{{receiver_info.receiver_province}}" readonly>
                         </div>
                       </div>
                     </li>
@@ -208,7 +197,7 @@
                       <div class="form-group">
                         <label for="receiver_city" class="col-sm-2 control-label">城市</label>
                         <div class="col-sm-10">
-                          <input type="text" class="form-control" id="receiver_city" placeholder="" value="" readonly>
+                          <input type="text" class="form-control" id="receiver_city" placeholder="" value="{{receiver_info.receiver_city}}" readonly>
                         </div>
                       </div>
                     </li>
@@ -216,7 +205,7 @@
                       <div class="form-group">
                         <label for="receiver_area" class="col-sm-2 control-label">区/县</label>
                         <div class="col-sm-10">
-                          <input type="text" class="form-control" id="receiver_area" placeholder="" value="" readonly>
+                          <input type="text" class="form-control" id="receiver_area" placeholder="" value="{{receiver_info.receiver_area}}" readonly>
                         </div>
                       </div>
                     </li>
@@ -224,7 +213,7 @@
                       <div class="form-group">
                         <label for="receiver_address" class="col-sm-2 control-label">详细地址</label>
                         <div class="col-sm-10">
-                          <area class="form-control" id="receiver_address" readonly> </area>
+                          <input type="text" class="form-control" id="receiver_address" placeholder="" value="{{receiver_info.receiver_address}}" readonly>
                         </div>
                       </div>
                     </li>
@@ -235,15 +224,63 @@
               <div class="panel-heading">入仓明细</div>
               <div class="panel-body">
                 <table class="table table-condensed">
-                  <thead><tr><td>商品图片</td><td>商品编码</td><td>商品名称</td><td>入仓数量</td><td>控制信息</td></tr></thead>
-                  <tbody><tr><td></td><td></td><td></td><td></td><td></td></tr></tbody>
+                  <thead>
+                    <tr>
+                        <td colspan="4" >商品信息</td>
+                        <td colspan="3" >管理信息</td>
+                        <td colspan="2" >信息同步状态</td>
+                    </tr>
+                    <tr>
+                        <td class="col-xs-1">商品图片</td>
+                        <td class="col-xs-2">商品规格编码</td>
+                        <td class="col-xs-3">商品名称</td>
+                        <td class="col-xs-1">入仓数量</td>
+                        <td class="col-xs-1">保质期(天)</td>
+                        <td class="col-xs-1">批次管理</td>
+                        <td class="col-xs-1">供应商管理</td>
+                        <td class="col-xs-1">资料同步</td>
+                        <td class="col-xs-1">供应商同步</td>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  {% for item in order_items %}
+                    <tr>
+                        <td><img src="{{item.sku_img}}?imageMogr2/thumbnail/35/format/jpg/quality/90/crop/35x35" alt="..." class="img-rounded"></td>
+                        <td>{{item.sku_id}}</td>
+                        <td>{{item.sku_name}}</td>
+                        <td>{{item.quantity}}</td>
+                        <td>{{item.shelf_life}}</td>
+                        <td>
+                            {% if item.is_batch_mgt %}<i class="glyphicon glyphicon-ok-circle text-success"></i>
+                            {% else %}<i class="glyphicon glyphicon-remove-circle text-danger"></i>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.is_vendor_mgt %}<i class="glyphicon glyphicon-ok-circle text-success"></i>
+                            {% else %}<i class="glyphicon glyphicon-remove-circle text-danger"></i>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.is_pushed_ok %}<i class="glyphicon glyphicon-ok-circle text-success"></i>
+                            {% else %}<i class="glyphicon glyphicon-remove-circle text-danger"></i>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.is_unioned %}<i class="glyphicon glyphicon-ok-circle text-success"></i>
+                            {% else %}<i class="glyphicon glyphicon-remove-circle text-danger"></i>
+                            {% endif %}
+                        </td>
+                    </tr>
+                  {% endfor %}
+                  </tbody>
                   <tfoot><tr><td colspan="5"></td></tr></tfoot>
                 </table>
               </div>
             </div>
             <div class="form-group">
-                <div class="col-sm-10">
-                  <button type="submit" class="btn btn-primary">推送预测到货单到蜂巢供应链</button>
+                <div class="col-sm-12">
+                    <a class="btn btn-success btn-cancel {% if not is_received %}hidden{% endif %}" >确认取消蜂巢入仓单</a>
+                    <a class="btn btn-primary btn-confirm {% if is_received %}hidden{% endif %}" >确认推送预测到货单入蜂巢仓库</a>
                 </div>
             </div>
         </form>
@@ -271,6 +308,57 @@ $(function(){
   });
   $('#modal_dialog').on('hidden.bs.modal', function(){
      $('#modal_dialog div.modal-body').html('');
+  });
+  var isSending = false;
+  $('a.btn-confirm').click(function(){
+    var order_code = $('#order_code').val();
+    if (isSending){
+        alert('请求正在处理中，请稍后');
+        return
+    }
+    isSending = true;
+    $.ajax({
+        url: '/apis/forecast/v1/outware/'+ order_code +'/confirm_push',
+        type: 'post',
+        dataType: 'json',
+        success: function(result){
+          isSending = false;
+          if (result.code == 0){
+            $('a.btn-confirm').addClass('hidden');
+            $('a.btn-cancel').removeClass('hidden');
+          } else {
+            alert('推送错误:'+result.info);
+          }
+        },
+        error: function(err){
+          isSending = false;
+        }
+    });
+  });
+  $('a.btn-cancel').click(function(){
+    var order_code = $('#order_code').val();
+    if (isSending){
+        alert('请求正在处理中，请稍后');
+        return
+    }
+    isSending = true;
+    $.ajax({
+        url: '/apis/forecast/v1/outware/'+ order_code +'/cancel_pushed',
+        type: 'post',
+        dataType: 'json',
+        success: function(result){
+          isSending = false;
+          if (result.code == 0){
+            $('a.btn-confirm').removeClass('hidden');
+            $('a.btn-cancel').addClass('hidden');
+          } else {
+            alert('取消错误:'+result.info);
+          }
+        },
+        error: function(err){
+          isSending = false;
+        }
+    });
   });
 })
 </script>

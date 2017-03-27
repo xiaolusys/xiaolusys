@@ -53,6 +53,7 @@ class OutwareOrder(BaseWareModel):
     def order_skus(self):
         return OutwareOrderSku.objects.filter(union_order_code=self.union_order_code, is_valid=True)
 
+    @property
     def is_reproducible(self):
         return self.status in (constants.NORMAL, constants.CANCEL)
 
@@ -98,7 +99,8 @@ class OutwareOrderSku(BaseWareModel):
 
     def set_valid(self):
         self.is_valid = True
-        
+
+    @property
     def is_reproducible(self):
         return self.is_valid == False
 

@@ -31,6 +31,9 @@ class OutwareSupplier(BaseWareModel):
     def generate_unikey(cls, account_id, vdr_code):
         return '{vendor_code}-{account_id}'.format(vendor_code=vdr_code, account_id=account_id)
 
+    @property
+    def is_pushed_ok(self):
+        return self.is_action_success(constants.ACTION_SUPPLIER_CREATE['code'])
 
 class OutwareSku(BaseWareModel):
     """ 商品信息直接跟供应商关联 """
@@ -91,6 +94,10 @@ class OutwareSku(BaseWareModel):
     def is_vendor_mgt_on(self):
         return self.is_vendor_mgt
 
+    @property
+    def shelf_life_days(self):
+        return self.extras.get('data', {}).get('shelf_life', 0)
+
     def set_ware_sku_code(self, ware_sku_code):
         self.ware_sku_code = ware_sku_code
 
@@ -107,14 +114,16 @@ class OutwareSku(BaseWareModel):
 
 class OutwareInboundOrder(BaseWareModel):
 
+    ORDER_PURCHASE = constants.ORDER_PURCHASE['code']
+    ORDER_REFUND = constants.ORDER_REFUND['code']
     ORDER_TYPE_CHOICES = ((s['code'], s['name']) for s in [constants.ORDER_PURCHASE, constants.ORDER_REFUND])
 
     NORMAL = constants.NORMAL
     STATUS_CHOICES = (
         (constants.NORMAL, '未推送'),
-        (constants.RECEIVED, '接收'),
-        (constants.ARRIVED, '到仓'),
-        (constants.CANCEL, '取消'),
+        (constants.RECEIVED, '已接收'),
+        (constants.ARRIVED, '已到仓'),
+        (constants.CANCEL, '已取消'),
     )
 
     outware_supplier = models.ForeignKey(OutwareSupplier, verbose_name=u'关联供应商')
@@ -146,6 +155,11 @@ class OutwareInboundOrder(BaseWareModel):
             order_type=order_type,
         )
 
+    @property
+    def is_pushed_ok(self):
+        return self.status in (constants.RECEIVED, constants.ARRIVED)
+
+    @property
     def is_reproducible(self):
         return self.status in (constants.NORMAL, constants.CANCEL)
 
@@ -153,8 +167,7 @@ class OutwareInboundOrder(BaseWareModel):
         self.status = status_code
         self.save()
 
-    def is_pushed_ok(self):
-        return self.status in (constants.RECEIVED, constants.ARRIVED)
+
 
 
 class OutwareInboundSku(BaseWareModel):

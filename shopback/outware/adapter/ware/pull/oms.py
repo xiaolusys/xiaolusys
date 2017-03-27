@@ -54,7 +54,7 @@ def create_order(order_code, store_code, dict_obj):
                 union_order_code=order_code,
                 order_type=order_type
             )
-            if not ow_order.is_reproducible():
+            if not ow_order.is_reproducible:
                 return {'success': True, 'object': ow_order, 'message': '订单不可重复推送'}
 
             ow_order.extras['data'] = dict(dict_obj)
@@ -81,7 +81,7 @@ def create_order(order_code, store_code, dict_obj):
                     origin_skuorder_no=sku_order_code,
                     sku_code=sku_item.sku_id
                 )
-                if not ow_ordersku.is_reproducible():
+                if not ow_ordersku.is_reproducible:
                     raise Exception('该SKU订单已存在，请先取消后重新创建:sku_order_code=%s' % sku_order_code)
 
                 ow_ordersku.is_valid = True
