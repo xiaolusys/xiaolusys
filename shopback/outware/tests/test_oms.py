@@ -34,7 +34,7 @@ class OMSTestCase(TestCase):
         resp = oms.cancel_order(sale_trade.tid)
         self.assertTrue(resp['success'])
 
-    @tag('B')
+    @tag('C')
     def testCreateAndCancelWarePackage(self):
         package_order = PackageOrder.objects.first()
         package_order.pid = '%s'%(time.time())
@@ -55,7 +55,7 @@ class SlycTestCase(TestCase):
     def setUp(self):
         pass
 
-    @tag('B')
+    @tag('C')
     def testCreateAndCancelWareOrder(self):
         sale_trade = SaleTrade.objects.first()
         sale_trade.tid = SaleTrade.gen_unikey()
