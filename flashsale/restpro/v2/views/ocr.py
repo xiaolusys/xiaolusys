@@ -3,6 +3,7 @@ from __future__ import absolute_import, unicode_literals
 
 import  datetime
 import base64
+import Image
 from cStringIO import StringIO
 
 from rest_framework import viewsets
@@ -49,6 +50,19 @@ class OcrIndentifyViewSet(viewsets.GenericViewSet):
 
         if not resp['success']:
             return Response({'code': 3, 'info': '未识别成功, 请调整位置重新拍摄'})
+
+        center  =  resp['face_rect']['center']
+        ract_angle = abs(resp['face_rect']['angle'])
+        h_size_x, h_size_y  = resp['face_rect']['size']['height'], resp['face_rect']['size']['width']
+
+        if card_side == 'face':
+            img = Image.open(StringIO(base64.b64decode(card_base64)))
+            img_size = img.size
+            if (img_size[0] - h_size_x - center['x']) < 0.05 * img_size[0] or h_size_y < 10 or 20 < ract_angle % 90 < 60:
+                return Response({'code': 4, 'info': '请在明光下拍摄，并调整角度至边框平行'})
+
+            if (h_size_x * h_size_y * 1.0) / (img_size[0] * img_size[1]) < 0.015:
+                return Response({'code': 5, 'info': '请调整拍摄距离，保证证件占据屏幕80%大小'})
 
         customer = Customer.getCustomerByUser(request.user)
         resp.update({
