@@ -68,11 +68,11 @@ class OcrIndentifyViewSet(viewsets.GenericViewSet):
             })
             return Response({'code': 3, 'info': '未识别成功, 请调整位置重新拍摄'})
 
-        center  =  resp['face_rect']['center']
-        ract_angle = abs(resp['face_rect']['angle'])
-        h_size_x, h_size_y  = resp['face_rect']['size']['height'], resp['face_rect']['size']['width']
-
+        # 对身份证拍摄角度做一些限制,保证身份证照片清晰度
         if card_side == 'face':
+            center = resp['face_rect']['center']
+            ract_angle = abs(resp['face_rect']['angle'])
+            h_size_x, h_size_y = resp['face_rect']['size']['height'], resp['face_rect']['size']['width']
             img = Image.open(StringIO(base64.b64decode(card_base64)))
             img_size = img.size
             if (img_size[0] - h_size_x - center['x']) < 0.05 * img_size[0] or h_size_y < 10 or 20 < ract_angle % 90 < 60:
