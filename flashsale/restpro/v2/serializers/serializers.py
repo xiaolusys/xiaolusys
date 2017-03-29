@@ -923,11 +923,15 @@ class PackageOrderSerializer(serializers.ModelSerializer):
     out_sid = serializers.CharField(read_only=True)
     logistics_company = LogisticsCompanySerializer(read_only=True)
     note = serializers.CharField(read_only=True)
+    out_sid = serializers.SerializerMethodField('gen_out_sid_strip', read_only=True)
 
     class Meta:
         model = PackageOrder
         fields = ('id', 'logistics_company', 'process_time', 'pay_time', 'book_time', 'assign_time',
                   'finish_time', 'weight_time','cancel_time', 'assign_status_display', 'ware_by_display', 'out_sid', 'note')
+
+    def gen_out_sid_strip(self, obj):
+        return obj.out_sid.strip()
 
 
 class SaleTradeDetailSerializer(serializers.HyperlinkedModelSerializer):
