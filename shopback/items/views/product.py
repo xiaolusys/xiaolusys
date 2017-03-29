@@ -552,11 +552,12 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
-    serializer_class = serializers.ProductEditSerializer
+    serializer_class = serializers.ProductListSerializer
     authentication_classes = (authentication.BasicAuthentication, authentication.SessionAuthentication)
     permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser, permissions.DjangoModelPermissions)
     filter_backends = (ConditionFilter, filters.DjangoFilterBackend, filters.OrderingFilter)
-    search_fields = ['name', 'id', 'model_id', 'sale_product', 'outer_id', 'category_id', 'type', 'shelf_status']
+    search_fields = ['name__contains', 'id', 'model_id', 'sale_product', 'outer_id', 'category_id', 'type',
+                     'shelf_status', 'status', 'ware_by']
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
