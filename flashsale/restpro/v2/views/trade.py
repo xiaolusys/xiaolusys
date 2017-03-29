@@ -967,7 +967,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 })
                 return Response({'code': 10, 'info': u'订单中包含海关清关商品，根据海关要求，保税区发货商品需要提供身份证，海外直邮商品需要提供身份证正反面照片，请修改收货地址后重新提交订单'})
 
-            if not address.check_idcard_valid():
+            if need_level > UserAddress.PERSONALINFO_LEVEL_ONE and (not address.check_idcard_valid()):
                 logger.warn({
                     'code': 11,
                     'message': u'身份证和姓名不一致,请修改再提交订单',
@@ -1251,7 +1251,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 return Response(
                     {'code': 10, 'info': u'订单中包含海关清关商品，根据海关要求，保税区发货商品需要提供身份证，海外直邮商品需要提供身份证正反面照片，请修改收货地址后重新提交订单'})
 
-            if not address.check_idcard_valid():
+            if need_level > UserAddress.PERSONALINFO_LEVEL_ONE and (not address.check_idcard_valid()):
                 logger.warn({
                     'code': 11,
                     'message': u'身份证和姓名不一致,请修改再提交订单',
