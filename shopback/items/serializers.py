@@ -37,6 +37,51 @@ class ProductSerializer(serializers.ModelSerializer):
         exclude = ('created',)
 
 
+class ProductListSerializer(serializers.ModelSerializer):
+    id = serializers.CharField()
+    barcode = serializers.CharField(source='BARCODE', read_only=True)
+    status = serializers.CharField(source='get_status_display', read_only=True)
+    sale_category = serializers.SerializerMethodField(read_only=True)
+    category = serializers.CharField()
+    sku_extras = serializers.SerializerMethodField(read_only=True)
+    # skus = serializers.SerializerMethodField()
+    name = serializers.CharField()
+    created = serializers.DateTimeField()
+    type = serializers.CharField()
+    pic_path = serializers.CharField()
+    model_id = serializers.CharField()
+    ref_link = serializers.CharField(allow_blank=True)
+    memo = serializers.CharField(allow_blank=True, required=False)
+    outer_id = serializers.CharField()
+    price_dict = serializers.SerializerMethodField()
+    stock_dict = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Product
+        fields = ('id', 'name', 'category', 'sale_category', 'created', 'sku_extras', 'type', 'pic_path', 'ref_link',
+                  'memo', 'status', 'barcode', 'model_id', 'outer_id', 'price_dict', 'stock_dict')
+
+    def get_price_dict(self, obj):
+        return {
+            'cost': obj.cost,
+            'std_purchase_price': obj.std_purchase_price,
+            'std_sale_price': obj.std_sale_price,
+            'agent_price': obj.agent_price,
+            'staff_price': obj.staff_price,
+        }
+
+    def get_stock_dict(self, obj):
+        return obj.get_stock_dict()
+
+    def get_sale_category(self, obj):
+        category = obj.category.get_sale_category()
+        from supplychain.supplier.serializers import SaleCategorySerializer
+        return SaleCategorySerializer(category).data
+
+    def get_sku_extras(self, obj):
+        return obj.sku_extras_info
+
+
 class ProductEditSerializer(serializers.ModelSerializer):
     id = serializers.CharField()
     barcode = serializers.CharField(source='BARCODE', read_only=True)

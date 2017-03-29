@@ -307,6 +307,10 @@ class Product(models.Model):
             return ''
         return image_watermark_cache.latest_qs or ''
 
+    def get_stock_dict(self):
+        from shopback.items.models import SkuStock
+        return {p.properties_name: SkuStock.get_by_sku(p.id).realtime_quantity for p in self.eskus}
+
     def get_weburl(self):
         return urlparse.urljoin(settings.M_SITE_URL,
                                 self.MALL_PRODUCT_TEMPLATE_URL.format(self.model_id))
