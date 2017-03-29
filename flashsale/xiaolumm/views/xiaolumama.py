@@ -35,6 +35,7 @@ class SetMamaManager(APIView):
 
 class ChangeUpperMama(APIView):
     """更换/设置/妈妈的上级妈妈，在修改精英妈妈的场景使用本接口
+    apis/xiaolumm/v1/mm/change_upper_mama
     """
     queryset = XiaoluMama.objects.all()
     renderer_classes = (JSONRenderer,)
