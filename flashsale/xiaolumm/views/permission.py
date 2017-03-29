@@ -9,7 +9,7 @@ class IsAccessChangeUpperMama(permissions.BasePermission):       #更换/设置/
     def has_permission(self, request, view):
         user = request.user
         own_perms = user.get_group_permissions()
-        if user.has_perm("xiaolumm.manage_change_uppermama"):
+        if user.has_perm("xiaolumm.manage_xiaolumama"):
             return True
         else:
             return False
