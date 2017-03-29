@@ -468,7 +468,7 @@ class SaleProductViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             serializer.save()
         else:
-            print serializer.errors
+            Response(serializer.errors)
         return Response(True)
 
 
