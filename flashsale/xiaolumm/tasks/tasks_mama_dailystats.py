@@ -378,7 +378,7 @@ def task_auto_exchg_xlmm_order():
             if model_product:
                 from flashsale.pay.apis.v1.order import get_pay_type_from_trade
                 if round(sale_order.payment / sale_order.price) > 0 and model_product.extras.has_key('template_id'):
-                    unexchg_coupon_num += 1
+                    unexchg_coupon_num += round(sale_order.payment / sale_order.price)
                     from flashsale.xiaolumm.apis.v1.xiaolumama import get_mama_by_id
                     level1_mama = get_mama_by_id(entry.contributor_id)
                     level2_mama = get_mama_by_id(entry.mama_id)
@@ -388,10 +388,11 @@ def task_auto_exchg_xlmm_order():
                             and level1_mama.get_level_lowest_elite() >= level2_mama.get_level_lowest_elite():
                         from flashsale.coupon.apis.v1.transfer import create_present_elite_score, get_elite_score_by_templateid
                         from flashsale.coupon.apis.v1.coupontemplate import get_coupon_template_by_id
-                        autoexchg_coupon_num += 1
+                        autoexchg_coupon_num += round(sale_order.payment / sale_order.price)
                         customer = level2_mama.get_customer()
                         template = get_coupon_template_by_id(model_product.extras['template_id'])
                         product_id, elite_score, agent_price = get_elite_score_by_templateid(template.id, level2_mama)
+                        elite_score *= round(sale_order.payment / sale_order.price)
                         uni_key_prefix = "autoexchg-%s" % (sale_order.id)
                         create_present_elite_score(customer, elite_score, template, '', uni_key_prefix)
                         if level2_mama.referal_from == XiaoluMama.INDIRECT and level3_mama and level3_mama.is_elite_mama:
