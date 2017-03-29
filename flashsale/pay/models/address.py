@@ -7,6 +7,7 @@ import logging
 from .base import PayBaseModel, BaseModel
 from ..managers import useraddress
 from core.fields import EncryptedCharField, JSONCharMyField
+from core.ocr import idcard
 
 logger = logging.getLogger('django.request')
 
@@ -212,6 +213,30 @@ class UserAddress(BaseModel):
             return self.PERSONALINFO_LEVEL_TWO
 
         return self.PERSONALINFO_LEVEL_ONE
+
+    def check_idcard_valid(self):
+        idcard_valid = self.extras.get('idcard_valid', {})
+        valid = idcard_valid.get('valid', False)
+        err_num = idcard_valid.get('err_num', 0)
+
+        if valid:
+            return True
+
+        if err_num > 6:
+            logger.error(u'身份证校验错误次数过多,请联系管理员修改')
+            return False
+
+        try:
+            is_valid = idcard.check_name(self.idcard_no, self.receiver_name)
+            if not is_valid:
+                err_num = err_num + 1
+            self.extras['idcard_valid'] = {'valid': is_valid, 'err_num': err_num}
+            self.save()
+        except Exception, e:
+            logger.error(u'身份证校验第三方接口错误{}'.format(e.message), exc_info=True)
+            is_valid = False
+
+        return is_valid
 
 
 

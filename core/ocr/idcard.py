@@ -1,10 +1,15 @@
 # coding: utf8
 from __future__ import absolute_import, unicode_literals
 
+import logging
+
 import requests
 import json
+import simplejson
 
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 host_url = settings.IDCARD_OCR_URL
 appcode = settings.ALIYUN_APPCODE
@@ -39,3 +44,38 @@ def identify(side, image_base64):
 
     resp_content = json.loads(r.text)
     return json.loads(resp_content['outputs'][0]['outputValue']['dataValue'])
+
+
+def check_name(card_no, name):
+    """
+    身份证实名验证
+
+    params:
+    - card_no <str> 身份证号
+    - name <str> 姓名
+
+    return:
+    <boolean>
+
+    接口文档:
+    https://market.aliyun.com/products/57000002/cmapi012507.html?spm=5176.8278668.629621.1.El3WFm#sku=yuncode650700000
+    """
+    url = 'http://aliyun.id98.cn/idcard'
+    params = {
+        'cardno': card_no,
+        'name': name
+    }
+    headers = {
+        'Authorization': 'APPCODE {}'.format(appcode)
+    }
+    resp = requests.get(url, params=params, headers=headers)
+    print resp.content
+    code = simplejson.loads(resp.content)['code']
+
+    if code == 1:
+        return True
+
+    if code == 20:
+        logger.error(u'第三方接口报错: 身份证中心维护中')
+
+    return False
