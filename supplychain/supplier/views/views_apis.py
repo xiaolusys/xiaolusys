@@ -362,7 +362,7 @@ class SaleProductViewSet(viewsets.ModelViewSet):
             'fetch_url': fetch_url,
             'sale_category': supplier.category.id if supplier.category else None,
             'supplier_sku': fetch_urls.supplier_sku(fetch_url, tsoup)
-        }
+            }
         return Response(data)
 
     @list_route(methods=['get'])
@@ -376,7 +376,7 @@ class SaleProductViewSet(viewsets.ModelViewSet):
             'pic_url': fetch_urls.getItemPic(fetch_url, tsoup),
             'price': fetch_urls.getItemPrice(tsoup),
             'fetch_url': fetch_url,
-        }
+           }
         return Response(data)
 
     def retrieve(self, request, *args, **kwargs):
@@ -440,6 +440,39 @@ class SaleProductViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         self.set_instance_special_fields(serializer)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    @list_route(methods=["post"])
+    def batch_create(self,request, *args, **kwargs):
+        products_list = request.data.get("products_list")
+        SOURCE_SELF = 0  # 自存商品
+        SOURCE_TTP = 1  # 三方仓商品
+        SOURCE_BONDED = 2  # 保税仓商品
+        SOURCE_OUTSIDE = 3  # 关外商品（直邮）
+        source_type_map = {u"自储商品":0,u"第三方仓":1,u"保税仓":2,u"关外直邮 ":3}
+        for i in products_list:
+            product_link = i.get('product_link', '').strip()
+            outer_id = product_link and hashlib.md5(product_link).hexdigest() or 'OO%d' % time.time()
+            i["outer_id"] = outer_id
+            i["source_type"] = source_type_map.get(i.get("source_type"))
+            i["status"] = SaleProduct.PASSED
+            i["sale_supplier"] = SaleSupplier.objects.filter(supplier_name=i.get("supplier_name")).first().id
+            i["sale_category"] = SaleCategory.objects.filter(name=i.get("sale_category_3")).first().id
+            i["contactor"] = request.user.id
+            serializer = serializers.ModifySaleProductSerializer(data=i)
+            if serializer.is_valid():
+                print "合法"
+                pass
+            else:
+                print serializer.errors
+                return Response(serializer.errors)
+        serializer = serializers.ModifySaleProductSerializer(data=products_list,many=True)
+        if serializer.is_valid():
+            serializer.save()
+            print "批量save"
+        else:
+            print serializer.errors
+        return Response(True)
+
 
     @list_route(methods=['post'])
     def new_create(self, request, *args, **kwargs):
@@ -545,6 +578,7 @@ class SaleScheduleViewSet(viewsets.ModelViewSet):
                 }
         aggregate_list = sorted(aggregate_data.values(), key=lambda x: x['schedule_date'], reverse=True)
         return Response(aggregate_list)
+
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
