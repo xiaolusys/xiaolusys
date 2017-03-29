@@ -91,7 +91,7 @@ class Refund(models.Model):
     tid = models.CharField(max_length=32, blank=True, verbose_name='交易ID')
 
     title = models.CharField(max_length=64, blank=True, verbose_name='出售标题')
-    num_iid = models.BigIntegerField(null=True, default=0, verbose_name='商品ID')
+    num_iid = models.CharField(max_length=64, blank=True, verbose_name='商品ID')
 
     user = models.ForeignKey(User, null=True, related_name='refunds', verbose_name='店铺')
     seller_id = models.CharField(max_length=64, blank=True, verbose_name='卖家ID')
