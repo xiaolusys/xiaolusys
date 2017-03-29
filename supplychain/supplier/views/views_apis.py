@@ -460,7 +460,6 @@ class SaleProductViewSet(viewsets.ModelViewSet):
             i["contactor"] = request.user.id
             serializer = serializers.ModifySaleProductSerializer(data=i)
             if serializer.is_valid():
-                print "合法"
                 pass
             else:
                 print serializer.errors
@@ -468,7 +467,6 @@ class SaleProductViewSet(viewsets.ModelViewSet):
         serializer = serializers.ModifySaleProductSerializer(data=products_list,many=True)
         if serializer.is_valid():
             serializer.save()
-            print "批量save"
         else:
             print serializer.errors
         return Response(True)
