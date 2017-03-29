@@ -74,7 +74,7 @@ class WuliuViewSet(viewsets.ModelViewSet):
             return Response({"info":"物流运单号为空了"})
         if not company_code:
             return Response({"info":"物流公司code未获得"})
-        packetid = str(packetid)
+        packetid = str(packetid).strip()
         company_code = str(company_code).strip()
         if company_code not in kd100_exp_map.values():
             kd100_code = LogisticsCompany.objects.filter(code=company_code).first()
@@ -92,11 +92,22 @@ class WuliuViewSet(viewsets.ModelViewSet):
         search_result = kd100_wuliu.kd100_instant_query(company_code,packetid)
         print search_result
         try :
+            logistics_company = LogisticsCompany.objects.filter(kd100_express_key=company_code).first()
+            null_data = {
+                "status": "",
+                "name": logistics_company.name,
+                "status_code": 0,
+                "errcode": "",
+                "id": "",
+                "message": "",
+                "data": [],
+                "order": packetid
+            }
             if not json.loads(search_result).get("data"):
                 logger.warn({'action': "kdn100_no_data", 'info': "out_sid:" + str(packetid)+"company_code:"+company_code})
-                return Response("暂无物流信息")
+                return Response(null_data)
         except:
-            return Response("暂无物流信息")
+            return Response(null_data)
         # print tradewuliu.content
         # print json.dumps(json.loads(search_result).get("data"))
         if not tradewuliu or (tradewuliu and tradewuliu.content != json.dumps(json.loads(search_result).get("data"))):
