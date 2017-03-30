@@ -223,7 +223,12 @@ class UserAddress(BaseModel):
             return True
 
         if err_num > 6:
-            logger.error(u'身份证校验错误次数过多,请联系管理员修改')
+            logger.error({
+                'message': u'num err,身份证校验错误次数过多,请联系管理员修改',
+                'address_id': self.id,
+                'action': 'check_idcard_valid',
+                'data': 'idno=%s, name=%s, valid=%s, err_num=%s' % (self.idcard_no, self.receiver_name, valid, err_num)
+            })
             return False
 
         try:
@@ -233,7 +238,12 @@ class UserAddress(BaseModel):
             self.extras['idcard_valid'] = {'valid': is_valid, 'err_num': err_num}
             self.save()
         except Exception, e:
-            logger.error(u'身份证校验第三方接口错误{}'.format(e.message), exc_info=True)
+            logger.error({
+                'message': u'check except,身份证校验第三方接口错误{}'.format(e.message),
+                'address_id': self.id,
+                'action': 'check_idcard_valid',
+                'data': 'idno=%s, name=%s, valid=%s, err_num=%s' % (self.idcard_no, self.receiver_name, valid, err_num)
+            }, exc_info=True)
             is_valid = False
 
         return is_valid

@@ -485,20 +485,33 @@ def task_order_trigger(sale_order):
         return
 
     product = products[0]
-
     carry_scheme = mm_linkid_mama.get_Mama_Order_Rebeta_Scheme(product)
     agency_level = mm_linkid_mama.agencylevel
 
-    #carry_amount = carry_scheme.get_scheme_rebeta(agencylevel=agency_level, payment=payment)
-    carry_amount = carry_scheme.calculate_carry(agency_level, payment) * 100 * order_num
-
-    if via_app:
-        if self_mama:
-            carry_amount = int(carry_amount * 1.08) # 8 percent boost for app orders
+    model_product = product.get_product_model()
+    if model_product:
+        if model_product.is_boutique_product:
+            # 实物商品把第一级的价格填入
+            from flashsale.pay.apis.v1.product import get_level_differential_from_boutique_modelproduct
+            level_prices = get_level_differential_from_boutique_modelproduct(model_product)
+            carry_amount = level_prices[0]
+        elif model_product.is_boutique_coupon:
+            # 券订单都是给上级兑换的，自己这一级没意义
+            carry_amount = 0
         else:
-            carry_amount = int(carry_amount * 1.1) # 10 percent boost for app orders
-
-    #logger.warn("carry_amount %s, agency_level: %s, payment: %s, order_id: %s" % (carry_amount, agency_level, payment, sale_order.oid))
+            carry_amount = carry_scheme.calculate_carry(agency_level, payment) * 100 * order_num
+    else:
+        logger.warn({
+            'action': 'ordercarry',
+            'order_no': sale_order.oid,
+            'desc': 'not found model product',
+            'mm_linkid_mama': mm_linkid_mama,
+            'product_id': sale_order.item_id,
+            'payment': payment,
+            'order_num': order_num,
+            'created': datetime.datetime.now(),
+        })
+        return
 
     task_update_ordercarry(mm_linkid_mama.pk, sale_order, customer_id, carry_amount, agency_level,
                                  carry_scheme.name, via_app)

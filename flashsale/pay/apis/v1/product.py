@@ -48,16 +48,41 @@ def get_virtual_modelproduct_from_boutique_modelproduct(modelid):
         return None
 
     templateid = coupon_template_ids[0]
-    virtual_model_products = ModelProduct.objects.get_virtual_modelproducts()  # 虚拟商品
-    find_mp = None
-    for md in virtual_model_products:
-        md_bind_tpl_id = md.extras.get('template_id')
-        if not md_bind_tpl_id:
-            continue
-        if templateid == md_bind_tpl_id:
-            find_mp = md
-            break
+    from flashsale.coupon.apis.v1.coupontemplate import get_boutique_coupon_modelid_by_templateid
+    find_mp_id = get_boutique_coupon_modelid_by_templateid(templateid)
+    find_mp = ModelProduct.objects.filter(id=find_mp_id).first()  # 虚拟商品
+    # find_mp = None
+    # for md in virtual_model_products:
+    #     md_bind_tpl_id = md.extras.get('template_id')
+    #     if not md_bind_tpl_id:
+    #         continue
+    #     if templateid == md_bind_tpl_id:
+    #         find_mp = md
+    #         break
     return find_mp
+
+def get_level_differential_from_coupon_modelproduct(model_product):
+    """从coupon商品的modelid找到虚拟商品券的差价
+    """
+    result = []
+    if model_product:
+        all_price = []
+        for product in model_product.products:
+            all_price.append(product.agent_price)
+        all_price.sort(reverse=True)
+        for price in all_price:
+            result.append(model_product.agent_price - price)
+
+    return result
+
+def get_level_differential_from_boutique_modelproduct(model_product):
+    """从售卖商品的modelid找到虚拟商品券的差价
+    """
+    result = []
+    find_mp = get_virtual_modelproduct_from_boutique_modelproduct(model_product.id)
+    result = get_level_differential_from_coupon_modelproduct(find_mp)
+
+    return result
 
 def get_onshelf_modelproducts():
     # type: () -> Optional[List[ModelProduct]]
