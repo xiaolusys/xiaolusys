@@ -418,7 +418,8 @@ class CarryRecord(BaseModel):
         referal_id = 'carryrecord-%s' % self.id
         bg = BudgetLog.objects.filter(referal_id=referal_id).first()
         if bg:
-            bg.cancel_budget_log()
+            bg.confirm_budget_log()
+            BudgetLog.create(bg.customer_id, BudgetLog.BUDGET_IN, bg.flow_amount, BudgetLog.BG_CARRY_CANCEL)
 
 
     def changePendingCarryAmount(self, new_value):

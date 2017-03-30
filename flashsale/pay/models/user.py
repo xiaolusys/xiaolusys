@@ -516,6 +516,7 @@ class BudgetLog(PayBaseModel):
     BG_REFUND_POSTAGE = 'postage'
     BG_CONSUM = 'consum'
     BG_CASHOUT = 'cashout'
+    BG_CASHOUT_FAIL = 'cashfail'
     BG_MAMA_CASH = 'mmcash'
     BG_REFERAL_FANS = 'rfan'
     BG_SUBSCRIBE = 'subs'
@@ -527,6 +528,7 @@ class BudgetLog(PayBaseModel):
     BG_AWARD = 'award'
     BG_MAMA_CONSUM = 'mmconsum'
     BG_RETURN_EXCHG = 'rtexchg'
+    BG_CARRY_CANCEL = 'cancel'
 
     BUDGET_LOG_CHOICES = (
         # 收入
@@ -542,9 +544,11 @@ class BudgetLog(PayBaseModel):
         (BG_ORDER, u'订单收益'),
         (BG_AWARD, u'奖金收益'),
         (BG_EXCHG_ORDER, u'兑换订单'),
+        (BG_CASHOUT_FAIL, u'提现失败退回'),
         # 支出
         (BG_CONSUM, u'消费'),
         (BG_CASHOUT, u'提现'),
+        (BG_CARRY_CANCEL, u'收益取消'),
         (BG_MAMA_CONSUM, u'妈妈消费'),
         (BG_RETURN_EXCHG, u'取消兑换'),
     )
@@ -561,6 +565,7 @@ class BudgetLog(PayBaseModel):
 
     customer_id = models.BigIntegerField(db_index=True, verbose_name=u'用户id')
     flow_amount = models.IntegerField(default=0, verbose_name=u'流水金额(分)')
+    balance = models.IntegerField(default=0, verbose_name=u'变动后金额(分)')
     budget_type = models.IntegerField(choices=BUDGET_CHOICES, db_index=True, null=False, verbose_name=u"收支类型")
     budget_log_type = models.CharField(max_length=8, choices=BUDGET_LOG_CHOICES, db_index=True, null=False,
                                        verbose_name=u"记录类型")
@@ -603,19 +608,6 @@ class BudgetLog(PayBaseModel):
             raise Exception('取消状态不予创建!')
 
         with transaction.atomic():
-            # 创建收支记录 BudgetLog
-            budget_log = cls(
-                customer_id=customer_id,
-                flow_amount=flow_amount,
-                budget_type=budget_type,
-                budget_log_type=budget_log_type,
-                budget_date=budget_date,
-                referal_id=referal_id,
-                status=status,
-                uni_key=uni_key
-            )
-            budget_log.save()
-
             # 更新钱包余额 UserBudget
             budget, created = UserBudget.objects.get_or_create(user=customer, defaults={
                 'amount': 0,
@@ -648,6 +640,21 @@ class BudgetLog(PayBaseModel):
                         AccountEntry.create(customer_id, AccountEntry.SB_PAY_XIAOLU, AccountEntry.SB_PAY_CASHOUT_CONFIRM, flow_amount)
 
             budget.save()
+
+            ub = UserBudget.objects.get(user=customer)
+            # 创建收支记录 BudgetLog
+            budget_log = cls(
+                customer_id=customer_id,
+                flow_amount=flow_amount,
+                balance=ub.amount,
+                budget_type=budget_type,
+                budget_log_type=budget_log_type,
+                budget_date=budget_date,
+                referal_id=referal_id,
+                status=status,
+                uni_key=uni_key
+            )
+            budget_log.save()
 
         return budget_log
 
@@ -748,9 +755,10 @@ class BudgetLog(PayBaseModel):
 
             user_budget.save()  # 保存用户钱包
 
+            ub = UserBudget.objects.get(user=self.customer_id)
+            self.balance = ub.amount
             self.status = BudgetLog.CONFIRMED
-            self.save(update_fields=['status', 'modified'])
-
+            self.save()
 
         return True
 
@@ -785,8 +793,10 @@ class BudgetLog(PayBaseModel):
                                             AccountEntry.SB_PAY_XIAOLU, self.flow_amount)
             user_budget.save()  # 保存用户钱包
 
+            ub = UserBudget.objects.get(user=self.customer_id)
+            self.balance = ub.amount
             self.status = BudgetLog.CANCELED
-            self.save(update_fields=['status', 'modified'])
+            self.save()
 
         return True
 
