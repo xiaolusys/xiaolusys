@@ -725,7 +725,7 @@ class OrderList(models.Model):
             for p in need_send:
                 o = p.package_order
                 saleproduct = p.product_sku.product.get_sale_product()
-                ua = UserAddress.objects.filter(cus_uid=str(p.sale_trade.buyer_id),receiver_mobile=p.sale_trade.receiver_mobile)
+                ua = UserAddress.objects.filter(id=p.user_address_id)
                 idcard_url = '用户未上传个人身份证'
                 for i in ua:
                     if i.extras:
