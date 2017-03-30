@@ -2,7 +2,7 @@ build:
   image: registry.aliyuncs.com/xiaolu-img/xiaolusys-base:a9e257caa2a9286714027bef36777855c4b902b8
   environment:
     - TARGET=staging
-    - REDIS_AUTH=$$REDIS_AUTH
+    - REDIS_AUTH=$$REDIS_AUTH2
   volumes:
     - /var/lib/drone/data:/data
   commands:
@@ -110,7 +110,7 @@ deploy:
       - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:warden
       - docker rm -f gunicorn-warden
       - docker run --name=gunicorn-warden --restart=always --log-opt max-file=1 --log-opt max-size=1m
-        -e INSTANCE=mall -e TARGET=staging -e REDIS_AUTH=$$REDIS_AUTH
+        -e INSTANCE=mall -e TARGET=staging -e REDIS_AUTH=$$REDIS_AUTH2
         -v /var/data:/data -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9009:9000
         registry.aliyuncs.com/xiaolu-img/xiaolusys:warden
         gunicorn -k gevent -w 1 -c gunicorn_config.py shopmanager.wsgi
