@@ -47,7 +47,7 @@ DATABASES = {
         'PASSWORD': MYSQL_AUTH,  # Not used with sqlite3.
         'HOST': MYSQL_HOST,
     # Set to empty string for localhost. Not used with sqlite3. #192.168.0.28
-        'PORT': '30001',  # Set to empty string for default. Not used with sqlite3.
+        'PORT': '3306',  # Set to empty string for default. Not used with sqlite3.
         # 'CONN_MAX_AGE': 60, not work well with gevent greenlet
         'OPTIONS': {
             # 'init_command': 'SET storage_engine=Innodb;',
