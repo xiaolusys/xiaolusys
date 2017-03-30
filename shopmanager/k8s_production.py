@@ -27,7 +27,7 @@ SITE_URL = 'http://admin.xiaolumm.com/'
 #######################  WAP AND WEIXIN CONFIG ########################
 M_SITE_URL = 'https://m.xiaolumeimei.com'
 
-MYSQL_HOST = 'rdsvrl2p9pu6536n7d99o.mysql.rds.aliyuncs.com'
+MYSQL_HOST = 'd.xiaolumm.com'
 MYSQL_AUTH = os.environ.get('MYSQL_AUTH')
 REDIS_HOST = 'redis.default.svc.cluster.local:6379'
 REDIS_AUTH = os.environ.get('REDIS_AUTH')
@@ -47,7 +47,7 @@ DATABASES = {
         'PASSWORD': MYSQL_AUTH,  # Not used with sqlite3.
         'HOST': MYSQL_HOST,
     # Set to empty string for localhost. Not used with sqlite3. #192.168.0.28
-        'PORT': '3306',  # Set to empty string for default. Not used with sqlite3.
+        'PORT': '30001',  # Set to empty string for default. Not used with sqlite3.
         # 'CONN_MAX_AGE': 60, not work well with gevent greenlet
         'OPTIONS': {
             # 'init_command': 'SET storage_engine=Innodb;',
