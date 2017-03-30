@@ -728,8 +728,8 @@ class OrderList(models.Model):
                 ua = UserAddress.objects.filter(cus_uid=str(p.sale_trade.buyer_id),receiver_mobile=p.sale_trade.receiver_mobile)
                 idcard_url = '用户未上传个人身份证'
                 for i in ua:
-                    if not i.extras == {}:
-                        idcard_url = generate_private_url(i.extras[u"idcard"]["face"])
+                    if i.extras:
+                        idcard_url = generate_private_url(i.extras.get(u"idcard").get("face"))
                 items.append(
                     [str(o.pid) if o else '', '', p.get_assign_status_display(), str(p.sale_trade.buyer_id), str(p.id),
                      saleproduct.supplier_sku if saleproduct else '', str(p.sale_trade.buyer_nick),
