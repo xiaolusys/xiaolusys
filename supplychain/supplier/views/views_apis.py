@@ -481,6 +481,17 @@ class SaleProductViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @detail_route(methods=['post'])
+    def set_main_sale_product(self, request, *args, **kwargs):
+        instance = self.get_object()
+        products = list(instance.item_products)
+        instance.item_products.update(sale_product=instance.id)
+        from flashsale.dinghuo.models_purchase import PurchaseOrder, PurchaseDetail
+        for product in products:
+            for sku in product.eskus.all():
+                PurchaseOrder.repurchase(sku)
+        return Response({'success': True, 'sale_product': instance.id})
+
+    @detail_route(methods=['post'])
     def new_update(self, request, pk, *args, **kwargs):
         instance = self.get_object()
         serializer = serializers.SaleProductEditSerializer(data=request.data)

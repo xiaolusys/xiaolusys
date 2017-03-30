@@ -802,7 +802,7 @@ class OrderList(models.Model):
                 o = p.package_order
                 saleproduct = p.product_sku.product.get_sale_product()
                 items.append([str(o.pid), '', o.sys_status, str(o.buyer_id), str(p.id),
-                              saleproduct.supplier_sku if saleproduct else '', str(p.product_sku.supplier_skucode if p.product_sku.supplier_skucode else ''), str(o.buyer_nick),
+                              saleproduct.supplier_sku if saleproduct else '', str(p.product_sku.supplier_skucode if p.product_sku.supplier_skucode else ''),str(o.buyer_nick),
                               str(p.product_sku.product.name), str(p.product_sku.properties_name),
                               str(p.product_sku.cost), str(p.num), str(p.num * p.product_sku.cost), '0', '0', '0', '', str(o.receiver_name),
                               str(o.receiver_address_detail), '', o.receiver_mobile, '', '', '',

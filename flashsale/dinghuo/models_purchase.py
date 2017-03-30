@@ -141,6 +141,20 @@ class PurchaseOrder(BaseModel):
             else:
                 ol.save(update_fields=['updated'])
 
+    @staticmethod
+    def repurchase(sku):
+        """
+            对指定的sku重新执行订货
+        :param sku:
+        :return:
+        """
+        pd = PurchaseDetail.objects.filter(status=PurchaseOrder.OPEN, sku_id=sku).first()
+        if pd:
+            for arrangement in pd.arrangements:
+                arrangement.reset_purchase_order()
+                arrangement.save()
+            pd.restat()
+
 
 class PurchaseDetail(BaseModel):
     uni_key = models.CharField(max_length=32, unique=True, verbose_name=u'唯一id ')  # sku_id+purchase_order_unikey
