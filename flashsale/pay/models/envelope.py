@@ -238,8 +238,9 @@ class Envelop(PayBaseModel):
 
         # 小鹿钱包提现
         if self.subject == self.XLAPP_CASHOUT:
-            blog = BudgetLog.objects.get(id=self.referal_id, budget_log_type=BudgetLog.BG_CASHOUT)
-            blog.cancel_budget_log()
+            bg = BudgetLog.objects.get(id=self.referal_id, budget_log_type=BudgetLog.BG_CASHOUT)
+            bg.confirm_budget_log()
+            BudgetLog.create(bg.customer_id, BudgetLog.BUDGET_IN, bg.flow_amount, BudgetLog.BG_CASHOUT_FAIL)
 
         # 妈妈钱包提现
         if self.subject == self.CASHOUT:
