@@ -616,6 +616,9 @@ class UserAddressSerializer(serializers.HyperlinkedModelSerializer):
     def get_personalinfo_level(self, obj):
         return obj.get_personal_info_level()
 
+    def get_identification_no(self, obj):
+        return obj.idcard_no
+
 
 class DistrictSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='rest_v1:district-detail')

@@ -206,10 +206,10 @@ class UserAddress(BaseModel):
 
     def get_personal_info_level(self):
         idcard_info = self.extras.get('idcard',{})
-        if self.identification_no and idcard_info.get('face') and idcard_info.get('back'):
+        if self.idcard_no and idcard_info.get('face') and idcard_info.get('back'):
             return self.PERSONALINFO_LEVEL_THREE
 
-        if self.receiver_name and (self.identification_no or self.idcard_no):
+        if self.receiver_name and self.idcard_no:
             return self.PERSONALINFO_LEVEL_TWO
 
         return self.PERSONALINFO_LEVEL_ONE

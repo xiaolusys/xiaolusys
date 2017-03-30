@@ -299,7 +299,7 @@ class SaleTrade(BaseModel):
             'receiver_mobile': self.receiver_mobile,
             'receiver_phone': self.receiver_phone,
             'default': user_addr and user_addr.default or '',
-            'identification_no': user_addr and user_addr.identification_no or ''
+            'identification_no': user_addr and user_addr.idcard_no or ''
         }
 
     def get_useraddress_instance(self):

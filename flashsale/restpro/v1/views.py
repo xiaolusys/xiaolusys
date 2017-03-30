@@ -1,4 +1,5 @@
 # -*- coding:utf8 -*-
+from __future__ import unicode_literals
 import re
 import logging
 import hashlib
@@ -265,7 +266,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
                 new_address.set_default_address()  # 如果是选择设置默认地址则设置默认地址
 
             if identification_no or card_facepath or card_backpath:
-                new_address.identification_no = identification_no
+                # new_address.identification_no = identification_no
                 new_address.idcard_no = identification_no
                 if card_facepath:
                     new_address.set_idcard_image('face', card_facepath)
@@ -395,7 +396,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
             address.set_logistic_company(logistic_company_code)
 
             if identification_no or card_facepath or card_backpath:
-                address.identification_no = identification_no
+                # address.identification_no = identification_no
                 address.idcard_no = identification_no
                 if card_facepath:
                     address.set_idcard_image('face', card_facepath)
