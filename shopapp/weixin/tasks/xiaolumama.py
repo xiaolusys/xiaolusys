@@ -96,7 +96,8 @@ def task_get_unserinfo_and_create_accounts(openid, wx_pubid):
             return
 
         task_create_scan_customer(userinfo)
-        task_create_scan_xiaolumama(userinfo)
+        # 2017-3-30 close scan3 xiaolumm
+        # task_create_scan_xiaolumama(userinfo)
     except Exception, exc:
         logger.error({
             'action': u'task_get_unserinfo_and_create_accounts',

@@ -919,6 +919,8 @@ def buy_boutique_register_product(sender, obj, **kwargs):
                 openid=customer.unionid,
                 last_renew_type=XiaoluMama.SCAN,
             )
+        if not mama:
+            return
 
         # 生成推荐关系
         create_new_elite_mama(customer, mama, saleorder)
@@ -1587,14 +1589,24 @@ def post_save_order_trigger(sender, instance, created, raw, **kwargs):
                     task_update_referal_relationship(instance)
             else:
                 # 365 order create relationship and first give 60 score
+                from flashsale.xiaolumm.models.models import XiaoluMama
                 if instance.is_elite_365_order() and SaleOrder.WAIT_SELLER_SEND_GOODS <= instance.status <= SaleOrder.TRADE_FINISHED:
                     customer = Customer.objects.get(id=instance.sale_trade.buyer_id)
                     to_mama = customer.get_xiaolumm()
+                    if (not to_mama) and customer.unionid:
+                        # 是微信登录的就创建小鹿妈妈账号，用手机号登录的那只能找管理员了
+                        to_mama = XiaoluMama.objects.create(
+                            mobile=customer.mobile,
+                            progress=XiaoluMama.PROFILE,
+                            openid=customer.unionid,
+                            last_renew_type=XiaoluMama.SCAN,
+                        )
+                    if not to_mama:
+                        return
                     uni_key = "gift-365elite-in-%s" % (to_mama.id)
                     from flashsale.coupon.models.transfer_coupon import CouponTransferRecord
                     gift_cts = CouponTransferRecord.objects.filter(uni_key=uni_key).first()
                     # 判断妈妈为一个新妈妈，满足条件如下：妈妈还不是精英妈妈；
-                    from flashsale.xiaolumm.models.models import XiaoluMama
                     if (not to_mama.is_elite_mama) or (not gift_cts):
                         create_new_elite_mama(customer, to_mama, instance)
                         give_gift_score_to_new_elite_mama(customer, to_mama, instance)

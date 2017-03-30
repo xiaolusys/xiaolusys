@@ -502,6 +502,26 @@ def elite_mama_recharge(customer_id, order_id, order_oid, product_id):
     from flashsale.xiaolumm.models import XiaoluCoin
     from flashsale.xiaolumm.models.models import XiaoluMama
     to_mama = customer.get_xiaolumm()
+    if (not to_mama) and customer.unionid:
+        # 是微信登录的就创建小鹿妈妈账号，用手机号登录的那只能找管理员了
+        to_mama = XiaoluMama.objects.create(
+            mobile=customer.mobile,
+            progress=XiaoluMama.PROFILE,
+            openid=customer.unionid,
+            last_renew_type=XiaoluMama.SCAN,
+        )
+        # 充值365自动开通账户
+        if so.item_id == 80880 and so.sku_id == 297999:
+            create_new_elite_mama(customer, to_mama, so)
+    if not to_mama:
+        logger.info({
+            'action': 'elite_mama_recharge',
+            'action_time': datetime.datetime.now(),
+            'order_oid': order_oid,
+            'message': u'customer has no unionid:customer=%s, order_id=%s order_oid=%s product_id=%s' % (
+                customer_id, order_id, order_oid, product_id),
+        })
+        return
     coin = XiaoluCoin.get_or_create(to_mama.id)
     coin.recharge(round(so.total_fee * 100), order_oid)
 

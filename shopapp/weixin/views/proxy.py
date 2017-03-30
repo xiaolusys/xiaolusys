@@ -97,7 +97,8 @@ class WXMessageHttpProxy(HttpProxy):
             if eventkey.strip() == ACTIVATE_MAMA_LINK or \
                eventkey.strip() == DOWNLOAD_APP_LINK or \
                eventkey.strip() == PERSONAL_PAGE_LINK:
-                tasks.task_activate_xiaolumama.delay(openid, wx_pubid)
+                # tasks.task_activate_xiaolumama.delay(openid, wx_pubid)
+                pass
          
         if event == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE.lower() or\
            event == WeiXinAutoResponse.WX_EVENT_SCAN.lower() or \

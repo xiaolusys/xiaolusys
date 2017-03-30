@@ -165,6 +165,8 @@ def xlmm_recharge_cacl_score(price):
 
     if price == 100:
         score = 10
+    elif price == 365:
+        score = 100
     elif price == 600:
         score = 100
     elif price == 3000:
