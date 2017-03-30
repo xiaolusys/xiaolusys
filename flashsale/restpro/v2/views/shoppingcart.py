@@ -33,7 +33,7 @@ from flashsale.pay.models.product import ModelProduct
 from flashsale.pay.apis.v1.order import get_user_skunum_by_last24hours
 from flashsale.coupon.models import UserCoupon
 from flashsale.restpro import permissions as perms
-from .. import serializers
+
 from shopback.items.models import Product
 from flashsale.pay.models import ProductSku
 from shopback.base import log_action, ADDITION, CHANGE
@@ -43,7 +43,7 @@ from flashsale.restpro import constants as CONS
 from flashsale.xiaolumm.models import XiaoluMama
 from .trade import get_channel_list
 
-
+from .. import serializers
 import logging
 logger = logging.getLogger(__name__)
 
@@ -397,18 +397,27 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                 ware_by &= product.ware_by
         return ware_by or WARE_NONE
 
-    def get_selectable_logistics(self, ware_by, default_company_code=''):
-        logistics = LogisticsCompany.get_logisticscompanys_by_warehouse(ware_by)
-        logistics = logistics.values('id','code','name')
-        lg_dict_list = [{'id':'', 'code':'', 'name':u'自动分配', 'is_priority':True}]
-        has_use_default = False
-        for lg in logistics:
-            lg['is_priority'] = lg['code'] == default_company_code
-            has_use_default |= lg['is_priority']
-            lg_dict_list.append(lg)
-        if has_use_default:
-            lg_dict_list[0]['is_priority'] = False
-        return lg_dict_list
+    def get_selectable_express(self,product_list):
+        from supplychain.supplier.models import SaleProduct
+        from shopback import  warehouse
+        lg_dict_list = [{'id': '', 'code': '', 'name': u'自动分配', 'is_priority': True}]
+        is_express_change = []
+        for product in product_list:
+            if product.ware_by in [warehouse.WARE_SH,warehouse.WARE_GZ]:
+                is_express_change.append(True)
+            elif product.ware_by in [warehouse.WARE_THIRD]:
+                sale_product = SaleProduct.objects.filter(id=product.sale_product).first()
+                is_express_change.append(sale_product.sale_supplier.can_change_logistics) if sale_product.sale_supplier else is_express_change.append(True)
+            else:
+                is_express_change.append(False)
+        if all(is_express_change):
+            logistics_company = LogisticsCompany.objects.filter(code__in=('POSTB', 'YUNDA_QR'))
+            for i in logistics_company:
+                lg_dict_list.append({'id':i.id,'code':i.code,'name':i.name,'is_priority':False})
+            return lg_dict_list
+        else:
+            return lg_dict_list
+
 
     def get_charge_channels(self, request, total_payment):
         return get_channel_list(request, self.get_customer(request))
@@ -474,15 +483,8 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 
         real_item_payment = total_fee - discount_fee
         self.check_coupon(request, real_item_payment, ','.join(item_ids))
-
-        ware_by = self.get_logistics_by_shoppingcart(queryset)
-        default_address = customer.get_default_address()
-        default_company_code = default_address and default_address.logistic_company_code or ''
-        default_company_code = "YUNDA_QR"
-        selectable_logistics = self.get_selectable_logistics(
-            ware_by,
-            default_company_code=default_company_code)
-
+        product_list = [Product.objects.filter(id=sc.item_id).first() for sc in queryset]
+        selectable_logistics = self.get_selectable_express(product_list)
         cart_serializers = self.get_serializer(queryset, many=True)
         budget_payable, budget_cash = self.get_budget_info(customer, total_payment)
 
@@ -528,13 +530,9 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         total_payment = total_fee + post_fee - discount_fee
 
         product = product_sku.product
-        ware_by = product.ware_by
-        default_address = customer.get_default_address()
-        default_company_code = default_address and default_address.logistic_company_code or ''
-        selectable_logistics = self.get_selectable_logistics(
-            ware_by,
-            default_company_code=default_company_code)
-
+        product_list = []
+        product_list.append(product)
+        selectable_logistics = self.get_selectable_express(product_list)
         model_product = product.product_model
         max_personalinfo_level = self.calc_personalinfo_level(
             model_product.source_type , model_product.product_type)

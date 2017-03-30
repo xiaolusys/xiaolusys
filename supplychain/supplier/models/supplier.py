@@ -138,7 +138,7 @@ class SaleSupplier(models.Model):
     buyer = models.ForeignKey('auth.User', null=True, related_name='buyers', verbose_name=u'买手')
     ware_by = models.SmallIntegerField(default=WARE_SH, choices=WARE_CHOICES, verbose_name=u'所属仓库')
     return_ware_by = models.SmallIntegerField(default=WARE_SH, choices=WARE_CHOICES, verbose_name=u'退货仓库')
-
+    can_change_logistics = models.BooleanField(default=False,verbose_name=u'自选物流')
     delta_arrive_days = models.IntegerField(default=3, verbose_name=u'预计到货天数')
     objects = SaleSupplierManager()
 
