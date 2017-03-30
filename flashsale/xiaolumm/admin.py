@@ -938,7 +938,7 @@ admin.site.register(MamaReferalTree, MamaReferalTreeAdmin)
 
 
 class XiaoluCoinAdmin(admin.ModelAdmin):
-    list_display = ('id', 'mama_id', 'amount')
+    list_display = ('id', 'mama_id', 'amount', 'balance')
     list_filter = ('created',)
     search_fields = ('=mama_id',)
 
