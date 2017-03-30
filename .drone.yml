@@ -84,7 +84,7 @@ deploy:
       - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
       - docker rm -f gunicorn-staging
       - docker run --name=gunicorn-staging --restart=always --log-opt max-file=1 --log-opt max-size=1m
-        -e INSTANCE=mall -e TARGET=staging -e REDIS_AUTH=$$REDIS_AUTH
+        -e INSTANCE=mall -e TARGET=staging -e REDIS_AUTH=$$REDIS_AUTH2
         -v /var/data:/data -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9001:9000
         registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
         gunicorn -k gevent -w 1 -c gunicorn_config.py shopmanager.wsgi
