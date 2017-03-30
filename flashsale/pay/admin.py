@@ -910,7 +910,7 @@ admin.site.register(UserBudget, UserBudgetAdmin)
 
 class BudgetLogAdmin(admin.ModelAdmin):
     list_display = (
-        'id', 'customer_id', 'mama_id', 'flow_amount', 'budget_type', 'budget_log_type', 'referal_id', 'uni_key', 'modified', 'created', 'status')
+        'id', 'customer_id', 'mama_id', 'flow_amount', 'budget_type', 'budget_log_type', 'balance', 'referal_id', 'uni_key', 'modified', 'created', 'status')
     list_display_links = ('id',)
 
     list_filter = ('budget_type', 'budget_log_type', 'status', 'modified')
