@@ -89,6 +89,7 @@ def index(req):
 def show(req):
     mama_id = req.GET.get('mama_id') or None
     customer = None
+    mama = None
     if mama_id and len(mama_id) == 11:
         mobile = mama_id
         customer = Customer.objects.filter(mobile=mobile).first()
