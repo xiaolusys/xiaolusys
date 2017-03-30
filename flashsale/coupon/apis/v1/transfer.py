@@ -514,6 +514,13 @@ def elite_mama_recharge(customer_id, order_id, order_oid, product_id):
         if so.item_id == 80880 and so.sku_id == 297999:
             create_new_elite_mama(customer, to_mama, so)
     if not to_mama:
+        logger.info({
+            'action': 'elite_mama_recharge',
+            'action_time': datetime.datetime.now(),
+            'order_oid': order_oid,
+            'message': u'customer has no unionid:customer=%s, order_id=%s order_oid=%s product_id=%s' % (
+                customer_id, order_id, order_oid, product_id),
+        })
         return
     coin = XiaoluCoin.get_or_create(to_mama.id)
     coin.recharge(round(so.total_fee * 100), order_oid)
