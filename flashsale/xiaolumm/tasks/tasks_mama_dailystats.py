@@ -356,7 +356,7 @@ def task_calc_all_xlmm_elite_score():
 def task_auto_exchg_xlmm_order():
     import datetime
     tt = datetime.datetime.now()
-    tf = tt - datetime.timedelta(days=3)
+    tf = tt - datetime.timedelta(days=1)
     from flashsale.pay.models.trade import SaleOrder, SaleTrade, Customer
     from flashsale.xiaolumm.models import OrderCarry, XiaoluMama
     from flashsale.pay.models import ModelProduct
