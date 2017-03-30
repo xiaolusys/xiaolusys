@@ -30,6 +30,9 @@ def setup_djagno_environ():
     elif TARGET in ('k8s',):
         os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shopmanager.k8s")
 
+    elif TARGET in ('k8s-production',):
+        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shopmanager.k8s_production")
+
     else:
         os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shopmanager.local_settings")
 
