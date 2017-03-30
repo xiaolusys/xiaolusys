@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import time
 import hashlib
 from django.core.cache import cache
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Sum
 from django.db.models.signals import pre_save, post_save
 
@@ -293,6 +293,7 @@ class SaleProduct(BaseTagModel):
         return SaleProduct.objects.filter(id__in=spids)
 
     @staticmethod
+    @transaction.atomic
     def create(product, title, supplier_id, supplier_sku, product_link, memo, creater, platform=MANUAL, extras=None):
         if supplier_id in list(SaleProduct.get_by_product(product).values_list("sale_supplier_id", flat=True)):
             raise Exception(u'此商品已向该供应商订货，应该进行编辑而非新增')
@@ -314,7 +315,8 @@ class SaleProduct(BaseTagModel):
         sp.save()
         sp.sale_category = product.category.get_sale_category()
         sp.save()
-        SaleProductRelation(sale_product=sp, product_id=product.id).save()
+        SaleProductRelation.create(sale_product=sp, product=product)
+        # SaleProductRelation(sale_product=sp, product_id=product.id).save()
         return sp
 
     def delete(self):
@@ -418,3 +420,17 @@ class SaleProductRelation(BaseModel):
         app_label = 'supplier'
         verbose_name = u'商品选品关系'
         verbose_name_plural = u'商品选品关联列表'
+
+    @staticmethod
+    def create(sale_product, product):
+        """
+            建立选品与商品的关联。如果商品未设定主选品，则将此定为主选品。
+        :param sale_product:
+        :param product:
+        :return:
+        """
+        SaleProductRelation(sale_product=sale_product, product_id=product.id).save()
+        if not product.sale_product:
+            product.sale_product = sale_product.id
+            product.save()
+        return
