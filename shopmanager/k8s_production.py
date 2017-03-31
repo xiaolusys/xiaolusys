@@ -156,8 +156,8 @@ ALIAPY_APPID     = '2016012701123211'
 ALIPAY_GATEWAY_URL = 'https://openapi.alipay.com/gateway.do'
 ALIPAY_NOTIFY_URL = 'http://api.xiaolumeimei.com/rest/notify/alipay/'
 
-ALIPAY_RSA_PRIVATE_KEY_PATH = '/data/certs/alipay.pem'
-ALIPAY_RSA_PUBLIC_KEY_PATH = '/data/certs/alipay_key.pem'
+ALIPAY_RSA_PUBLIC_KEY_PATH = '/data/certs/alipay.pem'
+ALIPAY_RSA_PRIVATE_KEY_PATH = '/data/certs/alipay_key.pem'
 
 ######################## 小米推送 CONFIG ########################
 IOS_APP_SECRET = 'UN+ohC2HYHUlDECbvVKefA=='
