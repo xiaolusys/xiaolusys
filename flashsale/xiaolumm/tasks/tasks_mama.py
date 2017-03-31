@@ -165,101 +165,101 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
             record.save(update_fields=['status', 'modified'])
         return
 
-    carry_num = 0
-    gen_ordercarry(referal_relationship, order_carry, OrderCarry.REFERAL_ORDER, carry_num)  # second level
+    # carry_num = 0
+    # gen_ordercarry(referal_relationship, order_carry, OrderCarry.REFERAL_ORDER, carry_num)  # second level
 
-    # from flashsale.pay.models.trade import SaleOrder
-    # sale_order = SaleOrder.objects.filter(oid=order_carry.order_id).first()
-    # # 这个订单第一级获得收益的妈妈
-    # mm_linkid_mama = XiaoluMama.objects.filter(id=order_carry.mama_id, status=XiaoluMama.EFFECT,
-    #                                            charge_status=XiaoluMama.CHARGED).first()
-    # from shopback.items.models import Product
-    # products = Product.objects.filter(id=sale_order.item_id)
-    # if products.count() <= 0:
-    #     logger.info({
-    #         'action': 'task_update_second_level_ordercarry',
-    #         'order_no': sale_order.oid,
-    #         'desc': 'not found product',
-    #         'mm_linkid_mama': mm_linkid_mama,
-    #         'product_id': sale_order.item_id,
-    #         'created': datetime.datetime.now(),
-    #     })
-    #     return
-    #
-    # product = products[0]
-    # model_product = product.get_product_model()
-    # if model_product:
-    #     if model_product.is_boutique_product:
-    #         # 第一级的妈妈已经是direct，那么就没有后面ordercarry存在必要了
-    #         if mm_linkid_mama.referal_from == XiaoluMama.DIRECT:
-    #             return
-    #         if not (mm_linkid_mama.referal_from == XiaoluMama.INDIRECT and mm_linkid_mama.elite_score < \
-    #                 constants.ELITEMM_DESC_INFO[constants.ELITEMM_VP].get('min_score')):
-    #             carry_num = 0  # 第1等级已经到vp了，不能自动发佣
-    #             gen_ordercarry(referal_relationship, order_carry, OrderCarry.REFERAL_ORDER, carry_num)  # second level
-    #         low_mama = mm_linkid_mama
-    #         while low_mama.referal_from == XiaoluMama.INDIRECT and low_mama.elite_score < \
-    #                 constants.ELITEMM_DESC_INFO[constants.ELITEMM_VP].get('min_score'):
-    #
-    #             relationship = ReferalRelationship.objects.filter(referal_to_mama_id=low_mama.id,
-    #                                                               created__lt=order_carry.created).first()
-    #             # 实物商品把第2级的价格填入
-    #             if relationship:
-    #                 upper_mama = XiaoluMama.objects.filter(id=relationship.referal_from_mama_id,
-    #                                                        status=XiaoluMama.EFFECT,
-    #                                                        charge_status=XiaoluMama.CHARGED).first()
-    #                 if upper_mama:
-    #                     if upper_mama.is_elite_mama and upper_mama.elite_score < \
-    #                             constants.ELITEMM_DESC_INFO[constants.ELITEMM_VP].get('min_score'):
-    #                         carry_num = get_level_differential(model_product, upper_mama.elite_level,
-    #                                                            mm_linkid_mama.elite_level)
-    #                         gen_ordercarry(relationship, order_carry, OrderCarry.REFERAL_ORDER, carry_num)
-    #                         if upper_mama.referal_from == XiaoluMama.DIRECT:
-    #                             # 遇到direct，自动发佣就结束了
-    #                             sale_order.extras['exchange'] = True
-    #                             sale_order.extras['exchg_type'] = 1
-    #                             sale_order.save(update_fields=['extras'])
-    #                             break
-    #                         else:
-    #                             # 继续循环，找下一级别妈妈
-    #                             low_mama = upper_mama
-    #                     else:
-    #                         # 上级的等级是vp或以上，不能自动发佣了，需要生成一个高级mama下属订单用来兑换,能兑换的金额就不是订单价，是下属妈妈的购买价了
-    #                         carry_num = 0
-    #                         gen_ordercarry(relationship, order_carry, OrderCarry.ADVANCED_MAMA_REFERAL_ORDER, carry_num)
-    #                         from flashsale.pay.apis.v1.product import get_level_price_from_boutique_modelproduct
-    #                         can_exchg_payment = get_level_price_from_boutique_modelproduct(model_product, low_mama.elite_level)
-    #                         sale_order.extras['can_exchg_payment'] = can_exchg_payment
-    #                         sale_order.save(update_fields=['extras'])
-    #                         break
-    #                 else:
-    #                     logger.warn({
-    #                         'action': 'task_update_second_level_ordercarry',
-    #                         'order_no': sale_order.oid,
-    #                         'desc': 'not found effect uppermama',
-    #                         'low_mama': low_mama.id,
-    #                         'uppermama': relationship.referal_from_mama_id,
-    #                         'created': datetime.datetime.now(),
-    #                     })
-    #                     return
-    #
-    #     elif model_product.is_boutique_coupon:
-    #         # 券订单都是给上级兑换的，自己这一级金额没意义，不能为非0
-    #         carry_num = 0
-    #         gen_ordercarry(referal_relationship, order_carry, OrderCarry.REFERAL_ORDER, carry_num)  # second level
-    #     else:
-    #         carry_num = order_carry.carry_num * 0.2  # 20 percent carry
-    #         gen_ordercarry(referal_relationship, order_carry, OrderCarry.REFERAL_ORDER, carry_num)  # second level
-    # else:
-    #     logger.warn({
-    #         'action': 'task_update_second_level_ordercarry',
-    #         'order_no': sale_order.oid,
-    #         'desc': 'not found model product',
-    #         'mm_linkid_mama': mm_linkid_mama,
-    #         'product_id': sale_order.item_id,
-    #         'created': datetime.datetime.now(),
-    #     })
-    #     return
+    from flashsale.pay.models.trade import SaleOrder
+    sale_order = SaleOrder.objects.filter(oid=order_carry.order_id).first()
+    # 这个订单第一级获得收益的妈妈
+    mm_linkid_mama = XiaoluMama.objects.filter(id=order_carry.mama_id, status=XiaoluMama.EFFECT,
+                                               charge_status=XiaoluMama.CHARGED).first()
+    from shopback.items.models import Product
+    products = Product.objects.filter(id=sale_order.item_id)
+    if products.count() <= 0:
+        logger.info({
+            'action': 'task_update_second_level_ordercarry',
+            'order_no': sale_order.oid,
+            'desc': 'not found product',
+            'mm_linkid_mama': mm_linkid_mama,
+            'product_id': sale_order.item_id,
+            'created': datetime.datetime.now(),
+        })
+        return
+
+    product = products[0]
+    model_product = product.get_product_model()
+    if model_product:
+        if model_product.is_boutique_product:
+            # 第一级的妈妈已经是direct，那么就没有后面ordercarry存在必要了
+            if mm_linkid_mama.referal_from == XiaoluMama.DIRECT:
+                return
+            if not (mm_linkid_mama.referal_from == XiaoluMama.INDIRECT and mm_linkid_mama.elite_score < constants.ELITEMM_DESC_INFO[constants.ELITEMM_VP].get('min_score')):
+                carry_num = 0  # 第1等级已经到vp了，不能自动发佣
+                gen_ordercarry(referal_relationship, order_carry, OrderCarry.REFERAL_ORDER, carry_num)  # second level
+            low_mama = mm_linkid_mama
+            while low_mama.referal_from == XiaoluMama.INDIRECT and low_mama.elite_score < \
+                    constants.ELITEMM_DESC_INFO[constants.ELITEMM_VP].get('min_score'):
+
+                relationship = ReferalRelationship.objects.filter(referal_to_mama_id=low_mama.id,
+                                                                  created__lt=order_carry.created).first()
+                # 实物商品把第2级的价格填入
+                if relationship:
+                    upper_mama = XiaoluMama.objects.filter(id=relationship.referal_from_mama_id,
+                                                           status=XiaoluMama.EFFECT,
+                                                           charge_status=XiaoluMama.CHARGED).first()
+                    if upper_mama:
+                        if upper_mama.is_elite_mama and upper_mama.elite_score < \
+                                constants.ELITEMM_DESC_INFO[constants.ELITEMM_VP].get('min_score'):
+                            carry_num = get_level_differential(model_product, upper_mama.elite_level,
+                                                               mm_linkid_mama.elite_level)
+                            gen_ordercarry(relationship, order_carry, OrderCarry.REFERAL_ORDER, carry_num)
+                            if upper_mama.referal_from == XiaoluMama.DIRECT:
+                                # 遇到direct，自动发佣就结束了
+                                sale_order.extras['exchange'] = True
+                                sale_order.extras['exchg_type'] = 1
+                                sale_order.save(update_fields=['extras'])
+                                break
+                            else:
+                                # 继续循环，找下一级别妈妈
+                                low_mama = upper_mama
+                        else:
+                            # 上级的等级是vp或以上，不能自动发佣了，需要生成一个高级mama下属订单用来兑换,能兑换的金额就不是订单价，是下属妈妈的购买价了
+                            carry_num = 0
+                            gen_ordercarry(relationship, order_carry, OrderCarry.ADVANCED_MAMA_REFERAL_ORDER, carry_num)
+                            from flashsale.pay.apis.v1.product import get_level_price_from_boutique_modelproduct
+                            can_exchg_payment = get_level_price_from_boutique_modelproduct(model_product,
+                                                                                           low_mama.elite_level)
+                            sale_order.extras['can_exchg_payment'] = can_exchg_payment
+                            sale_order.save(update_fields=['extras'])
+                            break
+                    else:
+                        logger.warn({
+                            'action': 'task_update_second_level_ordercarry',
+                            'order_no': sale_order.oid,
+                            'desc': 'not found effect uppermama',
+                            'low_mama': low_mama.id,
+                            'uppermama': relationship.referal_from_mama_id,
+                            'created': datetime.datetime.now(),
+                        })
+                        return
+
+        elif model_product.is_boutique_coupon:
+            # 券订单都是给上级兑换的，自己这一级金额没意义，不能为非0
+            carry_num = 0
+            gen_ordercarry(referal_relationship, order_carry, OrderCarry.REFERAL_ORDER, carry_num)  # second level
+        else:
+            carry_num = order_carry.carry_num * 0.2  # 20 percent carry
+            gen_ordercarry(referal_relationship, order_carry, OrderCarry.REFERAL_ORDER, carry_num)  # second level
+    else:
+        logger.warn({
+            'action': 'task_update_second_level_ordercarry',
+            'order_no': sale_order.oid,
+            'desc': 'not found model product',
+            'mm_linkid_mama': mm_linkid_mama,
+            'product_id': sale_order.item_id,
+            'created': datetime.datetime.now(),
+        })
+        return
 
 
 @app.task(serializer='pickle')
@@ -424,7 +424,7 @@ def task_referal_update_awardcarry(relationship):
     if award_carry:
         from core.options import log_action, CHANGE, get_systemoa_user
         logmsg = 'mama_id:%s->%s|carry_num:%s->%s|status:%s->%s' % (
-        award_carry.mama_id, from_mama_id, award_carry.carry_num, carry_num, award_carry.status, status)
+            award_carry.mama_id, from_mama_id, award_carry.carry_num, carry_num, award_carry.status, status)
         update_fields = []
         if award_carry.mama_id != from_mama_id:
             award_carry.mama_id = from_mama_id
@@ -501,7 +501,7 @@ def task_update_group_awardcarry(relationship):
     if award_carry:
         from core.options import log_action, CHANGE, get_systemoa_user
         logmsg = 'mama_id:%s->%s|carry_num:%s->%s|status:%s->%s' % (
-        award_carry.mama_id, from_mama_id, award_carry.carry_num, carry_num, award_carry.status, status)
+            award_carry.mama_id, from_mama_id, award_carry.carry_num, carry_num, award_carry.status, status)
         update_fields = []
         if award_carry.mama_id != from_mama_id:
             award_carry.mama_id = from_mama_id
@@ -637,33 +637,34 @@ def task_order_trigger(sale_order):
     agency_level = mm_linkid_mama.agencylevel
     carry_amount = 0
     # 20170331 will use 0401
-    # model_product = product.get_product_model()
-    # if model_product:
-    #     if model_product.is_boutique_product:
-    #         if mm_linkid_mama.is_elite_mama and mm_linkid_mama.elite_score < constants.ELITEMM_DESC_INFO[constants.ELITEMM_VP].get('min_score'):
-    #             # 实物商品把第一级的价格填入
-    #             carry_amount = get_level_differential(model_product, mm_linkid_mama.elite_level, None)
-    #             sale_order.extras['auto_given_carry'] = True
-    #             sale_order.save(update_fields=['extras'])
-    #         else:
-    #             carry_amount = 0
-    #     elif model_product.is_boutique_coupon:
-    #         # 券订单都是给上级兑换的，自己这一级没意义
-    #         carry_amount = 0
-    #     else:
-    #         carry_amount = carry_scheme.calculate_carry(agency_level, payment) * 100 * order_num
-    # else:
-    #     logger.warn({
-    #         'action': 'ordercarry',
-    #         'order_no': sale_order.oid,
-    #         'desc': 'not found model product',
-    #         'mm_linkid_mama': mm_linkid_mama,
-    #         'product_id': sale_order.item_id,
-    #         'payment': payment,
-    #         'order_num': order_num,
-    #         'created': datetime.datetime.now(),
-    #     })
-    #     return
+    model_product = product.get_product_model()
+    if model_product:
+        if model_product.is_boutique_product:
+            if mm_linkid_mama.is_elite_mama and mm_linkid_mama.elite_score < constants.ELITEMM_DESC_INFO[
+                constants.ELITEMM_VP].get('min_score'):
+                # 实物商品把第一级的价格填入
+                carry_amount = get_level_differential(model_product, mm_linkid_mama.elite_level, None)
+                sale_order.extras['auto_given_carry'] = True
+                sale_order.save(update_fields=['extras'])
+            else:
+                carry_amount = 0
+        elif model_product.is_boutique_coupon:
+            # 券订单都是给上级兑换的，自己这一级没意义
+            carry_amount = 0
+        else:
+            carry_amount = carry_scheme.calculate_carry(agency_level, payment) * 100 * order_num
+    else:
+        logger.warn({
+            'action': 'ordercarry',
+            'order_no': sale_order.oid,
+            'desc': 'not found model product',
+            'mm_linkid_mama': mm_linkid_mama,
+            'product_id': sale_order.item_id,
+            'payment': payment,
+            'order_num': order_num,
+            'created': datetime.datetime.now(),
+        })
+        return
 
     task_update_ordercarry(mm_linkid_mama.pk, sale_order, customer_id, carry_amount, agency_level,
                            carry_scheme.name, via_app)
