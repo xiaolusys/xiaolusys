@@ -171,7 +171,7 @@ class ConditionFilter(filters.BaseFilterBackend):
         for k in view.search_fields:
             if type(k) is tuple and k[1] is list:
                 v = request.GET.get(k[0])
-                if v.strip():
+                if v and v.strip():
                     v = v.strip().split(',')
                 if v:
                     condition[k[0]] = v
