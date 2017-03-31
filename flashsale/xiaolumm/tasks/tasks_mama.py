@@ -157,9 +157,8 @@ def gen_ordercarry(referal_relationship, order_carry, carry_type, carry_num):
 
 @app.task()
 def task_update_second_level_ordercarry(referal_relationship, order_carry):
-    uni_key = util_unikey.gen_ordercarry_unikey(OrderCarry.REFERAL_ORDER, order_carry.order_id)
-    record = OrderCarry.objects.filter(uni_key=uni_key).first()
-    if record:
+    records = OrderCarry.objects.filter(order_id=order_carry.order_id, carry_type__in=[OrderCarry.REFERAL_ORDER, OrderCarry.ADVANCED_MAMA_REFERAL_ORDER])
+    for record in records:
         if record.status != order_carry.status:
             record.status = order_carry.status
             record.save(update_fields=['status', 'modified'])
@@ -192,10 +191,27 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
         if model_product.is_boutique_product:
             # 第一级的妈妈已经是direct，那么就没有后面ordercarry存在必要了
             if mm_linkid_mama.referal_from == XiaoluMama.DIRECT:
+                logger.info({
+                    'action': 'task_update_second_level_ordercarry',
+                    'order_no': sale_order.oid,
+                    'desc': 'first level is direct,return',
+                    'mm_linkid_mama': mm_linkid_mama.id,
+                    'referal': mm_linkid_mama.referal_from,
+                    'created': datetime.datetime.now(),
+                })
                 return
             if not (mm_linkid_mama.referal_from == XiaoluMama.INDIRECT and mm_linkid_mama.elite_score < constants.ELITEMM_DESC_INFO[constants.ELITEMM_VP].get('min_score')):
                 carry_num = 0  # 第1等级已经到vp了，不能自动发佣
                 gen_ordercarry(referal_relationship, order_carry, OrderCarry.REFERAL_ORDER, carry_num)  # second level
+                logger.info({
+                    'action': 'task_update_second_level_ordercarry',
+                    'order_no': sale_order.oid,
+                    'desc': 'first level is more than vp',
+                    'mm_linkid_mama': mm_linkid_mama.id,
+                    'elitescore': mm_linkid_mama.elite_score,
+                    'created': datetime.datetime.now(),
+                })
+                return
             low_mama = mm_linkid_mama
             while low_mama.referal_from == XiaoluMama.INDIRECT and low_mama.elite_score < \
                     constants.ELITEMM_DESC_INFO[constants.ELITEMM_VP].get('min_score'):
@@ -213,11 +229,28 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
                             carry_num = get_level_differential(model_product, upper_mama.elite_level,
                                                                mm_linkid_mama.elite_level)
                             gen_ordercarry(relationship, order_carry, OrderCarry.REFERAL_ORDER, carry_num)
+                            logger.info({
+                                'action': 'task_update_second_level_ordercarry',
+                                'order_no': sale_order.oid,
+                                'desc': 'referal order, upper mama < vp',
+                                'mm_linkid_mama': low_mama.id,
+                                'upper mama': upper_mama.id,
+                                'carry_um': carry_num,
+                                'created': datetime.datetime.now(),
+                            })
                             if upper_mama.referal_from == XiaoluMama.DIRECT:
                                 # 遇到direct，自动发佣就结束了
                                 sale_order.extras['exchange'] = True
                                 sale_order.extras['exchg_type'] = 1
                                 sale_order.save(update_fields=['extras'])
+                                logger.info({
+                                    'action': 'task_update_second_level_ordercarry',
+                                    'order_no': sale_order.oid,
+                                    'desc': 'upper is direct, auto exchg over',
+                                    'mm_linkid_mama': mm_linkid_mama.id,
+                                    'upper mama': upper_mama.id,
+                                    'created': datetime.datetime.now(),
+                                })
                                 break
                             else:
                                 # 继续循环，找下一级别妈妈
@@ -231,6 +264,15 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
                                                                                            low_mama.elite_level)
                             sale_order.extras['can_exchg_payment'] = can_exchg_payment
                             sale_order.save(update_fields=['extras'])
+                            logger.info({
+                                'action': 'task_update_second_level_ordercarry',
+                                'order_no': sale_order.oid,
+                                'desc': 'upper bigger than vp',
+                                'mm_linkid_mama': mm_linkid_mama.id,
+                                'upper mama': upper_mama.id,
+                                'can_exchg_payment': can_exchg_payment,
+                                'created': datetime.datetime.now(),
+                            })
                             break
                     else:
                         logger.warn({
@@ -640,12 +682,21 @@ def task_order_trigger(sale_order):
     model_product = product.get_product_model()
     if model_product:
         if model_product.is_boutique_product:
-            if mm_linkid_mama.is_elite_mama and mm_linkid_mama.elite_score < constants.ELITEMM_DESC_INFO[
-                constants.ELITEMM_VP].get('min_score'):
+            if mm_linkid_mama.is_elite_mama and mm_linkid_mama.elite_score < constants.ELITEMM_DESC_INFO[constants.ELITEMM_VP].get('min_score'):
                 # 实物商品把第一级的价格填入
                 carry_amount = get_level_differential(model_product, mm_linkid_mama.elite_level, None)
                 sale_order.extras['auto_given_carry'] = True
                 sale_order.save(update_fields=['extras'])
+                logger.info({
+                    'action': 'ordercarry',
+                    'order_no': sale_order.oid,
+                    'desc': 'first level auto given carry',
+                    'mm_linkid_mama': mm_linkid_mama.id,
+                    'carry_amount': carry_amount,
+                    'elite_score': mm_linkid_mama.elite_score,
+                    'order_num': order_num,
+                    'created': datetime.datetime.now(),
+                })
             else:
                 carry_amount = 0
         elif model_product.is_boutique_coupon:
