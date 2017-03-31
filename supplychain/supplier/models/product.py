@@ -141,6 +141,15 @@ class SaleProduct(BaseTagModel):
             self._item_products_ = Product.objects.filter(sale_product=self.id, status=Product.NORMAL)
         return self._item_products_
 
+    def get_item_products(self):
+        from shopback.items.models import Product
+        SaleProductRelation.objects.filter(sale_product=self)
+        product_ids = list(self.saleproductrelation_set.values_list('product_id', flat=True))
+        p = Product.objects.filter(sale_product=self.id).first()
+        if p:
+            product_ids.append(p.id)
+        return Product.objects.filter(id__in=product_ids)
+
     @property
     def model_product(self):
         """ 对应特卖款式 """
