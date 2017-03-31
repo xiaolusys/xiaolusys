@@ -483,8 +483,8 @@ class SaleProductViewSet(viewsets.ModelViewSet):
     @detail_route(methods=['post'])
     def set_main_sale_product(self, request, *args, **kwargs):
         instance = self.get_object()
-        products = list(instance.item_products)
-        instance.item_products.update(sale_product=instance.id)
+        products = list(instance.get_item_products())
+        instance.get_item_products().update(sale_product=instance.id)
         from flashsale.dinghuo.models_purchase import PurchaseOrder, PurchaseDetail
         for product in products:
             for sku in product.eskus.all():
