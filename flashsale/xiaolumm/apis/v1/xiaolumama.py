@@ -204,7 +204,7 @@ def current_month_rebate_remain(mama_id):
     min_socre = CONS.ELITEMM_DESC_INFO[CONS.ELITEMM_PARTNER].get('min_score')
 
     if score < min_socre:
-        return (min_socre-score, money)
+        return (min_socre-score, money, 0)
 
     today = datetime.today()
     thismonth = datetime(today.year, today.month, 1)
