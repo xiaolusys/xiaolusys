@@ -195,7 +195,6 @@ class UpdateProductSerializer(serializers.ModelSerializer):
             raise e
 
 
-
 class CreateProductSerializer(serializers.Serializer):
     sku_extras = serializers.ListField()
     name = serializers.CharField()
@@ -203,7 +202,7 @@ class CreateProductSerializer(serializers.Serializer):
     type = serializers.CharField()
     pic_path = serializers.CharField()
     ref_link = serializers.CharField(allow_blank=True)
-    memo = serializers.CharField(allow_blank=True)
+    memo = serializers.CharField(allow_blank=True, required=False)
 
     def save(self, product_id=None):
         from supplychain.supplier.models import SaleCategory
@@ -215,7 +214,7 @@ class CreateProductSerializer(serializers.Serializer):
             type = content['type']
             pic_path = content['pic_path']
             ref_link = content['ref_link']
-            memo = content['memo']
+            memo = content.get('memo', '')
             skus = content['sku_extras']
             if product_id:
                 product = Product.objects.get(id=product_id)
