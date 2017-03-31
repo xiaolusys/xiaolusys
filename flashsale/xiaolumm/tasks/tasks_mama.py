@@ -157,9 +157,8 @@ def gen_ordercarry(referal_relationship, order_carry, carry_type, carry_num):
 
 @app.task()
 def task_update_second_level_ordercarry(referal_relationship, order_carry):
-    uni_key = util_unikey.gen_ordercarry_unikey(OrderCarry.REFERAL_ORDER, order_carry.order_id)
-    record = OrderCarry.objects.filter(uni_key=uni_key).first()
-    if record:
+    records = OrderCarry.objects.filter(order_id=order_carry.order_id, carry_type__in=[OrderCarry.REFERAL_ORDER, OrderCarry.ADVANCED_MAMA_REFERAL_ORDER])
+    for record in records:
         if record.status != order_carry.status:
             record.status = order_carry.status
             record.save(update_fields=['status', 'modified'])

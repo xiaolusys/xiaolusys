@@ -55,10 +55,41 @@ def task_ordercarry_update_carryrecord(carry):
     record = CarryRecord.objects.filter(uni_key=carry.uni_key).first()
     if record:
         if record.status != carry.status:
+            from flashsale.pay.models.trade import SaleOrder
+            from flashsale.pay.models.product import ModelProduct
+            from flashsale.xiaolumm.models import XiaoluMama
+            sale_order = SaleOrder.objects.filter(oid=carry.order_id).first()
+            from shopback.items.models import Product
+            products = Product.objects.filter(id=sale_order.item_id)
+            product = products[0]
+            model_product = product.get_product_model()
+
             if carry.status == CarryRecord.CONFIRMED:
                 record.confirm()
+                # give elite score
+                if model_product and product.elite_score > 0 and (model_product.is_boutique_product or model_product.product_type == ModelProduct.USUAL_TYPE):
+                        from flashsale.coupon.apis.v1.transfer import create_present_elite_score
+                        from flashsale.coupon.apis.v1.coupontemplate import get_coupon_template_by_id
+                        upper_mama = XiaoluMama.objects.filter(id=carry.mama_id,
+                                                               status=XiaoluMama.EFFECT,
+                                                               charge_status=XiaoluMama.CHARGED).first()
+                        template = get_coupon_template_by_id(id=374)
+                        customer = upper_mama.get_mama_customer()
+                        transfer_in = create_present_elite_score(customer, int(product.elite_score), template, None, carry.order_id)
+
             if carry.status == CarryRecord.CANCEL:
                 record.cancel()
+                # cancel elite score
+                from flashsale.coupon.models.transfer_coupon import CouponTransferRecord
+                upper_mama = XiaoluMama.objects.filter(id=carry.mama_id,
+                                                       status=XiaoluMama.EFFECT,
+                                                       charge_status=XiaoluMama.CHARGED).first()
+                customer = upper_mama.get_mama_customer()
+                uni_key_in = "elite_in-%s-%s" % (customer.id, carry.order_id)
+                cts = CouponTransferRecord.objects.filter(uni_key=uni_key_in).first()
+                if cts:
+                    cts.transfer_status = CouponTransferRecord.CANCELED
+                    cts.save()
         return
 
     if carry.carry_num > 0:
