@@ -230,12 +230,6 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
                             carry_num = get_level_differential(model_product, upper_mama.elite_level,
                                                                mm_linkid_mama.elite_level)
                             gen_ordercarry(relationship, order_carry, OrderCarry.REFERAL_ORDER, carry_num)
-                            # 送积分
-                            from ..apis.v1.transfer import create_present_elite_score
-                            from ..apis.v1.coupontemplate import get_coupon_template_by_id
-                            template = get_coupon_template_by_id(id=374)
-                            customer = upper_mama.get_mama_customer()
-                            transfer_in = create_present_elite_score(customer, int(product.elite_score), template, None)
                             logger.info({
                                 'action': 'task_update_second_level_ordercarry',
                                 'order_no': sale_order.oid,
@@ -694,12 +688,6 @@ def task_order_trigger(sale_order):
                 carry_amount = get_level_differential(model_product, mm_linkid_mama.elite_level, None)
                 sale_order.extras['auto_given_carry'] = True
                 sale_order.save(update_fields=['extras'])
-                # 送积分
-                from ..apis.v1.transfer import create_present_elite_score
-                from ..apis.v1.coupontemplate import get_coupon_template_by_id
-                template = get_coupon_template_by_id(id=374)
-                customer = mm_linkid_mama.get_mama_customer()
-                transfer_in = create_present_elite_score(customer, int(product.elite_score), template, None)
                 logger.info({
                     'action': 'ordercarry',
                     'order_no': sale_order.oid,
@@ -717,12 +705,6 @@ def task_order_trigger(sale_order):
             carry_amount = 0
         else:
             carry_amount = carry_scheme.calculate_carry(agency_level, payment) * 100 * order_num
-            # 送积分
-            from ..apis.v1.transfer import create_present_elite_score
-            from ..apis.v1.coupontemplate import get_coupon_template_by_id
-            template = get_coupon_template_by_id(id=374)
-            customer = mm_linkid_mama.get_mama_customer()
-            transfer_in = create_present_elite_score(customer, int(product.elite_score), template, None)
     else:
         logger.warn({
             'action': 'ordercarry',
