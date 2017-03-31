@@ -994,12 +994,6 @@ CELERY_TASK_ROUTES = CELERY_ROUTES
 
 ####### schedule task  ########
 SYNC_MODEL_SCHEDULE = {
-    u'定时淘宝分销订单增量下载任务': {  # 增量更新分销部分订单
-        'task': 'shopback.fenxiao.tasks.updateAllUserIncrementPurchasesTask',
-        'schedule': crontab(minute="*/15"),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
     u'定时淘宝商城订单增量下载任务': {
         'task': 'shopback.orders.tasks.updateAllUserIncrementTradesTask',
         'schedule': crontab(minute="0", hour="*/12"),
@@ -1041,12 +1035,6 @@ SYNC_MODEL_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
-    # u'定时更新分销商品库存': {  # 更新库存
-    #     'task': 'shopback.items.tasks.updateAllUserPurchaseItemNumTask',
-    #     'schedule': crontab(minute="0", hour="7"),  #
-    #     'args': (),
-    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    # },
     u'定时生成每月物流信息报表': {  # 更新库存
         'task': 'shopback.trades.tasks.tasks.task_Gen_Logistic_Report_File_By_Month',
         'schedule': crontab(minute="0", hour="4", day_of_month='10'),  #
@@ -1067,7 +1055,18 @@ SYNC_MODEL_SCHEDULE = {
         'kwargs': {},
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_fresh_elitemama_active_status'}
     },
-
+    # u'定时更新分销商品库存': {  # 更新库存
+    #     'task': 'shopback.items.tasks.updateAllUserPurchaseItemNumTask',
+    #     'schedule': crontab(minute="0", hour="7"),  #
+    #     'args': (),
+    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    # },
+    # u'定时淘宝分销订单增量下载任务': {  # 增量更新分销部分订单
+    #     'task': 'shopback.fenxiao.tasks.updateAllUserIncrementPurchasesTask',
+    #     'schedule': crontab(minute="*/15"),
+    #     'args': (),
+    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    # },
     #    'runs-every-weeks-order-amount':{   #更新用户商城订单结算，按周
     #        'task':'shopback.amounts.tasks.updateAllUserOrdersAmountTask',
     #        'schedule':crontab(minute="0",hour="2"), #
