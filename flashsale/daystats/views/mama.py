@@ -20,7 +20,6 @@ from flashsale.daystats.mylib.chart import (
 from flashsale.daystats.mylib.db import (
     get_cursor,
     execute_sql,
-    mongo
 )
 from flashsale.daystats.mylib.util import (
     process_data,
@@ -648,9 +647,9 @@ def score(req):
     end_date = datetime(2016, 9, 28)
     # mamas = XiaoluMama.objects.filter(created__gte=start_date, created__lt=end_date)[:10]
     # mamas = XiaoluMama.objects.filter(id='24543')[:10]
-    mamas = mongo.mama_score.find()  # .sort('score.score', -1).limit(100)
-    mamas = list(mamas)
-
+    # mamas = mongo.mama_score.find()  # .sort('score.score', -1).limit(100)
+    # mamas = list(mamas)
+    mamas = []
     def by_score(item):
         return item['score']['score']
 

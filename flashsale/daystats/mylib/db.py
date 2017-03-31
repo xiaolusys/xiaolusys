@@ -2,7 +2,6 @@
 import os
 from django.conf import settings
 from django.db import connections
-from pymongo import MongoClient
 
 
 def dictfetchall(cursor):
@@ -28,10 +27,3 @@ def execute_sql(cursor, sql, params=None):
 def get_cursor(conn='readonly'):
     cursor = connections[conn].cursor()
     return cursor
-
-INSTANCE = os.environ.get('INSTANCE')
-if INSTANCE == 'admin' or (not INSTANCE and settings.DEBUG):
-    mongo = MongoClient(settings.MONGODB_URI).xlmm
-else:
-    # mongo = MongoClient('0.0.0.0:32769').xlmm
-    mongo = None

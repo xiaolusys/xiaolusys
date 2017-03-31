@@ -1,7 +1,7 @@
 # -*- coding:utf8 -*-
 from django.contrib import admin
 from core.filters import DateFieldListFilter
-from .models import DailyStat, PopularizeCost, DailyBoutiqueStat, DailySkuAmountStat, DailySkuDeliveryStat
+from .models import DailyStat, PopularizeCost, DailyBoutiqueStat, DailySkuAmountStat, DailySkuDeliveryStat, DailySqlRecord
 from django import forms
 
 from flashsale.pay.models import ModelProduct
@@ -115,3 +115,10 @@ class DailySkuDeliveryStatAdmin(admin.ModelAdmin):
     list_filter = (('stat_date', DateFieldListFilter),'days')
     search_fields = ['=sku_id','=model_id']
     ordering = ('-stat_date',)
+
+@admin.register(DailySqlRecord)
+class DailySqlRecordAdmin(admin.ModelAdmin):
+    list_display = ('id', 'query_data')
+    list_filter = ('status', )
+    search_fields = ['=id', 'query_data']
+    ordering = ('-modified',)

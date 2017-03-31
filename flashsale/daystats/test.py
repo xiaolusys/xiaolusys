@@ -4,13 +4,12 @@ import sys
 sys.path.append('.')
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shopmanager.settings")
 from flashsale.xiaolumm.models.models_fortune import ReferalRelationship
-from pymongo import MongoClient
-
-
-db = MongoClient('0.0.0.0:32769').xlmm
 
 
 if __name__ == '__main__':
+    from pymongo import MongoClient
+    db = MongoClient('0.0.0.0:32769').xlmm
+
     import django
     django.setup()
 
