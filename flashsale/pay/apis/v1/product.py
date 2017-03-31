@@ -61,7 +61,7 @@ def get_virtual_modelproduct_from_boutique_modelproduct(modelid):
     #         break
     return find_mp
 
-def get_level_differential_from_coupon_modelproduct(model_product):
+def get_level_differential_from_coupon_modelproduct(model_product, lowest_agent_price):
     """从coupon商品的modelid找到虚拟商品券的差价
     """
     result = []
@@ -71,7 +71,7 @@ def get_level_differential_from_coupon_modelproduct(model_product):
             all_price.append(product.agent_price)
         all_price.sort(reverse=True)
         for price in all_price:
-            result.append(model_product.agent_price - price)
+            result.append(lowest_agent_price - price)
 
     return result
 
@@ -80,7 +80,27 @@ def get_level_differential_from_boutique_modelproduct(model_product):
     """
     result = []
     find_mp = get_virtual_modelproduct_from_boutique_modelproduct(model_product.id)
-    result = get_level_differential_from_coupon_modelproduct(find_mp)
+    result = get_level_differential_from_coupon_modelproduct(find_mp, model_product.lowest_agent_price)
+
+    return result
+
+def get_level_price_from_coupon_modelproduct(find_mp, level):
+    """从coupon商品的modelid找到mamalevel虚拟商品券的price
+        """
+    result = 0
+    if find_mp:
+        for product in find_mp.products:
+            if level in product.name:
+                return product.agent_price
+    return result
+
+
+def get_level_price_from_boutique_modelproduct(model_product, level):
+    """从售卖商品的modelid找到虚拟商品券的level价
+    """
+    result = []
+    find_mp = get_virtual_modelproduct_from_boutique_modelproduct(model_product.id)
+    result = get_level_price_from_coupon_modelproduct(find_mp, level)
 
     return result
 

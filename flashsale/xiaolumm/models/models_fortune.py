@@ -11,6 +11,7 @@ from core.fields import JSONCharMyField
 from flashsale.pay.models import BudgetLog
 from flashsale.xiaolumm.models.models import XiaoluMama
 from flashsale.xiaolumm.signals import clickcarry_signal
+from flashsale.xiaolumm import constants
 import logging
 
 logger = logging.getLogger('django.request')
@@ -511,36 +512,39 @@ post_save.connect(carryrecord_update_xiaolumama_active_hasale,
 #                   sender=CarryRecord, dispatch_uid='post_save_carryrecord_update_carrytotal')
 
 
-def carryrecord_xlmm_newtask(sender, instance, **kwargs):
-    """
-    检测新手任务：完成第一笔点击收益
-    """
-    from flashsale.xiaolumm.tasks import task_push_new_mama_task
-    from flashsale.xiaolumm.models.new_mama_task import NewMamaTask
-
-    carryrecord = instance
-    xlmm = carryrecord.mama
-    if not xlmm:
-        return
-
-    if carryrecord.carry_type != CarryRecord.CR_CLICK:
-        return
-
-    is_exists = CarryRecord.objects.filter(mama_id=xlmm.id, carry_type=CarryRecord.CR_CLICK).exists()
-
-    if not is_exists:
-        params = {'money': '%.2f' % (int(carryrecord.carry_num) / 100.0)}
-        task_push_new_mama_task.delay(xlmm, NewMamaTask.TASK_FIRST_CARRY, params=params)
-
-pre_save.connect(carryrecord_xlmm_newtask,
-                 sender=CarryRecord, dispatch_uid='pre_save_carryrecord_new_mama_task')
+# def carryrecord_xlmm_newtask(sender, instance, **kwargs):
+#     """
+#     检测新手任务：完成第一笔点击收益
+#     """
+#     from flashsale.xiaolumm.tasks import task_push_new_mama_task
+#     from flashsale.xiaolumm.models.new_mama_task import NewMamaTask
+#
+#     carryrecord = instance
+#     xlmm = carryrecord.mama
+#     if not xlmm:
+#         return
+#
+#     if carryrecord.carry_type != CarryRecord.CR_CLICK:
+#         return
+#
+#     is_exists = CarryRecord.objects.filter(mama_id=xlmm.id, carry_type=CarryRecord.CR_CLICK).exists()
+#
+#     if not is_exists:
+#         params = {'money': '%.2f' % (int(carryrecord.carry_num) / 100.0)}
+#         task_push_new_mama_task.delay(xlmm, NewMamaTask.TASK_FIRST_CARRY, params=params)
+#
+# pre_save.connect(carryrecord_xlmm_newtask,
+#                  sender=CarryRecord, dispatch_uid='pre_save_carryrecord_new_mama_task')
 
 
 class OrderCarry(BaseModel):
     WAP_ORDER = 1
     APP_ORDER = 2
     REFERAL_ORDER = 3
-    CARRY_TYPES = ((1, u'微商城订单'), (2, u'App订单额外+10%'), (3, u'下属订单+20%'),)
+    ADVANCED_MAMA_REFERAL_ORDER = 4
+    CARRY_TYPES = (
+        (1, u'微商城订单'), (2, u'App订单'), (3, u'下属订单'),(4, u'高级妈妈下属订单'),
+    )
     STAGING = 0
     ESTIMATE = 1
     CONFIRM = 2
@@ -699,14 +703,6 @@ def ordercarry_update_ordercarry(sender, instance, created, **kwargs):
         if referal_relationships.count() > 0:
             referal_relationship = referal_relationships[0]
             task_update_second_level_ordercarry.delay(referal_relationship, instance)
-        # else:
-        #     # 看潜在关系列表
-        #     from flashsale.xiaolumm.models import PotentialMama
-        #     try:
-        #         potential = PotentialMama.objects.filter(potential_mama=instance.mama_id).latest('created')
-        #     except PotentialMama.DoesNotExist:
-        #         return
-        #     task_update_second_level_ordercarry_by_trial.delay(potential, instance)
 
 
 post_save.connect(ordercarry_update_ordercarry,

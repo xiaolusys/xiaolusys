@@ -602,16 +602,13 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
 
                 # !!!!APP OR WAP ORDER IS REAL GOODS!!!!
                 if entry.carry_type == OrderCarry.APP_ORDER or entry.carry_type == OrderCarry.WAP_ORDER:
-                    user_coupon = UserCoupon.objects.filter(trade_tid=sale_order.sale_trade.tid).first()
-                    if user_coupon:
-                        use_template_id = user_coupon.template_id
-                    else:
-                        use_template_id = None
+                    if sale_order.extras.has_key('auto_given_carry'):
+                        continue
 
                     # find modelproduct, need except 365elite product
-                    model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id, is_boutique=True).first()
-                    if model_product and (model_product.product_type == ModelProduct.USUAL_TYPE) \
-                            and (model_product.id != 25408) and model_product.extras.has_key('payinfo') \
+                    model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id, is_boutique=True,
+                                                                product_type=ModelProduct.USUAL_TYPE).first()
+                    if model_product and (model_product.id != 25408) and model_product.extras.has_key('payinfo') \
                             and model_product.extras['payinfo'].has_key('coupon_template_ids'):
                         if model_product.extras['payinfo']['coupon_template_ids'] and len(
                                 model_product.extras['payinfo']['coupon_template_ids']) > 0:
@@ -620,13 +617,11 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                             template_id = model_product.extras['payinfo']['coupon_template_ids'][0]
                             # 用的券全部是精品券那就无法兑换，部分用券部分现金还是能兑换的
                             if template_ids and template_id:
-                                # if use_template_id and use_template_id in template_ids:
-                                #     continue
                                 from flashsale.coupon.apis.v1.coupontemplate import get_boutique_coupon_modelid_by_templateid
                                 coupon_modelid = get_boutique_coupon_modelid_by_templateid(template_id)
                                 if round(sale_order.payment / sale_order.price) > 0:
                                     results.append({'exchg_template_id': template_id, 'exchg_model_id': coupon_modelid,
-                                                    'num': left_exchange_num,
+                                                    'num': left_exchange_num, 'exchg_payment': sale_order.payment,
                                                     'order_id': entry.order_id, 'sku_img': entry.sku_img, 'sku_name': sale_order.title,
                                                     'contributor_nick': entry.contributor_nick, 'status': entry.status,
                                                     'status_display': OrderCarry.STATUS_TYPES[entry.status][1],
@@ -645,32 +640,61 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                         # budget_pay, coin_pay = get_pay_type_from_trade(sale_order.sale_trade)
                         if round(sale_order.payment / sale_order.price) > 0 and model_product.extras.has_key('template_id'):
                             results.append({'exchg_template_id': model_product.extras['template_id'], 'exchg_model_id': model_product.id,
-                                            'num': left_exchange_num,
+                                            'num': left_exchange_num, 'exchg_payment': left_exchange_num * sale_order.price,
                                             'order_id': entry.order_id, 'sku_img': head_img, 'sku_name': sale_order.title,
                                             'contributor_nick': entry.contributor_nick, 'status': entry.status,
                                             'status_display': OrderCarry.STATUS_TYPES[entry.status][1],
                                             'order_value': entry.order_value, 'date_field': entry.date_field})
-
-        #从relationship推荐人中找出购买rmb338/216 rmb365的新精英妈妈订单
-        from flashsale.xiaolumm.models.models_fortune import ReferalRelationship
-        ships = ReferalRelationship.objects.filter(referal_from_mama_id=mama.id, referal_type=XiaoluMama.ELITE, status=ReferalRelationship.VALID)
-        for ship in ships.iterator():
-            if ship.order_id and len(ship.order_id) > 0:
-                rmb338_order = SaleOrder.objects.filter(oid=ship.order_id).first()
-                if rmb338_order and (not rmb338_order.extras.has_key('exchange')) \
-                        and (rmb338_order.status in [SaleOrder.WAIT_BUYER_CONFIRM_GOODS, SaleOrder.TRADE_BUYER_SIGNED, SaleOrder.TRADE_FINISHED]):
-                    template_id = 0
-                    if rmb338_order.is_elite_365_order():
-                        template_id = 365
+                elif entry.carry_type == OrderCarry.ADVANCED_MAMA_REFERAL_ORDER:
+                    # !!!!buy real goods, associate and director auto given carry, vp p sp need exchange!!!!!
+                    if sale_order.extras.has_key('exchg_payment'):
+                        exchg_payment = float(sale_order.extras['exchg_payment'])
                     else:
                         continue
-                    buyer_customer = Customer.objects.normal_customer.filter(id=rmb338_order.buyer_id).first()
-                    results.append({'exchg_template_id': template_id, 'exchg_model_id': 25408,
-                                    'num': 1,
-                                    'order_id': ship.order_id, 'sku_img': rmb338_order.pic_path, 'sku_name': rmb338_order.title,
-                                    'contributor_nick': buyer_customer.nick, 'status': 2,
-                                    'status_display': u'确定收益',
-                                    'order_value': round(rmb338_order.payment * 100), 'date_field': rmb338_order.pay_time})
+                    if sale_order.extras.has_key('auto_given_carry') and sale_order.extras['auto_given_carry'] and exchg_payment > 0:
+                        # find modelproduct, need except 365elite product
+                        model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id, is_boutique=True,
+                                                                    product_type=ModelProduct.USUAL_TYPE).first()
+                        if model_product and (model_product.id != 25408) and model_product.extras.has_key('payinfo') \
+                                and model_product.extras['payinfo'].has_key('coupon_template_ids'):
+                            if model_product.extras['payinfo']['coupon_template_ids'] and len(
+                                    model_product.extras['payinfo']['coupon_template_ids']) > 0:
+
+                                template_ids = model_product.extras['payinfo']['coupon_template_ids']
+                                template_id = model_product.extras['payinfo']['coupon_template_ids'][0]
+                                # 用的券全部是精品券那就无法兑换，部分用券部分现金还是能兑换的
+                                if template_ids and template_id:
+                                    from flashsale.coupon.apis.v1.coupontemplate import get_boutique_coupon_modelid_by_templateid
+                                    coupon_modelid = get_boutique_coupon_modelid_by_templateid(template_id)
+                                    if round(sale_order.payment / sale_order.price) > 0:
+                                        results.append({'exchg_template_id': template_id, 'exchg_model_id': coupon_modelid,
+                                                        'num': left_exchange_num, 'exchg_payment': exchg_payment,
+                                                        'order_id': entry.order_id, 'sku_img': entry.sku_img,
+                                                        'sku_name': sale_order.title,
+                                                        'contributor_nick': entry.contributor_nick, 'status': entry.status,
+                                                        'status_display': OrderCarry.STATUS_TYPES[entry.status][1],
+                                                        'order_value': entry.order_value, 'date_field': entry.date_field})
+
+        #从relationship推荐人中找出购买rmb338/216 rmb365的新精英妈妈订单
+        # from flashsale.xiaolumm.models.models_fortune import ReferalRelationship
+        # ships = ReferalRelationship.objects.filter(referal_from_mama_id=mama.id, referal_type=XiaoluMama.ELITE, status=ReferalRelationship.VALID)
+        # for ship in ships.iterator():
+        #     if ship.order_id and len(ship.order_id) > 0:
+        #         rmb338_order = SaleOrder.objects.filter(oid=ship.order_id).first()
+        #         if rmb338_order and (not rmb338_order.extras.has_key('exchange')) \
+        #                 and (rmb338_order.status in [SaleOrder.WAIT_BUYER_CONFIRM_GOODS, SaleOrder.TRADE_BUYER_SIGNED, SaleOrder.TRADE_FINISHED]):
+        #             template_id = 0
+        #             if rmb338_order.is_elite_365_order():
+        #                 template_id = 365
+        #             else:
+        #                 continue
+        #             buyer_customer = Customer.objects.normal_customer.filter(id=rmb338_order.buyer_id).first()
+        #             results.append({'exchg_template_id': template_id, 'exchg_model_id': 25408,
+        #                             'num': 1,
+        #                             'order_id': ship.order_id, 'sku_img': rmb338_order.pic_path, 'sku_name': rmb338_order.title,
+        #                             'contributor_nick': buyer_customer.nick, 'status': 2,
+        #                             'status_display': u'确定收益',
+        #                             'order_value': round(rmb338_order.payment * 100), 'date_field': rmb338_order.pay_time})
         logger.info({
             'message': u'list can exchange order:result len=%s ' % (len(results)),
             'data': '%s' % content
@@ -687,6 +711,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
         coupon_num = content.get("coupon_num") or None
         order_id = content.get("order_id")
         exchg_template_id = content.get("exchg_template_id")
+        exchg_payment = content.get("exchg_payment")
         if not (coupon_num and coupon_num.isdigit() and exchg_template_id and exchg_template_id.isdigit()):
             logger.warn({
                 'message': u'exchange order:coupon_num=%s order_id=%s templateid=%s' % (
@@ -748,5 +773,5 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
             })
             return Response({"code": 4, "info": u'商品参数配置有误，无法兑换，请联系管理员!'})
 
-        coupon_exchange_saleorder(customer, order_id, mama_id, template_ids, int(coupon_num))
+        coupon_exchange_saleorder(customer, order_id, mama_id, template_ids, int(coupon_num), exchg_payment)
         return Response({'code': 0, 'info': '兑换成功'})

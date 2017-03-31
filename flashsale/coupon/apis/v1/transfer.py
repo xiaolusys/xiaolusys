@@ -540,10 +540,10 @@ def elite_mama_recharge(customer_id, order_id, order_oid, product_id):
             customer_id, order_id, order_oid, product_id),
     })
 
-def coupon_exchange_saleorder(customer, order_id, mama_id, template_ids, coupon_num):
+def coupon_exchange_saleorder(customer, order_id, mama_id, template_ids, coupon_num, exchg_payment):
     logger.info({
-        'message': u'exchange order:customer=%s, mama_id=%s coupon_num=%s order_id=%s templateid=%s' % (
-            customer.id, mama_id, coupon_num, order_id, template_ids),
+        'message': u'exchange order:customer=%s, mama_id=%s coupon_num=%s order_id=%s templateid=%s, exchg_payment=%s' % (
+            customer.id, mama_id, coupon_num, order_id, template_ids, exchg_payment),
     })
 
     from flashsale.pay.models.trade import SaleOrder
@@ -598,10 +598,14 @@ def coupon_exchange_saleorder(customer, order_id, mama_id, template_ids, coupon_
 
         # (3)在user钱包写收入记录
         from flashsale.pay.models.user import BudgetLog
-
+        if not exchg_payment:
+            if sale_order.extras.has_key('exchg_payment'):
+                exchg_payment = float(sale_order.extras['exchg_payment'])
+            else:
+                exchg_payment = sale_order.price * coupon_num
         BudgetLog.create(customer_id=customer.id,
                          budget_type=BudgetLog.BUDGET_IN,
-                         flow_amount=round(sale_order.payment * 100),
+                         flow_amount=round(exchg_payment * 100),
                          budget_log_type=BudgetLog.BG_EXCHG_ORDER,
                          referal_id=sale_order.id,
                          uni_key=sale_order.oid,
@@ -657,10 +661,23 @@ def saleorder_return_coupon_exchange(salerefund, payment):
         res = {}
         return res
 
-    from flashsale.pay.models.user import UserBudget, Customer
+    # 此处应该是兑换了多少就扣多少
+    from flashsale.pay.models.user import UserBudget, BudgetLog, Customer
+    customer = Customer.objects.normal_customer.filter(unionid=mama.openid).first()
+    exchg_budgetlog = BudgetLog.objects.filter(customer_id=customer.id,
+                                               budget_type=BudgetLog.BUDGET_IN,
+                                               budget_log_type=BudgetLog.BG_EXCHG_ORDER,
+                                               uni_key=sale_order.oid).first()
+    if exchg_budgetlog:
+        exchg_payment = exchg_budgetlog.flow_amount
+    else:
+        logger.error({
+            'message': u'return exchange order:BudgetLog BG_EXCHG_ORDER not found, customer=%s, payment=%s order oid=%s' % (
+                salerefund.buyer_id, payment, sale_order.oid),
+        })
+        exchg_payment = int(payment)
 
     not_enough_budget = False
-    customer = Customer.objects.normal_customer.filter(unionid=mama.openid).first()
     user_budgets = UserBudget.objects.filter(user=customer)
     if user_budgets.exists():
         user_budget = user_budgets[0]
@@ -669,11 +686,9 @@ def saleorder_return_coupon_exchange(salerefund, payment):
 
     with transaction.atomic():
         # (1)在user钱包写支出记录，支出不够变成负数
-        from flashsale.pay.models.user import BudgetLog
-
         BudgetLog.create(customer_id=customer.id,
                          budget_type=BudgetLog.BUDGET_OUT,
-                         flow_amount=int(payment),
+                         flow_amount=exchg_payment,
                          budget_log_type=BudgetLog.BG_RETURN_EXCHG,
                          referal_id=salerefund.id,
                          uni_key=salerefund.refund_no,
