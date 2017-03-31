@@ -45,7 +45,8 @@
     "buyer": null,
     "ware_by": 4,
     "return_ware_by": 4,
-    "delta_arrive_days": 3
+    "delta_arrive_days": 3,
+    "can_change_logistics":0
   }
 }
 ]
