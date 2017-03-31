@@ -171,5 +171,5 @@ class ConditionFilter(filters.BaseFilterBackend):
         for k in view.search_fields:
             v = request.GET.get(k)
             if v:
-                condition[k] = v
+                condition[k] = v.split(',') if ',' in v else v
         return queryset.filter(**condition)
