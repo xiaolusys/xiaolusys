@@ -12,6 +12,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def default_activity_order_val():
+    return ActivityEntry.objects.count() + 1
+
 class ActivityEntry(BaseModel):
     """ 商城活动入口 """
 
@@ -48,7 +51,7 @@ class ActivityEntry(BaseModel):
     login_required = models.BooleanField(default=False, verbose_name=u'需要登陆')
     start_time = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name=u'开始时间')
     end_time = models.DateTimeField(blank=True, null=True, verbose_name=u'结束时间')
-    order_val = models.IntegerField(default=0, verbose_name=u'排序值')
+    order_val = models.IntegerField(default=default_activity_order_val, db_index=True, verbose_name=u'排序值')
     extras = JSONCharMyField(max_length=5120, default={}, blank=True, verbose_name=u'活动数据')
     is_active = models.BooleanField(default=True, verbose_name=u'上线')
     objects = ActivityManager()

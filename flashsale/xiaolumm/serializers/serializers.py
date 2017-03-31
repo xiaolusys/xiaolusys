@@ -71,8 +71,8 @@ class NinePicAdverSerializer(serializers.ModelSerializer):
     def get_push_status(self, obj):
         # type: (NinePicAdver) -> text_type
         text_map = {
-            True: u'已推/不推',
-            False: u'将要推送'
+            True: u'已推',
+            False: u'未推'
         }
         return text_map[obj.is_pushed]
 
