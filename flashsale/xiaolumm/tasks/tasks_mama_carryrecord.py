@@ -80,16 +80,17 @@ def task_ordercarry_update_carryrecord(carry):
             if carry.status == CarryRecord.CANCEL:
                 record.cancel()
                 # cancel elite score
-                from flashsale.coupon.models.transfer_coupon import CouponTransferRecord
-                upper_mama = XiaoluMama.objects.filter(id=carry.mama_id,
-                                                       status=XiaoluMama.EFFECT,
-                                                       charge_status=XiaoluMama.CHARGED).first()
-                customer = upper_mama.get_mama_customer()
-                uni_key_in = "elite_in-%s-%s" % (customer.id, carry.order_id)
-                cts = CouponTransferRecord.objects.filter(uni_key=uni_key_in).first()
-                if cts:
-                    cts.transfer_status = CouponTransferRecord.CANCELED
-                    cts.save()
+                if model_product and product.elite_score > 0 and (model_product.is_boutique_product or model_product.product_type == ModelProduct.USUAL_TYPE):
+                    from flashsale.coupon.models.transfer_coupon import CouponTransferRecord
+                    upper_mama = XiaoluMama.objects.filter(id=carry.mama_id,
+                                                           status=XiaoluMama.EFFECT,
+                                                           charge_status=XiaoluMama.CHARGED).first()
+                    customer = upper_mama.get_mama_customer()
+                    uni_key_in = "elite_in-%s-%s" % (customer.id, carry.order_id)
+                    cts = CouponTransferRecord.objects.filter(uni_key=uni_key_in).first()
+                    if cts:
+                        cts.transfer_status = CouponTransferRecord.CANCELED
+                        cts.save()
         return
 
     if carry.carry_num > 0:
