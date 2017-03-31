@@ -27,15 +27,11 @@ class ProductSkuFormset(forms.models.BaseInlineFormSet):
             qs = queryset.filter(**{self.fk.name: self.instance})
         else:
             qs = queryset.none()
-        print 'queryset', qs.count()
         for sku in qs:
             api_skustat = SkustatCtl.retrieve(sku.id)
             sku.quantity = api_skustat.get_realtime_quantity()
             sku.wait_post_num = api_skustat.get_wait_post_num()
             sku.lock_num = api_skustat.get_lock_num()
-
-        # BaseInlineFormSet, self).__init__(data, files, prefix=prefix,
-        #                                         queryset=qs, **kwargs)
         forms.BaseModelFormSet.__init__(self, data, files, prefix=prefix,
                                         queryset=qs, **kwargs)
 
