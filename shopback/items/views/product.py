@@ -556,7 +556,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     authentication_classes = (authentication.BasicAuthentication, authentication.SessionAuthentication)
     permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser, permissions.DjangoModelPermissions)
     filter_backends = (ConditionFilter, filters.DjangoFilterBackend, filters.OrderingFilter)
-    search_fields = ['name__contains', 'id', 'model_id__in', 'sale_product', 'outer_id', 'category_id', 'type',
+    search_fields = ['name__contains', 'id', ('model_id__in', list), 'sale_product', 'outer_id', 'category_id', 'type',
                      'shelf_status', 'status', 'ware_by']
 
     def list(self, request, *args, **kwargs):

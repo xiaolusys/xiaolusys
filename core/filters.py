@@ -170,6 +170,8 @@ class ConditionFilter(filters.BaseFilterBackend):
         condition = {}
         for k in view.search_fields:
             v = request.GET.get(k)
+            if type(k) is tuple and k[1] is list and v:
+                v = v.split(',')
             if v:
-                condition[k] = v.split(',') if ',' in v else v
+                condition[k] = v
         return queryset.filter(**condition)
