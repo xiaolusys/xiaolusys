@@ -1094,12 +1094,6 @@ SHOP_APP_SCHEDULE = {
     #     'args': (),
     #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     # },
-    u'定时生成月销售报表': {
-        'task': 'shopapp.report.tasks.updateMonthTradeXlsFileTask',
-        'schedule': crontab(minute="0", hour="3"),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
     u'定时韵达录单任务': {
         'task': 'shopapp.yunda.tasks.task_update_yunda_order_addr',
         'schedule': crontab(minute="0", hour="10,13"),

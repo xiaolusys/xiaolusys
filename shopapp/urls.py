@@ -6,7 +6,6 @@ urlpatterns = [
     url(r'^jd/',include('shopapp.jingdong.urls')),
     url(r'^memorule/',include('shopapp.memorule.urls')),
     # (r'^search/',include('shopapp.collector.urls')),
-    url(r'^report/',include('shopapp.report.urls')),
     url(r'^autolist/',include('shopapp.autolist.urls')),
     url(r'^async/',include('shopapp.asynctask.urls')),
     url(r'^calendar/',include('shopapp.calendar.urls')),

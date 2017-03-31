@@ -118,7 +118,7 @@ class DailySkuDeliveryStatAdmin(admin.ModelAdmin):
 
 @admin.register(DailySqlRecord)
 class DailySqlRecordAdmin(admin.ModelAdmin):
-    list_display = ('id', 'query_data')
+    list_display = ('id', 'query_data', 'status')
     list_filter = ('status', )
     search_fields = ['=id', 'query_data']
     ordering = ('-modified',)

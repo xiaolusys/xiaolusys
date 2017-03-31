@@ -171,7 +171,6 @@ INSTALLED_APPS =[
 
     'shopapp.autolist',
     'shopapp.memorule',
-    'shopapp.report',
     'shopapp.asynctask',
     'shopapp.modifyfee',
     'shopapp.calendar',
