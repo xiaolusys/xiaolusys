@@ -63,7 +63,7 @@ def check_name(card_no, name):
     url = 'http://aliyun.id98.cn/idcard'
     params = {
         'cardno': card_no,
-        'name': name
+        'name': name.strip()
     }
     headers = {
         'Authorization': 'APPCODE {}'.format(appcode)
