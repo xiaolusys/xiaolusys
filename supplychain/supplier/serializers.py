@@ -345,10 +345,15 @@ class SaleProductEditSerializer(serializers.ModelSerializer):
     memo = serializers.CharField(required=False, allow_blank=True)
     platform = serializers.CharField(required=False, allow_blank=True)
     supplier_sku = serializers.CharField(required=False, allow_blank=True)
+    is_batch_mgt = serializers.BooleanField(required=False)
+    is_expire_mgt = serializers.BooleanField(required=False)
+    is_vendor_mgt = serializers.BooleanField(required=False)
+    shelf_life_days = serializers.IntegerField(required=False)
 
     class Meta:
         model = SaleProduct
-        fields = ("title", "product_link", "memo", "platform", "supplier_sku")
+        fields = ("title", "product_link", "memo", "platform", "supplier_sku",
+                  "is_batch_mgt", "is_expire_mgt", "is_vendor_mgt", "shelf_life_days")
 
     def save(self, obj, user, saleproduct):
         saleproduct.title = obj.get('title') if obj.get('title') else saleproduct.title
@@ -357,6 +362,16 @@ class SaleProductEditSerializer(serializers.ModelSerializer):
         saleproduct.memo = obj.get('memo', '')
         saleproduct.librarian = user.username
         saleproduct.platform = obj.get('platform', SaleProduct.MANUAL)
+        if saleproduct.extras is None:
+            saleproduct.extras = {}
+        saleproduct.extras.update({
+            "consoles": {
+                "is_batch_mgt": obj.get('is_batch_mgt', False),  # 启动批次管理
+                "is_expire_mgt": obj.get('is_expire_mgt', False),  # 启动保质期管理
+                "is_vendor_mgt": obj.get('is_vendor_mgt', False),  # 启动多供应商管理(支持同SKU多供应商供货)
+                "shelf_life_days": obj.get('shelf_life_days', 0),  # 保质期(天数)
+            }
+        })
         saleproduct.save()
         return saleproduct
 
