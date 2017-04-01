@@ -915,9 +915,26 @@ class BudgetLogAdmin(admin.ModelAdmin):
 
     list_filter = ('budget_type', 'budget_log_type', 'status', 'modified')
     search_fields = ['=id', '=customer_id']
+    actions = ['approve', 'reject']
 
     # def get_readonly_fields(self, request, obj=None):
     # return self.readonly_fields + ('user',)
+
+    def approve(self, req, queryset):
+        """
+        审核通过
+        """
+        for bg in queryset:
+            bg.confirm_budget_log()
+    approve.short_description = u'审核通过'
+
+    def reject(self, req, queryset):
+        """
+        审核拒绝
+        """
+        for bg in queryset:
+            bg.cancel_budget_log()
+    reject.short_description = u'审核拒绝'
 
 
 admin.site.register(BudgetLog, BudgetLogAdmin)
