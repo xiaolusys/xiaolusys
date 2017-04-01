@@ -9,7 +9,7 @@ django.setup()
 
 from flashsale.dinghuo.models import OrderDetail,OrderList
 from django.db.models import Count,Min,Max,Sum
-from supplychain.supplier.models import  SaleSupplier
+from pms.supplier.models import  SaleSupplier
 import datetime
 
 

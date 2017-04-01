@@ -217,7 +217,7 @@ LOGGER_HANDLERS = [
     ('flashsale', 'sentry,file'),
     ('core', 'sentry,file'),
     ('auth', 'sentry,file'),
-    ('supplychain', 'sentry,file'),
+    ('pms', 'sentry,file'),
     ('statistics', 'sentry,file'),
     ('dogslow', 'sentry,file'),
     ('django.request', 'sentry,file'),

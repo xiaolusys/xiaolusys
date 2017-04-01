@@ -12,7 +12,7 @@ from rest_framework import authentication
 
 from core.utils import flatten
 from shopback.items.models import Product, ProductSku
-from supplychain.supplier.models import SaleProduct
+from pms.supplier.models import SaleProduct
 
 from ..models import (
     StagingInBound,

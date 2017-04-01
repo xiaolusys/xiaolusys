@@ -44,7 +44,7 @@ from django.forms.models import model_to_dict
 from flashsale.dinghuo import functions2view
 
 from flashsale.dinghuo.models import ReturnGoods, RGDetail
-from supplychain.supplier.models import SaleProduct, SaleSupplier
+from pms.supplier.models import SaleProduct, SaleSupplier
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 import logging
 

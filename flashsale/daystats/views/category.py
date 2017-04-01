@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from rest_framework import exceptions
 
 from core.utils.timeutils import parse_str2date
-from supplychain.supplier.models import SaleCategory
+from pms.supplier.models import SaleCategory
 from shopback.items.models import ProductSku
 from flashsale.pay.models import ModelProduct
 from ..models import DailySkuDeliveryStat, DailySkuAmountStat, DailyBoutiqueStat

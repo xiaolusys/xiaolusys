@@ -11,7 +11,7 @@ from flashsale.pay.models import SaleOrder
 from shopback.items.models import Product, ProductSku
 from shopback.refunds.models import RefundProduct
 from shopback.trades.models import MergeOrder, PackageSkuItem
-from supplychain.supplier.models import SaleProduct
+from pms.supplier.models import SaleProduct
 
 ADMIN_ID = 1
 

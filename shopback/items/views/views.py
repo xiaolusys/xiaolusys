@@ -42,7 +42,7 @@ from django.http import HttpResponse, HttpResponseRedirect, Http404
 
 from shopback.items import serializers
 from shopback.items.renderers import *
-from supplychain.supplier.models import SaleSupplier
+from pms.supplier.models import SaleSupplier
 ###########7-27
 import logging
 

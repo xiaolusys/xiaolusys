@@ -9,12 +9,12 @@ from django.db import IntegrityError
 from django.db.models import Sum
 from django.contrib.auth.models import User
 from shopback.items.models import Product
-from supplychain.supplier.models import SupplierCharge, SaleSupplier
+from pms.supplier.models import SupplierCharge, SaleSupplier
 from flashsale.pay.models import SaleOrder, ModelProduct
 from statistics import constants
 
 from statistics.models import SaleStats, ProductStockStat, ModelStats, SaleOrderStatsRecord
-from supplychain.supplier.models import SaleProductManage, SaleProductManageDetail
+from pms.supplier.models import SaleProductManage, SaleProductManageDetail
 from shopback.categorys.models import ProductCategory
 
 logger = logging.getLogger(__name__)

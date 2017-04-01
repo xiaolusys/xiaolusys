@@ -33,7 +33,7 @@ from common.decorators import jsonapi
 from flashsale.dinghuo.models import RGDetail, ReturnGoods, UnReturnSku
 from flashsale.finance.models import BillRelation, Bill
 from rest_framework import generics, permissions, renderers, viewsets
-from supplychain.supplier.models import SaleProduct, SaleSupplier
+from pms.supplier.models import SaleProduct, SaleSupplier
 from rest_framework.decorators import list_route, detail_route
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 from shopback.trades.models import PackageSkuItem,PackageOrder

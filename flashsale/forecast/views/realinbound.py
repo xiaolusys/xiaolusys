@@ -15,7 +15,7 @@ from rest_framework import authentication
 
 from common.utils import get_admin_name
 from shopback.items.models import Product, ProductSku, ProductLocation, SkuStock
-from supplychain.supplier.models import SaleProduct
+from pms.supplier.models import SaleProduct
 
 from ..models import (
     StagingInBound,

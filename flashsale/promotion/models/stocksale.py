@@ -9,12 +9,12 @@ from core.models import BaseModel, AdminModel
 from core.fields import JSONCharMyField
 from shopback.trades.models import Product
 from flashsale.pay.models.product import Productdetail
-from supplychain.supplier.models import SaleProduct
+from pms.supplier.models import SaleProduct
 from flashsale.promotion.models import ActivityEntry, ActivityProduct
 from flashsale.xiaolumm.models.models_rebeta import AgencyOrderRebetaScheme
 from shopback.items.models import SkuStock
 from flashsale.pay.models import ProductSku
-from supplychain.supplier.models.schedule import SaleProductManage, SaleProductManageDetail
+from pms.supplier.models.schedule import SaleProductManage, SaleProductManageDetail
 
 
 class BatchStockSale(AdminModel):

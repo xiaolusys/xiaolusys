@@ -85,7 +85,7 @@ class PurchaseOrder(BaseModel):
 
     @staticmethod
     def get_supplier(purchase_order_unikey):
-        from supplychain.supplier.models import SaleSupplier
+        from pms.supplier.models import SaleSupplier
         supplier_id = int(purchase_order_unikey.split('-')[0])
         return SaleSupplier.objects.get(id=supplier_id)
 

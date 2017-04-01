@@ -14,7 +14,7 @@ from rest_framework.decorators import list_route, detail_route
 from rest_framework.response import Response
 from rest_framework import exceptions
 
-from supplychain.supplier.models import SaleProductManage
+from pms.supplier.models import SaleProductManage
 from ..models.activity import ActivityEntry, ActivityProduct
 from ..serializers.activity import ActivitySerializer, ActivityProductSerializer
 from ..apis.activity import get_activity_by_id, create_activity, update_activity, get_activity_pros_by_activity_id, \

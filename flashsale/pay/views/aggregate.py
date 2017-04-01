@@ -13,7 +13,7 @@ from rest_framework.response import Response
 
 from flashsale.pay.models import ModelProduct, Productdetail, ModelProduct
 from shopback.items.models import Product
-from supplychain.supplier.models import SaleProductManageDetail
+from pms.supplier.models import SaleProductManageDetail
 
 from core.options import log_action, ADDITION, CHANGE
 

@@ -23,7 +23,7 @@ from flashsale.dinghuo.tasks import task_ding_huo_optimize, task_ding_huo
 from shopback import paramconfig as pcfg
 from shopback.items.models import Product, ProductSku
 from shopback.trades.models import (MergeOrder, TRADE_TYPE, SYS_TRADE_STATUS)
-from supplychain.supplier.models import SaleProduct, SaleProductManage, SaleProductManageDetail
+from pms.supplier.models import SaleProduct, SaleProductManage, SaleProductManageDetail
 
 from . import forms
 

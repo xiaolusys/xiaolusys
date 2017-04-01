@@ -6,7 +6,7 @@ from rest_framework import permissions
 from rest_framework.response import Response
 from .tasks import task_calc_performance_by_user, task_calc_performance_by_supplier, task_calc_sale_product
 import datetime
-from supplychain.supplier.models import SaleCategory
+from pms.supplier.models import SaleCategory
 
 
 class StatsPerformanceView(generics.ListCreateAPIView):
@@ -50,7 +50,7 @@ class StatsSupplierView(generics.ListCreateAPIView):
              "all_category": all_category})
 
 
-from supplychain.supplier.models import SaleCategory
+from pms.supplier.models import SaleCategory
 
 
 class StatsSaleProdcutView(generics.ListCreateAPIView):

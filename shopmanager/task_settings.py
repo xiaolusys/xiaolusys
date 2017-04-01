@@ -652,7 +652,7 @@ STATISTICS_ROUTES = {
         'queue': 'statistics',
         'routing_key': 'statistics.task_statsrecord_update_model_stats',
     },
-    'supplychain.supplier.tasks.task_calculate_supplier_stats_data': {
+    'pms.supplier.tasks.task_calculate_supplier_stats_data': {
         'queue': 'statistics',
         'routing_key': 'statistics.task_calculate_supplier_stats_data',
     },
@@ -1546,7 +1546,7 @@ SHOP_APP_SCHEDULE = {
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
     u'每天检查排期有没有锁定': {
-        'task': 'supplychain.supplier.tasks.task_check_schedule_is_lock',
+        'task': 'pms.supplier.tasks.task_check_schedule_is_lock',
         'schedule': crontab(minute="0", hour="18"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_check_schedule_is_lock'}

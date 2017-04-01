@@ -2,7 +2,7 @@
 
 from rest_framework import serializers
 
-from supplychain.supplier.models import SaleCategory
+from pms.supplier.models import SaleCategory
 
 
 class SaleCategorySerializer(serializers.ModelSerializer):

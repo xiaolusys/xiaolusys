@@ -110,7 +110,7 @@ from shopback.items.models import Product
 from flashsale.dinghuo.models import DailySupplyChainStatsOrder
 from common.modelutils import update_model_fields
 from shopback.refunds.models_refund_rate import ProRefunRcord
-from supplychain.supplier.models import SaleProduct
+from pms.supplier.models import SaleProduct
 from django.db.models import F
 
 

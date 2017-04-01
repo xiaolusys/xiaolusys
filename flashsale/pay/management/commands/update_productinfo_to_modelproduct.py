@@ -8,7 +8,7 @@ from django.db.models import Min
 from shopback.items.models import Product
 from flashsale.pay.models import ProductSku
 from flashsale.pay.models import ModelProduct
-from supplychain.supplier.models import SaleCategory, SaleProduct
+from pms.supplier.models import SaleCategory, SaleProduct
 
 import logging
 logger = logging.getLogger(__name__)

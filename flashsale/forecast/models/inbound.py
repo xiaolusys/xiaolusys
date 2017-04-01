@@ -6,7 +6,7 @@ from django.db.models.signals import post_save
 
 from core.models import BaseModel
 from core.utils.unikey import uniqid
-from supplychain.supplier.models import SaleSupplier
+from pms.supplier.models import SaleSupplier
 
 from .. import constants
 

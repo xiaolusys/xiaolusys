@@ -44,7 +44,7 @@ def get_apppushmsg_params_kvs():
     from flashsale.protocol.constants import TARGET_TYPE_MODELIST, TARGET_TYPE_WEBVIEW, TARGET_TYPE_ACTIVE, \
         TARGET_TYPE_CATEGORY_PRO
     from flashsale.promotion.models import ActivityEntry
-    from supplychain.supplier.models import SaleCategory
+    from pms.supplier.models import SaleCategory
 
     now = datetime.datetime.now()
     activity_ids = []

@@ -16,7 +16,7 @@ from flashsale.dinghuo.models import (OrderDraft, OrderDetail, OrderList,
                                       OrderDetailInBoundDetail)
 from shopback.items.models import Product, ProductSku
 from shopback.trades.apis.v1.packet import packing_skus
-from supplychain.supplier.models import SaleProduct, SaleSupplier
+from pms.supplier.models import SaleProduct, SaleSupplier
 from .. import forms, functions, functions2view, models
 from django.shortcuts import get_object_or_404
 from django.shortcuts import HttpResponseRedirect

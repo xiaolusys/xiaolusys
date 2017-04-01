@@ -5,7 +5,7 @@ from django.http import HttpResponseRedirect
 
 from core.filters import DateScheduleFilter, DateFieldListFilter
 from .models import ForecastInbound, ForecastInboundDetail, RealInbound, RealInboundDetail, ForecastStats
-from supplychain.supplier.models import SaleSupplier
+from pms.supplier.models import SaleSupplier
 from flashsale.dinghuo.models import OrderList
 
 from core.widgets import AdminTextThumbnailWidget

@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import list_route, detail_route
 from flashsale.pay.models import ModelProduct, Customer, CuShopPros
 from flashsale.restpro.v2 import serializers as serializers_v2
-from supplychain.supplier.serializers import ModelProductSerializer
+from pms.supplier.serializers import ModelProductSerializer
 from django.shortcuts import get_object_or_404, Http404
 
 import logging

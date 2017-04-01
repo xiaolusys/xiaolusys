@@ -20,7 +20,7 @@ from core.pagination import ConsoleResultSetPagination
 from flashsale.xiaolumm import serializers
 from flashsale.xiaolumm.models.models_advertis import NinePicAdver
 from shopback.items.models import Product
-from supplychain.supplier.models import SaleProductManageDetail
+from pms.supplier.models import SaleProductManageDetail
 from ..apis.v1.ninepic import create_nine_pic_advertisement, \
     update_nine_pic_advertisement_by_id, delete_nine_pic_advertisement_by_id, get_nine_pic_descriptions_by_modelids
 
@@ -94,7 +94,7 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def list_filters(self, request, *args, **kwargs):
-        from supplychain.supplier.models import SaleCategory
+        from pms.supplier.models import SaleCategory
 
         categorys = SaleCategory.objects.filter(status=SaleCategory.NORMAL, is_parent=True)
         return Response({

@@ -766,7 +766,7 @@ class ModelProduct(BaseTagModel):
         return False
 
     def set_product_source_type(self, source_type):
-        from supplychain.supplier.models import SaleProduct
+        from pms.supplier.models import SaleProduct
         self.extras.setdefault('sources', {'source_type': SaleProduct.SOURCE_SELF})
         self.extras['sources']['source_type'] = source_type
         self.extras['saleinfos']['is_bonded_goods'] = \

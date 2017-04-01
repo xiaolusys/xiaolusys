@@ -75,7 +75,7 @@ class GoodShelf(PayBaseModel):
         return u'<%s,%s>' % (self.id, self.title)
 
     def get_cat_imgs(self):
-        from supplychain.supplier.models.category import SaleCategory
+        from pms.supplier.models.category import SaleCategory
 
         cat_list = []
         lv1_categorys = SaleCategory.get_viewable_categorys()\

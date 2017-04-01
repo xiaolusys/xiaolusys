@@ -1064,7 +1064,7 @@ class PackageSkuItem(BaseModel):
         """
         获取供应商的商品信息
         """
-        from supplychain.supplier.models.product import SaleProduct
+        from pms.supplier.models.product import SaleProduct
 
         product_sku = self.product_sku
         product = product_sku.product

@@ -23,7 +23,7 @@ from core.filters import ConditionFilter
 from shopback.categorys.models import ProductCategory
 from shopback.items import constants
 from shopback.items.models import (Product, ProductSku, SkuStock)
-from supplychain.supplier.models import SaleSupplier, SaleProduct, SaleCategory, SaleProductManageDetail
+from pms.supplier.models import SaleSupplier, SaleProduct, SaleCategory, SaleProductManageDetail
 from shopback.items import serializers
 from shopback.items.forms import ProductEditForm
 
@@ -587,7 +587,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     @detail_route(methods=['GET'])
     def get_sale_products(self, request, *args, **kwargs):
         product = self.get_object()
-        from supplychain.supplier.serializers import SaleProductSerializer
+        from pms.supplier.serializers import SaleProductSerializer
         sale_products = SaleProduct.get_by_product(product)
         queryset = self.filter_queryset(sale_products)
         page = self.paginate_queryset(queryset)

@@ -3,7 +3,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from core.models import BaseModel
 from django.contrib.contenttypes.models import ContentType
-from supplychain.supplier.models import SaleSupplier
+from pms.supplier.models import SaleSupplier
 
 
 class Bill(BaseModel):

@@ -19,7 +19,7 @@ from flashsale.daystats.mylib.util import (
 )
 from shopback.items.models import Product
 from flashsale.pay.models.product import ModelProduct
-from supplychain.supplier.models.category import SaleCategory
+from pms.supplier.models.category import SaleCategory
 
 
 @login_required
