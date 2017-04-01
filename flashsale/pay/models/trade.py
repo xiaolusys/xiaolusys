@@ -883,7 +883,7 @@ def do_buy_xiaolucoin_365(saleorder):
     from flashsale.xiaolumm.models import XiaoluMama
 
     customer_id = saleorder.buyer_id
-    customer = Customer.objects.get(customer_id)
+    customer = Customer.objects.filter(id=customer_id).first()
     mama = customer.get_xiaolumm()
 
     # 购买的妈妈已经是一个精英妈妈了，那么就不用给红包和创建推荐关系了
