@@ -522,7 +522,7 @@ def elite_mama_recharge(customer_id, order_id, order_oid, product_id):
         return
 
     # 充值365自动开通账户
-    if so.item_id == 80880 and so.sku_id == 297999:
+    if int(so.item_id) == 80880 and int(so.sku_id) == 297999:
         from flashsale.pay.models.trade import do_buy_xiaolucoin_365
         do_buy_xiaolucoin_365(so)
 
