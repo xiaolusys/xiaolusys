@@ -133,7 +133,7 @@ def default_modelproduct_extras_tpl():
             "is_product_buy_limit": True,
             "per_limit_buy_num": 20,
             "is_bonded_goods": False, #标识商品是否需要
-            "is_coupon_deny": True,
+            "is_coupon_deny": False,
         },
         "new_properties": [],
         "sources": {
