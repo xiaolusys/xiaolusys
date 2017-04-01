@@ -512,7 +512,9 @@ def elite_mama_recharge(customer_id, order_id, order_oid, product_id):
         )
         # 充值365自动开通账户
         if so.item_id == 80880 and so.sku_id == 297999:
-            create_new_elite_mama(customer, to_mama, so)
+            # create_new_elite_mama(customer, to_mama, so)
+            from flashsale.pay.models.trade import do_buy_xiaoluconi_365
+            do_buy_xiaoluconi_365(so)
     if not to_mama:
         logger.info({
             'action': 'elite_mama_recharge',
