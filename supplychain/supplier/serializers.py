@@ -340,11 +340,11 @@ class CreateSaleProductSerializer(serializers.ModelSerializer):
 
 
 class SaleProductEditSerializer(serializers.ModelSerializer):
-    title = serializers.CharField(required=False)
-    product_link = serializers.CharField(required=False)
-    memo = serializers.CharField(required=False)
-    platform = serializers.CharField(required=False)
-    supplier_sku = serializers.CharField(required=False)
+    title = serializers.CharField(required=False, allow_blank=True)
+    product_link = serializers.CharField(required=False, allow_blank=True)
+    memo = serializers.CharField(required=False, allow_blank=True)
+    platform = serializers.CharField(required=False, allow_blank=True)
+    supplier_sku = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = SaleProduct
