@@ -178,7 +178,7 @@ deploy:
         -Q apis,notify,peroid,default,frency,coupon,activevalue,mama,mamafortune,relationship,carryrecord,skustats,statistics,logistics,carrytotal,integral,dinghuo,xiaolupay
   ssh:
     host:
-      - admin.xiaolumm.com
+      - staging.xiaolumm.com
       - sale5.xiaolumm.com
     user: root
     when:
