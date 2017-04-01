@@ -169,7 +169,7 @@ PINGPP_APPKEY = "sk_live_HOS4OSW10u5CDyrn5Gn9izLC"
 XIAOLU_CLENTIP = "118.178.116.5"
 
 ########################### ONEAPM Statsd ##############################
-STATSD_HOST = '10.45.32.34'
+STATSD_HOST = '10.132.54.77'
 STATSD_PORT = 9125
 # STATSD_CLIENT = 'celery_statsd.oneapm'
 # STATSD_CELERY_SIGNALS = True
