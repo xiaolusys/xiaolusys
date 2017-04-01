@@ -907,7 +907,7 @@ def do_buy_xiaolucoin_365(saleorder):
     # 给一级推荐人30积分
     level_1_mama = mama.get_referal_from_mama()
     if not level_1_mama:
-        logger.error(u'{}没有一级推荐人'.format(mama.id))
+        logger.error(u'do_buy_xiaolucoin_365 {}没有一级推荐人'.format(mama.id))
         return
 
     level_1_customer = level_1_mama.get_mama_customer()
