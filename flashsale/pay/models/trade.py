@@ -870,6 +870,61 @@ def update_customer_first_paytime(sender, obj, **kwargs):
 signal_saletrade_pay_confirm.connect(update_customer_first_paytime, sender=SaleTrade)
 
 
+def do_buy_xiaolucoin_365(saleorder):
+    """
+    新人充值365，得到365小鹿币，100个积分。
+
+    此函数功能:推荐人得到30积分，推荐人上级得到10个积分。
+    """
+    from flashsale.coupon.apis.v1.transfer import create_new_elite_mama
+    from flashsale.coupon.apis.v1.transfer import create_present_elite_score
+    from flashsale.coupon.apis.v1.coupontemplate import get_coupon_template_by_id
+    from flashsale.xiaolumm.tasks.tasks_mama_push import task_weixin_push_mama_invite_award
+    from flashsale.xiaolumm.models import XiaoluMama
+
+    customer_id = saleorder.buyer_id
+    customer = Customer.objects.get(customer_id)
+    mama = customer.get_xiaolumm()
+
+    # 购买的妈妈已经是一个精英妈妈了，那么就不用给红包和创建推荐关系了
+    if mama and mama.last_renew_type >= XiaoluMama.ELITE and mama.charge_status == XiaoluMama.CHARGED \
+            and mama.status == XiaoluMama.EFFECT:
+        return
+    if (not mama) and customer.unionid:
+        # 是微信登录的就创建小鹿妈妈账号，用手机号登录的那只能找管理员了
+        mama = XiaoluMama.objects.create(
+            mobile=customer.mobile,
+            progress=XiaoluMama.PROFILE,
+            openid=customer.unionid,
+            last_renew_type=XiaoluMama.SCAN,
+        )
+    if not mama:
+        return
+
+    # 生成推荐关系
+    create_new_elite_mama(customer, mama, saleorder)
+
+    # 给一级推荐人30积分
+    level_1_mama = mama.get_referal_from_mama()
+    if not level_1_mama:
+        logger.error(u'{}没有一级推荐人'.format(mama.id))
+        return
+
+    level_1_customer = level_1_mama.get_mama_customer()
+    template = get_coupon_template_by_id(id=374)
+    create_present_elite_score(level_1_customer, 30, template, '')
+    task_weixin_push_mama_invite_award.delay(level_1_mama, customer, '30积分')
+
+    # 二级推荐人10积分
+    level_2_mama = level_1_mama.get_referal_from_mama()
+    if (not level_2_mama) or level_1_mama.referal_from == XiaoluMama.DIRECT:
+        return
+
+    level_2_customer = level_2_mama.get_mama_customer()
+    create_present_elite_score(level_2_customer, 10, template, '')
+    task_weixin_push_mama_invite_award.delay(level_2_mama, customer, '10积分', level_1_customer=level_1_customer)
+
+
 def buy_boutique_register_product(sender, obj, **kwargs):
     """
     购买小鹿全球精品会员注册礼包
@@ -969,7 +1024,7 @@ def buy_boutique_register_product(sender, obj, **kwargs):
         saleorders = saletrade.sale_orders.all()
         for order in saleorders:
             model_id = order.item_product.model_id
-            if model_id == 25514:
+            if model_id == 25514:  # 新人礼包
                 with transaction.atomic():
                     do(customer, order)
                     break

@@ -82,7 +82,7 @@ STATICFILES_FINDERS = (
 )
 
 SECRET_KEY = 'zze(^rvhdz(hxx16a788w6jyqhtq%*v_pl^2#t1dskpb!473f8'
-ENCRYPTED_FIELDS_KEYDIR = 'core/fields/fieldkeys'
+ENCRYPTED_FIELDS_KEYDIR = os.path.join(PROJECT_ROOT, 'core/fields/fieldkeys')
 
 MIDDLEWARE_CLASSES = (
     'core.middleware.middleware.XForwardedForMiddleware',

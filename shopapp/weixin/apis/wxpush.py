@@ -323,6 +323,11 @@ class WeixinPush(object):
         else:
             first = u'恭喜你团队增加一名成员{}, 请邀请你朋友加入到团队群，并及时联系你的管理员领取奖励！'.format(buy_customer.nick)
 
+        if type(amount) == str:
+            amount = u'%s' % amount
+        else:
+            amount = u'¥%.2f' % amount,
+
         template_ids = {
             'meimei': 'K2RVQnhIh6psYkGrkjLclLWmNXQ-hqoc-yumdsLuqC4',
             'temai': 'ATPs2YP1ynKfgtXRl1fhhZ2Kne3AmDmU8Rghax31edg'
@@ -337,7 +342,7 @@ class WeixinPush(object):
                 'color': '#000000',
             },
             'keyword2': {
-                'value': u'¥%.2f' % amount,
+                'value': amount,
                 'color': '#ff0000',
             },
             'keyword3': {
