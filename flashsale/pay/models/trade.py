@@ -886,7 +886,7 @@ def do_buy_xiaolucoin_365(saleorder):
     customer = Customer.objects.filter(id=customer_id).first()
     mama = customer.get_xiaolumm()
 
-    # 购买的妈妈已经是一个精英妈妈了，那么就不用给红包和创建推荐关系了
+    # 购买的妈妈已经是一个精英妈妈了，那么就不用创建推荐关系了
     if mama and mama.last_renew_type >= XiaoluMama.ELITE and mama.charge_status == XiaoluMama.CHARGED \
             and mama.status == XiaoluMama.EFFECT:
         return
