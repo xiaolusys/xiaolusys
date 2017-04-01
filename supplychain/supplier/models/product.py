@@ -299,7 +299,7 @@ class SaleProduct(BaseTagModel):
     def get_by_product(product):
         spids = list(SaleProductRelation.objects.filter(product_id=product.id).values_list('sale_product_id', flat=True))
         spids = spids + [product.sale_product]
-        return SaleProduct.objects.filter(id__in=spids)
+        return SaleProduct.objects.filter(id__in=spids).exclude(status__in=[SaleProduct.REJECTED, SaleProduct.IGNORED])
 
     @staticmethod
     @transaction.atomic
