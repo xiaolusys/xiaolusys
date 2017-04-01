@@ -539,7 +539,8 @@ def task_create_mama_referal_qrcode_and_response_weixin(wxpubId, openid, event, 
 
         mama = XiaoluMama.objects.filter(openid=unionid).first()
         if not mama:
-            raise XiaoluMama.DoesNotExist()
+            # raise XiaoluMama.DoesNotExist()
+            return
 
         # 获取创建用户小鹿妈妈信息,
         media_id = fetch_wxpub_mama_custom_qrcode_media_id(mama.id, userinfo, wxpubId)
@@ -572,7 +573,8 @@ def task_create_mama_and_response_manager_qrcode(wxpubId, openid, event, eventKe
             return
         mama = XiaoluMama.objects.filter(openid=unionid).first()
         if not mama:
-            raise task_create_mama_and_response_manager_qrcode.retry()
+            # raise task_create_mama_and_response_manager_qrcode.retry()
+            return
 
         # 获取创建用户小鹿妈妈信息,
         media_id = fetch_wxpub_mama_manager_qrcode_media_id(mama.id, wxpubId)
