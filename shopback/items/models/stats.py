@@ -13,7 +13,7 @@ from django.core.cache import cache
 from shopback.trades.constants import PSI_STATUS, PSI_TYPE
 from shopback.warehouse import WARE_SH, WARE_CHOICES, WARE_NONE
 from django.db.models import Manager
-from supplychain.supplier.models import SaleProduct
+from pms.supplier.models import SaleProduct
 import logging
 from copy import deepcopy
 logger = logging.getLogger(__name__)

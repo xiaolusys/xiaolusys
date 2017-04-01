@@ -1,6 +1,6 @@
 # coding=utf-8
 from flashsale.dinghuo.models import OrderDetail,OrderList
-from supplychain.supplier.models import  SaleSupplier
+from pms.supplier.models import  SaleSupplier
 import json
 from django.test import TestCase
 

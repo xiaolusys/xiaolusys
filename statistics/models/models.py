@@ -165,7 +165,7 @@ class SaleStats(BaseModel):
         if self.record_type != constants.TYPE_SUPPLIER:  # 供应商类型记录
             return None
         if not hasattr(self, '_supplier_'):
-            from supplychain.supplier.models import SaleSupplier
+            from pms.supplier.models import SaleSupplier
 
             self._supplier_ = SaleSupplier.objects.filter(id=self.current_id).first()
         return self._supplier_
@@ -213,7 +213,7 @@ def update_supplier_figure(sender, instance, created, **kwargs):
         return
     if instance.timely_type != constants.TIMELY_TYPE_DATE:
         return
-    from supplychain.supplier.tasks import task_calculate_supplier_stats_data
+    from pms.supplier.tasks import task_calculate_supplier_stats_data
 
     task_calculate_supplier_stats_data.delay(instance)
 

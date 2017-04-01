@@ -4,7 +4,7 @@ from __future__ import absolute_import, unicode_literals
 import datetime, time
 from django.test import TestCase, tag
 
-from supplychain.supplier.models import SaleSupplier, SaleProduct
+from pms.supplier.models import SaleSupplier, SaleProduct
 from shopback.items.models import Product, ProductSku
 from ..adapter.mall.push import supplier, product, inbound
 from ..adapter.ware.pull import pms

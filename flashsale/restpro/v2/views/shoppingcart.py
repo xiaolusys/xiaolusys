@@ -398,7 +398,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         return ware_by or WARE_NONE
 
     def get_selectable_express(self,product_list):
-        from supplychain.supplier.models import SaleProduct
+        from pms.supplier.models import SaleProduct
         from shopback import  warehouse
         lg_dict_list = [{'id': '', 'code': '', 'name': u'自动分配', 'is_priority': True}]
         is_express_change = []
@@ -435,7 +435,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                 raise exceptions.APIException(exc.message)
 
     def calc_personalinfo_level(self, source_type, product_type):
-        from supplychain.supplier.models import SaleProduct
+        from pms.supplier.models import SaleProduct
         if product_type == ModelProduct.VIRTUAL_TYPE:
             return UserAddress.PERSONALINFO_LEVEL_ZERO
 

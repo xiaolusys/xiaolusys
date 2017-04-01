@@ -15,7 +15,7 @@ from core.models import BaseModel
 from shopback.items.models import Product, SkuStock
 from flashsale.pay.models import ProductSku
 from shopback.warehouse.constants import WARE_CHOICES, WARE_NONE, WARE_GZ
-from supplychain.supplier.models import SaleSupplier
+from pms.supplier.models import SaleSupplier
 from flashsale.pay.models import UserAddress
 from core.upload import generate_private_url
 import logging,json

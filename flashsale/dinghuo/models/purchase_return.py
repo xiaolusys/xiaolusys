@@ -9,7 +9,7 @@ from django.db.models.signals import post_save
 from django.contrib.auth.models import User
 from core.models import BaseModel
 from shopback.items.models import ProductSku, Product, SkuStock
-from supplychain.supplier.models import SaleSupplier, SaleProduct
+from pms.supplier.models import SaleSupplier, SaleProduct
 from .purchase_order import OrderList
 from flashsale.pay.models import UserAddress
 import logging

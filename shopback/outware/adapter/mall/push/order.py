@@ -2,7 +2,7 @@
 from __future__ import absolute_import, unicode_literals
 
 from shopback.items.models import ProductSku
-from supplychain.supplier.models import SaleSupplier
+from pms.supplier.models import SaleSupplier
 from shopback.outware.adapter.ware.pull import oms, pms
 from flashsale.pay.models import UserAddress, SaleOrder
 from ....models import OutwarePackageSku, OutwareOrderSku, OutwareSku

@@ -19,7 +19,7 @@ from shopback import paramconfig as pcfg
 from shopback.categorys.models import CategorySaleStat
 from shopback.items.models import Product
 from shopback.warehouse.constants import WARE_THIRD, WARE_SH, WARE_GZ, WARE_COMPANY
-from supplychain.supplier.models import SaleProduct
+from pms.supplier.models import SaleProduct
 from .base import PayBaseModel
 from .. import constants
 from ..options import uniqid

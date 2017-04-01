@@ -28,7 +28,7 @@ from shopback.archives.models import Deposite, DepositeDistrict
 from shopback.users.models import DjangoUser, User
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 
-from supplychain.supplier.models import SaleProduct
+from pms.supplier.models import SaleProduct
 from .. import constants, managers
 
 import logging

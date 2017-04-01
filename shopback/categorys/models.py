@@ -87,7 +87,7 @@ class ProductCategory(BaseModel):
         return u'%s / %s' % (p_cat, self.name)
 
     def get_sale_category(self):
-        from supplychain.supplier.models import SaleCategory
+        from pms.supplier.models import SaleCategory
         return SaleCategory.objects.filter(name=self.name).first()
 
 

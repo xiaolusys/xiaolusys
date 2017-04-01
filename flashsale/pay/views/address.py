@@ -15,7 +15,7 @@ from django.http import Http404, HttpResponse
 
 from flashsale.pay.models import Customer, District, UserAddress
 from flashsale.pay.options import getDistrictTree
-from supplychain.supplier.models import SaleSupplier
+from pms.supplier.models import SaleSupplier
 from django.shortcuts import render
 
 import logging,json

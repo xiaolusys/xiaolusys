@@ -833,7 +833,7 @@ def task_add_product_to_customer_shop(customer):
     xlmm = customer.getXiaolumm()
     if not xlmm:
         return
-    from supplychain.supplier.models import SaleProductManageDetail
+    from pms.supplier.models import SaleProductManageDetail
     from flashsale.xiaolumm.models.models_rebeta import AgencyOrderRebetaScheme
     from shopback.items.models import Product
     rebt = AgencyOrderRebetaScheme.objects.get(status=AgencyOrderRebetaScheme.NORMAL, is_default=True)

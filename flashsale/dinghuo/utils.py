@@ -29,7 +29,7 @@ def get_supplier(sku_id):
     product_sku = ProductSku.objects.get(id=sku_id)
     product = product_sku.product
 
-    from supplychain.supplier.models import SaleProduct
+    from pms.supplier.models import SaleProduct
     try:
         sale_product = SaleProduct.objects.get(id=product.sale_product)
         supplier = sale_product.sale_supplier

@@ -23,7 +23,7 @@ from shopback import paramconfig as pcfg
 from shopback.items.models import Product
 from flashsale.pay.models import ProductSku
 from shopback.trades.models import (MergeOrder, TRADE_TYPE, SYS_TRADE_STATUS)
-from supplychain.supplier.models import SaleProduct, SupplierCharge, SaleSupplier
+from pms.supplier.models import SaleProduct, SupplierCharge, SaleSupplier
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_COMPANY, WARE_CHOICES
 from . import utils
 from . import function_of_task, functions
@@ -207,7 +207,7 @@ def get_supply_name(name):
         return ""
 
 
-from supplychain.basic.fetch_urls import getBeaSoupByCrawUrl
+from pms.basic.fetch_urls import getBeaSoupByCrawUrl
 
 
 @app.task()
@@ -645,7 +645,7 @@ def task_ding_huo_optimize(shelve_from, time_to, groupname, search_text, target_
     return result_dict
 
 
-from supplychain.supplier.models import SaleProduct
+from pms.supplier.models import SaleProduct
 from flashsale.pay.models import SaleRefund
 from shopback.refunds.models import RefundProduct
 from .models import ReturnGoods, RGDetail

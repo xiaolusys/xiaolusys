@@ -15,7 +15,7 @@ from .models import (
     RealInbound,
     RealInboundDetail
 )
-from supplychain.supplier.models import SaleSupplier
+from pms.supplier.models import SaleSupplier
 from core.utils import flatten
 
 import logging

@@ -6,7 +6,7 @@ import datetime
 from shopback.items.models import Product, ProductSku
 from flashsale.dinghuo.models import OrderDetail, OrderList
 
-from supplychain.supplier.models import SaleProduct
+from pms.supplier.models import SaleProduct
 from core.options import log_action, CHANGE, get_systemoa_user
 
 

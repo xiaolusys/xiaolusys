@@ -13,7 +13,7 @@ from rest_framework import status
 from rest_framework import exceptions
 from rest_framework_extensions.cache.decorators import cache_response
 
-from supplychain.supplier.models import SaleCategory
+from pms.supplier.models import SaleCategory
 from .. import serializers
 
 CACHE_VIEW_TIMEOUT = 30

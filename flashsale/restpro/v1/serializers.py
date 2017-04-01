@@ -690,7 +690,7 @@ class CustomShareSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('url', 'id', 'title', 'desc', 'share_img', 'active_at', 'created', 'status')
 
 
-from supplychain.supplier.models import SaleProduct
+from pms.supplier.models import SaleProduct
 
 
 class SaleProductSerializer(serializers.ModelSerializer):
@@ -699,7 +699,7 @@ class SaleProductSerializer(serializers.ModelSerializer):
         exclude = ()
 
 
-from supplychain.supplier.models import HotProduct
+from pms.supplier.models import HotProduct
 
 
 class HotProductSerializer(serializers.ModelSerializer):

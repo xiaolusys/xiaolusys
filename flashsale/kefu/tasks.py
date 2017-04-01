@@ -9,7 +9,7 @@ from shopmanager import celery_app as app
 
 from flashsale.kefu.models import KefuPerformance
 from flashsale.pay.models import SaleRefund
-from supplychain.supplier.models import SaleProduct, SaleSupplier, SupplierCharge
+from pms.supplier.models import SaleProduct, SaleSupplier, SupplierCharge
 
 import logging
 logger = logging.getLogger('celery.handler')

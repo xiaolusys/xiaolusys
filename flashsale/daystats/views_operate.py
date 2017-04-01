@@ -6,7 +6,7 @@ from rest_framework import permissions
 from rest_framework.response import Response
 from .tasks import task_calc_operate_data
 import datetime
-from supplychain.supplier.models import SaleCategory
+from pms.supplier.models import SaleCategory
 
 
 class StatsDataView(generics.ListCreateAPIView):
@@ -57,7 +57,7 @@ class DailyCheckView(generics.ListCreateAPIView):
         return Response({"result_data": result_data, "all_shelf_num": all_shelf_num})
 
 
-from supplychain.supplier.models import SaleSupplier, SaleProduct
+from pms.supplier.models import SaleSupplier, SaleProduct
 
 
 class SupplierPreviewView(generics.ListCreateAPIView):

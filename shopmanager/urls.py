@@ -52,7 +52,7 @@ urlpatterns = [
     url(r'^users/', include('shopback.users.urls')),
     url(r'^weixin/', include('shopapp.weixin.urls')),
     url(r'^wx/', include('shopapp.weixin.urls')),
-    url(r'^supplychain/', include('supplychain.urls')),
+    url(r'^pms/', include('pms.urls')),
     url(r'^games/', include('games.urls')),
     url(r'^mm/', include('flashsale.pay.urls')),
     url(r'^coupon/', include('flashsale.coupon.urls')),

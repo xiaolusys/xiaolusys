@@ -19,7 +19,7 @@ from flashsale.xiaolumm.models import XiaoluMama
 from flashsale.xiaolumm.models.models_fortune import CarryRecord
 from shopapp.weixin.options import get_unionid_by_openid
 from shopback.categorys.models import ProductCategory
-from supplychain.supplier.models import SaleProduct, SaleSupplier, SupplierCharge, SaleCategory
+from pms.supplier.models import SaleProduct, SaleSupplier, SupplierCharge, SaleCategory
 
 from ..models import DailyStat, PopularizeCost
 from ..constants import SWITCH_CARRYLOG_TIME

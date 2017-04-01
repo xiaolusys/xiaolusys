@@ -26,7 +26,7 @@ from shopback.items import constants, forms, local_cache
 from shopback.items.models import (Product, ProductSku, ProductSchedule,
                                    ProductSkuContrast, ContrastContent,
                                    SkuStock)
-from supplychain.supplier.models import SaleSupplier, SaleProduct, SaleProductManageDetail
+from pms.supplier.models import SaleSupplier, SaleProduct, SaleProductManageDetail
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 
 logger = logging.getLogger(__name__)

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from supplychain.supplier.models import SaleSupplier
+from pms.supplier.models import SaleSupplier
 from .models import (
     ForecastInbound,
     ForecastInboundDetail,

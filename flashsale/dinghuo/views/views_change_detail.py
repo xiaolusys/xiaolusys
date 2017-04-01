@@ -26,7 +26,7 @@ from flashsale.dinghuo.models import OrderDetail, OrderList, OrderDraft, OrderDe
 from .. import functions
 from shopback.items.models import Product, ProductSku, ProductStock
 from shopback.warehouse.constants import WARE_THIRD, WARE_GZ
-from supplychain.supplier.models import SaleProduct, SaleSupplier
+from pms.supplier.models import SaleProduct, SaleSupplier
 from flashsale.finance.models import Bill, BillRelation  # 财务记录model
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import get_object_or_404

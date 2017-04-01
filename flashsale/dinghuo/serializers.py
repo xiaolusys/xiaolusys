@@ -1,7 +1,7 @@
 # coding=utf-8
 from rest_framework import serializers
 
-from supplychain.supplier.models import SaleSupplier
+from pms.supplier.models import SaleSupplier
 from .models import LackGoodOrder, OrderList
 from .models.inbound import InBound
 

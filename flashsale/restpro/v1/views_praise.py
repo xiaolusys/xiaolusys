@@ -21,9 +21,9 @@ import datetime
 from flashsale.restpro import permissions as perms
 from . import serializers
 
-from supplychain.supplier.models import SaleProduct
+from pms.supplier.models import SaleProduct
 from flashsale.pay.models import Customer
-from supplychain.supplier.models import SalePraise, HotProduct
+from pms.supplier.models import SalePraise, HotProduct
 from common.modelutils import update_model_fields
 
 

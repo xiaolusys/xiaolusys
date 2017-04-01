@@ -35,7 +35,7 @@ from shopback.items.models import Product, ProductSku, ProductStock, ProductLoca
 from shopback.logistics.models import LogisticsCompany
 from shopback.warehouse import WARE_CHOICES
 from shopback.trades.models import PackageSkuItem, PackageOrder
-from supplychain.supplier.models import SaleProduct, SaleSupplier
+from pms.supplier.models import SaleProduct, SaleSupplier
 from .. import forms, functions, functions2view, models
 
 

@@ -14,7 +14,7 @@ from django.utils.functional import cached_property
 from core.fields import JSONCharMyField
 from core.options import get_systemoa_user
 from shopback.items.models import ProductSku, Product
-from supplychain.supplier.models import SaleSupplier, SaleProduct
+from pms.supplier.models import SaleSupplier, SaleProduct
 from .purchase_order import OrderList, OrderDetail
 from shopback.warehouse import WARE_SH, WARE_CHOICES
 import logging

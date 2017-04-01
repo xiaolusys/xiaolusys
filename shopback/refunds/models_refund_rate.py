@@ -9,7 +9,7 @@ from shopback.items.models import Product
 from shopback.items.models import ProductDaySale
 from flashsale.pay.models import SaleRefund
 from django.contrib.auth.models import User
-from supplychain.supplier.models import SaleProduct
+from pms.supplier.models import SaleProduct
 
 
 class PayRefundRate(models.Model):

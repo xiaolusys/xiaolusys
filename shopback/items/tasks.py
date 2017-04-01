@@ -703,7 +703,7 @@ def releaseProductTradesTask(outer_ids):
         releaseProductTrades(outer_id)
 
 
-from supplychain.supplier.models import SaleProduct
+from pms.supplier.models import SaleProduct
 
 
 class CalcProductSaleAsyncTask(object):
@@ -1032,7 +1032,7 @@ def task_auto_shelf_prods():
     2. 自动下架产品：　并且在上架状态的产品　修改状态到下架状态
     """
     try:
-        from supplychain.supplier.models import SaleProductManage, SaleProductManageDetail
+        from pms.supplier.models import SaleProductManage, SaleProductManageDetail
         today = datetime.date.today()
         t1 = datetime.datetime(today.year, today.month, today.day, 0, 0, 0)
         t2 = datetime.datetime(today.year, today.month, today.day, 23, 59, 59)

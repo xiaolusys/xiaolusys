@@ -4,7 +4,7 @@ from rest_framework.decorators import list_route, detail_route
 from rest_framework.response import Response
 from rest_framework import exceptions
 from django.shortcuts import get_object_or_404
-from supplychain.supplier.models import SaleSupplier
+from pms.supplier.models import SaleSupplier
 from rest_framework import authentication
 
 from .. import forms

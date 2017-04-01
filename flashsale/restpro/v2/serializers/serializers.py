@@ -52,7 +52,7 @@ from shopback.logistics.models import LogisticsCompany
 from shopback.trades.models import TradeWuliu, PackageOrder
 from shopback.categorys.models import ProductCategory
 from shopapp.weixin.models import WXOrder
-from supplychain.supplier.models import SaleProduct, HotProduct
+from pms.supplier.models import SaleProduct, HotProduct
 from shopback.refunds.models_refund_rate import ProRefunRcord
 
 from flashsale.xiaolumm.models.models_advertis import MamaVebViewConf

@@ -3,7 +3,7 @@ from __future__ import absolute_import, unicode_literals
 
 from core.apis import DictObject
 
-from supplychain.supplier.models import SaleProduct
+from pms.supplier.models import SaleProduct
 from shopback.items.models import Product
 from ....adapter.ware.pull import pms
 from .... import constants

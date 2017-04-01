@@ -4,7 +4,7 @@ from shopback.archives.models import DepositeDistrict
 from shopback.categorys.models import Category
 from shopback.users.models import User
 from flashsale.pay.models import ModelProduct, ModelProductSkuContrast
-from supplychain.supplier.serializers import SaleProductSerializer
+from pms.supplier.serializers import SaleProductSerializer
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -75,7 +75,7 @@ class ProductListSerializer(serializers.ModelSerializer):
 
     def get_sale_category(self, obj):
         category = obj.category.get_sale_category()
-        from supplychain.supplier.serializers import SaleCategorySerializer
+        from pms.supplier.serializers import SaleCategorySerializer
         return SaleCategorySerializer(category).data
 
     def get_sku_extras(self, obj):
@@ -104,14 +104,14 @@ class ProductEditSerializer(serializers.ModelSerializer):
 
     def get_sale_category(self, obj):
         category = obj.category.get_sale_category()
-        from supplychain.supplier.serializers import SaleCategorySerializer
+        from pms.supplier.serializers import SaleCategorySerializer
         return SaleCategorySerializer(category).data
 
     def get_sku_extras(self, obj):
         return obj.sku_extras_info
 
     def save(self, product_id=None):
-        from supplychain.supplier.models import SaleCategory
+        from pms.supplier.models import SaleCategory
         try:
             content = self.data
             name = content['name']
@@ -159,14 +159,14 @@ class UpdateProductSerializer(serializers.ModelSerializer):
 
     def get_sale_category(self, obj):
         category = obj.category.get_sale_category()
-        from supplychain.supplier.serializers import SaleCategorySerializer
+        from pms.supplier.serializers import SaleCategorySerializer
         return SaleCategorySerializer(category).data
 
     def get_sku_extras(self, obj):
         return obj.sku_extras_info
 
     def save(self, product_id=None):
-        from supplychain.supplier.models import SaleCategory
+        from pms.supplier.models import SaleCategory
         try:
             content = self.data
             name = content['name']
@@ -205,7 +205,7 @@ class CreateProductSerializer(serializers.Serializer):
     memo = serializers.CharField(allow_blank=True, required=False)
 
     def save(self, product_id=None):
-        from supplychain.supplier.models import SaleCategory
+        from pms.supplier.models import SaleCategory
         try:
             content = self.data
             name = content['name']
