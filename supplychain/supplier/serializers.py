@@ -311,7 +311,7 @@ class CreateSaleProductSerializer(serializers.ModelSerializer):
     product_link = serializers.CharField(required=False, allow_blank=True)
     memo = serializers.CharField(required=False, allow_blank=True)
     platform = serializers.CharField(required=False, allow_blank=True)
-    supplier_sku = serializers.CharField(required=False)
+    supplier_sku = serializers.CharField(required=False, allow_blank=True)
     is_batch_mgt = serializers.BooleanField(required=False)
     is_expire_mgt = serializers.BooleanField(required=False)
     is_vendor_mgt = serializers.BooleanField(required=False)
