@@ -308,8 +308,10 @@ def task_weixinfans_create_subscribe_awardcarry(unionid):
     
     try:
         mama = XiaoluMama.objects.filter(openid=unionid).first()
+        # 20170330试用3取消，关注公众号或扫码没有新增妈妈记录，那么就没有1块的奖励了，成为正式妈妈后还是有
         if not mama:
-            raise XiaoluMama.DoesNotExist()
+            # raise XiaoluMama.DoesNotExist()
+            return
 
         mama_id = mama.id
         # We get here too fast that WeixinUserInfo objects have not been created yet,
@@ -409,8 +411,10 @@ def task_weixinfans_create_fans_awardcarry(referal_from_mama_id, referal_to_unio
         # been created yet, and when we try to access , error comes.        
         referal_to_mama = XiaoluMama.objects.filter(openid=referal_to_unionid).first()
         userinfo = WeixinUserInfo.objects.filter(unionid=referal_to_unionid).first()
-        if not referal_to_mama :
-            raise XiaoluMama.DoesNotExist()
+        # 20170330试用3取消，关注公众号或扫码没有新增妈妈记录，那么就没有1块的奖励了，成为正式妈妈后还是有
+        if not referal_to_mama:
+            # raise XiaoluMama.DoesNotExist()
+            return
 
         if not userinfo:
             raise WeixinUserInfo.DoesNotExist()
