@@ -319,11 +319,11 @@ class WeixinPush(object):
         now = datetime.datetime.now()
 
         if level_1_customer:
-            first = u'恭喜你团队{}增加一名新成员{}，请及时联系你的管理员领取奖励！'.format(level_1_customer.nick, buy_customer.nick)
+            first = u'恭喜你团队{}增加一名新成员{}！'.format(level_1_customer.nick, buy_customer.nick)
         else:
-            first = u'恭喜你团队增加一名成员{}, 请邀请你朋友加入到团队群，并及时联系你的管理员领取奖励！'.format(buy_customer.nick)
+            first = u'恭喜你团队增加一名成员{}, 请邀请你朋友加入到团队群！'.format(buy_customer.nick)
 
-        if type(amount) == str:
+        if type(amount) == str or type(amount) == unicode:
             amount = u'%s' % amount
         else:
             amount = u'¥%.2f' % amount,
