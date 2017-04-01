@@ -28,6 +28,7 @@ class XlmmEffectScore(BaseModel):
     stat_time = models.DateTimeField(verbose_name=u'统计时间')
 
     class Meta:
+        db_table = 'xiaolumm_xlmmeffectscore'
         unique_together = ('mama_id', 'stat_time')
         app_label = 'xiaolumm'
         verbose_name = u'小鹿妈妈真实性个人评分'
@@ -81,7 +82,6 @@ class XlmmEffectScore(BaseModel):
         while now_mama_list:
             mama_dict = dict(now_mama_list)
             XlmmEffectScore.generate(mama_dict, stat_time)
-            print 'XlmmEffectScore success:%d' % (page,)
             page = page + 1
             now_mama_list = mama_list[page * limit: page * limit + limit]
 
@@ -93,6 +93,7 @@ class XlmmTeamEffScore(BaseModel):
     stat_time = models.DateTimeField(verbose_name=u'统计时间')
 
     class Meta:
+        db_table = 'xiaolumm_xlmmteameffscore'
         unique_together = ('mama_id', 'stat_time')
         app_label = 'xiaolumm'
         verbose_name = u'小鹿妈妈真实性团队评分'

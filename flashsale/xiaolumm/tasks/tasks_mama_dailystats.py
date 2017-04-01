@@ -135,6 +135,7 @@ def task_ordercarry_increment_dailystats(mama_id, date_field):
 
 @app.task()
 def task_xlmm_score():
+    # TODO@IMPROVE 该任务需要优化导致数据库产生大量无用数据
     from flashsale.xiaolumm.models.score import XlmmEffectScore, XlmmTeamEffScore
     XlmmEffectScore.batch_generate()
     XlmmTeamEffScore.batch_generate()
