@@ -483,7 +483,7 @@ class SaleProductViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         products = list(instance.get_item_products())
         instance.get_item_products().update(sale_product=instance.id)
-        from flashsale.dinghuo.models_purchase import PurchaseOrder, PurchaseDetail
+        from shopback.dinghuo.models_purchase import PurchaseOrder, PurchaseDetail
         for product in products:
             for sku in product.eskus.all():
                 PurchaseOrder.repurchase(sku)

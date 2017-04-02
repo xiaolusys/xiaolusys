@@ -37,13 +37,13 @@ from shopback.items.models import SkuStock, ProductSkuSaleStats
 from shopback.items.models import InferiorSkuStats
 from shopback.items.filters import ProductSkuStatsSupplierIdFilter, ProductSkuStatsSupplierNameFilter, \
     ProductSkuStatsUnusedStockFilter, ProductWareByFilter
-from flashsale.dinghuo.models import OrderDraft
-from flashsale.dinghuo.models_user import MyUser, MyGroup
+from shopback.dinghuo.models import OrderDraft
+from shopback.dinghuo.models_user import MyUser, MyGroup
 from django.contrib.auth.models import User as DjangoUser
 from django.forms.models import model_to_dict
-from flashsale.dinghuo import functions2view
+from shopback.dinghuo import functions2view
 
-from flashsale.dinghuo.models import ReturnGoods, RGDetail
+from shopback.dinghuo.models import ReturnGoods, RGDetail
 from pms.supplier.models import SaleProduct, SaleSupplier
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 import logging
@@ -114,7 +114,7 @@ class ItemAdmin(admin.ModelAdmin):
 
 admin.site.register(Item, ItemAdmin)
 
-from flashsale.dinghuo.models import OrderDetail
+from shopback.dinghuo.models import OrderDetail
 
 
 class ProductAdmin(ApproxAdmin):
@@ -266,7 +266,7 @@ class ProductAdmin(ApproxAdmin):
     district_link.short_description = u"附加信息>>"
 
     def wait_receive_num(self, obj):
-        from flashsale.dinghuo.options import getProductOnTheWayNum
+        from shopback.dinghuo.options import getProductOnTheWayNum
         wrNum = getProductOnTheWayNum(obj.id, start_time=obj.sale_time)
         if (obj.collect_num + wrNum) < obj.wait_post_num:
             return u'<div style="color:white;background-color:red;">%d</div>' % wrNum
@@ -1444,7 +1444,7 @@ class SkuStockAdmin(admin.ModelAdmin):
     gen_return_goods_by_five.short_description = u'从上架起0天后生成退货单'
 
     def mark_unreturn(self, request, queryset):
-        from flashsale.dinghuo.models import UnReturnSku
+        from shopback.dinghuo.models import UnReturnSku
 
         for productsku_stat in queryset:
             product = productsku_stat.product

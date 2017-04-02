@@ -12,7 +12,7 @@ from django.db import transaction
 
 from common.utils import update_model_fields
 from core.options import log_action
-from flashsale.dinghuo.models import OrderList, OrderDetail
+from shopback.dinghuo.models import OrderList, OrderDetail
 from flashsale.pay.models import CustomerShops, CuShopPros
 from flashsale.pay.models import TradeCharge, SaleTrade, SaleOrder, SaleRefund, Customer,UserAddress, TeamBuy
 from flashsale.pay.models.score import IntegralLog, Integral

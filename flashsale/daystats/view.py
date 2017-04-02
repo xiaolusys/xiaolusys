@@ -69,7 +69,7 @@ class DailyStatsViewSet(viewsets.GenericViewSet):
     template_name = 'xiaolumm/daily_stats.html'
 
     def list(self, request, *args, **kwargs):
-        from flashsale.dinghuo.models import OrderList
+        from shopback.dinghuo.models import OrderList
         from flashsale.pay.models import SaleOrder, SaleTrade
         from flashsale.pay.models import SaleRefund
         from flashsale.pay.models.product import ModelProduct

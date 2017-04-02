@@ -15,7 +15,7 @@ from shopback.items.models.product import Product, ProductSku
 from shopback.items.models.stats import SkuStock
 from shopback.trades.models import PackageSkuItem
 from flashsale.pay.models import SaleOrder, SaleTrade, Customer
-from flashsale.dinghuo.models_purchase import PurchaseArrangement
+from shopback.dinghuo.models_purchase import PurchaseArrangement
 import datetime
 
 

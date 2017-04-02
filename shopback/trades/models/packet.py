@@ -437,7 +437,7 @@ class PackageOrder(models.Model):
             self.receiver_phone = st.receiver_phone
             self.receiver_mobile = st.receiver_mobile
         if item and item.type in [PSI_TYPE.RETURN_GOODS, PSI_TYPE.RETURN_OUT_ORDER, PSI_TYPE.RETURN_INFERIOR]:
-            from flashsale.dinghuo.models import ReturnGoods
+            from shopback.dinghuo.models import ReturnGoods
             st = ReturnGoods.objects.filter(id=item.return_goods_id).first()
             ua = UserAddress.objects.filter(supplier_id=st.supplier.id).first()
             self.buyer_id = ua.receiver_mobile
@@ -1095,7 +1095,7 @@ class PackageSkuItem(BaseModel):
 
     @property
     def order_list(self):
-        from flashsale.dinghuo.models import OrderList
+        from shopback.dinghuo.models import OrderList
         if not hasattr(self, '_order_list_'):
             if self.purchase_order_unikey:
                 self._order_list_ = OrderList.objects.filter(purchase_order_unikey=self.purchase_order_unikey).first()
@@ -1188,11 +1188,11 @@ class PackageSkuItem(BaseModel):
         if self.type == PSI_TYPE.TIANMAO:
             from shopback.orders.models import Order
             return Order.objects.get(oid=self.oid.replace('tb', ''))
-        from flashsale.dinghuo.models import RGDetail
+        from shopback.dinghuo.models import RGDetail
         return RGDetail.objects.filter(id=self.rg_detail_id).first()
 
     def get_purchase_arrangement(self):
-        from flashsale.dinghuo.models_purchase import PurchaseArrangement
+        from shopback.dinghuo.models_purchase import PurchaseArrangement
         return PurchaseArrangement.objects.filter(oid=self.oid).first()
 
     # ---------------------------------------供应链核心方法--------------------------------------------------------------
@@ -1246,7 +1246,7 @@ class PackageSkuItem(BaseModel):
         return SkuStock.get_by_sku(self.sku_id)
 
     def gen_arrangement(self):
-        from flashsale.dinghuo.models_purchase import PurchaseArrangement
+        from shopback.dinghuo.models_purchase import PurchaseArrangement
         return PurchaseArrangement.create(self)
 
     def set_status_init_paid(self):
@@ -1293,7 +1293,7 @@ class PackageSkuItem(BaseModel):
         """
             批量分配
         """
-        from flashsale.dinghuo.models_purchase import PurchaseArrangement
+        from shopback.dinghuo.models_purchase import PurchaseArrangement
         PackageSkuItem.objects.filter(oid__in=oids).update(status=PSI_STATUS.ASSIGNED,
                                                            assign_status=PackageSkuItem.ASSIGNED,
                                                            assign_time=datetime.datetime.now())

@@ -48,7 +48,7 @@ class ProductStock(object):
         product_sku = ProductSku.objects.get(id=orderdetail.chichu_id)
         product_sku.quantity += num
         product_sku.save()
-        from flashsale.dinghuo.models import OrderDetail
+        from shopback.dinghuo.models import OrderDetail
         OrderDetail.objects.get(id=orderdetail.id).save()
         # p = ProductSku.objects.get(id=orderdetail.chichu_id)
         # p.quantity =
@@ -213,7 +213,7 @@ class Product(models.Model):
 
     @property
     def sale_group(self):
-        from flashsale.dinghuo.models_user import MyUser
+        from shopback.dinghuo.models_user import MyUser
         myuser = MyUser.objects.filter(user__username=self.sale_charger)
         return myuser[0].group if myuser.count() > 0 else "None"
 

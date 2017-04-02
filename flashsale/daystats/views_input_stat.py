@@ -7,7 +7,7 @@ from rest_framework import permissions
 from rest_framework.response import Response
 
 from shopback.items.models import Product
-import flashsale.dinghuo.utils as tools_util
+import shopback.dinghuo.utils as tools_util
 
 
 class ProductInputStatView(generics.ListCreateAPIView):
@@ -58,7 +58,7 @@ class ProductInputStatView(generics.ListCreateAPIView):
                          "start_date_str": start_date_str, "end_date_str": end_date_str})
 
 
-from flashsale.dinghuo.models import OrderList, OrderDetail
+from shopback.dinghuo.models import OrderList, OrderDetail
 from django.db.models import Sum
 
 

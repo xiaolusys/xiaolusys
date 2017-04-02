@@ -200,7 +200,7 @@ class SkuStock(models.Model):
             用统计方式重新计算库存
         """
         from shopback.trades.models import PackageSkuItem
-        from flashsale.dinghuo.models import OrderDetail, RGDetail, ReturnGoods
+        from shopback.dinghuo.models import OrderDetail, RGDetail, ReturnGoods
         from shopback.refunds.models import RefundProduct
         from shopback.warehouse.models import StockAdjust
         from flashsale.pay.models import ShoppingCart, SaleOrder
@@ -567,9 +567,9 @@ class SkuStock(models.Model):
             供应商退货限定时间内进货
         :return:
         """
-        from flashsale.dinghuo.models import OrderDetail
+        from shopback.dinghuo.models import OrderDetail
         from .product import Product
-        from flashsale.dinghuo.models import ReturnGoods, RGDetail
+        from shopback.dinghuo.models import ReturnGoods, RGDetail
         rg_sku = RGDetail.objects.filter(return_goods__status__in=[1, 3, 31]).values('skuid')
         rg_sku = [i['skuid'] for i in rg_sku]
         order_skus = [o['chichu_id'] for o in OrderDetail.objects.values(
@@ -879,7 +879,7 @@ class InferiorSkuStats(models.Model):
     def create(sku_id, real_quantity_zreo=False):
         from .product import ProductSku
         from shopback.refunds.models import RefundProduct
-        from flashsale.dinghuo.models import RGDetail, InBoundDetail
+        from shopback.dinghuo.models import RGDetail, InBoundDetail
         sku = ProductSku.objects.get(id=sku_id)
         stat = InferiorSkuStats(sku_id=sku.id, product_id=sku.product_id)
         stat.save()

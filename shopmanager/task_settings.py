@@ -101,16 +101,16 @@ CELERY_TASK_DEFAULT_ROUTING_KEY = 'default'
 CELERY_IMPORTS = (
     'flashsale.promotion.tasks_activity',
     'shopback.items.tasks_stats',
-    'flashsale.forecast.apis',
+    'shopback.forecast.apis',
     'shopapp.weixin.utils',
 )
 
 APIS_ROUTES = {
-    'flashsale.forecast.apis.api_create_or_update_forecastinbound_by_orderlist': {
+    'shopback.forecast.apis.api_create_or_update_forecastinbound_by_orderlist': {
         'queue': 'apis',
         'routing_key': 'apis.api_create_or_update_forecastinbound_by_orderlist',
     },
-    'flashsale.forecast.apis.api_create_or_update_realinbound_by_inbound': {
+    'shopback.forecast.apis.api_create_or_update_realinbound_by_inbound': {
         'queue': 'apis',
         'routing_key': 'apis.api_create_or_update_realinbound_by_inbound',
     },
@@ -132,63 +132,63 @@ XIAOLUPAY_ROUTES = {
 }
 
 DINGHUO_ROUTES = {
-    'flashsale.dinghuo.tasks.task_check_purchaseorder_booknum': {
+    'shopback.dinghuo.tasks.task_check_purchaseorder_booknum': {
         'queue': 'dinghuo',
         'routing_key':'dinghuo.task_check_purchaseorder_booknum',
     },
-    'flashsale.dinghuo.tasks.task_packageskuitem_check_purchaserecord': {
+    'shopback.dinghuo.tasks.task_packageskuitem_check_purchaserecord': {
         'queue': 'dinghuo',
         'routing_key':'dinghuo.task_packageskuitem_check_purchaserecord',
     },
-    'flashsale.dinghuo.tasks.task_packageskuitem_update_purchase_arrangement': {
+    'shopback.dinghuo.tasks.task_packageskuitem_update_purchase_arrangement': {
         'queue': 'dinghuo',
         'routing_key':'dinghuo.task_packageskuitem_update_purchase_arrangement',
     },
-    'flashsale.dinghuo.tasks.task_purchase_detail_update_purchase_order': {
+    'shopback.dinghuo.tasks.task_purchase_detail_update_purchase_order': {
         'queue': 'dinghuo',
         'routing_key':'dinghuo.task_purchase_detail_update_purchase_order',
     },
-    'flashsale.dinghuo.tasks.task_purchasedetail_update_orderdetail': {
+    'shopback.dinghuo.tasks.task_purchasedetail_update_orderdetail': {
         'queue': 'dinghuo',
         'routing_key':'dinghuo.task_purchasedetail_update_orderdetail',
     },
-    'flashsale.dinghuo.tasks.task_orderdetail_update_orderlist': {
+    'shopback.dinghuo.tasks.task_orderdetail_update_orderlist': {
         'queue': 'dinghuo',
         'routing_key':'dinghuo.task_orderdetail_update_orderlist',
     },
-    'flashsale.dinghuo.tasks.task_purchasearrangement_update_purchasedetail': {
+    'shopback.dinghuo.tasks.task_purchasearrangement_update_purchasedetail': {
         'queue': 'dinghuo',
         'routing_key':'dinghuo.task_purchasearrangement_update_purchasedetail',
     },
-    'flashsale.dinghuo.tasks.task_start_booking': {
+    'shopback.dinghuo.tasks.task_start_booking': {
         'queue': 'dinghuo',
         'routing_key':'dinghuo.task_start_booking',
     },
-    'flashsale.dinghuo.tasks.task_purchaserecord_adjust_purchasearrangement_overbooking': {
+    'shopback.dinghuo.tasks.task_purchaserecord_adjust_purchasearrangement_overbooking': {
         'queue': 'dinghuo',
         'routing_key':'dinghuo.task_purchaserecord_adjust_purchasearrangement_overbooking',
     },
-    'flashsale.dinghuo.tasks.task_purchaserecord_sync_purchasearrangement_status': {
+    'shopback.dinghuo.tasks.task_purchaserecord_sync_purchasearrangement_status': {
         'queue': 'dinghuo',
         'routing_key':'dinghuo.task_purchaserecord_sync_purchasearrangement_status',
     },
-    'flashsale.dinghuo.tasks.task_check_arrangement': {
+    'shopback.dinghuo.tasks.task_check_arrangement': {
         'queue': 'dinghuo',
         'routing_key':'dinghuo.task_check_arrangement',
     },
-    'flashsale.dinghuo.tasks.task_update_purchasedetail_status': {
+    'shopback.dinghuo.tasks.task_update_purchasedetail_status': {
         'queue': 'dinghuo',
         'routing_key':'dinghuo.task_update_purchasedetail_status',
     },
-    'flashsale.dinghuo.tasks.task_update_purchasearrangement_status':{
+    'shopback.dinghuo.tasks.task_update_purchasearrangement_status':{
         'queue': 'dinghuo',
         'routing_key':'dinghuo.task_update_purchasearrangement_status',
     },
-    'flashsale.dinghuo.tasks.task_update_purchasearrangement_initial_book': {
+    'shopback.dinghuo.tasks.task_update_purchasearrangement_initial_book': {
         'queue': 'dinghuo',
         'routing_key':'dinghuo.task_update_purchasearrangement_initial_book',
     },
-    'flashsale.dinghuo.tasks.task_update_order_group_key': {
+    'shopback.dinghuo.tasks.task_update_order_group_key': {
         'queue': 'dinghuo',
         'routing_key': 'dinghuo.task_update_order_group_key',
     },
@@ -943,23 +943,23 @@ CELERY_ROUTES = {
         'queue': 'async',
         'routing_key': 'async.deliveryTradeCallBack',
     },  # 上传订单物流回调任务
-    'flashsale.dinghuo.tasks.get_sale_amount_by_product': {
+    'shopback.dinghuo.tasks.get_sale_amount_by_product': {
         'queue': 'async',
         'routing_key': 'async.get_sale_amount_by_product',
     },  # 获取特卖商品销售统计
-    'flashsale.dinghuo.tasks.task_supplier_stat': {
+    'shopback.dinghuo.tasks.task_supplier_stat': {
         'queue': 'async',
         'routing_key': 'async.task_supplier_stat',
     },  # 获取特卖供应商统计
-    'flashsale.dinghuo.tasks.task_ding_huo': {
+    'shopback.dinghuo.tasks.task_ding_huo': {
         'queue': 'async',
         'routing_key': 'async.task_ding_huo',
     },  # 大货统计
-    'flashsale.dinghuo.tasks.task_ding_huo_optimize': {
+    'shopback.dinghuo.tasks.task_ding_huo_optimize': {
         'queue': 'async',
         'routing_key': 'async.task_ding_huo_optimize',
     },  # 大货统计优化
-    'flashsale.dinghuo.tasks.calcu_refund_info_by_pro_v2': {
+    'shopback.dinghuo.tasks.calcu_refund_info_by_pro_v2': {
         'queue': 'async',
         'routing_key': 'async.calcu_refund_info_by_pro_v2',
     },  # 特卖商品退款数统计
@@ -1097,13 +1097,13 @@ SHOP_APP_SCHEDULE = {
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_Calc_Sales_Stat_By_Day'}
     },
     u'定时统计每天商品数据': {
-        'task': 'flashsale.dinghuo.tasks.task_stats_daily_product',
+        'task': 'shopback.dinghuo.tasks.task_stats_daily_product',
         'schedule': crontab(minute="10", hour="2"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_stats_daily_product'}
     },
     u'定时统计所有商品数据': {
-        'task': 'flashsale.dinghuo.tasks.task_stats_product',
+        'task': 'shopback.dinghuo.tasks.task_stats_product',
         'schedule': crontab(minute="30", hour="2"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_stats_product'}
@@ -1115,7 +1115,7 @@ SHOP_APP_SCHEDULE = {
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_Update_Shoppingorder_Status'}
     },
     u'定时发货速度': {
-        'task': 'flashsale.dinghuo.tasks.task_daily_preview',
+        'task': 'shopback.dinghuo.tasks.task_daily_preview',
         'schedule': crontab(minute="50", hour="2"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_daily_preview'}
@@ -1163,7 +1163,7 @@ SHOP_APP_SCHEDULE = {
         'options': {'queue': 'peroid', 'routing_key': 'peroid.fifDaysRateFlush'}
     },
     u'定时统计供应商的平均发货速度任务': {
-        'task': 'flashsale.dinghuo.tasks.task_supplier_avg_post_time',
+        'task': 'shopback.dinghuo.tasks.task_supplier_avg_post_time',
         'schedule': crontab(minute="30", hour="3"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_supplier_avg_post_time'}
@@ -1175,7 +1175,7 @@ SHOP_APP_SCHEDULE = {
         'options': {'queue': 'peroid', 'routing_key': 'peroid.category_pit_num_stat'}
     },
     u'定时统计产品分类的订货数量和订货金额任务': {
-        'task': 'flashsale.dinghuo.tasks.task_category_stock_data',
+        'task': 'shopback.dinghuo.tasks.task_category_stock_data',
         'schedule': crontab(minute="50", hour="3"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_category_stock_data'}
@@ -1187,7 +1187,7 @@ SHOP_APP_SCHEDULE = {
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_category_collect_num'}
     },
     u'定时统计发出库存和新增订货任务': {
-        'task': 'flashsale.dinghuo.tasks.task_stat_category_inventory_data',
+        'task': 'shopback.dinghuo.tasks.task_stat_category_inventory_data',
         'schedule': crontab(minute="0", hour="5"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_stat_category_inventory_data'}
@@ -1207,7 +1207,7 @@ SHOP_APP_SCHEDULE = {
     },
 
     u'自动生成订货单': {
-        'task': 'flashsale.dinghuo.tasks.create_dinghuo',
+        'task': 'shopback.dinghuo.tasks.create_dinghuo',
         'schedule': crontab(minute="15", hour="10"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.create_dinghuo'}
@@ -1295,13 +1295,13 @@ SHOP_APP_SCHEDULE = {
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_xiaolu_daily_stat'}
     },
     u'每10分钟定时订货':{
-        'task': 'flashsale.dinghuo.tasks.task_purchase_arrangement_gen_order',
+        'task': 'shopback.dinghuo.tasks.task_purchase_arrangement_gen_order',
         'schedule': crontab(minute="*/10"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_purchase_arrangement_gen_order'}
     },
     u'每日统计订单延时发货数量': {
-        'task': 'flashsale.dinghuo.tasks.task_save_package_backorder_stats',
+        'task': 'shopback.dinghuo.tasks.task_save_package_backorder_stats',
         'schedule': crontab(minute="30", hour="23"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_save_package_backorder_stats'}

@@ -23,7 +23,7 @@ def update_forecast_inbound_by_outware_inbound(order_code, dict_obj):
           "store_code": "SZWH01"
         }
     """
-    from flashsale.dinghuo.models import InBound, InBoundDetail
+    from shopback.dinghuo.models import InBound, InBoundDetail
     from shopback.trades.models import ProductSku
     ibds = []
     for line in dict_obj['inbound_skus']:

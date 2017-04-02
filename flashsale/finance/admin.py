@@ -11,7 +11,7 @@ from core.filters import DateFieldListFilter
 from flashsale.finance.models import Bill, BillRelation
 import xlsxwriter
 from cStringIO import StringIO
-from flashsale.dinghuo.filters import CreaterFilter
+from shopback.dinghuo.filters import CreaterFilter
 
 
 

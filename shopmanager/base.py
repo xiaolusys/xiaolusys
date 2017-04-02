@@ -205,7 +205,7 @@ INSTALLED_APPS =[
     'flashsale.pay',
     'flashsale.finance',
     'flashsale.xiaolumm',
-    'flashsale.dinghuo',
+    'shopback.dinghuo',
     'flashsale.workorder',
     'flashsale.luntan',
     'flashsale.clickcount',
@@ -219,7 +219,7 @@ INSTALLED_APPS =[
     'flashsale.apprelease',
     'flashsale.protocol',
     'flashsale.coupon',
-    'flashsale.forecast',
+    'shopback.forecast',
     # 'test.celery',
     'shopapp.notify',
     # 'shopapp.zhongtong'
