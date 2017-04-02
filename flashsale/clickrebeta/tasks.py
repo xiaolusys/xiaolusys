@@ -100,7 +100,7 @@ from shopback.trades.models import MergeTrade
 
 def update_Xlmm_Shopping_OrderStatus(order_list):
     """ 更新小鹿妈妈交易订单状态 """
-    for order in order_list:
+    for order in order_list.iterator():
         order_id = order.wxorderid
         trades = MergeTrade.objects.filter(tid=order_id,
                                            type__in=(MergeTrade.WX_TYPE, MergeTrade.SALE_TYPE))

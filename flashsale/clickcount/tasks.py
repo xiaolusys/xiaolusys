@@ -216,7 +216,7 @@ def task_Record_User_Click_Weekly(date_from, date_to, week_code):
     """
     # 只是对2级并且已经接管的代理做统计
     xlmms = XiaoluMama.objects.filter(charge_status=XiaoluMama.CHARGED)
-    for xlmm in xlmms:
+    for xlmm in xlmms.iterator():
         click_count = ClickCount.objects.filter(linkid=xlmm.id, date__gt=date_from, date__lt=date_to)
         shoppings = StatisticsShoppingByDay.objects.filter(linkid=xlmm.id, tongjidate__gt=date_from,
                                                            tongjidate__lt=date_to)

@@ -200,7 +200,7 @@ def updateProductWaitPostNumTask(pre_days=UPDATE_WAIT_POST_DAYS):
     """ 更新商品待发数任务 """
     pre_date = datetime.datetime.now() - datetime.timedelta(days=pre_days)
     products = Product.objects.filter(modified__gte=pre_date, status=pcfg.NORMAL)
-    for product in products:
+    for product in products.iterator():
         Product.objects.updateProductWaitPostNum(product)
 
 
@@ -303,10 +303,10 @@ class CalcProductSaleTask(object):
 
             prod = Product.objects.getProductByOuterid(outer_id)
             prod_sku = Product.objects.getProductSkuByOuterid(outer_id, outer_sku_id)
-            if prod_sku:
+            if prod_sku.iterator():
 
                 total_sale = 0
-                for user in sellers:
+                for user in sellers.iterator():
                     pds = self.calcSaleByUserAndProduct(yest_start, yest_end, user, prod, prod_sku)
                     total_sale += pds[0]
 
@@ -317,7 +317,7 @@ class CalcProductSaleTask(object):
             if not prod_sku and prod and prod.prod_skus.count() == 0:
 
                 total_sale = 0
-                for user in sellers:
+                for user in sellers.iterator():
                     pds = self.calcSaleByUserAndProduct(yest_start, yest_end, user, prod, None)
                     total_sale += pds[0]
 
@@ -327,8 +327,8 @@ class CalcProductSaleTask(object):
 
         if update_warn_num:
             products = Product.objects.all()
-            for p in products:
-                for sku in p.prod_skus.all():
+            for p in products.iterator():
+                for sku in p.prod_skus.all().iterator():
                     if (prod.outer_id, sku.outer_id) not in outer_tuple:
                         sku.warn_num = 0
                         sku.save()
@@ -338,7 +338,7 @@ class CalcProductSaleTask(object):
                     prod.save()
 
 @app.task()
-def task_cancel_unused_yunda_sid(*args, **kwarg):
+def task_calc_product_sale_stats(*args, **kwarg):
     CalcProductSaleTask().run(*args, **kwarg)
 
 @app.task()
@@ -374,23 +374,23 @@ def updateUserItemSkuFenxiaoProductTask(user_id):
 
 
 @app.task()
-def task_calc_product_sale_stats():
+def task_schedule_calc_product_sale_stats():
     """  计算商品销售 """
 
     dt = datetime.datetime.now()
     for day in (10, 20, 30):  # 分别间隔10,20,30天
         delta_days = dt - datetime.timedelta(days=day)
         if settings.DEBUG:
-            task_cancel_unused_yunda_sid(yest_date=delta_days)
+            task_calc_product_sale_stats(yest_date=delta_days)
         else:
-            task_cancel_unused_yunda_sid.delay(yest_date=delta_days)
+            task_calc_product_sale_stats.delay(yest_date=delta_days)
 
     yest_date = dt - datetime.timedelta(days=1)
     # 更新昨日的账单
     if settings.DEBUG:
-        task_cancel_unused_yunda_sid(yest_date=yest_date, update_warn_num=True)
+        task_calc_product_sale_stats(yest_date=yest_date, update_warn_num=True)
     else:
-        task_cancel_unused_yunda_sid.delay(yest_date=yest_date, update_warn_num=True)
+        task_calc_product_sale_stats.delay(yest_date=yest_date, update_warn_num=True)
 
 
 ###########################################################  商品库存管理  ########################################################
@@ -1056,7 +1056,7 @@ def task_auto_shelf_prods():
             'auto_off_shelf_models_ids': ','.join([str(x[0]) for x in offshelf_models.values_list('id')]),
             'auto_off_shelf_models_count': offshelf_models.count()})  # 下架款式log记录
 
-        for off_md in offshelf_models:
+        for off_md in offshelf_models.iterator():
             state_off = off_md.offshelf_model()
             if state_off:
                 log_action(systemoa, off_md, CHANGE, u'系统自动下架款式')
@@ -1067,7 +1067,7 @@ def task_auto_shelf_prods():
             'auto_off_shelf_pros_count': offshelf_pros.count()
         })  # 下架产品log记录
 
-        for off_pro in offshelf_pros:
+        for off_pro in offshelf_pros.iterator():
             state = off_pro.offshelf_product()  # 执行下架动作
             if state:  # 上架成功　打log
                 log_action(systemoa, off_pro, CHANGE, u'系统自动下架修改该产品到下架状态')
@@ -1078,7 +1078,7 @@ def task_auto_shelf_prods():
             'auto_on_shelf_models_count': onshelf_models.count()
         })  # 上架款式log记录
 
-        for on_md in onshelf_models:
+        for on_md in onshelf_models.iterator():
             state_on = on_md.upshelf_model()
             if state_on:
                 log_action(systemoa, on_md, CHANGE, u'系统自动上架款式')
@@ -1089,7 +1089,7 @@ def task_auto_shelf_prods():
             'auto_on_shelf_prods_count': onshelf_pros.count()
         })
 
-        for on_pro in onshelf_pros:
+        for on_pro in onshelf_pros.iterator():
             state = on_pro.upshelf_product()  # 执行上架动作
             if state:  # 上架成功　打log
                 log_action(systemoa, on_pro, CHANGE, u'系统自动上架修改该产品到上架状态')

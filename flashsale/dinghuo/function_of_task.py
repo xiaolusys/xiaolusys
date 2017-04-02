@@ -307,7 +307,7 @@ def daily_data_stats_update():
     all_data = SupplyChainStatsOrder.objects.filter(sale_time=today - datetime.timedelta(days=1))
     all_data_dict = {}
     # 判断商品是否在字典中，不在，则初始化，在，判断这个商品的上架日期在不在list中，不在，加入list，在则相加处理
-    for data in all_data:
+    for data in all_data.iterator():
         if data.product_id in all_data_dict:
             is_exist, temp_var = check_in(data.shelve_time, all_data_dict[data.product_id])
             if is_exist:

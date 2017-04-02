@@ -851,7 +851,7 @@ def task_supplier_avg_post_time(days=5):
     pro_sales = pros.values('sale_product').distinct()
     salpros = SaleProduct.objects.filter(id__in=pro_sales)
     suppliers = []  # 已经计算过的供应商
-    for sal in salpros:
+    for sal in salpros.iterator():
         supplier = sal.sale_supplier
         if supplier.id not in suppliers:  # 没有计算处理过则处理
             suppliers.append(supplier.id)
@@ -895,7 +895,7 @@ def task_category_stock_data(days=15):
     target_day = today - datetime.timedelta(days=days)
     # 验货完成状态和已经处理状态的订货单(15天前的)
     dinghuos = OrderList.objects.filter(created=target_day, status__in=(OrderList.COMPLETED, OrderList.COMPLETED))
-    for dinhuo in dinghuos:
+    for dinhuo in dinghuos.iterator():
         dinhuo_details = dinhuo.order_list.all()  # 订货明细内容
         for detail in dinhuo_details:
             pro = Product.objects.get(id=detail.product_id)
@@ -1868,5 +1868,5 @@ def task_save_package_backorder_stats():
 @app.task()
 def task_purchase_arrangement_gen_order():
     pas = PurchaseArrangement.objects.filter(gen_order=False)
-    for pa in pas:
+    for pa in pas.iterator():
         pa.generate_order()

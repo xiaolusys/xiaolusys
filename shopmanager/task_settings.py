@@ -998,55 +998,44 @@ SYNC_MODEL_SCHEDULE = {
         'task': 'shopback.orders.tasks.updateAllUserIncrementTradesTask',
         'schedule': crontab(minute="0", hour="*/12"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.updateAllUserIncrementTradesTask'}
     },
     u'定时淘宝商城待发货订单下载任务': {
         'task': 'shopback.orders.tasks.updateAllUserWaitPostOrderTask',
         'schedule': crontab(minute="*/30", hour="8,12,16,17,18,19"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
-    u'分段日期统计商品销售数据': {  # 将昨日的订单数更新为商品的警告库位
-        'task': 'shopback.items.tasks.task_calc_product_sale_stats',
-        'schedule': crontab(minute="30", hour='3'),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.updateAllUserWaitPostOrderTask'}
     },
     u'定时淘宝退款订单下载任务':{     #更新昨日退货退款单
          'task':'shopback.refunds.tasks.updateAllUserRefundOrderTask',
          'schedule':crontab(minute="0",hour='8,12,16'),
-         'args':(1,None,None,)
+         'args':(1,None,None,),
+         'options': {'queue': 'peroid', 'routing_key': 'peroid.updateAllUserRefundOrderTask'}
      },
     u'定时更新设置提醒的订单入问题单': {  # 更新定时提醒订单
         'task': 'shopback.trades.tasks.tasks.regularRemainOrderTask',
         'schedule': crontab(minute="0", hour='0,12,17'),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.regularRemainOrderTask'}
     },
     u'定时更新商品待发数': {  # 更新库存
         'task': 'shopback.items.tasks.updateProductWaitPostNumTask',
         'schedule': crontab(minute="0", hour="5,13"),  #
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.updateProductWaitPostNumTask'}
     },
     u'定时更新淘宝商品库存': {  # 更新库存
         'task': 'shopback.items.tasks.updateAllUserItemNumTask',
         'schedule': crontab(minute="0", hour="7"),  #
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
-    u'定时生成每月物流信息报表': {  # 更新库存
-        'task': 'shopback.trades.tasks.tasks.task_Gen_Logistic_Report_File_By_Month',
-        'schedule': crontab(minute="0", hour="4", day_of_month='10'),  #
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.updateAllUserItemNumTask'}
     },
     u'定时下载更新小鹿特卖订单': {
         'task': 'flashsale.pay.tasks.pull_Paid_SaleTrade',
         'schedule': crontab(minute="30", hour="*/1"),
         'args': (),
         'kwargs': {'pre_day': 0, 'interval': 1},
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.pull_Paid_SaleTrade'}
     },
     u'每小时更新精英妈妈活跃状态数据': {
         'task': 'flashsale.xiaolumm.tasks.elitemama.task_fresh_elitemama_active_status',
@@ -1055,441 +1044,292 @@ SYNC_MODEL_SCHEDULE = {
         'kwargs': {},
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_fresh_elitemama_active_status'}
     },
-    # u'定时更新分销商品库存': {  # 更新库存
-    #     'task': 'shopback.items.tasks.updateAllUserPurchaseItemNumTask',
-    #     'schedule': crontab(minute="0", hour="7"),  #
-    #     'args': (),
-    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    # },
-    # u'定时淘宝分销订单增量下载任务': {  # 增量更新分销部分订单
-    #     'task': 'shopback.fenxiao.tasks.updateAllUserIncrementPurchasesTask',
-    #     'schedule': crontab(minute="*/15"),
-    #     'args': (),
-    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    # },
-    #    'runs-every-weeks-order-amount':{   #更新用户商城订单结算，按周
-    #        'task':'shopback.amounts.tasks.updateAllUserOrdersAmountTask',
-    #        'schedule':crontab(minute="0",hour="2"), #
-    #        'args':(1,None,None),
-    #        'options' : {'queue':'peroid','routing_key':'peroid.task'}
-    #    },
-    #    'runs-every-weeks-purchase-order-amount':{  #更新用户分销订单结算 按周
-    #        'task':'shopback.amounts.tasks.updateAllUserPurchaseOrdersAmountTask',
-    #        'schedule':crontab(minute="30",hour="2",day_of_week='mon'), #
-    #        'args':(7,None,None),
-    #        'options' : {'queue':'peroid','routing_key':'peroid.task'}
-    #    },
-    #    'runs-every-day-update-jushita-trade-task':{
-    #         'task':'tools.top_updatedb_task.pull_taobao_trade_task',
-    #         'schedule':crontab(minute="0",hour='*/4'),
-    #         'args':(),
-    #         'options' : {'queue':'peroid','routing_key':'peroid.task'}
-    #    }
 }
 
 SHOP_APP_SCHEDULE = {
-    # u'定时上架任务': {  # 定时上架任务
-    #     'task': 'shopapp.autolist.tasks.updateAllItemListTask',
-    #     'schedule': crontab(minute='*/10', hour=','.join([str(i) for i in range(7, 24)])),
-    #     'args': (),
-    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    # },
     u'定时韵达录单任务': {
         'task': 'shopapp.yunda.tasks.task_update_yunda_order_addr',
         'schedule': crontab(minute="0", hour="10,13"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_update_yunda_order_addr'}
     },
     u'定时取消二维码未揽件单号': {
         'task': 'shopapp.yunda.tasks.task_cancel_unused_yunda_sid',
         'schedule': crontab(minute="0", hour="4"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_cancel_unused_yunda_sid'}
     },
     u'定时系统订单重量更新至韵达对接系统': {
         'task': 'shopapp.yunda.tasks.task_push_yunda_package_weight',
         'schedule': crontab(minute="*/15", hour="17,18,19,20,21,22,23"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_push_yunda_package_weight'}
     },
-    # u'定时增量下载更新微信订单': {
-    #     'task': 'shopapp.weixin.tasks.base.pullWaitPostWXOrderTask',
-    #     'schedule': crontab(minute="0", hour="*/2"),
-    #     'args': (None, None),
-    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    # },
-    # u'定时增量更新微信维权订单': {
-    #     'task': 'shopapp.weixin.tasks.base.pullFeedBackWXOrderTask',
-    #     'schedule': crontab(minute="30", hour="*/2"),
-    #     'args': (None, None),
-    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    # },
-    # u'定时同步微信商品库存': {
-    #     'task': 'shopapp.weixin.tasks.base.syncWXProductNumTask',
-    #     'schedule': crontab(minute="10", hour='1,12'),
-    #     'args': (),
-    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    # },
-    u'定时增量下载京东订单信息': {
-        'task': 'shopapp.jingdong.tasks.pullAllJDShopOrderByModifiedTask',
-        'schedule': crontab(minute="*/15", hour=','.join([str(i) for i in range(9, 23)])),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
-    u'定时同步京东商品库存': {
-        'task': 'shopapp.jingdong.tasks.syncAllJDUserWareNumTask',
-        'schedule': crontab(minute="20", hour='6'),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
-    # u'定时更新特卖订单订单列表': {
-    #     'task': 'flashsale.pay.tasks.push_SaleTrade_To_MergeTrade',
-    #     'schedule': crontab(minute="0", hour="*/7"),
-    #     'args': (),
-    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    # },
     u'定时更新特卖订单状态': {
         'task': 'flashsale.pay.tasks.task_Push_SaleTrade_Finished',
         'schedule': crontab(minute="0", hour="6"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_Push_SaleTrade_Finished'}
     },
     u'定时短信通知微信用户': {
         'task': 'shopapp.weixin_sales.tasks.task_notify_parent_award',
         'schedule': crontab(minute="*/5", ),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_notify_parent_award'}
     },
     u'定时统计昨日小鹿妈妈点击': {
         'task': 'flashsale.clickcount.tasks.task_Record_User_Click',
         'schedule': crontab(minute="30", hour='4'),
         'args': (),
         #         'kwargs':{'pre_day':1},
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_Record_User_Click'}
     },
-    # u'定时统计昨日小鹿妈妈真实性评分': {
-    #     'task': 'flashsale.xiaolumm.tasks.tasks_mama_dailystats.task_xlmm_score',
-    #     'schedule': crontab(minute="00", hour='2'),
-    #     'args': (),
-    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    # },
     u'定时统计昨日代理的订单': {
         'task': 'flashsale.clickrebeta.tasks.task_Tongji_User_Order',
         'schedule': crontab(minute="40", hour='0'),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_Tongji_User_Order'}
     },
-    # u'定时更新代理妈妈佣金提成': {
-    #     'task': 'flashsale.xiaolumm.tasks.task_Push_Pending_Carry_Cash',
-    #     'schedule': crontab(minute="40", hour='5'),
-    #     'args': (),
-    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    # },
     u'定时统计每日特卖综合数据': {
         'task': 'flashsale.daystats.tasks.flashsale.task_Calc_Sales_Stat_By_Day',
         'schedule': crontab(minute="40", hour='2'),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_Calc_Sales_Stat_By_Day'}
     },
-    # u'定时统计每日二级代理贡献佣金': {
-    #     'task': 'flashsale.xiaolumm.tasks.task_Calc_Agency_Rebeta_Pending_And_Cash',
-    #     'schedule': crontab(minute="40", hour='3'),
-    #     'args': (),
-    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    # },
-    # u'定时统计每月妈妈千元提成佣金': {
-    #     'task': 'flashsale.xiaolumm.tasks.task_Calc_Month_ThousRebeta',
-    #     'schedule': crontab(minute="0", hour="4", day_of_month='1'),  #
-    #     'args': (),
-    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    # },
     u'定时统计每天商品数据': {
         'task': 'flashsale.dinghuo.tasks.task_stats_daily_product',
         'schedule': crontab(minute="10", hour="2"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
-    u'定时统计妈妈每周点击转化': {
-        'task': 'flashsale.clickcount.tasks.week_Count_week_Handdle',
-        'schedule': crontab(minute="10", hour="5", day_of_week='mon'),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_stats_daily_product'}
     },
     u'定时统计所有商品数据': {
         'task': 'flashsale.dinghuo.tasks.task_stats_product',
         'schedule': crontab(minute="30", hour="2"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_stats_product'}
     },
     u'定时更新妈妈提成订单状态': {
         'task': 'flashsale.clickrebeta.tasks.task_Update_Shoppingorder_Status',
         'schedule': crontab(minute="40", hour='3'),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_Update_Shoppingorder_Status'}
     },
     u'定时发货速度': {
         'task': 'flashsale.dinghuo.tasks.task_daily_preview',
         'schedule': crontab(minute="50", hour="2"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_daily_preview'}
     },
-    # u'定时每日更新红包数据': {
-    #     'task': 'flashsale.pay.tasks.task_Pull_Red_Envelope',
-    #     'schedule': crontab(minute="10", hour="23"),
-    #     'args': (),
-    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    # },
     u'定时统计每天推广支出情况': {
         'task': 'flashsale.daystats.tasks.flashsale.task_PopularizeCost_By_Day',
         'schedule': crontab(minute="30", hour="8"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_PopularizeCost_By_Day'}
     },
-    # u'统计妈妈两周转化及点击基本价格': {
-    #     'task': 'flashsale.xiaolumm.tasks.task_Calc_Mama_Lasttwoweek_Stats',
-    #     'schedule': crontab(minute="30", hour="6"),
-    #     'args': (),
-    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    # },
     u'定时生成管理员代理状况汇总csv文件': {
         'task': 'flashsale.xiaolumm.tasks.tasks_manager_summary.task_make_Manager_Summary_Cvs',
         'schedule': crontab(minute="45", hour="6"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_make_Manager_Summary_Cvs'}
     },
     u'定时升级代理级别为A类到VIP类任务': {
         'task': 'flashsale.xiaolumm.tasks.task_upgrade_mama_level_to_vip',
         'schedule': crontab(minute="50", hour="5"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_upgrade_mama_level_to_vip'}
     },
     u'定时更新用户优惠券状态': {
         'task': 'flashsale.coupon.tasks.usercoupon.task_update_user_coupon_status_2_past',
         'schedule': crontab(minute="15", hour="2"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_update_user_coupon_status_2_past'}
     },
     u'定时更新购物车和订单状态': {
         'task': 'flashsale.restpro.tasks.task_off_the_shelf',
         'schedule': crontab(minute="20", hour="2"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_off_the_shelf'}
     },
     u'定时清理购物车和待支付订单任务': {
         'task': 'flashsale.restpro.tasks.task_schedule_cart',
         'schedule': crontab(minute="*/5"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_schedule_cart'}
     },
     u'定时统计特卖平台退款率任务': {
         'task': 'shopback.refunds.tasks.fifDaysRateFlush',
         'schedule': crontab(minute="10", hour="3"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.fifDaysRateFlush'}
     },
     u'定时统计供应商的平均发货速度任务': {
         'task': 'flashsale.dinghuo.tasks.task_supplier_avg_post_time',
         'schedule': crontab(minute="30", hour="3"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_supplier_avg_post_time'}
     },
     u'定时统计产品分类的坑位数量任务': {
         'task': 'shopback.categorys.tasks.category_pit_num_stat',
         'schedule': crontab(minute="30", hour="11"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.category_pit_num_stat'}
     },
     u'定时统计产品分类的订货数量和订货金额任务': {
         'task': 'flashsale.dinghuo.tasks.task_category_stock_data',
         'schedule': crontab(minute="50", hour="3"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_category_stock_data'}
     },
     u'定时统计产品分类的库存数量和库存金额任务': {
         'task': 'shopback.categorys.tasks.task_category_collect_num',
         'schedule': crontab(minute="10", hour="4"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_category_collect_num'}
     },
     u'定时统计发出库存和新增订货任务': {
         'task': 'flashsale.dinghuo.tasks.task_stat_category_inventory_data',
         'schedule': crontab(minute="0", hour="5"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_stat_category_inventory_data'}
     },
     u'定时提醒管理员需要续费的后台服务': {
         'task': 'games.renewremind.tasks.trace_renew_remind_send_msm',
         'schedule': crontab(minute="10", hour="8", day_of_week='mon'),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.trace_renew_remind_send_msm'}
     },
 
     u'一次执行妈妈店铺商品添加信息': {
         'task': 'flashsale.restpro.tasks.prods_position_handler',
         'schedule': crontab(minute="10", hour="6"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.prods_position_handler'}
     },
 
     u'自动生成订货单': {
         'task': 'flashsale.dinghuo.tasks.create_dinghuo',
         'schedule': crontab(minute="15", hour="10"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.create_dinghuo'}
     },
 
     u'定时关闭特卖退款单': {
         'task': 'flashsale.pay.tasks.task_close_refund',
         'schedule': crontab(minute="30", hour="4"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_close_refund'}
     },
 
     u'定时推送九张图上新内容': {
         'task': 'flashsale.xiaolumm.tasks.tasks_mama_push.task_push_ninpic_peroid',
         'schedule': crontab(minute="*/15"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_push_ninpic_peroid'}
     },
 
     u'定时检查全站推送': {
         'task': 'flashsale.protocol.tasks.task_site_push',
         'schedule': crontab(minute="*/30"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_site_push'}
     },
-
     u'定时检查小鹿妈妈活跃更新续费时间': {
         'task': 'flashsale.xiaolumm.tasks.base.task_mama_postphone_renew_time_by_active',
         'schedule': crontab(minute="45", hour="3"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
-
-    # u'定时检查小鹿妈妈邀请销售额升级': {
-    #     'task': 'flashsale.xiaolumm.tasks.base.task_update_mama_agency_level_in_condition',
-    #     'schedule': crontab(minute="45", hour="2"),
-    #     'args': (),
-    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    # },
-
     u'定时检查小鹿妈妈续费状态': {
         'task': 'flashsale.xiaolumm.tasks.base.task_period_check_mama_renew_state',
         'schedule': crontab(minute="45", hour="4"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_period_check_mama_renew_state'}
     },
     u'每10分钟定时检查告警':{
         'task': 'shopback.trades.tasks.tasks_alarm.alarms_shopback_trades',
         'schedule': crontab(minute="*/10"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.alarms_shopback_trades'}
     },
-    u'定时更新全部未收到货包裹的物流信息': {
-        'task': 'flashsale.restpro.tasks.update_all_logistics',
-        'schedule': crontab(minute="0", hour="1"),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
-    # u'定时更新客户退货的物流信息': {                                          #by huazi
-    #     'task': 'flashsale.restpro.tasks.update_all_return_logistics',
-    #     'schedule': crontab(minute="0", hour="6"),
-    #     'args': (),
-    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    # },
-    # u'定时更新订阅客户退货的物流信息通过快递鸟': {  # by huazi
-    #     'task': 'flashsale.restpro.tasks.update_all_return_logistics_bykdn',
-    #     'schedule': crontab(minute="0", hour="2"),
-    #     'args': (),
-    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    # },
-
-    # u"save gen_order为false":{
-    #     'task':'flashsale.restpro.tasks.save_gen_order',
-    #     'schedule': crontab(minute='*/10'),
-    #     'args': (),
-    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    # },
-
     u'删除数据库中三个月前的物流数据' :{
         'task': 'flashsale.restpro.tasks.delete_logistics_three_month_ago',
         'schedule': crontab(minute="0", hour="2"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.delete_logistics_three_month_ago'}
 
     },
     u'实时统计当前待发货准备的packageskuitem的数据':{
         'task': 'shopback.trades.tasks.tasks.task_schedule_check_packageskuitem_cnt',
         'schedule': crontab(minute="0"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_schedule_check_packageskuitem_cnt'}
     },
     u'实时统计备货的packageskuitem':{
         'task': 'shopback.trades.tasks.tasks.task_schedule_check_assign_num',
         'schedule': crontab(minute="2"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_schedule_check_assign_num'}
     },
     u'实时统计可备货但未备货的packageskuitem和空包裹':{
         'task': 'shopback.trades.tasks.tasks.task_schedule_check_stock_not_assign',
         'schedule': crontab(minute="3"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_schedule_check_stock_not_assign'}
     },
     u'实时统计购物车中sku数':{
         'task': 'shopback.trades.tasks.tasks.task_schedule_check_shoppingcart_cnt',
         'schedule': crontab(minute="4"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_schedule_check_shoppingcart_cnt'}
     },
     u'实时统计待支付的sku数':{
         'task': 'shopback.trades.tasks.tasks.task_schedule_check_waitingpay_cnt',
         'schedule': crontab(minute="6"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_schedule_check_waitingpay_cnt'}
     },
     u'小鹿每日统计总额':{
         'task': 'statistics.tasks.task_xiaolu_daily_stat',
         'schedule': crontab(minute="5", hour="0"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_xiaolu_daily_stat'}
     },
     u'每10分钟定时订货':{
         'task': 'flashsale.dinghuo.tasks.task_purchase_arrangement_gen_order',
         'schedule': crontab(minute="*/10"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_purchase_arrangement_gen_order'}
     },
     u'每日统计订单延时发货数量': {
         'task': 'flashsale.dinghuo.tasks.task_save_package_backorder_stats',
         'schedule': crontab(minute="30", hour="23"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_save_package_backorder_stats'}
     },
     u'定时自动上下架库存商品': {
         'task': 'shopback.items.tasks.task_auto_shelf_prods',
         'schedule': crontab(minute="0", hour="*/1"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_auto_shelf_prods'}
     },
 
     u'定时用户优惠券优惠券过期推送消息': {
         'task': 'flashsale.coupon.tasks.usercoupon.task_push_msg_pasting_coupon',
         'schedule': crontab(minute="30", hour="12"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_push_msg_pasting_coupon'}
     },
     u'定时检查优惠券流通记录': {
         'task': 'flashsale.coupon.tasks.transfer_coupon.task_check_transfer_coupon_record',
         'schedule': crontab(minute="0", hour="*/2"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_check_transfer_coupon_record'}
     },
     u'定时设定APP下载用户是否注册': {
         'task': 'flashsale.promotion.tasks.task_update_appdownload_record',
         'schedule': crontab(minute="30", hour="0"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_update_appdownload_record'}
     },
     # u'定时更新小鹿妈妈排名3分钟': {
     #     'task': 'flashsale.xiaolumm.tasks.tasks_mama_carry_total.task_schedule_update_carry_total_ranking',
@@ -1531,7 +1371,7 @@ SHOP_APP_SCHEDULE = {
         'task': 'flashsale.pay.tasks.task_schedule_check_teambuy',
         'schedule': crontab(minute="*/5"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_schedule_check_teambuy'}
     },
     u'每小时发送拼团人数不足提醒': {
         'task': 'shopapp.weixin.tasks.tasks_order_push.task_pintuan_need_more_people_push',
@@ -1543,7 +1383,7 @@ SHOP_APP_SCHEDULE = {
         'task': 'flashsale.promotion.tasks_activity.task_close_activity_everday',
         'schedule': crontab(minute="00", hour="07"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_close_activity_everday'}
     },
     u'每天检查排期有没有锁定': {
         'task': 'pms.supplier.tasks.task_check_schedule_is_lock',

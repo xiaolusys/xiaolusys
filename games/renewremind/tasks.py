@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 def trace_renew_remind_send_msm():
     """ 追踪续费服务提醒记录处理 """
     reminds = RenewRemind.objects.filter(is_trace=True)  # 在追踪状态的续费提醒记录
-    for remind in reminds:
+    for remind in reminds.iterator():
         now = datetime.datetime.now()
         now_ahead = now + datetime.timedelta(days=constants.REMIND_SEND_MESSAGE_DAYS)
         # 提醒时间如果在未来时间的一个月（暂定）以内则发送短信提醒管理员　否则跳过

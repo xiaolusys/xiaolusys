@@ -127,7 +127,7 @@ def double_mama_score():
     from flashsale.xiaolumm.models import XiaoluMama
     mamas = XiaoluMama.objects.filter(referal_from__in=[XiaoluMama.DIRECT, XiaoluMama.INDIRECT], status=XiaoluMama.EFFECT,
                                       charge_status=XiaoluMama.CHARGED, elite_score__gt=0)
-    for mama in mamas:
+    for mama in mamas.iterator():
         origin_score = mama.elite_score
         score = mama.elite_score
         if mama.id in has_add_mms:
@@ -185,7 +185,7 @@ def modify_mama_transferrecord_couponnum():
         created__range=(from_time, to_time)
     )
 
-    for ct in has_add:
+    for ct in has_add.iterator():
         if ct.uni_key.startswith('elite'):
             ct.coupon_value = 0
             ct.coupon_num = 0

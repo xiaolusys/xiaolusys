@@ -641,7 +641,7 @@ def task_upgrade_mama_level_to_vip():
     mamas = XiaoluMama.objects.filter(charge_status=XiaoluMama.CHARGED,
                                       status=XiaoluMama.EFFECT,
                                       agencylevel=XiaoluMama.A_LEVEL)  # 有效的A类代理
-    for mm in mamas:
+    for mm in mamas.iterator():
         cashs = CashOut.objects.filter(xlmm=mm.id, status=CashOut.APPROVED)  # 代理提现记录　
         t_cashout_amount = cashs.aggregate(s_value=Sum('value')).get('s_value') or 0
         update_fields = []

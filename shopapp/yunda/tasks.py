@@ -505,7 +505,7 @@ class PushYundaPackageWeightTask(object):
     def run(self):
 
         source_list = self.getSourceData()
-        for trade in list(source_list):
+        for trade in source_list.iterator():
 
             yd_order = self.createYundaOrder(trade)
 

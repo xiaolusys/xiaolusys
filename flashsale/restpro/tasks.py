@@ -71,9 +71,9 @@ def task_off_the_shelf(product_id=None):
                     log_action(djuser.id, product_in_cart, CHANGE, u'下架后更新')
 
             all_trade = SaleTrade.objects.filter(status=SaleTrade.WAIT_BUYER_PAY)
-            for trade in all_trade:
+            for trade in all_trade.iterator():
                 all_order = trade.sale_orders.all()
-                for order in all_order:
+                for order in all_order.iterator():
                     product_b = Product.objects.filter(outer_id=order.outer_id)
                     if product_b.count() > 0 \
                             and product_b[0].shelf_status == Product.DOWN_SHELF \
@@ -87,12 +87,12 @@ def task_off_the_shelf(product_id=None):
 
         else:
             all_cart = ShoppingCart.objects.filter(item_id=product_id, status=ShoppingCart.NORMAL)
-            for cart in all_cart:
+            for cart in all_cart.iterator():
                 cart.close_cart()
                 log_action(djuser.id, cart, CHANGE, u'下架后更新')
 
             all_trade = SaleTrade.objects.filter(sale_orders__item_id=product_id, status=SaleTrade.WAIT_BUYER_PAY)
-            for trade in all_trade:
+            for trade in all_trade.iterator():
                 trade.close_trade()
                 log_action(djuser.id, trade, CHANGE, u'系统更新待付款状态到交易关闭')
 
@@ -444,7 +444,7 @@ def delete_logistics_three_month_ago():
 def prods_position_handler():
     """ 初始化店铺产品的信息 """
     shops = CustomerShops.objects.all()
-    for shop in shops:
+    for shop in shops.iterator():
         shop_pros = CuShopPros.objects.filter(shop=shop.id).order_by('-created')  # 指定店铺的所有产品按照时间逆序
         pros_count = shop_pros.count()  # 计算该店铺产品的数量
         for pro in shop_pros:
