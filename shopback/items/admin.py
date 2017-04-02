@@ -1240,11 +1240,10 @@ admin.site.register(ProductSkuContrast, ProductSkuContrastAdmin)
 
 class SkuStockAdmin(admin.ModelAdmin):
     list_display = (
-        'sku_link', 'skucode', 'supplier', 'product_id_link', 'product_title', 'properties_name_alias',
-        'now_quantity', 'old_quantity', 'sold_num_link', 'post_num_link', '_wait_post_num', 'unused_stock_link',
-        'adjust_quantity_link', 'assign_num_link', '_wait_assign_num', '_wait_order_num', 'history_quantity',
-        'inbound_quantity_link', 'return_quantity_link', 'rg_quantity_link',
-        'district_link', 'created')
+        'sku_link', 'skucode', 'supplier', 'product_title', 'properties_name_alias',
+        'now_quantity', 'sold_num_link', 'post_num_link', 'unused_stock_link', 'adjust_quantity_link',
+        '_wait_post_num', '_wait_order_num', '_wait_assign_num', 'assign_num_link', 'merged_num_link', 'history_quantity',
+        'inbound_quantity_link', 'return_quantity_link', 'rg_quantity_link', 'district_link')
     list_display_links = ['sku_link']
     search_fields = ['sku__id', 'product__id', 'product__name', 'product__outer_id', 'supplier_id', 'supplier_name']
     readonly_fields = [u'id', 'sku', 'product', 'assign_num', 'adjust_quantity', 'history_quantity',
@@ -1321,7 +1320,7 @@ class SkuStockAdmin(admin.ModelAdmin):
     def unused_stock_link(self, obj):
         return obj.unused_stock
 
-    unused_stock_link.short_description = u'冗余库存数'
+    unused_stock_link.short_description = u'冗余数'
     unused_stock_link.admin_order_field = 'unused_stock'
 
     def get_changelist(self, request, **kwargs):
@@ -1532,8 +1531,18 @@ class SkuStockAdmin(admin.ModelAdmin):
         }
 
     sold_num_link.allow_tags = True
-    sold_num_link.short_description = u'购买数'
+    sold_num_link.short_description = u'总购买数'
     sold_num_link.admin_order_field = 'sold_num'
+
+    def merged_num_link(self, obj):
+        return ('<a href="%(url)s" target="_blank">%(num)s</a>') % {
+            'url': '/admin/trades/packageskuitem/?assign_status__in=1,4&sku_id=%s' % obj.sku_id,
+            'num': obj.psi_merged_num
+        }
+
+    merged_num_link.allow_tags = True
+    merged_num_link.short_description = u'待打单'
+    merged_num_link.admin_order_field = 'psi_merged_num'
 
     def post_num_link(self, obj):
         return ('<a href="%(url)s" target="_blank">%(num)s</a>') % {
@@ -1542,7 +1551,7 @@ class SkuStockAdmin(admin.ModelAdmin):
         }
 
     post_num_link.allow_tags = True
-    post_num_link.short_description = u'已发数'
+    post_num_link.short_description = u'已发货'
     post_num_link.admin_order_field = 'post_num'
 
     def adjust_quantity_link(self, obj):
@@ -1562,7 +1571,7 @@ class SkuStockAdmin(admin.ModelAdmin):
         }
 
     assign_num_link.allow_tags = True
-    assign_num_link.short_description = u'分配数'
+    assign_num_link.short_description = u'已分配'
     assign_num_link.admin_order_field = 'assign_num'
 
     def inbound_quantity_link(self, obj):
@@ -1572,7 +1581,7 @@ class SkuStockAdmin(admin.ModelAdmin):
         }
 
     inbound_quantity_link.allow_tags = True
-    inbound_quantity_link.short_description = u'订货数'
+    inbound_quantity_link.short_description = u'总订货'
     inbound_quantity_link.admin_order_field = 'inbound_quantity'
 
     def return_quantity_link(self, obj):
@@ -1583,7 +1592,7 @@ class SkuStockAdmin(admin.ModelAdmin):
         }
 
     return_quantity_link.allow_tags = True
-    return_quantity_link.short_description = u'用户退货数'
+    return_quantity_link.short_description = u'用户退货'
     return_quantity_link.admin_order_field = 'return_quantity'
 
     def rg_quantity_link(self, obj):
@@ -1593,12 +1602,12 @@ class SkuStockAdmin(admin.ModelAdmin):
         }
 
     rg_quantity_link.allow_tags = True
-    rg_quantity_link.short_description = u'仓库退货数'
+    rg_quantity_link.short_description = u'仓库退货'
     rg_quantity_link.admin_order_field = 'rg_quantity'
 
     def product_title(self, obj):
         return self.PRODUCT_LINK % {
-            'product_url': '/admin/items/product/%d/' % obj.product_sku.product.id,
+            'product_url': '/admin/items/product/?id=%d' % obj.product_sku.product.id,
             'product_title': obj.product.name
         }
 
@@ -1614,7 +1623,7 @@ class SkuStockAdmin(admin.ModelAdmin):
     def old_quantity(self, obj):
         return obj.product_sku.quantity
 
-    old_quantity.short_description = u'老系统实时库存'
+    old_quantity.short_description = u'老系统'
 
     def properties_name_alias(self, obj):
         return obj.properties_name
@@ -1624,7 +1633,7 @@ class SkuStockAdmin(admin.ModelAdmin):
     def _wait_post_num(self, obj):
         return obj.wait_post_num
 
-    _wait_post_num.short_description = u'待发数'
+    _wait_post_num.short_description = u'需发'
 
     def _wait_assign_num(self, obj):
         return ('<a href="%(url)s" target="_blank">%(num)s</a>') % {
@@ -1633,7 +1642,7 @@ class SkuStockAdmin(admin.ModelAdmin):
         }
 
     _wait_assign_num.allow_tags = True
-    _wait_assign_num.short_description = u'待分配数'
+    _wait_assign_num.short_description = u'待分配'
     _wait_assign_num.admin_order_field = 'wait_assign_num'
 
     def _wait_order_num(self, obj):
@@ -1643,7 +1652,7 @@ class SkuStockAdmin(admin.ModelAdmin):
         }
 
     _wait_order_num.allow_tags = True
-    _wait_order_num.short_description = u'待订货数'
+    _wait_order_num.short_description = u'需订货'
 
     def district_link(self, obj):
         return u'<a href="%d/" onclick="return showTradePopup(this);">%s</a>' % (

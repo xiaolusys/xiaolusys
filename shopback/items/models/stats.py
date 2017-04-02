@@ -96,10 +96,10 @@ class SkuStock(models.Model):
 
     # 仓库库存数
     adjust_quantity = models.IntegerField(default=0, verbose_name=u'调整数')  #
-    history_quantity = models.IntegerField(default=0, verbose_name=u'历史库存数')  #
-    inbound_quantity = models.IntegerField(default=0, verbose_name=u'入仓库存数')  #
-    return_quantity = models.IntegerField(default=0, verbose_name=u'客户退货数')  #
-    rg_quantity = models.IntegerField(default=0, verbose_name=u'退还供应商货数')  #
+    history_quantity = models.IntegerField(default=0, verbose_name=u'历史库存')  #
+    inbound_quantity = models.IntegerField(default=0, verbose_name=u'入仓库存')  #
+    return_quantity = models.IntegerField(default=0, verbose_name=u'客户退货')  #
+    rg_quantity = models.IntegerField(default=0, verbose_name=u'退还供应商')  #
 
     # 统计数
     assign_num = models.IntegerField(default=0, verbose_name=u'已分配数')  # 未出库包裹单中已分配的sku数量【已经】
