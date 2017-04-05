@@ -20,7 +20,7 @@ class XiaoluCoin(BaseModel):
     4. 退款 refund()
     """
 
-    mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u"妈妈编号")
+    mama_id = models.IntegerField(default=0, unique=True, verbose_name=u"妈妈编号")
     amount = models.IntegerField(default=0, verbose_name=u"金额(分)")
 
     class Meta:
