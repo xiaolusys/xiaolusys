@@ -9,7 +9,7 @@ from django.views.decorators.cache import cache_page
 from django.contrib.auth.decorators import login_required
 from flashsale.pay.models.user import Customer, BudgetLog
 from flashsale.pay.models.envelope import Envelop
-from mall.xiaolupay.models.weixin_red_envelope import WeixinRedEnvelope
+from flashsale.xiaolupay.models.weixin_red_envelope import WeixinRedEnvelope
 from flashsale.pay.models.trade import SaleTrade
 from flashsale.xiaolumm.models import (
     XiaoluMama,

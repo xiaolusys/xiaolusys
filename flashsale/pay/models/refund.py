@@ -14,7 +14,7 @@ from core.fields import JSONCharMyField
 from flashsale.pay import NO_REFUND, REFUND_CLOSED, REFUND_REFUSE_BUYER, REFUND_WAIT_SELLER_AGREE, \
     REFUND_WAIT_RETURN_GOODS, REFUND_CONFIRM_GOODS, REFUND_APPROVE, REFUND_SUCCESS
 from flashsale.pay.signals import signal_saletrade_refund_post
-from mall.xiaolupay import apis as xiaolupay
+from flashsale.xiaolupay import apis as xiaolupay
 from shopback import paramconfig as pcfg
 from shopback.categorys.models import CategorySaleStat
 from shopback.items.models import Product

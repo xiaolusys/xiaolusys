@@ -226,7 +226,7 @@ INSTALLED_APPS =[
     'statistics',
     'statistics.daystats',
 
-    'mall.xiaolupay',
+    'flashsale.xiaolupay',
 
     'shopback.outware',
     'shopback.outware.fengchao',

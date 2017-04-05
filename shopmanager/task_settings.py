@@ -117,15 +117,15 @@ APIS_ROUTES = {
 }
 
 XIAOLUPAY_ROUTES = {
-    'mall.xiaolupay.tasks.tasks_envelope.task_sent_weixin_red_envelope': {
+    'flashsale.xiaolupay.tasks.tasks_envelope.task_sent_weixin_red_envelope': {
         'queue': 'xiaolupay',
         'routing_key': 'xiaolupay.task_sent_weixin_red_envelope'
     },
-    'mall.xiaolupay.tasks.tasks_envelope.task_sync_weixin_red_envelope_by_id': {
+    'flashsale.xiaolupay.tasks.tasks_envelope.task_sync_weixin_red_envelope_by_id': {
         'queue': 'xiaolupay',
         'routing_key': 'xiaolupay.task_sync_weixin_red_envelope_by_id'
     },
-    'mall.xiaolupay.tasks.tasks_envelope.task_sync_weixin_red_envelopes': {
+    'flashsale.xiaolupay.tasks.tasks_envelope.task_sync_weixin_red_envelopes': {
         'queue': 'xiaolupay',
         'routing_key': 'xiaolupay.task_sync_weixin_red_envelopes'
     },
@@ -1398,7 +1398,7 @@ SHOP_APP_SCHEDULE = {
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
     u'每小时同步微信红包状态': {
-        'task': 'mall.xiaolupay.tasks.tasks_envelope.task_sync_weixin_red_envelopes',
+        'task': 'flashsale.xiaolupay.tasks.tasks_envelope.task_sync_weixin_red_envelopes',
         'schedule': crontab(minute="0"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_sync_weixin_red_envelopes'}

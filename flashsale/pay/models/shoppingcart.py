@@ -15,7 +15,7 @@ from .base import PayBaseModel, BaseModel
 from shopback.items.models import Product
 from .product import ProductSku
 
-from mall.xiaolupay import apis as xiaolupay
+from flashsale.xiaolupay import apis as xiaolupay
 
 
 import logging

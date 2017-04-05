@@ -25,7 +25,7 @@ from flashsale.coupon.apis.v1.ordersharecoupon import get_share_coupon_by_tid, c
 from flashsale.coupon.apis.v1.usercoupon import create_user_coupon
 from common.auth import WeAppAuthentication
 
-from mall.xiaolupay import apis as xiaolupay
+from flashsale.xiaolupay import apis as xiaolupay
 
 logger = logging.getLogger(__name__)
 

@@ -3,7 +3,7 @@ import re
 import urlparse
 
 from django.conf import settings
-from mall.xiaolupay import apis as xiaolupay
+from flashsale.xiaolupay import apis as xiaolupay
 
 from rest_framework import exceptions
 

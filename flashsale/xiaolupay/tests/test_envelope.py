@@ -5,7 +5,7 @@ sys.path.append('.')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'shopmanager.local_settings')
 import django
 django.setup()
-from mall import xiaolupay
+from flashsale import xiaolupay
 
 
 if __name__ == '__main__':
@@ -22,5 +22,5 @@ if __name__ == '__main__':
     )
     # xiaolupay.RedEnvelope.retrieve(envelop_id)
 
-    # from mall.xiaolupay.tasks.tasks_envelope import task_sync_weixin_red_envelope
+    # from flashsale.xiaolupay.tasks.tasks_envelope import task_sync_weixin_red_envelope
     # task_sync_weixin_red_envelope(8)

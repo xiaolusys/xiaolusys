@@ -532,7 +532,7 @@ from django.db import models
 from flashsale.xiaolumm.models import XiaoluMama, CarryLog
 from flashsale.pay.tasks import confirmTradeChargeTask
 
-from mall.xiaolupay import apis as xiaolupay
+from flashsale.xiaolupay import apis as xiaolupay
 
 
 class SaleTradeViewSet(viewsets.ModelViewSet):

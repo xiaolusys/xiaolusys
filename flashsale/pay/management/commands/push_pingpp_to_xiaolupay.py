@@ -5,7 +5,7 @@ from datetime import timedelta
 
 from django.db.models import Q
 from flashsale.pay.models import SaleTrade, SaleRefund
-from mall.xiaolupay.models import ChargeOrder, RefundOrder
+from flashsale.xiaolupay.models import ChargeOrder, RefundOrder
 
 class Command(BaseCommand):
 

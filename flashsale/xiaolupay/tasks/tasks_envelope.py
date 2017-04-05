@@ -1,8 +1,8 @@
 # encoding=utf8
 from datetime import datetime, timedelta
 from shopmanager import celery_app as app
-from mall.xiaolupay.apis.v1.envelope import WeixinRedEnvelopAPI
-from mall.xiaolupay.models.weixin_red_envelope import WeixinRedEnvelope
+from flashsale.xiaolupay.apis.v1.envelope import WeixinRedEnvelopAPI
+from flashsale.xiaolupay.models.weixin_red_envelope import WeixinRedEnvelope
 from flashsale.pay.models.envelope import Envelop
 
 

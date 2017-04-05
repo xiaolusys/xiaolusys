@@ -46,7 +46,7 @@ from common.utils import update_model_fields
 from flashsale.restpro import constants as CONS
 from flashsale.xiaolumm.models import XiaoluMama,CarryLog, XiaoluCoin
 from flashsale.pay.tasks import confirmTradeChargeTask, notifyTradePayTask, tasks_set_address_priority_logistics_code
-from mall.xiaolupay import apis as xiaolupay
+from flashsale.xiaolupay import apis as xiaolupay
 from flashsale.pay.apis.v1.order import parse_entry_params, parse_pay_extras_to_dict, parse_coupon_ids_from_pay_extras, get_pay_type_from_trade
 
 import logging

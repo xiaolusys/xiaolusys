@@ -115,7 +115,7 @@ def update_address(addr_dict):
     address.save()
     return address
 
-from mall.xiaolupay import apis as xiaolupay
+from flashsale.xiaolupay import apis as xiaolupay
 
 def update_charge(charge_id):
     resp = xiaolupay.Charge.retrieve(charge_id)

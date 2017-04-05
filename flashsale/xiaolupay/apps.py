@@ -5,5 +5,5 @@ from django.apps import AppConfig
 
 
 class XiaoluPayConfig(AppConfig):
-    name = 'mall.xiaolupay'
+    name = 'flashsale.xiaolupay'
     verbose_name = "xiaolupay"

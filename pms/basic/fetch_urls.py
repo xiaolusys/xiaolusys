@@ -39,7 +39,7 @@ def getBeaSoupByCrawUrl(fetch_url):
 
     encoding = en_match and en_match.groupdict().get('encoding')
     if not encoding:
-        encoding = html.find('charset=utf-8') > 0 and 'utf-8' or 'gbk'
+        encoding = html.lower().find('charset=utf-8') > 0 and 'utf-8' or 'gbk'
     try:
         return BeautifulSoup(html.decode(encoding)), response
     except:

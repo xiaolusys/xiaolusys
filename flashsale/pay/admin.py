@@ -352,7 +352,7 @@ class SaleRefundChangeList(ChangeList):
         return super(SaleRefundChangeList, self).get_queryset(request)
 
 
-from mall.xiaolupay import apis as xiaolupay
+from flashsale.xiaolupay import apis as xiaolupay
 
 from flashsale.xiaolumm.models import XiaoluMama, CarryLog
 from .filters import Filte_By_Reason

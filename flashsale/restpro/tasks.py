@@ -21,7 +21,7 @@ from flashsale.restpro.utils import save_pro_info
 from flashsale.restpro import exp_map
 
 
-from mall.xiaolupay import apis as xiaolupay
+from flashsale.xiaolupay import apis as xiaolupay
 from flashsale.pay.tasks import notifyTradePayTask
 
 import logging

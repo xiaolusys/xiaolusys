@@ -8,9 +8,9 @@ from django.db import models
 from django.db.models.signals import post_save
 from .base import PayBaseModel
 
-from mall.xiaolupay import apis as xiaolupay
-from mall.xiaolupay.apis.v1 import envelope
-from mall.xiaolupay.models.weixin_red_envelope import WeixinRedEnvelope
+from flashsale.xiaolupay import apis as xiaolupay
+from flashsale.xiaolupay.apis.v1 import envelope
+from flashsale.xiaolupay.models.weixin_red_envelope import WeixinRedEnvelope
 
 logger = logging.getLogger(__name__)
 
@@ -149,7 +149,7 @@ class Envelop(PayBaseModel):
 
     def handle_envelop(self, envelopd):
         """
-        envelopd => mall.xiaolupay.models.weixin_red_envelope.WeixinRedEnvelope
+        envelopd => flashsale.xiaolupay.models.weixin_red_envelope.WeixinRedEnvelope
         """
         from flashsale.pay.models import BudgetLog
         from flashsale.xiaolumm.models import CashOut

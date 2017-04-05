@@ -7,7 +7,7 @@ import hashlib
 from django.template import Context, Template
 from django.conf import settings
 from lxml import etree
-from mall.xiaolupay.models.weixin_red_envelope import WeixinRedEnvelope
+from flashsale.xiaolupay.models.weixin_red_envelope import WeixinRedEnvelope
 
 
 TEMPLATE = """
@@ -120,7 +120,7 @@ def create(order_no, amount, subject, body, recipient, remark):
     """
     创建微信红包
     """
-    from mall.xiaolupay.tasks.tasks_envelope import task_sent_weixin_red_envelope
+    from flashsale.xiaolupay.tasks.tasks_envelope import task_sent_weixin_red_envelope
     from shopapp.weixin.models import WeiXinAccount
 
     # recipient = 'our5huD8xO6QY-lJc1DTrqRut3us'

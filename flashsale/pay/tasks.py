@@ -25,7 +25,7 @@ from .signals import signal_saleorder_post_update
 from shopapp.smsmgr.apis import send_sms_message, SMS_TYPE
 from django.contrib.admin.models import CHANGE
 
-from mall.xiaolupay import apis as xiaolupay
+from flashsale.xiaolupay import apis as xiaolupay
 
 __author__ = 'meixqhi'
 logger = logging.getLogger(__name__)
