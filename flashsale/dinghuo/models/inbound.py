@@ -149,6 +149,14 @@ class InBound(models.Model):
             self._order_lists_ = OrderList.objects.filter(id__in=self.order_list_ids)
         return self._order_lists_
 
+    @property
+    def creator_name(self):
+        if self.creator:
+            return self.creator.name
+        else:
+            from shopback.warehouse.models import WareHouse
+            return WareHouse.objects.get(id=self.ware_by).manager
+
     @cached_property
     def ori_order_list(self):
         return OrderList.objects.filter(id=self.ori_orderlist_id).first()
@@ -225,6 +233,7 @@ class InBound(models.Model):
         inbound = InBound(supplier_id=supplier_id,
                           express_no=express_no,
                           forecast_inbound_id=forecast.id,
+                          ware_by=forecast.ware_house,
                           ori_orderlist_id=orderlist_id,
                           memo='\n'.join(tmp),
                           creator=get_systemoa_user(),

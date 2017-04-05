@@ -800,8 +800,7 @@ class InBoundAdmin(BaseModelAdmin):
     list_per_page = 20
 
     def show_creator(self, obj):
-        from common.utils import get_admin_name
-        return get_admin_name(obj.creator)
+        return obj.creator_name
 
     show_creator.short_description = u'创建人'
 

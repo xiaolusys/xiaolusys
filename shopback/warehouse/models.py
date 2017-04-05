@@ -25,14 +25,14 @@ class WareHouse(models.Model):
                                   verbose_name=u'仓库编码', help_text='后面应改为unique')
     ware_name = models.CharField(max_length=32, blank=True, verbose_name=u'仓库名')
 
-    manager  = models.CharField(max_length=16, blank=True, verbose_name='负责人')
+    manager = models.CharField(max_length=16, blank=True, verbose_name='负责人')
     province = models.CharField(max_length=32, blank=True, verbose_name=u'所在省')
     city = models.CharField(max_length=32, blank=True, verbose_name=u'所在城市')
     district = models.CharField(max_length=32, blank=True, verbose_name=u'所在区/县')
     address = models.CharField(max_length=256, blank=True, verbose_name=u'详细地址')
 
     mobile = models.CharField(max_length=11, blank=True, verbose_name=u'手机')
-    phone  = models.CharField(max_length=11, blank=True, verbose_name=u'电话')
+    phone = models.CharField(max_length=11, blank=True, verbose_name=u'电话')
     # TYPE_CHOICES = (
     #     ("normal", u"普通仓库"),
     #     ("bonded", u'保税仓库'),
