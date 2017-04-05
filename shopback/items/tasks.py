@@ -303,7 +303,7 @@ class CalcProductSaleTask(object):
 
             prod = Product.objects.getProductByOuterid(outer_id)
             prod_sku = Product.objects.getProductSkuByOuterid(outer_id, outer_sku_id)
-            if prod_sku.iterator():
+            if prod_sku:
 
                 total_sale = 0
                 for user in sellers.iterator():

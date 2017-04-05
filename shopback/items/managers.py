@@ -2,7 +2,7 @@
 from django.db import models, connection
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
-from django.db.models import Sum
+from django.db.models import Sum, Q
 
 from shopback import paramconfig as pcfg
 from core.managers import BaseManager
@@ -149,7 +149,7 @@ class ProductManager(BaseManager):
             product = self.get(outer_id=outer_id)
             product_sku = None
             if outer_sku_id:
-                product_sku = ProductSku.objects.get(outer_id=outer_sku_id,
+                product_sku = ProductSku.objects.get(Q(outer_id=outer_sku_id)|Q(outer_id=outer_id + outer_sku_id),
                                                      product__outer_id=outer_id)
         except (self.model.DoesNotExist, ProductSku.DoesNotExist):
             raise self.model.ProductCodeDefect(u'(%s,%s)编码组合未匹配到商品' % (outer_id, outer_sku_id))
@@ -167,7 +167,7 @@ class ProductManager(BaseManager):
             product = self.get(outer_id=outer_id)
             product_sku = None
             if outer_sku_id:
-                product_sku = ProductSku.objects.get(outer_id=outer_sku_id,
+                product_sku = ProductSku.objects.get(Q(outer_id=outer_sku_id)|Q(outer_id=outer_id + outer_sku_id),
                                                      product__outer_id=outer_id)
         except (self.model.DoesNotExist, ProductSku.DoesNotExist):
             raise self.model.ProductCodeDefect(u'(%s,%s)编码组合未匹配到商品' % (outer_id, outer_sku_id))
@@ -186,7 +186,7 @@ class ProductManager(BaseManager):
             product = self.get(outer_id=outer_id)
             product_sku = None
             if outer_sku_id:
-                product_sku = ProductSku.objects.get(outer_id=outer_sku_id,
+                product_sku = ProductSku.objects.get(Q(outer_id=outer_sku_id)|Q(outer_id=outer_id + outer_sku_id),
                                                      product__outer_id=outer_id)
 
             return product.is_match or (product_sku and product_sku.is_match)
@@ -201,7 +201,7 @@ class ProductManager(BaseManager):
             product = self.get(outer_id=outer_id)
             product_sku = None
             if outer_sku_id:
-                product_sku = ProductSku.objects.get(outer_id=outer_sku_id,
+                product_sku = ProductSku.objects.get(Q(outer_id=outer_sku_id)|Q(outer_id=outer_id + outer_sku_id),
                                                      product__outer_id=outer_id)
 
             return product.is_split or (product_sku and product_sku.is_split)
@@ -216,7 +216,7 @@ class ProductManager(BaseManager):
             product = self.get(outer_id=outer_id)
 
             if outer_sku_id:
-                product_sku = ProductSku.objects.get(outer_id=outer_sku_id,
+                product_sku = ProductSku.objects.get(Q(outer_id=outer_sku_id)|Q(outer_id=outer_id + outer_sku_id),
                                                      product__outer_id=outer_id)
                 return (product_sku.match_reason
                         or product.match_reason
@@ -234,7 +234,7 @@ class ProductManager(BaseManager):
             product = self.get(outer_id=outer_id)
             product_sku = None
             if outer_sku_id:
-                product_sku = ProductSku.objects.get(outer_id=outer_sku_id,
+                product_sku = ProductSku.objects.get(Q(outer_id=outer_sku_id)|Q(outer_id=outer_id + outer_sku_id),
                                                      product__outer_id=outer_id)
         except (self.model.DoesNotExist, ProductSku.DoesNotExist):
             raise self.model.ProductCodeDefect(u'(%s,%s)编码组合未匹配到商品' % (outer_id, outer_sku_id))
@@ -247,7 +247,7 @@ class ProductManager(BaseManager):
         from .models import ProductSku
         try:
             if outer_sku_id:
-                product_sku = ProductSku.objects.get(outer_id=outer_sku_id,
+                product_sku = ProductSku.objects.get(Q(outer_id=outer_sku_id)|Q(outer_id=outer_id + outer_sku_id),
                                                      product__outer_id=outer_id)
                 product_sku.update_wait_post_num(order_num)
             else:
@@ -277,24 +277,29 @@ class ProductManager(BaseManager):
 
         from .models import ProductSku
         try:
-            product_sku = ProductSku.objects.get(outer_id=outer_sku_id,
+            product_sku = ProductSku.objects.get(Q(outer_id=outer_sku_id)|Q(outer_id=outer_id + outer_sku_id),
                                                  product__outer_id=outer_id)
             product_sku.update_lock_num(order_num, dec_update=True)
         except (self.model.DoesNotExist, ProductSku.DoesNotExist):
             raise self.model.ProductCodeDefect(u'(%s,%s)编码组合未匹配到商品' % (outer_id, outer_sku_id))
 
     def trancecode(self, outer_id, outer_sku_id, sku_code_prior=False):
-
+        """ 线上商品编码转换成系统商品编码: outer_sku_id = outer_id + outer_sku_id """
         conncate_code = outer_sku_id or outer_id
-
+        outer_id = outer_id.strip()
+        outer_sku_id = outer_sku_id.strip()
         index = conncate_code.rfind(self.model.PRODUCT_CODE_DELIMITER)
         if sku_code_prior and index > 0:
-            return conncate_code[index + 1:].strip(), conncate_code[0:index].strip()
+            outer_id = conncate_code[index + 1:]
+            outer_sku_id = conncate_code[0:index]
 
         if index > 0:
-            return conncate_code[0:index].strip(), conncate_code[index + 1:].strip()
+            outer_id = conncate_code[0:index]
+            outer_sku_id = conncate_code[index + 1:]
 
-        return outer_id.strip(), outer_sku_id.strip()
+        if not outer_sku_id.startswith(outer_id):
+            outer_sku_id = outer_id + outer_sku_id
+        return outer_id, outer_sku_id
 
     def updateProductWaitPostNum(self, product):
         """

@@ -290,7 +290,7 @@ class MergeTradeManager(BaseManager):
 
             if outer_sku_id:
                 psku = ProductSku.objects.get(product__outer_id=outer_id,
-                                              outer_id=outer_sku_id)
+                                              outer_id=outer_id + outer_sku_id)
                 psku.update_quantity(order_num, dec_update=True)
                 psku.update_wait_post_num(order_num, dec_update=True)
 
@@ -321,8 +321,8 @@ class MergeTradeManager(BaseManager):
         from shopback.trades.models import MergeOrder
 
         wait_nums = MergeOrder.objects.filter(
-            outer_id=outer_id,
             outer_sku_id=outer_sku_id,
+            outer_id=outer_id,
             merge_trade__sys_status__in=pcfg.WAIT_WEIGHT_STATUS,
             sys_status=pcfg.IN_EFFECT) \
             .aggregate(sale_nums=Sum('num')).get('sale_nums')
