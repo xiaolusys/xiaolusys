@@ -7,10 +7,10 @@ from flashsale.xiaolumm.models.models_fortune import CarryRecord
 from flashsale.xiaolumm.models import (
     CashOut
 )
-from flashsale.daystats.mylib.util import (
+from statistics.daystats.mylib.util import (
     get_date_from_req,
 )
-from flashsale.daystats.mylib.db import (
+from statistics.daystats.mylib.db import (
     get_cursor,
     execute_sql,
 )

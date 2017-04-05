@@ -12,8 +12,8 @@ from flashsale.coupon.models.usercoupon import UserCoupon
 from flashsale.pay.models.user import Customer, BudgetLog
 from flashsale.restpro.v2.serializers.serializers import BudgetLogSerialize
 from flashsale.xiaolumm.models import XiaoluMama
-from flashsale.daystats.mylib.db import get_cursor, execute_sql
-from flashsale.daystats.mylib.util import groupby, process
+from statistics.daystats.mylib.db import get_cursor, execute_sql
+from statistics.daystats.mylib.util import groupby, process
 
 
 def process_items(items):

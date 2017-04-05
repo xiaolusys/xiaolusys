@@ -43,8 +43,7 @@ def upload_public_to_remote(filepath, iostream):
     return info
 
 
-
-def generate_private_url(filepath):
+def generate_private_url(filepath, expires=3600):
 
     access_key = str(settings.QINIU_ACCESS_KEY)
     secret_key = str(settings.QINIU_SECRET_KEY)
@@ -57,7 +56,7 @@ def generate_private_url(filepath):
     base_url = 'http://%s/%s' % (bucket_domain, filepath)
 
     #可以设置token过期时间
-    private_url = q.private_download_url(base_url, expires=3600)
+    private_url = q.private_download_url(base_url, expires=expires)
 
     return private_url
 

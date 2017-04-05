@@ -4,13 +4,13 @@ from django.shortcuts import render
 from django.db import connections
 from django.contrib.auth.decorators import login_required
 
-from flashsale.daystats.mylib.db import execute_sql, get_cursor
-from flashsale.daystats.mylib.chart import (
+from statistics.daystats.mylib.db import execute_sql, get_cursor
+from statistics.daystats.mylib.chart import (
     generate_chart,
     generate_date,
     generate_chart_data,
 )
-from flashsale.daystats.mylib.util import (
+from statistics.daystats.mylib.util import (
     process_data,
     groupby,
     process,

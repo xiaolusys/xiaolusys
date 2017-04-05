@@ -1,7 +1,7 @@
 # encoding=utf8
 from datetime import timedelta
 from django.template import Template, Context
-from flashsale.daystats.mylib.util import (
+from statistics.daystats.mylib.util import (
     process_data,
     groupby,
     process,

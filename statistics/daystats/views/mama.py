@@ -12,16 +12,16 @@ from django.core.cache import cache
 from django.db.models import F, Sum, FloatField, Q
 from django.contrib.auth.decorators import login_required
 
-from flashsale.daystats.mylib.chart import (
+from statistics.daystats.mylib.chart import (
     generate_chart,
     generate_date,
     generate_chart_data,
 )
-from flashsale.daystats.mylib.db import (
+from statistics.daystats.mylib.db import (
     get_cursor,
     execute_sql,
 )
-from flashsale.daystats.mylib.util import (
+from statistics.daystats.mylib.util import (
     process_data,
     groupby,
     process,

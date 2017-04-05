@@ -211,7 +211,6 @@ INSTALLED_APPS =[
     'flashsale.clickcount',
     'flashsale.clickrebeta',
     'flashsale.mmexam',
-    'flashsale.daystats',
     'flashsale.restpro',
     'flashsale.kefu',
     'flashsale.push',
@@ -223,7 +222,9 @@ INSTALLED_APPS =[
     # 'test.celery',
     'shopapp.notify',
     # 'shopapp.zhongtong'
+
     'statistics',
+    'statistics.daystats',
 
     'mall.xiaolupay',
 

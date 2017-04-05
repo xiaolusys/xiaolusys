@@ -20,16 +20,16 @@ from flashsale.xiaolumm.models.models_fortune import (
     MamaDailyAppVisit,
     MamaFortune
 )
-from flashsale.daystats.mylib.db import (
+from statistics.daystats.mylib.db import (
     get_cursor,
     execute_sql,
 )
-from flashsale.daystats.mylib.util import (
+from statistics.daystats.mylib.util import (
     groupby,
     process,
 )
 
-from flashsale.daystats.mylib.chart import generate_chart, generate_date
+from statistics.daystats.mylib.chart import generate_chart, generate_date
 
 
 def process_data(data):

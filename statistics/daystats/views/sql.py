@@ -5,8 +5,8 @@ from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from bson.objectid import ObjectId
 
-from flashsale.daystats.models import DailySqlRecord
-from flashsale.daystats.mylib.db import (
+from statistics.daystats.models import DailySqlRecord
+from statistics.daystats.mylib.db import (
     get_cursor,
     execute_sql,
 )

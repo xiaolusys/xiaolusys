@@ -748,7 +748,7 @@ QRCODE_ROUTES = {
 }
 
 BOUTIQUE_ROUTES = {
-    'flashsale.daystats.tasks.boutique.task_boutique_sale_and_refund_stats': {
+    'statistics.daystats.tasks.boutique.task_boutique_sale_and_refund_stats': {
         'queue': 'statistics',
         'routing_key': 'statistics.task_boutique_sale_and_refund_stats',
     },
@@ -1091,7 +1091,7 @@ SHOP_APP_SCHEDULE = {
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_Tongji_User_Order'}
     },
     u'定时统计每日特卖综合数据': {
-        'task': 'flashsale.daystats.tasks.flashsale.task_Calc_Sales_Stat_By_Day',
+        'task': 'statistics.daystats.tasks.flashsale.task_Calc_Sales_Stat_By_Day',
         'schedule': crontab(minute="40", hour='2'),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_Calc_Sales_Stat_By_Day'}
@@ -1121,7 +1121,7 @@ SHOP_APP_SCHEDULE = {
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_daily_preview'}
     },
     u'定时统计每天推广支出情况': {
-        'task': 'flashsale.daystats.tasks.flashsale.task_PopularizeCost_By_Day',
+        'task': 'statistics.daystats.tasks.flashsale.task_PopularizeCost_By_Day',
         'schedule': crontab(minute="30", hour="8"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_PopularizeCost_By_Day'}
@@ -1419,19 +1419,19 @@ SHOP_APP_SCHEDULE = {
 
 STATISTIC_SCHEDULE = {
     u'每日统计sku规格发货速度及未发货单数': {
-        'task': 'flashsale.daystats.tasks.saleorder.task_call_all_sku_delivery_stats',
+        'task': 'statistics.daystats.tasks.saleorder.task_call_all_sku_delivery_stats',
         'schedule': crontab(minute="15", hour="2"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_call_all_sku_delivery_stats'}
     },
     u'每日统计sku规格实际销售金额(分项)': {
-        'task': 'flashsale.daystats.tasks.saleorder.task_calc_all_sku_amount_stat_by_schedule',
+        'task': 'statistics.daystats.tasks.saleorder.task_calc_all_sku_amount_stat_by_schedule',
         'schedule': crontab(minute="20", hour="2"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_calc_all_sku_amount_stat_by_schedule'}
     },
     u'每半小时统计商城精品券sku销量及发货速度': {
-        'task': 'flashsale.daystats.tasks.saleorder.task_calc_today_sku_boutique_sales_delivery_stats',
+        'task': 'statistics.daystats.tasks.saleorder.task_calc_today_sku_boutique_sales_delivery_stats',
         'schedule': crontab(minute="*/30", hour=','.join([str(i) for i in range(9, 23)])),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_calc_today_sku_boutique_sales_delivery_stats'}
@@ -1440,7 +1440,7 @@ STATISTIC_SCHEDULE = {
 
 BOUTIQUE_SCHEDULE = {
     u'每日统计昨日精品商品及券库存和销量': {
-        'task': 'flashsale.daystats.tasks.boutique.task_all_boutique_stats',
+        'task': 'statistics.daystats.tasks.boutique.task_all_boutique_stats',
         'schedule': crontab(minute="0", hour="2"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_all_boutique_stats'}
@@ -1484,25 +1484,25 @@ STATSD_SCHEDULE = {
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_celery_queue_message_statsd'}
     },
     u'每分钟发送精品券数量及金额统计': {
-        'task': 'flashsale.daystats.tasks.boutique_statsd.task_transfer_coupon_order_statsd',
+        'task': 'statistics.daystats.tasks.boutique_statsd.task_transfer_coupon_order_statsd',
         'schedule': crontab(minute="*/1"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_transfer_coupon_order_statsd'}
     },
     u'每分钟发送精品券妈妈活跃数据统计': {
-        'task': 'flashsale.daystats.tasks.boutique_statsd.task_boutique_mama_statsd',
+        'task': 'statistics.daystats.tasks.boutique_statsd.task_boutique_mama_statsd',
         'schedule': crontab(minute="*/1"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_boutique_mama_statsd'}
     },
     u'每小时发送精品券妈妈七天活跃数量': {
-        'task': 'flashsale.daystats.tasks.boutique_statsd.task_boutique_mama_weekly_active',
+        'task': 'statistics.daystats.tasks.boutique_statsd.task_boutique_mama_weekly_active',
         'schedule': crontab(minute="0", hour="*/1"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_boutique_mama_weekly_active'}
     },
     u'每5分钟发送短信短信累计消耗量数据': {
-        'task': 'flashsale.daystats.tasks.sms_statsd.task_sms_send_count_gauge_statsd',
+        'task': 'statistics.daystats.tasks.sms_statsd.task_sms_send_count_gauge_statsd',
         'schedule': crontab(minute="*/5"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_sms_send_count_gauge_statsd'}

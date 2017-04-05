@@ -4,7 +4,7 @@ from django.views.generic import View
 from django.shortcuts import HttpResponse, render, HttpResponseRedirect
 import datetime
 from calendar import monthrange
-from flashsale.daystats.tasks import task_calc_hot_sale, task_calc_stock_top, task_calc_sale_bad
+from statistics.daystats.tasks import task_calc_hot_sale, task_calc_stock_top, task_calc_sale_bad
 
 
 class EntranceView(View):

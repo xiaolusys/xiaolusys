@@ -244,7 +244,7 @@ def task_PopularizeCost_By_Day(pre_day=1):
         logger.warning('First time running no popularizecost data to search ')
 
 
-from flashsale.daystats.models import DaystatCalcResult
+from statistics.daystats.models import DaystatCalcResult
 
 
 @app.task(max_retries=3, default_retry_delay=5)

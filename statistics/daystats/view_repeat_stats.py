@@ -5,7 +5,7 @@ from django.views.generic import View
 from django.shortcuts import render
 import datetime
 from calendar import monthrange
-from flashsale.daystats.tasks import task_calc_xlmm, task_calc_package
+from statistics.daystats.tasks import task_calc_xlmm, task_calc_package
 from flashsale.pay.models.user import Customer
 from flashsale.pay.models.trade import SaleTrade
 
@@ -164,7 +164,7 @@ class StatsRepeatView(View):
         )
 
 
-from flashsale.daystats.models import DailyStat
+from statistics.daystats.models import DailyStat
 from shopback.trades.models import MergeTrade
 
 

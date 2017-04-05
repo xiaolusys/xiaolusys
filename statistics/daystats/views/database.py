@@ -1,6 +1,6 @@
 # encoding=utf8
 from django.shortcuts import render
-from flashsale.daystats.mylib.db import get_cursor, execute_sql
+from statistics.daystats.mylib.db import get_cursor, execute_sql
 from django.contrib.auth.decorators import login_required
 
 from django.conf import settings

@@ -12,7 +12,7 @@ import views_operate
 import views_input_stat
 import views_stats_fahuo
 
-from flashsale.daystats.views import (
+from statistics.daystats.views import (
     yunying,
     customer,
     product,

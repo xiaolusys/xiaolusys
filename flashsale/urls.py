@@ -8,7 +8,7 @@ urlpatterns = [
     url(r'^dinghuo/', include('shopback.dinghuo.urls')),
     url(r'^rebeta/', include('flashsale.clickrebeta.urls')),
     url(r'^exam/', include('flashsale.mmexam.urls')),
-    url(r'^daystats/', include('flashsale.daystats.urls')),
+    url(r'^daystats/', include('statistics.daystats.urls')),
     url(r'^kefu/', include('flashsale.kefu.urls')),
     url(r'^promotion/', include('flashsale.promotion.urls')),
     url(r'^apprelease/', include('flashsale.apprelease.urls')),
