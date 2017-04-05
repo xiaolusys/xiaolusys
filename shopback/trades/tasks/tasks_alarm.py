@@ -1,7 +1,7 @@
 # coding=utf-8
 from shopback.trades.models import *
 from flashsale.pay.models import *
-from flashsale.dinghuo.models_purchase import *
+from shopback.dinghuo.models_purchase import *
 from common.dingding import DingDingAPI
 from shopmanager import celery_app as app
 

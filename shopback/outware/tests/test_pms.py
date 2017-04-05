@@ -9,7 +9,7 @@ from shopback.items.models import Product, ProductSku
 from ..adapter.mall.push import supplier, product, inbound
 from ..adapter.ware.pull import pms
 from .. import constants
-from flashsale.forecast.models import ForecastInbound
+from shopback.forecast.models import ForecastInbound
 
 class PMSTestCase(TestCase):
 

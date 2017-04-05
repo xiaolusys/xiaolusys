@@ -13,7 +13,7 @@ from core.options import log_action, ADDITION, CHANGE
 from flashsale.pay.models import ShoppingCart, SaleTrade, CustomerShops, CuShopPros
 from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import Product, SkuStock
-from flashsale.dinghuo.models_purchase import PurchaseArrangement
+from shopback.dinghuo.models_purchase import PurchaseArrangement
 from flashsale.pay.models import SaleRefund
 from shopback.trades.models import TradeWuliu, PackageSkuItem,ReturnWuLiu
 from flashsale.restpro.utils import save_pro_info

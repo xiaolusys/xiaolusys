@@ -6,7 +6,7 @@ from models import MergeTrade, MergeOrder
 import datetime
 from django.db.models import Sum
 from shopback import paramconfig as pcfg
-from flashsale.dinghuo.models import OrderDetail
+from shopback.dinghuo.models import OrderDetail
 from flashsale.clickrebeta.models import StatisticsShopping
 from django.db import connection
 from flashsale.xiaolumm.models import XiaoluMama

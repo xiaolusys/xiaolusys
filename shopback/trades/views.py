@@ -2260,7 +2260,7 @@ class PackageScanCheckView(APIView):
 
 
 from core.options import get_systemoa_user
-from flashsale.dinghuo.tasks import task_stats_paytopack
+from shopback.dinghuo.tasks import task_stats_paytopack
 from shopback.trades.tasks import uploadTradeLogisticsTask
 
 

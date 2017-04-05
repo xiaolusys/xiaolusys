@@ -3,10 +3,10 @@ import json
 from django.test import TestCase
 from django.contrib.auth.models import User as DjUser
 from flashsale.coupon.models import UserCoupon, OrderShareCoupon
-from flashsale.dinghuo.models import *
+from shopback.dinghuo.models import *
 from flashsale.pay.models import *
-from flashsale.dinghuo.models_purchase import *
-from flashsale.forecast.models.forecast import *
+from shopback.dinghuo.models_purchase import *
+from shopback.forecast.models.forecast import *
 from flashsale.finance.models import Bill
 from shopback.refunds.models import RefundProduct
 from shopback.trades.models import *

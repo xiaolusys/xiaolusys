@@ -153,7 +153,7 @@ class Bill(BaseModel):
         # self.billrelation_set.update()
 
     def relate_to(self, relations, lack_dict={}):
-        from flashsale.dinghuo.models import ReturnGoods, OrderList
+        from shopback.dinghuo.models import ReturnGoods, OrderList
         for r in relations:
             rtype = lack_dict.get(r.id)
             ctype = None
@@ -219,7 +219,7 @@ class Bill(BaseModel):
             货到付款:结算时生成新账单计算金额，账单完成时将订货单设置为完成。
             其它：更新OrderList状态ReturnGoods状态。
         """
-        from flashsale.dinghuo.models import OrderList, ReturnGoods
+        from shopback.dinghuo.models import OrderList, ReturnGoods
         self.status = Bill.STATUS_COMPLETED
         self.save()
         brs = self.billrelation_set.filter(bill_id=self.id)
@@ -266,7 +266,7 @@ class BillRelation(BaseModel):
         return tyc[self.type]
 
     def set_orderlist_stage(self):
-        from flashsale.dinghuo.models import OrderList
+        from shopback.dinghuo.models import OrderList
         ol = self.get_based_object()
         if self.type == BillRelation.TYPE_DINGHUO_RECEIVE:   #退货回款 订货单状态直接完成
             ol.set_stage_complete()

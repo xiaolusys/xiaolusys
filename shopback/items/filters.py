@@ -142,7 +142,7 @@ class DateScheduleFilter(FieldListFilter):
 FieldListFilter.register(
     lambda f: isinstance(f, models.DateField), DateScheduleFilter)
 
-from flashsale.dinghuo.models_user import MyUser, MyGroup
+from shopback.dinghuo.models_user import MyUser, MyGroup
 
 
 class GroupNameFilter(SimpleListFilter):

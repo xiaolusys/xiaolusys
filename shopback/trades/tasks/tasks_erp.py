@@ -15,7 +15,7 @@ from shopback.trades.models import PackageSkuItem, PackageOrder
 from shopback.logistics.models import LogisticsCompany
 from shopback.trades.models_erp import ErpOrder
 from flashsale.pay.models.trade import SaleOrder
-from flashsale.dinghuo.models.purchase_order import OrderList
+from shopback.dinghuo.models.purchase_order import OrderList
 from common.wdt import WangDianTong
 
 SUPPLIER_YOUHE_ID = 29463

@@ -175,7 +175,7 @@ def task_orderdetail_update_productskustats_inbound_quantity(instance):
     1) we should build joint-index for (sku,arrival_time)?
     --Zifei 2016-04-18
     """
-    from flashsale.dinghuo.models import OrderDetail
+    from shopback.dinghuo.models import OrderDetail
     sku_id = instance.sku_id
     logger.info("%s -sku_id:%s" % (get_cur_info(), sku_id))
     sum_res = OrderDetail.objects.filter(chichu_id=sku_id,
@@ -190,7 +190,7 @@ def task_orderdetail_update_productskustats_inbound_quantity(instance):
 
 @app.task()
 def task_update_product_sku_stat_rg_quantity(sku_id):
-    from flashsale.dinghuo.models.purchase_return import RGDetail, ReturnGoods
+    from shopback.dinghuo.models.purchase_return import RGDetail, ReturnGoods
     logger.info("%s -sku_id:%s" % (get_cur_info(), sku_id))
     sum_res = RGDetail.objects.filter(skuid=sku_id,
                                       created__gte=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME,

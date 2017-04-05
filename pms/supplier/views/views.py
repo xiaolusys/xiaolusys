@@ -20,7 +20,7 @@ from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from flashsale.dinghuo.models import OrderDetail, OrderList
+from shopback.dinghuo.models import OrderDetail, OrderList
 from flashsale.pay.models import ModelProduct, Productdetail, SaleOrder
 from core.options import log_action, ADDITION, CHANGE
 

@@ -107,7 +107,7 @@ def fifDaysRateFlush(days=30):
 from flashsale.pay.models import SaleOrder, SaleRefund
 from shopback.refunds.models_refund_rate import PayRefNumRcord
 from shopback.items.models import Product
-from flashsale.dinghuo.models import DailySupplyChainStatsOrder
+from shopback.dinghuo.models import DailySupplyChainStatsOrder
 from common.modelutils import update_model_fields
 from shopback.refunds.models_refund_rate import ProRefunRcord
 from pms.supplier.models import SaleProduct

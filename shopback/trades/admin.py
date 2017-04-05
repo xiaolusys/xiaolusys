@@ -1426,12 +1426,12 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
     purchase_order_unikey_link.short_description = u'订货单'
 
     # def get_purchase_order(self):
-    #     from flashsale.dinghuo.models import OrderList
+    #     from shopback.dinghuo.models import OrderList
     #     PackageSkuItem.objects.filter(assign_status)
     #     return OrderList.objects.filter()
 
     def orderlist_status(self, obj):
-        from flashsale.dinghuo.models import OrderList
+        from shopback.dinghuo.models import OrderList
         ol = obj.order_list
         now = datetime.datetime.now()
         if not ol:

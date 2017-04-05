@@ -6,7 +6,7 @@ from ....models import OutwareOrder, OutwareOrderSku
 from shopback.outware import constants
 from shopback.items.models import ProductSku
 from shopback.logistics.models import LogisticsCompany
-from flashsale.dinghuo.models import InBound, InBoundDetail
+from shopback.dinghuo.models import InBound, InBoundDetail
 
 
 def update_saletrade_by_outware_packages(order_code, dict_obj):

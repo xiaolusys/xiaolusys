@@ -11,7 +11,7 @@ from flashsale.pay.models import SaleOrder, SaleRefund
 from shopback.refunds.models import Refund, RefundProduct
 
 from shopback.trades.models import PackageSkuItem
-from flashsale.dinghuo.models import SupplyChainStatsOrder
+from shopback.dinghuo.models import SupplyChainStatsOrder
 
 
 class Command(BaseCommand):

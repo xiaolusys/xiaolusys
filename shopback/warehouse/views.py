@@ -16,7 +16,7 @@ from rest_framework.views import APIView
 from rest_framework import authentication, permissions
 from shopapp.smsmgr.tasks import task_notify_package_post
 from flashsale.pay.models import SaleOrder
-from flashsale.dinghuo.apis import stockflow
+from shopback.dinghuo.apis import stockflow
 
 logger = logging.getLogger('django.request')
 

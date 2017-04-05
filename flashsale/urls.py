@@ -5,7 +5,7 @@ urlpatterns = [
     #     (r'^purchase/',include('flashsale.purchase.urls')),
     #     (r'^pay/',include('flashsale.pay.urls')),
     url(r'^complain/', include('flashsale.complain.urls')),
-    url(r'^dinghuo/', include('flashsale.dinghuo.urls')),
+    url(r'^dinghuo/', include('shopback.dinghuo.urls')),
     url(r'^rebeta/', include('flashsale.clickrebeta.urls')),
     url(r'^exam/', include('flashsale.mmexam.urls')),
     url(r'^daystats/', include('flashsale.daystats.urls')),
