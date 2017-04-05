@@ -161,7 +161,7 @@ class InBoundViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated, )
     renderer_classes = (renderers.JSONRenderer, renderers.TemplateHTMLRenderer,)
 
-    def retrieve(self, request, pk=None):
+    def retrieve(self, request, pk=None, *args, **kwargs):
         inbound = RealInbound.objects.get(id=pk)
 
         skus_dict = {}
