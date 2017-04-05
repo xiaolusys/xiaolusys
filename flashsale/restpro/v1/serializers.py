@@ -746,7 +746,7 @@ class XiaoluMamaSerialize(serializers.ModelSerializer):
         fields = (
             "id", "get_cash_display", "charge_status", "agencylevel", "manager", "referal_from", "mobile", "weikefu",
             "charge_time", 'coulde_cashout', 'last_renew_type', 'can_trial', 'is_buyable', 'is_elite_mama', 'elite_level',
-            "xiaolucoin_cash")
+            "xiaolucoin_cash", "status")
 
     def can_trial_judgement(self, obj):
         """ 判断是否可以试用 """
