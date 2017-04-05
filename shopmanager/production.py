@@ -30,7 +30,7 @@ M_SITE_URL = 'https://m.xiaolumeimei.com'
 MYSQL_HOST = 'rdsvrl2p9pu6536n7d99.mysql.rds.aliyuncs.com'
 MYSQL_AUTH = os.environ.get('MYSQL_AUTH')
 REDIS_HOST = '121.196.219.80:31838'
-REDIS_AUTH = os.environ.get('K8S_REDIS_AUTH')
+REDIS_AUTH = os.environ.get('REDIS_AUTH')
 
 
 if os.environ.get('INSTANCE') == 'mall':
