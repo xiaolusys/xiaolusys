@@ -513,9 +513,9 @@ class ModelProduct(BaseTagModel):
             product.save(update_fields=['shelf_status'])
         # 如果时精品汇商品 修改商品设置
         if self.is_boutique_product:
-            self.is_onsale = True
+            # self.is_onsale = True #canceled
             self.rebeta_scheme_id = 12
-            self.save(update_fields=['is_onsale', 'rebeta_scheme_id'])
+            self.save(update_fields=['rebeta_scheme_id'])
 
     def delete_boutique_coupon(self):
         raise

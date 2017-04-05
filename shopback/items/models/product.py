@@ -1035,9 +1035,8 @@ class Product(models.Model):
                     product.save(update_fields=['shelf_status'])
         # 如果时精品汇商品 修改商品设置
         if model_pro.is_boutique_product:
-            model_pro.is_onsale = True
             model_pro.rebeta_scheme_id = 12
-            model_pro.save(update_fields=['is_onsale', 'rebeta_scheme_id'])
+            model_pro.save(update_fields=['rebeta_scheme_id'])
 
     def to_apimodel(self):
         from apis.v1.products import Product as APIModel
