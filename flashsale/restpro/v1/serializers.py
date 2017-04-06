@@ -55,7 +55,8 @@ class RegisterSerializer(serializers.HyperlinkedModelSerializer):
 class XiaoluMamaSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = XiaoluMama
-        fields = ('id', 'cash', 'agencylevel', 'created', 'status', 'referal_from', 'last_renew_type', 'charge_status')
+        fields = ('id', 'cash', 'agencylevel', 'created', 'status', 'referal_from', 'last_renew_type', 'charge_status',
+                  'elite_score')
 
 
 class UserBudgetSerialize(serializers.HyperlinkedModelSerializer):
