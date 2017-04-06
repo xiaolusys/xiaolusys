@@ -312,12 +312,12 @@ class RequestCashoutVerifyCode(views.APIView):
 
 class VerifyCodeView(views.APIView):
     """
-    verify code under 5 action cases:
-    register, find_pwd, change_pwd, bind, sms_login
+    verify code under 4 action cases:
+    find_pwd, change_pwd, bind, sms_login --- 20170406 del regitster,because main scene is weixin, need wx openid first
 
     /verify_code
     mobile: mobile number
-    action: one of 5 actions (register，sms_login, find_pwd, change_pwd, bind)
+    action: one of 4 actions (sms_login, find_pwd, change_pwd, bind)
     """
     throttle_scope = 'auth'
 
@@ -353,8 +353,9 @@ class VerifyCodeView(views.APIView):
             if action == 'find_pwd' or action == 'change_pwd' or action == 'bind':
                 return Response({"rcode": 3, "msg": u"该用户还不存在呢！"})
         if not customer:
-            django_user, state = DjangoUser.objects.get_or_create(username=mobile, is_active=True)
-            customer, state = Customer.objects.get_or_create(user=django_user)
+            # django_user, state = DjangoUser.objects.get_or_create(username=mobile, is_active=True)
+            # customer, state = Customer.objects.get_or_create(user=django_user)
+            return Response({"rcode": 5, "msg": u"该用户还不存在呢,请使用微信登录然后绑定手机号，就可以使用手机号登录了！"})
 
         customer.mobile = mobile
         customer.save()
