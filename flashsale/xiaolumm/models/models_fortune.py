@@ -702,7 +702,7 @@ def ordercarry_update_ordercarry(sender, instance, created, **kwargs):
         logger.info({
             'action': 'ordercarry_update_ordercarry',
             'order_no': instance.order_id,
-            'desc': 'find referal_relationships > 0 %s' % referal_relationships.exist(),
+            'desc': 'find referal_relationships > 0 %s' % referal_relationships.exists(),
             'instance.mama_id': instance.mama_id,
             'created': datetime.datetime.now(),
         })
