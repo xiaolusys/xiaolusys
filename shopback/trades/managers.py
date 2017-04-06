@@ -287,10 +287,10 @@ class MergeTradeManager(BaseManager):
             outer_id = order.outer_id
             outer_sku_id = order.outer_sku_id
             order_num = order.num
-            new_outer_id = Product.objects.trancecode(outer_id, outer_sku_id)
+            new_outer_id, new_outer_sku_id = Product.objects.trancecode(outer_id, outer_sku_id)
             if outer_sku_id:
-                psku = ProductSku.objects.get(product__outer_id=outer_id,
-                                              outer_id=new_outer_id)
+                psku = ProductSku.objects.get(product__outer_id=new_outer_id,
+                                              outer_id=new_outer_sku_id)
                 psku.update_quantity(order_num, dec_update=True)
                 psku.update_wait_post_num(order_num, dec_update=True)
 
