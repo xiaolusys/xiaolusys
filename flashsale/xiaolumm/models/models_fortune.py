@@ -699,7 +699,14 @@ def ordercarry_update_ordercarry(sender, instance, created, **kwargs):
         # find out parent mama_id, and this relationship must be established before the order creation date.
         referal_relationships = ReferalRelationship.objects.filter(referal_to_mama_id=instance.mama_id,
                                                                    created__lt=instance.created)
-        from flashsale.xiaolumm.tasks import task_update_second_level_ordercarry, task_update_second_level_ordercarry_by_trial
+        logger.info({
+            'action': 'ordercarry_update_ordercarry',
+            'order_no': instance.order_id,
+            'desc': 'find referal_relationships > 0 %s' % referal_relationships.exist(),
+            'instance.mama_id': instance.mama_id,
+            'created': datetime.datetime.now(),
+        })
+        from flashsale.xiaolumm.tasks import task_update_second_level_ordercarry
         if referal_relationships.count() > 0:
             referal_relationship = referal_relationships[0]
             task_update_second_level_ordercarry.delay(referal_relationship, instance)
