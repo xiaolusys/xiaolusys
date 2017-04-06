@@ -115,7 +115,7 @@ def gen_ordercarry(referal_relationship, order_carry, carry_type, carry_num):
     if count == 1:
         uni_key = util_unikey.gen_ordercarry_unikey(OrderCarry.REFERAL_ORDER, order_carry.order_id)
     else:
-        uni_key = '-'.join(['order', str(carry_type), order_carry.order_id, count + 1])
+        uni_key = '-'.join(['order', str(carry_type), order_carry.order_id, str(count + 1)])
     record = OrderCarry.objects.filter(uni_key=uni_key).first()
     if record:
         if record.status != order_carry.status:
