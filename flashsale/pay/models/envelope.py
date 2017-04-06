@@ -9,7 +9,7 @@ from django.db.models.signals import post_save
 from .base import PayBaseModel
 
 from flashsale.xiaolupay import apis as xiaolupay
-from flashsale.xiaolupay.apis.v1 import envelope
+from flashsale.xiaolupay.apis.v1 import envelope, transfers
 from flashsale.xiaolupay.models.weixin_red_envelope import WeixinRedEnvelope
 
 logger = logging.getLogger(__name__)
@@ -17,7 +17,11 @@ logger = logging.getLogger(__name__)
 
 class Envelop(PayBaseModel):
     WXPUB = 'wx_pub'
-    ENVELOP_CHOICES = ((WXPUB, u'微信公众红包'),)
+    WX_TRANSFER = 'transfer'
+    ENVELOP_CHOICES = (
+        (WXPUB, u'微信公众红包'),
+        (WX_TRANSFER, u'微信企业转账'),
+    )
 
     WAIT_SEND = 'wait'
     CONFIRM_SEND = 'confirm'
@@ -209,28 +213,57 @@ class Envelop(PayBaseModel):
                 self.handle_envelop_by_pingpp(redenvelope)
 
     def send_envelop(self):
+        from flashsale.pay.models import BudgetLog
+
         if self.envelop_id or self.status != Envelop.WAIT_SEND:
             raise Exception(u'不能重复发送')
 
-        try:
-            envelope_unikey = 'xlmm%s' % (self.id)
-            redenvelope = envelope.create(
-                order_no=envelope_unikey,
-                amount=self.amount,
-                subject=self.get_subject_display(),
-                body=self.body,
-                recipient=self.recipient,
-                remark=self.description
-            )
-            self.status = Envelop.CONFIRM_SEND
-            self.save()
-        except Exception, exc:
-            self.status = Envelop.FAIL
-            self.save()
-            self.refund_envelop()
-            raise exc
+        envelope_unikey = 'xlmm%s' % (self.id)
+
+        if self.platform == Envelop.WX_TRANSFER:
+            flow_amount = self.amount
+            name = self.body
+            desc = u'小鹿美美提现'
+            trade_id = envelope_unikey
+
+            try:
+                success = transfers.transfer(self.recipient, name, flow_amount, desc, trade_id)
+                if success:
+                    self.status = Envelop.CONFIRM_SEND
+                    self.send_status = Envelop.RECEIVED
+                    self.send_time = datetime.datetime.now()
+                    self.envelop_id = trade_id
+                    self.save()
+                    bg = BudgetLog.objects.filter(id=self.referal_id).first()
+                    bg.confirm_budget_log() if bg else None
+                else:
+                    self.status = Envelop.FAIL
+                    self.send_status = Envelop.SEND_FAILED
+                    self.send_time = datetime.datetime.now()
+                    self.envelop_id = trade_id
+                    self.save()
+                    self.refund_envelop()
+            except Exception, exc:
+                logger.error('转账错误%s' % exc, exc_info=True)
         else:
-            self.handle_envelop(redenvelope)
+            try:
+                redenvelope = envelope.create(
+                    order_no=envelope_unikey,
+                    amount=self.amount,
+                    subject=self.get_subject_display(),
+                    body=self.body,
+                    recipient=self.recipient,
+                    remark=self.description
+                )
+                self.status = Envelop.CONFIRM_SEND
+                self.save()
+            except Exception, exc:
+                self.status = Envelop.FAIL
+                self.save()
+                self.refund_envelop()
+                raise exc
+            else:
+                self.handle_envelop(redenvelope)
 
     def refund_envelop(self):
         from flashsale.pay.models import BudgetLog

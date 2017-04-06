@@ -867,7 +867,8 @@ class CustomerViewSet(viewsets.ModelViewSet):
         POST /rest/v1/users/budget_cash_out
         参数：
         - cashout_amount  必填，提现金额（单位：元）
-        - channel  选填，可选项（wx：提现请求来源于微信公众号）
+        - channel  选填，可选项（wx：提现请求来源于微信公众号, wx_transfer: 使用微信企业转账）
+        - name 收款人姓名(必须和微信绑定的银行卡姓名一致)(当channel是wx_transfer时必填.其他选填.)
 
         返回：
         {'code': xx, 'message': xxx, 'qrcode': xxx}
@@ -884,6 +885,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
         content = request.data
         cashout_amount = content.get('cashout_amount', None)
         channel = content.get('channel', None)
+        name = content.get('name', None)
         verify_code = content.get('verify_code', None)
         default_return = collections.defaultdict(code=0, message='', qrcode='')
 
@@ -898,7 +900,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
         budget = get_object_or_404(UserBudget, user=customer)
         amount = int(decimal.Decimal(cashout_amount) * 100)  # 以分为单位(提现金额乘以100取整)
 
-        code, info = budget.action_budget_cashout(amount, verify_code=verify_code)
+        code, info = budget.action_budget_cashout(amount, verify_code=verify_code, channel=channel, name=name)
         qrcode = ''
         return Response({'code': code, "message": info, "info": info, "qrcode": qrcode})
 
