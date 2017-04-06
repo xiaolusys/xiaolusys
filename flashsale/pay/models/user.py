@@ -399,7 +399,7 @@ class UserBudget(PayBaseModel):
         """ 设置普通用户钱包是否可以提现控制字段 """
         return constants.IS_USERBUDGET_COULD_CASHOUT
 
-    def action_budget_cashout(self, cash_out_amount, verify_code=None):
+    def action_budget_cashout(self, cash_out_amount, verify_code=None, channel=None, name=None):
         """
         用户钱包提现
         cash_out_amount　整型　以分为单位
@@ -423,7 +423,7 @@ class UserBudget(PayBaseModel):
         if cash_out_amount < min_cashout_amount:
             info = u'最小提现额%s元' % int(min_cashout_amount * 0.01)
             return 1, info
-        elif cash_out_amount > max_cashout_amount:
+        elif cash_out_amount > max_cashout_amount and channel != 'wx_transfer':
             info = u'一次提现不能超过%s元' % int(max_cashout_amount*0.01)
             return 5, info
         elif cash_out_amount > self.amount:
@@ -459,17 +459,31 @@ class UserBudget(PayBaseModel):
             # 创建钱包提现记录
             budget_log = BudgetLog.create(customer_id, BudgetLog.BUDGET_OUT, cash_out_amount, BudgetLog.BG_CASHOUT,
                                           status=BudgetLog.PENDING, uni_key=uni_key)
+            if channel == 'wx_transfer':
+                if not name:
+                    return 101, '请填写真实姓名'
 
-            envelop = Envelop.objects.create(
-                amount=cash_out_amount,
-                platform=Envelop.WXPUB,
-                recipient=recipient,
-                subject=Envelop.XLAPP_CASHOUT,
-                body=body,
-                receiver=self.user.mobile,
-                description=description,
-                referal_id=budget_log.id
-            )
+                envelop = Envelop.objects.create(
+                    amount=cash_out_amount,
+                    platform=Envelop.WX_TRANSFER,
+                    recipient=recipient,
+                    subject=Envelop.XLAPP_CASHOUT,
+                    body=name,
+                    receiver=self.user.mobile,
+                    description=description,
+                    referal_id=budget_log.id
+                )
+            else:
+                envelop = Envelop.objects.create(
+                    amount=cash_out_amount,
+                    platform=Envelop.WXPUB,
+                    recipient=recipient,
+                    subject=Envelop.XLAPP_CASHOUT,
+                    body=body,
+                    receiver=self.user.mobile,
+                    description=description,
+                    referal_id=budget_log.id
+                )
             budget_log.referal_id = envelop.id
             budget_log.save()
 
