@@ -895,7 +895,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
         customer = get_object_or_404(Customer, user=request.user)
         if not customer.status == Customer.NORMAL:
             info = u'你的帐号已被冻结，请联系管理员！'
-            return Response({"code": 10, "info": info})
+            return Response({"code": 10, "message": info, "info": info})
 
         budget = get_object_or_404(UserBudget, user=customer)
         amount = int(decimal.Decimal(cashout_amount) * 100)  # 以分为单位(提现金额乘以100取整)
