@@ -1,6 +1,5 @@
 # coding: utf8
 from __future__ import absolute_import, unicode_literals
-from shopmanager import celery_app as app
 
 import re
 import hashlib
@@ -61,7 +60,6 @@ def gen_mama_custom_qrcode_url(mama_id):
     return qrcode_link, content
 
 
-@app.task(max_retries=3, default_retry_delay=5, ignore_result=False)
 def fetch_wxpub_mama_custom_qrcode_url(mama_id):
     """
     为小鹿妈妈创建带背景图的开店二维码，并上传七牛，返回七牛链接

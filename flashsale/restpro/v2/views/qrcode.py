@@ -13,7 +13,7 @@ from celery.result import AsyncResult
 
 from flashsale.pay.models.user import Customer
 from flashsale.xiaolumm.models import XiaoluMama
-from shopapp.weixin.utils import fetch_wxpub_mama_custom_qrcode_url
+from shopapp.weixin.tasks import task_fetch_wxpub_mama_custom_qrcode_url
 
 import logging
 logger = logging.getLogger(__name__)
@@ -78,9 +78,7 @@ class QRcodeViewSet(viewsets.ModelViewSet):
         elif task_id:
             task = AsyncResult(task_id)
             if task.status == 'FAILURE':
-                task = fetch_wxpub_mama_custom_qrcode_url.apply_async(
-                    args=[mama_id], queue='qrcode',
-                    routing_key='weixin.task_create_mama_referal_qrcode_and_response_url')
+                task = task_fetch_wxpub_mama_custom_qrcode_url.delay(mama_id)
                 resp['task_id'] = task.id
                 cache.set(cache_key, {'qrcode_url': task.result, 'task_id': task.id}, 3600)
             else:
@@ -88,9 +86,7 @@ class QRcodeViewSet(viewsets.ModelViewSet):
                 resp['task_id'] = task_id
                 cache.set(cache_key, {'qrcode_url': task.result, 'task_id': task_id}, 3600)
         else:
-            task = fetch_wxpub_mama_custom_qrcode_url.apply_async(
-                args=[mama_id], queue='qrcode',
-                routing_key='weixin.task_create_mama_referal_qrcode_and_response_url')
+            task = task_fetch_wxpub_mama_custom_qrcode_url.delay(mama_id)
             resp['task_id'] = task.id
             cache.set(cache_key, {'qrcode_url': task.result, 'task_id': task.id}, 3600)
 

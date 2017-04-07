@@ -13,5 +13,6 @@ from .xiaolumama import task_create_mama_referal_qrcode_and_response_weixin, \
     task_activate_xiaolumama, \
     task_create_scan_potential_mama, \
     task_create_or_update_weixinfans_upon_subscribe_or_scan, \
-    task_update_weixinfans_upon_unsubscribe
+    task_update_weixinfans_upon_unsubscribe,\
+    task_fetch_wxpub_mama_custom_qrcode_url
 from .tasks_order_push import *

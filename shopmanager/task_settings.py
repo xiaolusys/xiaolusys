@@ -102,7 +102,6 @@ CELERY_IMPORTS = (
     'flashsale.promotion.tasks_activity',
     'shopback.items.tasks_stats',
     'shopback.forecast.apis',
-    'shopapp.weixin.utils',
 )
 
 APIS_ROUTES = {
@@ -694,10 +693,6 @@ WEIXIN_ROUTES = {
         'queue': 'weixin',
         'routing_key': 'weixin.task_subscribe_or_unsubscribe_update_userinfo',
     },
-    'shopapp.weixin.tasks.xiaolumama.task_create_mama_and_response_manager_qrcode': {
-        'queue': 'weixin',
-        'routing_key': 'weixin.task_create_mama_and_response_manager_qrcode',
-    },
     'shopapp.weixin.tasks.xiaolumama.task_weixinfans_update_xlmmfans': {
         'queue': 'weixin',
         'routing_key': 'weixin.task_weixinfans_update_xlmmfans',
@@ -741,9 +736,17 @@ WEIXIN_ROUTES = {
 }
 
 QRCODE_ROUTES = {
+    'shopapp.weixin.tasks.xiaolumama.task_create_mama_and_response_manager_qrcode': {
+        'queue': 'qrcode',
+        'routing_key': 'qrcode.task_create_mama_and_response_manager_qrcode',
+    },
     'shopapp.weixin.tasks.xiaolumama.task_create_mama_referal_qrcode_and_response_weixin': {
-        'queue': 'weixin',
-        'routing_key': 'weixin.task_create_mama_referal_qrcode_and_response_weixin',
+        'queue': 'qrcode',
+        'routing_key': 'qrcode.task_create_mama_referal_qrcode_and_response_weixin',
+    },
+    'shopapp.weixin.tasks.xiaolumama.task_fetch_wxpub_mama_custom_qrcode_url': {
+        'queue': 'qrcode',
+        'routing_key': 'qrcode.task_fetch_wxpub_mama_custom_qrcode_url',
     },
 }
 

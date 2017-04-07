@@ -12,7 +12,11 @@ from shopback.monitor.models import XiaoluSwitch
 
 from ..apis import WeiXinAPI
 from ..models import WeixinUnionID, WeixinUserInfo, WeixinFans, WeiXinAutoResponse
-from ..utils import fetch_wxpub_mama_custom_qrcode_media_id, fetch_wxpub_mama_manager_qrcode_media_id
+from ..utils import (
+    fetch_wxpub_mama_custom_qrcode_media_id,
+    fetch_wxpub_mama_manager_qrcode_media_id,
+    fetch_wxpub_mama_custom_qrcode_url
+)
 
 import logging
 logger = logging.getLogger(__name__)
@@ -603,3 +607,8 @@ def task_create_mama_and_response_manager_qrcode(wxpubId, openid, event, eventKe
             pass
     except Exception, exc:
         raise task_create_mama_and_response_manager_qrcode.retry(exc=exc)
+
+
+@app.task(max_retries=3, default_retry_delay=5, ignore_result=False)
+def task_fetch_wxpub_mama_custom_qrcode_url(mama_id):
+    return fetch_wxpub_mama_custom_qrcode_url(mama_id)

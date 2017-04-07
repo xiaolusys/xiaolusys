@@ -192,7 +192,7 @@ deploy:
         -e INSTANCE=celery-gevent -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH2
         -v /var/data:/data -e C_FORCE_ROOT=1 registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
         celery worker -P gevent -A shopmanager --loglevel=ERROR -c 200 --time-limit=1800
-        -Q apis,notify,frency,mama,coupon,activevalue,mamafortune,relationship,carryrecord,logistics,weixin,xiaolupay
+        -Q apis,notify,frency,mama,coupon,activevalue,mamafortune,relationship,carryrecord,logistics,weixin,qrcode,xiaolupay
       - docker rm -f celery2
       - docker run --name=celery2 --restart=always -d --log-opt max-file=1 --log-opt max-size=1m --memory=1024m
         -e INSTANCE=celery-gevent -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH2
