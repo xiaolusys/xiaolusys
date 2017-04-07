@@ -68,11 +68,11 @@ class District(PayBaseModel):
 
 class DistrictVersion(PayBaseModel):
 
-    version = models.CharField(max_length=32, unique=True, verbose_name=u'版本号')
-    download_url = models.CharField(max_length=256, blank=True, verbose_name=u'下载链接')
-    hash256 = models.CharField(max_length=128, blank=True, verbose_name=u'sha1值')
-    memo = models.TextField(blank=True, verbose_name=u'备注')
-    status = models.BooleanField(default=False, verbose_name=u'生效')
+    version = models.CharField(max_length=32, unique=True, verbose_name=u'版本号', help_text=u'需填写')
+    download_url = models.CharField(max_length=256, blank=True, verbose_name=u'下载链接', help_text=u'不用填写,第二次保存时会自动生成')
+    hash256 = models.CharField(max_length=128, blank=True, verbose_name=u'sha1值', help_text=u'不用填写,第二次保存时会自动生成')
+    memo = models.TextField(blank=True, verbose_name=u'备注', help_text=u'需填写')
+    status = models.BooleanField(default=False, verbose_name=u'生效', help_text=u'需勾选,表示需要马上更新')
 
     class Meta:
         db_table = 'flashsale_district_version'

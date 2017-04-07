@@ -475,6 +475,8 @@ class DistrictViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
+    CACHE_TIME = 30
+
     def calc_distirct_cache_key(self, view_instance, view_method,
                                 request, args, kwargs):
         key_vals = ['id']
@@ -490,7 +492,7 @@ class DistrictViewSet(viewsets.ModelViewSet):
             json.dumps(key_maps, sort_keys=True).encode('utf-8')
         ])).hexdigest()
 
-    @cache_response(timeout=24 * 60 * 60, key_func='calc_distirct_cache_key')
+    @cache_response(timeout=CACHE_TIME, key_func='calc_distirct_cache_key')
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
 
@@ -502,14 +504,14 @@ class DistrictViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    @cache_response(timeout=24 * 60 * 60, key_func='calc_distirct_cache_key')
+    @cache_response(timeout=CACHE_TIME, key_func='calc_distirct_cache_key')
     @list_route(methods=['get'])
     def province_list(self, request, *args, **kwargs):
         queryset = District.objects.filter(grade=1)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    @cache_response(timeout=24 * 60 * 60, key_func='calc_distirct_cache_key')
+    @cache_response(timeout=CACHE_TIME, key_func='calc_distirct_cache_key')
     @list_route(methods=['get'])
     def city_list(self, request, *args, **kwargs):
         content = request.GET
@@ -521,7 +523,7 @@ class DistrictViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(queryset, many=True)
             return Response({"result": True, "data": serializer.data})
 
-    @cache_response(timeout=24 * 60 * 60, key_func='calc_distirct_cache_key')
+    @cache_response(timeout=CACHE_TIME, key_func='calc_distirct_cache_key')
     @list_route(methods=['get'])
     def country_list(self, request, *args, **kwargs):
         content = request.GET
