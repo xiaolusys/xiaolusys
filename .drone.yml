@@ -58,10 +58,6 @@ deploy:
         -e TARGET=production -e INSTANCE=admin -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH2
         -v /var/data:/data -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9000:9000
         registry.aliyuncs.com/xiaolu-img/xiaolusys:latest gunicorn -k gevent -c gunicorn_config.py -w 4 shopmanager.wsgi
-      - docker rm -f celerybeat
-      - docker run --name=celerybeat --restart=always --log-opt max-file=1 --log-opt max-size=1m
-        -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH2
-        -d registry.aliyuncs.com/xiaolu-img/xiaolusys:latest celery -A shopmanager beat -l info -S django
   ssh:
     host: sale2.xiaolumm.com
     user: root
