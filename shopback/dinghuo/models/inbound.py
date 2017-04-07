@@ -152,7 +152,7 @@ class InBound(models.Model):
     @property
     def creator_name(self):
         if self.creator:
-            return self.creator.name
+            return self.creator.username
         else:
             from shopback.warehouse.models import WareHouse
             return WareHouse.objects.get(id=self.ware_by).manager
