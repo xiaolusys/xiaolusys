@@ -234,9 +234,10 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         card_facepath  = content.get('card_facepath', '').strip()
         card_backpath  = content.get('card_backpath', '').strip()
         # logistic_company_code = content.get('logistic_company_code', '').strip()
-        if not receiver_state or not receiver_city or not receiver_district or not receiver_name \
-                or not re.compile(regex.REGEX_MOBILE).match(receiver_mobile):
+        if not receiver_state or not receiver_city or not receiver_district or not receiver_name:
             return Response({'ret': False, "msg": "地址信息不全", "info":"地址信息不全", 'code': 2})
+        if not re.compile(regex.REGEX_MOBILE).match(receiver_mobile):
+            return Response({'ret': False, "msg": "手机号格式不正确，必须为全部数字并且符合运营商放号规则", "info": "手机号格式不正确，必须为全部数字并且符合运营商放号规则", 'code': 2})
 
         if identification_no and not idcard.verify(identification_no):
             return Response({'ret': False, "msg": "身份证填写错误", "info": "身份证填写错误", 'code': 4})
@@ -373,10 +374,12 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         identification_no = content.get('identification_no', '').strip()
         card_facepath = content.get('card_facepath', '').strip()
         card_backpath = content.get('card_backpath', '').strip()
-        if not receiver_state or not receiver_city or not receiver_district or not receiver_name \
-                or not re.compile(regex.REGEX_MOBILE).match(receiver_mobile):
+        if not receiver_state or not receiver_city or not receiver_district or not receiver_name:
             logger.warn('address unmatch: agent=%s, post=%s' % (request.META.get('HTTP_USER_AGENT'), request.data))
             return Response({'ret': False, "msg": "地址信息不全", "info": "地址信息不全", 'code': 2})
+        if not re.compile(regex.REGEX_MOBILE).match(receiver_mobile):
+            return Response(
+                {'ret': False, "msg": "手机号格式不正确，必须为全部数字并且符合运营商放号规则", "info": "手机号格式不正确，必须为全部数字并且符合运营商放号规则", 'code': 2})
 
         if identification_no and not idcard.verify(identification_no):
             return Response({'ret': False, "msg": "身份证填写错误", "info": "身份证填写错误", 'code': 4})
