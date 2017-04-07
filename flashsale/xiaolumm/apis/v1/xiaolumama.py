@@ -279,6 +279,7 @@ def get_mama_buy_coupon_score(mama_id, start_date, end_date):
         created__lt=end_date,
     )
 
+    detail = {}
     for record in in_records:
         order_id = record.order_no
         try:
@@ -287,6 +288,9 @@ def get_mama_buy_coupon_score(mama_id, start_date, end_date):
             continue
         payment += order.payment
         print '+', order.payment, record.transfer_type
+
+        tt = dict(CouponTransferRecord.TRANSFER_TYPES)[record.transfer_type]
+        detail[tt] = detail.get(tt, 0) + order.payment
 
     for record in out_records:
         try:
@@ -297,6 +301,8 @@ def get_mama_buy_coupon_score(mama_id, start_date, end_date):
         payment -= float(money)
         print '-', money, record.transfer_type
 
+        tt = dict(CouponTransferRecord.TRANSFER_TYPES)[record.transfer_type]
+        detail[tt] = detail.get(tt, 0) + order.payment
 
     fd = 0
     if 10000 <= payment < 20000:
@@ -318,4 +324,13 @@ def get_mama_buy_coupon_score(mama_id, start_date, end_date):
     elif payment >= 500000:
         fd = payment * 0.10
 
-    return {'score': score, 'payment': payment, 'fd': fd, 'start_date': start_date, 'end_date': end_date}
+    res = {
+        'score': score,
+        'payment': payment,
+        'fd': fd,
+        'start_date': start_date,
+        'end_date': end_date,
+        'detail': detail
+    }
+    print res
+    return res

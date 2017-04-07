@@ -105,7 +105,6 @@ def transfer(openid, name, amount, desc, trade_id):
     - desc
     - trade_id 交易ID(自定义,唯一)
     """
-    openid = 'our5huD8xO6QY-lJc1DTrqRut3us'  # bo.zhang
 
     api = WeixinTransfersAPI()
     res = api.transfer(openid, name, amount, desc, trade_id)
