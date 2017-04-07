@@ -648,7 +648,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                 elif entry.carry_type == OrderCarry.ADVANCED_MAMA_REFERAL_ORDER:
                     # !!!!buy real goods, associate and director auto given carry, vp p sp need exchange!!!!!
                     if sale_order.extras.has_key('can_exchg_payment'):
-                        exchg_payment = float(sale_order.extras['can_exchg_payment'])
+                        exchg_payment = int(sale_order.extras['can_exchg_payment']) / 100   # 为了便于存储单位是分
                     else:
                         continue
                     if sale_order.extras.has_key('auto_given_carry') and sale_order.extras['auto_given_carry'] and exchg_payment > 0:
