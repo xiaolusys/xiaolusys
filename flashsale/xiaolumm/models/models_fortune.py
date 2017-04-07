@@ -14,7 +14,7 @@ from flashsale.xiaolumm.signals import clickcarry_signal
 from flashsale.xiaolumm import constants
 import logging
 
-logger = logging.getLogger('__name__')
+logger = logging.getLogger(__name__)
 
 
 def get_choice_name(choices, val):
