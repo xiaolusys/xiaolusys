@@ -232,7 +232,7 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
                                 constants.ELITEMM_DESC_INFO[constants.ELITEMM_VP].get('min_score'):
                             diff = get_level_differential(model_product, upper_mama.elite_level,
                                                                mm_linkid_mama.elite_level)
-                            carry_num = (diff * sale_order.payment / sale_order.total_fee) * 100 * sale_order.num
+                            carry_num = round((diff * sale_order.payment / sale_order.total_fee) * 100) * sale_order.num
                             logger.info({
                                 'action': 'task_update_second_level_ordercarry',
                                 'order_no': sale_order.oid,
@@ -268,7 +268,9 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
                             from flashsale.pay.apis.v1.product import get_level_price_from_boutique_modelproduct
                             can_exchg_payment = get_level_price_from_boutique_modelproduct(model_product,
                                                                                            low_mama.elite_level)
-                            # sale_order.extras['can_exchg_payment'] = can_exchg_payment * sale_order.num
+                            # 为了便于存储，单位用分
+                            can_exchg_payment = round((can_exchg_payment * sale_order.payment / sale_order.total_fee) * 100) * sale_order.num
+                            # sale_order.extras['can_exchg_payment'] = can_exchg_payment
                             # sale_order.save(update_fields=['extras'])
                             logger.info({
                                 'action': 'task_update_second_level_ordercarry',
@@ -691,7 +693,7 @@ def task_order_trigger(sale_order):
             if mm_linkid_mama.is_elite_mama and mm_linkid_mama.elite_score < constants.ELITEMM_DESC_INFO[constants.ELITEMM_VP].get('min_score'):
                 # 实物商品把第一级的价格填入
                 diff = get_level_differential(model_product, mm_linkid_mama.elite_level, None)
-                carry_amount = (diff * sale_order.payment / sale_order.total_fee) * 100 * order_num
+                carry_amount = round((diff * sale_order.payment / sale_order.total_fee) * 100) * order_num
                 # sale_order.extras['auto_given_carry'] = True
                 # sale_order.save(update_fields=['extras'])
                 logger.info({
