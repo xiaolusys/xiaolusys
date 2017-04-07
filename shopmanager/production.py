@@ -95,7 +95,8 @@ CACHES = {
 CLOSE_CELERY = False
 # CELERY_BROKER_URL = 'redis://:{0}@{1}:6379/9'.format(REDIS_AUTH, REDIS_HOST)
 CELERY_BROKER_URL = 'redis://:%s@121.196.219.80:31838/9' % REDIS_AUTH
-CELERY_RESULT_BACKEND = 'db+mysql://{0}:{1}@{2}/{3}'.format(MYSQL_USER, MYSQL_AUTH, MYSQL_HOST, MYSQL_DBNAME)
+CELERY_RESULT_BACKEND = 'redis://:%s@121.196.219.80:31838/8' % REDIS_AUTH
+# CELERY_RESULT_BACKEND = 'db+mysql://{0}:{1}@{2}/{3}'.format(MYSQL_USER, MYSQL_AUTH, MYSQL_HOST, MYSQL_DBNAME)
 
 ##########################SENTRY RAVEN##########################
 import raven
