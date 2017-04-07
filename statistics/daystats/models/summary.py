@@ -12,7 +12,7 @@ class DailyStat(models.Model):
     total_visiter_num = models.IntegerField(default=0, verbose_name=u'日访客数')
     total_new_visiter_num = models.IntegerField(default=0, verbose_name=u'新访客数')
 
-    total_payment = models.IntegerField(default=0, verbose_name=u'日成交额', help_text=u'所有订单总金额')
+    total_payment = models.IntegerField(default=0, verbose_name=u'日成交额', help_text=u'现金+小鹿币+钱包')
     total_paycash = models.IntegerField(default=0, verbose_name=u'实付现金', help_text=u'所有订单支付现金')
     total_coupon  = models.IntegerField(default=0, verbose_name=u'券支付额')
     total_coin    = models.IntegerField(default=0, verbose_name=u'币支付额', help_text=u'小鹿币支付')
