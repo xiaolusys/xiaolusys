@@ -157,6 +157,12 @@ def gen_ordercarry(referal_relationship, order_carry, carry_type, carry_num):
 
 @app.task()
 def task_update_second_level_ordercarry(referal_relationship, order_carry):
+    logger.info({
+        'action': 'task_update_second_level_ordercarry',
+        'order_no': order_carry.order_id,
+        'mama_id': order_carry.mama_id,
+        'created': datetime.datetime.now(),
+    })
     records = OrderCarry.objects.filter(order_id=order_carry.order_id, carry_type__in=[OrderCarry.REFERAL_ORDER, OrderCarry.ADVANCED_MAMA_REFERAL_ORDER])
     if records.exists():
         for record in records:
