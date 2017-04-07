@@ -14,7 +14,7 @@ from flashsale.xiaolumm.signals import clickcarry_signal
 from flashsale.xiaolumm import constants
 import logging
 
-logger = logging.getLogger('django.request')
+logger = logging.getLogger('__name__')
 
 
 def get_choice_name(choices, val):
@@ -703,7 +703,7 @@ def ordercarry_update_ordercarry(sender, instance, created, **kwargs):
             'action': 'ordercarry_update_ordercarry',
             'order_no': instance.order_id,
             'desc': 'find referal_relationships > 0 %s' % referal_relationships.exists(),
-            'instance.mama_id': instance.mama_id,
+            'mama_id': instance.mama_id,
             'created': datetime.datetime.now(),
         })
         from flashsale.xiaolumm.tasks import task_update_second_level_ordercarry
