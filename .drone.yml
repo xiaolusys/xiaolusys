@@ -1,5 +1,5 @@
 build:
-  image: registry.aliyuncs.com/xiaolu-img/xiaolusys-base:235e58c03bdb3dcf98ba092fe7dc6359e97320bc
+  image: registry.aliyuncs.com/xiaolu-img/xiaolusys-base:aacd234029a29f5a96a02e0771b27ecdbfc1d6f7
   environment:
     - TARGET=staging
     - REDIS_AUTH=$$REDIS_AUTH2
@@ -174,19 +174,12 @@ deploy:
         -Q apis,notify,peroid,default,frency,coupon,activevalue,mama,mamafortune,relationship,carryrecord,skustats,statistics,logistics,carrytotal,integral,dinghuo,xiaolupay
   ssh:
     host:
-      - sale5.xiaolumm.com
+      - sale8.xiaolumm.com
     user: root
     when:
       branch: [master, celery]
     commands:
       - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
-      - docker rm -f celery
-      - docker run --name=celery --restart=always --log-opt max-file=1 --log-opt max-size=1m
-        -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH2
-        -v /var/data:/data -d -e C_FORCE_ROOT=1
-        registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
-        celery worker -c 4 -A shopmanager --loglevel=ERROR --time-limit=5400
-        -Q apis,notify,peroid,default,frency,coupon,activevalue,mama,mamafortune,relationship,carryrecord,skustats,statistics,logistics,carrytotal,integral,dinghuo,xiaolupay
       - docker rm -f celery1
       - docker run  --name=celery1 --restart=always -d --log-opt max-file=1 --log-opt max-size=1m --memory=1024m
         -e INSTANCE=celery-gevent -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH2
