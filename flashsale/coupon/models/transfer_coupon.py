@@ -591,6 +591,10 @@ class CouponTransferRecord(BaseModel):
         return get_choice_name(self.TRANSFER_STATUS, self.transfer_status)
 
     @property
+    def transfer_type_display(self):
+        return get_choice_name(self.TRANSFER_TYPES, self.transfer_type)
+
+    @property
     def is_cancelable(self):
         return (self.transfer_status == self.PENDING) and \
                ((self.init_from_mama_id == self.coupon_to_mama_id and self.transfer_type == self.OUT_TRANSFER) or \

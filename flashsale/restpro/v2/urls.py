@@ -17,7 +17,8 @@ from flashsale.restpro.v2.views import (
     searchhistory,
     xiaolucoin,
     fandian,
-    mmcarry
+    mmcarry,
+    elite_score
 )
 
 v2_router = routers.DefaultRouter(trailing_slash=False)
@@ -98,6 +99,8 @@ v2_router_urls += format_suffix_patterns([
     url(r'^rebate/history$', fandian.FandianViewSet.as_view({'get': 'history'})),
 
     url(r'^mmcarry$', mmcarry.MMCarryViewSet.as_view({'get': 'index'})),
+
+    url(r'^elite_score$', elite_score.EliteScoreViewSet.as_view({'get': 'index'})),
 ])
 
 lesson_router = routers.DefaultRouter(trailing_slash=False)
