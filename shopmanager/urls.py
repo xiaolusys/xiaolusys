@@ -29,7 +29,7 @@ def celery_state(request, task_id):
         resp = json.dumps({
                 "task": {
                     "status": result.status,
-                    "result": str(result.result),
+                    "result": result.result,
                     "id": result.id
                 }
             })
