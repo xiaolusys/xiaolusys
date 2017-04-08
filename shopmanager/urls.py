@@ -25,14 +25,23 @@ def celery_state(request, task_id):
     if not result or not result.id:
         return HttpResponse(json.dumps({'tasks': {}}), content_type="application/json")
 
-    return HttpResponse(json.dumps(
-        {
+    try:
+        resp = json.dumps({
+                "task": {
+                    "status": result.status,
+                    "result": str(result.result),
+                    "id": result.id
+                }
+            })
+    except TypeError:
+        resp = json.dumps({
             "task": {
                 "status": result.status,
-                "result": result.result,
+                "result": str(result.result),
                 "id": result.id
             }
-        }),
+        })
+    return HttpResponse(resp,
         content_type="application/json"
     )
 
