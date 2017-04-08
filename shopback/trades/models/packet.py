@@ -1193,7 +1193,7 @@ class PackageSkuItem(BaseModel):
 
     def get_purchase_arrangement(self):
         from shopback.dinghuo.models_purchase import PurchaseArrangement
-        return PurchaseArrangement.objects.filter(oid=self.oid).first()
+        return PurchaseArrangement.objects.filter(oid=self.oid).order_by('-id').first()
 
     # ---------------------------------------供应链核心方法--------------------------------------------------------------
     @staticmethod

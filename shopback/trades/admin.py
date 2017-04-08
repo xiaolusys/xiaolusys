@@ -1408,8 +1408,6 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
         '<a href="%(package_order_url)s" target="_blank">'
         '%(package_order_pid)s</a>')
 
-
-
     def show_3day_delay(self, request, queryset):
         print 1231231321
         return HttpResponseRedirect('/admin/dinghuo/returngoods/?status__exact=0')
@@ -1559,8 +1557,54 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
     product_title_link_to.allow_tags = True
     product_title_link_to.short_description = u'商品名称'
 
+    def export_xls(self, request, queryset):
+        need_send = queryset
+        items = []
+        columns = [u'订单号', u'产品条码', u'订单状态', u'买家id', u'子订单编号', u'供应商商品编码', u'供应商sku编码', u'买家昵称', u'商品名称', u'产品规格', u'商品单价',
+                   u'商品数量',
+                   u'商品总价', u'运费', u'购买优惠信息', u'总金额', u'买家购买附言', u'收货人姓名', u'收货地址', u'邮编',
+                   u'收货人手机', u'收货人电话', u'买家选择运送方式', u'卖家备忘内容', u'订单创建时间', u'付款时间', u'物流公司', u'物流单号', u'发货附言',
+                   u'发票抬头', u'电子邮件', u'商品链接']
+        for p in need_send:
+            o = p.package_order
+            saleproduct = p.product_sku.product.get_sale_product()
+            items.append(
+                [str(o.pid) if o else '', '', p.get_assign_status_display(), str(p.sale_trade.buyer_id), str(p.id),
+                 saleproduct.supplier_sku if saleproduct else '', str(p.product_sku.supplier_skucode if p.product_sku.supplier_skucode else ''), str(p.sale_trade.buyer_nick),
+                 str(p.product_sku.product.name), str(p.product_sku.properties_name),
+                 str(p.product_sku.cost), str(p.num), str(p.product_sku.cost * p.num), '0', '0', '0', '', str(p.sale_trade.receiver_name),
+                 str(p.sale_trade.receiver_address_detail), '', p.sale_trade.receiver_mobile, '', '', '', '',
+                 p.sale_trade.created.strftime('%Y-%m-%D %H:%M:%S'),
+                 p.sale_trade.pay_time.strftime('%Y-%m-%D %H:%M:%S'),
+                 p.sale_trade.logistics_company.name if p.sale_trade.logistics_company else '', '', u'小鹿美美，时尚健康美丽',
+                 '', '', saleproduct.product_link if saleproduct else ''])
+        for p in need_send.exclude(package_order_pid=None):
+            o = p.package_order
+            saleproduct = p.product_sku.product.get_sale_product()
+            items.append([str(o.pid), '', o.sys_status, str(o.buyer_id), str(p.id),
+                          saleproduct.supplier_sku if saleproduct else '', str(p.product_sku.supplier_skucode if p.product_sku.supplier_skucode else ''),str(o.buyer_nick),
+                          str(p.product_sku.product.name), str(p.product_sku.properties_name),
+                          str(p.product_sku.cost), str(p.num), str(p.num * p.product_sku.cost), '0', '0', '0', '', str(o.receiver_name),
+                          str(o.receiver_address_detail), '', o.receiver_mobile, '', '', '',
+                          p.sale_trade.created.strftime('%Y-%m-%D %H:%M:%S'),
+                          p.sale_trade.pay_time.strftime('%Y-%m-%D %H:%M:%S'),
+                          p.sale_trade.logistics_company.name if p.sale_trade.logistics_company else '', '',
+                          u'小鹿美美，时尚健康美丽', '', '', saleproduct.product_link if saleproduct else ''])
+        items = [columns] + items
+        buff = StringIO.StringIO()
+        is_windows = request.META['HTTP_USER_AGENT'].lower().find(
+            'windows') > -1
+        writer = CSVUnicodeWriter(buff,
+                                  encoding=is_windows and 'gbk' or 'utf-8')
+        writer.writerows(items)
+        response = HttpResponse(buff.getvalue(),
+                                content_type='application/octet-stream')
+        response[
+            'Content-Disposition'] = 'attachment;filename=packages.xls'
+        return response
+    export_xls.short_description = "导出发货excel"
 
-    actions = []
+    actions = ['export_xls']
     # def get_actions(self, request):
     #     actions = super(PackageSkuItemAdmin, self).get_actions(request)
     #     actions.pop('delete_selected')

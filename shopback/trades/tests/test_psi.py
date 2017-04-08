@@ -68,6 +68,8 @@ class TradeNormalTestCase(TestCase):
         self.assertEqual(SkuStock.get_by_sku(self.sku_id).restat(), [])
         """订货　审核　付款"""
         ol.set_stage_verify()
+        print "set_stage_verify:"
+        print stock.__dict__
         pa = PurchaseArrangement.objects.get(id=pa.id)
         self.assertEqual(pa.initial_book, True)
         self.assertEqual(ol.purchase_order.status, PurchaseOrder.BOOKED)
@@ -99,6 +101,8 @@ class TradeNormalTestCase(TestCase):
             inferior_quantity=0,
             memo='')
         inbounddetail.save()
+        print "after inbound"
+        print stock.__dict__
         self.assertEqual(SkuStock.get_by_sku(self.sku_id).restat(), [])
         """入库分配"""
 
@@ -112,16 +116,19 @@ class TradeNormalTestCase(TestCase):
         ibd = inbound.details.first()
         ibd.finish_check_direct()
         ibd.save()
-        ibd.sync_order_detail()
+        # ibd.sync_order_detail()
         inbound.status = InBound.COMPLETED
         inbound.checked = True
         inbound.check_time = datetime.datetime.now()
         inbound.set_stat()
         inbound.save()
         inbound.update_orderlist_arrival_process()
-        # InBoundDetail.objects.filter(inbound_id=inbound.id).first().save()
+        for idetail in inbound.details.all():
+            idetail.sync_order_detail(sync_stock=False)
+        inbound.sync_stock()
+        print "after sync_stock"
+        print SkuStock.get_by_sku(self.sku_id).__dict__
         self.assertEqual(SkuStock.get_by_sku(self.sku_id).restat(), [])
-
         """分配"""
         orderdetail = ol.order_list.filter(chichu_id=self.sku_id).first()
         orderdetail.save()
@@ -130,6 +137,7 @@ class TradeNormalTestCase(TestCase):
         """合单"""
         psi = PackageSkuItem.objects.get(oid=so.oid)
         psi.merge()
+        print stock.__dict__
         self.assertEqual(SkuStock.get_by_sku(self.sku_id).restat(), [])
         """设置操作员和物流单号"""
         psi = PackageSkuItem.objects.get(oid=so.oid)
@@ -140,8 +148,12 @@ class TradeNormalTestCase(TestCase):
         self.assertEqual(SkuStock.get_by_sku(self.sku_id).restat(), [])
         """打单扫描称重"""
         po.print_picking()
+        print "print_picking"
+        print stock.__dict__
         user = DjUser.objects.get(id=self.user_id)
         po.scancheck(user)
+        print "scancheck"
+        print stock.__dict__
         self.assertEqual(SkuStock.get_by_sku(self.sku_id).restat(), [])
         po.scanweight(user)
         self.assertEqual(SkuStock.get_by_sku(self.sku_id).restat(), [])

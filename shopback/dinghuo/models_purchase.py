@@ -120,7 +120,7 @@ class PurchaseOrder(BaseModel):
 
     def sync_order_list(self):
         from shopback.dinghuo.models import OrderList
-        ol = OrderList.objects.filter(purchase_order_unikey=self.uni_key).first()
+        ol = OrderList.objects.filter(purchase_order_unikey=self.uni_key).exclude(stage=OrderList.STAGE_DELETED).first()
         if not ol:
             supplier = self.supplier
             if not supplier:
