@@ -100,7 +100,7 @@ v2_router_urls += format_suffix_patterns([
 
     url(r'^mmcarry$', mmcarry.MMCarryViewSet.as_view({'get': 'index'})),
 
-    url(r'^elite_score$', elite_score.EliteScoreViewSet.as_view({'get': 'index'})),
+    url(r'^mama/elite_score$', elite_score.EliteScoreViewSet.as_view({'get': 'index'})),
 ])
 
 lesson_router = routers.DefaultRouter(trailing_slash=False)
