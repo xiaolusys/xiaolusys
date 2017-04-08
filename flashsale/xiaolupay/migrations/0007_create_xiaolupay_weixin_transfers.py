@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('xiaolupay', '0006_add_i ndex_to_transaction_no'),
+        ('xiaolupay', '0006_add_index_to_transaction_no'),
     ]
 
     operations = [
