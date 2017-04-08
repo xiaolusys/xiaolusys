@@ -29,8 +29,6 @@ M_SITE_URL = 'https://m.xiaolumeimei.com'
 
 MYSQL_HOST = 'rdsvrl2p9pu6536n7d99.mysql.rds.aliyuncs.com'
 MYSQL_AUTH = os.environ.get('MYSQL_AUTH')
-MYSQL_USER = 'xiaoludba'
-MYSQL_DBNAME = 'xiaoludb'
 
 REDIS_HOST = 'redis.default.svc.cluster.local:6379'
 REDIS_AUTH = os.environ.get('REDIS_AUTH')
@@ -45,8 +43,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
     # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': MYSQL_DBNAME,  # Or path to database file if using sqlite3.
-        'USER': MYSQL_USER,  # Not used with sqlite3.
+        'NAME': 'xiaoludb',  # Or path to database file if using sqlite3.
+        'USER': 'xiaoludba',  # Not used with sqlite3.
         'PASSWORD': MYSQL_AUTH,  # Not used with sqlite3.
         'HOST': MYSQL_HOST,
     # Set to empty string for localhost. Not used with sqlite3. #192.168.0.28
@@ -95,8 +93,7 @@ CACHES = {
 CLOSE_CELERY = False
 # CELERY_BROKER_URL = 'redis://:{0}@{1}:6379/9'.format(REDIS_AUTH, REDIS_HOST)
 CELERY_BROKER_URL = 'redis://:{0}@{1}/9'.format(REDIS_AUTH, REDIS_HOST)
-CELERY_RESULT_BACKEND = 'redis://:{0}@{1}/8'.format(REDIS_AUTH, REDIS_HOST)
-# CELERY_RESULT_BACKEND = 'db+mysql://{0}:{1}@{2}/{3}'.format(MYSQL_USER, MYSQL_AUTH, MYSQL_HOST, MYSQL_DBNAME)
+CELERY_RESULT_BACKEND = 'django-db'
 
 ##########################SENTRY RAVEN##########################
 import raven
