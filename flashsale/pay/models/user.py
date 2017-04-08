@@ -456,13 +456,14 @@ class UserBudget(PayBaseModel):
             return 7, '您两次提交间隔太短，稍等下再试哦！'
 
         with transaction.atomic():
+            if channel == 'wx_transfer' and (not name):
+                return 101, '请填写真实姓名'
+
             # 创建钱包提现记录
             budget_log = BudgetLog.create(customer_id, BudgetLog.BUDGET_OUT, cash_out_amount, BudgetLog.BG_CASHOUT,
                                           status=BudgetLog.PENDING, uni_key=uni_key)
-            if channel == 'wx_transfer':
-                if not name:
-                    return 101, '请填写真实姓名'
 
+            if channel == 'wx_transfer':
                 envelop = Envelop.objects.create(
                     amount=cash_out_amount,
                     platform=Envelop.WX_TRANSFER,
