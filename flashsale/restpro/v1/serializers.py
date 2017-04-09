@@ -607,6 +607,7 @@ class UserAddressSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='rest_v1:useraddress-detail')
     status = serializers.ChoiceField(choices=UserAddress.STATUS_CHOICES)
     personalinfo_level = serializers.SerializerMethodField(read_only=True)
+    identification_no = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = UserAddress
