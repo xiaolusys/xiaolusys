@@ -433,10 +433,23 @@ class UserAddressViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def get_default_address(self, request):
-        queryset = self.filter_queryset(self.get_owner_queryset(request))
-        address = queryset.first()
-        if address:
-            serializer = self.get_serializer(address)
+        queryset = self.filter_queryset(self.get_owner_queryset(request)).filter(default=True)
+        # 20170409 identification_no Serializer中有时会无法从id-no加密字段中填入，规避
+        if queryset.count() > 1:
+            i = 1
+            while i <= queryset.count() - 1:
+                queryset[i].default = False
+                queryset[i].save()  # 保存当前的为默认地址
+                i += 1
+            queryset = self.filter_queryset(self.get_owner_queryset(request)).filter(default=True)
+        if not queryset or queryset.count() == 0:
+            address = self.filter_queryset(self.get_owner_queryset(request)).first()
+            if address:
+                address.default = True
+                address.save()  # 保存当前的为默认地址
+                queryset = self.filter_queryset(self.get_owner_queryset(request)).filter(default=True)
+        if queryset:
+            serializer = self.get_serializer(queryset, many=True)
             return Response(serializer.data)
         return Response({})
 
