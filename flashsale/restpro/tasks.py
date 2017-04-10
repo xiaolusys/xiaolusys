@@ -442,7 +442,7 @@ def delete_logistics_three_month_ago():
 
 @app.task()
 def prods_position_handler():
-    """ 初始化店铺产品的信息 """
+    """ 改任务已作废请勿使用! 初始化店铺产品的信息 """
     shops = CustomerShops.objects.all()
     for shop in shops.iterator():
         shop_pros = CuShopPros.objects.filter(shop=shop.id).order_by('-created')  # 指定店铺的所有产品按照时间逆序

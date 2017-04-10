@@ -1185,13 +1185,13 @@ SHOP_APP_SCHEDULE = {
     },
     u'定时统计产品分类的库存数量和库存金额任务': {
         'task': 'shopback.categorys.tasks.task_category_collect_num',
-        'schedule': crontab(minute="10", hour="4"),
+        'schedule': crontab(minute="10", hour="2"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_category_collect_num'}
     },
     u'定时统计发出库存和新增订货任务': {
         'task': 'shopback.dinghuo.tasks.task_stat_category_inventory_data',
-        'schedule': crontab(minute="0", hour="5"),
+        'schedule': crontab(minute="0", hour="3"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_stat_category_inventory_data'}
     },
@@ -1201,35 +1201,24 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.trace_renew_remind_send_msm'}
     },
-
-    u'一次执行妈妈店铺商品添加信息': {
-        'task': 'flashsale.restpro.tasks.prods_position_handler',
-        'schedule': crontab(minute="10", hour="6"),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.prods_position_handler'}
-    },
-
     u'自动生成订货单': {
         'task': 'shopback.dinghuo.tasks.create_dinghuo',
         'schedule': crontab(minute="15", hour="10"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.create_dinghuo'}
     },
-
     u'定时关闭特卖退款单': {
         'task': 'flashsale.pay.tasks.task_close_refund',
-        'schedule': crontab(minute="30", hour="4"),
+        'schedule': crontab(minute="30", hour="2"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_close_refund'}
     },
-
     u'定时推送九张图上新内容': {
         'task': 'flashsale.xiaolumm.tasks.tasks_mama_push.task_push_ninpic_peroid',
         'schedule': crontab(minute="*/15"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_push_ninpic_peroid'}
     },
-
     u'定时检查全站推送': {
         'task': 'flashsale.protocol.tasks.task_site_push',
         'schedule': crontab(minute="*/30"),
@@ -1244,7 +1233,7 @@ SHOP_APP_SCHEDULE = {
     },
     u'定时检查小鹿妈妈续费状态': {
         'task': 'flashsale.xiaolumm.tasks.base.task_period_check_mama_renew_state',
-        'schedule': crontab(minute="45", hour="4"),
+        'schedule': crontab(minute="45", hour="1"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_period_check_mama_renew_state'}
     },
@@ -1259,7 +1248,6 @@ SHOP_APP_SCHEDULE = {
         'schedule': crontab(minute="0", hour="2"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.delete_logistics_three_month_ago'}
-
     },
     u'实时统计当前待发货准备的packageskuitem的数据':{
         'task': 'shopback.trades.tasks.tasks.task_schedule_check_packageskuitem_cnt',
@@ -1293,7 +1281,7 @@ SHOP_APP_SCHEDULE = {
     },
     u'小鹿每日统计总额':{
         'task': 'statistics.tasks.task_xiaolu_daily_stat',
-        'schedule': crontab(minute="5", hour="0"),
+        'schedule': crontab(minute="2", hour="0"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_xiaolu_daily_stat'}
     },
@@ -1315,7 +1303,6 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_auto_shelf_prods'}
     },
-
     u'定时用户优惠券优惠券过期推送消息': {
         'task': 'flashsale.coupon.tasks.usercoupon.task_push_msg_pasting_coupon',
         'schedule': crontab(minute="30", hour="12"),
@@ -1384,7 +1371,7 @@ SHOP_APP_SCHEDULE = {
     },
     u'每天自动下架已经过期的活动': {
         'task': 'flashsale.promotion.tasks_activity.task_close_activity_everday',
-        'schedule': crontab(minute="00", hour="07"),
+        'schedule': crontab(minute="00", hour="7"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_close_activity_everday'}
     },
@@ -1396,7 +1383,7 @@ SHOP_APP_SCHEDULE = {
     },
     u'定时统计小鹿妈妈精品积分': {
         'task': 'flashsale.xiaolumm.tasks.tasks_mama_dailystats.task_calc_all_xlmm_elite_score',
-        'schedule': crontab(minute="00", hour='03'),
+        'schedule': crontab(minute="00", hour='3'),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
