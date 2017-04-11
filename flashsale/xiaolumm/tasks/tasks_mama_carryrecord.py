@@ -75,7 +75,7 @@ def task_ordercarry_update_carryrecord(carry):
                                                                charge_status=XiaoluMama.CHARGED).first()
                         template = get_coupon_template_by_id(id=374)
                         customer = upper_mama.get_mama_customer()
-                        transfer_in = create_present_elite_score(customer, round(product.elite_score * (sale_order.payment / sale_order.total_fee) * sale_order.num), template, None, carry.order_id)
+                        transfer_in = create_present_elite_score(customer, int(round(product.elite_score * (sale_order.payment / sale_order.price))), template, None, carry.order_id)
 
             if carry.status == CarryRecord.CANCEL:
                 record.cancel()
