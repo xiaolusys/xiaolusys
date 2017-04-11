@@ -127,8 +127,8 @@ WX_PUB_APPSECRET = "dbd2103bb55c46c7a019ae1c1089f2fa"
 WX_PUB_MCHID = "1236482102" #受理商ID，身份标识
 WX_PUB_KEY   = "t5UXHfwR7QEv2jMLFuZm8DdqnAT0ON9a" #支付密钥
 
-WX_PUB_CERT_PEM_PATH = '/data/certs/wxpub.pem'
 WX_PUB_KEY_PEM_PATH = '/data/certs/wxpub_key.pem'
+WX_PUB_CERT_PEM_PATH = '/data/certs/wxpub.pem'
 
 # ================ 小鹿美美[ APP客户端] ==================
 WX_APPID = "wx25fcb32689872499"

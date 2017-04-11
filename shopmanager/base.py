@@ -318,8 +318,8 @@ SECURE_REQUIRED_PATHS = (
 )
 
 # ================ 微信支付 ======================
-WEIXIN_PAY_SSL_KEY = '/data/certs/wx_pub/apiclient_key.pem'
-WEIXIN_PAY_SSL_CERT = '/data/certs/wx_pub/apiclient_cert.pem'
+WX_PUB_KEY_PEM_PATH = '/data/certs/wx_pub/apiclient_key.pem'
+WX_PUB_CERT_PEM_PATH = '/data/certs/wx_pub/apiclient_cert.pem'
 
 ################### WEIXIN SETTINGS ##################
 WEIXIN_API_HOST = "https://api.weixin.qq.com"

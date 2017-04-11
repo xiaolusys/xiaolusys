@@ -21,8 +21,8 @@ TEMPLATE = """
 
 class WeixinTransfersAPI(object):
 
-    ssl_key = settings.WEIXIN_PAY_SSL_KEY
-    ssl_cert = settings.WEIXIN_PAY_SSL_CERT
+    ssl_key = settings.WX_PUB_KEY_PEM_PATH
+    ssl_cert = settings.WX_PUB_CERT_PEM_PATH
     nonce_str = '50780e0cca98c8c8e814883e5caa672e'
     wx_account = None
     request_body = ''
