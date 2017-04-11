@@ -1131,13 +1131,13 @@ SHOP_APP_SCHEDULE = {
     },
     u'定时生成管理员代理状况汇总csv文件': {
         'task': 'flashsale.xiaolumm.tasks.tasks_manager_summary.task_make_Manager_Summary_Cvs',
-        'schedule': crontab(minute="45", hour="6"),
+        'schedule': crontab(minute="45", hour="4"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_make_Manager_Summary_Cvs'}
     },
     u'定时升级代理级别为A类到VIP类任务': {
         'task': 'flashsale.xiaolumm.tasks.task_upgrade_mama_level_to_vip',
-        'schedule': crontab(minute="50", hour="5"),
+        'schedule': crontab(minute="50", hour="3"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_upgrade_mama_level_to_vip'}
     },

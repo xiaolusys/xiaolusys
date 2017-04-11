@@ -116,6 +116,12 @@ class SaleStats(BaseModel):
     record_type = models.IntegerField(choices=record_type_choices(), db_index=True, verbose_name=u'记录类型')
     status = models.IntegerField(choices=stat_status_choices(), db_index=True, verbose_name=u'状态')
 
+    class Meta:
+        db_table = 'statistics_sale_stats'
+        app_label = 'statistics'
+        verbose_name = u'销量统计表'
+        verbose_name_plural = u'销量统计列表'
+
     # uni_key = date_field + current_id + record_type + status
     def __unicode__(self):
         return u'<%s-%s>' % (self.id, self.uni_key)
@@ -177,11 +183,7 @@ class SaleStats(BaseModel):
             return False
         return True if self.supplier and self.supplier.progress == 'rejected' else False
 
-    class Meta:
-        db_table = 'statistics_sale_stats'
-        app_label = 'statistics'
-        verbose_name = u'销量统计表'
-        verbose_name_plural = u'销量统计列表'
+
 
 
 def update_parent_sale_stats(sender, instance, created, **kwargs):
