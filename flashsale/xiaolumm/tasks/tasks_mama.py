@@ -232,7 +232,7 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
                                 constants.ELITEMM_DESC_INFO[constants.ELITEMM_VP].get('min_score'):
                             diff = get_level_differential(model_product, upper_mama.elite_level,
                                                                mm_linkid_mama.elite_level)
-                            carry_num = round((diff * sale_order.payment / sale_order.price) * 100)
+                            carry_num = int(round((diff * sale_order.payment / sale_order.price) * 100))
                             logger.info({
                                 'action': 'task_update_second_level_ordercarry',
                                 'order_no': sale_order.oid,
@@ -269,7 +269,7 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
                             can_exchg_payment = get_level_price_from_boutique_modelproduct(model_product,
                                                                                            low_mama.elite_level)
                             # 为了便于存储，单位用分
-                            can_exchg_payment = round((can_exchg_payment * sale_order.payment / sale_order.price) * 100)
+                            can_exchg_payment = int(round((can_exchg_payment * sale_order.payment / sale_order.price) * 100))
                             sale_order.extras['can_exchg_payment'] = can_exchg_payment
                             sale_order.save(update_fields=['extras'])
                             logger.info({
@@ -318,6 +318,17 @@ def task_update_ordercarry(mama_id, order, customer_pk, carry_amount, agency_lev
     Whenever a sku order gets saved, trigger this task to update
     corresponding order_carry record.
     """
+    logger.info({
+        'action': 'task_update_ordercarry',
+        'order_no': order.oid,
+        'desc': 'task_update_ordercarry begin ',
+        'mama_id': mama_id,
+        'customer_pk': customer_pk,
+        'carry_amount': carry_amount,
+        'agency_level': agency_level,
+        'carry_plan_name': carry_plan_name,
+        'via_app': via_app,
+    })
     status = OrderCarry.STAGING  # unpaid
     if order.need_send():
         status = OrderCarry.ESTIMATE
@@ -685,7 +696,6 @@ def task_order_trigger(sale_order):
     product = products[0]
     carry_scheme = mm_linkid_mama.get_Mama_Order_Rebeta_Scheme(product)
     agency_level = mm_linkid_mama.agencylevel
-    carry_amount = 0
     # 20170331 will use 0401
     model_product = product.get_product_model()
     if model_product:
@@ -693,7 +703,7 @@ def task_order_trigger(sale_order):
             if mm_linkid_mama.is_elite_mama and mm_linkid_mama.elite_score < constants.ELITEMM_DESC_INFO[constants.ELITEMM_VP].get('min_score'):
                 # 实物商品把第一级的价格填入
                 diff = get_level_differential(model_product, mm_linkid_mama.elite_level, None)
-                carry_amount = round((diff * sale_order.payment / sale_order.price) * 100)
+                carry_amount = int(round((diff * sale_order.payment / sale_order.price) * 100))
                 sale_order.extras['auto_given_carry'] = True
                 sale_order.save(update_fields=['extras'])
                 logger.info({
