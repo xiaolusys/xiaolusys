@@ -246,9 +246,9 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
                             gen_ordercarry(relationship, order_carry, OrderCarry.REFERAL_ORDER, carry_num)
                             if upper_mama.referal_from == XiaoluMama.DIRECT:
                                 # 遇到direct，自动发佣就结束了
-                                # sale_order.extras['exchange'] = True
-                                # sale_order.extras['exchg_type'] = 1
-                                # sale_order.save(update_fields=['extras'])
+                                sale_order.extras['exchange'] = True
+                                sale_order.extras['exchg_type'] = 1
+                                sale_order.save(update_fields=['extras'])
                                 logger.info({
                                     'action': 'task_update_second_level_ordercarry',
                                     'order_no': sale_order.oid,
@@ -263,15 +263,15 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
                                 low_mama = upper_mama
                         else:
                             # 上级的等级是vp或以上，不能自动发佣了，需要生成一个高级mama下属订单用来兑换,能兑换的金额就不是订单价，是下属妈妈的购买价了
-                            # carry_num = 0
-                            # gen_ordercarry(relationship, order_carry, OrderCarry.ADVANCED_MAMA_REFERAL_ORDER, carry_num)
+                            carry_num = 0
+                            gen_ordercarry(relationship, order_carry, OrderCarry.ADVANCED_MAMA_REFERAL_ORDER, carry_num)
                             from flashsale.pay.apis.v1.product import get_level_price_from_boutique_modelproduct
                             can_exchg_payment = get_level_price_from_boutique_modelproduct(model_product,
                                                                                            low_mama.elite_level)
                             # 为了便于存储，单位用分
                             can_exchg_payment = round((can_exchg_payment * sale_order.payment / sale_order.price) * 100)
-                            # sale_order.extras['can_exchg_payment'] = can_exchg_payment
-                            # sale_order.save(update_fields=['extras'])
+                            sale_order.extras['can_exchg_payment'] = can_exchg_payment
+                            sale_order.save(update_fields=['extras'])
                             logger.info({
                                 'action': 'task_update_second_level_ordercarry',
                                 'order_no': sale_order.oid,
@@ -694,8 +694,8 @@ def task_order_trigger(sale_order):
                 # 实物商品把第一级的价格填入
                 diff = get_level_differential(model_product, mm_linkid_mama.elite_level, None)
                 carry_amount = round((diff * sale_order.payment / sale_order.price) * 100)
-                # sale_order.extras['auto_given_carry'] = True
-                # sale_order.save(update_fields=['extras'])
+                sale_order.extras['auto_given_carry'] = True
+                sale_order.save(update_fields=['extras'])
                 logger.info({
                     'action': 'ordercarry',
                     'order_no': sale_order.oid,
@@ -706,7 +706,6 @@ def task_order_trigger(sale_order):
                     'order_num': order_num,
                     'created': datetime.datetime.now(),
                 })
-                carry_amount = 0
             else:
                 carry_amount = 0
         elif model_product.is_boutique_coupon:
