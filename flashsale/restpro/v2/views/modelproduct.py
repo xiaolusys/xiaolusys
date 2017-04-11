@@ -261,11 +261,15 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
                 rebet_amount = 0
                 next_rebet_amount = 0
             else:
-                rebet_amount = rebate_scheme.calculate_carry(mama.agencylevel, lowest_agent_price)
-                if len(next_mama_level_info) > 0:
-                    next_rebet_amount = rebate_scheme.calculate_carry(next_mama_level_info[0], lowest_agent_price) or 0.0
+                if mama:
+                    rebet_amount = rebate_scheme.calculate_carry(mama.agencylevel, lowest_agent_price)
+                    if len(next_mama_level_info) > 0:
+                        next_rebet_amount = rebate_scheme.calculate_carry(next_mama_level_info[0], lowest_agent_price) or 0.0
+                    else:
+                        next_rebet_amount = 0.0
                 else:
-                    next_rebet_amount = 0.0
+                    rebet_amount = 0
+                    next_rebet_amount = 0
 
             total_remain_num = sum([len(p.sku_ids) for p in md.get_products()]) * 30
             sale_num = total_remain_num * 19 + random.randint(1,19)
