@@ -29,7 +29,7 @@ from flashsale.coupon.apis.v1.transfer import agree_apply_transfer_record, rejec
 from flashsale.coupon.apis.v1.usercoupon import return_transfer_coupon, transfer_coupons
 
 from flashsale.xiaolumm.tasks.tasks_mama_dailystats import task_calc_xlmm_elite_score
-from flashsale.xiaolumm.models import ReferalRelationship, XiaoluMama, OrderCarry, XiaoluCoin
+from flashsale.xiaolumm.models import ReferalRelationship, XiaoluMama, OrderCarry, XiaoluCoin, ExchangeSaleOrder
 from flashsale.xiaolumm.apis.v1.xiaolumama import get_mama_by_openid
 
 logger = logging.getLogger(__name__)
@@ -523,9 +523,10 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
             for entry in exchg_orders.iterator():
                 # find sale trade use coupons
                 sale_order = SaleOrder.objects.filter(oid=entry.order_id).first()
+                exchg_sale_order = ExchangeSaleOrder.objects.filter(order_oid=entry.order_id).first()
                 if not sale_order:
                     continue
-                if sale_order.extras.has_key('exchange'):
+                if sale_order.extras.has_key('exchange') or (exchg_sale_order and exchg_sale_order.has_exchanged):
                     continue
 
                 if sale_order.extras.has_key('can_return_num'):
@@ -588,9 +589,10 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
             for entry in exchg_orders.iterator():
                 # find sale trade use coupons
                 sale_order = SaleOrder.objects.filter(oid=entry.order_id).first()
+                exchg_sale_order = ExchangeSaleOrder.objects.filter(order_oid=entry.order_id).first()
                 if not sale_order:
                     continue
-                if sale_order.extras.has_key('exchange'):
+                if sale_order.extras.has_key('exchange') or (exchg_sale_order and exchg_sale_order.has_exchanged):
                     continue
 
                 if sale_order.extras.has_key('can_return_num'):
@@ -602,7 +604,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
 
                 # !!!!APP OR WAP ORDER IS REAL GOODS!!!!
                 if entry.carry_type == OrderCarry.APP_ORDER or entry.carry_type == OrderCarry.WAP_ORDER:
-                    if sale_order.extras.has_key('auto_given_carry'):
+                    if sale_order.extras.has_key('auto_given_carry') or (exchg_sale_order and exchg_sale_order.auto_given_carry):
                         continue
 
                     # find modelproduct, need except 365elite product
@@ -650,8 +652,12 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                     if sale_order.extras.has_key('can_exchg_payment'):
                         exchg_payment = int(sale_order.extras['can_exchg_payment']) / 100   # 为了便于存储单位是分
                     else:
-                        continue
-                    if sale_order.extras.has_key('auto_given_carry') and sale_order.extras['auto_given_carry'] and exchg_payment > 0:
+                        if exchg_sale_order:
+                            exchg_payment = int(exchg_sale_order.can_exchg_payment) / 100  # 为了便于存储单位是分
+                        else:
+                            continue
+
+                    if ((sale_order.extras.has_key('auto_given_carry') and sale_order.extras['auto_given_carry']) or (exchg_sale_order and exchg_sale_order.auto_given_carry)) and exchg_payment > 0:
                         # find modelproduct, need except 365elite product
                         model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id, is_boutique=True,
                                                                     product_type=ModelProduct.USUAL_TYPE).first()

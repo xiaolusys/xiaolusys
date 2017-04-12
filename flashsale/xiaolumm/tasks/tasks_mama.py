@@ -7,7 +7,7 @@ import datetime
 from django.db import IntegrityError
 
 from flashsale.xiaolumm import util_description
-from flashsale.xiaolumm.models.models_fortune import OrderCarry, AwardCarry, ReferalRelationship
+from flashsale.xiaolumm.models.models_fortune import OrderCarry, AwardCarry, ReferalRelationship, ExchangeSaleOrder
 from flashsale.pay.models import Customer
 from flashsale.xiaolumm import util_unikey
 from flashsale.xiaolumm import utils
@@ -246,9 +246,14 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
                             gen_ordercarry(relationship, order_carry, OrderCarry.REFERAL_ORDER, carry_num)
                             if upper_mama.referal_from == XiaoluMama.DIRECT:
                                 # 遇到direct，自动发佣就结束了
-                                sale_order.extras['exchange'] = True
-                                sale_order.extras['exchg_type'] = 1
-                                sale_order.save(update_fields=['extras'])
+                                exchg_sale_order = ExchangeSaleOrder.objects.filter(order_oid=order_carry.order_id).first()
+                                if not exchg_sale_order:
+                                    exchg_record = ExchangeSaleOrder(order_oid=order_carry.order_id, has_exchanged=True, exchg_type=1)
+                                    exchg_record.save()
+                                else:
+                                    exchg_sale_order.has_exchanged = True
+                                    exchg_sale_order.exchg_type = 1
+                                    exchg_sale_order.save()
                                 logger.info({
                                     'action': 'task_update_second_level_ordercarry',
                                     'order_no': sale_order.oid,
@@ -270,8 +275,13 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
                                                                                            low_mama.elite_level)
                             # 为了便于存储，单位用分
                             can_exchg_payment = int(round((can_exchg_payment * sale_order.payment / sale_order.price) * 100))
-                            sale_order.extras['can_exchg_payment'] = can_exchg_payment
-                            sale_order.save(update_fields=['extras'])
+                            exchg_sale_order = ExchangeSaleOrder.objects.filter(order_oid=order_carry.order_id).first()
+                            if not exchg_sale_order:
+                                exchg_record = ExchangeSaleOrder(order_oid=order_carry.order_id, can_exchg_payment=can_exchg_payment)
+                                exchg_record.save()
+                            else:
+                                exchg_sale_order.can_exchg_payment = can_exchg_payment
+                                exchg_sale_order.save()
                             logger.info({
                                 'action': 'task_update_second_level_ordercarry',
                                 'order_no': sale_order.oid,
@@ -704,8 +714,13 @@ def task_order_trigger(sale_order):
                 # 实物商品把第一级的价格填入
                 diff = get_level_differential(model_product, mm_linkid_mama.elite_level, None)
                 carry_amount = int(round((diff * sale_order.payment / sale_order.price) * 100))
-                sale_order.extras['auto_given_carry'] = True
-                sale_order.save(update_fields=['extras'])
+                exchg_sale_order = ExchangeSaleOrder.objects.filter(order_oid=sale_order.oid).first()
+                if not exchg_sale_order:
+                    exchg_record = ExchangeSaleOrder(order_oid=sale_order.oid, auto_given_carry=True)
+                    exchg_record.save()
+                else:
+                    exchg_sale_order.auto_given_carry = True
+                    exchg_sale_order.save()
                 logger.info({
                     'action': 'ordercarry',
                     'order_no': sale_order.oid,
