@@ -248,7 +248,7 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
                                 # 遇到direct，自动发佣就结束了
                                 exchg_sale_order = ExchangeSaleOrder.objects.filter(order_oid=order_carry.order_id).first()
                                 if not exchg_sale_order:
-                                    exchg_record = ExchangeSaleOrder(order_oid=order_carry.order_id, has_exchanged=True, exchg_type=1)
+                                    exchg_record = ExchangeSaleOrder(order_oid=order_carry.order_id, has_exchanged=True, exchg_type=1, uni_key=order_carry.order_id)
                                     exchg_record.save()
                                 else:
                                     exchg_sale_order.has_exchanged = True
@@ -277,7 +277,7 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
                             can_exchg_payment = int(round((can_exchg_payment * sale_order.payment / sale_order.price) * 100))
                             exchg_sale_order = ExchangeSaleOrder.objects.filter(order_oid=order_carry.order_id).first()
                             if not exchg_sale_order:
-                                exchg_record = ExchangeSaleOrder(order_oid=order_carry.order_id, can_exchg_payment=can_exchg_payment)
+                                exchg_record = ExchangeSaleOrder(order_oid=order_carry.order_id, can_exchg_payment=can_exchg_payment, uni_key=order_carry.order_id)
                                 exchg_record.save()
                             else:
                                 exchg_sale_order.can_exchg_payment = can_exchg_payment
@@ -716,7 +716,7 @@ def task_order_trigger(sale_order):
                 carry_amount = int(round((diff * sale_order.payment / sale_order.price) * 100))
                 exchg_sale_order = ExchangeSaleOrder.objects.filter(order_oid=sale_order.oid).first()
                 if not exchg_sale_order:
-                    exchg_record = ExchangeSaleOrder(order_oid=sale_order.oid, auto_given_carry=True)
+                    exchg_record = ExchangeSaleOrder(order_oid=sale_order.oid, auto_given_carry=True, uni_key=sale_order.oid)
                     exchg_record.save()
                 else:
                     exchg_sale_order.auto_given_carry = True
