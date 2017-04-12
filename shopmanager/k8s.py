@@ -31,7 +31,7 @@ M_SITE_URL = 'http://staging.xiaolumm.com'
 MYSQL_HOST = 'rm-bp17ea269uu21f9i1o.mysql.rds.aliyuncs.com'
 MYSQL_AUTH = os.environ.get('MYSQL_AUTH')
 
-REDIS_HOST = 'redis.default.svc.cluster.local:6379'
+REDIS_HOST = '55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379'
 REDIS_AUTH = os.environ.get('REDIS_AUTH')
 # REDIS_AUTH = ''
 

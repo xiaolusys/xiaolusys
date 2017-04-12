@@ -87,7 +87,6 @@ CELERY_QUEUES = (
     Queue('dinghuo', routing_key='dinghuo.#'),
     Queue('carrytotal', routing_key='carrytotal.#'),
     Queue('qrcode', routing_key='qrcode.#'),
-    Queue('wdt', routing_key='wdt.#'),
     Queue('xiaolupay', routing_key='xiaolupay.#'),
 )
 

@@ -171,7 +171,7 @@ deploy:
         -v /var/data:/data -d -e C_FORCE_ROOT=1
         registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
         celery worker -c 4 -A shopmanager --loglevel=ERROR --time-limit=5400
-        -Q apis,notify,peroid,default,frency,coupon,activevalue,mama,mamafortune,relationship,carryrecord,skustats,statistics,logistics,carrytotal,integral,dinghuo,xiaolupay
+        -Q apis,notify,peroid,frency,coupon,activevalue,mama,mamafortune,relationship,carryrecord,skustats,statistics,logistics,carrytotal,integral,dinghuo,xiaolupay
   ssh:
     host:
       - sale8.xiaolumm.com
