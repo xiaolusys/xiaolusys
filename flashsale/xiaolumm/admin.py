@@ -12,7 +12,7 @@ from flashsale.xiaolumm.models.elite_mama import EliteMamaAwardLog
 from .models.message import XlmmMessage, XlmmMessageRel
 from .models.models_advertis import MamaVebViewConf
 from .models.score import XlmmEffectScore, XlmmTeamEffScore
-from .models.models_fortune import MamaFortune, CarryRecord, OrderCarry, AwardCarry, ClickCarry, ActiveValue, ReferalRelationship, GroupRelationship, ClickPlan, UniqueVisitor, DailyStats
+from .models.models_fortune import MamaFortune, CarryRecord, OrderCarry, AwardCarry, ClickCarry, ActiveValue, ReferalRelationship, GroupRelationship, ClickPlan, UniqueVisitor, DailyStats, ExchangeSaleOrder
 from .models.carry_total import MamaCarryTotal, MamaTeamCarryTotal, TeamCarryTotalRecord, CarryTotalRecord
 from .models.models_lesson import LessonTopic, Instructor, Lesson, LessonAttendRecord, TopicAttendRecord
 from .models.models_fans import FansNumberRecord, XlmmFans
@@ -962,4 +962,9 @@ admin.site.register(EliteMamaAwardLog, EliteMamaAwardLogAdmin)
 
 
 
+class ExchangeSaleOrderAdmin(admin.ModelAdmin):
+    list_display = ('order_oid', 'auto_given_carry', 'exchg_type', 'has_exchanged', 'can_exchg_payment', 'created')
+    list_filter = ('created', 'has_exchanged')
+    search_fields = ('=order_oid')
 
+admin.site.register(ExchangeSaleOrder, ExchangeSaleOrderAdmin)
