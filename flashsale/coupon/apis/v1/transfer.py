@@ -564,7 +564,6 @@ def coupon_exchange_saleorder(customer, order_id, mama_id, template_ids, coupon_
     from flashsale.pay.models.trade import SaleOrder
     from .transfercoupondetail import create_transfer_coupon_detail
     from .usercoupon import use_coupon_by_ids
-    from flashsale.xiaolumm.models.models_fortune import ExchangeSaleOrder
 
     exchg_sale_order = ExchangeSaleOrder.objects.filter(order_oid=order_id).first()
     sale_order = SaleOrder.objects.filter(oid=order_id).first()
@@ -632,71 +631,6 @@ def coupon_exchange_saleorder(customer, order_id, mama_id, template_ids, coupon_
                          referal_id=sale_order.id,
                          uni_key=sale_order.oid,
                          status=BudgetLog.CONFIRMED)
-    exchg_sale_order = ExchangeSaleOrder.objects.filter(order_oid=order_id).first()
-    sale_order = SaleOrder.objects.filter(oid=order_id).first()
-    if sale_order:
-        if sale_order.status < SaleOrder.WAIT_BUYER_CONFIRM_GOODS:
-            logger.warn({'message': u'exchange order: order_id=%s status=%s' % (order_id, sale_order.status)})
-            raise exceptions.ValidationError(u'订单记录状态不对，兑换失败!')
-        if sale_order and sale_order.extras.has_key('exchange') and sale_order.extras['exchange'] == True:
-            logger.warn({'message': u'exchange order: order_id=%s has already exchg' % order_id})
-            raise exceptions.ValidationError(u'订单已经被兑换过了，兑换失败!')
-    else:
-        logger.warn({'message': u'exchange order: order_id=%s not exist' % order_id})
-        raise exceptions.ValidationError(u'找不到订单记录，兑换失败!')
-
-    with transaction.atomic():
-        # (1)sale order置为已经兑换
-        exchg_record = ExchangeSaleOrder(order_oid=order_id, has_exchanged=True)
-        exchg_record.save()
-        if not sale_order.extras.has_key('can_return_num'):
-            sale_order.extras['can_return_num'] = sale_order.num
-        sale_order.save(update_fields=['extras'])
-
-        # (2)用户优惠券需要变成使用状态,如果存在多个券通用情况，还要把多种券给使用掉
-        left_num = coupon_num
-        coupon_ids = []
-        for oneid in template_ids:
-            user_coupons = UserCoupon.objects.filter(customer_id=customer.id,
-                                                     template_id=int(oneid),
-                                                     status=UserCoupon.UNUSED)
-            if user_coupons.count() == 0:
-                continue
-            if user_coupons.count() >= left_num:
-                user_coupons = user_coupons[0: left_num]
-            temp_coupon_ids = [c.id for c in user_coupons]
-            # (4)在精品券流通记录增加兑换记录
-            transfer = CouponTransferRecord.create_exchg_order_record(customer, user_coupons.count(), sale_order,
-                                                                      int(oneid))
-            create_transfer_coupon_detail(transfer.id, temp_coupon_ids)
-
-            coupon_ids = coupon_ids + temp_coupon_ids
-            left_num = left_num - user_coupons.count()
-            if left_num <= 0:
-                break
-
-        if len(coupon_ids) == coupon_num:
-            use_coupon_by_ids(coupon_ids, tid=sale_order.oid)   # 改为 使用掉
-        else:
-            raise exceptions.ValidationError(u'精品券数量不足，兑换失败!')
-
-        # (3)在user钱包写收入记录
-        from flashsale.pay.models.user import BudgetLog
-        if not exchg_payment:
-            if sale_order.extras.has_key('exchg_payment'):
-                exchg_payment = float(sale_order.extras['exchg_payment'])
-            else:
-                exchg_payment = sale_order.price * coupon_num
-        BudgetLog.create(customer_id=customer.id,
-                         budget_type=BudgetLog.BUDGET_IN,
-                         flow_amount=round(exchg_payment * 100),
-                         budget_log_type=BudgetLog.BG_EXCHG_ORDER,
-                         referal_id=sale_order.id,
-                         uni_key=sale_order.oid,
-                         status=BudgetLog.CONFIRMED)
-
-
-
 
 def saleorder_return_coupon_exchange(salerefund, payment):
     """
@@ -711,14 +645,20 @@ def saleorder_return_coupon_exchange(salerefund, payment):
     from flashsale.pay.models.trade import SaleOrder
     from .transfercoupondetail import create_transfer_coupon_detail
 
+    exchg_sale_order = ExchangeSaleOrder.objects.filter(order_oid=salerefund.order_id).first()
     sale_order = SaleOrder.objects.filter(id=salerefund.order_id).first()
     if not sale_order:
         res = {}
         return res
     else:
-        if not (sale_order.extras.has_key('exchange') and sale_order.extras['exchange'] == True):
+        if not ((sale_order.extras.has_key('exchange') and sale_order.extras['exchange'] == True) or (exchg_sale_order and exchg_sale_order.has_exchanged)):
             # 默认特卖订单一个saleorder只能退一次,以后不能兑换不能退了
-            sale_order.extras['exchange'] = False
+            if not exchg_sale_order:
+                exchg_record = ExchangeSaleOrder(order_oid=salerefund.order_id, has_exchanged=False)
+                exchg_record.save()
+            else:
+                exchg_sale_order.has_exchanged = False
+                exchg_sale_order.save()
             if not sale_order.extras.has_key('can_return_num'):
                 sale_order.extras['can_return_num'] = sale_order.num - salerefund.refund_num
             else:
@@ -780,7 +720,12 @@ def saleorder_return_coupon_exchange(salerefund, payment):
 
         # (2)sale order置为已经取消兑换
         if sale_order:
-            sale_order.extras['exchange'] = False
+            if not exchg_sale_order:
+                exchg_record = ExchangeSaleOrder(order_oid=salerefund.order_id, has_exchanged=False)
+                exchg_record.save()
+            else:
+                exchg_sale_order.has_exchanged = False
+                exchg_sale_order.save()
             if not sale_order.extras.has_key('can_return_num'):
                 sale_order.extras['can_return_num'] = sale_order.num - salerefund.refund_num
             else:
