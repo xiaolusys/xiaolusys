@@ -154,7 +154,7 @@ def gen_ordercarry(referal_relationship, order_carry, carry_type, carry_num):
                             agency_level=agency_level, carry_plan_name=carry_plan_name,
                             date_field=date_field, uni_key=uni_key, status=status)
         record.save()
-    except IntegrityError    as exc:
+    except IntegrityError as exc:
         logger.warn("IntegrityError - gen_ordercarry | mama_id: %s, order_id: %s" % (mama_id, order_id))
 
 
@@ -166,7 +166,8 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
         'mama_id': order_carry.mama_id,
         'created': datetime.datetime.now(),
     })
-    records = OrderCarry.objects.filter(order_id=order_carry.order_id, carry_type__in=[OrderCarry.REFERAL_ORDER, OrderCarry.ADVANCED_MAMA_REFERAL_ORDER])
+    records = OrderCarry.objects.filter(order_id=order_carry.order_id, carry_type__in=[OrderCarry.REFERAL_ORDER,
+                                                                                       OrderCarry.ADVANCED_MAMA_REFERAL_ORDER])
     if records.exists():
         for record in records:
             if record.status != order_carry.status:
@@ -207,7 +208,8 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
                     'created': datetime.datetime.now(),
                 })
                 return
-            if not (mm_linkid_mama.referal_from == XiaoluMama.INDIRECT and mm_linkid_mama.elite_score < constants.ELITEMM_DESC_INFO[constants.ELITEMM_VP].get('min_score')):
+            if not (mm_linkid_mama.referal_from == XiaoluMama.INDIRECT and mm_linkid_mama.elite_score <
+                constants.ELITEMM_DESC_INFO[constants.ELITEMM_VP].get('min_score')):
                 carry_num = 0  # 第1等级已经到vp了，不能自动发佣
                 gen_ordercarry(referal_relationship, order_carry, OrderCarry.REFERAL_ORDER, carry_num)  # second level
                 logger.info({
@@ -234,7 +236,7 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
                         if upper_mama.is_elite_mama and upper_mama.elite_score < \
                                 constants.ELITEMM_DESC_INFO[constants.ELITEMM_VP].get('min_score'):
                             diff = get_level_differential(model_product, upper_mama.elite_level,
-                                                               mm_linkid_mama.elite_level)
+                                                          mm_linkid_mama.elite_level)
                             carry_num = int(round((diff * sale_order.payment / sale_order.price) * 100))
                             logger.info({
                                 'action': 'task_update_second_level_ordercarry',
@@ -249,9 +251,11 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
                             gen_ordercarry(relationship, order_carry, OrderCarry.REFERAL_ORDER, carry_num)
                             if upper_mama.referal_from == XiaoluMama.DIRECT:
                                 # 遇到direct，自动发佣就结束了
-                                exchg_sale_order = ExchangeSaleOrder.objects.filter(order_oid=order_carry.order_id).first()
+                                exchg_sale_order = ExchangeSaleOrder.objects.filter(
+                                    order_oid=order_carry.order_id).first()
                                 if not exchg_sale_order:
-                                    exchg_record = ExchangeSaleOrder(order_oid=order_carry.order_id, has_exchanged=True, exchg_type=1, uni_key=order_carry.order_id)
+                                    exchg_record = ExchangeSaleOrder(order_oid=order_carry.order_id, has_exchanged=True,
+                                                                     exchg_type=1, uni_key=order_carry.order_id)
                                     exchg_record.save()
                                 else:
                                     exchg_sale_order.has_exchanged = True
@@ -277,10 +281,13 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
                             can_exchg_payment = get_level_price_from_boutique_modelproduct(model_product,
                                                                                            low_mama.elite_level)
                             # 为了便于存储，单位用分
-                            can_exchg_payment = int(round((can_exchg_payment * sale_order.payment / sale_order.price) * 100))
+                            can_exchg_payment = int(
+                                round((can_exchg_payment * sale_order.payment / sale_order.price) * 100))
                             exchg_sale_order = ExchangeSaleOrder.objects.filter(order_oid=order_carry.order_id).first()
                             if not exchg_sale_order:
-                                exchg_record = ExchangeSaleOrder(order_oid=order_carry.order_id, can_exchg_payment=can_exchg_payment, uni_key=order_carry.order_id)
+                                exchg_record = ExchangeSaleOrder(order_oid=order_carry.order_id,
+                                                                 can_exchg_payment=can_exchg_payment,
+                                                                 uni_key=order_carry.order_id)
                                 exchg_record.save()
                             else:
                                 exchg_sale_order.can_exchg_payment = can_exchg_payment
@@ -713,13 +720,15 @@ def task_order_trigger(sale_order):
     model_product = product.get_product_model()
     if model_product:
         if model_product.is_boutique_product:
-            if mm_linkid_mama.is_elite_mama and mm_linkid_mama.elite_score < constants.ELITEMM_DESC_INFO[constants.ELITEMM_VP].get('min_score'):
+            if mm_linkid_mama.is_elite_mama and mm_linkid_mama.elite_score < constants.ELITEMM_DESC_INFO[
+                constants.ELITEMM_VP].get('min_score'):
                 # 实物商品把第一级的价格填入
                 diff = get_level_differential(model_product, mm_linkid_mama.elite_level, None)
                 carry_amount = int(round((diff * sale_order.payment / sale_order.price) * 100))
                 exchg_sale_order = ExchangeSaleOrder.objects.filter(order_oid=sale_order.oid).first()
                 if not exchg_sale_order:
-                    exchg_record = ExchangeSaleOrder(order_oid=sale_order.oid, auto_given_carry=True, uni_key=sale_order.oid)
+                    exchg_record = ExchangeSaleOrder(order_oid=sale_order.oid, auto_given_carry=True,
+                                                     uni_key=sale_order.oid)
                     exchg_record.save()
                 else:
                     exchg_sale_order.auto_given_carry = True
