@@ -145,14 +145,17 @@ def gen_ordercarry(referal_relationship, order_carry, carry_type, carry_num):
     status = order_carry.status
     carry_description = util_description.get_ordercarry_description(second_level=True)
 
-    record = OrderCarry(mama_id=mama_id, order_id=order_id, order_value=order_value,
-                        carry_num=carry_num, carry_type=carry_type, sku_name=sku_name,
-                        carry_description=carry_description, sku_img=sku_img,
-                        contributor_nick=contributor_nick,
-                        contributor_img=contributor_img, contributor_id=contributor_id,
-                        agency_level=agency_level, carry_plan_name=carry_plan_name,
-                        date_field=date_field, uni_key=uni_key, status=status)
-    record.save()
+    try:
+        record = OrderCarry(mama_id=mama_id, order_id=order_id, order_value=order_value,
+                            carry_num=carry_num, carry_type=carry_type, sku_name=sku_name,
+                            carry_description=carry_description, sku_img=sku_img,
+                            contributor_nick=contributor_nick,
+                            contributor_img=contributor_img, contributor_id=contributor_id,
+                            agency_level=agency_level, carry_plan_name=carry_plan_name,
+                            date_field=date_field, uni_key=uni_key, status=status)
+        record.save()
+    except IntegrityError    as exc:
+        logger.warn("IntegrityError - gen_ordercarry | mama_id: %s, order_id: %s" % (mama_id, order_id))
 
 
 @app.task()
