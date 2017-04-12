@@ -581,7 +581,7 @@ def coupon_exchange_saleorder(customer, order_id, mama_id, template_ids, coupon_
     with transaction.atomic():
         # (1)sale order置为已经兑换
         if not exchg_sale_order:
-            exchg_record = ExchangeSaleOrder(order_oid=order_id, has_exchanged=True)
+            exchg_record = ExchangeSaleOrder(order_oid=order_id, has_exchanged=True, uni_key=order_id)
             exchg_record.save()
         else:
             exchg_sale_order.has_exchanged = True
@@ -654,7 +654,7 @@ def saleorder_return_coupon_exchange(salerefund, payment):
         if not ((sale_order.extras.has_key('exchange') and sale_order.extras['exchange'] == True) or (exchg_sale_order and exchg_sale_order.has_exchanged)):
             # 默认特卖订单一个saleorder只能退一次,以后不能兑换不能退了
             if not exchg_sale_order:
-                exchg_record = ExchangeSaleOrder(order_oid=salerefund.order_id, has_exchanged=False)
+                exchg_record = ExchangeSaleOrder(order_oid=salerefund.order_id, has_exchanged=False, uni_key=salerefund.order_id)
                 exchg_record.save()
             else:
                 exchg_sale_order.has_exchanged = False
@@ -721,7 +721,7 @@ def saleorder_return_coupon_exchange(salerefund, payment):
         # (2)sale order置为已经取消兑换
         if sale_order:
             if not exchg_sale_order:
-                exchg_record = ExchangeSaleOrder(order_oid=salerefund.order_id, has_exchanged=False)
+                exchg_record = ExchangeSaleOrder(order_oid=salerefund.order_id, has_exchanged=False, uni_key=salerefund.order_id)
                 exchg_record.save()
             else:
                 exchg_sale_order.has_exchanged = False
@@ -840,7 +840,7 @@ def transfer_record_return_coupon_exchange(coupons, transfer_record):
                 sale_order.extras['can_return_num'] = sale_order.num - 1
                 if sale_order.num - 1 == 0:
                     if not exchg_sale_order:
-                        exchg_record = ExchangeSaleOrder(order_oid=sale_order.oid, has_exchanged=False)
+                        exchg_record = ExchangeSaleOrder(order_oid=sale_order.oid, has_exchanged=False, uni_key=sale_order.oid)
                         exchg_record.save()
                     else:
                         exchg_sale_order.has_exchanged = False
@@ -849,7 +849,7 @@ def transfer_record_return_coupon_exchange(coupons, transfer_record):
                 sale_order.extras['can_return_num'] = int(sale_order.extras['can_return_num']) - 1
                 if int(sale_order.extras['can_return_num']) == 0:
                     if not exchg_sale_order:
-                        exchg_record = ExchangeSaleOrder(order_oid=sale_order.oid, has_exchanged=False)
+                        exchg_record = ExchangeSaleOrder(order_oid=sale_order.oid, has_exchanged=False, uni_key=sale_order.oid)
                         exchg_record.save()
                     else:
                         exchg_sale_order.has_exchanged = False
