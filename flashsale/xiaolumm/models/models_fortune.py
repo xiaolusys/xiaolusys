@@ -1537,3 +1537,19 @@ def mama_update_device_stats(sender, instance, created, **kwargs):
 
 post_save.connect(mama_update_device_stats,
                   sender=MamaDailyAppVisit, dispatch_uid='post_save_mama_update_device_stats')
+
+class ExchangeSaleOrder(BaseModel):
+    order_oid = models.CharField(max_length=64, db_index=True, blank=True, verbose_name=u'订单OID')
+    auto_given_carry = models.BooleanField(default=False, verbose_name=u'自动发佣')
+    exchg_type = models.IntegerField(default=0, verbose_name=u'兑换类型')
+    has_exchanged = models.BooleanField(default=False, verbose_name=u'已兑换')
+    can_exchg_payment = models.IntegerField(default=0, verbose_name=u'还能兑换金额（分）')
+
+    class Meta:
+        db_table = 'flashsale_xlmm_exchange_order'
+        app_label = 'xiaolumm'
+        verbose_name = u'V2/订单兑换'
+        verbose_name_plural = u'V2/订单兑换列表'
+
+    def __unicode__(self):
+        return '%s' % (self.order_oid)
