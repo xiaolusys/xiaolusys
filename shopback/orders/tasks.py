@@ -23,7 +23,7 @@ TASK_FAIL = 'FAIL'
 
 
 @app.task(max_retries=3)
-def save_trade_durning_task(user_id, update_from=None, update_to=None, status=None):
+def saveUserDuringOrdersTask(user_id, update_from=None, update_to=None, status=None):
     update_tids = []
     try:
         update_from = format_datetime(update_from) if update_from else None
@@ -57,20 +57,8 @@ def save_trade_durning_task(user_id, update_from=None, update_to=None, status=No
         raise saveUserDuringOrdersTask.retry(exc=exc, countdown=60)
 
     else:
-        from shopback.trades.models import MergeTrade
-        wait_update_trades = MergeTrade.objects.filter(user__visitor_id=user_id,
-                                                       type=pcfg.TAOBAO_TYPE,
-                                                       status=pcfg.WAIT_SELLER_SEND_GOODS) \
-            .exclude(tid__in=update_tids)
-        for trade in wait_update_trades:
-            tid = trade.tid
-            if tid.find('-') == len(tid) - 2:
-                continue
-            try:
-                TradeService(user_id, trade.tid).payTrade()
-            except Exception, exc:
-                logger.error(u'更新订单信息异常:%s' % exc, exc_info=True)
-    return
+        for order in Order.objects.filter(stage=0):
+            order.create_package_sku_item()
 
 
 @app.task(max_retries=3)
@@ -80,7 +68,7 @@ def batch_create_package_order():
 
 
 @app.task(max_retries=3)
-def saveUserDuringOrdersTask(user_id, update_from=None, update_to=None, status=None):
+def saveUserDuringOrdersTaskBak(user_id, update_from=None, update_to=None, status=None):
     """ 下载用户商城订单 """
     update_tids = []
     try:
