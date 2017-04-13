@@ -152,15 +152,25 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def get_user_coupons(self, request):
+        """
+        paging: [1,0]是否分页
+        """
         content = request.GET
+        paging = content.get('paging') or None
         status = content.get("status") or None
         coupon_type = content.get('coupon_type') or None
         customer = get_customer(request)
         release_tmp_share_coupon(customer)  # 查看临时优惠券 有则发放
         queryset = self.filter_queryset(self.get_owner_queryset(request))
         queryset = self.list_unpast_coupon(queryset, status=status, coupon_type=coupon_type)
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+
+        if paging:
+            queryset = self.paginate_queryset(queryset)
+            serializer = self.get_serializer(queryset, many=True)
+            return self.get_paginated_response(serializer.data)
+        else:
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
 
     def list(self, request, *args, **kwargs):
         """
@@ -278,9 +288,15 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def coupon_able(self, request):
+        """
+        params:
+        - cart_ids
+        - type 可选值['usable', 'disable']
+        """
         default_return = collections.defaultdict(usable_coupon=[], disable_coupon=[], info='', code=0)
         content = request.GET
         cart_ids = content.get("cart_ids", None)
+        coupon_type = content.get('type') or None
 
         if not cart_ids:
             default_return.update({'info': '购物车为空!', 'code': 1})
@@ -298,12 +314,24 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         queryset = self.list_unpast_coupon(queryset)  # customer not past coupon
         usable_set = []
         disable_set = []
+
+        cache = {}
         for coupon in queryset:
-            try:
-                coupon.check_user_coupon(product_ids=product_ids, use_fee=total_fee)  # 验证优惠券
-                usable_set.append(coupon)
-            except AssertionError:
-                disable_set.append(coupon)
+            key = 'template_id-{}'.format(coupon.template_id)
+            item = cache.get(key)
+            if item != None:
+                if item == True:
+                    usable_set.append(coupon)
+                else:
+                    disable_set.append(coupon)
+            else:
+                try:
+                    coupon.check_user_coupon(product_ids=product_ids, use_fee=total_fee)  # 验证优惠券
+                    usable_set.append(coupon)
+                    cache[key] = True
+                except AssertionError:
+                    disable_set.append(coupon)
+                    cache[key] = False
 
         from flashsale.pay.models import ModelProduct
         # 检查款式　是否限制使用优惠券　如果是则设置usable_set 为空
@@ -314,11 +342,23 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
                 usable_set = []
                 break
 
-        usable_serialier = self.get_serializer(usable_set, many=True)
-        disable_serialier = self.get_serializer(disable_set, many=True)
-        default_return.update({'usable_coupon': usable_serialier.data, 'disable_coupon': disable_serialier.data})
-
-        return Response(default_return)
+        if coupon_type:
+            if coupon_type == 'usable':
+                queryset = self.paginate_queryset(usable_set)
+                serializer = self.get_serializer(queryset, many=True)
+            elif coupon_type == 'disable':
+                queryset = self.paginate_queryset(disable_set)
+                serializer = self.get_serializer(queryset, many=True)
+            else:
+                return Response({'code': 2, 'info': '参数错误'})
+            resp = self.get_paginated_response(serializer.data)
+            resp.data.update({'code': 0, 'info': '', 'usable_coupon_count': len(usable_set), 'disable_coupon_count': len(disable_set)})
+            return resp
+        else:
+            usable_serialier = self.get_serializer(usable_set, many=True)
+            disable_serialier = self.get_serializer(disable_set, many=True)
+            default_return.update({'usable_coupon': usable_serialier.data, 'disable_coupon': disable_serialier.data})
+            return Response(default_return)
 
     @list_route(methods=['get'])
     def get_usercoupons_by_template(self, request):

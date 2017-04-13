@@ -1,5 +1,9 @@
 # coding=utf-8
 import datetime
+from functools import wraps
+
+from django.core.cache import cache
+
 from core.models import BaseModel
 from django.db import models
 from flashsale.pay.options import uniqid
@@ -206,16 +210,15 @@ class UserCoupon(BaseModel):
         日期检测 & 状态检查
         """
         now = datetime.datetime.now()
-        coupon = self.__class__.objects.get(id=self.id)
-        if coupon.status == UserCoupon.USED:
+        if self.status == UserCoupon.USED:
             raise AssertionError(u"优惠券已使用")
-        elif coupon.status == UserCoupon.FREEZE:
+        elif self.status == UserCoupon.FREEZE:
             raise AssertionError(u"优惠券已冻结")
-        elif coupon.status == UserCoupon.PAST:
+        elif self.status == UserCoupon.PAST:
             raise AssertionError(u"优惠券已过期")
-        if not (now <= coupon.expires_time):
+        if not (now <= self.expires_time):
             raise AssertionError(u"使用日期错误")
-        return coupon
+        return self
 
     def check_user_coupon(self, product_ids=None, use_fee=None):
         # type: (List[int], float) -> None
