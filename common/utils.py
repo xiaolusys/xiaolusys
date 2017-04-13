@@ -28,7 +28,6 @@ from .customutils import (verifySignature,
                           get_closest_time_slot,
                           map_int2str,
                           gen_string_image)
-from .processlock import Lock, process_lock
 from .cachelock import cache_lock
 
 BASE_STRING = 'abcdefghijklmnopqrstuvwxyz1234567890-'
