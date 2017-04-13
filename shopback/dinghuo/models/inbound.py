@@ -201,7 +201,10 @@ class InBound(models.Model):
                 for item in self.details.values('sku_id', 'arrival_quantity', 'inferior_quantity')}
 
     def get_sku_dict(self):
-        return {ibounddetail.sku_id: ibounddetail.arrival_quantity for ibounddetail in self.details.all()}
+        return {inbounddetail.sku_id: inbounddetail.arrival_quantity for inbounddetail in self.details.all()}
+
+    def get_sku_instock_dict(self):
+        return {inbounddetail.sku_id: inbounddetail.instock_num for inbounddetail in self.details.all()}
 
     @staticmethod
     def get_optimize_forecast_id(inbound_skus):
@@ -326,7 +329,7 @@ class InBound(models.Model):
         except Exception, e0:
             logger.error(u'更新入仓单%s预测单错误' % (self.id,) + e0.message, exc_info=True)
 
-    def finish_check(self, data=None):
+    def finish_check(self, data=None, sync_stock=True):
         """
             完成质检
         :return:
@@ -365,7 +368,35 @@ class InBound(models.Model):
         self.save()
         self.update_orderlist_arrival_process()
         for idetail in self.details.all():
-            idetail.sync_order_detail()
+            idetail.sync_order_detail(sync_stock=False)
+        if sync_stock:
+            self.sync_stock()
+
+    def sync_stock2(self):
+        for idetail in self.details.all():
+            idetail.sync_order_detail(sync_stock=True)
+
+    def sync_order_detail(self):
+        for idetail in self.details.all():
+            idetail.sync_order_detail(sync_stock=False)
+
+
+    def sync_stock(self):
+        self.set_stock_inbound()
+        self.assign_sku()
+
+    def set_stock_inbound(self):
+        from shopback.items.models import SkuStock
+        sku_dict = self.get_sku_instock_dict()
+        for sku in sku_dict:
+            stock = SkuStock.get_by_sku(sku)
+            stock.add_inbound_quantity(sku, sku_dict[sku])
+
+    def assign_sku(self):
+        from shopback.items.models import SkuStock
+        for idetail in self.details.all():
+            for r in idetail.records.all():
+                SkuStock.get_by_sku(idetail.sku_id).assign(orderlist=r.orderdetail.orderlist, again=False)
 
     def update_orderlist_arrival_process(self):
         """
@@ -826,12 +857,12 @@ class InBoundDetail(models.Model):
             return u'相关订货单多货'
         return u'完全分配'
 
-    def sync_order_detail(self):
+    def sync_order_detail(self, sync_stock):
         """
             同步订货单
         """
         for oi in self.records.all():
-            oi.update_orderdetail()
+            oi.update_orderdetail(sync_stock)
 
     def change_total_quantity(self, num):
         """
@@ -970,6 +1001,10 @@ class InBoundDetail(models.Model):
         total = self.records.aggregate(n=Sum("arrival_quantity")).get('n') or 0
         return self.arrival_quantity - total
 
+    @property
+    def instock_num(self):
+        return self.records.aggregate(n=Sum("arrival_quantity")).get('n') or 0
+
     @staticmethod
     def get_inferior_total(sku_id, begin_time=datetime.datetime(2016, 4, 20)):
         res = InBoundDetail.objects.filter(
@@ -1055,5 +1090,5 @@ class OrderDetailInBoundDetail(models.Model):
         self.update_orderdetail()
         return True
 
-    def update_orderdetail(self):
-        self.orderdetail.sync_stock()
+    def update_orderdetail(self, sync_stock=False):
+        self.orderdetail.set_arrival_quantity(sync_stock)

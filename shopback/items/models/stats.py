@@ -82,34 +82,34 @@ class SkuStock(models.Model):
     # ware_by = models.IntegerField(default=WARE_NONE, db_index=True, choices=WARE_CHOICES, verbose_name=u'所属仓库')
     # 目前一种SKU只能在一个仓库里 按product的ware_by查看
     # 发货库存数
-    psi_paid_num = models.IntegerField(default=0, verbose_name=u'待处理数')
-    psi_prepare_book_num = models.IntegerField(default=0, verbose_name=u'待订货数')
-    psi_booked_num = models.IntegerField(default=0, verbose_name=u'已订货数')
-    psi_ready_num = models.IntegerField(default=0, verbose_name=u'待分配数')
-    psi_third_send_num = models.IntegerField(default=0, verbose_name=u'待供应商发货数')
-    psi_assigned_num = models.IntegerField(default=0, verbose_name=u'待合单数')
-    psi_merged_num = models.IntegerField(default=0, verbose_name=u'待打单数')
-    psi_waitscan_num = models.IntegerField(default=0, verbose_name=u'待扫描数')
-    psi_waitpost_num = models.IntegerField(default=0, verbose_name=u'待称重数')
-    psi_sent_num = models.IntegerField(default=0, verbose_name=u'待签收数')
-    psi_finish_num = models.IntegerField(default=0, verbose_name=u'完成数')
+    psi_paid_num = models.IntegerField(default=0, verbose_name=u'待处理数') # 刚付完款要备货的包裹项数量 不包括天猫商城单
+    psi_prepare_book_num = models.IntegerField(default=0, verbose_name=u'待订货数') # 准备要订货的包裹项数量
+    psi_booked_num = models.IntegerField(default=0, verbose_name=u'已订货数') # 已订货的包裹项数量
+    psi_ready_num = models.IntegerField(default=0, verbose_name=u'待分配数') # 无效　
+    psi_third_send_num = models.IntegerField(default=0, verbose_name=u'待供应商发货数') # 刚付完款要备货的包裹项数量
+    psi_assigned_num = models.IntegerField(default=0, verbose_name=u'待合单数') # 准备要发货的包裹项数量，库存系统内产生包裹项从而发货都会临时性地改变此项（不包括天猫商城单，手工单，）（包含蜂巢发货，不包括第三方发货）
+    psi_merged_num = models.IntegerField(default=0, verbose_name=u'待打单数') # 准备好包裹的包裹项数量，产生包裹需发货都会临时性地改变此项（包括了天猫商城单，手工单，清库存，退多货，退次品）（包括蜂巢发货，不包括第三方包裹）
+    psi_waitscan_num = models.IntegerField(default=0, verbose_name=u'待扫描数') # 自家仓库发货包裹的包裹项数量　不包括蜂巢发货不包括第三方发货
+    psi_waitpost_num = models.IntegerField(default=0, verbose_name=u'待称重数') # 自家仓库发货包裹的包裹项数量　不包括蜂巢发货不包括第三方发货
+    psi_sent_num = models.IntegerField(default=0, verbose_name=u'待签收数') # 所有已发货的包裹项数量
+    psi_finish_num = models.IntegerField(default=0, verbose_name=u'完成数') # 所有已完成的包裹项数量
 
     # 仓库库存数
-    adjust_quantity = models.IntegerField(default=0, verbose_name=u'调整数')  #
-    history_quantity = models.IntegerField(default=0, verbose_name=u'历史库存')  #
-    inbound_quantity = models.IntegerField(default=0, verbose_name=u'入仓库存')  #
-    return_quantity = models.IntegerField(default=0, verbose_name=u'客户退货')  #
-    rg_quantity = models.IntegerField(default=0, verbose_name=u'退还供应商')  #
+    adjust_quantity = models.IntegerField(default=0, verbose_name=u'调整数')  # 所有正品调整数
+    history_quantity = models.IntegerField(default=0, verbose_name=u'历史库存')  # 所有历史库存数
+    inbound_quantity = models.IntegerField(default=0, verbose_name=u'入仓库存')  # 所有订货入库数（不能对应进订货单即多货不算）
+    return_quantity = models.IntegerField(default=0, verbose_name=u'客户退货')  # 所有客户退货入库正品数
+    rg_quantity = models.IntegerField(default=0, verbose_name=u'退还供应商')  # 所有退还供应商数
 
     # 统计数
-    assign_num = models.IntegerField(default=0, verbose_name=u'已分配数')  # 未出库包裹单中已分配的sku数量【已经】
-    post_num = models.IntegerField(default=0, verbose_name=u'已发货数')  #
+    assign_num = models.IntegerField(default=0, verbose_name=u'已备货数')  # 未出库包裹单中已分配的sku数量【已经】(含待合单数和待打单数)（包括天猫商城单，手工单，不含多货和次品）
+    post_num = models.IntegerField(default=0, verbose_name=u'已发货数')  # 所有发货数　不含虚拟商品　包含手工发货，清库存，天猫商城单
 
     # 收卖库存
-    shoppingcart_num = models.IntegerField(default=0, verbose_name=u'加入购物车数')  #
-    waitingpay_num = models.IntegerField(default=0, verbose_name=u'等待付款数')  #
-    sold_num = models.IntegerField(default=0, verbose_name=u'购买数')  #
-    paid_num = models.IntegerField(default=0, verbose_name=u'付款数')  # 付款不一定等同于购买成功,如团购
+    shoppingcart_num = models.IntegerField(default=0, verbose_name=u'加入购物车数')  # 所有购物车数
+    waitingpay_num = models.IntegerField(default=0, verbose_name=u'等待付款数')  # 所有待支付数
+    sold_num = models.IntegerField(default=0, verbose_name=u'购买数')  # 所有卖出数　不含天猫商城单
+    paid_num = models.IntegerField(default=0, verbose_name=u'付款数')  # 所有付款数，付款不一定等同于购买成功,如团购
 
     inferior_num = models.IntegerField(default=0, verbose_name=u"次品数", help_text=u"已作废的数据")  # 保存对应sku的次品数量
     created = models.DateTimeField(null=True, blank=True, db_index=True, auto_now_add=True, verbose_name=u'创建时间')
@@ -149,7 +149,10 @@ class SkuStock(models.Model):
 
     @property
     def wait_post_num(self):
-        return self.sold_num - self.post_num
+        if self.product.type == 0:
+            return self.sold_num - self.post_num
+        else:
+            return 0
 
     @property
     def not_assign_num(self):
@@ -158,12 +161,18 @@ class SkuStock(models.Model):
 
     @property
     def wait_assign_num(self):
-        return self.sold_num - self.assign_num - self.post_num
+        if self.product.type == 0:
+            return self.sold_num - self.assign_num - self.post_num
+        else:
+            return 0
 
     @property
     def wait_order_num(self):
-        res = self.sold_num - self.post_num - self.realtime_quantity
-        return res if res > 0 else 0
+        if self.product.type == 0:
+            res = self.sold_num - self.post_num - self.realtime_quantity
+            return res if res > 0 else 0
+        else:
+            return 0
 
     @property
     def new_lock_num(self):
@@ -198,6 +207,7 @@ class SkuStock(models.Model):
     def restat(self, need_stat=[]):
         """
             用统计方式重新计算库存
+            注意过滤条件，修改请仔细核对库存属性定义
         """
         from shopback.trades.models import PackageSkuItem
         from shopback.dinghuo.models import OrderDetail, RGDetail, ReturnGoods
@@ -212,15 +222,10 @@ class SkuStock(models.Model):
                                                  'waitingpay_num', 'sold_num', 'paid_num']
         params = {}
         for attr in need_stat:
-            if attr in psi_attrs_dict:
-                status = psi_attrs_dict[attr]
-                params[attr] = PackageSkuItem.objects.filter(sku_id=self.sku_id, type=PSI_TYPE.NORMAL,
-                                                             pay_time__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME,
-                                                             status=status). \
-                                   exclude(status=PSI_STATUS.CANCEL).aggregate(total=Sum('num')).get(
-                    'total') or 0
             if attr == 'assign_num':
-                params[attr] = PackageSkuItem.objects.filter(sku_id=self.sku_id, type=PSI_TYPE.NORMAL,
+                params[attr] = PackageSkuItem.objects.filter(sku_id=self.sku_id,
+                                                             type__in=[PSI_TYPE.NORMAL, PSI_TYPE.BYHAND,
+                                                                       PSI_TYPE.RETURN_GOODS, PSI_TYPE.TIANMAO],
                                                              pay_time__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME,
                                                              assign_status=1).values(
                     'sku_id').aggregate(total=Sum('num')).get('total') or 0
@@ -229,13 +234,22 @@ class SkuStock(models.Model):
                                                           arrival_time__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME) \
                                    .aggregate(total=Sum('arrival_quantity')).get('total') or 0
             if attr == 'sold_num':
-                params[attr] = PackageSkuItem.objects.filter(sku_id=self.sku_id, type=PSI_TYPE.NORMAL,
-                                                             pay_time__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME,
-                                                             assign_status__in=[2, 0, 1, 4]).aggregate(
-                    total=Sum('num')).get(
-                    'total') or 0
+                if self.product.type == 1:
+                    params[attr] = SaleOrder.objects.filter(sku_id=self.sku_id, pay_time__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME,
+                                                  status__in=[2, 3, 4, 5]).aggregate(
+                            total=Sum('num')).get('total') or 0
+                elif self.product.type == 0:
+                    params[attr] = PackageSkuItem.objects.filter(sku_id=self.sku_id, type=PSI_TYPE.NORMAL,
+                                                                 pay_time__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME,
+                                                                 assign_status__in=[2, 0, 1, 4]).aggregate(
+                        total=Sum('num')).get(
+                        'total') or 0
+                else:
+                    params[attr] = 0
             if attr == 'post_num':
-                params[attr] = PackageSkuItem.objects.filter(sku_id=self.sku_id, type=PSI_TYPE.NORMAL,
+                params[attr] = PackageSkuItem.objects.filter(sku_id=self.sku_id,
+                                                             type__in=[PSI_TYPE.NORMAL, PSI_TYPE.TIANMAO,
+                                                                       PSI_TYPE.BYHAND, PSI_TYPE.RETURN_GOODS],
                                                              pay_time__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME,
                                                              assign_status=2).aggregate(total=Sum('num')).get(
                     'total') or 0
@@ -248,8 +262,7 @@ class SkuStock(models.Model):
                                                        created__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME,
                                                        return_goods__status__in=[ReturnGoods.DELIVER_RG,
                                                                                  ReturnGoods.REFUND_RG,
-                                                                                 ReturnGoods.SUCCEED_RG,
-                                                                                 ReturnGoods.FAILED_RG],
+                                                                                 ReturnGoods.SUCCEED_RG],
                                                        type=RGDetail.TYPE_REFUND).\
                                    aggregate(total=Sum('num')).get('total') or 0
             if attr == 'shoppingcart_num':
@@ -262,12 +275,20 @@ class SkuStock(models.Model):
                             total=Sum('num')).get('total') or 0
             if attr == 'paid_num':
                 params[attr] = SaleOrder.objects.filter(sku_id=self.sku_id,
-                                                  status__in=[2, 3, 4, 5]).aggregate(
+                                                  status__in=[2, 3, 4, 5], created__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME).aggregate(
                             total=Sum('num')).get('total') or 0
             if attr == 'return_quantity':
                 params[attr] = RefundProduct.objects.filter(sku_id=self.sku_id,
-                            created__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME,
-                            can_reuse=True).aggregate(total=Sum('num')).get('total') or 0
+                                                            created__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME,
+                                                            can_reuse=True).aggregate(total=Sum('num')).get(
+                    'total') or 0
+            if attr in psi_attrs_dict:
+                status = psi_attrs_dict[attr]
+                params[attr] = PackageSkuItem.objects.filter(sku_id=self.sku_id,
+                                                             pay_time__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME,
+                                                             status=status).exclude(type__in=[PSI_TYPE.RETURN_INFERIOR, PSI_TYPE.RETURN_OUT_ORDER]). \
+                                   exclude(status=PSI_STATUS.CANCEL).aggregate(total=Sum('num')).get(
+                    'total') or 0
         update_fields = []
         for k, v in params.iteritems():
             if hasattr(self, k):
@@ -373,18 +394,6 @@ class SkuStock(models.Model):
 
     @staticmethod
     # @transaction.atomic
-    def set_psi_booked_to_ready(sku_id, num, stat=STAT_SIGN, warning=WARNING):
-        # stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
-        stock = SkuStock._objects.get(sku_id=sku_id)
-        stock.psi_ready_num += num
-        stock.psi_booked_num -= num
-        change_fields = ['psi_booked_num', 'psi_ready_num']
-        stock.stat_save(change_fields, stat=stat, warning=warning)
-
-
-
-    @staticmethod
-    # @transaction.atomic
     def set_psi_init_assigned(sku_id, num, stat=STAT_SIGN, warning=WARNING):
         # stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
         stock = SkuStock._objects.get(sku_id=sku_id)
@@ -481,17 +490,13 @@ class SkuStock(models.Model):
         SkuStock.stat_warning(sku_id, change_fields, warning, stat)
 
     @staticmethod
-    # @transaction.atomic
     def add_inbound_quantity(sku_id, num, stat=STAT_SIGN, warning=WARNING):
-        # stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
         stock = SkuStock._objects.get(sku_id=sku_id)
         stock.inbound_quantity += num
-        stock.psi_booked_num -= num
-        change_fields = ['inbound_quantity', 'psi_booked_num']
+        change_fields = ['inbound_quantity']
         stock.stat_save(change_fields, stat=stat, warning=warning)
 
     @staticmethod
-    # @transaction.atomic
     def add_return_quantity(sku_id, num, stat=STAT_SIGN, warning=WARNING):
         # stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
         stock = SkuStock._objects.get(sku_id=sku_id)
@@ -500,7 +505,6 @@ class SkuStock(models.Model):
         stock.stat_save(change_fields, stat=stat, warning=warning)
 
     @staticmethod
-    # @transaction.atomic
     def add_shoppingcart_num(sku_id, num, stat=STAT_SIGN, warning=WARNING):
         # stock = SkuStock._objects.select_for_update().get(sku_id=sku_id)
         stock = SkuStock._objects.get(sku_id=sku_id)
@@ -524,7 +528,10 @@ class SkuStock(models.Model):
         stock = SkuStock._objects.get(sku_id=sku_id)
         stock.paid_num += num
         stock.waitingpay_num -= num
-        change_fields = ['paid_num', 'waitingpay_num']
+        if stock.product.type == 1:
+            # 虚拟商品　支付即为购买成功　普通商品　发货为购买成功
+            stock.sold_num += num
+        change_fields = ['paid_num', 'waitingpay_num', 'sold_num']
         stock.stat_save(change_fields, stat=stat, warning=warning)
 
     def realtime_lock_num_display(self):
@@ -557,7 +564,10 @@ class SkuStock(models.Model):
     @property
     def unused_stock(self):
         """冗余库存数"""
-        return self.history_quantity + self.inbound_quantity + self.adjust_quantity + self.return_quantity - self.rg_quantity - self.sold_num
+        if self.product.type == 0:
+            return self.history_quantity + self.inbound_quantity + self.adjust_quantity + self.return_quantity - self.rg_quantity - self.sold_num
+        else:
+            return 0
 
     @staticmethod
     def redundancies():

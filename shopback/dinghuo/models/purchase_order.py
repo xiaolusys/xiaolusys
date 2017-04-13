@@ -583,6 +583,9 @@ class OrderList(models.Model):
         self.save()
 
     def set_stage_delete(self):
+        self.purchase_order.restat()
+        if self.purchase_order.book_num and self.type == OrderList.CREATED_BY_MACHINE:
+            raise Exception(u'自动订货表订货数大于０不能删除，你可以直接手工订货，入库后自动订货单会自然消失')
         self.stage = OrderList.STAGE_DELETED
         self.status = OrderList.ZUOFEI
         self.save()
@@ -1083,7 +1086,17 @@ class OrderDetail(models.Model):
             stat.save(update_fields=['inbound_quantity', 'modified'])
             stat.relase_assign(orderlist=self.orderlist)
 
-    def sync_stock(self):
+    def check_if_finished(self):
+        # 如果所有订货单项都完成，则更新orderlist状态为完成
+        all_orderdetail = self.orderlist.order_list.all()
+        orderdetail_count = all_orderdetail.count()
+        for i in all_orderdetail:
+            if i.arrival_quantity == i.buy_quantity:
+                orderdetail_count = orderdetail_count - 1
+        if orderdetail_count == 0:
+            self.orderlist.set_stage_complete()
+
+    def set_arrival_quantity(self, sync_stock=True):
         ori_arrival_quantity = self.arrival_quantity
         self.arrival_quantity = self.records.filter(
             inbounddetail__checked=True).aggregate(
@@ -1095,18 +1108,13 @@ class OrderDetail(models.Model):
                                            - self.inferior_quantity
         self.arrival_time = self.records.order_by('-created').first().created
         self.save()
-        now_add = self.arrival_quantity - ori_arrival_quantity
-        SkuStock.add_inbound_quantity(self.chichu_id, now_add)
-        SkuStock.get_by_sku(self.chichu_id).assign(orderlist=self.orderlist)
+        if sync_stock:
+            now_add = self.arrival_quantity - ori_arrival_quantity
+            SkuStock.add_inbound_quantity(self.chichu_id, now_add)
+            SkuStock.get_by_sku(self.chichu_id).assign(orderlist=self.orderlist)
+        self.check_if_finished()
 
-        ###跟新orderlist状态为完成
-        all_orderdetail = self.orderlist.order_list.all()
-        orderdetail_count = all_orderdetail.count()
-        for i in all_orderdetail:
-            if i.arrival_quantity == i.buy_quantity:
-                orderdetail_count = orderdetail_count - 1
-        if orderdetail_count == 0:
-            self.orderlist.set_stage_complete()
+
 
 
 
