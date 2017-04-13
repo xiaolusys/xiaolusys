@@ -1366,6 +1366,7 @@ class PackageSkuItem(BaseModel):
                     self.save()
                     po.add_package_sku_item(self)
                     SkuStock.set_psi_merged(self.sku_id, self.num)
+                    po = PackageOrder.objects.get(pid=po.pid)
                     po.set_logistics_company(self.sale_trade.logistics_company_id)
             if self.type == PSI_TYPE.TIANMAO:
                 self.status = PSI_STATUS.MERGED
