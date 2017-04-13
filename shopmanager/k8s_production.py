@@ -172,16 +172,45 @@ PINGPP_APPKEY = "sk_live_HOS4OSW10u5CDyrn5Gn9izLC"
 ################### XIAOLU UNIONPAY SETTINGS ##################
 XIAOLU_CLENTIP = "118.178.116.5"
 
-########################### ONEAPM Statsd ##############################
+########################### Statsd & Prometheus ##############################
 STATSD_HOST = 'statsd.default.svc.cluster.local'
 STATSD_PORT = 9125
 # STATSD_CLIENT = 'celery_statsd.oneapm'
 # STATSD_CELERY_SIGNALS = True
+
+INSTALLED_APPS.extend([
+    'django_prometheus',
+])
+
 MIDDLEWARE_CLASSES = (
+    'django_prometheus.middleware.PrometheusBeforeMiddleware',
     'django_statsd.middleware.GraphiteRequestTimingMiddleware',
     'django_statsd.middleware.GraphiteMiddleware',
 ) + MIDDLEWARE_CLASSES
 
+MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + (
+    'django_prometheus.middleware.PrometheusAfterMiddleware',
+    'dogslow.WatchdogMiddleware',
+)
+
+########################### DOGSLOW FOR PROMETHEUS ################################
+# Watchdog is enabled by default, to temporarily disable, set to False:
+DOGSLOW = True
+
+# By default, Watchdog will create log files with the backtraces.
+# You can also set the location of where it stores them:
+DOGSLOW_LOG_TO_FILE = False
+
+# Log requests taking longer than 25 seconds:
+DOGSLOW_TIMER = 3
+
+# Also log to this logger (defaults to none):
+DOGSLOW_LOGGER = 'dogslow'
+DOGSLOW_LOG_LEVEL = 'WARNING'
+
+# Print (potentially huge!) local stack variables (off by default, use
+# True for more detailed, but less manageable reports)
+DOGSLOW_STACK_VARS = False
 
 #################### TAOBAO SETTINGS ###################
 APPKEY = '12545735'  # app name guanyi erp ,younishijie
