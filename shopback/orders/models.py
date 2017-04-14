@@ -204,6 +204,12 @@ class Trade(models.Model):
         merge_trade_signal.send(sender=Trade, trade=trade)
         return trade
 
+    def gen_unikey(self):
+        if not self.user_address_unikey:
+            self.user_address_unikey = self.get_address_unikey()
+            self.user_unikey = self.get_user_unikey()
+            self.save()
+
     def get_address_unikey(self):
         address = self.receiver_state + self.receiver_city + self.receiver_district + self.receiver_address
         return hashlib.sha1(address).hexdigest()
@@ -288,7 +294,10 @@ class Order(models.Model):
             if len(otps) > 1:
                 self._sku_ = ProductSku.objects.filter(product__outer_id=otps[0], outer_id=otps[1]).first()
             else:
-                self._sku_ = ProductSku.objects.filter(product__outer_id=self.outer_id, outer_id=self.outer_sku_id).first()
+                sku = ProductSku.objects.filter(product__outer_id=self.outer_id, outer_id=self.outer_sku_id).first()
+                if not sku:
+                    sku = ProductSku.objects.filter(product__outer_id=self.outer_id, outer_id=self.outer_id + self.outer_sku_id).first()
+                self._sku_ = sku
         return self._sku_
 
     @property
@@ -309,21 +318,20 @@ class Order(models.Model):
             return
         if self.has_psi_created():
             return
+        self.trade.gen_unikey()
         # 防错　如果mergeOrder已发货，则不再产生成PackageSkuItem
         from shopback.trades.models import PackageSkuItem, PSI_TYPE, MergeOrder, MergeTrade
         merge_order = MergeOrder.objects.filter(oid=self.oid).first()
-        if merge_order.is_sent() or merge_order.merge_trade.is_sent():
+        if (merge_order and merge_order.is_sent()) or (merge_order and merge_order.merge_trade.is_sent()):
             return
         ware_by = self.sku.ware_by
         sku_item = PackageSkuItem(sale_order_id=None, ware_by=ware_by, oid=self.get_tb_oid())
         sku_item.sku_id = self.sku.id
-        sku_item.product = self.product
+        #　sku_item.product = self.product
         sku_item.outer_sku_id = self.outer_sku_id
         sku_item.outer_id = self.product.outer_id
         sku_item.num = self.num
         sku_item.type = PSI_TYPE.TIANMAO
-        sku_item.package_order_id
-        sku_item.package_order_pid
         sku_item.ware_by = ware_by
         # sku_item.cid = None
         sku_item.title = self.product.title()
