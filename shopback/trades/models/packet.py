@@ -610,6 +610,7 @@ class PackageOrder(models.Model):
         # po.lg_aging = trade.lg_aging
         # po.lg_aging_type = trade.lg_aging_type
         po.save()
+        return po
 
     @staticmethod
     @transaction.atomic
