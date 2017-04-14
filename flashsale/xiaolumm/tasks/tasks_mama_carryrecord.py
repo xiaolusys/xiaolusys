@@ -76,7 +76,7 @@ def task_ordercarry_update_carryrecord(carry):
             from flashsale.pay.apis.v1.product import get_virtual_modelproduct_from_boutique_modelproduct
             coupon_mp = get_virtual_modelproduct_from_boutique_modelproduct(product.model_id)
 
-            if record.status == CarryRecord.CONFIRMED:
+            if carry_record_status == CarryRecord.CONFIRMED:
                 record.confirm()
                 # give elite score
                 if model_product and coupon_mp and coupon_mp.products[0].elite_score > 0 and carry.carry_num > 0 and (model_product.is_boutique_product or model_product.product_type == ModelProduct.USUAL_TYPE):
@@ -89,7 +89,7 @@ def task_ordercarry_update_carryrecord(carry):
                         customer = upper_mama.get_mama_customer()
                         transfer_in = create_present_elite_score(customer, int(round(coupon_mp.products[0].elite_score * (sale_order.payment / sale_order.price))), template, None, carry.order_id)
 
-            if record.status == CarryRecord.CANCEL:
+            if carry_record_status == CarryRecord.CANCEL:
                 record.cancel()
                 # cancel elite score
                 if model_product and product.elite_score > 0 and carry.carry_num > 0 and (model_product.is_boutique_product or model_product.product_type == ModelProduct.USUAL_TYPE):
