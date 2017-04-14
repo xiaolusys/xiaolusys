@@ -52,9 +52,19 @@ def task_ordercarry_update_carryrecord(carry):
     if carry.mama_id <= 0:
         return
 
+    from flashsale.xiaolumm.models import OrderCarry
+    if carry.status == OrderCarry.STAGING:
+        carry_record_status = CarryRecord.PENDING
+    elif carry.status == OrderCarry.ESTIMATE:
+        carry_record_status = CarryRecord.PENDING
+    elif carry.status == OrderCarry.CONFIRM:
+        carry_record_status = CarryRecord.CONFIRMED
+    elif carry.status == OrderCarry.CANCEL:
+        carry_record_status = CarryRecord.CANCEL
+
     record = CarryRecord.objects.filter(uni_key=carry.uni_key).first()
     if record:
-        if record.status != carry.status:
+        if record.status != carry_record_status:
             from flashsale.pay.models.trade import SaleOrder
             from flashsale.pay.models.product import ModelProduct
             from flashsale.xiaolumm.models import XiaoluMama
@@ -66,7 +76,7 @@ def task_ordercarry_update_carryrecord(carry):
             from flashsale.pay.apis.v1.product import get_virtual_modelproduct_from_boutique_modelproduct
             coupon_mp = get_virtual_modelproduct_from_boutique_modelproduct(product.model_id)
 
-            if carry.status == CarryRecord.CONFIRMED:
+            if record.status == CarryRecord.CONFIRMED:
                 record.confirm()
                 # give elite score
                 if model_product and coupon_mp and coupon_mp.products[0].elite_score > 0 and carry.carry_num > 0 and (model_product.is_boutique_product or model_product.product_type == ModelProduct.USUAL_TYPE):
@@ -79,7 +89,7 @@ def task_ordercarry_update_carryrecord(carry):
                         customer = upper_mama.get_mama_customer()
                         transfer_in = create_present_elite_score(customer, int(round(coupon_mp.products[0].elite_score * (sale_order.payment / sale_order.price))), template, None, carry.order_id)
 
-            if carry.status == CarryRecord.CANCEL:
+            if record.status == CarryRecord.CANCEL:
                 record.cancel()
                 # cancel elite score
                 if model_product and product.elite_score > 0 and carry.carry_num > 0 and (model_product.is_boutique_product or model_product.product_type == ModelProduct.USUAL_TYPE):
@@ -97,7 +107,7 @@ def task_ordercarry_update_carryrecord(carry):
 
     if carry.carry_num > 0:
         CarryRecord.create(carry.mama_id, carry.carry_num, CarryRecord.CR_ORDER, carry.carry_description,
-                           uni_key=carry.uni_key,status=carry.status)
+                           uni_key=carry.uni_key,status=carry_record_status)
 
 
 @app.task(serializer='pickle')
