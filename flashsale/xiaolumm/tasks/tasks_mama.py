@@ -184,7 +184,7 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
             if record.status != order_carry.status:
                 record.status = order_carry.status
                 record.save(update_fields=['status', 'modified'])
-        return
+        # return  # temp add data fix
 
     from flashsale.pay.models.trade import SaleOrder
     sale_order = SaleOrder.objects.filter(oid=order_carry.order_id).first()
