@@ -105,9 +105,9 @@ def task_ordercarry_update_carryrecord(carry):
                         cts.save()
         return
 
-    if carry.carry_num > 0:
-        CarryRecord.create(carry.mama_id, carry.carry_num, CarryRecord.CR_ORDER, carry.carry_description,
-                           uni_key=carry.uni_key,status=carry_record_status)
+
+    CarryRecord.create(carry.mama_id, carry.carry_num, CarryRecord.CR_ORDER, carry.carry_description,
+                       uni_key=carry.uni_key,status=carry_record_status)
 
 
 @app.task(serializer='pickle')
