@@ -125,7 +125,8 @@ class Customer(BaseTagModel):
         (SUPERVISE, u'监管'),
     )
 
-    id = models.AutoField(primary_key=True, verbose_name=u'客户ID')
+    # TODO@MERON.2017.04.14 此处需注释, 显示写出会导致tagging主动加载model对应tags
+    # id = models.AutoField(primary_key=True, verbose_name=u'客户ID')
     user = models.OneToOneField(DjangoUser, verbose_name=u'原始用户')
     nick = models.CharField(max_length=32, blank=True, default=genCustomerNickname, verbose_name=u'昵称')
     thumbnail = models.CharField(max_length=256, blank=True, verbose_name=u'头像')

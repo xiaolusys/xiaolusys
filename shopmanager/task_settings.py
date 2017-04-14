@@ -1004,7 +1004,7 @@ SYNC_MODEL_SCHEDULE = {
     },
     u'定时淘宝商城待发货订单下载任务': {
         'task': 'shopback.orders.tasks.updateAllUserWaitPostOrderTask',
-        'schedule': crontab(minute="*/30", hour="8,12,16,17,18,19"),
+        'schedule': crontab(minute="*/30", hour="8,10,12,14,16,17,18,19"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.updateAllUserWaitPostOrderTask'}
     },
