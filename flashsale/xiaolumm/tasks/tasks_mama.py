@@ -109,14 +109,21 @@ def gen_ordercarry(referal_relationship, order_carry, carry_type, carry_num):
     order_carry参考的前一级ordercarry
     carry_type类型
     """
-    count = OrderCarry.objects.filter(order_id=order_carry.order_id).count()
+
     parent_mama_id = referal_relationship.referal_from_mama_id
     # 为了跟以前保持兼容，第2级的unikey不带count
     if carry_type == OrderCarry.REFERAL_ORDER:
-        if count == 1:
+        if order_carry.carry_type == OrderCarry.WAP_ORDER or order_carry.carry_type == OrderCarry.APP_ORDER:
             uni_key = util_unikey.gen_ordercarry_unikey(OrderCarry.REFERAL_ORDER, order_carry.order_id)
         else:
-            uni_key = '-'.join(['order', str(carry_type), order_carry.order_id, str(count + 1)])
+            # 要看自己是哪一级，才能唯一确定自己上级的等级
+            l2_uni_key = util_unikey.gen_ordercarry_unikey(OrderCarry.REFERAL_ORDER, order_carry.order_id)
+            if order_carry.uni_key == l2_uni_key:
+                uni_key = '-'.join(['order', str(carry_type), order_carry.order_id, str(3)])
+            else:
+                keys = order_carry.split('-')
+                count = int(keys[-1])
+                uni_key = '-'.join(['order', str(carry_type), order_carry.order_id, str(count + 1)])
     else:
         uni_key = util_unikey.gen_ordercarry_unikey(carry_type, order_carry.order_id)
     record = OrderCarry.objects.filter(uni_key=uni_key).first()

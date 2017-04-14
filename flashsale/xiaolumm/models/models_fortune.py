@@ -376,9 +376,10 @@ class CarryRecord(BaseModel):
         budget_log_status = cls.budget_log_status_map(status)
 
         referal_id = 'carryrecord-%s' % carry_record.id
-        BudgetLog.create(customer.id, BudgetLog.BUDGET_IN, carry_num, budget_log_type,
-                         status=budget_log_status,
-                         referal_id=referal_id)
+        if carry_num > 0:
+            BudgetLog.create(customer.id, BudgetLog.BUDGET_IN, carry_num, budget_log_type,
+                             status=budget_log_status,
+                             referal_id=referal_id)
 
         return carry_record
 
@@ -402,9 +403,10 @@ class CarryRecord(BaseModel):
             if bg:
                 bg.confirm_budget_log()
             else:
-                BudgetLog.create(customer.id, BudgetLog.BUDGET_IN, self.carry_num, budget_log_type,
-                                 status=budget_log_status,
-                                 referal_id=referal_id)
+                if self.carry_num > 0:
+                    BudgetLog.create(customer.id, BudgetLog.BUDGET_IN, self.carry_num, budget_log_type,
+                                     status=budget_log_status,
+                                     referal_id=referal_id)
 
     def cancel(self):
         """
@@ -444,9 +446,10 @@ class CarryRecord(BaseModel):
             if bg:
                 bg.chnage_peding_income_amount(new_value)
             else:
-                BudgetLog.create(customer.id, BudgetLog.BUDGET_IN, self.carry_num, budget_log_type,
-                                 status=budget_log_status,
-                                 referal_id=referal_id)
+                if self.carry_num > 0:
+                    BudgetLog.create(customer.id, BudgetLog.BUDGET_IN, self.carry_num, budget_log_type,
+                                     status=budget_log_status,
+                                     referal_id=referal_id)
 
 
     def carry_type_name(self):
