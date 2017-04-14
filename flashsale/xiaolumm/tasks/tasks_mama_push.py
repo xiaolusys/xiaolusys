@@ -146,6 +146,8 @@ def task_weixin_push_ordercarry(ordercarry):
         order_type = u'App订单'
     elif ordercarry.carry_type == 3:
         order_type = u'下属订单'
+    elif ordercarry.carry_type == 4:
+        order_type = u'下属订单'
 
     if is_boutique:
         params = {'first':{'value':u'女王大人, 小鹿美美App报告：您的店铺有人下单啦！', 'color':'#F87217'},
