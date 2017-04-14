@@ -258,7 +258,6 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
                                 'carry_um': carry_num,
                                 'created': datetime.datetime.now(),
                             })
-                            carry_num = 0
                             gen_ordercarry(relationship, order_carry, OrderCarry.REFERAL_ORDER, carry_num)
                             if upper_mama.referal_from == XiaoluMama.DIRECT:
                                 # 遇到direct，自动发佣就结束了
