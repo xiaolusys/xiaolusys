@@ -133,7 +133,7 @@ def gen_ordercarry(referal_relationship, order_carry, carry_type, carry_num):
             record.save(update_fields=['status', 'modified'])
         if record.carry_num != carry_num:
             record.carry_num = carry_num  # temp fix data 20170415
-            record.save(update_fields=['carry_num', 'modified'])
+            record.save(update_fields=['carry_num'])
         return
 
     mama_id = parent_mama_id
