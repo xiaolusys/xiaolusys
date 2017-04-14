@@ -191,9 +191,9 @@ INSTALLED_APPS =[
     'shopapp.sampleproduct',
     'shopapp.STOthermal',
 
-    'pms.wavepick',
+    # 'pms.wavepick',
     'pms.supplier',
-    'pms.category',
+    # 'pms.category',
     # 'pms.temai',
     'games.paint',
     'games.bomb',

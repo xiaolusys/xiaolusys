@@ -17,7 +17,6 @@ class PSI_STATUS:
         ('paid', u'刚付待处理'),
         ('prepare_book', u'待订货'),
         ('booked', u'待备货'),
-        ('ready', u'待分配'),
         ('third_send', u'待第三方发货'),
         ('assigned', u'待合单'),
         ('merged', u'待打单'),
