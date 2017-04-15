@@ -56,7 +56,7 @@ class PackageOrderSerializer(serializers.ModelSerializer):
                   'user_address_id', 'buyer_id', 'buyer_nick', 'buyer_message', 'seller_memo', 'sys_memo', 'post_cost',
                   'out_sid', 'logistics_company', 'weight', 'is_qrcode', 'qrcode_msg', 'can_review', 'priority',
                   'purchaser', 'supplier_id', 'operator', 'scanner', 'weighter', 'is_locked', 'is_charged',
-                  'is_picking_print', 'is_express_print', 'is_send_sms', 'has_refund', 'created', 'modified',
+                  'is_picking_print', 'is_express_print','redo_sign', 'is_send_sms', 'has_refund', 'created', 'modified',
                   'can_send_time', 'send_time', 'weight_time', 'charge_time', 'remind_time', 'consign_time',
                   'reason_code', 'type', 'get_sys_status_display', 'package_sku_items', 'get_ware_by_display',
                   'logistics_company_name', 'get_package_type_display']

@@ -261,6 +261,41 @@ def update_activity_pro(id, **kwargs):
     ap = ap.save()
     return ap
 
+def change_activitygoods_position(id ,**kwargs):
+    """修改活动产品位置"""
+    direction = kwargs.get("direction")
+    distance = kwargs.get("distance")
+    activity_entry_id = kwargs.get("activity_entry_id")
+    activity_products = ActivityProduct.objects.filter(activity_id=activity_entry_id)
+    activity_product = ActivityProduct.objects.filter(id=id).first()
+    if direction == 'minus':
+        small_activity_products = [i for i in activity_products if i.location_id < activity_product.location_id]
+        if not small_activity_products:
+            # print "这是最小的位置了"
+            return False
+        bigger_activity_products = [i for i in small_activity_products if
+                                     i.location_id >= activity_product.location_id - int(distance)]
+        for i in bigger_activity_products:
+            i.location_id += 1
+            i.save(update_fields=['location_id'])
+        activity_product.location_id = activity_product.location_id - int(distance)
+        activity_product.save(update_fields=['location_id'])
+        return True
+    if direction == 'plus':
+        bigger_activity_products = [i for i in activity_products if i.location_id > activity_product.location_id]
+        if not bigger_activity_products:
+            # print "这是最大的位置了"
+            return False
+        smaller_activity_products = [i for i in bigger_activity_products if
+                                     i.location_id <= activity_product.location_id + int(distance)]
+        for i in smaller_activity_products:
+            i.location_id -= 1
+            i.save(update_fields=['location_id'])
+        activity_product.location_id = activity_product.location_id + int(distance)
+        activity_product.save(update_fields=['location_id'])
+        return True
+    return False
+
 
 def delete_activity_pro(id):
     # type: () -> ActivityProduct
