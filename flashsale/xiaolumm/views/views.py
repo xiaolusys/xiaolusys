@@ -577,14 +577,6 @@ class ClickLogView(WeixinAuthMixin, View):
         openid, unionid = self.get_openid_and_unionid(request)
         if not valid_openid(openid):
             redirect_url = self.get_wxauth_redirct_url(request)
-            logger.error({
-                'action': 'ClickLogView',
-                'desc': 'not valid openid %s' % openid,
-                'mm_linkid': linkid,
-                'redirect_url': redirect_url,
-                'click_url': click_url,
-                'created': datetime.datetime.now(),
-            })
             return redirect(redirect_url)
 
         json_logger.info({
@@ -631,14 +623,6 @@ class ClickChannelLogView(WeixinAuthMixin, View):
         openid, unionid = self.get_openid_and_unionid(request)
         if not valid_openid(openid):
             redirect_url = self.get_wxauth_redirct_url(request)
-            logger.error({
-                'action': 'ClickChannelLogView',
-                'desc': 'not valid openid %s' % openid,
-                'mm_linkid': linkid,
-                'redirect_url': redirect_url,
-                'click_url': click_url,
-                'created': datetime.datetime.now(),
-            })
             return redirect(redirect_url)
         click_time = datetime.datetime.now()
         ctasks.task_Create_Click_Record.delay(linkid, openid, unionid, click_time, settings.WX_PUB_APPID, click_url)
