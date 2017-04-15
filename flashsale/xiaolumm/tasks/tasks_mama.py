@@ -98,7 +98,11 @@ def get_level_differential(model_product, high_level, low_level):
     high_index = elite_level_map[high_level]
     if low_level:
         low_index = elite_level_map[low_level]
-        return level_prices[high_index] - level_prices[low_index]
+        # 有时候下级比上级等级还高，那么就返回金额为0
+        if level_prices[high_index] - level_prices[low_index] >= 0:
+            return level_prices[high_index] - level_prices[low_index]
+        else:
+            return 0
     else:
         return level_prices[high_index]
 
