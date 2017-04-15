@@ -30,6 +30,7 @@ class Clicks(models.Model):
     isvalid = models.BooleanField(default=False, verbose_name='是否有效')
     click_time = models.DateTimeField(db_index=True, verbose_name=u'点击时间')
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建时间')
+    click_url = models.CharField(max_length=128, blank=True, verbose_name=u"点击url")
 
     class Meta:
         db_table = 'xiaolumm_clicks'
