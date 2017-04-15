@@ -23,7 +23,7 @@ SWITCH_CLICKREBETA_DATE = datetime.date(2016, 2, 24)
 
 
 @app.task()
-def task_Create_Click_Record(xlmmid, openid, unionid, click_time, app_key):
+def task_Create_Click_Record(xlmmid, openid, unionid, click_time, app_key, click_url):
     """
     异步保存妈妈分享点击记录
     xlmm_id:小鹿妈妈id,
@@ -53,7 +53,7 @@ def task_Create_Click_Record(xlmmid, openid, unionid, click_time, app_key):
     #if click_count < Clicks.CLICK_DAY_LIMIT and xlmmid not in click_linkids:
     #    isvalid = True
 
-    click = Clicks(linkid=mama_id, openid=openid, isvalid=True, click_time=click_time, app_key=app_key)
+    click = Clicks(linkid=mama_id, openid=openid, isvalid=True, click_time=click_time, app_key=app_key, click_url=click_url)
     click.save()
 
     task_Update_User_Click(click.id)

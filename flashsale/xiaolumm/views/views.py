@@ -550,6 +550,7 @@ class ClickLogView(WeixinAuthMixin, View):
         statsd.incr('xiaolumm.weixin_click')
         content = request.GET
         next_page = content.get('next', None)
+        click_url = request.get_full_path()
         # print 'next_page:', next_page
         # logger.error('next_page %s-path:%s' % (next_page, content))
         click_time = datetime.datetime.now()
@@ -562,12 +563,28 @@ class ClickLogView(WeixinAuthMixin, View):
             share_url = get_share_url(next_page=next_page, mm_linkid=linkid, ufrom='web')
             response = redirect(share_url)
             response.set_cookie('mm_linkid', linkid, max_age=86400)
+            logger.error({
+                'action': 'ClickLogView',
+                'desc': 'not from weixin',
+                'mm_linkid': linkid,
+                'redirect_url': share_url,
+                'click_url': click_url,
+                'created': datetime.datetime.now(),
+            })
             return response
 
         self.set_appid_and_secret(settings.WX_PUB_APPID, settings.WX_PUB_APPSECRET)
         openid, unionid = self.get_openid_and_unionid(request)
         if not valid_openid(openid):
             redirect_url = self.get_wxauth_redirct_url(request)
+            logger.error({
+                'action': 'ClickLogView',
+                'desc': 'not valid openid %s' % openid,
+                'mm_linkid': linkid,
+                'redirect_url': redirect_url,
+                'click_url': click_url,
+                'created': datetime.datetime.now(),
+            })
             return redirect(redirect_url)
 
         json_logger.info({
@@ -576,7 +593,7 @@ class ClickLogView(WeixinAuthMixin, View):
             'http_referal': request.META.get('HTTP_REFERER'),
             'http_agent': request.META.get('HTTP_USER_AGENT')
         })
-        ctasks.task_Create_Click_Record.delay(linkid, openid, unionid, click_time, settings.WX_PUB_APPID)
+        ctasks.task_Create_Click_Record.delay(linkid, openid, unionid, click_time, settings.WX_PUB_APPID, click_url)
 
         if not valid_openid(unionid):
             unionid = get_unionid_by_openid(openid, settings.WX_PUB_APPID)
@@ -598,17 +615,33 @@ class ClickChannelLogView(WeixinAuthMixin, View):
     """ 微信授权参数检查 """
 
     def get(self, request, linkid):
-
+        click_url = request.get_full_path()
         if not self.is_from_weixin(request):
             share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=linkid, ufrom='web')
+            logger.error({
+                'action': 'ClickChannelLogView',
+                'desc': 'not from weixin',
+                'mm_linkid': linkid,
+                'redirect_url': share_url,
+                'click_url': click_url,
+                'created': datetime.datetime.now(),
+            })
             return redirect(share_url)
         self.set_appid_and_secret(settings.WX_PUB_APPID, settings.WX_PUB_APPSECRET)
         openid, unionid = self.get_openid_and_unionid(request)
         if not valid_openid(openid):
             redirect_url = self.get_wxauth_redirct_url(request)
+            logger.error({
+                'action': 'ClickChannelLogView',
+                'desc': 'not valid openid %s' % openid,
+                'mm_linkid': linkid,
+                'redirect_url': redirect_url,
+                'click_url': click_url,
+                'created': datetime.datetime.now(),
+            })
             return redirect(redirect_url)
         click_time = datetime.datetime.now()
-        ctasks.task_Create_Click_Record.delay(linkid, openid, unionid, click_time, settings.WX_PUB_APPID)
+        ctasks.task_Create_Click_Record.delay(linkid, openid, unionid, click_time, settings.WX_PUB_APPID, click_url)
 
         if not valid_openid(unionid):
             unionid = get_unionid_by_openid(openid, settings.WX_PUB_APPID)

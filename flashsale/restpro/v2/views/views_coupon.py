@@ -621,7 +621,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                             if template_ids and template_id:
                                 from flashsale.coupon.apis.v1.coupontemplate import get_boutique_coupon_modelid_by_templateid
                                 coupon_modelid = get_boutique_coupon_modelid_by_templateid(template_id)
-                                if round(sale_order.payment / sale_order.price) > 0:
+                                if left_exchange_num > 0:
                                     results.append({'exchg_template_id': template_id, 'exchg_model_id': coupon_modelid,
                                                     'num': left_exchange_num, 'exchg_payment': sale_order.payment,
                                                     'order_id': entry.order_id, 'sku_img': entry.sku_img, 'sku_name': sale_order.title,
@@ -640,7 +640,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                         # indirect下级使用小鹿币购买的券，上级可以兑券,因为在保存ordercarry时已经判断了indirect才能保存，此处没有做indirect判断
                         from flashsale.pay.apis.v1.order import get_pay_type_from_trade
                         # budget_pay, coin_pay = get_pay_type_from_trade(sale_order.sale_trade)
-                        if round(sale_order.payment / sale_order.price) > 0 and model_product.extras.has_key('template_id'):
+                        if left_exchange_num > 0 and model_product.extras.has_key('template_id'):
                             results.append({'exchg_template_id': model_product.extras['template_id'], 'exchg_model_id': model_product.id,
                                             'num': left_exchange_num, 'exchg_payment': left_exchange_num * sale_order.price,
                                             'order_id': entry.order_id, 'sku_img': head_img, 'sku_name': sale_order.title,
@@ -672,7 +672,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                                 if template_ids and template_id:
                                     from flashsale.coupon.apis.v1.coupontemplate import get_boutique_coupon_modelid_by_templateid
                                     coupon_modelid = get_boutique_coupon_modelid_by_templateid(template_id)
-                                    if round(sale_order.payment / sale_order.price) > 0:
+                                    if left_exchange_num > 0:
                                         results.append({'exchg_template_id': template_id, 'exchg_model_id': coupon_modelid,
                                                         'num': left_exchange_num, 'exchg_payment': exchg_payment,
                                                         'order_id': entry.order_id, 'sku_img': entry.sku_img,
