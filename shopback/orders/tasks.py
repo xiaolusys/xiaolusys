@@ -45,8 +45,7 @@ def saveUserDuringOrdersTask(user_id, update_from=None, update_to=None, status=N
             order_list = response_list['trades_sold_get_response']
             if order_list.has_key('trades'):
                 for trade in order_list['trades']['trade']:
-                    modified = parse_datetime(trade['modified']) if trade.get('modified', None) else None
-                    if TradeService.isValidPubTime(user_id, trade['tid'], modified):
+                    if not Trade.objects.filter(id=trade['tid']).exists():
                         trade_dict = OrderService.getTradeFullInfo(user_id, trade['tid'])
                         order_trade = OrderService.saveTradeByDict(user_id, trade_dict)
                     update_tids.append(trade['tid'])
@@ -55,10 +54,11 @@ def saveUserDuringOrdersTask(user_id, update_from=None, update_to=None, status=N
     except Exception, exc:
         logger.error(u'淘宝订单批量下载错误：%s' % exc.message, exc_info=True)
         raise saveUserDuringOrdersTask.retry(exc=exc, countdown=60)
-
-    else:
-        for order in Order.objects.filter(stage=0):
-            order.create_package_sku_item()
+    for order in Order.objects.filter(stage=0):
+        order.create_package_sku_item()
+    from shopback.trades.apis.v1.packet import packing_skus
+    from shopback.trades.models import PSI_TYPE
+    packing_skus(PSI_TYPE.TIANMAO)
 
 
 @app.task(max_retries=3)
