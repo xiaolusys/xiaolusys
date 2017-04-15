@@ -33,28 +33,6 @@ class ActivityGoodsViewSet(viewsets.ModelViewSet):
         else:
             return Response([])
 
-    @detail_route(methods=['post'])
-    def change_activitygoods_position(self, request, pk):
-        direction = request.data.get('direction') or None
-        distance = request.data.get('distance') or None
-        activity_entry_id = request.data.get('activity_entry_id') or None
-        activity_products = get_list_or_404(ActivityProduct, activity_id=activity_entry_id)
-        activity_product = get_object_or_404(ActivityProduct, id=pk)
-        if not direction or not distance or not activity_entry_id:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        if direction == 'plus':
-            bigger_activity_products = [i for i in activity_products if i.location_id > activity_product.location_id]
-            if not bigger_activity_products:
-                raise exceptions.APIException(u'已经最大了')
-            smaller_activity_products = [i for i in bigger_activity_products if i.location_id <= activity_product.location_id + int(distance)]
-            for i in smaller_activity_products:
-                i.location_id -= 1
-                i.save(update_fields=['location_id'])
-            activity_product.location_id = activity_product.location_id + len(smaller_activity_products)
-            activity_product.save(update_fields=['location_id'])
-        return Response(status=status.HTTP_200_OK)
-
-
     # @list_route(methods=['get'])
     # def get_desc_pics_by_promotionid(self, request):
     #     content = request.REQUEST
