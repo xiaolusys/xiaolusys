@@ -13,13 +13,14 @@ from rest_framework import viewsets
 from rest_framework.decorators import list_route, detail_route
 from rest_framework.response import Response
 from rest_framework import exceptions
+from django.shortcuts import get_object_or_404
 
 from pms.supplier.models import SaleProductManage
 from ..models.activity import ActivityEntry, ActivityProduct
 from ..serializers.activity import ActivitySerializer, ActivityProductSerializer
 from ..apis.activity import get_activity_by_id, create_activity, update_activity, get_activity_pros_by_activity_id, \
     get_activity_pro_by_id, create_activity_pro, create_activity_pros_by_schedule_id, update_activity_pro, \
-    delete_activity_pro
+    delete_activity_pro,change_activitygoods_position
 from ..utils import choice_2_name_value
 from ..deps import get_future_topic_schedules
 
@@ -165,3 +166,21 @@ class ActivityViewSet(viewsets.ModelViewSet):
         activity_pro_id = request.data.pop('id')
         delete_activity_pro(activity_pro_id)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+    @detail_route(methods=['post'])
+    def change_activitygoods_position(self, request,pk):
+        direction = request.data.get('direction')
+        distance = request.data.get("distance")
+        activity_entry_id = request.data.get("activity_entry_id") or pk
+        activity_product_id = request.data.get("activity_product_id")
+        data = {'activity_entry_id': activity_entry_id, 'direction': direction, 'distance': distance}
+        result = change_activitygoods_position(activity_product_id,**data)
+        if result:
+            return Response({"info": "调整成功"})
+        else:
+            return Response({"info":"调整失败"},status=400)
+
+
+
+

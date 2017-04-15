@@ -12,6 +12,8 @@ from shopback.trades.forms import PackageOrderEditForm, PackageOrderWareByForm, 
 from shopback.items.models import ProductSku
 from shopback.logistics.models import LogisticsCompany
 from shopback.trades.serializers import LogisticsCompanySerializer
+from rest_framework import filters
+from shopback.trades.constants import PO_STATUS
 
 
 class PackageOrderViewSet(viewsets.ModelViewSet):
@@ -20,7 +22,19 @@ class PackageOrderViewSet(viewsets.ModelViewSet):
     # authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     # permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer, renderers.TemplateHTMLRenderer)
+    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter)
+    filter_fields = ('pid', 'out_sid', 'sys_status','ware_by')
+    search_fields = ('pid', 'out_sid', 'receiver_mobile')
+    ordering = ('pid',)
 
+    @list_route(methods=['get'])
+    def list_filters(self, request, *args, **kwargs):
+        logistics_company = LogisticsCompany.objects.filter(name__in=["韵达快递","邮政小包"])
+        return Response({
+            'ware_by': PackageOrder.WARE_CHOICES,
+            'sys_status': PO_STATUS.CHOICES,
+            'logistics_company': [[i.id,i.name] for i in logistics_company]
+        })
     @list_route(methods=['get'])
     def new(self, request, format='html'):
         package = PackageOrder()
@@ -116,7 +130,7 @@ class PackageOrderViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['post'])
     def change_to_prepare(self, request, *args, **kwargs):
-        pid = request.POST.get('pid')
+        pid = request.POST.get('pid') or request.data.get("pid")
         package = get_object_or_404(PackageOrder, pid=pid)
         if package.sys_status in [PackageOrder.WAIT_SCAN_WEIGHT_STATUS, PackageOrder.WAIT_CHECK_BARCODE_STATUS]:
             package.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS
