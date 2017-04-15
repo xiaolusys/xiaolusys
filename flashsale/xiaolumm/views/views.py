@@ -563,7 +563,7 @@ class ClickLogView(WeixinAuthMixin, View):
             share_url = get_share_url(next_page=next_page, mm_linkid=linkid, ufrom='web')
             response = redirect(share_url)
             response.set_cookie('mm_linkid', linkid, max_age=86400)
-            logger.error({
+            logger.info({
                 'action': 'ClickLogView',
                 'desc': 'not from weixin',
                 'mm_linkid': linkid,
@@ -610,7 +610,7 @@ class ClickChannelLogView(WeixinAuthMixin, View):
         click_url = request.get_full_path()
         if not self.is_from_weixin(request):
             share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=linkid, ufrom='web')
-            logger.error({
+            logger.info({
                 'action': 'ClickChannelLogView',
                 'desc': 'not from weixin',
                 'mm_linkid': linkid,
