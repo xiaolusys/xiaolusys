@@ -522,7 +522,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'coupon': coupon_ids,
                 'pay_extras': pay_extras,
                 'agent': request.META.get('HTTP_USER_AGENT'),
-                'orderUrl': request.get_full_path()
+                'orderUrl': form.get('orderUrl', '')
             }
         })
         params['extras_info'].update(self.get_mama_referal_params(request))
