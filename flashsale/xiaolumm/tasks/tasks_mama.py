@@ -137,7 +137,8 @@ def gen_ordercarry(referal_relationship, order_carry, carry_type, carry_num):
             record.save(update_fields=['status', 'modified'])
         if record.carry_num != carry_num:
             record.carry_num = carry_num  # temp fix data 20170415
-            record.save(update_fields=['carry_num'])
+            # record.save(update_fields=['carry_num', 'modified'])
+            OrderCarry.objects.filter(id=record.id).update(carry_num=carry_num)
         return
 
     mama_id = parent_mama_id
@@ -328,6 +329,15 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
                             'created': datetime.datetime.now(),
                         })
                         return
+                else:
+                    logger.warn({
+                        'action': 'task_update_second_level_ordercarry',
+                        'order_no': sale_order.oid,
+                        'desc': 'not relationship',
+                        'low_mama': low_mama.id,
+                        'created': datetime.datetime.now(),
+                    })
+                    return
 
         elif model_product.is_boutique_coupon:
             # 券订单都是给上级兑换的，自己这一级金额没意义，不能为非0
