@@ -54,7 +54,7 @@ def saveUserDuringOrdersTask(user_id, update_from=None, update_to=None, status=N
     except Exception, exc:
         logger.error(u'淘宝订单批量下载错误：%s' % exc.message, exc_info=True)
         raise saveUserDuringOrdersTask.retry(exc=exc, countdown=60)
-    for order in Order.objects.filter(stage=0):
+    for order in Order.objects.filter(stage=0, status=pcfg.WAIT_SELLER_SEND_GOODS):
         order.create_package_sku_item()
     from shopback.trades.apis.v1.packet import packing_skus
     from shopback.trades.models import PSI_TYPE
