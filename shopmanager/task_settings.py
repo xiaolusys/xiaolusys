@@ -998,7 +998,7 @@ CELERY_TASK_ROUTES = CELERY_ROUTES
 SYNC_MODEL_SCHEDULE = {
     u'定时淘宝商城订单增量下载任务': {
         'task': 'shopback.orders.tasks.updateAllUserIncrementTradesTask',
-        'schedule': crontab(minute="0", hour="*/12"),
+        'schedule': crontab(minute="0", hour="*/6"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.updateAllUserIncrementTradesTask'}
     },
