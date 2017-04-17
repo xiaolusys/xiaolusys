@@ -481,6 +481,7 @@ class SaleTrade(BaseModel):
 
                 for order in self.sale_orders.all():
                     order.set_status_paid(st.pay_time)
+
                     if order.is_deposit() and order.status == SaleTrade.WAIT_SELLER_SEND_GOODS:
                         order.status = SaleTrade.TRADE_FINISHED
                         order.save(update_fields=['status'])
@@ -529,7 +530,6 @@ class SaleTrade(BaseModel):
         self.save()
         for so in self.sale_orders.all():
             so.set_status_paid(self.pay_time)
-            SkuStock.set_order_paid_num(so.sku_id, so.num)
         self.set_order_paid()
 
     def set_order_paid(self):
@@ -1034,16 +1034,16 @@ def buy_boutique_register_product(sender, obj, **kwargs):
 signal_saletrade_pay_confirm.connect(buy_boutique_register_product, sender=SaleTrade)
 
 
-def update_skustock_paid_num(sender, obj, **kwargs):
-    """
-    订单支付后，更新skustock
-    """
-    from shopback.trades.models import SkuStock
-    for order in obj.sale_orders.all():
-        SkuStock.set_order_paid_num(order.sku_id, order.num)
-
-
-signal_saletrade_pay_confirm.connect(update_skustock_paid_num, sender=SaleTrade)
+# def update_skustock_paid_num(sender, obj, **kwargs):
+#     """
+#     订单支付后，更新skustock
+#     """
+#     from shopback.trades.models import SkuStock
+#     for order in obj.sale_orders.all():
+#         SkuStock.set_order_paid_num(order.sku_id, order.num)
+#
+#
+# signal_saletrade_pay_confirm.connect(update_skustock_paid_num, sender=SaleTrade)
 
 
 def push_trade_pay_notify(sender, obj, **kwargs):
@@ -1262,12 +1262,14 @@ class SaleOrder(PayBaseModel):
         return self.get_refundable()
 
     def set_status_paid(self, pay_time):
-        from shopback.trades.models import SkuStock
         self.status = self.WAIT_SELLER_SEND_GOODS
         if self.is_deposit():
             self.status = SaleTrade.TRADE_FINISHED
         self.pay_time = pay_time
         self.save()
+        from shopback.trades.models import SkuStock
+        for order in self.sale_orders.all():
+            SkuStock.set_order_paid_num(order.sku_id, order.num)
 
     def finish_sent(self):
         self.status = SaleOrder.WAIT_BUYER_CONFIRM_GOODS
