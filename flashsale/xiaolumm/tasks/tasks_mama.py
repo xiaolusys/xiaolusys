@@ -137,8 +137,7 @@ def gen_ordercarry(referal_relationship, order_carry, carry_type, carry_num):
             record.save(update_fields=['status', 'modified'])
         if record.carry_num != carry_num:
             record.carry_num = carry_num  # temp fix data 20170415
-            # record.save(update_fields=['carry_num', 'modified'])
-            OrderCarry.objects.filter(id=record.id).update(carry_num=carry_num)
+            record.save(update_fields=['carry_num', 'modified'])
         return
 
     mama_id = parent_mama_id
@@ -240,11 +239,14 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
                 })
                 return
             low_mama = mm_linkid_mama
+            low_order_carry = order_carry
             while low_mama.referal_from == XiaoluMama.INDIRECT and low_mama.elite_score < \
                     constants.ELITEMM_DESC_INFO[constants.ELITEMM_VP].get('min_score'):
-
-                relationship = ReferalRelationship.objects.filter(referal_to_mama_id=low_mama.id,
-                                                                  created__lt=order_carry.created).first()
+                if low_order_carry.created:
+                    relationship = ReferalRelationship.objects.filter(referal_to_mama_id=low_mama.id,
+                                                                      created__lt=low_order_carry.created).first()
+                else:
+                    relationship = ReferalRelationship.objects.filter(referal_to_mama_id=low_mama.id).first()
                 # 实物商品把第2级的价格填入
                 if relationship:
                     upper_mama = XiaoluMama.objects.filter(id=relationship.referal_from_mama_id,
@@ -265,14 +267,14 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
                                 'carry_um': carry_num,
                                 'created': datetime.datetime.now(),
                             })
-                            gen_ordercarry(relationship, order_carry, OrderCarry.REFERAL_ORDER, carry_num)
+                            gen_ordercarry(relationship, low_order_carry, OrderCarry.REFERAL_ORDER, carry_num)
                             if upper_mama.referal_from == XiaoluMama.DIRECT:
                                 # 遇到direct，自动发佣就结束了
                                 exchg_sale_order = ExchangeSaleOrder.objects.filter(
-                                    order_oid=order_carry.order_id).first()
+                                    order_oid=low_order_carry.order_id).first()
                                 if not exchg_sale_order:
-                                    exchg_record = ExchangeSaleOrder(order_oid=order_carry.order_id, has_exchanged=True,
-                                                                     exchg_type=1, uni_key=order_carry.order_id)
+                                    exchg_record = ExchangeSaleOrder(order_oid=low_order_carry.order_id, has_exchanged=True,
+                                                                     exchg_type=1, uni_key=low_order_carry.order_id)
                                     exchg_record.save()
                                 else:
                                     exchg_sale_order.has_exchanged = True
@@ -282,7 +284,7 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
                                     'action': 'task_update_second_level_ordercarry',
                                     'order_no': sale_order.oid,
                                     'desc': 'upper is direct, auto exchg over',
-                                    'mm_linkid_mama': mm_linkid_mama.id,
+                                    'mm_linkid_mama': low_mama.id,
                                     'upper mama': upper_mama.id,
                                     'created': datetime.datetime.now(),
                                 })
@@ -290,21 +292,22 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
                             else:
                                 # 继续循环，找下一级别妈妈
                                 low_mama = upper_mama
+                                low_order_carry = OrderCarry.objects.filter(mama_id=upper_mama.id, order_id=order_carry.order_id).first()
                         else:
                             # 上级的等级是vp或以上，不能自动发佣了，需要生成一个高级mama下属订单用来兑换,能兑换的金额就不是订单价，是下属妈妈的购买价了
                             carry_num = 0
-                            gen_ordercarry(relationship, order_carry, OrderCarry.ADVANCED_MAMA_REFERAL_ORDER, carry_num)
+                            gen_ordercarry(relationship, low_order_carry, OrderCarry.ADVANCED_MAMA_REFERAL_ORDER, carry_num)
                             from flashsale.pay.apis.v1.product import get_level_price_from_boutique_modelproduct
                             can_exchg_payment = get_level_price_from_boutique_modelproduct(model_product,
                                                                                            low_mama.elite_level)
                             # 为了便于存储，单位用分
                             can_exchg_payment = int(
                                 round((can_exchg_payment * sale_order.payment / sale_order.price) * 100))
-                            exchg_sale_order = ExchangeSaleOrder.objects.filter(order_oid=order_carry.order_id).first()
+                            exchg_sale_order = ExchangeSaleOrder.objects.filter(order_oid=low_order_carry.order_id).first()
                             if not exchg_sale_order:
-                                exchg_record = ExchangeSaleOrder(order_oid=order_carry.order_id,
+                                exchg_record = ExchangeSaleOrder(order_oid=low_order_carry.order_id,
                                                                  can_exchg_payment=can_exchg_payment,
-                                                                 uni_key=order_carry.order_id)
+                                                                 uni_key=low_order_carry.order_id)
                                 exchg_record.save()
                             else:
                                 exchg_sale_order.can_exchg_payment = can_exchg_payment
@@ -313,7 +316,7 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
                                 'action': 'task_update_second_level_ordercarry',
                                 'order_no': sale_order.oid,
                                 'desc': 'upper bigger than vp',
-                                'mm_linkid_mama': mm_linkid_mama.id,
+                                'mm_linkid_mama': low_mama.id,
                                 'upper mama': upper_mama.id,
                                 'can_exchg_payment': can_exchg_payment,
                                 'created': datetime.datetime.now(),
