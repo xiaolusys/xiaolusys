@@ -79,7 +79,7 @@ def task_ordercarry_update_carryrecord(carry):
             if carry_record_status == CarryRecord.CONFIRMED:
                 record.confirm()
                 # give elite score
-                if model_product and coupon_mp and coupon_mp.products[0].elite_score > 0 and carry.carry_num > 0 and (model_product.is_boutique_product or model_product.product_type == ModelProduct.USUAL_TYPE):
+                if model_product and coupon_mp and coupon_mp.products[0].elite_score > 0 and sale_order.payment > 0 and (model_product.is_boutique_product or model_product.product_type == ModelProduct.USUAL_TYPE):
                         from flashsale.coupon.apis.v1.transfer import create_present_elite_score
                         from flashsale.coupon.apis.v1.coupontemplate import get_coupon_template_by_id
                         upper_mama = XiaoluMama.objects.filter(id=carry.mama_id,
