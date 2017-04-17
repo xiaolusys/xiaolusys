@@ -125,7 +125,7 @@ def gen_ordercarry(referal_relationship, order_carry, carry_type, carry_num):
             if order_carry.uni_key == l2_uni_key:
                 uni_key = '-'.join(['order', str(carry_type), order_carry.order_id, str(3)])
             else:
-                keys = order_carry.split('-')
+                keys = order_carry.uni_key.split('-')
                 count = int(keys[-1])
                 uni_key = '-'.join(['order', str(carry_type), order_carry.order_id, str(count + 1)])
     else:
