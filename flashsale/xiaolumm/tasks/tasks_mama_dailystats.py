@@ -359,7 +359,7 @@ def task_auto_exchg_xlmm_order():
     tt = datetime.datetime.now()
     tf = tt - datetime.timedelta(days=2)
     from flashsale.pay.models.trade import SaleOrder, SaleTrade, Customer
-    from flashsale.xiaolumm.models import OrderCarry, XiaoluMama
+    from flashsale.xiaolumm.models import OrderCarry, XiaoluMama, ExchangeSaleOrder
     from flashsale.pay.models import ModelProduct
     exchg_orders = OrderCarry.objects.filter(carry_type=OrderCarry.REFERAL_ORDER,
                                              status__in=[OrderCarry.CONFIRM],
@@ -369,9 +369,10 @@ def task_auto_exchg_xlmm_order():
     if exchg_orders.exists():
         for entry in exchg_orders.iterator():
             sale_order = SaleOrder.objects.filter(oid=entry.order_id).first()
+            exchg_sale_order = ExchangeSaleOrder.objects.filter(order_oid=entry.order_id).first()
             if not sale_order:
                 continue
-            if sale_order.extras.has_key('exchange'):
+            if sale_order.extras.has_key('exchange') or (exchg_sale_order and exchg_sale_order.has_exchanged):
                 continue
             model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id,
                                                         is_boutique=True,
