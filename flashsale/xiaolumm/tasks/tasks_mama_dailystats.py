@@ -406,13 +406,19 @@ def task_auto_exchg_xlmm_order():
                                        u'auto exchange ordercarry=%s,so=%s,level1 %s >= level2 %s,level2 %s to level3 %s' % (entry.id, sale_order.oid, level1_mama.get_level_lowest_elite(), level2_mama.get_level_lowest_elite(), level2_mama.id, level3_mama.id))
                             # print 'add level3', sale_order.oid, level1_mama.id, level2_mama.id, level3_mama.id
                         else:
-                            sale_order.extras['exchange'] = True
-                            sale_order.extras['exchg_type'] = 1  #auto exchg type
-                            sale_order.save(update_fields=['extras'])
-                            from core.options import log_action, CHANGE, ADDITION, get_systemoa_user
-                            sys_oa = get_systemoa_user()
-                            log_action(sys_oa, sale_order, CHANGE,
-                                       u'auto exchange ordercarry=%s,level1 %s >= level2 %s,level2 %s, level3 none or not elite, so %s exchg finish' % (entry.id, level1_mama.get_level_lowest_elite(), level2_mama.get_level_lowest_elite(), level2_mama.id, sale_order.oid))
+                            exchg_sale_order = ExchangeSaleOrder.objects.filter(order_oid=entry.order_id).first()
+                            if not exchg_sale_order:
+                                exchg_record = ExchangeSaleOrder(order_oid=entry.order_id, has_exchanged=True,
+                                                                 exchg_type=1, uni_key=entry.order_id)
+                                exchg_record.save()
+                            else:
+                                exchg_sale_order.has_exchanged = True
+                                exchg_sale_order.exchg_type = 1
+                                exchg_sale_order.save()
+                                from core.options import log_action, CHANGE, ADDITION, get_systemoa_user
+                                sys_oa = get_systemoa_user()
+                                log_action(sys_oa, exchg_sale_order, CHANGE,
+                                           u'auto exchange ordercarry=%s,level1 %s >= level2 %s,level2 %s, level3 none or not elite, so %s exchg finish' % (entry.id, level1_mama.get_level_lowest_elite(), level2_mama.get_level_lowest_elite(), level2_mama.id, sale_order.oid))
                             # print 'chg so', sale_order.oid, level1_mama.id, level2_mama.id
         logger.info({'message': u'task_auto_exchg_xlmm_order | mama unexchg_coupon_num=%s autoexchg_coupon_num=%s' % (unexchg_coupon_num, autoexchg_coupon_num),})
 
