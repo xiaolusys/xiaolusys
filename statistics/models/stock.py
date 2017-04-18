@@ -57,8 +57,9 @@ class StockDailyReport(models.Model):
         res.extend(StockDailyReport.check_waitingpay_num())
         res.extend(StockDailyReport.check_paid_num())
         res.extend(StockDailyReport.check_return_quantity())
-        res.extend(StockDailyReport.check_psi_status_num())
-        return res
+        for status in ('paid', 'prepare_book', 'booked', 'third_send', 'assigned', 'merged', 'waitscan', 'waitpost', 'sent', 'finish'):
+            res.extend(StockDailyReport.check_psi_status_num(status))
+        return list(set(res))
 
     @staticmethod
     def check_assign_num(sku_ids=[]):

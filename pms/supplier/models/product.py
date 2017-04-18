@@ -141,6 +141,11 @@ class SaleProduct(BaseTagModel):
             self._item_products_ = Product.objects.filter(sale_product=self.id, status=Product.NORMAL)
         return self._item_products_
 
+    @property
+    def product_id(self):
+        product = self.get_item_products().first()
+        return product.id if product else None
+
     def get_item_products(self):
         from shopback.items.models import Product
         SaleProductRelation.objects.filter(sale_product=self)

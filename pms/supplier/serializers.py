@@ -446,7 +446,7 @@ class RetrieveSaleProductSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'title', 'product_link', 'price', 'pic_url', 'sale_price', 'on_sale_price',
             'std_sale_price', 'status', 'sale_category', 'sale_supplier', 'contactor', 'platform', 'status',
-            'source_type', 'supplier_sku', 'sku_extras', 'extras', 'model', 'memo', 'created', 'modified')
+            'source_type', 'supplier_sku', 'sku_extras', 'extras', 'model', 'memo', 'created', 'modified', 'product_id')
 
     def get_sku_extras(self, obj):
         return obj.sku_extras_info

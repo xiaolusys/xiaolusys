@@ -1,8 +1,7 @@
-from django.conf.urls import include, url
-from django.views.generic import TemplateView
+from django.conf.urls import url
 from django.views.decorators.csrf import csrf_exempt
 
-from pms.wavepick.views import *
+from shopapp.wavepick.views import *
 
 urlpatterns = [
     #url('^$',csrf_exempt(WeixinAcceptView.as_view())),
