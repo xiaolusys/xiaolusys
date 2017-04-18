@@ -5,6 +5,7 @@ import random
 from django.conf import settings
 from django.template import Context, Template
 
+from core.upload import generate_private_url
 from flashsale.xiaolumm.models.models_advertis import MamaVebViewConf
 from rest_framework import serializers
 
@@ -608,18 +609,28 @@ class UserAddressSerializer(serializers.HyperlinkedModelSerializer):
     status = serializers.ChoiceField(choices=UserAddress.STATUS_CHOICES)
     personalinfo_level = serializers.SerializerMethodField(read_only=True)
     identification_no = serializers.SerializerMethodField(read_only=True)
+    idcard = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = UserAddress
         fields = ('id', 'url', 'cus_uid', 'receiver_name', 'receiver_state', 'receiver_city',
                   'receiver_district', 'receiver_address', 'receiver_zip', 'receiver_mobile', 'personalinfo_level',
-                  'receiver_phone', 'logistic_company_code', 'default', 'status', 'created', 'identification_no')
+                  'receiver_phone', 'logistic_company_code', 'default', 'status', 'created', 'identification_no', 'idcard')
 
     def get_personalinfo_level(self, obj):
         return obj.get_personal_info_level()
 
     def get_identification_no(self, obj):
         return obj.idcard_no
+
+    def get_idcard(self, obj):
+        idcard = obj.extras.get('idcard', {})
+        face = idcard.get('face', '')
+        back = idcard.get('back', '')
+        if face and back:
+            face = generate_private_url(face)
+            back = generate_private_url(back)
+        return {'face': face, 'back': back}
 
 
 class DistrictSerializer(serializers.HyperlinkedModelSerializer):
