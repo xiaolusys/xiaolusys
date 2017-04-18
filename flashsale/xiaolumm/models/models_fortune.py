@@ -1546,8 +1546,9 @@ class ExchangeSaleOrder(BaseModel):
     auto_given_carry = models.BooleanField(default=False, verbose_name=u'自动发佣')
     exchg_type = models.IntegerField(default=0, verbose_name=u'兑换类型')
     has_exchanged = models.BooleanField(default=False, verbose_name=u'已兑换')
+    can_exchange = models.BooleanField(default=True, verbose_name=u'能否兑换')
     can_exchg_payment = models.IntegerField(default=0, verbose_name=u'还能兑换金额（分）')
-    uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')  #
+    uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')
 
     class Meta:
         db_table = 'flashsale_xlmm_exchange_order'

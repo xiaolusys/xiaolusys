@@ -720,17 +720,19 @@ def saleorder_return_coupon_exchange(salerefund, payment):
 
         # (2)sale order置为已经取消兑换
         if sale_order:
-            if not exchg_sale_order:
-                exchg_record = ExchangeSaleOrder(order_oid=salerefund.order_id, has_exchanged=False, uni_key=salerefund.order_id)
-                exchg_record.save()
-            else:
-                exchg_sale_order.has_exchanged = False
-                exchg_sale_order.save()
             if not sale_order.extras.has_key('can_return_num'):
                 sale_order.extras['can_return_num'] = sale_order.num - salerefund.refund_num
             else:
                 sale_order.extras['can_return_num'] = int(sale_order.extras['can_return_num']) - salerefund.refund_num
             SaleOrder.objects.filter(id=salerefund.order_id).update(extras=sale_order.extras)
+            if int(sale_order.extras['can_return_num']) == 0:
+                if not exchg_sale_order:
+                    exchg_record = ExchangeSaleOrder(order_oid=salerefund.order_id, can_exchange=False,
+                                                     uni_key=salerefund.order_id)
+                    exchg_record.save()
+                else:
+                    exchg_sale_order.can_exchange = False
+                    exchg_sale_order.save()
         else:
             logger.warn({
                 'message': u'return exchange order: order_id=%s not exist' % (salerefund.order_id),
@@ -840,19 +842,19 @@ def transfer_record_return_coupon_exchange(coupons, transfer_record):
                 sale_order.extras['can_return_num'] = sale_order.num - 1
                 if sale_order.num - 1 == 0:
                     if not exchg_sale_order:
-                        exchg_record = ExchangeSaleOrder(order_oid=sale_order.oid, has_exchanged=False, uni_key=sale_order.oid)
+                        exchg_record = ExchangeSaleOrder(order_oid=sale_order.oid, can_exchange=False, uni_key=sale_order.oid)
                         exchg_record.save()
                     else:
-                        exchg_sale_order.has_exchanged = False
+                        exchg_sale_order.can_exchange = False
                         exchg_sale_order.save()
             else:
                 sale_order.extras['can_return_num'] = int(sale_order.extras['can_return_num']) - 1
                 if int(sale_order.extras['can_return_num']) == 0:
                     if not exchg_sale_order:
-                        exchg_record = ExchangeSaleOrder(order_oid=sale_order.oid, has_exchanged=False, uni_key=sale_order.oid)
+                        exchg_record = ExchangeSaleOrder(order_oid=sale_order.oid, can_exchange=False, uni_key=sale_order.oid)
                         exchg_record.save()
                     else:
-                        exchg_sale_order.has_exchanged = False
+                        exchg_sale_order.can_exchange = False
                         exchg_sale_order.save()
             sale_order.save(update_fields=['extras'])
 

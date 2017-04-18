@@ -526,7 +526,8 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                 exchg_sale_order = ExchangeSaleOrder.objects.filter(order_oid=entry.order_id).first()
                 if not sale_order:
                     continue
-                if sale_order.extras.has_key('exchange') or (exchg_sale_order and exchg_sale_order.has_exchanged):
+                if sale_order.extras.has_key('exchange') or (exchg_sale_order and exchg_sale_order.has_exchanged) \
+                        or (exchg_sale_order and (not exchg_sale_order.can_exchange)):
                     continue
 
                 if sale_order.extras.has_key('can_return_num'):
@@ -538,6 +539,8 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
 
                 # !!!!APP OR WAP ORDER IS REAL GOODS!!!!
                 if entry.carry_type == OrderCarry.APP_ORDER or entry.carry_type == OrderCarry.WAP_ORDER:
+                    if exchg_sale_order and exchg_sale_order.auto_given_carry:
+                        continue
                     user_coupon = UserCoupon.objects.filter(trade_tid=sale_order.sale_trade.tid).first()
                     if user_coupon:
                         use_template_id = user_coupon.template_id
@@ -592,7 +595,8 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                 exchg_sale_order = ExchangeSaleOrder.objects.filter(order_oid=entry.order_id).first()
                 if not sale_order:
                     continue
-                if sale_order.extras.has_key('exchange') or (exchg_sale_order and exchg_sale_order.has_exchanged):
+                if sale_order.extras.has_key('exchange') or (exchg_sale_order and exchg_sale_order.has_exchanged) \
+                        or (exchg_sale_order and (not exchg_sale_order.can_exchange)):
                     continue
 
                 if sale_order.extras.has_key('can_return_num'):
