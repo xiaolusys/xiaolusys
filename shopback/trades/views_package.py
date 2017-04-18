@@ -1,6 +1,7 @@
 # coding=utf-8
 import json
 from rest_framework import generics, permissions, renderers, viewsets, status as rest_status
+from .view_package_perm import DjangoModelPermissions
 from rest_framework.decorators import list_route, detail_route
 from rest_framework.response import Response
 from rest_framework import exceptions
@@ -8,6 +9,7 @@ from django.shortcuts import get_object_or_404
 from django.http.response import HttpResponseBadRequest
 from shopback.trades.models import PackageOrder, PackageSkuItem
 from shopback.trades.serializers import PackageOrderSerializer
+from flashsale.restpro.v2.serializers.packageskuitem_serializers import PackageSkuItemSerializer
 from shopback.trades.forms import PackageOrderEditForm, PackageOrderWareByForm, PackageOrderNoteForm, PackageOrderLogisticsCompanyForm
 from shopback.items.models import ProductSku
 from shopback.logistics.models import LogisticsCompany
@@ -16,11 +18,23 @@ from rest_framework import filters
 from shopback.trades.constants import PO_STATUS
 
 
+
+class PackageSkuItemViewSet(viewsets.ModelViewSet):
+    queryset = PackageSkuItem.objects.all()
+    serializer_class = PackageSkuItemSerializer
+    renderer_classes = (renderers.JSONRenderer,)
+    filter_fields = ('package_order_pid',)
+
+
 class PackageOrderViewSet(viewsets.ModelViewSet):
+    """
+    api : trades/package_order
+    """
     queryset = PackageOrder.objects.all()
     serializer_class = PackageOrderSerializer
     # authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     # permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+    permission_classes = (permissions.IsAuthenticated,DjangoModelPermissions)
     renderer_classes = (renderers.JSONRenderer, renderers.TemplateHTMLRenderer)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter)
     filter_fields = ('pid', 'out_sid', 'sys_status','ware_by')
@@ -138,3 +152,5 @@ class PackageOrderViewSet(viewsets.ModelViewSet):
             return Response({'res': 'success'})
         else:
             return HttpResponseBadRequest(u"必须是待扫描或者待称重状态")
+
+
