@@ -622,7 +622,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
             mama_id = mama.id
             exchg_orders = OrderCarry.objects.filter(mama_id=mama_id,
                                                      status__in=[OrderCarry.CONFIRM],
-                                                     date_field__gt='2017-1-8')
+                                                     date_field__gt='2017-2-1')
         results = []
         if exchg_orders.exists():
             for entry in exchg_orders.iterator():
