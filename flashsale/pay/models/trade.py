@@ -1268,8 +1268,7 @@ class SaleOrder(PayBaseModel):
         self.pay_time = pay_time
         self.save()
         from shopback.trades.models import SkuStock
-        for order in self.sale_orders.all():
-            SkuStock.set_order_paid_num(order.sku_id, order.num)
+        SkuStock.set_order_paid_num(self.sku_id, self.num)
 
     def finish_sent(self):
         self.status = SaleOrder.WAIT_BUYER_CONFIRM_GOODS
