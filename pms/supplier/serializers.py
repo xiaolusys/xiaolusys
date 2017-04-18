@@ -282,6 +282,7 @@ class SimpleSaleProductSerializer(serializers.ModelSerializer):
     total_figures = JSONParseField(source='total_sale_product_figures', read_only=True)
     in_schedule = serializers.SerializerMethodField()
     model_id = serializers.IntegerField(source='model_product.id')
+    product_id = serializers.CharField(read_only=True)
 
     class Meta:
         model = SaleProduct
@@ -289,7 +290,7 @@ class SimpleSaleProductSerializer(serializers.ModelSerializer):
             'id', 'model_id', 'outer_id', 'title', 'price', 'pic_url', 'product_link', 'status', 'sale_supplier', 'contactor',
             'sale_category', 'platform', 'hot_value', 'sale_price', 'on_sale_price', 'std_sale_price', 'memo',
             'sale_time', 'created', 'modified', 'supplier_sku', 'latest_figures', 'total_figures', 'source_type',
-            'in_schedule', 'sku_extras', 'extras')
+            'in_schedule', 'sku_extras', 'extras', 'product_id')
 
     def get_in_schedule(self, obj):
         """ 判断选品是否在指定排期里面 """
@@ -440,7 +441,7 @@ class RetrieveSaleProductSerializer(serializers.ModelSerializer):
     contactor = serializers.CharField(source='contactor.username', read_only=True)
     model = ModelProductSerializer(source='model_product', read_only=True)
     sku_extras = serializers.SerializerMethodField()
-
+    product_id = serializers.CharField(read_only=True)
     class Meta:
         model = SaleProduct
         fields = (
