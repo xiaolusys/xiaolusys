@@ -963,7 +963,7 @@ admin.site.register(EliteMamaAwardLog, EliteMamaAwardLogAdmin)
 
 
 class ExchangeSaleOrderAdmin(admin.ModelAdmin):
-    list_display = ('id', 'order_oid', 'auto_given_carry', 'exchg_type', 'has_exchanged', 'can_exchg_payment', 'created')
+    list_display = ('id', 'order_oid', 'auto_given_carry', 'exchg_type', 'has_exchanged', 'can_exchange', 'can_exchg_payment', 'created')
     list_filter = ('created', 'has_exchanged')
     search_fields = ('=order_oid', '=id')
 

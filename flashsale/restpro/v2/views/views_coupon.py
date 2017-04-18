@@ -573,6 +573,42 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                                                     'contributor_nick': entry.contributor_nick, 'status': entry.status,
                                                     'status_display': OrderCarry.STATUS_TYPES[entry.status][1],
                                                     'order_value': entry.order_value, 'date_field': entry.date_field})
+                elif entry.carry_type == OrderCarry.ADVANCED_MAMA_REFERAL_ORDER:
+                    if sale_order.extras.has_key('can_exchg_payment'):
+                        exchg_payment = int(sale_order.extras['can_exchg_payment']) / 100  # 为了便于存储单位是分
+                    else:
+                        if exchg_sale_order:
+                            exchg_payment = int(exchg_sale_order.can_exchg_payment) / 100  # 为了便于存储单位是分
+                        else:
+                            continue
+
+                    if ((sale_order.extras.has_key('auto_given_carry') and sale_order.extras['auto_given_carry']) or (
+                        exchg_sale_order and exchg_sale_order.auto_given_carry)) and exchg_payment > 0:
+                        # find modelproduct, need except 365elite product
+                        model_product = ModelProduct.objects.filter(id=sale_order.item_product.model_id,
+                                                                    is_boutique=True,
+                                                                    product_type=ModelProduct.USUAL_TYPE).first()
+                        if model_product and (model_product.id != 25408) and model_product.extras.has_key('payinfo') \
+                                and model_product.extras['payinfo'].has_key('coupon_template_ids'):
+                            if model_product.extras['payinfo']['coupon_template_ids'] and len(
+                                    model_product.extras['payinfo']['coupon_template_ids']) > 0:
+
+                                template_ids = model_product.extras['payinfo']['coupon_template_ids']
+                                template_id = model_product.extras['payinfo']['coupon_template_ids'][0]
+                                # 用的券全部是精品券那就无法兑换，部分用券部分现金还是能兑换的
+                                if template_ids and template_id:
+                                    from flashsale.coupon.apis.v1.coupontemplate import \
+                                        get_boutique_coupon_modelid_by_templateid
+                                    coupon_modelid = get_boutique_coupon_modelid_by_templateid(template_id)
+                                    if left_exchange_num > 0:
+                                        results.append(
+                                            {'exchg_template_id': template_id, 'exchg_model_id': coupon_modelid,
+                                             'num': left_exchange_num,
+                                             'order_id': entry.order_id, 'sku_img': entry.sku_img,
+                                             'sku_name': sale_order.title,
+                                             'contributor_nick': entry.contributor_nick, 'status': entry.status,
+                                             'status_display': OrderCarry.STATUS_TYPES[entry.status][1],
+                                             'order_value': entry.order_value, 'date_field': entry.date_field})
 
         return Response(results)
 
