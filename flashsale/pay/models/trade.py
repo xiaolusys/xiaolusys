@@ -1261,6 +1261,11 @@ class SaleOrder(PayBaseModel):
     def refundable(self):
         return self.get_refundable()
 
+    def finish_sent(self):
+        self.status = SaleOrder.WAIT_BUYER_CONFIRM_GOODS
+        self.consign_time = datetime.datetime.now()
+        self.save()
+
     def set_status_paid(self, pay_time):
         self.status = self.WAIT_SELLER_SEND_GOODS
         if self.is_deposit():
@@ -1268,13 +1273,7 @@ class SaleOrder(PayBaseModel):
         self.pay_time = pay_time
         self.save()
         from shopback.trades.models import SkuStock
-        for order in self.sale_orders.all():
-            SkuStock.set_order_paid_num(order.sku_id, order.num)
-
-    def finish_sent(self):
-        self.status = SaleOrder.WAIT_BUYER_CONFIRM_GOODS
-        self.consign_time = datetime.datetime.now()
-        self.save()
+        SkuStock.set_order_paid_num(self.sku_id, self.num)
 
     def set_psi_paid(self):
         from shopback.trades.models import PackageSkuItem
