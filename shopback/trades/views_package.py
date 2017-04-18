@@ -1,6 +1,7 @@
 # coding=utf-8
 import json
 from rest_framework import generics, permissions, renderers, viewsets, status as rest_status
+from .view_package_perm import DjangoModelPermissions
 from rest_framework.decorators import list_route, detail_route
 from rest_framework.response import Response
 from rest_framework import exceptions
@@ -15,6 +16,7 @@ from shopback.logistics.models import LogisticsCompany
 from shopback.trades.serializers import LogisticsCompanySerializer
 from rest_framework import filters
 from shopback.trades.constants import PO_STATUS
+
 
 
 class PackageSkuItemViewSet(viewsets.ModelViewSet):
@@ -32,6 +34,7 @@ class PackageOrderViewSet(viewsets.ModelViewSet):
     serializer_class = PackageOrderSerializer
     # authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     # permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+    permission_classes = (permissions.IsAuthenticated,DjangoModelPermissions)
     renderer_classes = (renderers.JSONRenderer, renderers.TemplateHTMLRenderer)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter)
     filter_fields = ('pid', 'out_sid', 'sys_status','ware_by')
