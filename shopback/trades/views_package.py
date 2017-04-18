@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404
 from django.http.response import HttpResponseBadRequest
 from shopback.trades.models import PackageOrder, PackageSkuItem
 from shopback.trades.serializers import PackageOrderSerializer
+from flashsale.restpro.v2.serializers.packageskuitem_serializers import PackageSkuItemSerializer
 from shopback.trades.forms import PackageOrderEditForm, PackageOrderWareByForm, PackageOrderNoteForm, PackageOrderLogisticsCompanyForm
 from shopback.items.models import ProductSku
 from shopback.logistics.models import LogisticsCompany
@@ -16,7 +17,17 @@ from rest_framework import filters
 from shopback.trades.constants import PO_STATUS
 
 
+class PackageSkuItemViewSet(viewsets.ModelViewSet):
+    queryset = PackageSkuItem.objects.all()
+    serializer_class = PackageSkuItemSerializer
+    renderer_classes = (renderers.JSONRenderer,)
+    filter_fields = ('package_order_pid',)
+
+
 class PackageOrderViewSet(viewsets.ModelViewSet):
+    """
+    api : trades/package_order
+    """
     queryset = PackageOrder.objects.all()
     serializer_class = PackageOrderSerializer
     # authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
@@ -138,3 +149,5 @@ class PackageOrderViewSet(viewsets.ModelViewSet):
             return Response({'res': 'success'})
         else:
             return HttpResponseBadRequest(u"必须是待扫描或者待称重状态")
+
+
