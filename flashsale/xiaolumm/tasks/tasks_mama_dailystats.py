@@ -520,6 +520,9 @@ def check_xlmm_carry_record(recent_days):
                     record.confirm()
                 if carry_record_status == CarryRecord.CANCEL:
                     record.cancel()
+            if record.carry_num == 0 and record.carry_num != carry.carry_num:
+                record.carry_num = carry.carry_num
+                record.save()
             from flashsale.pay.models.trade import SaleOrder
             from flashsale.pay.models.product import ModelProduct
             from flashsale.xiaolumm.models import XiaoluMama
