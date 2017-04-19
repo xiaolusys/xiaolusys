@@ -635,6 +635,7 @@ class SaleProductManageDetailSerializer(serializers.ModelSerializer):
     product_sale_price = serializers.CharField(source='sale_product.on_sale_price', read_only=True)
     product_contactor = serializers.CharField(source='sale_product.contactor', read_only=True)
     product_memo = serializers.CharField(source='sale_product.memo', read_only=True)
+    product_id = serializers.IntegerField(source='sale_product.product_id', read_only=True)
     product_origin_price = serializers.CharField(source='sale_product.std_sale_price', read_only=True)
     product_pic = serializers.CharField(source='sale_product.pic_url', read_only=True)
     product_link = serializers.CharField(source='sale_product.product_link', read_only=True)
@@ -655,7 +656,7 @@ class SaleProductManageDetailSerializer(serializers.ModelSerializer):
         model = SaleProductManageDetail
         fields = (
             'id', 'supplier_id', 'sale_product_id', 'product_name', 'product_pic', 'product_link', 'design_person',
-            'order_weight', 'supplier_name',
+            'order_weight', 'supplier_name','product_id',
             'sale_category', 'material_status', 'today_use_status', 'product_purchase_price', 'product_sale_price',
             'product_origin_price', 'design_take_over', 'design_complete', 'is_approved', 'is_promotion',
             'reference_username', 'photo_username', 'product_contactor', 'product_memo', 'photo_user', 'reference_user',
