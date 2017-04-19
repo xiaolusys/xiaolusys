@@ -287,7 +287,16 @@ class UserAddressViewSet(viewsets.ModelViewSet):
                 else:
                     logger.error(u'包裹已经发送', exc_info=True)
                     return Response({'ret': False, 'code': 3, 'info': '更新失败', "msg": '包裹已经发送'})
-            return Response({'ret': True, 'code': 0, 'info': '更新成功', 'result':{'address_id':new_address.id}, "msg": '更新成功'})
+            return Response({
+                'ret': True,
+                'code': 0,
+                'info': '更新成功',
+                'result':{
+                    'address_id':new_address.id,
+                    'personalinfo_level': new_address.get_personal_info_level()
+                },
+                "msg": '更新成功'
+            })
         except Exception,exc:
             logger.error(exc.message, exc_info=True)
             return Response({'ret': False, 'code': 1, 'info': '更新失败', "msg": '更新失败'})
