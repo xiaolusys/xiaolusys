@@ -51,7 +51,7 @@ class TeamBuy(AdminModel):
                 limit_days=1, #model_product.limit_days, 目前限制全部是1天
                 limit_person_num=model_product.teambuy_person_num,
             )
-            teambuy.limit_time = datetime.datetime.now() + datetime.timedelta(days=1)
+            teambuy.limit_time = datetime.datetime.now() + datetime.timedelta(hours=1)
             buyer_id = saletrade.buyer_id
             customer = Customer.objects.filter(id=buyer_id).first()
             xlmm = customer.get_xiaolumm()
