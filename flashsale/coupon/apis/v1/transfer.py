@@ -620,8 +620,8 @@ def coupon_exchange_saleorder(customer, order_id, mama_id, template_ids, coupon_
         # (3)在user钱包写收入记录
         from flashsale.pay.models.user import BudgetLog
         if not exchg_payment:
-            if sale_order.extras.has_key('exchg_payment'):
-                exchg_payment = float(sale_order.extras['exchg_payment'])
+            if exchg_sale_order and exchg_sale_order.can_exchg_payment > 0:
+                exchg_payment = float(exchg_sale_order.can_exchg_payment / 100)
             else:
                 exchg_payment = sale_order.price * coupon_num
         BudgetLog.create(customer_id=customer.id,
