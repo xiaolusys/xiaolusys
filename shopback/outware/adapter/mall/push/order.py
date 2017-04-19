@@ -56,9 +56,10 @@ def push_outware_order_by_package(package):
         'order_number': '{}'.format(package.pid),
         'order_create_time': package_skus.order_by('pay_time').first().created.strftime('%Y-%m-%d %H:%M:%S'),
         'pay_time': package_skus.order_by('-pay_time').first().created.strftime('%Y-%m-%d %H:%M:%S'),
-        'order_type': order_type, # TODO@MERON　是否考虑预售
+        # 'order_type': order_type, # TODO@MERON　跨境订单不需要此字段，默认不接口内条件补填
         'channel_id': channel_maps.values()[0],
         'receiver_info': {
+            'receiver_country': '中国',
             'receiver_province': address.receiver_state,
             'receiver_city': address.receiver_city,
             'receiver_area': address.receiver_district,
@@ -76,10 +77,10 @@ def push_outware_order_by_package(package):
         params['declare_type'] = constants.DECLARE_TYPE_BOUND['code']
         params['order_person_idname'] = address.receiver_name
         params['order_person_idcard'] = address.idcard_no
-        params['receiver_info']['receiver_identity']   = address.idcard_no
+        # params['receiver_info']['receiver_identity']   = address.idcard_no
 
     dict_obj = DictObject().fresh_form_data(params)
-    response = oms.create_order(order_code, store_code, dict_obj)
+    response = oms.create_order(order_code, store_code, order_type, dict_obj)
 
     return response
 
@@ -93,7 +94,7 @@ def push_outware_order_by_sale_trade(sale_trade):
     order_code = sale_trade.tid
     store_code = '' # TODO#MERON 暂不指定仓库, 后面需要再变更
     address = sale_trade.get_useraddress_instance()
-
+    source_type_set = set()
     sku_codes = []
     order_items = []
     for order in sale_trade.normal_orders:
@@ -104,6 +105,9 @@ def push_outware_order_by_sale_trade(sale_trade):
             'object': 'OutwareOrderSku',
         })
         sku_codes.append(order.outer_sku_id)
+        product_sku = ProductSku.objects.get(id=order.sku_id)
+        model_product = product_sku.product.product_model
+        source_type_set.add(model_product.source_type)
 
     vendor_codes = OutwareSku.objects.filter(sku_code__in=sku_codes)\
         .values_list('outware_supplier__vendor_code',flat=True)
@@ -111,15 +115,25 @@ def push_outware_order_by_sale_trade(sale_trade):
     if not channel_maps or len(set(channel_maps.values())) > 1:
         raise Exception('同一订单只能有且只有一个channelid属性')
 
+    if not source_type_set or len(source_type_set) > 1:
+        raise Exception('商品对应货源来源类型不唯一：trade: %s, source_types: [%s]' % (sale_trade.tid, ','.join(source_type_set)))
+    print 'source_type_set:', source_type_set
+    order_type = constants.ORDER_TYPE_USUAL['code']
+    if list(source_type_set)[0] == SaleProduct.SOURCE_BONDED:
+        order_type = constants.ORDER_TYPE_CROSSBOADER['code']
+
+    if list(source_type_set)[0] == SaleProduct.SOURCE_OUTSIDE:
+        raise Exception('直邮模式暂不支持')
+
     params = {
         # 'store_code': warehouse.store_code,
         'order_number': sale_trade.tid,
         'order_create_time': sale_trade.created.strftime('%Y-%m-%d %H:%M:%S'),
         'pay_time': sale_trade.pay_time.strftime('%Y-%m-%d %H:%M:%S'),
-        'order_type': constants.ORDER_TYPE_USUAL['code'], # TODO@MERON　是否考虑预售
+        # 'order_type': order_type, # TODO@MERON　跨境订单不需要此字段，默认不接口内条件补填
         'channel_id': channel_maps.values()[0],
-        # 'declare_type': constants.DECLARE_TYPE_BOUND, # TODO 跨境需传
         'receiver_info': {
+            'receiver_country': '中国',
             'receiver_province': address.receiver_state,
             'receiver_city': address.receiver_city,
             'receiver_area': address.receiver_district,
@@ -134,8 +148,15 @@ def push_outware_order_by_sale_trade(sale_trade):
         'object': 'OutwareOrder',
     }
 
+    # TODO@MERON, 2017.4.19 ,跨境订单默认只支持保税报关方式
+    if order_type == constants.ORDER_TYPE_CROSSBOADER['code']:
+        params['declare_type'] = constants.DECLARE_TYPE_BOUND['code']
+        params['order_person_idname'] = address.receiver_name
+        params['order_person_idcard'] = address.idcard_no
+        # params['receiver_info']['receiver_identity']   = address.idcard_no
+
     dict_obj = DictObject().fresh_form_data(params)
-    response = oms.create_order(order_code, store_code, dict_obj)
+    response = oms.create_order(order_code, store_code, order_type, dict_obj)
 
     return response
 

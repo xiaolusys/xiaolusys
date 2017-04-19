@@ -5,7 +5,7 @@
     "created": "2017-03-14T16:14:00",
     "modified": "2017-03-14T16:14:00",
     "outware_account": 1,
-    "vendor_code": "slyc",
+    "vendor_code": "fengchao_slyc",
     "vendor_name": "\u6765\u4eab\u6c47slyc",
     "uni_key": "slyc-1",
     "extras": {}
@@ -73,7 +73,7 @@
     "modified": "2016-05-17T10:55:20",
     "cus_uid": 897477,
     "supplier_id": null,
-    "receiver_name": "\u8463\u78ca",
+    "receiver_name": "\u6885\u79c0\u9752",
     "receiver_state": "\u4e91\u5357\u7701",
     "receiver_city": "\u6606\u660e\u5e02",
     "receiver_district": "\u4e94\u534e\u533a",
@@ -86,7 +86,7 @@
     "type": 1,
     "status": "normal",
     "identification_no": "",
-    "idcard_no": "",
+    "idcard_no": "421182198803123713",
     "extras": {}
   }
 }, {
@@ -236,6 +236,9 @@
       "saleinfos": {
         "per_limit_buy_num": 20,
         "is_product_buy_limit": true
+      },
+      "sources": {
+        "source_type": 2
       },
       "properties": {}
     },

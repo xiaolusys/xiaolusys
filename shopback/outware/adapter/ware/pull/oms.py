@@ -1,6 +1,7 @@
 # coding: utf8
 from __future__ import absolute_import, unicode_literals
 
+from copy import deepcopy
 from django.db import transaction, IntegrityError
 from shopback.outware.fengchao import sdks
 
@@ -20,7 +21,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 @action_decorator(constants.ACTION_ORDER_CREATE['code'])
-def create_order(order_code, store_code, dict_obj):
+def create_order(order_code, store_code, order_type, dict_obj):
     # TODO@MERON 2016.3.11 该版本目前只支持转发商城推送订单, 合单拆分后续改进
     ware_account = OutwareAccount.get_fengchao_account()
 
@@ -28,12 +29,14 @@ def create_order(order_code, store_code, dict_obj):
         raise Exception('缺少收货地址信息/商品SKU信息:order_no=%s'%order_code)
 
     action_code = constants.ACTION_ORDER_CREATE['code']
-    order_type = dict_obj.order_type
-    if True or order_type == constants.ORDER_TYPE_CROSSBOADER:
+    if order_type == constants.ORDER_TYPE_CROSSBOADER['code']:
         action_code = constants.ACTION_CROSSORDER_CREATE['code']
         if not all([dict_obj.declare_type,
-                   dict_obj.receiver_info.receiver_identity]):
+                   dict_obj.order_person_idname,
+                   dict_obj.order_person_idcard]):
             raise Exception('跨境订单需要传入报关方式以及用户身份信息:order_no=%s'%order_code)
+    else:
+        dict_obj.order_type = order_type
 
     with transaction.atomic():
         try:
@@ -58,6 +61,12 @@ def create_order(order_code, store_code, dict_obj):
 
             ow_order.extras['data'] = dict(dict_obj)
             ow_order.save()
+        # create fengchao order
+        try:
+            sdks.request_getway(dict(dict_obj), action_code, ware_account)
+        except Exception, exc:
+            logger.error(str(exc), exc_info=True)
+            return {'success': False, 'object': ow_order, 'message': str(exc)}
 
         for sku_item in dict_obj.order_items:
             sku_order_code = sku_item.sku_order_code
@@ -87,12 +96,6 @@ def create_order(order_code, store_code, dict_obj):
                 ow_ordersku.union_order_code = order_code
                 ow_ordersku.sku_qty = sku_item.quantity
                 ow_ordersku.save()
-
-    try:
-        sdks.request_getway(dict(dict_obj), action_code, ware_account)
-    except Exception, exc:
-        logger.error(str(exc), exc_info=True)
-        return {'success': False, 'object': ow_order, 'message': str(exc)}
 
     # 设置为已接单
     ow_order.change_order_status(constants.RECEIVED)
