@@ -29,7 +29,7 @@ ORDER_RETURN   = {'code': 301, 'name': '退仓单'}
 ORDER_SALE     = {'code': 401, 'name': '销售订单'}
 ORDER_REFUND   = {'code': 501, 'name': '销退货单'}
 ORDER_PURCHASE = {'code': 601, 'name': '采购入仓单'}
-ORDER_LACKGOOD = {'code': 701, 'name': '订单缺货单'}
+ORDER_LACKGOOD = {'code': 10001, 'name': '订单缺货单'}
 
 ACTION_SUPPLIER_CREATE = {'code': 40, 'name': '创建供应商'}
 

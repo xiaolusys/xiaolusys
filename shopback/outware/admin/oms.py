@@ -8,7 +8,7 @@ from ..models import OutwareOrder, OutwareOrderSku, OutwarePackage, OutwarePacka
 
 @admin.register(OutwareOrder)
 class OutwareOrderAdmin(admin.ModelAdmin):
-    list_display = ('outware_account', 'union_order_code', 'order_type', 'store_code', 'status', 'created')
+    list_display = ('outware_account', 'union_order_code', 'order_type', 'order_source', 'store_code', 'status', 'created')
     list_filter = ('order_type', 'status',)
     search_fields = ['=union_order_code']
     ordering = ('-modified',)

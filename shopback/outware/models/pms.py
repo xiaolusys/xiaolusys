@@ -168,8 +168,6 @@ class OutwareInboundOrder(BaseWareModel):
         self.save()
 
 
-
-
 class OutwareInboundSku(BaseWareModel):
 
     outware_inboind = models.ForeignKey(OutwareInboundOrder, verbose_name=u'关联推送入仓单')

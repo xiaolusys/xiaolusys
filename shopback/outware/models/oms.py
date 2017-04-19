@@ -15,7 +15,18 @@ logger = logging.getLogger(__name__)
 class OutwareOrder(BaseWareModel):
     """ 实际推送给外仓的组合销售订单 """
 
-    ORDER_TYPE_CHOICES = ((s['code'], s['name']) for s in [constants.ORDER_SALE, constants.ORDER_RETURN])
+    DEFAULT_ORDER_TYPE = constants.ORDER_TYPE_USUAL['code']
+    ORDER_TYPE_CHOICES = ((s['code'], s['name']) for s in [
+        constants.ORDER_TYPE_USUAL,
+        constants.ORDER_TYPE_CROSSBOADER,
+        constants.ORDER_TYPE_BOOKING,
+    ])
+
+    DEFAULT_ORDER_SOURCE= constants.ORDER_SALE['code']
+    ORDER_SOURCE_CHOICES = ((s['code'], s['name']) for s in [
+        constants.ORDER_RETURN,
+        constants.ORDER_SALE,
+    ])
 
     STATUS_CHOICES = (
         (constants.NORMAL,   '待推送'),
@@ -29,7 +40,8 @@ class OutwareOrder(BaseWareModel):
 
     outware_account = models.ForeignKey('outware.OutwareAccount', verbose_name=u'关联账号')
 
-    order_type = models.IntegerField(db_index=True, choices=ORDER_TYPE_CHOICES, verbose_name=u'包裹类型')
+    order_type = models.IntegerField(db_index=True, choices=ORDER_TYPE_CHOICES, default=DEFAULT_ORDER_TYPE, verbose_name=u'订单类型')
+    order_source = models.IntegerField(db_index=True, choices=ORDER_SOURCE_CHOICES, default=DEFAULT_ORDER_SOURCE, verbose_name=u'订单来源')
     store_code = models.CharField(max_length=32, blank=True, db_index=True, verbose_name=u'外部仓库编号')
     union_order_code = models.CharField(max_length=64, blank=True, db_index=True, verbose_name=u'组合订单编号')
 
