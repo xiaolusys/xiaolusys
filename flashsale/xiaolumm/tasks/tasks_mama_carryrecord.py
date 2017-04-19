@@ -103,11 +103,10 @@ def task_ordercarry_update_carryrecord(carry):
                     if cts:
                         cts.transfer_status = CouponTransferRecord.CANCELED
                         cts.save()
-        return
-
-
-    CarryRecord.create(carry.mama_id, carry.carry_num, CarryRecord.CR_ORDER, carry.carry_description,
-                       uni_key=carry.uni_key,status=carry_record_status)
+    else:
+        if carry.carry_type != OrderCarry.ADVANCED_MAMA_REFERAL_ORDER:
+            CarryRecord.create(carry.mama_id, carry.carry_num, CarryRecord.CR_ORDER, carry.carry_description,
+                           uni_key=carry.uni_key,status=carry_record_status)
 
 
 @app.task(serializer='pickle')

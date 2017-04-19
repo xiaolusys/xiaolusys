@@ -1096,7 +1096,7 @@ def task_schedule_check_boutique_modelproduct(days=1):
                     not (mp.extras.has_key('sources') and mp.extras['sources']['source_type'] == 3)):
                 right = False
         if not right:
-            wrong_product.append(mp.id)
+            wrong_product.append(mp.detail_content['name'])
 
     # 反向检查，有些商品忘记或错误设置了精品汇标志
     for product_id in product_ids:
@@ -1128,7 +1128,7 @@ def task_schedule_check_boutique_modelproduct(days=1):
                     mp.extras['payinfo']['coupon_template_ids']) > 0):
                 right = False
         if not right:
-            non_boutiques.append(mp.id)
+            non_boutiques.append(mp.detail_content['name'])
 
     # 再检查精品汇的券字段配置对不对
     coupon_queryset = get_virtual_modelproducts()
@@ -1149,7 +1149,7 @@ def task_schedule_check_boutique_modelproduct(days=1):
                     mp.extras['saleinfos']['is_coupon_deny'] == True):
                 right = False
         if (not right) and (mp.id != 25115) and (mp.id != 25339):
-            wrong_coupons.append(mp.id)
+            wrong_coupons.append(mp.detail_content['name'])
 
     onshelf_products = []
     onshelf_time = datetime.datetime.now()
