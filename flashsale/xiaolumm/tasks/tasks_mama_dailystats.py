@@ -549,6 +549,7 @@ def check_xlmm_carry_record(recent_days):
                         transfer_in = create_present_elite_score(customer, int(
                             round(coupon_mp.products[0].elite_score * (sale_order.payment / sale_order.price))), template,
                                                              None, carry.order_id)
+                if record.carry_num > 0:
                     err_num = 0
                     referal_id = 'carryrecord-%s' % record.id
                     from flashsale.pay.models import BudgetLog
