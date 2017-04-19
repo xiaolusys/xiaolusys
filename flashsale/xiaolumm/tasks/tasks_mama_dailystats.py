@@ -422,12 +422,30 @@ def task_auto_exchg_xlmm_order():
                             # print 'chg so', sale_order.oid, level1_mama.id, level2_mama.id
         logger.info({'message': u'task_auto_exchg_xlmm_order | mama unexchg_coupon_num=%s autoexchg_coupon_num=%s' % (unexchg_coupon_num, autoexchg_coupon_num),})
 
+@app.task()
+def task_check_order_carry_record():
+    results1 = check_xlmm_ordercarry(3)
+    results2 = check_xlmm_carry_record(3)
 
-def check_xlmm_ordercarry(recent_day):
+    msg = '\n%s订单carry检查 :\n' \
+          '\n1.ordercarry err :\n%s' \
+          '\n2.carryrecord无零钱记录订单:\n%s' % (datetime.datetime.now(), '\n'.join(results1), '\n'.join(results2))
+
+
+    from common.dingding import DingDingAPI
+
+    tousers = [
+        '02401336675559',  # 伍磊
+    ]
+    dd = DingDingAPI()
+    for touser in tousers:
+        dd.sendMsg(msg, touser)
+
+def check_xlmm_ordercarry(recent_days):
     results = []
 
     tt = datetime.datetime.now()
-    tf = tt - datetime.timedelta(days=recent_day)
+    tf = tt - datetime.timedelta(days=recent_days)
     from flashsale.pay.models.trade import SaleOrder, SaleTrade, Customer
     queryset = SaleOrder.objects.filter(status__in=[SaleOrder.WAIT_SELLER_SEND_GOODS,
                                                     SaleOrder.WAIT_BUYER_CONFIRM_GOODS,
@@ -435,21 +453,18 @@ def check_xlmm_ordercarry(recent_day):
                                                     SaleOrder.TRADE_FINISHED,
                                                     SaleOrder.TRADE_CLOSED,
                                                     SaleOrder.TRADE_CLOSED_BY_SYS],
-                                        created__gte=tf)
+                                        modified__gte=tf)
 
     for order in queryset.iterator():
-        # 特卖订单有ordercarry或用币买券的inderect mama 虚拟订单有
-        coin_buy_order = False
+        # 特卖订单有ordercarry或inderect mama 虚拟订单有
+        indirect_mama = False
         from flashsale.xiaolumm.models import XiaoluMama
-        from flashsale.pay.apis.v1.order import get_pay_type_from_trade
         if order.sale_trade.order_type == SaleTrade.ELECTRONIC_GOODS_ORDER:
-            budget_pay, coin_pay = get_pay_type_from_trade(order.sale_trade)
-            if coin_pay > 0:
-                customer = Customer.objects.get(id=order.buyer_id)
-                to_mama = customer.get_xiaolumm()
-                if to_mama.referal_from == XiaoluMama.INDIRECT:
-                    coin_buy_order = True
-        if order.sale_trade.order_type == SaleTrade.SALE_ORDER or coin_buy_order:
+            customer = Customer.objects.get(id=order.buyer_id)
+            to_mama = customer.get_xiaolumm()
+            if to_mama.referal_from == XiaoluMama.INDIRECT:
+                indirect_mama = True
+        if order.sale_trade.order_type == SaleTrade.SALE_ORDER or indirect_mama:
             order_carry_qs = OrderCarry.objects.filter(order_id=order.oid)
             if not order_carry_qs:
                 from flashsale.xiaolumm.tasks import task_order_trigger
@@ -477,8 +492,90 @@ def check_xlmm_ordercarry(recent_day):
                     sys_oa = get_systemoa_user()
                     log_action(sys_oa, order_carry, CHANGE, logmsg)
                     results.append(order.oid)
-    print "ordercarry error is: ", results
+    return results
 
+def check_xlmm_carry_record(recent_days):
+    results = []
+    import datetime
+    from flashsale.xiaolumm.models import OrderCarry, CarryRecord
+    from flashsale.coupon.models import CouponTransferRecord
+    tt = datetime.datetime.now()
+    tf = tt - datetime.timedelta(days=recent_days)
+    queryset = OrderCarry.objects.filter(modified__gte=tf)
+    for carry in queryset.iterator():
+        if carry.carry_type == OrderCarry.ADVANCED_MAMA_REFERAL_ORDER:
+            continue
+        if carry.status == OrderCarry.STAGING:
+            carry_record_status = CarryRecord.PENDING
+        elif carry.status == OrderCarry.ESTIMATE:
+            carry_record_status = CarryRecord.PENDING
+        elif carry.status == OrderCarry.CONFIRM:
+            carry_record_status = CarryRecord.CONFIRMED
+        elif carry.status == OrderCarry.CANCEL:
+            carry_record_status = CarryRecord.CANCEL
+        record = CarryRecord.objects.filter(uni_key=carry.uni_key).first()
+        if record:
+            if record.status != carry_record_status:
+                if carry_record_status == CarryRecord.CONFIRMED:
+                    record.confirm()
+                if carry_record_status == CarryRecord.CANCEL:
+                    record.cancel()
+            from flashsale.pay.models.trade import SaleOrder
+            from flashsale.pay.models.product import ModelProduct
+            from flashsale.xiaolumm.models import XiaoluMama
+            sale_order = SaleOrder.objects.filter(oid=carry.order_id).first()
+            from shopback.items.models import Product
+            products = Product.objects.filter(id=sale_order.item_id)
+            product = products[0]
+            model_product = product.get_product_model()
+            from flashsale.pay.apis.v1.product import get_virtual_modelproduct_from_boutique_modelproduct
+            coupon_mp = get_virtual_modelproduct_from_boutique_modelproduct(product.model_id)
+            if carry_record_status == CarryRecord.CONFIRMED:
+                if model_product and coupon_mp and coupon_mp.products[
+                    0].elite_score > 0 and sale_order.payment > 0 and (
+                    model_product.is_boutique_product or model_product.product_type == ModelProduct.USUAL_TYPE):
+                    from flashsale.coupon.apis.v1.transfer import create_present_elite_score
+                    from flashsale.coupon.apis.v1.coupontemplate import get_coupon_template_by_id
+                    upper_mama = XiaoluMama.objects.filter(id=carry.mama_id,
+                                                           status=XiaoluMama.EFFECT,
+                                                           charge_status=XiaoluMama.CHARGED).first()
+                    if not upper_mama:
+                        continue
+                    template = get_coupon_template_by_id(id=374)
+                    customer = upper_mama.get_mama_customer()
+                    uni_key_in = "elite_in-%s-%s" % (customer.id, carry.order_id)
+                    cts = CouponTransferRecord.objects.filter(uni_key=uni_key_in).first()
+                    if not cts:
+                        transfer_in = create_present_elite_score(customer, int(
+                            round(coupon_mp.products[0].elite_score * (sale_order.payment / sale_order.price))), template,
+                                                             None, carry.order_id)
+                    err_num = 0
+                    referal_id = 'carryrecord-%s' % record.id
+                    from flashsale.pay.models import BudgetLog
+                    bg = BudgetLog.objects.filter(referal_id=referal_id).first()
+                    if bg:
+                        if bg.flow_amount != carry.carry_num:
+                            err_num += 1
+                            results.append(record.id)
+                    else:
+                        err_num += 1
+                        results.append(record.id)
+            if carry_record_status == CarryRecord.CANCEL:
+                if model_product and product.elite_score > 0 and carry.carry_num > 0 and (
+                    model_product.is_boutique_product or model_product.product_type == ModelProduct.USUAL_TYPE):
+                    from flashsale.coupon.models.transfer_coupon import CouponTransferRecord
+                    upper_mama = XiaoluMama.objects.filter(id=carry.mama_id,
+                                                           status=XiaoluMama.EFFECT,
+                                                           charge_status=XiaoluMama.CHARGED).first()
+                    customer = upper_mama.get_mama_customer()
+                    uni_key_in = "elite_in-%s-%s" % (customer.id, carry.order_id)
+                    cts = CouponTransferRecord.objects.filter(uni_key=uni_key_in).first()
+                    if cts and cts.transfer_status != CouponTransferRecord.CANCELED:
+                        cts.transfer_status = CouponTransferRecord.CANCELED
+                        cts.save()
+        else:
+            carry.save()
+    return results
 
 def check_coupon_modelid():
     from flashsale.coupon.models import CouponTemplate

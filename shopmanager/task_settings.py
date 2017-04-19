@@ -1314,6 +1314,12 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_check_transfer_coupon_record'}
     },
+    u'定时检查订单和收益一致性 ': {
+        'task': 'flashsale.xiaolumm.tasks.tasks_mama_dailystats.task_check_order_carry_record',
+        'schedule': crontab(minute="10", hour="*/4"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_check_order_carry_record'}
+    },
     u'定时设定APP下载用户是否注册': {
         'task': 'flashsale.promotion.tasks.task_update_appdownload_record',
         'schedule': crontab(minute="30", hour="0"),
@@ -1440,7 +1446,7 @@ BOUTIQUE_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_schedule_check_boutique_modelproduct'}
     },
-    u'定时检查超过5天未兑换的券订单': {
+    u'定时检查超过2天未兑换的券订单': {
         'task': 'flashsale.xiaolumm.tasks.tasks_mama_dailystats.task_auto_exchg_xlmm_order',
         'schedule': crontab(minute="0", hour="19"),
         'args': (),
