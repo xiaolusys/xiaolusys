@@ -10,9 +10,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 @app.task()
-def task_outware_union_supplier_and_sku():
+def task_outware_union_supplier_and_sku(sku_codes=[]):
+    if sku_codes:
+        union_skus = OutwareSku.objects.filter(is_unioned=False, sku_code__in=sku_codes)
+    else:
+        union_skus = OutwareSku.objects.filter(is_unioned=False)
 
-    union_skus = OutwareSku.objects.filter(is_unioned=False)
     for ow_sku in union_skus.iterator():
         try:
             union_sku_and_supplier(ow_sku)

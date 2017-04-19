@@ -14,7 +14,7 @@ from .exceptions import FengchaoApiException
 import logging
 logger = logging.getLogger(__name__)
 
-FENGCHAO_SLYC_VENDOR_CODE  = 'slyc'
+FENGCHAO_SLYC_VENDOR_CODE  = 'fengchao_slyc'
 FENGCHAO_SLYC_CHANNEL_CODE = 'shiliyangchang' # 十里洋场的订单channel
 FENGCHAO_DEFAULT_CHANNEL_CODE = 'xiaolumeimei'
 

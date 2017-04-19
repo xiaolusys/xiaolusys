@@ -442,10 +442,6 @@ class SaleProductViewSet(viewsets.ModelViewSet):
     @list_route(methods=["post"])
     def batch_create(self,request, *args, **kwargs):
         products_list = request.data.get("products_list")
-        SOURCE_SELF = 0  # 自存商品
-        SOURCE_TTP = 1  # 三方仓商品
-        SOURCE_BONDED = 2  # 保税仓商品
-        SOURCE_OUTSIDE = 3  # 关外商品（直邮）
         source_type_map = {u"自储商品":0,u"第三方仓":1,u"保税仓":2,u"关外直邮 ":3}
         for i in products_list:
             product_link = i.get('product_link', '').strip()

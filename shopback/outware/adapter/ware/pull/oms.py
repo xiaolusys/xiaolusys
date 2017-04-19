@@ -29,11 +29,10 @@ def create_order(order_code, store_code, dict_obj):
 
     action_code = constants.ACTION_ORDER_CREATE['code']
     order_type = dict_obj.order_type
-    if order_type == constants.ORDER_TYPE_CROSSBOADER:
+    if True or order_type == constants.ORDER_TYPE_CROSSBOADER:
         action_code = constants.ACTION_CROSSORDER_CREATE['code']
         if not all([dict_obj.declare_type,
-                   dict_obj.receiver_info.order_person_idname,
-                   dict_obj.receiver_info.order_person_idcard]):
+                   dict_obj.receiver_info.receiver_identity]):
             raise Exception('跨境订单需要传入报关方式以及用户身份信息:order_no=%s'%order_code)
 
     with transaction.atomic():

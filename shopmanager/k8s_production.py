@@ -190,27 +190,9 @@ MIDDLEWARE_CLASSES = (
 
 MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + (
     'django_prometheus.middleware.PrometheusAfterMiddleware',
-    'dogslow.WatchdogMiddleware',
+    # 'dogslow.WatchdogMiddleware',
 )
 
-########################### DOGSLOW FOR PROMETHEUS ################################
-# Watchdog is enabled by default, to temporarily disable, set to False:
-DOGSLOW = True
-
-# By default, Watchdog will create log files with the backtraces.
-# You can also set the location of where it stores them:
-DOGSLOW_LOG_TO_FILE = False
-
-# Log requests taking longer than 25 seconds:
-DOGSLOW_TIMER = 3
-
-# Also log to this logger (defaults to none):
-DOGSLOW_LOGGER = 'dogslow'
-DOGSLOW_LOG_LEVEL = 'WARNING'
-
-# Print (potentially huge!) local stack variables (off by default, use
-# True for more detailed, but less manageable reports)
-DOGSLOW_STACK_VARS = False
 
 #################### TAOBAO SETTINGS ###################
 APPKEY = '12545735'  # app name guanyi erp ,younishijie

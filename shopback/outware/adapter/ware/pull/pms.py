@@ -116,6 +116,7 @@ def union_sku_and_supplier(ow_sku):
                 'vendor_name': ow_supplier.vendor_name,
                 'vendor_code': ow_supplier.vendor_code,
                 'sku_code': ow_sku.sku_code,
+                'vdr_provide_barcode': ow_sku.extras.get('vdr_provide_barcode','0')
             },
             constants.ACTION_UNION_SKU_AND_SUPPLIER['code'], ware_account)
     except Exception, exc:

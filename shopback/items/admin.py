@@ -958,8 +958,10 @@ class ProductSkuAdmin(admin.ModelAdmin):
             (('outer_id', 'properties_name', 'properties_alias', 'status'),
              ('warn_num', 'remain_num', 'wait_post_num', 'lock_num', 'weight'),
              ('cost', 'std_purchase_price', 'std_sale_price', 'agent_price',
-              'staff_price'), ('sync_stock', 'is_assign', 'is_split', 'is_match',
-                               'memo', 'buyer_prompt', "sku_inferior_num"))
+              'staff_price'),
+             ('sync_stock', 'is_assign', 'is_split', 'is_match',
+                               'memo', 'buyer_prompt', "sku_inferior_num"),
+             ('supplier_skucode',)),
     }),)
 
     # 取消该商品缺货订单

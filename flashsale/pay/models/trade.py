@@ -438,7 +438,7 @@ class SaleTrade(BaseModel):
             if not settings.INGORE_SIGNAL_EXCEPTION:
                 raise exc
 
-    def charge_confirm(self, charge_time=None, charge=charge):
+    def charge_confirm(self, charge_time=None, charge=''):
         """ 如果付款期间，订单被订单号任务关闭则不减锁定数量 """
         logger.info({
             'action': 'trade_confirm_start',
@@ -545,7 +545,6 @@ class SaleTrade(BaseModel):
         old_sale_order.status = SaleOrder.TRADE_CLOSED_BY_SYS
         new_sku_id = old_sale_order.sku_id
         new_num = old_sale_order.num
-        print old_sale_order.id
         old_sale_order.save()
         if old_sale_order.status == SaleOrder.WAIT_SELLER_SEND_GOODS:
             old_sale_order.set_psi_cancel()

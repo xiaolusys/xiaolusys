@@ -55,7 +55,7 @@ class ForecastInbound(BaseModel):
     STAING_STATUS = [ST_DRAFT, ST_APPROVED, ST_ARRIVED]
 
     forecast_no = models.CharField(max_length=32, default=default_forecast_inbound_no,
-                                   unique=True, verbose_name=u'入库批次')
+                                   unique=True, verbose_name=u'预测单编号')
     supplier = models.ForeignKey('supplier.SaleSupplier',
                                  null=True,
                                  blank=True,
