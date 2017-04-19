@@ -453,7 +453,7 @@ def check_xlmm_ordercarry(recent_days):
                                                     SaleOrder.TRADE_FINISHED,
                                                     SaleOrder.TRADE_CLOSED,
                                                     SaleOrder.TRADE_CLOSED_BY_SYS],
-                                        modified__gte=tf)
+                                        created__gte=tf)
 
     for order in queryset.iterator():
         # 特卖订单有ordercarry或inderect mama 虚拟订单有
@@ -501,7 +501,7 @@ def check_xlmm_carry_record(recent_days):
     from flashsale.coupon.models import CouponTransferRecord
     tt = datetime.datetime.now()
     tf = tt - datetime.timedelta(days=recent_days)
-    queryset = OrderCarry.objects.filter(modified__gte=tf)
+    queryset = OrderCarry.objects.filter(created__gte=tf)
     for carry in queryset.iterator():
         if carry.carry_type == OrderCarry.ADVANCED_MAMA_REFERAL_ORDER:
             continue
@@ -520,9 +520,8 @@ def check_xlmm_carry_record(recent_days):
                     record.confirm()
                 if carry_record_status == CarryRecord.CANCEL:
                     record.cancel()
-            if record.carry_num == 0 and record.carry_num != carry.carry_num:
-                record.carry_num = carry.carry_num
-                record.save()
+            if record.carry_num != carry.carry_num:
+                results.append(record.id)
             from flashsale.pay.models.trade import SaleOrder
             from flashsale.pay.models.product import ModelProduct
             from flashsale.xiaolumm.models import XiaoluMama
