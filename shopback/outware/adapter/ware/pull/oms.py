@@ -47,7 +47,7 @@ def create_order(order_code, store_code, order_type, dict_obj):
                     store_code=store_code,
                     union_order_code=order_code,
                     order_type=order_type,
-                    source_type=constants.ORDER_SALE['code'],
+                    order_source=constants.ORDER_SALE['code'],
                     extras={'data': dict(dict_obj)},
                     uni_key=OutwareOrder.generate_unikey(ware_account.id, order_code, order_type),
                 )

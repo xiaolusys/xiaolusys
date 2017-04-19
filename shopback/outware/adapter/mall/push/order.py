@@ -42,6 +42,7 @@ def push_outware_order_by_package(package):
     if not channel_maps or len(set(channel_maps.values())) > 1:
         raise Exception('同一订单只能有且只有一个channelid属性:packageorder=%s'%order_code)
 
+    order_channel = channel_maps.values()[0]
     if not source_type_set or len(source_type_set) > 1:
         raise Exception('商品对应货源来源类型不唯一：package: %s, source_types: [%s]'%(package.pid, ','.join(source_type_set)))
 
@@ -57,7 +58,7 @@ def push_outware_order_by_package(package):
         'order_create_time': package_skus.order_by('pay_time').first().created.strftime('%Y-%m-%d %H:%M:%S'),
         'pay_time': package_skus.order_by('-pay_time').first().created.strftime('%Y-%m-%d %H:%M:%S'),
         # 'order_type': order_type, # TODO@MERON　跨境订单不需要此字段，默认不接口内条件补填
-        'channel_id': channel_maps.values()[0],
+        'channel_id': order_channel,
         'receiver_info': {
             'receiver_country': '中国',
             'receiver_province': address.receiver_state,
@@ -78,6 +79,11 @@ def push_outware_order_by_package(package):
         params['order_person_idname'] = address.receiver_name
         params['order_person_idcard'] = address.idcard_no
         # params['receiver_info']['receiver_identity']   = address.idcard_no
+
+    # 如果是十里洋场的订单, 需要添加　"vendor_to_customer":"1","vendor_code":"fengchao_slyc"
+    if sdks.if_is_slyc_vendor(order_channel):
+        params['vendor_to_customer'] = '1'
+        params['vendor_code'] = sdks.FENGCHAO_SLYC_VENDOR_CODE
 
     dict_obj = DictObject().fresh_form_data(params)
     response = oms.create_order(order_code, store_code, order_type, dict_obj)
@@ -115,9 +121,10 @@ def push_outware_order_by_sale_trade(sale_trade):
     if not channel_maps or len(set(channel_maps.values())) > 1:
         raise Exception('同一订单只能有且只有一个channelid属性')
 
+    order_channel = channel_maps.values()[0]
     if not source_type_set or len(source_type_set) > 1:
         raise Exception('商品对应货源来源类型不唯一：trade: %s, source_types: [%s]' % (sale_trade.tid, ','.join(source_type_set)))
-    print 'source_type_set:', source_type_set
+
     order_type = constants.ORDER_TYPE_USUAL['code']
     if list(source_type_set)[0] == SaleProduct.SOURCE_BONDED:
         order_type = constants.ORDER_TYPE_CROSSBOADER['code']
@@ -131,7 +138,7 @@ def push_outware_order_by_sale_trade(sale_trade):
         'order_create_time': sale_trade.created.strftime('%Y-%m-%d %H:%M:%S'),
         'pay_time': sale_trade.pay_time.strftime('%Y-%m-%d %H:%M:%S'),
         # 'order_type': order_type, # TODO@MERON　跨境订单不需要此字段，默认不接口内条件补填
-        'channel_id': channel_maps.values()[0],
+        'channel_id': order_channel,
         'receiver_info': {
             'receiver_country': '中国',
             'receiver_province': address.receiver_state,
@@ -154,6 +161,11 @@ def push_outware_order_by_sale_trade(sale_trade):
         params['order_person_idname'] = address.receiver_name
         params['order_person_idcard'] = address.idcard_no
         # params['receiver_info']['receiver_identity']   = address.idcard_no
+
+    # 如果是十里洋场的订单, 需要添加　"vendor_to_customer":"1","vendor_code":"fengchao_slyc"
+    if sdks.if_is_slyc_vendor(order_channel):
+        params['vendor_to_customer'] = '1'
+        params['vendor_code'] = sdks.FENGCHAO_SLYC_VENDOR_CODE
 
     dict_obj = DictObject().fresh_form_data(params)
     response = oms.create_order(order_code, store_code, order_type, dict_obj)

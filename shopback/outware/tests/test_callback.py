@@ -88,7 +88,8 @@ class CallbackTestCase(TestCase):
                 ]
             }),
             u'app_id': u'app20170308hnabcpls',
-            u'sign': u'd145ff41f1ebf3541ba37263487637ca'}
+            u'sign': u'4654cf0964d947d322e69dc000e6282e'
+        }
 
         response = self.client.post(
             reverse('honeycomb:callback-order-goodlack'),
