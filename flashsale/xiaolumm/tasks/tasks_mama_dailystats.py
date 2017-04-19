@@ -496,6 +496,7 @@ def check_xlmm_ordercarry(recent_days):
 
 def check_xlmm_carry_record(recent_days):
     results = []
+    err_num = 0
     import datetime
     from flashsale.xiaolumm.models import OrderCarry, CarryRecord
     from flashsale.coupon.models import CouponTransferRecord
@@ -521,6 +522,7 @@ def check_xlmm_carry_record(recent_days):
                 if carry_record_status == CarryRecord.CANCEL:
                     record.cancel()
             if record.carry_num != carry.carry_num:
+                err_num += 1
                 results.append(record.id)
             from flashsale.pay.models.trade import SaleOrder
             from flashsale.pay.models.product import ModelProduct
@@ -552,7 +554,6 @@ def check_xlmm_carry_record(recent_days):
                             round(coupon_mp.products[0].elite_score * (sale_order.payment / sale_order.price))), template,
                                                              None, carry.order_id)
                 if record.carry_num > 0:
-                    err_num = 0
                     referal_id = 'carryrecord-%s' % record.id
                     from flashsale.pay.models import BudgetLog
                     bg = BudgetLog.objects.filter(referal_id=referal_id).first()
