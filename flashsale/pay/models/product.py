@@ -398,8 +398,11 @@ class ModelProduct(BaseTagModel):
         res = {p.properties_name: p.pic_path for p in self.products}
         return res
 
-    def set_title_imgs_values(self, respective_imgs):
-        self.title_imgs = respective_imgs
+    def set_title_imgs_values(self, respective_imgs=None):
+        if respective_imgs:
+            self.title_imgs = respective_imgs
+        elif not self.title_imgs or (len(self.title_imgs) ==1 and self.title_imgs.values()==['']):
+            self.title_imgs = {p.properties_name: p.pic_path for p in self.products}
 
     def set_title_imgs_key(self):
         # title_imgs同时支持了颜色放在Product(每颜色一种)上和颜色放在ProductSku上的情况。
@@ -965,6 +968,7 @@ class ModelProduct(BaseTagModel):
         if model_product.is_boutique:
             model_product.set_boutique_coupon()
         model_product.set_title_imgs_key()
+        model_product.set_title_imgs_values()
         model_product.save()
         return model_product
 

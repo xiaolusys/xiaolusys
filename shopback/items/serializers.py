@@ -206,32 +206,29 @@ class CreateProductSerializer(serializers.Serializer):
 
     def save(self, product_id=None):
         from pms.supplier.models import SaleCategory
-        try:
-            content = self.data
-            name = content['name']
-            sale_category = content['category']
-            product_category = SaleCategory.objects.get(id=sale_category).get_product_category()
-            type = content['type']
-            pic_path = content['pic_path']
-            ref_link = content['ref_link']
-            memo = content.get('memo', '')
-            skus = content['sku_extras']
-            if product_id:
-                product = Product.objects.get(id=product_id)
-                product.name = name
-                product.category = product_category
-                product.type = type
-                product.pic_path = pic_path
-                product.ref_link = ref_link
-                product.memo = memo
-                product.save()
-                product.update_skus(skus)
-            else:
-                product = Product.create(name, product_category, type, pic_path,
-                       ref_link, memo, skus)
-            return product
-        except Exception, e:
-            raise e
+        content = self.data
+        name = content['name']
+        sale_category = content['category']
+        product_category = SaleCategory.objects.get(id=sale_category).get_product_category()
+        type = content['type']
+        pic_path = content['pic_path']
+        ref_link = content['ref_link']
+        memo = content.get('memo', '')
+        skus = content['sku_extras']
+        if product_id:
+            product = Product.objects.get(id=product_id)
+            product.name = name
+            product.category = product_category
+            product.type = type
+            product.pic_path = pic_path
+            product.ref_link = ref_link
+            product.memo = memo
+            product.save()
+            product.update_skus(skus)
+        else:
+            product = Product.create(name, product_category, type, pic_path,
+                   ref_link, memo, skus)
+        return product
 
 
 class ProductItemSerializer(serializers.ModelSerializer):

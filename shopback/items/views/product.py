@@ -572,7 +572,9 @@ class ProductViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = serializers.CreateProductSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
+        product = serializer.save()
+        from shopback.items.serializers import ProductListSerializer
+        serializer = ProductListSerializer(product)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -581,7 +583,8 @@ class ProductViewSet(viewsets.ModelViewSet):
         serializer = serializers.CreateProductSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         product = serializer.save(product_id=instance.pk)
-        serializer = self.get_serializer(product)
+        from shopback.items.serializers import ProductListSerializer
+        serializer = ProductListSerializer(product)
         return Response(serializer.data)
 
     @detail_route(methods=['GET'])

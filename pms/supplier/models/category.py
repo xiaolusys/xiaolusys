@@ -211,10 +211,10 @@ class SaleCategory(BaseModel):
                 if self_cat:
                     return self_cat
 
-        first_cat = pcs.get(name=u'小鹿美美')
-        second_cat, state = ProductCategory.objects.get_or_create(parent_cid=first_cat.cid, name=self_names[0])
-        third_cat , state = ProductCategory.objects.get_or_create(parent_cid=second_cat.cid, name=self_names[1])
-        return third_cat
+        cur_cat = pcs.get(name=u'小鹿美美')
+        for cname in self_names:
+            cur_cat, state = ProductCategory.objects.get_or_create(parent_cid=cur_cat.cid, name=cname)
+        return cur_cat
 
 
 def invalid_salecategory_data_cache(sender, instance, created, **kwargs):
