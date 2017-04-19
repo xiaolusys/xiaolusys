@@ -567,7 +567,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                                 coupon_modelid = get_boutique_coupon_modelid_by_templateid(template_id)
                                 if round(sale_order.payment / sale_order.price) > 0:
                                     results.append({'exchg_template_id': template_id, 'exchg_model_id': coupon_modelid,
-                                                    'num': left_exchange_num,
+                                                    'num': left_exchange_num, 'exchg_payment': sale_order.payment,
                                                     'order_id': entry.order_id, 'sku_img': entry.sku_img,
                                                     'sku_name': sale_order.title,
                                                     'contributor_nick': entry.contributor_nick, 'status': entry.status,
@@ -603,7 +603,7 @@ class CouponExchgOrderViewSet(viewsets.ModelViewSet):
                                     if left_exchange_num > 0:
                                         results.append(
                                             {'exchg_template_id': template_id, 'exchg_model_id': coupon_modelid,
-                                             'num': left_exchange_num,
+                                             'num': left_exchange_num, 'exchg_payment': exchg_payment,
                                              'order_id': entry.order_id, 'sku_img': entry.sku_img,
                                              'sku_name': sale_order.title,
                                              'contributor_nick': entry.contributor_nick, 'status': entry.status,
