@@ -153,6 +153,7 @@ class SaleProduct(BaseTagModel):
         return None
 
     def get_item_products(self):
+        """获取相关所有商品"""
         from shopback.items.models import Product
         product_ids = list(self.saleproductrelation_set.values_list('product_id', flat=True))
         p = Product.objects.filter(sale_product=self.id).first()
