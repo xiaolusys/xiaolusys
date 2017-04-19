@@ -558,6 +558,7 @@ class CreateModelProductSerializer(serializers.Serializer):
                 instance.set_product_source_type(3)
             instance.save()
             instance.set_title_imgs_key()
+            instance.set_title_imgs_values()
             instance.save()
             if instance.is_boutique and not instance.extras.get("template_id"):
                 instance.set_boutique_coupon()

@@ -1120,6 +1120,7 @@ class Product(models.Model):
             sku.std_sale_price = item.get('std_sale_price', 0)
             sku.agent_price = item.get('agent_price', 0)
             sku.supplier_skucode = item.get('supplier_skucode', '')
+            sku.remain_num = item.get('remain_num', '')
             sku.barcode = sku.outer_id
             sku.save()
             if sku.id in sku_ids:
