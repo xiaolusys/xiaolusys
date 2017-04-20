@@ -921,9 +921,12 @@ class ModelProduct(BaseTagModel):
         return APIModel(**data)
 
     def set_sale_product(self):
-        product = self.products.first()
-        self.saleproduct = product.get_sale_product()
-        self.save()
+        try:
+            product = self.products.first()
+            self.saleproduct = product.get_sale_product()
+            self.save()
+        except Exception, e:
+            logger.error(e.message, exc_info=True)
 
     @property
     def is_coupon_deny(self):
