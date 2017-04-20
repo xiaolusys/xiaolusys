@@ -130,7 +130,7 @@ def get_channelid_by_vendor_codes(vendor_codes):
     return channel_maps
 
 def if_is_slyc_vendor(channel_id):
-    return channel_id.lower() == FENGCHAO_SLYC_VENDOR_CODE
+    return channel_id.lower() == FENGCHAO_SLYC_CHANNEL_CODE
 
 def get_carrier_code_by_logistics_company_code(logistic_company_code):
     """ 系统快递编码对应蜂巢快递编码,返回空字符串表示不支持该快递 """
