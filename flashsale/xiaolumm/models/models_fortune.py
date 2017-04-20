@@ -737,7 +737,7 @@ def ordercarry_update_order_number(sender, instance, created, **kwargs):
         task_update_mamafortune_order_num, task_ordercarry_increment_dailystats
     # task_update_clickcarry_order_number.delay(mama_id, date_field)
 
-    # task_update_mamafortune_order_num.delay(mama_id)
+    task_update_mamafortune_order_num.delay(mama_id)
 
     if created:
         task_ordercarry_increment_dailystats.delay(mama_id, date_field)
