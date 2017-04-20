@@ -500,7 +500,7 @@ class ModelProduct(BaseTagModel):
         # 创建精品券
         coupon_template = get_or_create_boutique_template(
             self.id, self.lowest_agent_price, model_title=self.name,
-            modelproduct_ids=str(self.id), product_ids=[p.id for p in self.products],
+            modelproduct_ids=str(self.id), product_ids=','.join([str(p.id) for p in self.products]),
             model_img=self.head_img_url)
 
         # 设置精品商品只可使用指定优惠券
