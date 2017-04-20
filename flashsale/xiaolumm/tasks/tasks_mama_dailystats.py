@@ -429,7 +429,7 @@ def task_check_order_carry_record():
 
     msg = '\n%s订单carry检查 :\n' \
           '\n1.ordercarry err :\n%s' \
-          '\n2.carryrecord无零钱记录订单:\n%s' % (datetime.datetime.now(), '\n'.join(results1), '\n'.join(results2))
+          '\n2.carryrecord无零钱记录订单:\n%s' % (datetime.datetime.now(), '\n'.join(results1), '\n'.join([str(x) for x in results2]))
 
 
     from common.dingding import DingDingAPI
