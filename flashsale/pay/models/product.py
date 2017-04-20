@@ -920,6 +920,11 @@ class ModelProduct(BaseTagModel):
         })
         return APIModel(**data)
 
+    def set_sale_product(self):
+        product = self.products.first()
+        self.saleproduct = product.get_sale_product()
+        self.save()
+
     @property
     def is_coupon_deny(self):
         """
@@ -970,6 +975,7 @@ class ModelProduct(BaseTagModel):
         model_product.set_title_imgs_key()
         model_product.set_title_imgs_values()
         model_product.save()
+        model_product.set_sale_product()
         return model_product
 
 def invalid_apimodelproduct_cache(sender, instance, *args, **kwargs):
