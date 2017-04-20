@@ -41,6 +41,7 @@ class ProductListSerializer(serializers.ModelSerializer):
     id = serializers.CharField()
     barcode = serializers.CharField(source='BARCODE', read_only=True)
     status = serializers.CharField(source='get_status_display', read_only=True)
+    shelf_status = serializers.CharField(source='get_shelf_status_display', read_only=True)
     sale_category = serializers.SerializerMethodField(read_only=True)
     category = serializers.CharField()
     sku_extras = serializers.SerializerMethodField(read_only=True)
@@ -59,7 +60,7 @@ class ProductListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ('id', 'name', 'category', 'sale_category', 'created', 'sku_extras', 'type', 'pic_path', 'ref_link',
-                  'memo', 'status', 'barcode', 'model_id', 'outer_id', 'price_dict', 'stock_dict')
+                  'memo', 'status', 'barcode', 'model_id', 'outer_id', 'price_dict', 'stock_dict', 'shelf_status')
 
     def get_price_dict(self, obj):
         return {

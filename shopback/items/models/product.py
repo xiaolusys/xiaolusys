@@ -1074,6 +1074,19 @@ class Product(models.Model):
             self.save(update_fields=update_fields)
         return
 
+    def reset_price(self):
+        product_dict = self.eskus.aggregate(avg_cost=Avg('cost'),
+                                            avg_purchase_price=Avg('std_purchase_price'),
+                                            avg_sale_price=Avg('std_sale_price'),
+                                            avg_agent_price=Avg('agent_price'),
+                                            avg_staff_price=Avg('staff_price'))
+        self.cost = product_dict.get('avg_cost', 0)
+        self.std_purchase_price = product_dict.get('avg_purchase_price', 0)
+        self.std_sale_price = product_dict.get('avg_sale_price', 0)
+        self.agent_price = product_dict.get('avg_agent_price', 0)
+        self.staff_price = product_dict.get('avg_staff_price', 0)
+        self.save()
+
     def set_outer_id(self):
         self.outer_id = Product.get_inner_outer_id('SP')
 
@@ -1127,6 +1140,7 @@ class Product(models.Model):
                 sku_ids.remove(sku.id)
         if sku_ids:
             ProductSku.objects.filter(id__in=sku_ids).update(status=pcfg.DELETE)
+        self.reset_price()
         return self
 
 
