@@ -14,7 +14,7 @@ node {
   if (env.BRANCH_NAME == "staging") {
     stage('Deploy to kubenetes:'){
       gitCommit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
-      build job; 'xiaolusys-deployment/staging', parameters: [[$class: 'StringParameterValue', name: 'commit_id', value: gitCommit]]
+      build job: 'xiaolusys-deployment/staging', parameters: [[$class: 'StringParameterValue', name: 'commit_id', value: gitCommit]]
     }
   }
 }
