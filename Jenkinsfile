@@ -10,5 +10,12 @@ node {
   }
   sh("docker tag xiaolusys:latest registry.aliyuncs.com/xiaolu-img/xiaolusys:`git rev-parse HEAD`")
   sh("docker push registry.aliyuncs.com/xiaolu-img/xiaolusys:`git rev-parse HEAD`")
+
+  if (env.BRANCH_NAME == "staging") {
+    stage('Deploy to kubenetes:'){
+      gitCommit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
+      build job; 'xiaolusys-deployment/staging', parameters: [[$class: 'StringParameterValue', name: 'commit_id', value: gitCommit]]
+    }
+  }
 }
 
