@@ -1310,10 +1310,11 @@ class PackageOrderAdmin(BaseModelAdmin):
     list_filter = ('sys_status', 'ware_by', 'status', 'redo_sign', 'is_qrcode', ('weight_time', DateFieldListFilter),)
     change_list_template = "admin/trades/package_change_list.html"
     ordering = ['-sys_status']
+    readonly_fields = ['sys_status','out_sid','logistics_company_name','ware_by']
     list_per_page = 50
 
     def pid_link(self, obj):
-        return "<a href='/trades/package_order/%d'>%s</a>" % (obj.pid, obj.pid)
+        return "<a>%s</a>" % (obj.pid)
     pid_link.short_description = u'PID'
     pid_link.allow_tags = True
 
