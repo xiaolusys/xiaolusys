@@ -806,7 +806,7 @@ def transfer_record_return_coupon_exchange(coupons, transfer_record):
             exchg_ordercarry = OrderCarry.objects.filter(order_id=sale_order.oid, carry_type=OrderCarry.REFERAL_ORDER,
                                                          status__in=[OrderCarry.CONFIRM]).first()
             if not exchg_ordercarry:
-                raise Exception('订单收益%s不存在' % order_id)
+                continue
             if exchg_mm_id != 0 and exchg_mm_id != exchg_ordercarry.mama_id:
                 raise Exception('退的多张精品券不属于同一个妈妈%s' % coupons)
             exchg_mm_id = exchg_ordercarry.mama_id
