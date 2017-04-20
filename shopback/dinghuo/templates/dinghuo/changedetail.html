@@ -480,7 +480,9 @@ function handleXlsFile(e) {
             {%if orderlist.return_bill%}
             <input class="btn btn-info" id = "cg_bill_money" type="button" data-toggle="modal" data-target="#billback-modal" data-billid="{{orderlist.return_bill.id}}" value="回款单">
             {%endif%}
+            {%if orderlist.created_by != 2 %}
             <input class="btn btn-info" type="button" onclick="set_status_delete({{ orderlist.id }})" value="作废">
+            {%endif%}
         </div>
     </div>
     <div class="col-lg-8">
