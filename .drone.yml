@@ -101,19 +101,6 @@ deploy:
     host: sale2.xiaolumm.com
     user: root
     when:
-      branch: warden
-    commands:
-      - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:warden
-      - docker rm -f gunicorn-warden
-      - docker run --name=gunicorn-warden --restart=always --log-opt max-file=1 --log-opt max-size=1m
-        -e INSTANCE=mall -e TARGET=staging -e REDIS_AUTH=$$REDIS_AUTH2
-        -v /var/data:/data -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9009:9000
-        registry.aliyuncs.com/xiaolu-img/xiaolusys:warden
-        gunicorn -k gevent -w 1 -c gunicorn_config.py shopmanager.wsgi
-  ssh:
-    host: sale2.xiaolumm.com
-    user: root
-    when:
       branch: flower
     commands:
       - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
