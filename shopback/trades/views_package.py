@@ -43,7 +43,7 @@ class PackageOrderViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def list_filters(self, request, *args, **kwargs):
-        logistics_company = LogisticsCompany.objects.filter(name__in=["韵达快递","邮政小包"])
+        logistics_company = LogisticsCompany.objects.filter(name__in=["韵达快递","邮政小包","顺丰速运"])
         return Response({
             'ware_by': PackageOrder.WARE_CHOICES,
             'sys_status': PO_STATUS.CHOICES,
