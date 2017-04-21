@@ -462,7 +462,7 @@ def check_xlmm_ordercarry(recent_days):
         if order.sale_trade.order_type == SaleTrade.ELECTRONIC_GOODS_ORDER:
             customer = Customer.objects.get(id=order.buyer_id)
             to_mama = customer.get_xiaolumm()
-            if to_mama.referal_from == XiaoluMama.INDIRECT:
+            if to_mama and to_mama.referal_from == XiaoluMama.INDIRECT:
                 indirect_mama = True
         if order.sale_trade.order_type == SaleTrade.SALE_ORDER or indirect_mama:
             order_carry_qs = OrderCarry.objects.filter(order_id=order.oid)

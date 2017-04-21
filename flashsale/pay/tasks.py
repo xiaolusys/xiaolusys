@@ -1157,14 +1157,14 @@ def task_schedule_check_boutique_modelproduct(days=1):
     onshelf_mps = get_onshelf_modelproducts()
     for mp in onshelf_mps:
         if not mp.onshelf_time:
-            onshelf_products.append(mp.id)
+            onshelf_products.append(mp.detail_content['name'])
             mp.onshelf_time = onshelf_time
             if not mp.offshelf_time:
                 mp.offshelf_time = offshelf_time
             mp.save(update_fields=['onshelf_time', 'offshelf_time'])
         for one_product in mp.products:
             if not one_product.upshelf_time:
-                onshelf_products.append(mp.id)
+                onshelf_products.append(mp.detail_content['name'])
                 one_product.upshelf_time = onshelf_time
                 if not one_product.offshelf_time:
                     one_product.offshelf_time = offshelf_time
@@ -1177,7 +1177,7 @@ def task_schedule_check_boutique_modelproduct(days=1):
         '02401336675559',  # 伍磊
     ]
     msg = '定时检查boutique product数据:\n时间:%s\n精品参数设置错误:%s\n非精品设置错误:%s\n精品券设置错误:%s\n上架时间设置错误:%s\n' % \
-          (str(datetime.datetime.now()), str(wrong_product), str(non_boutiques), str(wrong_coupons), str(onshelf_products))
+          (str(datetime.datetime.now()), ','.join([str(i) for i in wrong_product]), ','.join([str(i) for i in non_boutiques]), ','.join([str(i) for i in wrong_coupons]), ','.join([str(i) for i in onshelf_products]))
     dd = DingDingAPI()
     for touser in tousers:
         dd.sendMsg(msg, touser)
