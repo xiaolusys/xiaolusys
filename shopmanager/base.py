@@ -381,11 +381,11 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.UserRateThrottle',
         'rest_framework.throttling.ScopedRateThrottle',
     ),
-    # 'DEFAULT_THROTTLE_RATES': {
-    #     'auth': '120/hour',
-    #     'anon': '3000/hour',
-    #     'user': '3000/hour',
-    # },
+    'DEFAULT_THROTTLE_RATES': {
+        'auth': '500hour',
+        'anon': '10000hour',
+        'user': '10000hour',
+    },
 }
 
 REST_FRAMEWORK_EXTENSIONS = {
