@@ -48,6 +48,7 @@ from rest_framework.views import APIView
 from renderers import *
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 from . import forms, serializers
+from shopback.trades.constants import PSI_TYPE
 
 logger = logging.getLogger('django.request')
 
@@ -1616,7 +1617,7 @@ class TradeSearchView(APIView):
             # trades = MergeTrade.objects.filter(Q(id=q) | Q(tid=q) | Q(
             #     buyer_nick=q) | Q(receiver_mobile=q))
             # print PackageSkuItem.objects.filter(outer_id = 822289700121).count()
-            trades = PackageSkuItem.objects.filter(Q(receiver_mobile=q) | Q(package_order_pid=q) | Q(outer_id=q), type=0)
+            trades = PackageSkuItem.objects.filter(Q(receiver_mobile=q) | Q(package_order_pid=q) | Q(outer_id=q),type__in = [PSI_TYPE.NORMAL,PSI_TYPE.TIANMAO])
         else:
             return Response(trade_list)
 
