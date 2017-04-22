@@ -135,9 +135,9 @@ def gen_ordercarry(referal_relationship, order_carry, carry_type, carry_num):
         if record.status != order_carry.status:
             record.status = order_carry.status
             record.save(update_fields=['status', 'modified'])
-        if record.carry_num != carry_num:
-            record.carry_num = carry_num  # temp fix data 20170415
-            record.save(update_fields=['carry_num', 'modified'])
+        # if record.carry_num != carry_num:
+        #     record.carry_num = carry_num  # temp fix data 20170415
+        #     record.save(update_fields=['carry_num', 'modified'])
         return
 
     mama_id = parent_mama_id
@@ -190,7 +190,7 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
             if record.status != order_carry.status:
                 record.status = order_carry.status
                 record.save(update_fields=['status', 'modified'])
-        # return  # temp add data fix
+        return
 
     from flashsale.pay.models.trade import SaleOrder
     sale_order = SaleOrder.objects.filter(oid=order_carry.order_id).first()
