@@ -657,7 +657,6 @@ class RGDetail(models.Model):
         for type in types:
             package_item = PackageSkuItem(sale_order_id=self.id, ware_by=ware_by, oid=self.get_psi_oid())
             package_item.sku_id = self.skuid
-            package_item.product = self.product
             package_item.outer_sku_id = self.product_sku.outer_id
             package_item.outer_id = self.product.outer_id
             package_item.num = self.inferior_num if type == PSI_TYPE.RETURN_INFERIOR else self.num
