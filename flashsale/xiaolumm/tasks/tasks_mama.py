@@ -249,6 +249,16 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
                     relationship = ReferalRelationship.objects.filter(referal_to_mama_id=low_mama.id).first()
                 # 实物商品把第2级的价格填入
                 if relationship:
+                    if relationship.referal_from_mama_id == relationship.referal_to_mama_id:
+                        logger.error({
+                            'action': 'task_update_second_level_ordercarry',
+                            'order_no': sale_order.oid,
+                            'desc': 'relationship lower and upper mama is same',
+                            'low_mama': low_mama.id,
+                            'uppermama': relationship.referal_from_mama_id,
+                            'created': datetime.datetime.now(),
+                        })
+                        return
                     upper_mama = XiaoluMama.objects.filter(id=relationship.referal_from_mama_id,
                                                            status=XiaoluMama.EFFECT,
                                                            charge_status=XiaoluMama.CHARGED).first()
