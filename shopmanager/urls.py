@@ -45,6 +45,11 @@ def celery_state(request, task_id):
         content_type="application/json"
     )
 
+def weixin_mpverify(rquest, verify_string):
+    return HttpResponse(verify_string,
+        content_type="text/plain"
+    )
+
 
 urlpatterns = [
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
@@ -87,6 +92,7 @@ urlpatterns = [
     url(r'^outware/', include('shopback.outware.urls_out')),
     url(r'^qrcode/(?P<url>.*)', HttpProxy.as_view(base_url='http://%s/qrcode' % settings.QINIU_PUBLIC_DOMAIN)),
     # (r'^admin/doc/', include('django.contrib.admindocs.urls')),
+    url(r'^MP_verify_(?P<verify_string>.*).txt', weixin_mpverify, name="weixin_mpverify"),
     url('', include('django_prometheus.urls')),
     url(r'^admin/', include(admin.site.urls)),
 ]
