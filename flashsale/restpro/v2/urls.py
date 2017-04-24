@@ -45,6 +45,7 @@ v2_router.register(r'checkin', views.CheckinViewSet)
 v2_router.register(r'qrcode', views.QRcodeViewSet)
 v2_router.register(r'ocr', ocr.OcrIndentifyViewSet, 'ocr')
 v2_router.register(r'exchgorder', views.CouponExchgOrderViewSet)
+v2_router.register(r'poster', views.PosterViewSet)
 
 
 v2_router.register(r'usercoupons', views_coupon_new.UserCouponsViewSet)

@@ -718,16 +718,14 @@ class ProductPreviewSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class PosterSerializer(serializers.HyperlinkedModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='rest_v1:goodshelf-detail')
-    wem_posters = JSONParseField(read_only=True, required=False)
-    chd_posters = JSONParseField(read_only=True, required=False)
-
-    # activity = ActivityEntrySerializer(source='get_activity', read_only=True)
-    # brand_promotion = BrandEntrySerializer(source='get_brands', read_only=True, many=True)
+    items = serializers.SerializerMethodField()
 
     class Meta:
         model = GoodShelf
-        fields = ('id', 'url', 'wem_posters', 'chd_posters', 'active_time')
+        fields = ('id', 'title', 'category', 'items', 'is_active', 'active_time', 'created')
+
+    def get_items(self, obj):
+        return obj.wem_posters + obj.chd_posters
 
 
 class PortalSerializer(serializers.ModelSerializer):
