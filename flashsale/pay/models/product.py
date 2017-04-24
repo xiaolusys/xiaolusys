@@ -973,7 +973,7 @@ class ModelProduct(BaseTagModel):
         model_product.save()
         product.model_id = model_product.id
         product.save()
-        if model_product.is_boutique:
+        if model_product.is_boutique and model_product.type == 1:
             model_product.set_boutique_coupon()
         model_product.set_title_imgs_key()
         model_product.set_title_imgs_values()
