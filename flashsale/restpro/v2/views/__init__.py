@@ -19,3 +19,4 @@ from .views_coupon import CouponTransferRecordViewSet, CouponExchgOrderViewSet
 from .urlredirect import URLRedirectViewSet
 from .wdt import WangDianTongViewSet
 from .weapp import WeAppViewSet
+from .poster import PosterViewSet
