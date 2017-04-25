@@ -31,7 +31,7 @@ M_SITE_URL = 'http://staging.xiaolumm.com'
 MYSQL_HOST = 'rm-bp17ea269uu21f9i1o.mysql.rds.aliyuncs.com'
 MYSQL_AUTH = os.environ.get('MYSQL_AUTH')
 
-REDIS_HOST = '55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379'
+REDIS_HOST = 'r-bp1b4317ea5c3714.redis.rds.aliyuncs.com:6379'
 REDIS_AUTH = os.environ.get('REDIS_AUTH')
 # REDIS_AUTH = ''
 
@@ -84,7 +84,7 @@ CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
 
 # CELERY_BROKER_URL = 'redis://:{0}@{1}:6379/19'.format(REDIS_AUTH, REDIS_HOST)
-CELERY_BROKER_URL = 'redis://%s/19' % REDIS_HOST
+CELERY_BROKER_URL = 'redis://:{0}@{1}/19'.format(REDIS_AUTH, REDIS_HOST)
 CELERY_RESULT_BACKEND = 'django-db'
 
 ##########################SENTRY RAVEN##########################
