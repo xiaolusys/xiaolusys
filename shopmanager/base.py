@@ -25,7 +25,7 @@ ALLOWED_HOSTS = ['*']
 
 # 微信分享备用域名
 STANDBY_DOMAINS = [
-    ('m.xiaolumm.com', 'http'),
+    ('m.xiaolumeimei.com', 'http'),
 ]
 
 DATABASES = {
