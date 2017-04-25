@@ -192,7 +192,7 @@ class SaleSupplierAdmin(ApproxAdmin):
                                , ('email', 'zip_code')
                                , ('address', 'progress', 'status')
                                , ('account_bank', 'account_no')
-                               , ('supplier_type', 'supplier_zone', 'ware_by', 'return_ware_by')
+                               , ('supplier_type', 'supplier_zone', 'stocking_mode', 'ware_by', 'return_ware_by')
                                , ('memo','delta_arrive_days',"can_change_logistics")
                                )
                  }),

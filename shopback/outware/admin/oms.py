@@ -24,7 +24,7 @@ class OutwareOrderSkuAdmin(admin.ModelAdmin):
 
 @admin.register(OutwarePackage)
 class OutwarePackageAdmin(admin.ModelAdmin):
-    list_display = ('outware_account', 'package_order_code', 'package_type',
+    list_display = ('id', 'outware_account', 'package_order_code', 'package_type',
                     'store_code', 'logistics_no', 'carrier_code', 'created')
     list_filter = ('package_type','store_code', 'carrier_code')
     search_fields = ['=package_order_code', "=logistics_no"]

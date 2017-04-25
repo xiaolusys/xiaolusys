@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 @action_decorator(constants.ACTION_ORDER_SEND_FEEDBACK['code'])
 @transaction.atomic
 def update_outware_order_by_order_delivery(order_code, order_type, dict_obj):
-    """ 包含入仓单/销退单到仓确认 """
+    """ 包含普通订单/退仓单出仓确认 """
 
     ware_account = OutwareAccount.get_fengchao_account()
     ow_package   = None
@@ -74,6 +74,7 @@ def update_outware_order_by_order_delivery(order_code, order_type, dict_obj):
         return {'success': False, 'object': ow_package, 'message': str(exc)}
 
     return {'success':True, 'object': ow_package, 'message':''}
+
 
 @action_decorator(constants.ACTION_ORDER_STATE_FEEDBACK['code'])
 @transaction.atomic

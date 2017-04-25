@@ -33,6 +33,8 @@ class WareHouse(models.Model):
 
     mobile = models.CharField(max_length=11, blank=True, verbose_name=u'手机')
     phone = models.CharField(max_length=11, blank=True, verbose_name=u'电话')
+
+    ware_source = models.CharField(max_length=16, default='', choices=constants.SOURCE_CHOICES, verbose_name=u'仓库所属')
     # TYPE_CHOICES = (
     #     ("normal", u"普通仓库"),
     #     ("bonded", u'保税仓库'),
@@ -52,6 +54,14 @@ class WareHouse(models.Model):
 
     def __unicode__(self):
         return smart_unicode(self.ware_name)
+
+    @classmethod
+    def get_fengchao_warehouses(cls):
+        return cls.objects.filter(ware_source=constants.SOURCE_FENGCHAO, in_active=True)
+
+    @property
+    def is_fengchao_warehouse(self):
+        return self.SOURCE_FENGCHAO == constants.SOURCE_FENGCHAO
 
 
 class StockAdjust(AdminModel):

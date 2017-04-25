@@ -34,6 +34,7 @@ def update_saletrade_by_outware_packages(order_code, dict_obj):
           "object": "OutwareObject"
         }
     """
+    # TODO@MENTION ,该方法未被使用，实现逻辑查看OutwarePackage.create_by_push_info
     out_sid = order_code['dict_obj']['packages'][0]['logistics_no']
     logistics_company = LogisticsCompany.get_by_fengchao_code(order_code['dict_obj']['carrier_code'])# order_code['dict_obj']['carrier_code']
     sku_dict = {}
@@ -70,7 +71,15 @@ def update_refundproduct_by_outware_inbound(order_code, dict_obj):
     # relate_orderids =
     # supplier_id =
     # user =
-    pass
+    inbound_sku = dict_obj.inbound_skus[0]
+    s_refund = SaleRefund.objects.get(refund_no=order_code)
+    # 如果申请退款数量与退货正品数量相等，则确认退货
+    if s_refund.refund_num == inbound_sku.pull_good_qty:
+        s_refund.refund_confirm()
+    else:
+        feedback = '仓库确认入仓正品{0}件，次品{1}件,与退款申请数{2}件有差异，不能自动确认退款，请联系在线客服,谢谢!'
+        feedback = feedback.format([inbound_sku.pull_good_qty, inbound_sku.pull_bad_qty, s_refund.refund_num])
+        s_refund.refund_refuse(feedback)
 
 
 def update_outware_order_by_goodlack_notify(order_code, dict_obj):
@@ -90,4 +99,5 @@ def update_outware_order_by_goodlack_notify(order_code, dict_obj):
           ]
         }
     """
-    pass
+    # TODO@MERON.2017.4.25
+    raise Exception('订单商品缺货请实现: order_code=%s'% order_code)

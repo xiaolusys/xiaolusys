@@ -33,6 +33,7 @@ def update_outware_inbound_by_po_confirm(inbound_code, order_type, dict_obj):
             outware_inboind=ow_inbound,
             sku_code=inbound_sku.sku_code,
             batch_no=inbound_sku.batch_no,
+            uni_key=OutwareInboundSku.generate_unikey(ow_inbound.id, inbound_sku.sku_code, inbound_sku.batch_no),
         )
         ow_sku.pull_good_qty = inbound_sku.pull_good_qty
         ow_sku.pull_bad_qty  = inbound_sku.pull_bad_qty

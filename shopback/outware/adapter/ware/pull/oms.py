@@ -62,12 +62,6 @@ def create_order(order_code, store_code, order_type, dict_obj):
 
             ow_order.extras['data'] = dict(dict_obj)
             ow_order.save()
-        # create fengchao order
-        try:
-            sdks.request_getway(dict(dict_obj), action_code, ware_account)
-        except Exception, exc:
-            logger.error(str(exc), exc_info=True)
-            return {'success': False, 'object': ow_order, 'message': str(exc)}
 
         for sku_item in dict_obj.order_items:
             sku_order_code = sku_item.sku_order_code
@@ -97,6 +91,13 @@ def create_order(order_code, store_code, order_type, dict_obj):
                 ow_ordersku.union_order_code = order_code
                 ow_ordersku.sku_qty = sku_item.quantity
                 ow_ordersku.save()
+
+    # create fengchao order
+    try:
+        sdks.request_getway(dict(dict_obj), action_code, ware_account)
+    except Exception, exc:
+        logger.error(str(exc), exc_info=True)
+        return {'success': False, 'object': ow_order, 'message': str(exc)}
 
     # 设置为已接单
     ow_order.change_order_status(constants.RECEIVED)

@@ -1467,7 +1467,16 @@ WDT_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_sync_erp_deliver'}
     }
+}
 
+
+FENGCHAO_SCHEDULE = {
+    u'每30分钟同步订单到蜂巢三方仓': {
+        'task': 'shopback.trades.tasks.fengchao.task_push_packageorder_to_fengchao',
+        'schedule': crontab(minute="*/30"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_push_packageorder_to_fengchao'}
+    },
 }
 
 # 业务指数据标监控任务

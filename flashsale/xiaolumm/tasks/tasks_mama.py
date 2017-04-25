@@ -95,6 +95,9 @@ def get_level_differential(model_product, high_level, low_level):
         'Partner': 3,
         'SP': 4
     }
+    if len(level_prices) < len(elite_level_map.keys()):
+        return 0
+
     high_index = elite_level_map[high_level]
     if low_level:
         low_index = elite_level_map[low_level]

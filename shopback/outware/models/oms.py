@@ -124,7 +124,7 @@ class OutwarePackage(BaseWareModel):
 
     outware_account = models.ForeignKey('outware.OutwareAccount', verbose_name=u'关联账号')
 
-    package_type = models.CharField(max_length=16, db_index=True, choices=PACKAGE_TYPE_CHOICES, verbose_name=u'包裹类型')
+    package_type = models.IntegerField(db_index=True, choices=PACKAGE_TYPE_CHOICES, verbose_name=u'包裹类型')
     package_order_code = models.CharField(max_length=32, blank=True, db_index=True, verbose_name=u'销单/退仓单编号')
 
     store_code = models.CharField(max_length=32, blank=True, db_index=True, verbose_name=u'外部仓库编号')
@@ -137,8 +137,8 @@ class OutwarePackage(BaseWareModel):
     class Meta:
         db_table = 'outware_package'
         app_label = 'outware'
-        verbose_name = u'外仓/发送包裹'
-        verbose_name_plural = u'外仓/发送包裹'
+        verbose_name = u'外仓/出仓包裹'
+        verbose_name_plural = u'外仓/出仓包裹'
 
     @classmethod
     def generate_unikey(self, account_id, logistics_no, carrier_code):
@@ -150,10 +150,14 @@ class OutwarePackage(BaseWareModel):
 
     @staticmethod
     def create_by_push_info(order_code, order_type, dict_obj):
-        """ 包含入仓单/销退单到仓确认 """
-        from shopback.outware.models.wareauth import OutwareAccount
+        """ 包含普通订单/退仓单出仓确认 """
+        from shopback.outware.models import OutwareAccount,OutwareOrder
         ware_account = OutwareAccount.get_fengchao_account()
         ow_packages = []
+        # 更新outware_order status
+        outware_order = OutwareOrder.objects.get(union_order_code=order_code, order_type=constants.ORDER_SALE['code'])
+        outware_order.change_order_status(constants.SENDED)
+
         with transaction.atomic():
             for package in dict_obj.packages:
                 # firstly, update outware package status and sku qty
@@ -161,13 +165,13 @@ class OutwarePackage(BaseWareModel):
                     outware_account=ware_account,
                     carrier_code=package.carrier_code,
                     logistics_no=package.logistics_no,
+                    package_type=order_type,
                     uni_key=OutwarePackage.generate_unikey(ware_account.id, package.logistics_no, package.carrier_code)
                 )
-                # 忽略重复单
+                # # 忽略重复单
                 if not state:
                     continue
                 ow_package.package_order_code = order_code
-                ow_package.package_type = order_type
                 ow_package.store_code   = package.store_code
                 ow_package.save()
 
@@ -180,6 +184,7 @@ class OutwarePackage(BaseWareModel):
                         uni_key=OutwarePackageSku.generate_unikey(item.sku_code, item.batch_no, ow_package.id)
                     )
                 ow_packages.append(ow_package)
+
         ow_packages = runner.get_runner(order_type)(ow_packages).execute()
         return ow_packages
 
@@ -203,11 +208,11 @@ class OutwarePackageSku(BaseWareModel):
     class Meta:
         db_table = 'outware_packagesku'
         app_label = 'outware'
-        verbose_name = u'外仓/发送包裹sku'
-        verbose_name_plural = u'外仓/发送包裹sku'
+        verbose_name = u'外仓/出仓包裹sku'
+        verbose_name_plural = u'外仓/出仓包裹sku'
 
     @classmethod
     def generate_unikey(self, sku_code, batch_no, package_id):
-        return '{sku_code}-{batch_no}-{package_id}'.format(
+        return '{sku_code}-{package_id}-{batch_no}'.format(
             sku_code=sku_code, batch_no=batch_no, package_id=package_id)
 

@@ -386,7 +386,7 @@ class SaleRefund(PayBaseModel):
         self.status = SaleRefund.REFUND_APPROVE
         self.save(update_fields=['refund_id', 'status'])
 
-    def refund_refuse(self):
+    def refund_refuse(self, feedback=''):
         # type: () -> bool
         """拒绝退款
         """
@@ -394,7 +394,9 @@ class SaleRefund(PayBaseModel):
                            SaleRefund.REFUND_WAIT_RETURN_GOODS,  # 同意申请
                            SaleRefund.REFUND_CONFIRM_GOODS):  # 退货待收
             self.status = SaleRefund.REFUND_REFUSE_BUYER
-            self.save(update_fields=['status'])
+            if feedback:
+                self.feedback = feedback
+            self.save(update_fields=['status', 'feedback'])
             return True
         return False
 

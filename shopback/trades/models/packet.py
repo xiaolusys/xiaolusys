@@ -1,4 +1,5 @@
 # -*- coding:utf-8 -*-
+from __future__ import absolute_import, unicode_literals
 # @hy 原本命名为package.py不能被ide正确识别
 import datetime
 import logging
@@ -18,12 +19,11 @@ from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_THIRD, WARE_CHO
 from shopback.trades.constants import PSI_STATUS, SYS_ORDER_STATUS, IN_EFFECT, PO_STATUS, PSI_TYPE
 from shopback import paramconfig as pcfg
 from shopback.trades.models import TradeWuliu
-from models import TRADE_TYPE, TAOBAO_TRADE_STATUS
+from ..models import TRADE_TYPE, TAOBAO_TRADE_STATUS
 from django.contrib.auth.models import User
 from flashsale.restpro.kd100_subscription import kd100_subscription
 from django.utils.functional import cached_property
 
-logger = logging.getLogger('django.request')
 logger = logging.getLogger(__name__)
 
 
@@ -46,6 +46,7 @@ class PackageOrder(models.Model):
     WAIT_PREPARE_SEND_STATUS = PO_STATUS.WAIT_PREPARE_SEND_STATUS
     WAIT_CHECK_BARCODE_STATUS = PO_STATUS.WAIT_CHECK_BARCODE_STATUS
     WAIT_SCAN_WEIGHT_STATUS = PO_STATUS.WAIT_SCAN_WEIGHT_STATUS
+    WAIT_OUTWARE_SEND_CALLBACK = PO_STATUS.WAIT_SCAN_WEIGHT_STATUS
     WAIT_CUSTOMER_RECEIVE = PO_STATUS.WAIT_CUSTOMER_RECEIVE
     FINISHED_STATUS = PO_STATUS.FINISHED_STATUS
     DELETE = PO_STATUS.DELETE
@@ -114,7 +115,7 @@ class PackageOrder(models.Model):
     remind_time = models.DateTimeField(null=True, blank=True, verbose_name=u'提醒日期')
     consign_time = models.DateTimeField(null=True, blank=True, verbose_name=u'发货日期')
     reason_code = models.CharField(max_length=100, blank=True, verbose_name=u'问题编号')  # 1,2,3 问题单原因编码集合
-    redo_sign = models.BooleanField(default=False, verbose_name=u'重做标志')
+    redo_sign   = models.BooleanField(default=False, verbose_name=u'重做标志')
     # 重做标志，表示该单要进行了一次废弃的打单验货
     merge_trade_id = models.BigIntegerField(null=True, blank=True, verbose_name=u'对应的MergeTrade')
     shipping_type = 'express'
@@ -195,10 +196,12 @@ class PackageOrder(models.Model):
         for sku_id in ori_sku_dict:
             now_num = ori_sku_dict[sku_id] - sku_dict.get(sku_id, 0)
             if now_num < 0:
-                raise Exception(u'%s此sku%s数目%s超出包裹数%s'% (self.id, sku_id, new_dict['num'], ori_sku_dict['num']))
+                raise Exception(u'%s此sku%s数目%s超出包裹数%s'% (self.id, sku_id, new_dict['num'], ori_sku_dict[sku_id]))
             new_dict[sku_id] = now_num
+
         if not new_dict or new_dict == ori_sku_dict:
             return None
+
         # 无需切psi
         if len(new_dict) + len(sku_dict) == len(ori_sku_dict):
             psi = self.package_sku_items.filter(sku_id__in=sku_dict.key()).first()
@@ -231,6 +234,16 @@ class PackageOrder(models.Model):
                 psi.package_order_pid = new_package.pid
                 psi.package_order_id = new_package.id
                 psi.save()
+
+        logger.info({
+            'action': 'packageorder_divide',
+            'action_time': datetime.datetime.now(),
+            'origin_package': self.pid,
+            'new_package': new_package.pid,
+            'new_dict': new_dict,
+            'sku_dict': sku_dict,
+            'ori_sku_dict': ori_sku_dict
+        })
         self.refresh_stat()
         return new_package
 
@@ -299,6 +312,7 @@ class PackageOrder(models.Model):
             psku.update_wait_post_num(sku_item.num, dec_update=True)
         self.refresh_stat()
         kd100_subscription(logistics_company.kd100_express_key, out_sid)
+
 
     def is_ready_completion(self):
         if self.sku_num == self.order_sku_num:
@@ -564,7 +578,7 @@ class PackageOrder(models.Model):
     @transaction.atomic
     def create(id, sale_trade, psi=None):
         package_order = PackageOrder(id=id)
-        buyer_id, address_id, ware_by_id, order = id.split('-')
+        buyer_id, address_id, ware_by_id = id.split('-')[0:3]
         package_order.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS
         package_order.buyer_id = int(buyer_id)
         package_order.user_address_id = int(address_id)
@@ -710,7 +724,7 @@ class PackageOrder(models.Model):
         self.save()
 
     @staticmethod
-    def gen_new_package_id(buyer_unikey, address_unikey, ware_by_id, merge=True):
+    def gen_new_package_id(buyer_unikey, address_unikey, ware_by_id, direct_vendor_code='', merge=True):
         """
             提供用户唯一识别串/地址唯一识别串/仓库id
         :param buyer_id:
@@ -719,18 +733,22 @@ class PackageOrder(models.Model):
         :return:
         """
         id = str(buyer_unikey) + '-' + str(address_unikey) + '-' + str(ware_by_id)
+        if direct_vendor_code:
+            id = id + '-' + direct_vendor_code # 如果直发，则不同供应商之间不能合单
         if ware_by_id == WARE_THIRD:
             now_num = PackageStat.get_package_num(id) + 1
         else:
             now_num = PackageStat.get_sended_package_num(id) + 1
         res = id + '-' + str(now_num)
-        sys_status_ins = [PO_STATUS.FINISHED_STATUS, PO_STATUS.WAIT_CUSTOMER_RECEIVE]
+        sys_status_ins = [PO_STATUS.FINISHED_STATUS, PO_STATUS.WAIT_CUSTOMER_RECEIVE, PO_STATUS.WAIT_OUTWARE_SEND_CALLBACK]
         if not merge:
-            sys_status_ins.extend([PO_STATUS.WAIT_PREPARE_SEND_STATUS, PO_STATUS.WAIT_CHECK_BARCODE_STATUS,
-                                   PO_STATUS.WAIT_SCAN_WEIGHT_STATUS, PO_STATUS.DELETE])
+            sys_status_ins.extend([PO_STATUS.WAIT_PREPARE_SEND_STATUS,
+                                   PO_STATUS.WAIT_CHECK_BARCODE_STATUS,
+                                   PO_STATUS.WAIT_SCAN_WEIGHT_STATUS,
+                                   PO_STATUS.DELETE])
         while True:
             if PackageOrder.objects.filter(id=res, sys_status__in=sys_status_ins).exists():
-                logger.error('gen_new_package_id error: sku order smaller than count:' + str(res))
+                logger.info('gen_new_package_id error: sku order smaller than count:' + str(res))
                 now_num += 1
                 res = id + '-' + str(now_num)
             else:
@@ -1343,9 +1361,17 @@ class PackageSkuItem(BaseModel):
             if self.type == PSI_TYPE.NORMAL:
                 self.status = PSI_STATUS.MERGED
                 self.merge_time = datetime.datetime.now()
+                # 获取sku对应供应商的 存货模式及直发供应商编码
+                p_sku = ProductSku.objects.get(id=self.sku_id)
+                sale_supplier = p_sku.product.get_supplier()
+                direct_vendor_code = ''
+                if sale_supplier and sale_supplier.is_vendor_to_customer():
+                    direct_vendor_code = sale_supplier.vendor_code
+
                 package_order_id = PackageOrder.gen_new_package_id(self.sale_trade.buyer_id,
                                                                    self.sale_trade.user_address_id,
-                                                                   self.product_sku.ware_by)
+                                                                   self.product_sku.ware_by,
+                                                                   direct_vendor_code=direct_vendor_code)
                 po = PackageOrder.objects.filter(id=package_order_id).first()
                 if po:
                     if po.sys_status == PackageOrder.PKG_NEW_CREATED:
@@ -1426,7 +1452,6 @@ class PackageSkuItem(BaseModel):
                                                                return_addr_id,
                                                                self.product_sku.ware_by)
             po = PackageOrder.objects.filter(id=package_order_id).first()
-
             if po:
                 if po.sys_status == PackageOrder.PKG_NEW_CREATED:
                     po.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS
@@ -1496,7 +1521,8 @@ class PackageSkuItem(BaseModel):
         :param type:
         :return:
         """
-        to_merge_wares = [1, 2, 3, 4, 5]
+        from shopback.warehouse import constants
+        to_merge_wares = constants.CAN_MERGE_ORDER_WHS_IDS
         if type is None:
             type = PSI_TYPE.NORMAL
         if type in [PSI_TYPE.NORMAL, PSI_TYPE.TIANMAO]:

@@ -38,6 +38,7 @@ def push_outware_order_by_package(package):
 
     vendor_codes = OutwareSku.objects.filter(sku_code__in=sku_codes)\
         .values_list('outware_supplier__vendor_code', flat=True)
+    stocking_modes = SaleSupplier.objects.filter(vendor_code__in=vendor_codes).values_list('stocking_mode', flat=True)
     channel_maps = sdks.get_channelid_by_vendor_codes(vendor_codes)
     if not channel_maps or len(set(channel_maps.values())) > 1:
         raise Exception('同一订单只能有且只有一个channelid属性:packageorder=%s'%order_code)
@@ -47,11 +48,15 @@ def push_outware_order_by_package(package):
         raise Exception('商品对应货源来源类型不唯一：package: %s, source_types: [%s]'%(package.pid, ','.join(source_type_set)))
 
     order_type = constants.ORDER_TYPE_USUAL['code']
-    if list(source_type_set)[0] == SaleProduct.SOURCE_BONDED:
+    source_type = list(source_type_set)[0]
+    if source_type == SaleProduct.SOURCE_BONDED:
         order_type = constants.ORDER_TYPE_CROSSBOADER['code']
 
-    if list(source_type_set)[0] == SaleProduct.SOURCE_OUTSIDE:
-        raise Exception('直邮模式暂不支持')
+    if source_type == SaleProduct.SOURCE_OUTSIDE:
+        raise Exception('直邮模式暂不支持: package=%s'% package.pid)
+
+    if source_type == SaleProduct.SOURCE_TTP and not any(stocking_modes) and len(set(vendor_codes)) > 1:
+        raise Exception('直发供应商之间不能混单: package=%s'% package.pid)
 
     params = {
         'order_number': '{}'.format(package.pid),
@@ -84,6 +89,11 @@ def push_outware_order_by_package(package):
     if sdks.if_is_slyc_vendor(order_channel):
         params['vendor_to_customer'] = '1'
         params['vendor_code'] = sdks.FENGCHAO_SLYC_VENDOR_CODE
+
+    # TODO#MENTION,处理直发供应订单,不同直发供应不能合单　直发条件(三方仓, 供应商直发，并且不能合单)
+    elif source_type == SaleProduct.SOURCE_TTP and not any(stocking_modes):
+        params['vendor_to_customer'] = '1'
+        params['vendor_code'] = vendor_codes[0]
 
     dict_obj = DictObject().fresh_form_data(params)
     response = oms.create_order(order_code, store_code, order_type, dict_obj)
@@ -180,12 +190,15 @@ def push_outware_inbound_by_sale_refund(sale_refund):
     sale_order = SaleOrder.objects.get(id=sale_refund.order_id)
 
     # TODO@meron 退货申请时需要客服判断具体时哪个供应商的商品,目前默认设置成最近一次供货的供应商
-    ow_ordersku = OutwareOrderSku.objects.get(origin_skuorder_no=sale_order.oid)
+    ow_ordersku = OutwareOrderSku.objects.filter(origin_skuorder_no=sale_order.oid, is_valid=True).first()
+    if not ow_ordersku:
+        return
+
     ow_sku = OutwareSku.objects.filter(sku_code=ow_ordersku.sku_code).order_by('-modified').first()
     vendor_code = ow_sku.outware_supplier.vendor_code
     channel_maps = sdks.get_channelid_by_vendor_codes([vendor_code])
 
-    sale_supplier = ow_sku.outware_supplier
+    # sale_supplier = ow_sku.outware_supplier
     params = {
         'store_code': warehouse.store_code,
         'order_code': sale_refund.refund_no,

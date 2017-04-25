@@ -6,7 +6,7 @@ from django.db import models
 from django.db.models.signals import post_save
 from .managers.supplier import SaleSupplierManager
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
-from pms.supplier.constants import STOCKING_MODE_CHOICES
+from pms.supplier import constants
 
 
 def gen_vendor_code(start=None):
@@ -80,6 +80,10 @@ class SaleSupplier(models.Model):
                      (WHOLESALER, u'经销批发'),
                      (BRAND_OWNER, u'品牌'),
                      (CLOTHING_FACTORY, u'源头大厂'))
+
+    VENDOR_TO_CUSTOMER = constants.VENDOR_TO_CUSTOMER
+    STOCK_TO_CUSTOMER  = constants.STOCK_TO_CUSTOMER
+
     supplier_name = models.CharField(max_length=64, unique=True, blank=False, verbose_name=u'供应商名')
     vendor_code  = models.CharField(max_length=32, unique=True, blank=True, default=gen_vendor_code,
                                      verbose_name=u'供应商编码', help_text='后面应改为unique')
@@ -134,7 +138,8 @@ class SaleSupplier(models.Model):
                                 default=SELECTED, verbose_name=u'进度')
     supplier_type = models.IntegerField(choices=SUPPLIER_TYPE, blank=True, default=0, verbose_name=u"供应商类型")
     supplier_zone = models.IntegerField(default=0, db_index=True, verbose_name=u'供应商所属区域')
-    stocking_mode = models.IntegerField(default=0, choices=STOCKING_MODE_CHOICES, db_index=True, verbose_name=u'存货模式')
+    stocking_mode = models.IntegerField(default=0, choices=constants.STOCKING_MODE_CHOICES, db_index=True,
+                                        verbose_name=u'存货模式', help_text="直发表示不存货也不退仓")
     buyer = models.ForeignKey('auth.User', null=True, related_name='buyers', verbose_name=u'买手')
     ware_by = models.SmallIntegerField(default=WARE_SH, choices=WARE_CHOICES, verbose_name=u'所属仓库')
     return_ware_by = models.SmallIntegerField(default=WARE_SH, choices=WARE_CHOICES, verbose_name=u'退货仓库')
@@ -196,6 +201,11 @@ class SaleSupplier(models.Model):
 
     def province(self):
         return self.address.split('/')[0]
+
+    def is_vendor_to_customer(self):
+        """是否支持直发"""
+        return self.stocking_mode == SaleSupplier.VENDOR_TO_CUSTOMER
+
 
 
 def update_product_ware_by(sender, instance, created, **kwargs):

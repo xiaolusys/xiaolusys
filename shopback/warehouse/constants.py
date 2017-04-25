@@ -31,3 +31,14 @@ WARE_CHOICES = (
     (WARE_THIRD, u'第三方仓'),
     (WARE_FCSLYC, u'蜂巢十里洋场'),
 )
+
+SOURCE_JIMEI    = u'jimei'
+SOURCE_FENGCHAO = u'fengchao'
+SOURCE_YOUHE    = u'youhe'
+SOURCE_CHOICES = (
+    (SOURCE_JIMEI, u'己美'),
+    (SOURCE_FENGCHAO, u'蜂巢'),
+    (SOURCE_YOUHE, u'优禾'),
+)
+
+CAN_MERGE_ORDER_WHS_IDS = (1,2,3,4,5,10)
