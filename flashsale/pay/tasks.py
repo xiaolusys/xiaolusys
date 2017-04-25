@@ -1086,6 +1086,9 @@ def task_schedule_check_boutique_modelproduct(days=1):
             elif not (mp.extras.has_key('payinfo') and mp.extras['payinfo'].has_key('coupon_template_ids') and len(
                     mp.extras['payinfo']['coupon_template_ids']) > 0):
                 right = False
+            elif (mp.extras['saleinfos'].has_key('is_coupon_deny') and
+                 mp.extras['saleinfos']['is_coupon_deny'] == True):
+                right = False
 
             s = u'保税区'
             if mp.detail_content['name'].find(s) != -1 and (
