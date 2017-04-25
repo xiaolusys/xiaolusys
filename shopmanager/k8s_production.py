@@ -31,7 +31,7 @@ MYSQL_HOST = 'rdsvrl2p9pu6536n7d99.mysql.rds.aliyuncs.com'
 MYSQL_AUTH = os.environ.get('MYSQL_AUTH')
 
 REDIS_HOST = 'r-bp1b4317ea5c3714.redis.rds.aliyuncs.com:6379'
-REDIS_AUTH = 'Huyiinc12345'#os.environ.get('REDIS_AUTH')
+REDIS_AUTH = os.environ.get('REDIS_AUTH')
 
 
 if os.environ.get('INSTANCE') == 'mall':
