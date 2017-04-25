@@ -1071,7 +1071,7 @@ def tongji_trade_source(sender, obj, **kwargs):
     task_tongji_trade_source.delay()
 
 
-signal_saletrade_pay_confirm.connect(tongji_trade_source, sender=SaleTrade)
+# signal_saletrade_pay_confirm.connect(tongji_trade_source, sender=SaleTrade)
 
 
 def tongji_trade_pay_channel(sender, obj, **kwargs):

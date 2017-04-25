@@ -1,5 +1,6 @@
 # encoding=utf8
-from rest_framework import viewsets
+import simplejson
+from rest_framework import viewsets, renderers
 from rest_framework import authentication, permissions
 from rest_framework.parsers import JSONParser
 from rest_framework.permissions import DjangoModelPermissions
@@ -17,13 +18,14 @@ class PosterViewSet(viewsets.ModelViewSet):
     serializer_class = PosterSerializer
     queryset = GoodShelf.objects.all().order_by('-created')
     permission_classes = (permissions.IsAuthenticated, DjangoModelPermissions)
-    parser_classes = (JSONParser,)
+    # parser_classes = (JSONParser,)
 
     def create(self, req, *args, **kwargs):
         """
         POST /rest/v2/poster
         """
-        data = req.data
+        data = req.data.keys()[0]
+        data = simplejson.loads(data)
         title = data.get('title')
         category = data.get('category')
         items = data.get('items')
