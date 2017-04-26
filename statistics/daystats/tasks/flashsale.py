@@ -37,7 +37,7 @@ def task_Push_Sales_To_DailyStat(target_date):
     seven_day_ago = target_date - datetime.timedelta(days=7)
     seven_day_before = datetime.datetime(seven_day_ago.year, seven_day_ago.month, seven_day_ago.day, 0, 0, 0)
     # click_count = ClickCount.objects.get(date=target_date)
-    # cc_stats = click_count.aggregate(total_user_num=Sum('user_num'),
+    # cc_stats = click_count.aggregate(total_user_num=Sum('user_num')
     # total_valid_num=Sum('valid_num'))
     clicks = Clicks.objects.filter(click_time__range=(df, dt))
 
@@ -82,7 +82,6 @@ def task_Push_Sales_To_DailyStat(target_date):
     total_old_buyer_num = 0
     seven_old_buyer_num = 0
     total_old_order_num = 0
-
 
     usual_base_order_qs = SaleTrade.objects.filter(
         order_type__in=(

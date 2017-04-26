@@ -181,7 +181,7 @@ class ModelProduct(BaseTagModel):
 
     name = models.CharField(max_length=64, db_index=True, verbose_name=u'款式名称')
 
-    head_imgs = models.TextField(blank=True, verbose_name=u'题头照(多张请换行)')
+    head_imgs = models.TextField(blank=True, verbose_name=u'题头照(多张请换行)', help_text=u'商品分享展示图片(取首张)')
     content_imgs = models.TextField(blank=True, verbose_name=u'内容照(多张请换行)',  help_text=u"多色则多图，单色则单图")
     detail_first_img = models.TextField(blank=True, verbose_name=u'详情首图')
     title_imgs = JSONCharMyField(max_length=5000, verbose_name=u'主图', help_text=u"多色则多图，单色则单图")

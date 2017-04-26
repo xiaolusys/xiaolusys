@@ -157,10 +157,10 @@ class SaleTrade(BaseModel):
 
     total_fee = models.FloatField(default=0.0, verbose_name=u'总费用')
     payment = models.FloatField(default=0.0, verbose_name=u'付款金额')
-    pay_cash = models.FloatField(default=0.0, verbose_name=u'实付现金')
+    pay_cash = models.FloatField(default=0.0, verbose_name=u'实付现金', help_text='只包含现金，不包含钱包支付金额等')
     post_fee = models.FloatField(default=0.0, verbose_name=u'物流费用')
     discount_fee = models.FloatField(default=0.0, verbose_name=u'优惠折扣')
-    budget_paid = models.FloatField(default=0.0, verbose_name=u'余额支付')
+    budget_paid = models.FloatField(default=0.0, verbose_name=u'余额支付', help_text='钱包余额支付金额')
     coin_paid   = models.FloatField(default=0.0, verbose_name=u'小鹿币支付')
 
     has_budget_paid = models.BooleanField(default=False, verbose_name=u'使用余额')

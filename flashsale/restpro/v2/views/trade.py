@@ -475,7 +475,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         # if not buyer_openid:
         #     buyer_openid = options.get_openid_by_unionid(customer.unionid, settings.WX_PUB_APPID)
 
-        payment      = round(float(form.get('payment')), 2)
+        payment    = round(float(form.get('payment')), 2)
         pay_extras = form.get('pay_extras', '')
         coupon_ids = parse_coupon_ids_from_pay_extras(pay_extras)
         budget_dicts = self.calc_extra_budget(pay_extras, type_list=[CONS.BUDGET, CONS.XIAOLUCOIN])
@@ -484,6 +484,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
         if xiaolucoin_payment > 0 and not (is_boutique and order_type == SaleTrade.ELECTRONIC_GOODS_ORDER):
             raise Exception(u'小鹿币只可用于购买精品券')
+
+        # 钱包充值,直接不算现金
+        if channel == SaleTrade.BUDGET and budget_payment == 0 and xiaolucoin_payment == 0:
+            budget_payment = payment
 
         if not coupon_ids:
             coupon_id = form.get('coupon_id', None)
@@ -504,7 +508,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             'buyer_nick': customer.nick,
             'buyer_message': form.get('buyer_message', ''),
             'payment': payment,
-            'pay_cash': max(0, round(payment * 100 - budget_payment - xiaolucoin_payment) / 100.0),
+            'pay_cash': max(0, round(payment * 100 - budget_payment - xiaolucoin_payment) * 0.01),
             'has_budget_paid': budget_payment > 0,
             'budget_paid': budget_payment * 0.01,
             'has_coin_paid': xiaolucoin_payment > 0,
@@ -1245,7 +1249,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                     'code': 10,
                     'message': u'订单中包含海关清关商品，根据海关要求，保税区发货商品需要提供身份证，海外直邮商品需要提供身份证正反面照片，请修改收货地址后重新提交订单',
                     'user_agent': user_agent,
-                    'action': 'shoppingcart_create',
+                    'action': 'buynow_create',
                     'order_no': tuuid,
                     'data': '%s' % CONTENT
                 })
@@ -1257,7 +1261,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                     'code': 11,
                     'message': u'身份证和姓名不一致,请修改再提交订单',
                     'user_agent': user_agent,
-                    'action': 'shoppingcart_create',
+                    'action': 'buynow_create',
                     'order_no': tuuid,
                     'data': '%s' % CONTENT
                 })
@@ -1337,7 +1341,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             else:
                 #pingpp 支付
                 response_charge = self.pingpp_charge(sale_trade)
-
             if sale_trade.order_type == 3:
                 order_success_url = CONS.TEAMBUY_SUCCESS_URL.format(order_tid=sale_trade.tid) \
                                     + '?from_page=order_commit'
