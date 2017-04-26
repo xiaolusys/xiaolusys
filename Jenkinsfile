@@ -1,8 +1,8 @@
 node {
   if (env.BRANCH_NAME == "command"){
     properties([
-      parameters([string(defaultValue: 'staging', description: '', name:'enviroment'),
-      string(defaultValue: 'python manage.py migrate', description: '', name:'djangocommand')])
+      parameters([string(defaultValue: '', description: 'staging / production', name:'enviroment'),
+      string(defaultValue: 'python manage.py migrate', description: "Django's Command", name:'djangocommand')])
     ])
   }
   checkout scm
@@ -16,7 +16,8 @@ node {
         usernamePassword(credentialsId: 'mysql_production', passwordVariable: 'MYSQL_AUTH', usernameVariable: 'MYSQL_USER')]) {
         sh("docker run -e TARGET=k8s-production -e MYSQL_AUTH=${env.MYSQL_AUTH} -e REDIS_AUTH=${env.REDIS_AUTH} xiaolusys:latest ${params.djangocommand}")
       }
-    } else {
+    } 
+    if (params.enviroment == 'staging'){
       withCredentials([usernamePassword(credentialsId: 'redis', passwordVariable: 'REDIS_AUTH', usernameVariable: 'REDIS_USER'),
         usernamePassword(credentialsId: 'mysql', passwordVariable: 'MYSQL_AUTH', usernameVariable: 'MYSQL_USER')]) {
         sh("docker run -e TARGET=k8s -e MYSQL_AUTH=${env.MYSQL_AUTH} -e REDIS_AUTH=${env.REDIS_AUTH} xiaolusys:latest ${params.djangocommand}")
