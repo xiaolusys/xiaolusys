@@ -11,6 +11,7 @@ from django.db.models import F, Sum, Avg
 from django.conf import settings
 from django.db.models.signals import post_save
 from django.core.cache import cache
+from django.utils.functional import cached_property
 from django.forms.models import model_to_dict
 from common.utils import update_model_fields
 from core.fields import JSONCharMyField
@@ -202,7 +203,7 @@ class ModelProduct(BaseTagModel):
 
     teambuy_price = models.FloatField(default=0, verbose_name=u'团购价')
     teambuy_person_num = models.IntegerField(default=3, verbose_name=u'团购人数')
-
+    charger = models.CharField(default=None,  max_length=32, db_index=True, blank=True, null=True, verbose_name=u'负责人')
     shelf_status = models.CharField(max_length=8, choices=SHELF_CHOICES,
                                     default=OFF_SHELF, db_index=True, verbose_name=u'上架状态')
     onshelf_time  = models.DateTimeField(default=None, blank=True, db_index=True, null=True, verbose_name=u'上架时间')
@@ -379,6 +380,10 @@ class ModelProduct(BaseTagModel):
     @property
     def products(self):
         return Product.objects.filter(model_id=self.id, status=pcfg.NORMAL)
+
+    @cached_property
+    def product(self):
+        return Product.objects.filter(model_id=self.id, status=pcfg.NORMAL).first()
 
     @property
     def productobj_list(self):
@@ -939,6 +944,43 @@ class ModelProduct(BaseTagModel):
             return is_coupon_deny
         return False
 
+    @cached_property
+    def sale_product(self):
+        sp = self.product.get_sale_product()
+        if not sp:
+            l = self.products.values_list('sale_product', flat=True).distinct()
+            l = list(set(l))
+            if 0 in l:
+                l.remove(0)
+            if l:
+                from pms.supplier.models import SaleProduct
+                sp = SaleProduct.objects.get(id=l[0])
+            else:
+                from pms.supplier.models.product import SaleProductRelation
+                spr = SaleProductRelation.objects.filter(product_id__in=[p.id for p in self.products]).first()
+                if spr:
+                    sp = spr.sale_product
+            return sp
+        else:
+            return sp
+
+    @cached_property
+    def sale_product_figures(self):
+        from statistics.models import ModelStats
+        return ModelStats.objects.filter(model_id=self.id).first()
+
+    @cached_property
+    def total_sale_product_figures(self):
+        """ 选品总销售额退货率计算 """
+        from statistics.models import ModelStats
+        stats = ModelStats.objects.filter(sale_product=self.id)
+        agg = stats.aggregate(s_p=Sum('pay_num'), s_rg=Sum('return_good_num'), s_pm=Sum('payment'))
+        p_n = agg['s_p']
+        rg = agg['s_rg']
+        payment = agg['s_pm']
+        rat = round(float(rg) / p_n, 4) if p_n > 0 else 0
+        return {'total_pay_num': p_n, 'total_rg_rate': rat, 'total_payment': payment}
+
     @staticmethod
     def create(product, extras=extras, is_onsale=False, is_teambuy=False, is_recommend=False,
                is_topic=False, is_flatten=False, is_boutique=False):
@@ -980,6 +1022,25 @@ class ModelProduct(BaseTagModel):
         model_product.save()
         model_product.set_sale_product()
         return model_product
+
+    @staticmethod
+    def get_by_supplier(supplier_id):
+        from pms.supplier.models import SaleProduct, SaleSupplier
+        from pms.supplier.models.product import SaleProductRelation
+        sale_supplier = SaleSupplier.objects.get(id=supplier_id)
+        spids = list(sale_supplier.supplier_products.values_list('id', flat=True))
+        product_ids = list(SaleProductRelation.get_products(spids).values_list('id', flat=True))
+        model_product_ids = Product.objects.filter(id__in=product_ids).values_list('model_id', flat=True)
+        return ModelProduct.objects.filter(id__in=model_product_ids)
+
+    @staticmethod
+    def get_by_suppliers(supplier_ids):
+        from pms.supplier.models import SaleProduct, SaleSupplier
+        from pms.supplier.models.product import SaleProductRelation
+        spids = list(SaleProduct.objects.filter(sale_supplier_id__in=supplier_ids).values_list('id', flat=True))
+        product_ids = list(SaleProductRelation.get_products(spids).values_list('id', flat=True))
+        model_product_ids = Product.objects.filter(id__in=product_ids).values_list('model_id', flat=True)
+        return ModelProduct.objects.filter(id__in=model_product_ids)
 
 def invalid_apimodelproduct_cache(sender, instance, *args, **kwargs):
     if hasattr(sender, 'API_CACHE_KEY_TPL'):

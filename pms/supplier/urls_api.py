@@ -7,13 +7,14 @@ from rest_framework.urlpatterns import format_suffix_patterns
 
 from rest_framework import routers
 from . import views
-
+from pms.supplier.views import view_schedule
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'supplier', views.SaleSupplierViewSet)
 router.register(r'saleproduct', views.SaleProductViewSet)
 router.register(r'saleschedule', views.SaleScheduleViewSet)
 router.register(r'salescategory', views.SaleCategoryViewSet)
 router.register(r'preferencepool', views.PreferencePoolViewSet)
+router.register(r'schedule', view_schedule.ScheduleManageViewSet)
 
 router_urls = router.urls
 router_urls += [

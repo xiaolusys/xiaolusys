@@ -627,6 +627,77 @@ class ManageDetailUseStatusField(serializers.Field):
         return data
 
 
+class ScheduleSaleProductSerializer(serializers.ModelSerializer):
+    sale_category = serializers.SerializerMethodField()
+    product_name = serializers.CharField(source='modelproduct.title', read_only=True)
+    supplier_name = serializers.CharField(source='sale_product.sale_supplier.supplier_name', read_only=True)
+    product_purchase_price = serializers.CharField(source='product.std_purchase_price', read_only=True)
+    product_sale_price = serializers.CharField(source='product.agent_price', read_only=True)
+    product_contactor = serializers.CharField(source='modelproduct.charger', read_only=True)
+    product_memo = serializers.CharField(source='product.memo', read_only=True)
+    product_id = serializers.IntegerField(source='product.id', read_only=True)
+    product_origin_price = serializers.CharField(source='sale_product.std_sale_price', read_only=True)
+    product_pic = serializers.CharField(source='product.pic_path', read_only=True)
+    product_link = serializers.CharField(source='product.ref_link', read_only=True)
+    model_id = serializers.IntegerField(source='modelproduct.id', read_only=True)
+    model_head_image = serializers.CharField(source='modelproduct.head_img_url', read_only=True)
+    model_name = serializers.CharField(source='modelproduct.name', read_only=True)
+    model_lowest_agent_price = serializers.FloatField(source='modelproduct.lowest_agent_price', read_only=True)
+    model_lowest_std_sale_price = serializers.FloatField(source='modelproduct.lowest_std_sale_price', read_only=True)
+    material_status = MaterialStatusField()
+    design_take_over = DesignTakeStatusField()
+    today_use_status = ManageDetailUseStatusField()
+    supplier_id = serializers.IntegerField(source='sale_product.sale_supplier.id', read_only=True)
+    reference_username = serializers.SerializerMethodField('reference_user_name', read_only=True)
+    photo_username = serializers.SerializerMethodField('photo_user_name', read_only=True)
+    in_product = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SaleProductManageDetail
+        fields = (
+            'id', 'supplier_id', 'sale_product_id', 'product_name', 'product_pic', 'product_link', 'design_person',
+            'order_weight', 'supplier_name', 'product_id',
+            'sale_category', 'material_status', 'today_use_status', 'product_purchase_price', 'product_sale_price',
+            'product_origin_price', 'design_take_over', 'design_complete', 'is_approved', 'is_promotion',
+            'reference_username', 'photo_username', 'product_contactor', 'product_memo', 'photo_user', 'reference_user',
+            'in_product',
+            'model_id',
+            'model_head_image',
+            'model_name',
+            'model_lowest_agent_price',
+            'model_lowest_std_sale_price',
+            'created', 'modified')
+
+    def reference_user_name(self, obj):
+        """ 资料录入人 """
+        try:
+            woker = User.objects.get(id=obj.reference_user)
+            full_name = ''.join([woker.last_name, woker.first_name])
+            return full_name if full_name else woker.username
+        except User.DoesNotExist:
+            return ''
+
+    def photo_user_name(self, obj):
+        """ 平面制作人 """
+        try:
+            woker = User.objects.get(id=obj.photo_user)
+            full_name = ''.join([woker.last_name, woker.first_name])
+            return full_name if full_name else woker.username
+        except User.DoesNotExist:
+            return ''
+
+    def get_in_product(self, obj):
+        if obj.item_products:
+            return True
+        return False
+
+    def get_sale_category(self, obj):
+        if not obj.sale_product:
+            return ''
+        cat_id = obj.sale_product.sale_category_id
+        return SaleCategory.get_salecategory_fullnamemap().get(cat_id) or ''
+
+
 class SaleProductManageDetailSerializer(serializers.ModelSerializer):
     sale_category = serializers.SerializerMethodField()
     product_name = serializers.CharField(source='sale_product.title', read_only=True)
@@ -714,3 +785,27 @@ class PreferencePoolSerializer(serializers.ModelSerializer):
     class Meta:
         model = PreferencePool
         fields = ('id', 'name', 'unit', 'is_sku', 'categorys', 'preference_value')
+
+
+class ScheduleManageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SaleProductManageDetail
+        fields = (
+            'id', 'supplier_id', 'sale_product_id', 'product_name', 'product_pic', 'product_link', 'design_person',
+            'order_weight', 'supplier_name', 'product_id',
+            'sale_category', 'material_status', 'today_use_status', 'product_purchase_price', 'product_sale_price',
+            'product_origin_price', 'design_take_over', 'design_complete', 'is_approved', 'is_promotion',
+            'reference_username', 'photo_username', 'product_contactor', 'product_memo', 'photo_user', 'reference_user',
+            'in_product',
+            'model_id',
+            'model_head_image',
+            'model_name',
+            'model_lowest_agent_price',
+            'model_lowest_std_sale_price',
+            'created', 'modified')
+
+
+class ScheduleModelProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ModelProduct
+        fields = ()

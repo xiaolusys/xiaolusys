@@ -40,6 +40,7 @@ import perms
 from pms.supplier import serializers
 from pms.basic import fetch_urls
 from pms.supplier.constants import STOCKING_MODE_CHOICES
+from flashsale.pay.models import ModelProduct
 import logging
 
 logger = logging.getLogger(__name__)
@@ -330,7 +331,6 @@ class SaleProductViewSet(viewsets.ModelViewSet):
     queryset = SaleProduct.objects.all().order_by('-created')
     serializer_class = serializers.SimpleSaleProductSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    # permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser, permissions.DjangoModelPermissions)
     permission_classes = (perms.IsAccessSaleProduct,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
@@ -680,10 +680,44 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
             1. `material_status`: 'complete'    : complete: 资料完成,
             2. `design_complete`: 1 : 平面资料完成
     """
+    """{u'created': u'2017-04-22T15:36:23',
+               u'design_complete': True,
+               u'design_person': u'',
+               u'design_take_over': u'\u672a\u63a5\u7ba1',
+               u'id': 36156,
+               u'in_product': True,
+               u'is_approved': 0,
+               u'is_promotion': False,
+               u'material_status': u'\u5168\u90e8\u5b8c\u6210',
+               u'model_head_image': u'http://img.xiaolumeimei.com/img_1492846848629.png',
+               u'model_id': 26135,
+               u'model_lowest_agent_price': 900.0,
+               u'model_lowest_std_sale_price': 1800.0,
+               u'model_name': u'\u3010\u6fb3\u5dde\u76f4\u90ae\u30113\u7f50\u88c5 aptamil\u767d\u91d1\u7248\u5a74\u5e7c\u513f\u5976\u7c89 1\u6bb5(0-6\u4e2a\u6708)900g*3',
+               u'modified': u'2017-04-22T15:36:23',
+               u'order_weight': 1,
+               u'photo_user': 0,
+               u'photo_username': u'',
+               u'product_contactor': None,
+               u'product_id': 83560,
+               u'product_link': u'https://item.jd.hk/2947671.html',
+               u'product_memo': u'',
+               u'product_name': u'\u3010\u6fb3\u5dde\u76f4\u90ae\u30113\u7f50\u88c5 aptamil\u767d\u91d1\u7248\u5a74\u5e7c\u513f\u5976\u7c89 1\u6bb5(0-6\u4e2a\u6708)900g*3',
+               u'product_origin_price': u'0.0',
+               u'product_pic': u'',
+               u'product_purchase_price': u'0.0',
+               u'product_sale_price': u'0.0',
+               u'reference_user': 0,
+               u'reference_username': u'',
+               u'sale_category': u'\u5976\u7c89\u5c3f\u88e4 / \u5976\u7c89\u5c3f\u88e4 / \u76f4\u90ae\u5976\u7c89',
+               u'sale_product_id': 559312,
+               u'supplier_id': 29775,
+               u'supplier_name': u'\u6fb3\u6d32\u5976\u7c89\u76f4\u90ae',
+               u'today_use_status': u'\u4f7f\u7528'}"""
     queryset = SaleProductManageDetail.objects.all()
-    serializer_class = serializers.SaleProductManageDetailSerializer
+    serializer_class = serializers.ScheduleSaleProductSerializer
+    #serializer_class = serializers.SaleProductManageDetailSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    # permission_classes = (permissions.IsAuthenticated, permissions.DjangoModelPermissions, permissions.IsAdminUser)
     permission_classes = (perms.IsAccessSaleManageDetail,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter)
@@ -744,19 +778,48 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_401_UNAUTHORIZED)
 
+    # @parser_classes(JSONParser)
+    # @transaction.atomic()
+    # def create_manage_detail(self, request, schedule_id, *args, **kwargs):
+    #     model_product_id = request.data.get('model_product_id') or None
+    #     sale_product_id = request.data.get('sale_product_id') or None
+    #     sale_products = SaleProduct.objects.filter(id__in=sale_product_id)
+    #     details = SaleProductManageDetail.objects.filter(schedule_manage_id=schedule_id,
+    #                                                      today_use_status=SaleProductManageDetail.NORMAL)
+    #     for sale_product in sale_products:
+    #         order_weight = details.count() + 1
+    #         modelproduct = sale_product.model_product
+    #         request.data.update({
+    #             "schedule_manage": schedule_id,
+    #             "sale_product_id": sale_product.id,
+    #             "name": sale_product.title,
+    #             "today_use_status": SaleProductManageDetail.NORMAL,
+    #             "pic_path": sale_product.pic_url,
+    #             "product_link": sale_product.product_link,
+    #             "sale_category": sale_product.sale_category.full_name,
+    #             "order_weight": order_weight,
+    #             "design_complete": True if modelproduct and modelproduct.head_imgs and modelproduct.content_imgs else False,
+    #             "material_status": SaleProductManageDetail.COMPLETE if modelproduct else SaleProductManageDetail.WORKING,
+    #         })
+    #         serializer = serializers.SaleProductManageDetailSimpleSerializer(data=request.data)
+    #         serializer.is_valid(raise_exception=True)
+    #         self.perform_create(serializer)
+    #     return Response(status=status.HTTP_201_CREATED)
+
     @parser_classes(JSONParser)
     @transaction.atomic()
     def create_manage_detail(self, request, schedule_id, *args, **kwargs):
-        sale_product_id = request.data.get('sale_product_id') or None
-        sale_products = SaleProduct.objects.filter(id__in=sale_product_id)
+        model_product_ids = request.data.get('model_product_id') or None
+        mps = ModelProduct.objects.filter(id__in=model_product_ids)
         details = SaleProductManageDetail.objects.filter(schedule_manage_id=schedule_id,
                                                          today_use_status=SaleProductManageDetail.NORMAL)
-        for sale_product in sale_products:
+        for modelproduct in mps:
             order_weight = details.count() + 1
-            modelproduct = sale_product.model_product
+            sale_product = modelproduct.sale_product
             request.data.update({
                 "schedule_manage": schedule_id,
                 "sale_product_id": sale_product.id,
+                "model_product_id": modelproduct.id,
                 "name": sale_product.title,
                 "today_use_status": SaleProductManageDetail.NORMAL,
                 "pic_path": sale_product.pic_url,

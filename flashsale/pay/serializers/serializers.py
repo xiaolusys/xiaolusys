@@ -5,6 +5,10 @@ from rest_framework import serializers
 from shopback.items.models import Product
 from flashsale.pay.models import ProductSku
 from ..models import SaleTrade, District, UserAddress, ModelProduct, SaleRefund
+from pms.supplier.serializers import SaleSupplierSimpleSerializer, SaleCategorySerializer,\
+    StatusField, JSONParseField # todo@黄炎
+from statistics.serializers import ModelStatsSimpleSerializer
+from pms.supplier.models import SaleProductManage
 
 
 class DetailInfoField(serializers.Field):
@@ -140,6 +144,47 @@ class ModelProductSerializer(serializers.ModelSerializer):
         model = ModelProduct
         fields = ('id', 'name', 'head_imgs', 'content_imgs', 'sale_time')
         # , 'std_sale_price', 'agent_price', 'shelf_status', 'status')
+
+
+class ModelProductScheduleSerializer(serializers.ModelSerializer):
+    sale_supplier = SaleSupplierSimpleSerializer(read_only=True)
+    sale_category = SaleCategorySerializer(read_only=True)
+    status = serializers.CharField(source='product.get_status_display', read_only=True)
+    contactor = serializers.CharField(source='charger', read_only=True)
+    latest_figures = ModelStatsSimpleSerializer(source='sale_product_figures', read_only=True)
+    total_figures = JSONParseField(source='total_sale_product_figures', read_only=True)
+    in_schedule = serializers.SerializerMethodField()
+    product_id = serializers.CharField(source='product.id', read_only=True)
+    pic_path = serializers.CharField(source='product.pic_path', read_only=True)
+    ref_link = serializers.CharField(source='product.ref_link', read_only=True)
+    outer_id = serializers.CharField(source='product.outer_id', read_only=True)
+    name = serializers.CharField(read_only=True)
+    #　sale_supplier = serializers.CharField(source='sale_product.sale_supplier.supplier_name', read_only=True)
+    sale_supplier = SaleSupplierSimpleSerializer(source='sale_product.sale_supplier', read_only=True)
+    sale_category = serializers.CharField(source='product.get_sale_category_id', read_only=True)
+
+    std_sale_price = serializers.CharField(source='product.std_sale_price', read_only=True)
+    agent_price = serializers.CharField(source='product.agent_price', read_only=True)
+    cost = serializers.CharField(source='product.cost', read_only=True)
+    source_type = serializers.CharField(source='sale_product.get_source_type_display', read_only=True)
+    class Meta:
+        model = ModelProduct
+        fields = (
+            'id', 'outer_id', 'name', 'agent_price', 'pic_path', 'ref_link', 'status', 'sale_supplier',
+            'contactor', 'sale_category', 'std_sale_price', 'agent_price', 'cost', 'latest_figures', 'total_figures',
+            'source_type', 'in_schedule', 'extras', 'product_id')
+
+    def get_in_schedule(self, obj):
+        """ 判断选品是否在指定排期里面 """
+        request = self.context.get('request')
+        if request:
+            schedule_id = request.GET.get('schedule_id') or None
+            if not schedule_id:
+                return False
+            schedule = SaleProductManage.objects.get(id=schedule_id)
+            return obj.id in schedule.model_product_ids
+        else:
+            return False
 
 
 class SaleRefundSerializer(serializers.ModelSerializer):

@@ -6,7 +6,7 @@ from django.core.cache import cache
 from django.db import models
 from django.db.models import Sum
 from django.db.models.signals import pre_save, post_save, post_delete
-
+from django.utils.functional import cached_property
 from core.options import get_systemoa_user, log_action, CHANGE
 from core.utils import update_model_fields
 from .product import SaleProduct
@@ -29,7 +29,8 @@ class SaleProductManage(models.Model):
 
     schedule_type = models.CharField(max_length=16, default=SP_SALE,
                                      choices=SP_TYPE_CHOICES, db_index=True, verbose_name=u'排期类型')
-    sale_suppliers = models.ManyToManyField('supplier.SaleSupplier', blank=True, verbose_name=u'排期供应商')
+    sale_suppliers = models.ManyToManyField('supplier.SaleSupplier', blank=True, verbose_name=u'排期供应商',
+                                            help_text="便于检索排期商品")
     sale_time = models.DateField(db_index=True, verbose_name=u'排期日期')
     upshelf_time = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name=u'上架时间')
     offshelf_time = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name=u'下架时间')
@@ -79,6 +80,10 @@ class SaleProductManage(models.Model):
         if not hasattr(self, '_sale_product_ids_'):
             self._sale_product_ids_ = [i['sale_product_id'] for i in self.manage_schedule.values('sale_product_id')]
         return self._sale_product_ids_
+
+    @cached_property
+    def model_product_ids(self):
+        return [i['model_product_id'] for i in self.manage_schedule.values('model_product_id')]
 
     def resort_schedule(self):
         """
@@ -191,6 +196,7 @@ class SaleProductManageDetail(models.Model):
                                      choices=SP_TYPE_CHOICES, db_index=True, verbose_name=u'排期类型')
     schedule_manage = models.ForeignKey(SaleProductManage, related_name='manage_schedule', verbose_name=u'排期管理')
     sale_product_id = models.BigIntegerField(default=0, verbose_name=u"选品ID")
+    model_product_id = models.BigIntegerField(default=0, verbose_name=u"售卖款式ID")
     name = models.CharField(max_length=64, verbose_name=u'选品名称')
     pic_path = models.CharField(max_length=512, blank=True, verbose_name=u'商品图片')
     sale_category = models.CharField(max_length=32, blank=True, verbose_name=u'商品分类')
@@ -213,6 +219,7 @@ class SaleProductManageDetail(models.Model):
     order_weight = models.IntegerField(db_index=True, default=8, choices=WEIGHT_CHOICE, verbose_name=u'权值')
 
     objects = objects.ScheduleDetailManager()
+
     class Meta:
         db_table = 'supplychain_supply_schedule_manage_detail'
         unique_together = ("schedule_manage", "sale_product_id")
@@ -258,10 +265,16 @@ class SaleProductManageDetail(models.Model):
     def modelproduct(self):
         if not hasattr(self, '_model_product_'):
             from flashsale.pay.models import ModelProduct
-
-            self._model_product_ = ModelProduct.objects.filter(saleproduct_id=self.sale_product_id,
-                                                               status=ModelProduct.NORMAL).first()
+            if self.model_product_id:
+                self._model_product_ = ModelProduct.objects.get(id=self.model_product_id)
+            else:
+                self._model_product_ = ModelProduct.objects.filter(saleproduct_id=self.sale_product_id,
+                                                                   status=ModelProduct.NORMAL).first()
         return self._model_product_
+
+    @cached_property
+    def product(self):
+        return self.modelproduct.item_product
 
     @property
     def sale_memo(self):
