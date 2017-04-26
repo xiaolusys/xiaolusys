@@ -560,7 +560,14 @@ class ProductViewSet(viewsets.ModelViewSet):
                      'shelf_status', 'status', 'ware_by']
 
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
+        supplier_id = request.GET.get('supplier_id', None)
+        if supplier_id:
+            supplier = get_object_or_404(SaleSupplier, id=supplier_id)
+            if supplier:
+                queryset = Product.get_by_supplier(supplier_id)
+        else:
+            queryset = self.get_queryset()
+        queryset = self.filter_queryset(queryset)
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)

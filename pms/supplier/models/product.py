@@ -4,7 +4,7 @@ import time
 import hashlib
 from django.core.cache import cache
 from django.db import models, transaction
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django.db.models.signals import pre_save, post_save
 
 from core.models import BaseTagModel, BaseModel
@@ -454,3 +454,9 @@ class SaleProductRelation(BaseModel):
             product.sale_product = sale_product.id
             product.save()
         return
+
+    @staticmethod
+    def get_products(sale_product_ids):
+        from shopback.items.models import Product
+        product_ids = list(SaleProductRelation.objects.filter(sale_product_id__in=sale_product_ids).values_list('product_id', flat=True))
+        return Product.objects.filter(Q(sale_product__in=sale_product_ids) or Q(id__in=product_ids))

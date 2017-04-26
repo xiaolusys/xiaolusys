@@ -34,14 +34,11 @@ class IsAccessSaleCategory(permissions.BasePermission):     #管理特卖/选品
         else:
             return False
 
+
 class IsAccessSaleProduct(permissions.BasePermission):      #管理特卖/选品列表
     def has_permission(self, request, view):
-        user = request.user
-        own_perms = user.get_group_permissions()
-        if user.has_perm("supplier.manage_sale_product"):
-            return True
-        else:
-            return False
+        return request.user.has_perm("supplier.manage_sale_product")
+
 
 class IsAccessSaleManage(permissions.BasePermission):       #管理排期
     def has_permission(self, request, view):
