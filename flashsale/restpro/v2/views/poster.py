@@ -2,6 +2,7 @@
 import simplejson
 from rest_framework import viewsets, renderers
 from rest_framework import authentication, permissions
+from rest_framework.decorators import detail_route, list_route
 from rest_framework.parsers import JSONParser
 from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
@@ -37,7 +38,7 @@ class PosterViewSet(viewsets.ModelViewSet):
             poster.title = title
         if category:
             poster.category = category
-        if is_active:
+        if is_active is not None:
             poster.is_active = is_active
         if active_time:
             poster.active_time = active_time
@@ -69,7 +70,7 @@ class PosterViewSet(viewsets.ModelViewSet):
             poster.title = title
         if category:
             poster.category = category
-        if is_active:
+        if is_active is not None:
             poster.is_active = is_active
         if active_time:
             poster.active_time = active_time
