@@ -5,6 +5,9 @@ node {
       string(defaultValue: 'python manage.py migrate', description: "Django's Command", name:'djangocommand')])
     ])
   }
+  if (env.BRANCH_NAME == 'command' && params.enviroment == ''){
+    return
+  }
   checkout scm
   withCredentials([usernamePassword(credentialsId: 'docker', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
     sh("docker login -u ${env.DOCKER_USERNAME} -p ${env.DOCKER_PASSWORD} registry.aliyuncs.com")
