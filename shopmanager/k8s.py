@@ -197,22 +197,22 @@ REST_FRAMEWORK.update({
 LOGGER_HANDLERS = [
     ('outware', 'sentry,jsonfile'),
     ('service', 'sentry,jsonfile'),
-    ('shopback', 'sentry,file'),
-    ('shopapp', 'sentry,file'),
-    ('flashsale', 'sentry,file'),
-    ('core', 'sentry,file'),
-    ('auth', 'sentry,file'),
-    ('pms', 'sentry,file'),
-    ('statistics', 'sentry,file'),
-    ('django.request', 'sentry,file'),
-    ('sentry.errors', 'sentry,file'),
-    ('celery.handler', 'sentry,file'),
-    ('notifyserver.handler', 'sentry,file'),
-    ('yunda.handler', 'sentry,file'),
-    ('mail.handler', 'sentry,file'),
-    ('xhtml2pdf', 'sentry,file'),
-    ('restapi.errors', 'sentry,file'),
-    ('weixin.proxy', 'sentry,file'),
+    ('shopback', 'sentry,jsonfile'),
+    ('shopapp', 'sentry,jsonfile'),
+    ('flashsale', 'sentry,jsonfile'),
+    ('core', 'sentry,jsonfile'),
+    ('auth', 'sentry,jsonfile'),
+    ('pms', 'sentry,jsonfile'),
+    ('statistics', 'sentry,jsonfile'),
+    ('django.request', 'sentry,jsonfile'),
+    ('sentry.errors', 'sentry,jsonfile'),
+    ('celery.handler', 'sentry,jsonfile'),
+    ('notifyserver.handler', 'sentry,jsonfile'),
+    ('yunda.handler', 'sentry,jsonfile'),
+    ('mail.handler', 'sentry,jsonfile'),
+    ('xhtml2pdf', 'sentry,jsonfile'),
+    ('restapi.errors', 'sentry,jsonfile'),
+    ('weixin.proxy', 'sentry,jsonfile'),
 ]
 
 LOGGER_TEMPLATE = {
@@ -244,20 +244,13 @@ LOGGING = {
         },
     },
     'handlers': {
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': '/data/log/django/debug-staging.log',
-            'formatter': 'json'
-        },
         'jsonfile': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': '/data/log/django/service-staging.log',
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
             'formatter': 'json'
         },
         'sentry': {
-            'level': 'INFO',
+            'level': 'ERROR',
             'class': 'raven.contrib.django.handlers.SentryHandler'
         },
         'console': {
