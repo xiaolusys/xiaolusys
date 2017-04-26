@@ -415,7 +415,10 @@ class ModelProduct(BaseTagModel):
         if len(self.products) == 0:
             return
         elif len(self.products) > 1:
-            keys = list(self.products.values_list('properties_name',flat=True).distinct())
+            keys = [pro.property_name for pro in self.products.all()]
+            keys = list(set(keys))
+            if None in keys:
+                keys.remove(None)
         else:
             product_ids = [pro.id for pro in self.products]
             properties_names = list(ProductSku.objects.filter(product_id__in=product_ids).values_list('properties_name',flat=True).distinct())

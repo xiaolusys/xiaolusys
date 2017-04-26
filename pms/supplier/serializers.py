@@ -629,7 +629,7 @@ class ManageDetailUseStatusField(serializers.Field):
 
 class ScheduleSaleProductSerializer(serializers.ModelSerializer):
     sale_category = serializers.SerializerMethodField()
-    product_name = serializers.CharField(source='modelproduct.title', read_only=True)
+    product_name = serializers.CharField(source='product.name', read_only=True)
     supplier_name = serializers.CharField(source='sale_product.sale_supplier.supplier_name', read_only=True)
     product_purchase_price = serializers.CharField(source='product.std_purchase_price', read_only=True)
     product_sale_price = serializers.CharField(source='product.agent_price', read_only=True)

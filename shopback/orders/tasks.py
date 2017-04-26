@@ -63,7 +63,7 @@ def saveUserDuringOrdersTask(user_id, update_from=None, update_to=None, status=N
 
 @app.task(max_retries=3)
 def batch_create_package_order():
-    for order in Order.objects.filter(stage=0):
+    for order in Order.objects.filter(stage=0, status=pcfg.WAIT_SELLER_SEND_GOODS):
         order.create_package_sku_item()
 
 
