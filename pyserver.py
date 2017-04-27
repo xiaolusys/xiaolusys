@@ -1,9 +1,10 @@
 #!/usr/bin/python
 """WSGI server example"""
+from __future__ import print_function
+
 from gevent import monkey
 monkey.patch_all()
 
-from __future__ import print_function
 from gevent.pywsgi import WSGIServer
 from shopmanager.wsgi import application
 
