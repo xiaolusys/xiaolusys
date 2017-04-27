@@ -9,7 +9,7 @@ TARGET = os.environ.get('TARGET')
 
 def is_undeploy_enviroment():
     """　是否非正式环境 """
-    return TARGET not in ('production', 'prometheus', 'django18')
+    return TARGET not in ('production', 'prometheus', 'django18', 'k8s-production')
 
 def is_staging_environment():
     return TARGET == 'staging'
@@ -38,7 +38,7 @@ def setup_djagno_environ():
 
 
 def install_pymysqldb():
-    if not TARGET in ('production', 'django18', 'staging', 'prometheus'):
+    if not TARGET in ('production', 'django18', 'staging', 'prometheus', 'k8s-production'):
         return
     try:
         import pymysql
@@ -48,7 +48,7 @@ def install_pymysqldb():
 
 
 def install_redis_with_gevent_socket():
-    if not TARGET in ('production', 'django18', 'staging', 'prometheus'):
+    if not TARGET in ('production', 'django18', 'staging', 'prometheus', 'k8s-production'):
         return
     try:
         from gevent import socket

@@ -6,8 +6,6 @@ It exposes the WSGI callable as a module-level variable named ``application``.
 For more information on this file, see
 https://docs.djangoproject.com/en/1.8/howto/deployment/wsgi/
 """
-from gevent import monkey
-monkey.patch_all()
 
 from global_setup import setup_djagno_environ, install_redis_with_gevent_socket
 setup_djagno_environ()
