@@ -396,7 +396,10 @@ def task_auto_exchg_xlmm_order():
                         product_id, elite_score, agent_price = get_elite_score_by_templateid(template.id, level2_mama)
                         elite_score *= round(sale_order.payment / sale_order.price)
                         uni_key_prefix = "autoexchg-%s" % (sale_order.id)
-                        create_present_elite_score(customer, elite_score, template, '', uni_key_prefix)
+                        try:
+                            create_present_elite_score(customer, elite_score, template, '', uni_key_prefix)
+                        except IntegrityError:
+                            logger.info({'message': u'task_auto_exchg_xlmm_order integrity err | oid=%s' % (sale_order.oid),})
                         if level2_mama.referal_from == XiaoluMama.INDIRECT and level3_mama and level3_mama.is_elite_mama:
                             entry.mama_id = level3_mama.id
                             entry.save(update_fields=['mama_id'])

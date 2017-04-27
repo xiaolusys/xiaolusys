@@ -4,6 +4,7 @@ from shopmanager import celery_app as app
 
 import sys
 import datetime
+from django.db import IntegrityError
 from flashsale.xiaolumm.models.models_fortune import CarryRecord
 
 import logging
@@ -105,8 +106,11 @@ def task_ordercarry_update_carryrecord(carry):
                         cts.save()
     else:
         if carry.carry_type != OrderCarry.ADVANCED_MAMA_REFERAL_ORDER:
-            CarryRecord.create(carry.mama_id, carry.carry_num, CarryRecord.CR_ORDER, carry.carry_description,
+            try:
+                CarryRecord.create(carry.mama_id, carry.carry_num, CarryRecord.CR_ORDER, carry.carry_description,
                            uni_key=carry.uni_key,status=carry_record_status)
+            except IntegrityError:
+                pass
 
 
 @app.task(serializer='pickle')
