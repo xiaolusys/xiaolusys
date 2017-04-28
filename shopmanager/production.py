@@ -37,8 +37,6 @@ REDIS_AUTH = os.environ.get('REDIS_AUTH')
 if os.environ.get('INSTANCE') == 'mall':
     LOGIN_URL = '/mall/user/login'
 
-MONGODB_URI = '10.132.54.77:27017'
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',

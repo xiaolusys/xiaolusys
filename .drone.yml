@@ -7,7 +7,7 @@ build:
     - /var/lib/drone/data:/data
   commands:
     - mkdir -p /data/log/django
-    - python manage.py test -t . --keepdb --parallel 2 --exclude-tag=B --exclude-tag=C
+    - python manage.py test -t . --keepdb  --exclude-tag=B --exclude-tag=C
     - python manage.py migrate --noinput
   when:
     branch: [staging, alpha, warden]
@@ -112,20 +112,6 @@ deploy:
         flower -A shopmanager --log_file_max_size=1073741824 --conf=shopmanager/task_settings.py
   ssh:
     host:
-      - sale.xiaolumm.com
-    user: root
-    when:
-      branch: master
-    commands:
-      - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
-      - docker rm -f gunicorn
-      - docker run --name=gunicorn --restart=always --log-opt max-file=1 --log-opt max-size=1m --memory=6144m
-        -e INSTANCE=mall -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH2
-        -v /var/data:/data -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9000:9000
-        registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
-        gunicorn -k gevent -c gunicorn_config.py shopmanager.wsgi
-  ssh:
-    host:
       - sale8.xiaolumm.com
     user: root
     when:
@@ -144,21 +130,6 @@ deploy:
         -v /var/data:/data -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9004:9000
         registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
         gunicorn -k gevent -w 1 -c gunicorn_config.py shopmanager.wsgi
-  ssh:
-    host:
-      - sale.xiaolumm.com
-    user: root
-    when:
-      branch: [master, celery]
-    commands:
-      - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
-      - docker rm -f celery
-      - docker run --name=celery --restart=always --log-opt max-file=1 --log-opt max-size=1m
-        -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH2
-        -v /var/data:/data -d -e C_FORCE_ROOT=1
-        registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
-        celery worker -c 4 -A shopmanager --loglevel=ERROR --time-limit=5400
-        -Q apis,notify,peroid,frency,coupon,activevalue,mama,mamafortune,relationship,carryrecord,skustats,statistics,logistics,carrytotal,integral,dinghuo,xiaolupay
   ssh:
     host:
       - sale8.xiaolumm.com

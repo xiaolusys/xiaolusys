@@ -27,7 +27,7 @@ SITE_URL = 'http://admin.xiaolumm.com/'
 #######################  WAP AND WEIXIN CONFIG ########################
 M_SITE_URL = 'https://m.xiaolumeimei.com'
 
-MYSQL_HOST = 'rdsvrl2p9pu6536n7d99.mysql.rds.aliyuncs.com'
+MYSQL_HOST = 'rdsvrl2p9pu6536n7d99i.mysql.rds.aliyuncs.com'
 MYSQL_AUTH = os.environ.get('MYSQL_AUTH')
 
 REDIS_HOST = 'r-bp1b4317ea5c3714.redis.rds.aliyuncs.com:6379'
