@@ -13,7 +13,9 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 from django.db.models import Count
+from django.core import validators
 from flashsale.pay.models import ModelProduct
+from django.core.exceptions import ValidationError
 
 
 class JSONParseField(serializers.Field):
@@ -308,8 +310,9 @@ class SimpleSaleProductSerializer(serializers.ModelSerializer):
 class CreateSaleProductSerializer(serializers.ModelSerializer):
     product_id = serializers.IntegerField(source='product.id')
     title = serializers.CharField(required=False)
-    supplier_id = serializers.IntegerField()
-    product_link = serializers.CharField(required=False, allow_blank=True)
+    supplier_id = serializers.IntegerField(validators=[lambda i:SaleSupplier.objects.get(id=i)])
+    product_link = serializers.CharField(required=False, allow_blank=True,
+                                         validators=[validators.URLValidator(message=u'输入链接不合法【请参考格式: https://www.hao123.com/main.html 】')])
     memo = serializers.CharField(required=False, allow_blank=True)
     platform = serializers.CharField(required=False, allow_blank=True)
     supplier_sku = serializers.CharField(required=False, allow_blank=True)
@@ -393,6 +396,7 @@ class ModelProductSerializer(serializers.ModelSerializer):
             'is_boutique',
             'is_teambuy',
             'is_recommend',
+            'is_outside',
             'is_flatten',
             'is_topic',
             'teambuy_price',

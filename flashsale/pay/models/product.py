@@ -200,7 +200,7 @@ class ModelProduct(BaseTagModel):
     is_flatten   = models.BooleanField(default=False, db_index=True, verbose_name=u'平铺显示')
     is_watermark = models.BooleanField(default=False, db_index=True, verbose_name=u'图片水印')
     is_boutique  = models.BooleanField(default=False, db_index=True, verbose_name=u'精品汇')
-
+    is_outside = models.BooleanField(default=False, db_index=True, verbose_name=u'海外直邮')
     teambuy_price = models.FloatField(default=0, verbose_name=u'团购价')
     teambuy_person_num = models.IntegerField(default=3, verbose_name=u'团购人数')
     charger = models.CharField(default=None,  max_length=32, db_index=True, blank=True, null=True, verbose_name=u'负责人')
@@ -780,6 +780,8 @@ class ModelProduct(BaseTagModel):
         from pms.supplier.models import SaleProduct
         self.extras.setdefault('sources', {'source_type': SaleProduct.SOURCE_SELF})
         self.extras['sources']['source_type'] = source_type
+        if 'saleinfos' not in self.extras:
+            self.extras['saleinfos'] = {}
         self.extras['saleinfos']['is_bonded_goods'] = \
             source_type in (SaleProduct.SOURCE_BONDED, SaleProduct.SOURCE_OUTSIDE)
 
@@ -986,7 +988,7 @@ class ModelProduct(BaseTagModel):
 
     @staticmethod
     def create(product, extras=extras, is_onsale=False, is_teambuy=False, is_recommend=False,
-               is_topic=False, is_flatten=False, is_boutique=False):
+               is_topic=False, is_flatten=False, is_boutique=False, is_outside=False):
         """
         :param product:
         :param extras:

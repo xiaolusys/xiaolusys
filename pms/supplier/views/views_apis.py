@@ -434,10 +434,13 @@ class SaleProductViewSet(viewsets.ModelViewSet):
             raise exceptions.APIException(u'请先设置供应商所属仓库!')
         serializer = serializers.ModifySaleProductSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        self.set_instance_special_fields(serializer)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        try:
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            self.set_instance_special_fields(serializer)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        except Exception, e:
+            raise exceptions.APIException(e.message)
 
     @list_route(methods=["post"])
     def batch_create(self,request, *args, **kwargs):
@@ -466,14 +469,16 @@ class SaleProductViewSet(viewsets.ModelViewSet):
             Response(serializer.errors)
         return Response(True)
 
-
     @list_route(methods=['post'])
     def new_create(self, request, *args, **kwargs):
         serializer = serializers.CreateSaleProductSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        sale_product = serializer.save(serializer.data, request.user)
-        serializer = serializers.SimpleSaleProductSerializer(sale_product)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        try:
+            sale_product = serializer.save(serializer.data, request.user)
+            serializer = serializers.SimpleSaleProductSerializer(sale_product)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except Exception, e:
+            raise exceptions.ValidationError(e.message)
 
     @detail_route(methods=['post'])
     def set_main_sale_product(self, request, *args, **kwargs):

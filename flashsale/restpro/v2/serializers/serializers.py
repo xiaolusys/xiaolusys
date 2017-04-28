@@ -532,6 +532,7 @@ class CreateModelProductSerializer(serializers.Serializer):
     is_topic = serializers.BooleanField(required=False)
     is_flatten = serializers.BooleanField(required=False)
     is_boutique = serializers.BooleanField(required=False)
+    is_outside = serializers.BooleanField(required=False)
     product_id = serializers.IntegerField()
     teambuy_price = serializers.IntegerField(required=False)
     teambuy_person_num = serializers.IntegerField(required=False)
@@ -551,6 +552,7 @@ class CreateModelProductSerializer(serializers.Serializer):
             instance.is_topic = bool(data.get('is_topic'))
             instance.is_flatten = bool(data.get('is_flatten'))
             instance.is_boutique = bool(data.get('is_boutique'))
+            instance.is_outside = bool(data.get('is_outside'))
             if instance.is_teambuy:
                 instance.teambuy_price = int(data.get('teambuy_price', 0))
                 instance.teambuy_person_num = int(data.get('teambuy_person_num', 0))
@@ -574,6 +576,7 @@ class CreateModelProductSerializer(serializers.Serializer):
                 is_topic=bool(data.get('is_topic')),
                 is_flatten=bool(data.get('is_flatten')),
                 is_boutique=bool(data.get('is_boutique')),
+                is_outside=bool(data.get('is_outside'))
             )
 
             return modelproduct
