@@ -7,6 +7,7 @@ import requests
 import datetime
 
 from ... import constants
+from django.conf import settings
 from shopback.outware.models.base import log_ware_action
 
 from .exceptions import FengchaoApiException
@@ -14,13 +15,13 @@ from .exceptions import FengchaoApiException
 import logging
 logger = logging.getLogger(__name__)
 
-FENGCHAO_SLYC_VENDOR_CODE  = 'fengchao_slyc'
-FENGCHAO_SLYC_CHANNEL_CODE = 'shiliyangchang' # 十里洋场的订单channel
-FENGCHAO_DEFAULT_CHANNEL_CODE = 'xiaolumeimei'
+FENGCHAO_SLYC_VENDOR_CODE  = settings.FENGCHAO_SLYC_VENDOR_CODE
+FENGCHAO_SLYC_CHANNEL_CODE = settings.FENGCHAO_SLYC_CHANNEL_CODE # 十里洋场的订单channel
+FENGCHAO_DEFAULT_CHANNEL_CODE = settings.FENGCHAO_DEFAULT_CHANNEL_CODE
 
-API_GETWAY = 'http://fctest02.fcgylapp.cn:30003/api/'
-FENGCHAO_APPID = '0d14d2b6-042f-48d1-a0f2-fc5592883ec6'
-FENGCHAO_SECRET = 'b4ca5a2a-4b76-456b-b01f-4443fddad28a'
+FENGCHAO_API_GETWAY = settings.FENGCHAO_API_GETWAY
+FENGCHAO_APPID = settings.FENGCHAO_APPID
+FENGCHAO_SECRET = settings.FENGCHAO_SECRET
 
 def sign_string(string, secret):
     return hashlib.md5(str(string + secret)).hexdigest().upper()
@@ -41,7 +42,7 @@ def request_getway(data, notify_type, account):
         'data': data_str,
     }
 
-    resp = requests.post(API_GETWAY, data=req_params)
+    resp = requests.post(FENGCHAO_API_GETWAY, data=req_params, verify=False)
     if not resp.status_code == 200:
         raise FengchaoApiException('蜂巢api错误: %s'%resp.text)
 
@@ -123,14 +124,14 @@ def get_channelid_by_vendor_codes(vendor_codes):
     # vendor_codes: 根据vendor_code　返回对应的channel字典
     channel_maps = {}
     for vendor_code in vendor_codes:
-        if vendor_code.lower() == FENGCHAO_SLYC_VENDOR_CODE:
-            channel_maps[vendor_code] = FENGCHAO_SLYC_CHANNEL_CODE
-        else:
-            channel_maps[vendor_code] = FENGCHAO_DEFAULT_CHANNEL_CODE
+        channel_maps[vendor_code] = FENGCHAO_DEFAULT_CHANNEL_CODE
     return channel_maps
 
-def if_is_slyc_vendor(channel_id):
-    return channel_id.lower() == FENGCHAO_SLYC_CHANNEL_CODE
+def if_is_slyc_vendor(vendor_codes):
+    for vendor_code in vendor_codes:
+        if not all(vendor_code.upper().startswith(i) for i in ['SLYC', 'FENGHCAO']):
+            return False
+    return True
 
 def get_carrier_code_by_logistics_company_code(logistic_company_code):
     """ 系统快递编码对应蜂巢快递编码,返回空字符串表示不支持该快递 """

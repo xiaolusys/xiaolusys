@@ -37,7 +37,7 @@ def push_outware_order_by_package(package):
         source_type_set.add(model_product.source_type)
 
     vendor_codes = OutwareSku.objects.filter(sku_code__in=sku_codes)\
-        .values_list('outware_supplier__vendor_code', flat=True)
+        .values_list('outware_supplier__vendor_code', flat=True).distinct()
     stocking_modes = SaleSupplier.objects.filter(vendor_code__in=vendor_codes).values_list('stocking_mode', flat=True)
     channel_maps = sdks.get_channelid_by_vendor_codes(vendor_codes)
     if not channel_maps or len(set(channel_maps.values())) > 1:
@@ -54,9 +54,6 @@ def push_outware_order_by_package(package):
 
     if source_type == SaleProduct.SOURCE_OUTSIDE:
         raise Exception('直邮模式暂不支持: package=%s'% package.pid)
-
-    if source_type == SaleProduct.SOURCE_TTP and not any(stocking_modes) and len(set(vendor_codes)) > 1:
-        raise Exception('直发供应商之间不能混单: package=%s'% package.pid)
 
     params = {
         'order_number': '{}'.format(package.pid),
@@ -86,12 +83,14 @@ def push_outware_order_by_package(package):
         # params['receiver_info']['receiver_identity']   = address.idcard_no
 
     # 如果是十里洋场的订单, 需要添加　"vendor_to_customer":"1","vendor_code":"fengchao_slyc"
-    if sdks.if_is_slyc_vendor(order_channel):
+    if sdks.if_is_slyc_vendor(vendor_codes):
         params['vendor_to_customer'] = '1'
         params['vendor_code'] = sdks.FENGCHAO_SLYC_VENDOR_CODE
 
-    # TODO#MENTION,处理直发供应订单,不同直发供应不能合单　直发条件(三方仓, 供应商直发，并且不能合单)
+    # TODO#MENTION,处理直发供应订单,不同直发供应商不能合单　直发条件(三方仓, 供应商直发，并且不能合单)
     elif source_type == SaleProduct.SOURCE_TTP and not any(stocking_modes):
+        if len(set(vendor_codes)) > 1:
+            raise Exception('直发供应商之间不能混单: package=%s' % package.pid)
         params['vendor_to_customer'] = '1'
         params['vendor_code'] = vendor_codes[0]
 

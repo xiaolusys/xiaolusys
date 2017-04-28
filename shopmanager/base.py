@@ -356,6 +356,13 @@ REGULAR_DAYS = 10
 ALIYUN_APPCODE = '[OVERRIDE PLEASE]'
 IDCARD_OCR_URL = 'https://dm-51.data.aliyun.com/rest/160601/ocr/ocr_idcard.json'
 
+######################## 蜂巢 CONFIG ########################
+FENGCHAO_SLYC_VENDOR_CODE  = 'fengchao_slyc'  # 十里洋场vendor_code
+FENGCHAO_SLYC_CHANNEL_CODE = 'shiliyangchang' # 十里洋场的订单channel
+FENGCHAO_DEFAULT_CHANNEL_CODE = 'xiaolumeimei'
+FENGCHAO_API_GETWAY = 'http://fctest02.fcgylapp.cn:30003/api/'
+FENGCHAO_APPID = '0d14d2b6-042f-48d1-a0f2-fc5592883ec6'
+FENGCHAO_SECRET = 'b4ca5a2a-4b76-456b-b01f-4443fddad28a'
 
 ############################# TASK SETTINGS ##############################
 from .task_settings import *  # celery config
