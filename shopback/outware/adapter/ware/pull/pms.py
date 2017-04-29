@@ -24,13 +24,23 @@ def create_supplier(vendor_code, dict_obj):
 
     dict_obj.vendor_code = vendor_code
     ware_account = OutwareAccount.get_fengchao_account()
-    ow_supplier = OutwareSupplier.objects.create(
-        outware_account=ware_account,
-        vendor_name=dict_obj.vendor_name,
-        vendor_code=dict_obj.vendor_code,
-        extras={'data': dict(dict_obj)},
+    try:
+        ow_supplier = OutwareSupplier.objects.create(
+            outware_account=ware_account,
+            vendor_name=dict_obj.vendor_name,
+            vendor_code=dict_obj.vendor_code,
+            extras={'data': dict(dict_obj)},
             uni_key=OutwareSupplier.generate_unikey(ware_account.id, vendor_code),
-    )
+        )
+    except IntegrityError:
+        ow_supplier = OutwareSupplier.objects.get(
+            outware_account=ware_account,
+            uni_key=OutwareSupplier.generate_unikey(ware_account.id, vendor_code),
+        )
+
+    if ow_supplier.is_pushed_ok:
+        return {'success': True, 'object': ow_supplier, 'message': '供应商重复创建自动结束' }
+
     try:
         sdks.request_getway(dict(dict_obj), constants.ACTION_SUPPLIER_CREATE['code'], ware_account)
     except Exception, exc:

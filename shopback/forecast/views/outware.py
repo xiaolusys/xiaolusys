@@ -76,9 +76,10 @@ class OutwareManageViewSet(viewsets.ViewSet):
             ow_sku = OutwareSku.objects.filter(outware_supplier__vendor_code=supplier.vendor_code,
                                                sku_code=sku.outer_id).first()
             params['order_items'].append({
-                'sku_id': productsku[detail.sku_id].outer_id,
+                'sku_id': sku.outer_id,
                 'sku_name': detail.product_name,
-                'sku_img': productsku[detail.sku_id].product.pic_path,
+                'bar_code': sku.supplier_skucode,
+                'sku_img': sku.product.pic_path,
                 'quantity': detail.forecast_arrive_num,
                 'batch_code': po_order.batch_no,
                 'is_batch_mgt': saleproduct.is_batch_mgt_on,
@@ -102,7 +103,7 @@ class OutwareManageViewSet(viewsets.ViewSet):
         ow_inbound_data = self.get_wareinbound_data(forecast_inbound.forecast_no)
         if not ow_inbound_data:
             ow_inbound_data = self.get_forecast_data(forecast_inbound)
-        print 'is_received', ow_inbound_data['is_received']
+
         return Response(ow_inbound_data, template_name='forecast/push_outware.html')
 
     @detail_route(methods=['post'])
@@ -127,16 +128,18 @@ class OutwareManageViewSet(viewsets.ViewSet):
 
             normal_details = forecast_inbound.normal_details
             sku_salep_list = ProductSku.objects.filter(id__in=list(normal_details.values_list('sku_id', flat=True)))\
-                .values_list('id', 'product__sale_product')
+                .values_list('id', 'product__sale_product', 'outer_id')
             sku_saledict = defaultdict(list)
+            sku_codes = set()
             for sku_tuple in sku_salep_list:
                 sku_saledict[sku_tuple[1]].append(sku_tuple[0])
+                sku_codes.add(sku_tuple[2])
 
             sale_products = SaleProduct.objects.filter(id__in=sku_saledict.keys())
             #  second, 检查商品是否创建成功
             # 　third, 检查商品与供应商是否关联
             for sale_product in sale_products:
-                success_skucode_list = product.push_ware_sku_by_saleproduct(sale_product)
+                success_skucode_list = product.push_ware_sku_by_saleproduct(sale_product, sku_codes=list(sku_codes))
                 good_skucodes = ProductSku.objects.filter(id__in=sku_saledict.get(sale_product.id))\
                     .values_list('outer_id', flat=True)
                 delta_skucodes = set(good_skucodes) - set(success_skucode_list)
@@ -174,4 +177,25 @@ class OutwareManageViewSet(viewsets.ViewSet):
 
         return Response({'code': 0, 'info': '推送成功'})
 
+    @list_route(methods=['post'])
+    def push_product_sku(self, request, *args, **kwargs):
+        """
+        :param sku_codes: 123,456:
+        """
+        # TODO@meron 未完成
+        from shopback.outware.adapter.mall.push import supplier, inbound, product
+        data = request.POST.dict()
+        sku_code_set = set(data.get('sku_codes').split(','))
+        product_skus = ProductSku.objects.filter(outer_id__in=sku_code_set )
+        sale_product_ids = list(product_skus.values('product__sale_product',flat=True))
+        sale_products = SaleProduct.objects.filter(id__in=sale_product_ids)
+        success_skucode_set = set()
+        for sale_product in sale_products.iterator():
+            success_skucode_list = product.push_ware_sku_by_saleproduct(sale_product, sku_codes=list(sku_code_set))
+            success_skucode_set.update(success_skucode_list)
+
+        if sku_code_set - success_skucode_set:
+            return Response({'code': 1, 'info': '未更新成功: %s'% ','.join(sku_code_set - success_skucode_set)})
+
+        return Response({'code': 0, 'info': '更新成功'})
 

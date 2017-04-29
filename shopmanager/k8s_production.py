@@ -224,7 +224,7 @@ IDCARD_OCR_URL = 'https://dm-51.data.aliyun.com/rest/160601/ocr/ocr_idcard.json'
 ######################## 蜂巢 CONFIG ########################
 FENGCHAO_SLYC_VENDOR_CODE  = 'SLYC_FC'  # 十里洋场vendor_code
 FENGCHAO_SLYC_CHANNEL_CODE = 'slyc' # 十里洋场的订单channel
-FENGCHAO_DEFAULT_CHANNEL_CODE = 'zdpz'
+FENGCHAO_DEFAULT_CHANNEL_CODE = 'ndpz'
 FENGCHAO_API_GETWAY = 'https://api.fcgylapp.cn/omsapi'
 FENGCHAO_APPID  = ''
 FENGCHAO_SECRET = ''

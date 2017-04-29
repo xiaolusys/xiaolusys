@@ -11,7 +11,7 @@ from .... import constants
 
 from ....tasks import task_outware_union_supplier_and_sku
 
-def push_ware_sku_by_saleproduct(sale_product):
+def push_ware_sku_by_saleproduct(sale_product, sku_codes=[]):
 
     vendor_code = sale_product.sale_supplier.vendor_code
 
@@ -24,7 +24,7 @@ def push_ware_sku_by_saleproduct(sale_product):
         brand_name = modelproduct.brand.brand_name
 
     # 是否十里洋场供应商
-    is_slyc_vendor = vendor_code == sdks.FENGCHAO_SLYC_VENDOR_CODE
+    is_slyc_vendor = sdks.if_is_slyc_vendor([vendor_code])
 
     for product in products:
         sku_type = constants.SKU_TYPE_PRODUCT['code']
@@ -39,6 +39,9 @@ def push_ware_sku_by_saleproduct(sale_product):
 
         for sku in product.normal_skus:
             sku_code = sku.outer_id
+            # 只更新指定sku_code
+            if sku_codes and sku_code not in sku_codes:
+                continue
             params = {
                 'sku_code': sku_code,
                 'bar_code': sku.supplier_skucode,

@@ -840,6 +840,24 @@ class Product(models.Model):
         kwargs['name'] = '%s/%s'%(model_pro.name, kwargs['name'])
         product = Product.objects.filter(models.Q(name=kwargs['name'])|models.Q(outer_id=kwargs['outer_id']),
                                          model_id=model_pro.id).first()
+        # 对supplier_skucode进行去重判断, 1,　当前提交无重复,2 数据库中无同条码而非相同编码商品
+        product_skus = kwargs['product_skus_list']
+        supplier_skucode_dict = {}
+        for psku in product_skus:
+            ps_code = psku['supplier_skucode'].strip()
+            if not ps_code: continue
+            if ps_code in supplier_skucode_dict:
+                raise Exception('商品录入的供应商编码信息重复: supplier_skucode=%s'% ps_code)
+            supplier_skucode_dict['supplier_skucode'] = psku['outer_id']
+
+        suppier_sku_values = ProductSku.objects.filter(supplier_skucode__in=supplier_skucode_dict.keys())\
+            .exclude(status=ProductSku.DELETE)\
+            .values_list('supplier_skucode', 'outer_id')
+        for code, outer_id in suppier_sku_values:
+            cur_outer_id = supplier_skucode_dict.get(code)
+            if  cur_outer_id and cur_outer_id != outer_id:
+                raise Exception('商品供应商商品编码重复录入: outer_id=%s, supplier_skucode=%s'%(outer_id, code))
+
         if not product:  # 没有则创建 product
             product = Product()
         for k, v in kwargs.iteritems():  # 有变化则更新
@@ -848,7 +866,6 @@ class Product(models.Model):
         product.status = Product.NORMAL
         product.save()
         # Productdetail(product=product).save()  # 创建detail
-        product_skus = kwargs['product_skus_list']
         for sku in product_skus:
             product_sku = ProductSku.objects.filter(
                 models.Q(properties_name=sku['properties_name']) | models.Q(outer_id=sku['outer_id']),
@@ -1007,7 +1024,6 @@ class Product(models.Model):
                     'properties_name': color_sku['properties_name'] or pro['name'] ,
                     'properties_alias': color_sku['properties_alias'],
                     'barcode': barcode,
-
                 })
                 sku_count += 1
             kwargs.update({'product_skus_list': product_skus_list})
@@ -1258,7 +1274,7 @@ class ProductSku(models.Model):
     )
 
     objects = managers.ProductSkuMananger()
-    outer_id = models.CharField(max_length=32, unique=True, blank=False, verbose_name=u'编码')
+    outer_id = models.CharField(max_length=32, unique=True, blank=False, verbose_name=u'内部编码')
 
     supplier_skucode = models.CharField(max_length=32, blank=True, db_index=True, verbose_name=u'供应商SKU编码')
     barcode = models.CharField(max_length=64, blank=True, db_index=True, verbose_name='条码')
