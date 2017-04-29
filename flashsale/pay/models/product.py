@@ -1018,6 +1018,7 @@ class ModelProduct(BaseTagModel):
             'comparison': self.comparison,
             'detail_content': self.detail_content,
             'source_type': self.source_type,
+            'product_type': self.product_type,
         })
         return APIModel(**data)
 
