@@ -1508,6 +1508,8 @@ class ProductSku(models.Model):
         size = self.properties_name
         if '|' in self.properties_name:
             color, size = self.properties_name.split('|')
+        if size == '':
+            return u'经典'
         return size
 
     def update_quantity(self, num, full_update=False, dec_update=False):
