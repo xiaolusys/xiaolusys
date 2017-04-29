@@ -78,7 +78,7 @@ class ModelProduct(object):
             else:
                 res = {}
                 for color in colors:
-                    p = Product.objects.get(name__contains=color)
+                    p = Product.objects.filter(name__contains=color).first()
                     res[color] = p.eskus
             r2 = {}
             for color in res:
