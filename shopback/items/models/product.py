@@ -147,7 +147,8 @@ class Product(models.Model):
     status = models.CharField(max_length=16, db_index=True,
                               choices=STATUS_CHOICES,
                               default=pcfg.NORMAL, verbose_name=u'商品状态')
-
+    STANDARD_CHOICES = [('color',  u'颜色'), ('size', u'尺码'), ('color_size', u'颜色尺码')]
+    standard = models.CharField(max_length=80, null=True, choices=STANDARD_CHOICES, verbose_name=u'规格', help_text='商品颜色尺码属性')
     match_reason = models.CharField(max_length=80, blank=True, verbose_name=u'匹配原因')
     buyer_prompt = models.CharField(max_length=60, blank=True, verbose_name=u'客户提示')
     ref_link = models.CharField(max_length=1024, blank=True, verbose_name=u'参考链接')
@@ -251,6 +252,12 @@ class Product(models.Model):
         # 是否标品
         return self.eskus.count() == 1
 
+    def get_skus_by_color(self, color):
+        if color == self.properties_name:
+            return self.normal_skus
+        else:
+            return self.normal_skus.filter(properties_name__startswith=color)
+
     def get_sale_category_id(self):
         return 
 
@@ -351,7 +358,7 @@ class Product(models.Model):
     @property
     def property_name(self):
         keys = self.name.split('/')
-        return len(keys) > 1 and keys[1] or keys[0]
+        return len(keys) > 1 and keys[1] or u'统一规格'
 
     @property
     def stats(self):
@@ -506,9 +513,9 @@ class Product(models.Model):
     @cached_property
     def properties_name(self):
         try:
-            res = self.name.split('\\')[1]
+            res = self.name.split('/')[1]
         except:
-            res = self.name
+            res = u'统一规格'
         return res
 
     @property
@@ -1486,6 +1493,23 @@ class ProductSku(models.Model):
         })
         return model_dict
 
+    @cached_property
+    def color(self):
+        color = ''
+        if '|' in self.properties_name:
+            color, size = self.properties_name.split('|')
+        if color == '':
+            # return u'统一规格' 处理老商品properties_name表达颜色的情况
+            return self.product.properties_name
+        return color
+
+    @cached_property
+    def size(self):
+        size = self.properties_name
+        if '|' in self.properties_name:
+            color, size = self.properties_name.split('|')
+        return size
+
     def update_quantity(self, num, full_update=False, dec_update=False):
         """ 更新规格库存 """
         if full_update:
@@ -1642,6 +1666,8 @@ class ProductSku(models.Model):
             'type': 'size',
             'id': self.id,
             'name': self.name,
+            'color': self.color,
+            'size': self.size,
             'free_num': self.free_num,
             'is_saleout': self.free_num <= 0,
             'std_sale_price': self.std_sale_price,

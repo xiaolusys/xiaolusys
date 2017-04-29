@@ -346,6 +346,55 @@ class ModelProduct(BaseTagModel):
         """ 商品属性 """
         return {}
 
+    def get_properties(self):
+        """
+        商品颜色尺码 支持老商品
+        返回{颜色:[尺码]}
+        识别规则：
+            对单product
+                1、SKU中含有|且分隔了两个字串 表示同时有颜色与尺码
+                2、SKU中含有|且分隔了一个字串 字串在前表达颜色，在后表达尺码
+                3、SKU中含有统一规格 表示没有多种规格
+                4、product中含有/颜色,表示颜色
+            对多product
+                4、从product的properties_name中获取颜色
+                5、从sku中|分隔后个字串获取尺码
+        """
+        UNIQ_NAME = u'统一规格'
+        res = {}
+        if self.products.count() == 1:
+            for sku in self.product.prod_skus.all():
+                if '|' in sku.properties_name:
+                    color, size = sku.properties_name.split('|')
+                else:
+                    size = sku.properties_name
+                    color = self.product.properties_name
+                color = color or UNIQ_NAME
+                if color not in res:
+                    res[color] = []
+                size = size or UNIQ_NAME
+                if not size in res[color]:
+                    res[color].append(size)
+        else:
+            for p in self.products.all():
+                color = p.properties_name
+                for sku in p.prod_skus.all():
+                    if '|' in sku.properties_name:
+                        _color, size = sku.properties_name.split('|')
+                    else:
+                        size = sku.properties_name
+                        _color = self.product.properties_name
+                    if _color and color == UNIQ_NAME:
+                        color = _color
+                    if color not in res:
+                        res[color] = []
+                    size = size or UNIQ_NAME
+                    if not size in res[color]:
+                        res[color].append(size)
+        if not res:
+            res = {UNIQ_NAME: UNIQ_NAME}
+        return res
+
     @property
     def attributes(self):
         new_properties = self.extras.get('new_properties')
@@ -410,6 +459,15 @@ class ModelProduct(BaseTagModel):
             self.title_imgs = {p.properties_name: p.pic_path for p in self.products}
 
     def set_title_imgs_key(self):
+        colors = self.get_properties().keys()
+        initial_imgs_dict = dict(zip(colors, [''] * len(colors)))
+        if not self.title_imgs:
+            self.title_imgs = initial_imgs_dict
+        else:
+            for color in colors:
+                self.title_imgs[color] = self.title_imgs.get(color, '')
+
+    def set_title_imgs_key_bak(self):
         # title_imgs同时支持了颜色放在Product(每颜色一种)上和颜色放在ProductSku上的情况。
         # 一般使用颜色或规格名为key，如果该名为空，则使用img为key
         if len(self.products) == 0:
@@ -464,6 +522,32 @@ class ModelProduct(BaseTagModel):
             'elite_score': product.elite_score
         }
 
+    def product_sku_simplejson(self, product, skus):
+        sku_list = []
+        for sku in skus:
+            sku_list.append({
+                'type':'size',
+                'sku_id':sku.id,
+                'name':sku.size,
+                'free_num':sku.free_num,
+                'is_saleout': sku.free_num <= 0,
+                'std_sale_price':sku.std_sale_price,
+                'agent_price':sku.agent_price,
+            })
+        return {
+            'type':'color',
+            'product_id':product.id,
+            'name':sku.color,
+            'product_img': product.pic_path,
+            'outer_id': product.outer_id,
+            'is_saleout': product.is_sale_out(),
+            'std_sale_price':product.std_sale_price,
+            'agent_price':product.agent_price,
+            'lowest_price': product.lowest_price(),
+            'sku_items': sku_list,
+            'elite_score': product.elite_score
+        }
+
     @property
     def detail_content(self):
         head_imgs = [i for i in self.head_imgs.split() if i.strip()]
@@ -497,9 +581,15 @@ class ModelProduct(BaseTagModel):
     @property
     def sku_info(self):
         product_list = []
-        for p in self.productobj_list:
-            product_list.append(self.product_simplejson(p))
-        return product_list
+        if self.products.count() > 1:
+            for p in self.productobj_list:
+                product_list.append(self.product_simplejson(p))
+            return product_list
+        else:
+            for color in self.get_properties():
+                skus = self.product.get_skus_by_color(color)
+                product_list.append(self.product_sku_simplejson(self.product, skus))
+            return product_list
 
     def set_boutique_coupon(self):
         if self.extras.get('template_id'):
