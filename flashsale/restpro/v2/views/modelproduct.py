@@ -109,7 +109,7 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         from apis.v1.products import ModelProductCtl
         obj = ModelProductCtl.retrieve(self.kwargs[lookup_url_kwarg])
         data = serializers_v2.APIModelProductSerializer(obj, context={'request': request}).data
-        #data = serializers_v2.ModelProductSerializer(instance, context={'request': request}).data
+        # data = serializers_v2.ModelProductSerializer(obj, context={'request': request}).data
         return Response(data)
 
     def order_queryset(self, queryset, order_by=None):

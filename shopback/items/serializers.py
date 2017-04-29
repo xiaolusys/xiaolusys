@@ -201,6 +201,7 @@ class CreateProductSerializer(serializers.Serializer):
     name = serializers.CharField()
     category = serializers.CharField()
     type = serializers.CharField()
+    #standard = serializers.CharField()
     pic_path = serializers.CharField()
     ref_link = serializers.CharField(allow_blank=True)
     memo = serializers.CharField(allow_blank=True, required=False)

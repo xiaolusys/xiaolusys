@@ -17,6 +17,8 @@ class SKU(object):
         self.id = kwargs['id']
         self.type = kwargs['type']
         self.name = kwargs['name']
+        self.color = kwargs['color']
+        self.size = kwargs['size']
         self.std_sale_price = kwargs['std_sale_price']
         self.agent_price = kwargs['agent_price']
         self.remain_num  = kwargs['remain_num']
