@@ -29,7 +29,7 @@ def create_order(order_code, store_code, order_type, dict_obj):
         raise Exception('缺少收货地址信息/商品SKU信息:order_no=%s'%order_code)
 
     action_code = constants.ACTION_ORDER_CREATE['code']
-    if order_type == constants.ORDER_TYPE_CROSSBOADER['code']:
+    if order_type == constants.SOURCE_TYPE_CROSSBOADER['code']:
         action_code = constants.ACTION_CROSSORDER_CREATE['code']
         if not all([dict_obj.declare_type,
                    dict_obj.order_person_idname,

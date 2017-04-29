@@ -47,10 +47,10 @@ def push_outware_order_by_package(package):
     if not source_type_set or len(source_type_set) > 1:
         raise Exception('商品对应货源来源类型不唯一：package: %s, source_types: [%s]'%(package.pid, ','.join(source_type_set)))
 
-    order_type = constants.ORDER_TYPE_USUAL['code']
+    order_type = constants.SOURCE_TYPE_USUAL['code']
     source_type = list(source_type_set)[0]
     if source_type == SaleProduct.SOURCE_BONDED:
-        order_type = constants.ORDER_TYPE_CROSSBOADER['code']
+        order_type = constants.SOURCE_TYPE_CROSSBOADER['code']
 
     if source_type == SaleProduct.SOURCE_OUTSIDE:
         raise Exception('直邮模式暂不支持: package=%s'% package.pid)
@@ -76,7 +76,7 @@ def push_outware_order_by_package(package):
         'object': 'OutwareOrder',
     }
     # TODO@MERON, 2017.4.19 ,跨境订单默认只支持保税报关方式
-    if order_type == constants.ORDER_TYPE_CROSSBOADER['code']:
+    if order_type == constants.SOURCE_TYPE_CROSSBOADER['code']:
         params['declare_type'] = constants.DECLARE_TYPE_BOUND['code']
         params['order_person_idname'] = address.receiver_name
         params['order_person_idcard'] = address.idcard_no
@@ -134,9 +134,9 @@ def push_outware_order_by_sale_trade(sale_trade):
     if not source_type_set or len(source_type_set) > 1:
         raise Exception('商品对应货源来源类型不唯一：trade: %s, source_types: [%s]' % (sale_trade.tid, ','.join(source_type_set)))
 
-    order_type = constants.ORDER_TYPE_USUAL['code']
+    order_type = constants.SOURCE_TYPE_USUAL['code']
     if list(source_type_set)[0] == SaleProduct.SOURCE_BONDED:
-        order_type = constants.ORDER_TYPE_CROSSBOADER['code']
+        order_type = constants.SOURCE_TYPE_CROSSBOADER['code']
 
     if list(source_type_set)[0] == SaleProduct.SOURCE_OUTSIDE:
         raise Exception('直邮模式暂不支持')
@@ -165,7 +165,7 @@ def push_outware_order_by_sale_trade(sale_trade):
     }
 
     # TODO@MERON, 2017.4.19 ,跨境订单默认只支持保税报关方式
-    if order_type == constants.ORDER_TYPE_CROSSBOADER['code']:
+    if order_type == constants.SOURCE_TYPE_CROSSBOADER['code']:
         params['declare_type'] = constants.DECLARE_TYPE_BOUND['code']
         params['order_person_idname'] = address.receiver_name
         params['order_person_idcard'] = address.idcard_no

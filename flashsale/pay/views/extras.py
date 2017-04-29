@@ -15,7 +15,7 @@ class QiniuAPIView(APIView):
     def get(self, request):
         access_key = settings.QINIU_ACCESS_KEY
         secret_key = settings.QINIU_SECRET_KEY
-        bucket_name = "xiaolumm"
+        bucket_name = settings.QINIU_PUBLIC_BUCKET
 
         q = Auth(access_key, secret_key)
         token = q.upload_token(bucket_name, expires=3600)

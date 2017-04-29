@@ -17,9 +17,9 @@ SKU_TYPE_PRODUCT = {'code': 10, 'name': '普通商品'}
 SKU_TYPE_GIFTS   = {'code': 20, 'name': '赠品'}
 SKU_TYPE_METARIAL = {'code': 30, 'name': '包材'}
 
-ORDER_TYPE_USUAL = {'code': 10, 'name': '普通订单'}
-ORDER_TYPE_CROSSBOADER = {'code': 40, 'name': '跨境订单'}
-ORDER_TYPE_BOOKING = {'code': 50, 'name': '预售订单'}
+SOURCE_TYPE_USUAL = {'code': 10, 'name': '普通订单'}
+SOURCE_TYPE_CROSSBOADER = {'code': 40, 'name': '跨境订单'}
+SOURCE_TYPE_BOOKING = {'code': 50, 'name': '预售订单'}
 
 DECLARE_TYPE_NONE   = {'code': 0, 'name': '无需报关'}
 DECLARE_TYPE_BOUND  = {'code': 10, 'name': '保税仓'}
@@ -54,7 +54,7 @@ ACTION_ORDER_GOODLACK_FEEDBACK  = {'code': 1004, 'name': '订单缺货回调'}
 ACTION_PO_CREATE_FEEDBACK = {'code': 1005, 'name': '入仓确认回调'}
 ACTION_PO_RETURN_FEEDBACK = {'code': 1006, 'name': '退仓出库回调'}
 
-ATION_ORDER_CHANNEL_CREATE   = {'code': 150, 'name': '销售渠道创建'}
+ACTION_ORDER_CHANNEL_CREATE   = {'code': 150, 'name': '销售渠道创建'}
 
 ACTION_CROSSORDER_CREATE = {'code': 170, 'name': '跨境推送订单'}
 # ACTION_CROSSSKU_CREATE   = {'code': 180, 'name': '创建跨境商品SKU信息'}
@@ -80,7 +80,7 @@ ACTION_LIST = [
     ACTION_ORDER_STATE_FEEDBACK,
     ACTION_ORDER_RETURN_FEEDBACK,
     ACTION_ORDER_GOODLACK_FEEDBACK,
-    ATION_ORDER_CHANNEL_CREATE,
+    ACTION_ORDER_CHANNEL_CREATE,
     ACTION_CROSSORDER_CREATE,
     ACTION_CROSSPO_CREATE
 ]

@@ -15,11 +15,11 @@ logger = logging.getLogger(__name__)
 class OutwareOrder(BaseWareModel):
     """ 实际推送给外仓的组合销售订单 """
 
-    DEFAULT_ORDER_TYPE = constants.ORDER_TYPE_USUAL['code']
+    DEFAULT_ORDER_TYPE = constants.SOURCE_TYPE_USUAL['code']
     ORDER_TYPE_CHOICES = ((s['code'], s['name']) for s in [
-        constants.ORDER_TYPE_USUAL,
-        constants.ORDER_TYPE_CROSSBOADER,
-        constants.ORDER_TYPE_BOOKING,
+        constants.SOURCE_TYPE_USUAL,
+        constants.SOURCE_TYPE_CROSSBOADER,
+        constants.SOURCE_TYPE_BOOKING,
     ])
 
     DEFAULT_ORDER_SOURCE= constants.ORDER_SALE['code']

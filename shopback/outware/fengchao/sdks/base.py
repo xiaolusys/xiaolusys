@@ -53,7 +53,7 @@ def request_getway(data, notify_type, account):
     return content
 
 
-# @action_decorator(constants.ATION_ORDER_CHANNEL_CREATE['code'])
+# @action_decorator(constants.ACTION_ORDER_CHANNEL_CREATE['code'])
 def create_fengchao_order_channel(channel_client_id, channel_name, channel_type, channel_id):
     """　创建蜂巢订单来源渠道 """
     # TODO 该方法已失效，channelid 通过两个商议来对接
@@ -79,7 +79,7 @@ def create_fengchao_order_channel(channel_client_id, channel_name, channel_type,
     }
 
     try:
-        request_getway(params, constants.ATION_ORDER_CHANNEL_CREATE['code'], ware_account)
+        request_getway(params, constants.ACTION_ORDER_CHANNEL_CREATE['code'], ware_account)
     except Exception, exc:
         logger.error(str(exc), exc_info=True)
         return {'success': False, 'object': channel, 'message': str(exc)}

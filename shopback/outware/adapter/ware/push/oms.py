@@ -79,10 +79,8 @@ def update_outware_order_by_order_delivery(order_code, order_type, dict_obj):
 @action_decorator(constants.ACTION_ORDER_STATE_FEEDBACK['code'])
 @transaction.atomic
 def update_outware_order_by_order_state_change(order_code, order_status):
-
     ow_order = OutwareOrder.objects.get(union_order_code=order_code)
     success = ow_order.change_order_status(order_status)
-
     message = ''
     if success:
         message = 'unchangeable status: %s(cur: %s)'%(

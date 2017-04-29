@@ -239,7 +239,7 @@ class PackageOrder(models.Model):
             'action': 'packageorder_divide',
             'action_time': datetime.datetime.now(),
             'origin_package': self.pid,
-            'new_package': new_package.pid,
+            'new_package': new_package and new_package.pid,
             'new_dict': new_dict,
             'sku_dict': sku_dict,
             'ori_sku_dict': ori_sku_dict
@@ -1691,6 +1691,7 @@ class PackageSkuItem(BaseModel):
             package_order.reset_package_address()
             package_order.reset_sku_item_num()
             package_order.save()
+        return package_order
 
     def get_purchase_uni_key(self):
         """为了和历史上的purchase_record unikey保持一致

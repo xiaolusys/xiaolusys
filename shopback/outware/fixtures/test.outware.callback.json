@@ -123,7 +123,7 @@
     "created": "2017-03-16T11:35:59",
     "modified": "2017-03-16T11:35:59",
     "outware_account": 1,
-    "order_type": 10,
+    "order_type": 401,
     "store_code": "",
     "union_order_code": "xd16111358284ace3a74f",
     "status": 1,
@@ -158,13 +158,54 @@
   }
 },
 {
+  "model": "outware.outwareorder",
+  "pk": 2,
+  "fields": {
+    "created": "2017-03-16T11:35:59",
+    "modified": "2017-03-16T11:35:59",
+    "outware_account": 1,
+    "order_type": 401,
+    "store_code": "",
+    "union_order_code": "166271",
+    "status": 1,
+    "uni_key": "166271-1",
+    "extras": {
+      "data": {
+        "order_create_time": "2016-11-13 19:13:32",
+        "order_type": 10,
+        "object": "OutwareOrder",
+        "order_items": [
+          {
+            "sku_id": "SP111111AA",
+            "sku_order_code": "xo16111358284adba911f",
+            "object": "OutwareOrderSku",
+            "quantity": 1
+          }
+        ],
+        "receiver_info": {
+          "receiver_city": "\u6606\u660e\u5e02",
+          "receiver_phone": "",
+          "receiver_province": "\u4e91\u5357\u7701",
+          "receiver_mobile": "18621623915",
+          "receiver_address": "\u6606\u660e\u5e02\u5b66\u5e9c\u8def550\u53f7\u91d1\u9876\u5c71\u519b\u961f\u5e72\u4f11\u6240",
+          "receiver_area": "\u4e94\u534e\u533a",
+          "receiver_name": "\u8463\u78ca"
+        },
+        "channel_id": "1",
+        "pay_time": "2016-11-13 19:13:53",
+        "order_number": "166271"
+      }
+    }
+  }
+},
+{
   "model": "outware.outwareordersku",
   "pk": 1,
   "fields": {
     "created": "2017-03-16T11:35:59",
     "modified": "2017-03-16T11:35:59",
     "outware_account": 1,
-    "union_order_code": "xd16111358284ace3a74f",
+    "union_order_code": "166271",
     "origin_skuorder_no": "xo16111358284adba911f",
     "sku_code": "SP111111AA",
     "sku_qty": 1,

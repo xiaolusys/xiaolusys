@@ -180,6 +180,7 @@ QINIU_PUBLIC_DOMAIN = '7xrst8.com2.z0.glb.qiniucdn.com'
 ############### REMOTE MEDIA STORAGE ################
 QINIU_BUCKET_NAME   = 'mediaroom'
 QINIU_BUCKET_DOMAIN = '7xogkj.com1.z0.glb.clouddn.com'
+
 QINIU_SECURE_URL    = 0
 DEFAULT_FILE_STORAGE = 'qiniustorage.backends.QiniuStorage'
 MEDIA_URL = "http://%s/" % QINIU_BUCKET_DOMAIN
