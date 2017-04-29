@@ -20,6 +20,7 @@ class ModelProduct(object):
     def __init__(self, **kwargs):
         self.id = kwargs['id']
         self.name = kwargs['name']
+        self.product_type = kwargs['product_type']
         self.sku_info = kwargs['sku_info']
         self.comparison = kwargs['comparison']
         self.extras = kwargs['extras']

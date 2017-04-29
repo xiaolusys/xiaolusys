@@ -152,6 +152,8 @@ class APIModelProductSerializer(serializers.Serializer):
         return data
 
     def get_sku_info(self, obj):
+        if obj.product_type == 1:
+            return self.get_sku_info_bak(obj)
         from apis.v1.products import SkustatCtl
         res = []
         product_dict = obj.get_divide_products()
