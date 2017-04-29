@@ -360,7 +360,8 @@ class ModelProduct(BaseTagModel):
                 4、从product的properties_name中获取颜色
                 5、从sku中|分隔后个字串获取尺码
         """
-        UNIQ_NAME = u'统一规格'
+        UNIQ_COLOR = u'统一规格'
+        UNIQ_SIZE = u'经典'
         res = {}
         if self.products.count() == 1:
             for sku in self.product.prod_skus.all():
@@ -369,10 +370,10 @@ class ModelProduct(BaseTagModel):
                 else:
                     size = sku.properties_name
                     color = self.product.properties_name
-                color = color or UNIQ_NAME
+                color = color or UNIQ_COLOR
                 if color not in res:
                     res[color] = []
-                size = size or UNIQ_NAME
+                size = size or UNIQ_SIZE
                 if not size in res[color]:
                     res[color].append(size)
         else:
@@ -384,15 +385,15 @@ class ModelProduct(BaseTagModel):
                     else:
                         size = sku.properties_name
                         _color = self.product.properties_name
-                    if _color and color == UNIQ_NAME:
+                    if _color and color == UNIQ_COLOR:
                         color = _color
                     if color not in res:
                         res[color] = []
-                    size = size or UNIQ_NAME
+                    size = size or UNIQ_SIZE
                     if not size in res[color]:
                         res[color].append(size)
         if not res:
-            res = {UNIQ_NAME: UNIQ_NAME}
+            res = {UNIQ_COLOR: UNIQ_SIZE}
         return res
 
     @property
