@@ -60,7 +60,7 @@ class ModelProduct(object):
                 return dict([(color,p) for color in colors])
             else:
                 for color in colors:
-                    pro = Product.objects.get(name__contains=color)
+                    pro = Product.objects.filter(name__contains=color).first()
                     p = ModelProductCtl.retrieve(pro.id)
                     res[color] = p
             self._divide_products_ = res
