@@ -72,7 +72,7 @@ CACHES = {
         'BACKEND': 'redis_cache.RedisCache',
         'LOCATION': REDIS_HOST,
         'OPTIONS': {
-            'DB': 3,
+            'DB': 4,
             'PASSWORD': REDIS_AUTH,
             "SOCKET_CONNECT_TIMEOUT": 5,  # in seconds
             "SOCKET_TIMEOUT": 5,  # in seconds
