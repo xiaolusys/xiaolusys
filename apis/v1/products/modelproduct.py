@@ -61,7 +61,7 @@ class ModelProduct(object):
                 return dict([(color,p) for color in colors])
             else:
                 for color in colors:
-                    pro = Product.objects.filter(name__contains=color).first()
+                    pro = Product.objects.filter(model_id=self.id, name__contains=color).first()
                     p = ProductCtl.retrieve(pro.id)
                     res[color] = p
             self._divide_products_ = res
@@ -79,7 +79,7 @@ class ModelProduct(object):
             else:
                 res = {}
                 for color in colors:
-                    p = Product.objects.filter(name__contains=color).first()
+                    p = Product.objects.filter(model_id=self.id, name__contains=color).first()
                     res[color] = p.eskus
             r2 = {}
             for color in res:
