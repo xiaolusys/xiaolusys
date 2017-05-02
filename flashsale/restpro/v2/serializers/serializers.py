@@ -525,6 +525,7 @@ class SimpleModelProductSerializer(serializers.ModelSerializer):
 
 
 class CreateModelProductSerializer(serializers.Serializer):
+    name = serializers.CharField(required=True)
     extras = serializers.JSONField()
     is_onsale = serializers.BooleanField(required=False)
     is_teambuy = serializers.BooleanField(required=False)
@@ -543,6 +544,7 @@ class CreateModelProductSerializer(serializers.Serializer):
     def save(self, data, user, instance=None):
         product = Product.objects.get(id=data.get('product_id'))
         if instance:
+            instance.name = data.get('name', product.name)
             instance.extras['new_properties'] = data.get('extras', {}).get('new_properties', [])
             instance.extras['sources'] = data.get('extras', {}).get('sources', [])
             instance.is_onsale = bool(data.get('is_onsale'))
@@ -569,6 +571,7 @@ class CreateModelProductSerializer(serializers.Serializer):
         else:
             modelproduct = ModelProduct.create(
                 product=product,
+                name=data.get('name'),
                 extras=data.get('extras'),
                 is_onsale=bool(data.get('is_onsale')),
                 is_teambuy=bool(data.get('is_teambuy')),
