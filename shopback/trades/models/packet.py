@@ -1330,6 +1330,8 @@ class PackageSkuItem(BaseModel):
         self.assign_status = 1
         self.init_assigned = True
         self.assign_time = datetime.datetime.now()
+        if self.ware_by == WARE_THIRD:  #第三方商品在上海仓有货，则直接从上海仓发货
+            self.ware_by = WARE_SH
         self.save()
         SkuStock.set_psi_init_assigned(self.sku_id, self.num)
 
@@ -1370,7 +1372,7 @@ class PackageSkuItem(BaseModel):
 
                 package_order_id = PackageOrder.gen_new_package_id(self.sale_trade.buyer_id,
                                                                    self.sale_trade.user_address_id,
-                                                                   self.product_sku.ware_by,
+                                                                   self.ware_by,
                                                                    direct_vendor_code=direct_vendor_code)
                 po = PackageOrder.objects.filter(id=package_order_id).first()
                 if po:
@@ -1401,7 +1403,7 @@ class PackageSkuItem(BaseModel):
                 trade = self.get_relate_order().trade
                 package_order_id = PackageOrder.gen_new_package_id(trade.user_unikey,
                                                                    trade.user_address_unikey,
-                                                                   self.product_sku.ware_by)
+                                                                   self.ware_by)
                 po = PackageOrder.objects.filter(id=package_order_id).first()
                 if po:
                     if po.sys_status == PackageOrder.PKG_NEW_CREATED:
@@ -1423,7 +1425,7 @@ class PackageSkuItem(BaseModel):
                 return_goods = self.get_relate_order().return_goods
                 package_order_id = PackageOrder.gen_new_package_id(return_goods.supplier_id,
                                                                    return_goods.get_supplier_addr().id,
-                                                                   self.product_sku.ware_by)
+                                                                   self.ware_by)
                 po = PackageOrder.objects.filter(id=package_order_id).first()
 
                 if po:
@@ -1438,7 +1440,8 @@ class PackageSkuItem(BaseModel):
                 self.save()
                 po.add_package_sku_item(self)
                 if not po.logistics_company:
-                    po.set_logistics_company(-2)
+                    YUNDA = -2
+                    po.set_logistics_company(YUNDA)# 手工发货直接用韵达快递
 
     def return_merge(self):
         if self.status == PSI_STATUS.ASSIGNED:
