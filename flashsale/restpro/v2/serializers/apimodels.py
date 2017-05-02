@@ -158,6 +158,7 @@ class APIModelProductSerializer(serializers.Serializer):
         res = []
         product_dict = obj.get_divide_products()
         sku_dict = obj.get_divide_skus()
+        model_saleout = True
         for color in sku_dict:
             sku_items = sku_dict[color]
             sku_ids = [sku.id for sku in sku_items]
@@ -176,7 +177,6 @@ class APIModelProductSerializer(serializers.Serializer):
                 'lowest_price': product.lowest_price,
                 'elite_score': product.elite_score,
             }
-            model_saleout = True
             item['is_saleout'] = True
             for sku in item['sku_items']:
                 stat = stat_map[sku['sku_id']]
