@@ -1085,7 +1085,7 @@ class ModelProduct(BaseTagModel):
         return {'total_pay_num': p_n, 'total_rg_rate': rat, 'total_payment': payment}
 
     @staticmethod
-    def create(product, extras=extras, is_onsale=False, is_teambuy=False, is_recommend=False,
+    def create(product, name=name, extras=extras, is_onsale=False, is_teambuy=False, is_recommend=False,
                is_topic=False, is_flatten=False, is_boutique=False, is_outside=False):
         """
         :param product:
@@ -1101,7 +1101,7 @@ class ModelProduct(BaseTagModel):
         # 目前一个商品只能对应一个售卖款式
         if product.model_id:
             raise Exception(u'当前商品已有对应的售卖款式，无法再创建一个。')
-        model_product = ModelProduct(name=product.name,
+        model_product = ModelProduct(name=name,
             product_type=product.type,
             lowest_agent_price=product.get_lowest_agent_price(),
             lowest_std_sale_price=product.get_lowest_std_sale_price(),
