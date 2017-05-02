@@ -16,7 +16,7 @@ from common.utils import parse_datetime
 from shopapp.taobao import apis
 import logging
 
-logger = logging.getLogger('django.request')
+logger = logging.getLogger(__name__)
 
 REFUND_STATUS = (
     (pcfg.NO_REFUND, '没有退款'),
@@ -323,6 +323,10 @@ class Order(models.Model):
         from shopback.trades.models import PackageSkuItem, PSI_TYPE, MergeOrder, MergeTrade
         merge_order = MergeOrder.objects.filter(oid=self.oid).first()
         if (merge_order and merge_order.is_sent()) or (merge_order and merge_order.merge_trade.is_sent()):
+            return
+        if not self.sku:
+            logger.warn('warn: order={}, outer_id={}, outer_sku_id={}, product sku not found'.format(
+                self.oid, self.outer_id, self.outer_sku_id))
             return
         ware_by = self.sku.ware_by
         sku_item = PackageSkuItem(sale_order_id=None, ware_by=ware_by, oid=self.get_tb_oid())

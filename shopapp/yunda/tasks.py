@@ -160,7 +160,7 @@ class CancelUnsedYundaSidTask(object):
                                  partner_id=yd_customer.qr_id,
                                  secret=yd_customer.qr_code)
         except Exception, exc:
-            raise self.retry(exc=exc, countdown=RETRY_INTERVAL)
+            raise task_cancel_unused_yunda_sid.retry(exc=exc, countdown=RETRY_INTERVAL)
 
 @app.task()
 def task_cancel_unused_yunda_sid():

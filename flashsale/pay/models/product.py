@@ -525,6 +525,7 @@ class ModelProduct(BaseTagModel):
 
     def product_sku_simplejson(self, product, skus):
         sku_list = []
+        sku = None
         for sku in skus:
             sku_list.append({
                 'type':'size',
@@ -538,7 +539,7 @@ class ModelProduct(BaseTagModel):
         return {
             'type':'color',
             'product_id':product.id,
-            'name':sku.color,
+            'name':sku and sku.color,
             'product_img': product.pic_path,
             'outer_id': product.outer_id,
             'is_saleout': product.is_sale_out(),

@@ -13,6 +13,11 @@ def task_celery_queue_message_statsd():
     from django_statsd.clients import statsd
     resp = requests.get(FLOWER_QUEUE_LENGTH_API,
                               auth=HTTPBasicAuth(FLOWER_USERNAME, FLOWER_PASSWORD))
+
+    # if 502 means the flower server are restarting
+    if resp.status_code == 502:
+        return
+
     queue_stats = resp.json().get('active_queues',[])
     for stat in queue_stats:
         statsd.gauge('celery.queue.%s'% stat['name'], stat['messages'])
