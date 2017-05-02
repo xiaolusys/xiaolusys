@@ -744,7 +744,7 @@ class ModelProductAdmin(ApproxAdmin):
                        ('is_onsale', 'is_recommend', 'is_topic', 'is_flatten', 'is_teambuy', 'is_boutique', 'product_type'),
                        ('shelf_status', 'onshelf_time', 'offshelf_time'),
                        ('order_weight', 'rebeta_scheme_id', 'status'),
-                       ('head_imgs', 'content_imgs'),
+                       ('head_imgs', 'title_imgs', 'content_imgs'),
                        ('teambuy_price', 'teambuy_person_num'),
                        ('extras',),
                    )
