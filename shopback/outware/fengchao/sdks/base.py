@@ -91,7 +91,7 @@ def create_fengchao_order_channel(channel_client_id, channel_name, channel_type,
 
 
 def get_skustock_by_qureyparams(sku_codes, vendor_code=None):
-    """　创建蜂巢订单来源渠道 """
+    """　获取蜂巢商品库存 """
     if not sku_codes:
         return []
 
@@ -116,7 +116,11 @@ def get_skustock_by_qureyparams(sku_codes, vendor_code=None):
         logger.error(str(exc), exc_info=True)
         log_ware_action(ware_account, action_code, state_code=constants.ERROR, message=str(exc))
         return []
-
+    logger.info({
+        'action': 'get_skustock_by_qureyparams',
+        'action_time': datetime.datetime.now(),
+        'result': resp['inventory']
+    })
     return resp['inventory']
 
 

@@ -109,43 +109,43 @@ ul.list-style-1 li{
     <div class="container-body">
         <form class="form-horizontal" action="" method="POST">
             <div class="panel panel-default">
-              <div class="panel-heading">订单基本信息</div>
+              <div class="panel-heading">订单基本信息 <a href=""><i class=""></i></a></div>
               <div class="panel-body">
                   <input type="hidden" class="form-control" id="supplier_id" value="">
                   <ul class="list-style-1">
-                    <li>
+                  <li>
+                  <div class="form-group">
+                    <label for="order_code" class="col-sm-3 control-label">订单编号</label>
+                    <div class="col-sm-9">
+                      <input type="text" class="form-control" id="order_code" placeholder="" value="{{order_code}}" readonly>
+                    </div>
+                  </div>
+                  </li>
+                  <li>
                       <div class="form-group">
-                        <label for="order_code" class="col-sm-3 control-label">订单编号</label>
+                        <label for="tms_order_code" class="col-sm-3 control-label">到货物流单号</label>
                         <div class="col-sm-9">
-                          <input type="text" class="form-control" id="order_code" placeholder="" value="{{order_code}}" readonly>
+                          <input type="text" class="form-control" id="tms_order_code" placeholder="" value="{{tms_order_code}}" readonly>
                         </div>
                       </div>
-                      </li>
-                      <li>
-                          <div class="form-group">
-                            <label for="tms_order_code" class="col-sm-3 control-label">到货物流单号</label>
-                            <div class="col-sm-9">
-                              <input type="text" class="form-control" id="tms_order_code" placeholder="" value="{{tms_order_code}}" readonly>
-                            </div>
-                          </div>
-                      </li>
-                      <li>
+                  </li>
+                  <li>
+                  <div class="form-group">
+                    <label for="vendor_code" class="col-sm-3 control-label">供应商编号</label>
+                    <div class="col-sm-9">
+                      <input type="text" class="form-control" id="vendor_code" placeholder="" value="{{vendor_code}}" readonly>
+                    </div>
+                  </div>
+                  </li>
+                  <li>
                       <div class="form-group">
-                        <label for="vendor_code" class="col-sm-3 control-label">供应商编号</label>
+                        <label for="vendor_name" class="col-sm-3 control-label">供应商名称</label>
                         <div class="col-sm-9">
-                          <input type="text" class="form-control" id="vendor_code" placeholder="" value="{{vendor_code}}" readonly>
+                          <input type="text" class="form-control" id="vendor_name" placeholder="" value="{{vendor_name}}" readonly>
                         </div>
                       </div>
-                      </li>
-                      <li>
-                          <div class="form-group">
-                            <label for="vendor_name" class="col-sm-3 control-label">供应商名称</label>
-                            <div class="col-sm-9">
-                              <input type="text" class="form-control" id="vendor_name" placeholder="" value="{{vendor_name}}" readonly>
-                            </div>
-                          </div>
-                      </li>
-                    </ul>
+                  </li>
+                </ul>
               </div>
             </div>
             <div class="panel panel-info">

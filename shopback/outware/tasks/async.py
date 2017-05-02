@@ -25,11 +25,11 @@ def task_outware_union_supplier_and_sku(sku_codes=[]):
 
 @app.task()
 def task_sync_sku_stocks():
-    skucodes = [sku.sku_code for sku in OutwareSku.objects.filter(is_unioned=False)]
+    skucodes = OutwareSkuStock.objects.values_list('sku_code', flat=True)
     i = 0
     LEN = 50
-    now_piece = skucodes[i * LEN, (i+1) * LEN]
+    now_piece = skucodes[i * LEN: (i+1) * LEN]
     while now_piece:
         OutwareSkuStock.sync_outsys(now_piece)
         i += 1
-        now_piece = skucodes[i * LEN, (i+1) * LEN]
+        now_piece = skucodes[i * LEN: (i+1) * LEN]

@@ -112,3 +112,4 @@ class OutwareSkuStock(BaseWareModel):
         for line in res:
             outware_stock = OutwareSkuStock.objects.get(sku_code=line['sku_id'])
             outware_stock.sync_stock_by_adjust(line)
+
