@@ -48,7 +48,7 @@ class VerifyCodeTestCase(TestCase):
         response = self.client.post(self.url_send_code, {'mobile':self.mobile, 'action':action}, ACCEPT='application/json')
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
-        
+        self.assertEqual(data['code'], 0)
         reg = Register.objects.filter(vmobile=self.mobile).first()
         self.assertEqual(reg.submit_count, 1)
         verify_code = reg.verify_code

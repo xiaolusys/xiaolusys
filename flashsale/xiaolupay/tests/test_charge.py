@@ -1,7 +1,7 @@
 # coding: utf8
 from __future__ import absolute_import, unicode_literals
 
-from django.test import TestCase
+from django.test import TestCase, tag
 import random
 import datetime
 from ..apis.v1 import Charge
@@ -24,6 +24,7 @@ class XiaoluPayChargeTestCase(TestCase):
             'extra': {},
         }
 
+    @tag('B')
     def test_wx_pub_charge(self):
         channel = 'wx_pub'
         data = self.data.copy()
@@ -36,6 +37,7 @@ class XiaoluPayChargeTestCase(TestCase):
         self.assertEqual(ch.channel, channel)
         self.assertEqual(ch.extra['open_id'], data['extra']['open_id'])
 
+    @tag('B')
     def test_wx_charge(self):
         channel = 'wx'
         data = self.data.copy()
@@ -44,6 +46,7 @@ class XiaoluPayChargeTestCase(TestCase):
         self.assertEqual(ch.order_no, self.order_no)
         self.assertEqual(ch.channel, channel)
 
+    @tag('B')
     def test_alipay_charge(self):
         channel = 'alipay'
         data = self.data.copy()
@@ -52,6 +55,7 @@ class XiaoluPayChargeTestCase(TestCase):
         self.assertEqual(ch.order_no, self.order_no)
         self.assertEqual(ch.channel, channel)
 
+    @tag('B')
     def test_alipay_wap_charge(self):
         channel = 'alipay_wap'
         data = self.data.copy()
@@ -65,6 +69,7 @@ class XiaoluPayChargeTestCase(TestCase):
         self.assertEqual(ch.channel, channel)
         self.assertEqual(ch.extra, data['extra'])
 
+    @tag('B')
     def test_wx_querytrade(self):
         data = self.data.copy()
         data['channel'] = 'wx'

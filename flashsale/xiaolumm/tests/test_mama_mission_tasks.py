@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 class MamaWeeklyAwardTestCase(TransactionTestCase):
     """ 登陆 / 加入购物车 / 获取支付信息 /付款 /查看付款订单 """
     fixtures = [
-        'test.flashsale.customer.json',
+        'test.flashsale.xiaolumm.customer.json',
         'test.flashsale.xiaolumm.json',
         'test.flashsale.pay.logistics.companys.json',
         'test.shopback.categorys.productcategory.json',
