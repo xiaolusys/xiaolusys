@@ -18,6 +18,7 @@ def push_ware_sku_by_saleproduct(sale_product):
     success_skucode_list = []
     products = sale_product.item_products
     modelproduct = sale_product.model_product
+    source_type  = sale_product.source_type
     brand_name = ''
     if modelproduct and modelproduct.brand:
         brand_name = modelproduct.brand.brand_name
@@ -31,9 +32,9 @@ def push_ware_sku_by_saleproduct(sale_product):
             sku_type = constants.SKU_TYPE_METARIAL['code']
 
         declare_type = constants.DECLARE_TYPE_NONE['code']
-        if modelproduct.source_type == SaleProduct.SOURCE_BONDED:
+        if source_type == SaleProduct.SOURCE_BONDED:
             declare_type = constants.DECLARE_TYPE_BOUND['code']
-        elif modelproduct.source_type == SaleProduct.SOURCE_OUTSIDE:
+        elif source_type == SaleProduct.SOURCE_OUTSIDE:
             declare_type = constants.DECLARE_TYPE_DIRECT['code']
 
         for sku in product.normal_skus:
