@@ -654,7 +654,7 @@ def saleorder_return_coupon_exchange(salerefund, payment):
         if not ((sale_order.extras.has_key('exchange') and sale_order.extras['exchange'] == True) or (exchg_sale_order and exchg_sale_order.has_exchanged)):
             # 默认特卖订单一个saleorder只能退一次,以后不能兑换不能退了
             if not exchg_sale_order:
-                exchg_record = ExchangeSaleOrder(order_oid=sale_order.oid, can_exchange=False, uni_key=salerefund.order_id)
+                exchg_record = ExchangeSaleOrder(order_oid=sale_order.oid, can_exchange=False, uni_key=sale_order.oid)
                 exchg_record.save()
             else:
                 exchg_sale_order.can_exchange = False
@@ -728,7 +728,7 @@ def saleorder_return_coupon_exchange(salerefund, payment):
             if int(sale_order.extras['can_return_num']) == 0:
                 if not exchg_sale_order:
                     exchg_record = ExchangeSaleOrder(order_oid=sale_order.oid, can_exchange=False,
-                                                     uni_key=salerefund.order_id)
+                                                     uni_key=sale_order.oid)
                     exchg_record.save()
                 else:
                     exchg_sale_order.can_exchange = False
