@@ -57,8 +57,8 @@ DATABASES = {
     'readonly': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'xiaoludb',
-        'USER': 'xiaoludbo',
-        'PASSWORD': 'expired_20160730',
+        'USER': 'xiaoludbro',
+        'PASSWORD': MYSQL_AUTH,
         'HOST': MYSQL_HOST,
         'OPTIONS':  {
             'charset': 'utf8',
