@@ -149,6 +149,7 @@ class Product(models.Model):
                               default=pcfg.NORMAL, verbose_name=u'商品状态')
     STANDARD_CHOICES = [('color',  u'颜色'), ('size', u'尺码'), ('color_size', u'颜色尺码')]
     # standard = models.CharField(max_length=80, null=True, choices=STANDARD_CHOICES, verbose_name=u'规格', help_text='商品颜色尺码属性')
+    # sale_on_tianmao = models.BooleanField(default=False, verbose_name=u'天猫在售')
     match_reason = models.CharField(max_length=80, blank=True, verbose_name=u'匹配原因')
     buyer_prompt = models.CharField(max_length=60, blank=True, verbose_name=u'客户提示')
     ref_link = models.CharField(max_length=1024, blank=True, verbose_name=u'参考链接')
@@ -478,6 +479,12 @@ class Product(models.Model):
 
         self.update_collect_num(real_update_num)
         self.update_reduce_num(real_reduct_num, full_update=True)
+
+    def update_model_product(self):
+        if self.model_id:
+            mp = self.get_product_model()
+            mp.set_lowest_price()
+            mp.save()
 
     @property
     def is_stock_warn(self):

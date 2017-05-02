@@ -453,6 +453,12 @@ class ModelProduct(BaseTagModel):
         res = {p.properties_name: p.pic_path for p in self.products}
         return res
 
+    def set_lowest_price(self):
+        product_ids = self.products.values_list('id', flat=True)
+        skus = ProductSku.objects.filter(product_id__in=product_ids)
+        self.lowest_agent_price = min([sku.agent_price for sku in skus])
+        self.lowest_std_sale_price = min([sku.std_sale_price for sku in skus])
+
     def set_title_imgs_values(self, respective_imgs=None):
         if respective_imgs:
             self.title_imgs = respective_imgs
@@ -1116,6 +1122,7 @@ class ModelProduct(BaseTagModel):
             model_product.set_boutique_coupon()
         model_product.set_title_imgs_key()
         model_product.set_title_imgs_values()
+        model_product.set_lowest_price()
         model_product.save()
         model_product.set_sale_product()
         return model_product

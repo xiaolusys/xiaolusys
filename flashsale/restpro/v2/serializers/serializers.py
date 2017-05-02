@@ -543,7 +543,6 @@ class CreateModelProductSerializer(serializers.Serializer):
     def save(self, data, user, instance=None):
         product = Product.objects.get(id=data.get('product_id'))
         if instance:
-            instance.product = product
             instance.extras['new_properties'] = data.get('extras', {}).get('new_properties', [])
             instance.extras['sources'] = data.get('extras', {}).get('sources', [])
             instance.is_onsale = bool(data.get('is_onsale'))
@@ -558,6 +557,7 @@ class CreateModelProductSerializer(serializers.Serializer):
                 instance.teambuy_person_num = int(data.get('teambuy_person_num', 0))
             if int(data.get('is_outside', 0)):
                 instance.set_product_source_type(3)
+            instance.set_lowest_price()
             instance.save()
             instance.set_title_imgs_key()
             instance.set_title_imgs_values()

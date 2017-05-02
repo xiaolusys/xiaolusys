@@ -227,6 +227,7 @@ class CreateProductSerializer(serializers.Serializer):
             product.memo = memo
             product.save()
             product.update_skus(skus)
+            product.update_model_product()
         else:
             product = Product.create(name, product_category, type, pic_path,
                    ref_link, memo, skus)
