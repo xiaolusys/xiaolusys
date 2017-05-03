@@ -10,7 +10,7 @@ from shopback.warehouse.models import WareHouse
 import logging
 logger = logging.getLogger(__name__)
 
-@app.tasks()
+@app.task()
 def task_push_packageorder_to_fengchao():
     """　推送包裹到蜂巢仓库 """
     from shopback.outware.adapter.mall.push import order
