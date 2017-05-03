@@ -3,6 +3,7 @@ from __future__ import absolute_import, unicode_literals
 
 from copy import deepcopy
 from django.db import transaction, IntegrityError
+from django.conf import settings
 from shopback.outware.fengchao import sdks
 
 from ....models import (
@@ -37,7 +38,9 @@ def create_order(order_code, store_code, order_type, dict_obj):
             raise Exception('跨境订单需要传入报关方式以及用户身份信息:order_no=%s'%order_code)
     else:
         dict_obj.order_type = order_type
-
+    # format order_code
+    order_code = dict_obj.order_number = OutwareOrder.format_order_code(
+        order_code, prefix=ware_account.order_prefix)
     with transaction.atomic():
         try:
             #　TODO@TIPS, use atomic inner for fix django model create bug
@@ -110,13 +113,14 @@ def cancel_order(order_code):
     # TODO@MERON 2016.3.11 该版本目前只支持转发商城推送订单, 合单拆分后续改进
     ware_account = OutwareAccount.get_fengchao_account()
 
-    ow_order = OutwareOrder.objects.get(union_order_code=order_code)
+    ware_order_code = OutwareOrder.format_order_code(order_code, prefix=ware_account.order_prefix)
+    ow_order = OutwareOrder.objects.get(union_order_code=ware_order_code)
     action_code = constants.ACTION_ORDER_CREATE['code']
 
     if ow_order.is_action_success(action_code):
         try:
             sdks.request_getway({
-                'order_number': order_code,
+                'order_number': ware_order_code,
             }, constants.ACTION_ORDER_CANCEL['code'], ware_account)
         except Exception, exc:
             logger.error(str(exc), exc_info=True)

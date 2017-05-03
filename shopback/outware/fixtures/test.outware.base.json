@@ -9,6 +9,8 @@
     "app_id": "app20170308hnabcpls",
     "app_secret": "e8e1f648a5e02492e1584e5413cef158",
     "sign_method": "md5",
+    "ware_from": "fengchao",
+    "order_prefix": "test_",
     "extras": {}
   }
 },

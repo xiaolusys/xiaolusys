@@ -219,7 +219,6 @@ class Envelop(PayBaseModel):
             raise Exception(u'不能重复发送')
 
         envelope_unikey = 'xlmm%s' % (self.id)
-
         if self.platform == Envelop.WX_TRANSFER:
             flow_amount = self.amount
             name = self.body

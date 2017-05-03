@@ -77,7 +77,6 @@ def get_channel_list(request, customer):
         channel_list.append({'id': 'wx', 'name': u'微信支付', 'payable': True, 'msg': ''})
         channel_list.append({'id': 'alipay', 'name': u'支付宝', 'payable': True, 'msg': ''})
 
-
     return channel_list
 
 class SaleTradeViewSet(viewsets.ModelViewSet):

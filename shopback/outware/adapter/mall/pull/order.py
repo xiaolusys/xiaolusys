@@ -100,4 +100,4 @@ def update_outware_order_by_goodlack_notify(order_code, dict_obj):
         }
     """
     # TODO@MERON.2017.4.25
-    raise Exception('订单商品缺货请实现: order_code=%s'% order_code)
+    # raise Exception('订单商品缺货请实现: order_code=%s'% order_code)

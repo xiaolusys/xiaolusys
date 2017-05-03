@@ -1,4 +1,6 @@
 # encoding=utf8
+from __future__ import unicode_literals
+
 from datetime import datetime
 from django.db import models, transaction
 from core.models import BaseModel
@@ -53,6 +55,8 @@ class WeixinRedEnvelope(BaseModel):
     class Meta:
         db_table = 'xiaolupay_weixin_red_envelope'
         app_label = 'xiaolupay'
+        verbose_name = u'小鹿支付/微信现金红包'
+        verbose_name_plural = u'小鹿支付/微信现金红包'
 
     def update_sync_result(self, result):
         """

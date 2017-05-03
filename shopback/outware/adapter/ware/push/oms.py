@@ -80,13 +80,9 @@ def update_outware_order_by_order_delivery(order_code, order_type, dict_obj):
 @transaction.atomic
 def update_outware_order_by_order_state_change(order_code, order_status):
     ow_order = OutwareOrder.objects.get(union_order_code=order_code)
-    success = ow_order.change_order_status(order_status)
-    message = ''
-    if success:
-        message = 'unchangeable status: %s(cur: %s)'%(
-                dict(OutwareOrder.STATUS_CHOICES).get(order_code), ow_order.get_status_display())
+    ow_order.change_order_state(order_status)
 
-    return {'success': True, 'object': ow_order, 'message': message}
+    return {'success': True, 'object': ow_order, 'message': ''}
 
 
 @action_decorator(constants.ACTION_ORDER_GOODLACK_FEEDBACK['code'])

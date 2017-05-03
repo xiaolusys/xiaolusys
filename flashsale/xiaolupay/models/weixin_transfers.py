@@ -1,4 +1,6 @@
 # encoding=utf8
+from __future__ import unicode_literals
+
 from django.db import models, transaction
 from core.models import BaseModel
 
@@ -29,4 +31,6 @@ class WeixinTransfers(BaseModel):
     class Meta:
         db_table = 'xiaolupay_weixin_transfers'
         app_label = 'xiaolupay'
+        verbose_name = u'小鹿支付/微信企业转账'
+        verbose_name_plural = u'小鹿支付/微信企业转账'
 

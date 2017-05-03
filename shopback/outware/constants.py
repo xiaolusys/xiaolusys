@@ -4,14 +4,48 @@ from __future__ import absolute_import, unicode_literals
 GOOD = 1
 ERROR = 2
 
-NORMAL  = 1
-RECEIVED = 2
+NORMAL    = 1
+RECEIVED  = 2
 LACKGOODS = 3
-ARRIVED = 4
-PACKING = 50
+ARRIVED   = 4
+STATUS_CHOICES = (
+    (NORMAL, '待推送'),
+    (RECEIVED, '已接单'),
+    (LACKGOODS, '订单缺货'),
+    (ARRIVED, '已到货'),
+)
+
+ACCEPTED = 20
+WAVING  = 25
+PICKING = 26
+PICKED  = 30
+SORTING = 35
+SORTED = 40
+PACKED  = 60
 LOADING = 65
+COMPLETED = 70
 SENDED  = 80
 CANCEL  = 100
+DIRECT_FAIL = 201
+VENDOR_FAIL = 202
+
+STATE_CHOICES = (
+    (NORMAL, '待处理'),
+    (ACCEPTED, '已审核'),
+    (WAVING, '装车中'),
+    (PICKING, '已发货'),
+    (PICKED, '取消'),
+    (SORTING, '打包中'),
+    (SORTED, '装车中'),
+    (PACKED, '已发货'),
+    (LOADING, '取消'),
+    (COMPLETED, '打包中'),
+    (SENDED, '装车中'),
+    (CANCEL, '已发货'),
+    (DIRECT_FAIL, '蜂巢审核未通过'),
+    (VENDOR_FAIL, '直发转发失败'),
+)
+
 
 SKU_TYPE_PRODUCT = {'code': 10, 'name': '普通商品'}
 SKU_TYPE_GIFTS   = {'code': 20, 'name': '赠品'}

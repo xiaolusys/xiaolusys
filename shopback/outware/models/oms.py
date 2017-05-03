@@ -28,16 +28,6 @@ class OutwareOrder(BaseWareModel):
         constants.ORDER_SALE,
     ])
 
-    STATUS_CHOICES = (
-        (constants.NORMAL,   '待推送'),
-        (constants.RECEIVED, '已接单'),
-        (constants.LACKGOODS, '订单缺货'),
-        (constants.PACKING, '打包中'),
-        (constants.LOADING, '装车中'),
-        (constants.SENDED,  '已发货'),
-        (constants.CANCEL,   '取消'),
-    )
-
     outware_account = models.ForeignKey('outware.OutwareAccount', verbose_name=u'关联账号')
 
     order_type = models.IntegerField(db_index=True, choices=ORDER_TYPE_CHOICES, default=DEFAULT_ORDER_TYPE, verbose_name=u'订单类型')
@@ -46,7 +36,10 @@ class OutwareOrder(BaseWareModel):
     union_order_code = models.CharField(max_length=64, blank=True, db_index=True, verbose_name=u'组合订单编号')
 
     status = models.SmallIntegerField(db_index=True, default=constants.NORMAL,
-                                      choices=STATUS_CHOICES, verbose_name='订单状态')
+                                      choices=constants.STATUS_CHOICES, verbose_name='订单状态')
+    state  = models.IntegerField(default=constants.NORMAL, choices=constants.STATE_CHOICES,
+                                 verbose_name='外仓订单状态')
+
     uni_key = models.CharField(max_length=128, unique=True, verbose_name=u'唯一标识' )
     extras  = JSONCharMyField(max_length=1024, default={}, verbose_name=u'附加信息')
 
@@ -57,9 +50,19 @@ class OutwareOrder(BaseWareModel):
         verbose_name_plural = u'外仓/推送订单'
 
     @classmethod
-    def generate_unikey(self, account_id, order_code, order_type):
+    def generate_unikey(cls, account_id, order_code, order_type):
         return '{order_code}-{order_type}-{account_id}'.format(
             order_code=order_code, order_type=order_type, account_id=account_id)
+
+    @staticmethod
+    def format_order_code(order_code, prefix=''):
+        if order_code.startswith(prefix):
+            return order_code
+        return '{}{}'.format(prefix, order_code)
+
+    @staticmethod
+    def parse_order_code(order_code, prefix=''):
+        return order_code.lstrip(prefix)
 
     @property
     def order_skus(self):
@@ -77,6 +80,10 @@ class OutwareOrder(BaseWareModel):
             for order_sku in self.order_skus:
                 order_sku.set_invalid()
                 order_sku.save()
+
+    def change_order_state(self, state_code):
+        self.state = state_code
+        self.save()
 
 
 class OutwareOrderSku(BaseWareModel):
@@ -147,6 +154,13 @@ class OutwarePackage(BaseWareModel):
 
     def get_sku_dict(self):
         return {skuitem.sku_code: skuitem.sku_qty for skuitem in self.outwarepackagesku_set.all()}
+
+    @property
+    def mall_order_code(self):
+        return OutwareOrder.parse_order_code(
+            self.package_order_code,
+            prefix=self.outware_account.order_prefix
+        )
 
     @staticmethod
     def create_by_push_info(order_code, order_type, dict_obj):
