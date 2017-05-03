@@ -310,8 +310,17 @@ class SaleTrade(BaseModel):
 
     def can_change_address(self):
         """
-            如果包含第三方发货的包裹，一订货就不容许换地址了
+            如果包含第三方发货的包裹，一订货就不容许换地址了; 保税区和直邮订单不允许修改地址
         """
+        try:
+            for order in self.normal_orders:
+                product = Product.objects.get(id=order.item_id)
+                mp = product.get_product_model()
+                if mp and mp.source_type >= 2:
+                    return False
+        except Exception, exc:
+            logger.error(exc.message, exc_info=True)
+            return False
         if self.status in [SaleTrade.WAIT_SELLER_SEND_GOODS]:
             if self.order_type in [SaleTrade.TEAMBUY_ORDER, SaleTrade.SALE_ORDER]:
                 for so in self.sale_orders.all():
