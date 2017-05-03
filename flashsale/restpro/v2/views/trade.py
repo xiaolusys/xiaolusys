@@ -875,7 +875,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             if mp and mp.is_boutique_coupon:
                 virtual_coupon_num += 1
 
-        if virtual_coupon_num == cart_qs.count():
+        if virtual_coupon_num == cart_qs.count() and virtual_coupon_num > 0:
             order_type = SaleTrade.ELECTRONIC_GOODS_ORDER
 
         extra_params = {
@@ -955,6 +955,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             need_level = UserAddress.PERSONALINFO_LEVEL_ONE
             for cart in cart_qs:
                 mp = cart.get_modelproduct()
+                if not mp:
+                    Response({'code': 12, 'info': u'商品款式信息有误'})
                 if mp and mp.source_type == 2:
                     need_level = UserAddress.PERSONALINFO_LEVEL_TWO
                 elif mp and mp.source_type == 3:
