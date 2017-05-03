@@ -145,7 +145,7 @@ class SaleTradeAdmin(BaseExportActionModelAdmin):
                      'classes': ('expand',),
                      'fields': (('receiver_name', 'receiver_state', 'receiver_city', 'receiver_district')
                                 , ('receiver_address', 'receiver_zip', 'receiver_mobile', 'receiver_phone')
-                                , ('logistics_company', 'out_sid'))
+                                , ('logistics_company', 'out_sid', 'user_address_id'))
                  }),
                  )
 
