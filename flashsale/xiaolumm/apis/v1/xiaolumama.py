@@ -302,7 +302,7 @@ def get_mama_buy_coupon_score(mama_id, start_date, end_date):
         print '-', money, record.transfer_type
 
         tt = dict(CouponTransferRecord.TRANSFER_TYPES)[record.transfer_type]
-        detail[tt] = detail.get(tt, 0) + money
+        detail[tt] = detail.get(tt, 0) + float(money)
 
     fd = 0
     if 10000 <= payment < 20000:
