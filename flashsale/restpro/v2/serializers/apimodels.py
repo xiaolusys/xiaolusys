@@ -170,7 +170,7 @@ class APIModelProductSerializer(serializers.Serializer):
                 'product_id': product.id,
                 'type': product.type,
                 'name': sku.color,
-                'product_img': product.product_img,
+                'product_img': obj.title_imgs.get(color, product.product_img),
                 'outer_id': product.outer_id,
                 'std_sale_price': product.std_sale_price,
                 'agent_price': product.agent_price,

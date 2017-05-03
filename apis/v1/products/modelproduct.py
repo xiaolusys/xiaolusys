@@ -25,6 +25,7 @@ class ModelProduct(object):
         self.comparison = kwargs['comparison']
         self.extras = kwargs['extras']
         self.head_imgs = kwargs['head_imgs']
+        self.title_imgs = kwargs['title_imgs']
         self.product_ids = kwargs['product_ids']
         self.detail_content = kwargs['detail_content']
         self.rebeta_scheme_id = kwargs['rebeta_scheme_id']
