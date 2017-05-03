@@ -367,7 +367,7 @@ class ModelProduct(BaseTagModel):
         UNIQ_SIZE = u'经典'
         res = {}
         if self.products.count() == 1:
-            for sku in self.product.prod_skus.all():
+            for sku in self.product.prod_skus.filter(status=ProductSku.NORMAL):
                 if '|' in sku.properties_name:
                     color, size = sku.properties_name.split('|')
                 else:
@@ -382,7 +382,7 @@ class ModelProduct(BaseTagModel):
         else:
             for p in self.products.all():
                 color = p.properties_name
-                for sku in p.prod_skus.all():
+                for sku in p.prod_skus.filter(status=ProductSku.NORMAL):
                     if '|' in sku.properties_name:
                         _color, size = sku.properties_name.split('|')
                     else:
