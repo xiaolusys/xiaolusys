@@ -75,7 +75,7 @@ class XiaoluCoinViewSet(viewsets.GenericViewSet):
             isdigit = False
         if not isdigit:
             return Response({'code': 2, 'msg': '金额错误'})
-        if abs(x) > 10000:
+        if x > 10000:
             return Response({'code': 2, 'msg': '超出手工操作金额，请联系管理员'})
 
         if subject not in dict(XiaoluCoinLog.SUBJECT_CHOICES).keys():
