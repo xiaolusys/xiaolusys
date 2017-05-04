@@ -113,14 +113,14 @@ class Product(models.Model):
     type = models.IntegerField(choices=TYPE_CHOICES, default=0, verbose_name=u'商品类型')
     pic_path = models.CharField(max_length=256, blank=True, verbose_name=u'商品主图')
 
-    collect_num = models.IntegerField(default=0, verbose_name=u'库存数')  # 库存数
-    warn_num = models.IntegerField(default=0, verbose_name=u'警告数')  # 警戒库位
-    remain_num = models.IntegerField(default=0, verbose_name=u'预留数')  # 预留库存
-    wait_post_num = models.IntegerField(default=0, verbose_name=u'待发数')  # 待发数
-    sale_num = models.IntegerField(default=0, verbose_name=u'日出库数')  # 日出库
-    reduce_num = models.IntegerField(default=0, verbose_name=u'预减数')  # 下次入库减掉这部分库存
-    lock_num = models.IntegerField(default=0, verbose_name=u'锁定数')  # 特卖待发货，待付款数量
-    inferior_num = models.IntegerField(default=0, verbose_name=u"次品数")  # 保存对应sku的次品数量
+    collect_num = models.IntegerField(default=0, verbose_name=u'库存数')  # 库存数#作废
+    warn_num = models.IntegerField(default=0, verbose_name=u'警告数')  # 警戒库位#作废
+    remain_num = models.IntegerField(default=0, verbose_name=u'预留数')  # 预留库存#作废
+    wait_post_num = models.IntegerField(default=0, verbose_name=u'待发数')  # 待发数#作废
+    sale_num = models.IntegerField(default=0, verbose_name=u'日出库数')  # 日出库#作废
+    reduce_num = models.IntegerField(default=0, verbose_name=u'预减数')  # 下次入库减掉这部分库存#作废
+    lock_num = models.IntegerField(default=0, verbose_name=u'锁定数')  # 特卖待发货，待付款数量#作废
+    inferior_num = models.IntegerField(default=0, verbose_name=u"次品数")  # 保存对应sku的次品数量#作废
 
     cost = models.FloatField(default=0, verbose_name=u'成本价')
     std_purchase_price = models.FloatField(default=0, verbose_name=u'标准进价')
@@ -137,30 +137,30 @@ class Product(models.Model):
     upshelf_time = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name=u'上架时间')
     offshelf_time = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name=u'下架时间')
 
-    is_split = models.BooleanField(default=False, verbose_name=u'需拆分')
-    is_match = models.BooleanField(default=False, verbose_name=u'有匹配')
-    sync_stock = models.BooleanField(default=True, verbose_name=u'库存同步')
-    is_assign = models.BooleanField(default=False, verbose_name=u'取消警告')
-    post_check = models.BooleanField(default=False, verbose_name=u'需扫描')
-    is_flatten = models.BooleanField(default=False, db_index=True, verbose_name=u'平铺显示')
-    is_watermark = models.BooleanField(default=False, verbose_name=u'图片水印')
+    is_split = models.BooleanField(default=False, verbose_name=u'需拆分')#作废
+    is_match = models.BooleanField(default=False, verbose_name=u'有匹配')#作废
+    sync_stock = models.BooleanField(default=True, verbose_name=u'库存同步')#作废
+    is_assign = models.BooleanField(default=False, verbose_name=u'取消警告')#作废
+    post_check = models.BooleanField(default=False, verbose_name=u'需扫描')#作废
+    is_flatten = models.BooleanField(default=False, db_index=True, verbose_name=u'平铺显示')#作废
+    is_watermark = models.BooleanField(default=False, verbose_name=u'图片水印')#作废
     status = models.CharField(max_length=16, db_index=True,
                               choices=STATUS_CHOICES,
                               default=pcfg.NORMAL, verbose_name=u'商品状态')
     STANDARD_CHOICES = [('color',  u'颜色'), ('size', u'尺码'), ('color_size', u'颜色尺码')]
     # standard = models.CharField(max_length=80, null=True, choices=STANDARD_CHOICES, verbose_name=u'规格', help_text='商品颜色尺码属性')
     # sale_on_tianmao = models.BooleanField(default=False, verbose_name=u'天猫在售')
-    match_reason = models.CharField(max_length=80, blank=True, verbose_name=u'匹配原因')
-    buyer_prompt = models.CharField(max_length=60, blank=True, verbose_name=u'客户提示')
+    match_reason = models.CharField(max_length=80, blank=True, verbose_name=u'匹配原因')#作废
+    buyer_prompt = models.CharField(max_length=60, blank=True, verbose_name=u'客户提示')#作废
     ref_link = models.CharField(max_length=1024, blank=True, verbose_name=u'参考链接')
     memo = models.TextField(max_length=1000, blank=True, verbose_name=u'备注')
 
     sale_charger = models.CharField(max_length=32, db_index=True, blank=True,
-                                    verbose_name=u'归属采购员')
+                                    verbose_name=u'归属采购员')#作废
     storage_charger = models.CharField(max_length=32, db_index=True, blank=True,
-                                       verbose_name=u'归属仓管员')
+                                       verbose_name=u'归属仓管员')#作废
     sale_product = models.BigIntegerField(db_index=True, default=0, verbose_name=u'选品ID')
-    is_verify = models.BooleanField(default=False, verbose_name=u'是否校对')
+    is_verify = models.BooleanField(default=False, verbose_name=u'是否校对')#作废
     shelf_status = models.IntegerField(choices=SHELF_CHOICES, db_index=True,
                                        default=DOWN_SHELF, verbose_name=u'上架状态')
     ware_by = models.IntegerField(default=WARE_SH, choices=WARE_CHOICES,
