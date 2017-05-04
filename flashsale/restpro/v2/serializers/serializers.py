@@ -564,7 +564,7 @@ class CreateModelProductSerializer(serializers.Serializer):
             instance.set_title_imgs_key()
             instance.set_title_imgs_values()
             instance.save()
-            if instance.is_boutique and not instance.extras.get("template_id"):
+            if instance.is_boutique and instance.product_type == 1 and not instance.extras.get("template_id"):
                 instance.set_boutique_coupon()
             instance.set_sale_product()
             return instance
