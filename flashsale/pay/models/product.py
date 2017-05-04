@@ -462,6 +462,13 @@ class ModelProduct(BaseTagModel):
         self.lowest_agent_price = min([sku.agent_price for sku in skus])
         self.lowest_std_sale_price = min([sku.std_sale_price for sku in skus])
 
+    def change_title_imgs_skus(self):
+        ti = self.title_imgs
+        colors = self.get_properties().keys()
+        self.title_imgs = dict(zip(colors, [''] * len(colors)))
+        for key in self.title_imgs:
+            self.title_imgs[key] = ti.get(key, '')
+
     def set_title_imgs_values(self, respective_imgs=None):
         if respective_imgs:
             self.title_imgs = respective_imgs
