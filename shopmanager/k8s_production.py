@@ -1,6 +1,6 @@
 # coding=utf-8
 import os
-from .base import *
+from .k8s import *
 
 DEBUG = False
 DEPLOY_ENV = True
