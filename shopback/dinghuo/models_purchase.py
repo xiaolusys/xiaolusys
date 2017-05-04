@@ -148,11 +148,12 @@ class PurchaseOrder(BaseModel):
         :param sku:
         :return:
         """
-        pd = PurchaseDetail.objects.filter(status=PurchaseOrder.OPEN, sku_id=sku).first()
+        pd = PurchaseDetail.objects.filter(status=PurchaseOrder.OPEN, sku_id=sku.id).first()
         if pd:
             for arrangement in pd.arrangements:
                 arrangement.reset_purchase_order()
                 arrangement.save()
+                arrangement.generate_order()
             pd.restat()
 
 
