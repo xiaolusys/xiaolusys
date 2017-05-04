@@ -1505,12 +1505,12 @@ STATSD_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_boutique_mama_weekly_active'}
     },
-    u'每5分钟发送短信短信累计消耗量数据': {
-        'task': 'statistics.daystats.tasks.sms_statsd.task_sms_send_count_gauge_statsd',
-        'schedule': crontab(minute="*/5"),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_sms_send_count_gauge_statsd'}
-    },
+    # u'每5分钟发送短信短信累计消耗量数据': {
+    #     'task': 'statistics.daystats.tasks.sms_statsd.task_sms_send_count_gauge_statsd',
+    #     'schedule': crontab(minute="*/5"),
+    #     'args': (),
+    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task_sms_send_count_gauge_statsd'}
+    # },
 }
 
 
