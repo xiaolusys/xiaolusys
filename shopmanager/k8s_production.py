@@ -89,6 +89,8 @@ CACHES = {
 
 ##########################CELERY TASK##########################
 CLOSE_CELERY = False
+CELERY_TASK_ALWAYS_EAGER = False
+CELERY_TASK_EAGER_PROPAGATES = False
 # CELERY_BROKER_URL = 'redis://:{0}@{1}:6379/9'.format(REDIS_AUTH, REDIS_HOST)
 CELERY_BROKER_URL = 'redis://:{0}@{1}/9'.format(REDIS_AUTH, REDIS_HOST)
 CELERY_RESULT_BACKEND = 'django-db'
