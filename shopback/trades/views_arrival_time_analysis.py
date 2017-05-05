@@ -29,23 +29,22 @@ class ArrivalTimeViewSet(viewsets.GenericViewSet):
 
     @list_route(methods=['get'])
     def get_3day_delay(self,request):
-        delay_day = request.GET.get('delay_day',3)
+        delay_day = request.GET.get('delay_day',4)
         delay_day = int(delay_day)
-        start_time = request.GET.get('start_time')
-        end_time = request.GET.get('end_time')
+        start_time = request.GET.get('start_time','2017-03-01')
+        end_time = request.GET.get('end_time', datetime.datetime.now().strftime("%Y-%m-%d"))
+        print start_time,end_time
         if start_time and end_time:
             start_time = datetime.datetime.strptime(start_time, "%Y-%m-%d")
             end_time = datetime.datetime.strptime(end_time, "%Y-%m-%d")
-
         deadline = (datetime.datetime.now() - datetime.timedelta(days=delay_day)).strftime("%Y-%m")
         deadline = datetime.datetime.strptime(deadline,"%Y-%m")
         delay_packageskuitem = []
         if start_time and end_time:
             delay_packageskuitem = PackageSkuItem.get_no_receive_psi_by_weight_time(start_time,min(end_time,datetime.datetime.now() - datetime.timedelta(days=delay_day),end_time))
         else:
-            print deadline,datetime.datetime.now() - datetime.timedelta(days=delay_day)
             delay_packageskuitem = PackageSkuItem.get_no_receive_psi_by_weight_time(deadline,datetime.datetime.now() - datetime.timedelta(days=delay_day))
-        print delay_packageskuitem
+
         return render(request, "wuliu_analysis/arrival_goods_analysis.html", {'delay_packageskuitem': delay_packageskuitem})
 
     @detail_route(methods=['post'])
