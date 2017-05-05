@@ -16,7 +16,7 @@ def task_push_packageorder_to_fengchao():
     from shopback.outware.adapter.mall.push import order
 
     push_deadline = datetime.datetime.now() - datetime.timedelta(seconds=30 * 60)
-    fengchao_whs_ids = int(WareHouse.get_fengchao_warehouses().values('id',flat=True))
+    fengchao_whs_ids = list(WareHouse.get_fengchao_warehouses().values_list('id',flat=True))
     packages = PackageOrder.objects.filter(
         ware_by__in=fengchao_whs_ids,
         sys_status=PackageOrder.WAIT_PREPARE_SEND_STATUS,
