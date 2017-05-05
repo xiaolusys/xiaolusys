@@ -37,7 +37,10 @@ class ScheduleManageViewSet(viewsets.ModelViewSet):
             if sale_supplier_ids:
                 queryset = ModelProduct.get_by_suppliers(sale_supplier_ids)
             else:
-                queryset = ModelProduct.objects
+                # 搜索填写了供应商的所有ModelProduct
+                from shopback.items.models import Product
+                q = Product.objects.filter(sale_product__gt=0, status='normal', type=0).values_list('model_id', flat=True)
+                queryset = ModelProduct.objects.filter(id__in=q)
         queryset = queryset.filter(**condition)
         page = self.paginate_queryset(queryset)
         if page is not None:
