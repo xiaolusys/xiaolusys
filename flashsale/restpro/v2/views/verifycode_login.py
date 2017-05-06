@@ -178,8 +178,6 @@ def valid_send_request(request):
     http_referer = (request.META.get('HTTP_REFERER') or '').lower()
     if not user_agent or user_agent.lower().find('windows') > 0:
         return False
-    if user_agent and (user_agent.find('xlmm') < 0 and user_agent.find('micromessenger') < 0 ):
-        return False
     domain = http_referer and urlparse(http_referer).hostname
     if domain and not validate_host(domain, settings.ALLOWED_HOSTS):
         return False
