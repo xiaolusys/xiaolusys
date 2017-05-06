@@ -559,10 +559,14 @@ class CreateModelProductSerializer(serializers.Serializer):
                 instance.teambuy_person_num = int(data.get('teambuy_person_num', 0))
             if int(data.get('is_outside', 0)):
                 instance.set_product_source_type(3)
-            instance.set_lowest_price()
             instance.save()
+            instance.set_lowest_price()
             instance.set_title_imgs_key()
             instance.set_title_imgs_values()
+            try:
+                instance.salecategory = product.category.get_sale_category()
+            except:
+                pass
             instance.save()
             if instance.is_boutique and instance.product_type == 1 and not instance.extras.get("template_id"):
                 instance.set_boutique_coupon()

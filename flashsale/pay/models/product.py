@@ -1111,6 +1111,10 @@ class ModelProduct(BaseTagModel):
             is_topic=is_topic,
             is_flatten=is_flatten,
             is_boutique=is_boutique)
+        try:
+            model_product.salecategory = product.category.get_sale_category()
+        except:
+            pass
         if not extras:
             model_product.extras = default_modelproduct_extras_tpl()
         else:

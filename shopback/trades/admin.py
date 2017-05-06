@@ -1401,6 +1401,7 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
     search_fields = ['id', 'sale_order_id', 'sale_trade_id', 'receiver_mobile', 'out_sid', 'package_order_pid',
                      'package_order_id', 'oid', 'sku_id', 'purchase_order_unikey']
     list_filter = ('assign_status', 'status', 'type', 'ware_by')
+    change_list_template = "admin/trades/package_sku_change_list.html"
     #change_list_template = "admin/trades/package_change_list.html"
     ordering = ['-sys_status']
     list_per_page = 50
@@ -1493,7 +1494,7 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
     def package_sku_item_link_to(self, obj):
         if obj.package_order_pid:
             return self.PACKAGE_ORDER_LINK % {
-                'package_order_url': '/admin/trades/packageskuitem/?package_order_pid=%d' % obj.package_order_pid,
+                'package_order_url': '/trades/package_order/%d' % obj.package_order_pid,
                 'package_order_pid': obj.package_order_pid
             }
         return ''
