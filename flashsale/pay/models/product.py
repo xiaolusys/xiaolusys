@@ -456,12 +456,6 @@ class ModelProduct(BaseTagModel):
         res = {p.properties_name: p.pic_path for p in self.products}
         return res
 
-    def set_lowest_price(self):
-        product_ids = self.products.values_list('id', flat=True)
-        skus = ProductSku.objects.filter(product_id__in=product_ids)
-        self.lowest_agent_price = min([sku.agent_price for sku in skus])
-        self.lowest_std_sale_price = min([sku.std_sale_price for sku in skus])
-
     def change_title_imgs_skus(self):
         ti = self.title_imgs
         colors = self.get_properties().keys()
@@ -931,15 +925,10 @@ class ModelProduct(BaseTagModel):
 
     def set_lowest_price(self):
         """ 设置款式最低价格 """
-        agent_prices = []
-        std_sale_price = []
-        for pro in self.products:
-            skus = pro.normal_skus
-            for sku in skus:
-                agent_prices.append(sku.agent_price)
-                std_sale_price.append(sku.std_sale_price)
-        lowest_agent_price = agent_prices and min(agent_prices) or 0  # 递增
-        lowest_std_sale_price = std_sale_price and min(std_sale_price) or 0  # 递增
+        product_ids = self.products.values_list('id', flat=True)
+        skus = ProductSku.objects.filter(product_id__in=product_ids).values_list('agent_price', 'std_sale_price')
+        lowest_agent_price = min([sku[0] for sku in skus])
+        lowest_std_sale_price = min([sku[1] for sku in skus])
         self.update_fields_with_kwargs(**{
             'lowest_agent_price': lowest_agent_price,
             'lowest_std_sale_price': lowest_std_sale_price

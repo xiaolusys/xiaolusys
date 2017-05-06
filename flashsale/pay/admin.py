@@ -1,4 +1,6 @@
 # coding: utf-8
+from __future__ import unicode_literals
+
 import json
 import datetime
 import hashlib
@@ -53,7 +55,7 @@ from django.http import HttpResponse
 import time
 from django.db.models import Sum
 from django.shortcuts import redirect, render
-from .forms import EnvelopForm, CustomShareForm
+from .forms import EnvelopForm, CustomShareForm, ModelProductForm
 from shopapp.weixin.models import WeixinUnionID
 
 import logging
@@ -464,28 +466,30 @@ class SaleRefundAdmin(BaseModelAdmin):
         ('基本信息:', {
             'classes': ('expand',),
             'fields': (
-                ('refund_no', 'trade_id', 'order_id')
-                , ('buyer_id', 'title', 'sku_name',)
+                ('refund_no', 'trade_id', 'order_id', 'buyer_id',)
+                , ('title', 'sku_name',)
                 , ('payment', 'total_fee',)
                 , ('company_name', 'sid')
-                , ('reason', 'desc', 'proof_pic')
+                , ('reason', 'desc',),
+                ('proof_pic',)
             )
         }),
         ('内部信息:', {
-             'classes': ('collapse',),
-             'fields': (
+            'classes': ('collapse',),
+            'fields': (
                 ('buyer_nick', 'mobile', 'phone',),
-                ('item_id', 'sku_id', 'refund_id', 'charge',),
-                ('amount_flow'),
+                ('item_id', 'sku_id',),
+                ('refund_id', 'charge',),
+                ('refund_channel', 'amount_flow'),
                 ('postage_num', 'coupon_num')
             )
         }),
         ('审核信息:', {
-         'classes': ('expand',),
-         'fields': (('has_good_return', 'has_good_change',)
-                    , ('refund_num', 'refund_fee')
-                    , ('feedback')
-                    , ('good_status', 'status'))
+            'classes': ('expand',),
+            'fields': (('has_good_return', 'has_good_change',)
+                       , ('refund_num', 'refund_fee')
+                       , ('feedback')
+                       , ('good_status', 'status'))
         }),
     )
 
@@ -753,6 +757,8 @@ class ModelProductAdmin(ApproxAdmin):
     readonly_fields = ('saleproduct', )
     search_fields = ['name', '=id', 'saleproduct__id']
     list_per_page = 50
+
+    form = ModelProductForm
 
     def get_readonly_fields(self, request, obj=None):
         if not request.user.is_superuser and not request.user.has_perm('pay.change_modelproduct'):

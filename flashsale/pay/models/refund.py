@@ -381,7 +381,8 @@ class SaleRefund(PayBaseModel):
         # type: () -> None
         ch = xiaolupay.Charge.retrieve(self.charge)
         re = ch.refunds.create(description=self.get_refund_desc(),
-                               amount=round(self.refund_fee * 100, 0))
+                               amount=round(self.refund_fee * 100, 0),
+                               out_refund_no=self.refund_no)
         self.refund_id = re.id
         self.status = SaleRefund.REFUND_APPROVE
         self.save(update_fields=['refund_id', 'status'])

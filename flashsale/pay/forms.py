@@ -3,7 +3,28 @@ from __future__ import unicode_literals
 
 from django import forms
 
-from .models import Envelop, CustomShare, Productdetail
+from .models import Envelop, CustomShare, Productdetail, ModelProduct
+
+class ModelProductForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(ModelProductForm, self).__init__(*args, **kwargs)
+
+    class Meta:
+        model = ModelProduct
+        exclude = ()
+
+    def clean(self):
+        cleaned_data = super(ModelProductForm, self).clean()
+        shelf_status  = cleaned_data.get('shelf_status')
+        offshelf_time = cleaned_data.get('offshelf_time')
+        onshelf_time  = cleaned_data.get('onshelf_time')
+
+        if shelf_status == ModelProduct.ON_SHELF and not (onshelf_time and offshelf_time):
+            raise forms.ValidationError('请输入上下架时间')
+
+        if onshelf_time >= offshelf_time:
+            raise forms.ValidationError('上架时间必须在下架时间之前')
+
 
 
 class EnvelopForm(forms.ModelForm):

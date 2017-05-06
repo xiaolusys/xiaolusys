@@ -56,13 +56,16 @@ def task_product_upshelf_update_productskusalestats(sku_id):
     stats = ProductSkuSaleStats.objects.filter(uni_key=stats_uni_key, sku_id=sku_id)
 
     if stats.count() == 0:
+        model_product = sku.product.get_product_model()
         try:
-            stat = ProductSkuSaleStats(uni_key=stats_uni_key,
-                                       sku_id=sku_id,
-                                       product_id=product_id,
-                                       init_waitassign_num=wait_assign_num,
-                                       sale_start_time=sku.product.upshelf_time,
-                                       sale_end_time=sku.product.offshelf_time)
+            stat = ProductSkuSaleStats(
+                uni_key=stats_uni_key,
+                sku_id=sku_id,
+                product_id=product_id,
+                init_waitassign_num=wait_assign_num,
+                sale_start_time=model_product.onshelf_time,
+                sale_end_time=model_product.offshelf_time
+            )
             stat.save()
         except IntegrityError as exc:
             logger.warn(
@@ -82,15 +85,15 @@ def task_product_downshelf_update_productskusalestats(sku_id, sale_end_time):
     from shopback.items.models import ProductSku, SkuStock, \
         ProductSkuSaleStats, gen_productsksalestats_unikey
 
-    product = ProductSku.objects.get(id=sku_id).product
     stats_uni_key = gen_productsksalestats_unikey(sku_id)
     stats = ProductSkuSaleStats.objects.filter(uni_key=stats_uni_key, sku_id=sku_id)
 
     if stats.count() > 0:
         try:
             stat = stats[0]
+            model_product = stat.product.get_product_model()
             if not stat.sale_end_time:
-                stat.sale_end_time = stat.product.offshelf_time
+                stat.sale_end_time = model_product.offshelf_time
             stat.status = ProductSkuSaleStats.ST_FINISH
             stat.save(update_fields=["sale_end_time", "status"])
         except IntegrityError as exc:
