@@ -57,12 +57,17 @@ class RefundOrder(BaseModel):
     transaction_no  = models.CharField(max_length=64, blank=True, verbose_name=u'渠道流水号')
     funding_source  = models.CharField(max_length=16, blank=True, default=UNSETTLED_FUNDS,
                                        choices=FUNDING_CHOICES, verbose_name=u'渠道流水号')
-
     class Meta:
         db_table = 'xiaolupay_refund'
         app_label = 'xiaolupay'
         verbose_name = u'小鹿支付/退款'
         verbose_name_plural = u'小鹿支付/退款列表'
+
+    def refund_failed(self, failure_code, failure_msg):
+        self.failure_code = failure_code
+        self.failure_msg = failure_msg
+        self.status = RefundOrder.FAILED
+        self.save(update_fields=['failure_code', 'failure_msg', 'status'])
 
     def confirm_refunded(self, succeed_time, **kwargs):
         update_fields = ['succeed', 'time_succeed']

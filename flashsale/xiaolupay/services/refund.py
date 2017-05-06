@@ -13,7 +13,6 @@ from ..libs.wxpay import WXPay, WXPayConf
 import logging
 logger = logging.getLogger(__name__)
 
-@transaction.atomic
 def create_refund(charge, refund_amount, description, out_refund_no):
 
     refund_order = RefundOrder.objects.create(
@@ -28,19 +27,22 @@ def create_refund(charge, refund_amount, description, out_refund_no):
     channel = charge.channel
     refund_success = False
     time_succeed   = None
-    refund_amount  = 0
     transaction_no = ''
+    error_code     = ''
+    error_msg      = ''
+    resp = {}
     if channel in (ChargeOrder.ALIPAY, ChargeOrder.ALIPAY_WAP):
         alipay = AliPay()
         resp = alipay.trade_refund(charge.order_no,
-                                   refund_amount / AlipayConf.AMOUNT_SETTER,
+                                   refund_amount * 1.0 / AlipayConf.AMOUNT_SETTER,
                                    refund_reason=description,
                                    out_request_no=out_refund_no)
         refund_success = resp['code'] == '10000'
-        refund_amount = refund_success and int(resp['refund_fee'] * AlipayConf.AMOUNT_SETTER) or 0
+        refund_amount = refund_success and float(resp['refund_fee']) * AlipayConf.AMOUNT_SETTER or 0
+        error_code = resp.get('sub_code', '')
+        error_msg  = resp.get('sub_msg', '')
         if refund_success:
             time_succeed  = datetime.datetime.strptime(resp['gmt_refund_pay'],'%Y-%m-%d %H:%M:%S')
-
 
     elif channel in (ChargeOrder.WX, ChargeOrder.WX_PUB, ChargeOrder.WEAPP):
         if channel == ChargeOrder.WX:
@@ -58,15 +60,24 @@ def create_refund(charge, refund_amount, description, out_refund_no):
             'refund_fee': refund_amount
         })
         refund_success = resp['return_code'] == 'SUCCESS' and resp['result_code'] == 'SUCCESS'
-        refund_amount  = refund_success and int(resp['refund_fee']) or 0
+        refund_amount  = refund_success and float(resp['refund_fee']) or 0
         time_succeed   = datetime.datetime.now()
         transaction_no = resp.get('transaction_id', '')
+        error_code = resp.get('err_code', '')
+        error_msg  = resp.get('err_code_des', '')
 
     if refund_success:
         charge_order = ChargeOrder.objects.get(id=charge.id)
         charge_order.confirm_refund(refund_amount)
-
         refund_order.confirm_refunded(time_succeed, transaction_no=transaction_no)
+    else:
+        logger.error({
+            'action': 'xiaolupay_refund',
+            'action_time': datetime.datetime.now(),
+            'refund_no': out_refund_no,
+            'resp': resp
+        })
+        refund_order.refund_failed(error_code, error_msg)
 
     return refund_order
 
@@ -90,13 +101,13 @@ def retrieve_or_update_refund(refund_no, notify_refund_info=None):
     refund_amount  = 0
     time_successed = datetime.datetime.now()
     transaction_no = ''
-
+    resp = {}
     if channel in (ChargeOrder.ALIPAY, ChargeOrder.ALIPAY_WAP):
         alipay = AliPay()
         try:
             resp = notify_refund_info or alipay.trade_fastpay_refund_query(refund_order.charge_order_no, refund_order.refund_no)
             refund_success = resp['code'] == '10000'
-            refund_amount = refund_success and int(resp['refund_amount'] * AlipayConf.AMOUNT_SETTER) or 0
+            refund_amount = refund_success and float(resp['refund_amount']) * AlipayConf.AMOUNT_SETTER or 0
         except AliPayException, exc:
             logger.error('%s'%exc, exc_info=True)
 
@@ -122,7 +133,13 @@ def retrieve_or_update_refund(refund_no, notify_refund_info=None):
     if refund_success:
         charge = ChargeOrder.objects.get(id=refund_order.charge.id)
         charge.confirm_refund(refund_amount)
-
         refund_order.confirm_refunded(time_successed, transaction_no=transaction_no)
+    else:
+        logger.error({
+            'action': 'xiaolupay_refund_retrieve',
+            'action_time': datetime.datetime.now(),
+            'refund_no': refund_no,
+            'resp': resp
+        })
 
     return refund_order
