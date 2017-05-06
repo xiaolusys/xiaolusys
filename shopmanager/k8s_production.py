@@ -1,6 +1,6 @@
 # coding=utf-8
 import os
-from .k8s import *
+from .base import *
 
 DEBUG = False
 DEPLOY_ENV = True
@@ -91,6 +91,7 @@ CACHES = {
 CLOSE_CELERY = False
 CELERY_TASK_ALWAYS_EAGER = False
 CELERY_TASK_EAGER_PROPAGATES = False
+
 # CELERY_BROKER_URL = 'redis://:{0}@{1}:6379/9'.format(REDIS_AUTH, REDIS_HOST)
 CELERY_BROKER_URL = 'redis://:{0}@{1}/9'.format(REDIS_AUTH, REDIS_HOST)
 CELERY_RESULT_BACKEND = 'django-db'
@@ -228,3 +229,85 @@ FENGCHAO_DEFAULT_CHANNEL_CODE = 'ndpz'
 FENGCHAO_API_GETWAY = 'https://api.fcgylapp.cn/omsapi'
 FENGCHAO_APPID  = ''
 FENGCHAO_SECRET = ''
+
+######################## RESTFRAME WORK #########################
+REST_FRAMEWORK.update({
+    'DEFAULT_THROTTLE_RATES': {
+        'auth': '500/hour',
+        'anon': '2000/hour',
+        'user': '2000/hour'
+    },
+})
+
+LOGGER_HANDLERS = [
+    ('outware', 'sentry,jsonfile'),
+    ('service', 'sentry,jsonfile'),
+    ('shopback', 'sentry,jsonfile'),
+    ('shopapp', 'sentry,jsonfile'),
+    ('flashsale', 'sentry,jsonfile'),
+    ('core', 'sentry,jsonfile'),
+    ('auth', 'sentry,jsonfile'),
+    ('pms', 'sentry,jsonfile'),
+    ('statistics', 'sentry,jsonfile'),
+    ('django.request', 'sentry,jsonfile'),
+    ('sentry.errors', 'sentry,jsonfile'),
+    ('celery.handler', 'sentry,jsonfile'),
+    ('notifyserver.handler', 'sentry,jsonfile'),
+    ('yunda.handler', 'sentry,jsonfile'),
+    ('mail.handler', 'sentry,jsonfile'),
+    ('xhtml2pdf', 'sentry,jsonfile'),
+    ('restapi.errors', 'sentry,jsonfile'),
+    ('weixin.proxy', 'sentry,jsonfile'),
+]
+
+LOGGER_TEMPLATE = {
+    'handlers': ['sentry'],
+    'level': 'DEBUG',
+    'propagate': True,
+}
+
+def comb_logger(log_tuple, temp):
+    if isinstance(log_tuple, (list, tuple)) and len(log_tuple) == 2:
+        temp.update(handlers=log_tuple[1].split(','))
+        return log_tuple[0], temp
+    return log_tuple[0], temp
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(asctime)s %(message)s'
+        },
+        'json': {
+            '()': 'core.logger.JsonFormatter',
+            'format': '%(levelname)s %(asctime)s  %(message)s'
+        },
+    },
+    'handlers': {
+        'jsonfile': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'json'
+        },
+        'sentry': {
+            'level': 'ERROR',
+            'class': 'raven.contrib.django.handlers.SentryHandler'
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+            'include_html': True,
+        }
+    },
+    'loggers': dict([comb_logger(handler, LOGGER_TEMPLATE.copy()) for handler in LOGGER_HANDLERS]),
+}

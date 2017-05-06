@@ -33,7 +33,7 @@ MYSQL_AUTH = os.environ.get('MYSQL_AUTH')
 
 REDIS_HOST = 'r-bp1b4317ea5c3714.redis.rds.aliyuncs.com:6379'
 REDIS_AUTH = os.environ.get('REDIS_AUTH')
-# REDIS_AUTH = ''
+
 
 DATABASES = {
     'default': {
@@ -108,7 +108,7 @@ MIDDLEWARE_CLASSES = (
 
 ######################## WEIXIN CONFIG ########################
 
-WX_NOTIFY_URL = 'http://warden.xiaolumm.com/apis/notify/weixin/'
+WX_NOTIFY_URL = 'http://staging.xiaolumm.com/apis/notify/weixin/'
 WX_JS_API_CALL_URL ='http://staging.xiaolumm.com/pay/?showwxpaytitle=1'
 
 # ================ 小鹿美美特卖[公众号] ==================
@@ -125,6 +125,7 @@ WX_PUB_KEY   = "t5UXHfwR7QEv2jMLFuZm8DdqnAT0ON9a" #支付密钥
 WX_PUB_CERT_PEM_PATH = '/data/certs/wx_pub/apiclient_cert.pem'
 WX_PUB_KEY_PEM_PATH = '/data/certs/wx_pub/apiclient_key.pem'
 
+WX_PUB_REFUND_USER_ID = 'refundem1@1236482102'
 # ================ 小鹿美美[ APP客户端] ==================
 WX_APPID = "wx25fcb32689872499"
 WX_APPSECRET = "3c7b4e3eb5ae4cfb132b2ac060a872ee"
@@ -135,6 +136,7 @@ WX_KEY   = "t5UXHfwR7QEv2jMLFuZm8DdqnAT0ON9a" #支付密钥
 WX_CERT_PEM_PATH = '/data/certs/wx/apiclient_cert.pem'
 WX_KEY_PEM_PATH = '/data/certs/wx/apiclient_key.pem'
 
+WX_REFUND_USER_ID = 'refundem2'
 # ================ 小鹿美美[微信小程序] ==================
 WEAPP_APPID  = 'wxea4fd45c52e4a20e'
 WEAPP_SECRET = '1246301cdb41c6336d82a12600189283'
@@ -193,7 +195,6 @@ REST_FRAMEWORK.update({
         'user': '2000/hour'
     },
 })
-
 
 LOGGER_HANDLERS = [
     ('outware', 'sentry,jsonfile'),

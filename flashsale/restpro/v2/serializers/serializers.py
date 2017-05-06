@@ -926,7 +926,6 @@ class PackageOrderSerializer(serializers.ModelSerializer):
     cancel_time = serializers.CharField(source='first_package_sku_item.cancel_time', read_only=True)
     ware_by_display = serializers.CharField(source='get_ware_by_display', read_only=True)
     assign_status_display = serializers.CharField(source='get_sys_status_display', read_only=True)
-    out_sid = serializers.CharField(read_only=True)
     logistics_company = LogisticsCompanySerializer(read_only=True)
     note = serializers.CharField(read_only=True)
     out_sid = serializers.SerializerMethodField('gen_out_sid_strip', read_only=True)
