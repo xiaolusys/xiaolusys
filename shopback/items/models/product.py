@@ -1161,6 +1161,7 @@ class Product(models.Model):
             color = item.get('color', '')
             size = item.get('size', '')
             sku.properties_name = color + '|' + size
+            sku.properties_alias = sku.properties_name
             sku.cost = item.get('cost', 0)
             sku.std_purchase_price = item.get('std_purchase_price', 0)
             sku.std_sale_price = item.get('std_sale_price', 0)
@@ -1456,15 +1457,19 @@ class ProductSku(models.Model):
     @property
     def pic_path(self):
         model_product = self.product.get_product_model()
-        if not model_product.title_imgs:
-            return ''
+        if not model_product or not model_product.title_imgs:
+            return self.product.pic_path
         if '|' in self.properties_name:
             key = self.properties_name.split('|')[0]
         else:
             key = ''
         if key == '':
-            key = 'img'
-        return model_product.title_imgs.get(key, '')
+            vs = model_product.title_imgs.values()
+            if len(vs) == 0:
+                return self.product.pic_path
+            else:
+                return vs[0]
+        return model_product.title_imgs.get(key, self.product.pic_path)
 
     def set_outer_id(self):
         """

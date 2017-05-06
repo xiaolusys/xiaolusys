@@ -556,6 +556,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         for cart in cart_qs:
             product = Product.objects.get(id=cart.item_id)
             sku = ProductSku.objects.get(id=cart.sku_id)
+            model_product = product.get_product_model()
             cart_total_fee = cart.price * cart.num
             cart_payment  = float('%.2f'%(total_payment / total_fee * cart_total_fee))
             cart_discount = float('%.2f'%(discount_fee / total_fee * cart_total_fee))
@@ -566,12 +567,12 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                  num=cart.num,
                  outer_id=product.outer_id,
                  outer_sku_id=sku.outer_id,
-                 title=product.name,
+                 title=model_product.name,
                  payment=cart_payment,
                  discount_fee=cart_discount,
                  total_fee=cart_total_fee,
                  price=cart.price,
-                 pic_path=product.pic_path,
+                 pic_path=sku.pic_path,
                  sku_name=sku.properties_alias,
                  status=SaleTrade.WAIT_BUYER_PAY
             )
@@ -597,7 +598,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
              total_fee=total_fee,
              price=sku.agent_price,
              discount_fee=discount_fee,
-             pic_path=product.pic_path,
+             pic_path=sku.pic_path,
              sku_name=sku.properties_alias,
              status=SaleTrade.WAIT_BUYER_PAY
         )

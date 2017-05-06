@@ -193,9 +193,9 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         new_shop_cart.num = sku_num
         new_shop_cart.std_sale_price = sku.std_sale_price
         new_shop_cart.total_fee = sku.agent_price * int(sku_num) if sku.agent_price else 0
-        new_shop_cart.sku_name = sku.name
-        new_shop_cart.pic_path = product.pic_path
-        new_shop_cart.title = product.name
+        new_shop_cart.sku_name = sku.properties_alias
+        new_shop_cart.pic_path = sku.pic_path
+        new_shop_cart.title = product.get_product_model().name
 
         latest_remain_time = datetime.datetime.now() + datetime.timedelta(minutes=20)
         new_shop_cart.remain_time = latest_remain_time
