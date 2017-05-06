@@ -6,8 +6,16 @@ from django.db import transaction, IntegrityError
 from flashsale.coupon.models import CouponTemplate
 
 @transaction.atomic
-def get_or_create_boutique_template(model_id, model_price, modelproduct_ids='', product_ids='', model_title='', model_img=''):
-
+def get_or_create_boutique_template(model_id, model_price, usual_modelproduct_ids='', usual_product_ids='', model_title='', model_img=''):
+    """
+    :param model_id: 券商品id
+    :param model_price: 精品商品价格
+    :param usual_modelproduct_ids: 对应原始精品商品
+    :param usual_product_ids: 对应原始精品商品 product_id 列表
+    :param model_title:　对应券商品标题
+    :param model_img: 对应券商品图片
+    :return: 新创建券
+    """
     boutique_no = '%s-boutique-%s'%(CouponTemplate.PREFIX_NO, model_id)
     ct = CouponTemplate.objects.select_for_update().filter(template_no=boutique_no).first()
     try:
@@ -25,7 +33,7 @@ def get_or_create_boutique_template(model_id, model_price, modelproduct_ids='', 
             ct.scope_type = CouponTemplate.SCOPE_PRODUCT
             ct.extras["release"].update({"use_min_payment": 0, "limit_after_release_days": 365})
 
-        ct.extras["scopes"].update({"modelproduct_ids": modelproduct_ids,"product_ids": product_ids})
+        ct.extras["scopes"].update({"modelproduct_ids": usual_modelproduct_ids, "product_ids": usual_product_ids})
         ct.extras.update({"product_model_id": int(model_id), "product_img": model_img})
         ct.save()
     except IntegrityError:

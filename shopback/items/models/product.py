@@ -1037,7 +1037,8 @@ class Product(models.Model):
             with transaction.atomic():
                 model_pro = ModelProduct.objects.select_for_update().get(id=model_pro.id)
                 if model_pro.extras.get('template_id'):
-                    return
+                    return ValueError('已有优惠券不允许设置精品券')
+
                 from flashsale.coupon.services import get_or_create_boutique_template
                 usual_model_id = saleproduct.product_link.split('?')[0].split('/')[-1]
                 if not usual_model_id.isdigit():
@@ -1051,10 +1052,11 @@ class Product(models.Model):
                 coupon_template = get_or_create_boutique_template(
                     model_pro.id, usual_modle_product.lowest_agent_price, model_title=model_pro.name,
                     modelproduct_ids=str(usual_modle_product.id),product_ids=usual_product_ids,
-                    model_img=model_pro.head_img_url)
+                    model_img=model_pro.head_img_url
+                )
 
                 # 设置精品商品只可使用指定优惠券
-                usual_modle_product.set_boutique_coupon_only(coupon_template.id)
+                usual_modle_product.set_boutique_coupon_only(coupon_template.id, model_pro.id)
                 usual_modle_product.save()
                 # 设置精品券商品不不允许使用优惠券
                 model_pro.as_boutique_coupon_product(coupon_template.id)

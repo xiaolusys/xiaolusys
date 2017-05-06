@@ -220,20 +220,16 @@ class APIModelProductSerializer(serializers.Serializer):
         payinfo = obj.extras.get('payinfo')
         if not payinfo:
             return ''
+
         coupon_template_ids = payinfo.get('coupon_template_ids')
         if not coupon_template_ids:
             return ''
 
         templateid = coupon_template_ids[0]
-        virtual_model_products = ModelProduct.objects.get_virtual_modelproducts()  # 虚拟商品
-        find_mp = None
-        for md in virtual_model_products:
-            md_bind_tpl_id = md.extras.get('template_id')
-            if not md_bind_tpl_id:
-                continue
-            if templateid == md_bind_tpl_id:
-                find_mp = md
-                break
+        virtual_extras = ModelProduct.objects.get_virtual_modelproducts().values_list('id','extras')  # 虚拟商品
+        template_model_product_maps = dict([(e[1].get('template_id'), e[0]) for e in virtual_extras if e[1].get('template_id')])
+        find_mp = template_model_product_maps.get(templateid)
+        #TODO@MERON ,新的 coupon_modelproduct_id　已经设置到modelproduct/extras 参数里
         if not find_mp:
             return ''
 

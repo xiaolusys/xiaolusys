@@ -317,59 +317,39 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
             5. `teambuy_person_num` : 团购人数 默认为3
             6. `status` : 使用状态 (正常: "normal" /作废: "delete")
             7. `is_recommend` : 是否是推荐商品
-            7. `new_properties`:"new_properties": [
-                                                    {
-                                                        "name": "材质",
-                                                        "value": "牛皮"
-                                                    },
-                                                    {
-                                                        "name": "产品备注",
-                                                        "value": "10岁以上穿着"
-                                                    },
-                                                    {
-                                                        "name": "可选颜色",
-                                                        "value": "黑色,绿色,红色,蓝色"
-                                                    },
-                                                    {
-                                                        "name": "洗涤说明",
-                                                        "value": "温水擦拭"
-                                                    },
-                                                    {
-                                                        "name": "尺码表",
-                                                        "value": [
-                                                            {
-                                                                "尺码": "L",
-                                                                "衣长": "35",
-                                                                "肩宽": "36",
-                                                                "胸围": "37",
-                                                                "袖长": "38",
-                                                                "建议体重": "39",
-                                                                "建议身高": "40"
-                                                            },
-                                                            {
-                                                                "尺码": "M",
-                                                                "衣长": "41",
-                                                                "肩宽": "42",
-                                                                "胸围": "43",
-                                                                "袖长": "44",
-                                                                "建议体重": "45",
-                                                                "建议身高": "46"
-                                                            }
-                                                        ]
-                                                    },
-                                                    {
-                                                        "name": "尺码对照参数",
-                                                        "value": [
-                                                           "尺码",
-                                                            "衣长",
-                                                            "肩宽",
-                                                            "胸围",
-                                                            "袖长",
-                                                            "建议体重",
-                                                            "建议身高"
-                                                        ]
-                                                    }
-                                                ]
+            7. `new_properties`:
+            [
+                {
+                    "name": "材质",
+                    "value": "牛皮"
+                },
+                {
+                    "name": "尺码表",
+                    "value": [
+                        {
+                            "尺码": "L",
+                            "衣长": "35",
+                            "肩宽": "36",
+                            "胸围": "37",
+                            "袖长": "38",
+                            "建议体重": "39",
+                            "建议身高": "40"
+                        }
+                    ]
+                },
+                {
+                    "name": "尺码对照参数",
+                    "value": [
+                        "尺码",
+                        "衣长",
+                        "肩宽",
+                        "胸围",
+                        "袖长",
+                        "建议体重",
+                        "建议身高"
+                    ]
+                }
+            ]
     -------
     - [/apis/items/v2/product/update_product_details]()
         * method: PATCH  修改指定款式id的款式
@@ -495,7 +475,7 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
             'saleproduct': saleproduct.id,
             'salecategory': saleproduct.sale_category.id,
             'is_boutique': sale_extras.get('is_boutique', False),
-            'product_type': sale_extras.get('product_type', 1),
+            'product_type': sale_extras.get('product_type', ModelProduct.USUAL_TYPE),
         })
 
         serializer = serializers.ModelProductUpdateSerializer(data=request.data, partial=True)

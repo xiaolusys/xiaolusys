@@ -133,9 +133,16 @@ def default_modelproduct_extras_tpl():
         "saleinfos": {
             "is_product_buy_limit": True,
             "per_limit_buy_num": 20,
-            "is_bonded_goods": False, #标识商品是否需要
+            "is_bonded_goods": False, #标识商品是否保税商品
             "is_coupon_deny": False,
         },
+        # "payinfo": {
+        #     "use_coupon_only": True,
+        #     "coupon_modelproduct_id": 1, 对应的券商品id
+        #     "coupon_template_ids": [
+        #       770
+        #     ],
+        # },
         "new_properties": [],
         "sources": {
             "source_type": 0,
@@ -606,17 +613,28 @@ class ModelProduct(BaseTagModel):
     def set_boutique_coupon(self):
         if self.extras.get('template_id'):
             raise Exception(u'已有优惠券不允许设置精品券')
+
         from flashsale.coupon.services import get_or_create_boutique_template
+        usual_model_id = self.saleproduct.product_link.split('?')[0].split('/')[-1]
+        if not usual_model_id.isdigit():
+            raise ValueError('精品券关联商品款式链接不合法')
+
+        usual_modleproduct = ModelProduct.objects.filter(id=usual_model_id).first()
+        usual_product_ids = ','.join(map(str, usual_modleproduct.products.values_list('id', flat=True)))
+        if not usual_modleproduct or not usual_modleproduct.is_boutique_product:
+            raise ValueError('请输入正确的精品商品链接(商品需打上精品汇标记)')
+
         # 创建精品券
         coupon_template = get_or_create_boutique_template(
             self.id, self.lowest_agent_price, model_title=self.name,
-            modelproduct_ids=str(self.id), product_ids=','.join([str(p.id) for p in self.products]),
-            model_img=self.head_img_url)
+            usual_modelproduct_ids=str(usual_model_id), usual_product_ids=usual_product_ids,
+            model_img=self.head_img_url
+        )
 
         # 设置精品商品只可使用指定优惠券
-        # TODO save次数是否过多
-        self.set_boutique_coupon_only(coupon_template.id)
-        self.save()
+        usual_modleproduct.set_boutique_coupon_only(coupon_template.id, self.id)
+        usual_modleproduct.save()
+
         # 设置精品券商品不不允许使用优惠券
         self.as_boutique_coupon_product(coupon_template.id)
         self.save()
@@ -624,11 +642,6 @@ class ModelProduct(BaseTagModel):
         for product in self.products:
             product.shelf_status = Product.UP_SHELF
             product.save(update_fields=['shelf_status'])
-        # 如果时精品汇商品 修改商品设置
-        if self.is_boutique_product:
-            # self.is_onsale = True #canceled
-            self.rebeta_scheme_id = 12
-            self.save(update_fields=['rebeta_scheme_id'])
 
     def delete_boutique_coupon(self):
         raise
@@ -971,13 +984,14 @@ class ModelProduct(BaseTagModel):
             self.is_flatten = is_flatten
             self.save(update_fields=['is_flatten'])
 
-    def set_boutique_coupon_only(self, coupon_tpl_id):
+    def set_boutique_coupon_only(self, coupon_tpl_id, coupon_modelproduct_id):
         # 设置成精品汇商品返利计划
         self.rebeta_scheme_id = constants.BOUTIQUE_PRODUCT_REBETA_SCHEME_ID
         self.extras.update({
             "payinfo": {
                 "use_coupon_only": True,
-                "coupon_template_ids": [int(coupon_tpl_id)]
+                "coupon_template_ids": [int(coupon_tpl_id)],
+                "coupon_modelproduct_id": coupon_modelproduct_id
             }
         })
 
@@ -1079,7 +1093,7 @@ class ModelProduct(BaseTagModel):
         stats = ModelStats.objects.filter(sale_product=self.id)
         agg = stats.aggregate(s_p=Sum('pay_num'), s_rg=Sum('return_good_num'), s_pm=Sum('payment'))
         p_n = agg['s_p']
-        rg = agg['s_rg']
+        rg  = agg['s_rg']
         payment = agg['s_pm']
         rat = round(float(rg) / p_n, 4) if p_n > 0 else 0
         return {'total_pay_num': p_n, 'total_rg_rate': rat, 'total_payment': payment}
@@ -1101,6 +1115,7 @@ class ModelProduct(BaseTagModel):
         # 目前一个商品只能对应一个售卖款式
         if product.model_id:
             raise Exception(u'当前商品已有对应的售卖款式，无法再创建一个。')
+
         model_product = ModelProduct(name=name,
             product_type=product.type,
             lowest_agent_price=product.get_lowest_agent_price(),
@@ -1122,13 +1137,20 @@ class ModelProduct(BaseTagModel):
         model_product.save()
         product.model_id = model_product.id
         product.save()
-        if model_product.is_boutique and model_product.product_type == 1:
+
+        if model_product.is_boutique_coupon:
             model_product.set_boutique_coupon()
+
         model_product.set_title_imgs_key()
         model_product.set_title_imgs_values()
         model_product.set_lowest_price()
+
+        if model_product.is_boutique_product:
+            model_product.rebeta_scheme_id = constants.BOUTIQUE_PRODUCT_REBETA_SCHEME_ID
+
         model_product.save()
         model_product.set_sale_product()
+
         return model_product
 
     @staticmethod

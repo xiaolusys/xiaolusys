@@ -35,7 +35,7 @@ class CouponTemplateAdmin(admin.ModelAdmin):
         'status', 'release_start_time', 'release_end_time', 'use_deadline', 'template_no')
 
     list_filter = ('coupon_type', 'scope_type', )
-    search_fields = ['=id', ]
+    search_fields = ['=id', 'title']
     date_hierarchy = 'created'
 
     def sync_coupon_value(self, request, queryset):

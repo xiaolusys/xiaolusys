@@ -98,6 +98,7 @@ class LoginViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.Gene
         if not user or user.is_anonymous():
             return HttpResponseRedirect(next_url)
 
+        redirect_url = next_url
         if not code:
             params = {'appid': settings.WX_PUB_APPID,
                       'redirect_uri': request.build_absolute_uri().split('#')[0],

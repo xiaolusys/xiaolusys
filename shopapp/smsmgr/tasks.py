@@ -86,6 +86,5 @@ def task_register_code(mobile, send_type="1"):
 
         # 创建一条短信发送记录
         send_sms_message(mobile, msg_type=msg_type, **params)
-
     except Exception, exc:
         logger.error('%s'%exc.message, exc_info=True)
