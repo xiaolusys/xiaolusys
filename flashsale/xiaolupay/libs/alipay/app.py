@@ -207,7 +207,6 @@ class AliPay(object):
 def notify_sign_value(request, content, key):
     if key in request.POST:
         value = request.POST[key]
-        print "key: ", key, "value: ", value
         return "&%s=%s"%(key, value)
     else:
         return ""

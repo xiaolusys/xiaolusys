@@ -50,14 +50,9 @@ def sale_buyer_required(view_func):
                 return view_func(request, *args, **kwargs)
 
         defaults = {
-            "title": u'登录',
             REDIRECT_FIELD_NAME: request.build_absolute_uri().split('#')[0]
         }
-        return render(
-            request,
-            constants.MALL_LOGIN_URL,
-            defaults,
-        )
+        return redirect('{}?{}'.format(constants.MALL_LOGIN_URL, urllib.urlencode(defaults)))
 
     return _checklogin
 

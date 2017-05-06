@@ -41,7 +41,7 @@ urlpatterns = [
     url(r'^addr/area/$', cache_page(24 * 60 * 60)(views.DistrictList.as_view()), name="address_area"),
 
     # envelop urls
-    url(r'^envelop/confirm/$', sale_buyer_required(views.EnvelopConfirmSendView.as_view()), name="envelop_confirm"),
+    url(r'^envelop/confirm/$', staff_member_required(views.EnvelopConfirmSendView.as_view()), name="envelop_confirm"),
     url(r'^budget/send_envelop/$', views.SendBudgetEnvelopAPIView.as_view(), name="envelop_send"),
 
     # profile urls
