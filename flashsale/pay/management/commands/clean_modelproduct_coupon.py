@@ -40,8 +40,7 @@ class Command(BaseCommand):
                 moudelproduct_map[usual_modelproduct_id] = []
                 moudelproduct_map[usual_modelproduct_id].append(template.id)
 
-        for mp in moudelproduct_map:
-            print mp
+        print 'usual moudelproduct_map', moudelproduct_map
         print 'end_count:', template_count
 
         ### step 2, 设置精品券参数 coupon_modelproduct_id
