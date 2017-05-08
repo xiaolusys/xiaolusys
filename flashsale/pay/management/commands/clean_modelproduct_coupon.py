@@ -40,7 +40,9 @@ class Command(BaseCommand):
                 moudelproduct_map[usual_modelproduct_id] = []
                 moudelproduct_map[usual_modelproduct_id].append(template.id)
 
-        print 'usual moudelproduct_map', moudelproduct_map
+        for k in moudelproduct_map.keys():
+            if len(moudelproduct_map[k]) > 1:
+                print 'usual moudelproduct_map', k, moudelproduct_map[k]
         print 'end_count:', template_count
 
         ### step 2, 设置精品券参数 coupon_modelproduct_id
