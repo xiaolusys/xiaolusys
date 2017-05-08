@@ -14,7 +14,43 @@ class Command(BaseCommand):
         parser.add_argument('action', nargs='+', type=str)
 
     def handle(self, *args, **options):
+        ### step 1，清理异常精品券
+        templates = CouponTemplate.objects.filter(
+            coupon_type=CouponTemplate.TYPE_TRANSFER, status=CouponTemplate.SENDING
+        )
 
+        moudelproduct_map = {}
+        error_dict = {}
+        template_count = 0
+        print 'total_sending_transfer_coupon:', templates.count()
+        for template in templates.iterator():
+            extras = template.extras
+            usual_modelproduct_id = extras.get('scopes', {}).get('modelproduct_ids')
+            coupon_modelproduct_id = extras.get('product_model_id')
+            if not coupon_modelproduct_id or usual_modelproduct_id == '%s'%coupon_modelproduct_id:
+                # print '=================',template.id
+                continue
+            usual_mp = ModelProduct.objects.filter(id=usual_modelproduct_id).first()
+            coupon_mp = ModelProduct.objects.filter(id=coupon_modelproduct_id).first()
+            if not usual_mp:
+                # print '+++++++++++++++++', template.id, template.title
+                continue
+            usual_relate_coupon = usual_mp.extras.get('payinfo',{}).get('coupon_template_ids')
+            if usual_relate_coupon and usual_relate_coupon[0] != template.id:
+                print template.id, usual_relate_coupon, template.title
+
+            if moudelproduct_map.has_key(usual_modelproduct_id):
+                moudelproduct_map[usual_modelproduct_id].append(template.id)
+            else:
+                moudelproduct_map[usual_modelproduct_id] = []
+                moudelproduct_map[usual_modelproduct_id].append(template.id)
+
+        for k in moudelproduct_map.keys():
+            if len(moudelproduct_map[k]) > 1:
+                print 'usual moudelproduct_map', k, moudelproduct_map[k]
+        print 'end_count:', template_count
+
+        ### step 2, 设置精品券参数 coupon_modelproduct_id
         action_name = options.get('action')[0]
 
         if action_name == 'find_error':
@@ -114,4 +150,3 @@ class Command(BaseCommand):
 
                 usual_mp.extras['payinfo']['coupon_modelproduct_id'] = cp_model_id
                 usual_mp.save(update_fields=['extras'])
-
