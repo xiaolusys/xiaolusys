@@ -34,7 +34,7 @@ class Command(BaseCommand):
             if usual_relate_coupon and usual_relate_coupon[0] != template.id:
                 print template.id, usual_relate_coupon, template.title
 
-            if moudelproduct_map[usual_modelproduct_id]:
+            if moudelproduct_map.has_key(usual_modelproduct_id):
                 moudelproduct_map[usual_modelproduct_id].append(template.id)
             else:
                 moudelproduct_map[usual_modelproduct_id] = []
