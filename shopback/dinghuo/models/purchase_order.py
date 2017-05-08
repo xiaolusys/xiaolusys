@@ -9,7 +9,7 @@ from django.db.models.signals import post_save
 from django.contrib.auth.models import User
 from django.db import transaction
 from core.utils.modelutils import update_model_fields
-from core.utils.barcode import number2char
+from core.utils.barcode import number2char, char2number
 from core.models import BaseModel
 
 from shopback.items.models import Product, SkuStock
@@ -39,9 +39,21 @@ def parse_number_to_char(number):
     char_list.reverse()
     return ''.join(map(number2char, char_list)).rjust(4,'0')
 
+def format_char_to_number(char_str):
+    number = 0
+    char_list = list(char_str)
+    char_list.reverse()
+    for cnt, c in enumerate(char_list):
+        number += (26 ** cnt) * char2number(c)
+    return number
+
 def gen_batch_no():
-    order_count = OrderList.objects.count()
-    return parse_number_to_char(order_count)
+    order_count = 0
+    ol = OrderList.objects.order_by('-batch_no').first()
+    if ol:
+        order_count = format_char_to_number(ol.batch_no)
+        print 'ol.batch_no', ol.batch_no
+    return parse_number_to_char(order_count + 1)
 
 
 class OrderList(models.Model):
