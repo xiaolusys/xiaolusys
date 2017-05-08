@@ -35,8 +35,10 @@ def delay_seconds(reg):
     """
     delay seconds
     """
-    if reg.mall_time:
-        return max(60 - (datetime.datetime.now() - reg.mail_time).seconds, 5)
+    if reg.mail_time:
+        delta = (datetime.datetime.now() - reg.mail_time).seconds
+        if delta < RESEND_TIME_LIMIT:
+            return max(RESEND_TIME_LIMIT - delta, 3)
     return 0
 
 def check_day_limit(reg):
