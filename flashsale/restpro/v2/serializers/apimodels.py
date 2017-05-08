@@ -221,20 +221,18 @@ class APIModelProductSerializer(serializers.Serializer):
         if not payinfo:
             return ''
 
-        coupon_template_ids = payinfo.get('coupon_template_ids')
-        if not coupon_template_ids:
+        coupon_modelproduct_id = payinfo.get('coupon_modelproduct_id')
+        if not coupon_modelproduct_id:
             return ''
 
-        templateid = coupon_template_ids[0]
-        virtual_extras = ModelProduct.objects.get_virtual_modelproducts().values_list('id','extras')  # 虚拟商品
-        template_model_product_maps = dict([(e[1].get('template_id'), e[0]) for e in virtual_extras if e[1].get('template_id')])
-        find_mp = template_model_product_maps.get(templateid)
-        #TODO@MERON ,由于coupon_template_ids可以有多个, 这里默认认为任意一个都能取到对应的券商品模板
-        if not find_mp:
-            return ''
+        # coupon_modelproduct_id 直接放在 精品商品extras/payinfo 参数里, 不再需要通过template_id去反向查找
+        # templateid = coupon_template_ids[0]
+        # virtual_extras = ModelProduct.objects.get_virtual_modelproducts().values_list('id','extras')  # 虚拟商品
+        # template_model_product_maps = dict([(e[1].get('template_id'), e[0]) for e in virtual_extras if e[1].get('template_id')])
+        # find_mp = template_model_product_maps.get(templateid)
 
         protocol = 'com.jimei.xlmm://app/v1/webview?is_native=1&url={0}'
-        url = 'https://m.xiaolumeimei.com/mall/buycoupon?modelid={0}'.format(find_mp.id)
+        url = 'https://m.xiaolumeimei.com/mall/buycoupon?modelid={0}'.format(coupon_modelproduct_id)
         return protocol.format(url)
 
     def get_source_type(self, obj):
