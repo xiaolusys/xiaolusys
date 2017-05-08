@@ -138,7 +138,6 @@ def default_modelproduct_extras_tpl():
         },
         # "payinfo": {
         #     "use_coupon_only": True,
-        #     "coupon_modelproduct_id": 1, 对应的券商品id
         #     "coupon_template_ids": [
         #       770
         #     ],

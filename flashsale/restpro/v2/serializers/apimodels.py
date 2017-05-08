@@ -229,7 +229,7 @@ class APIModelProductSerializer(serializers.Serializer):
         virtual_extras = ModelProduct.objects.get_virtual_modelproducts().values_list('id','extras')  # 虚拟商品
         template_model_product_maps = dict([(e[1].get('template_id'), e[0]) for e in virtual_extras if e[1].get('template_id')])
         find_mp = template_model_product_maps.get(templateid)
-        #TODO@MERON ,新的 coupon_modelproduct_id　已经设置到modelproduct/extras 参数里
+        #TODO@MERON ,由于coupon_template_ids可以有多个, 这里默认认为任意一个都能取到对应的券商品模板
         if not find_mp:
             return ''
 
