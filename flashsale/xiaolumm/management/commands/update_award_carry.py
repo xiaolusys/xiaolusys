@@ -9,13 +9,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         """
         """
-        acs = AwardCarry.objects.using('product').filter(uni_key__startswith='new_guy_task_subscribe_weixin_award_5_')
-
-        if acs.count() > 1000:
-            print 'wrong!!!', acs.count()
-            return
-
-        for i, ac in enumerate(acs):
-            ac.carry_type = 8
-            update_model_fields(ac, update_fields=['carry_type'])
-            print i, ac.mama_id, ac.carry_type, ac.carry_description
+        from flashsale.coupon.apis.v1.transfer import get_transfer_record_by_id, agree_apply_transfer_record_2_sys
+        record = get_transfer_record_by_id(120216)
+        agree_apply_transfer_record_2_sys(record)

@@ -495,7 +495,7 @@ class CouponTransferRecord(BaseModel):
         transfer_status = CouponTransferRecord.DELIVERED
 
         idx = cls.objects.filter(coupon_from_mama_id=0, coupon_to_mama_id=coupon_to_mama_id, transfer_type=transfer_type,
-                                 template_id=template_id, date_field=date_field, order_no=order_no,
+                                 template_id=template_id, order_no=order_no,
                                  transfer_status__gte=cls.PROCESSED).count()
         uni_key = "%s-%s-%s-%s" % (coupon_to_mama_id, transfer_type, order_oid, idx + 1)  # every trade, only return once.
 
