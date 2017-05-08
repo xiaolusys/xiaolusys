@@ -87,7 +87,6 @@ class VerifyCodeTestCase(TestCase):
         
         reg = Register.objects.filter(vmobile=self.mobile).first()
         reg.submit_count = MAX_DAY_LIMIT
-        reg.code_time    = reg.code_time + datetime.timedelta(seconds=60)
         reg.save()
         
         response = self.client.post(self.url_cashout_verify_code, {}, ACCEPT='application/json')

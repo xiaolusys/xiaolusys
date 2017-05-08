@@ -27,18 +27,17 @@ klog = logging.getLogger('service')
 
 PHONE_NUM_RE = re.compile(REGEX_MOBILE, re.IGNORECASE)
 CODE_TIME_LIMIT = 1800
-RESEND_TIME_LIMIT = 180
+RESEND_TIME_LIMIT = 60
 SYSTEMOA_ID = 641
 MAX_DAY_LIMIT = 6
 
-
 def delay_seconds(reg):
     """
-    whether or not the minute_limit is reached.
+    delay seconds
     """
-    if reg.code_time:
-        return (datetime.datetime.now() - reg.code_time).seconds
-    return float('inf')
+    if reg.mall_time:
+        return max(60 - (datetime.datetime.now() - reg.mall_time).seconds, 5)
+    return 0
 
 def check_day_limit(reg):
     """
@@ -152,7 +151,7 @@ def should_resend_code(reg):
     """
     current_time = datetime.datetime.now()
     earliest_send_time = current_time - datetime.timedelta(seconds=RESEND_TIME_LIMIT)
-    if reg.verify_code and reg.mail_time and reg.mail_time > earliest_send_time:
+    if reg.mail_time and reg.mail_time > earliest_send_time:
         return False
     return True
 
@@ -252,15 +251,11 @@ class SendCodeView(views.APIView):
         if not created:
             # if reg is not just created, we have to check
             # day limit and resend condition.
-            d_seconds = delay_seconds(reg)
-            if d_seconds < 60:
-                info = u"请{}秒后重新发送验证码!".format(max(60 - d_seconds, 5))
-                return Response({"rcode": 6, "code": 6, "msg": info, "info": info})
             if check_day_limit(reg):
                 info = u"当日验证次数超过限制!"
                 return Response({"rcode": 4, "code": 4, "msg": info, "info": info})
             if not should_resend_code(reg):
-                info = u"验证码刚发过咯，请等待下哦！"
+                info = u"验证码刚发过咯，请{}秒后重试！".format(delay_seconds(reg))
                 return Response({"rcode": 5, "code": 5, "msg": info, "info": info})
 
         if should_generate_new_code(reg):
@@ -303,14 +298,10 @@ class RequestCashoutVerifyCode(views.APIView):
         if not created:
             # if reg is not just created, we have to check
             # day limit and resend condition.
-            d_seconds = delay_seconds(reg)
-            if d_seconds < 60:
-                info = u"请{}秒后重新发送验证码!".format(max(60 - d_seconds, 5))
-                return Response({"rcode": 6, "code": 6, "msg": info, "info": info})
             if check_day_limit(reg):
                 return Response({"code": 4, "info": u"当日验证次数超过限制！"})
             if not should_resend_code(reg):
-                return Response({"code": 5, "info": u"验证码刚发过咯，请等待下哦！"})
+                return Response({"code": 5, "info": u"验证码刚发过咯，请{}秒后重试！".format(delay_seconds(reg))})
 
         if should_generate_new_code(reg):
             reg.verify_code = reg.genValidCode()
