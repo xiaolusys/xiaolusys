@@ -32,6 +32,14 @@ SYSTEMOA_ID = 641
 MAX_DAY_LIMIT = 6
 
 
+def delay_seconds(reg):
+    """
+    whether or not the minute_limit is reached.
+    """
+    if reg.code_time:
+        return (datetime.datetime.now() - reg.code_time).seconds
+    return float('inf')
+
 def check_day_limit(reg):
     """
     whether or not the day_limit is reached.
@@ -244,6 +252,10 @@ class SendCodeView(views.APIView):
         if not created:
             # if reg is not just created, we have to check
             # day limit and resend condition.
+            d_seconds = delay_seconds(reg)
+            if d_seconds < 60:
+                info = u"请{}秒后重新发送验证码!".format(max(60 - d_seconds, 5))
+                return Response({"rcode": 6, "code": 6, "msg": info, "info": info})
             if check_day_limit(reg):
                 info = u"当日验证次数超过限制!"
                 return Response({"rcode": 4, "code": 4, "msg": info, "info": info})
@@ -291,6 +303,10 @@ class RequestCashoutVerifyCode(views.APIView):
         if not created:
             # if reg is not just created, we have to check
             # day limit and resend condition.
+            d_seconds = delay_seconds(reg)
+            if d_seconds < 60:
+                info = u"请{}秒后重新发送验证码!".format(max(60 - d_seconds, 5))
+                return Response({"rcode": 6, "code": 6, "msg": info, "info": info})
             if check_day_limit(reg):
                 return Response({"code": 4, "info": u"当日验证次数超过限制！"})
             if not should_resend_code(reg):

@@ -56,7 +56,7 @@ class OutwareOrder(BaseWareModel):
 
     @staticmethod
     def format_order_code(order_code, prefix=''):
-        if order_code.startswith(prefix):
+        if type(order_code) in (str, unicode) and order_code.startswith(prefix):
             return order_code
         return '{}{}'.format(prefix, order_code)
 

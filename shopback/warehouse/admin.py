@@ -5,10 +5,10 @@ from .models import WareHouse, ReceiptGoods, StockAdjust
 
 class WareHouseAdmin(admin.ModelAdmin):
     list_display = ('id', 'store_code', 'ware_name', 'manager', 'province', 'city',
-                    'district', 'address', 'mobile', 'in_active', 'extra_info')
+                    'district', 'address', 'mobile', 'ware_source', 'in_active', 'extra_info')
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter = ('in_active',)
+    list_filter = ('in_active', 'ware_source')
     search_fields = ['=store_code','ware_name', 'city']
 
 
