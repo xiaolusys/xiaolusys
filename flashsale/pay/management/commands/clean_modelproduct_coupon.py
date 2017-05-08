@@ -14,6 +14,7 @@ class Command(BaseCommand):
             coupon_type=CouponTemplate.TYPE_TRANSFER, status=CouponTemplate.SENDING
         )
 
+        moudelproduct_map = {}
         error_dict = {}
         template_count = 0
         print 'total_sending_transfer_coupon:', templates.count()
@@ -33,6 +34,14 @@ class Command(BaseCommand):
             if usual_relate_coupon and usual_relate_coupon[0] != template.id:
                 print template.id, usual_relate_coupon, template.title
 
+            if moudelproduct_map[usual_modelproduct_id]:
+                moudelproduct_map[usual_modelproduct_id].append(template.id)
+            else:
+                moudelproduct_map[usual_modelproduct_id] = []
+                moudelproduct_map[usual_modelproduct_id].append(template.id)
+
+        for mp in moudelproduct_map:
+            print mp
         print 'end_count:', template_count
 
         ### step 2, 设置精品券参数 coupon_modelproduct_id
