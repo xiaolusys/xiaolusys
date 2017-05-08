@@ -34,7 +34,7 @@ class CouponTemplateAdmin(admin.ModelAdmin):
         'id', 'title', 'value', 'is_random_val', 'coupon_type', 'scope_type', 'has_released_count', 'has_used_count',
         'status', 'release_start_time', 'release_end_time', 'use_deadline', 'template_no')
 
-    list_filter = ('coupon_type', 'scope_type', )
+    list_filter = ('coupon_type', 'scope_type', 'status')
     search_fields = ['=id', 'title']
     date_hierarchy = 'created'
 
