@@ -1,7 +1,9 @@
 # coding=utf-8
 __author__ = 'jishu_zifei.zhong'
 import json
+import datetime
 from django.test import TestCase
+
 from flashsale.pay.models import Register
 from flashsale.restpro.v2.views.verifycode_login import validate_code
 
@@ -85,6 +87,7 @@ class VerifyCodeTestCase(TestCase):
         
         reg = Register.objects.filter(vmobile=self.mobile).first()
         reg.submit_count = MAX_DAY_LIMIT
+        reg.code_time    = reg.code_time + datetime.timedelta(seconds=60)
         reg.save()
         
         response = self.client.post(self.url_cashout_verify_code, {}, ACCEPT='application/json')
