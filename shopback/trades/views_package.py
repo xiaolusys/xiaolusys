@@ -10,7 +10,7 @@ from django.http.response import HttpResponseBadRequest
 from shopback.trades.models import PackageOrder, PackageSkuItem
 from shopback.trades.serializers import PackageOrderSerializer
 from flashsale.restpro.v2.serializers.packageskuitem_serializers import PackageSkuItemSerializer
-from shopback.trades.forms import PackageOrderEditForm, PackageOrderWareByForm, PackageOrderNoteForm, PackageOrderLogisticsCompanyForm
+from shopback.trades.forms import PackageOrderEditForm, PackageOrderWareByForm, PackageOrderNoteForm, PackageOrderLogisticsCompanyForm, PackageOrderChangeWuliuForm, PackageSkuItemChangeWuliuForm
 from shopback.items.models import ProductSku
 from shopback.logistics.models import LogisticsCompany
 from shopback.trades.serializers import LogisticsCompanySerializer
@@ -128,6 +128,21 @@ class PackageOrderViewSet(viewsets.ModelViewSet):
         package = get_object_or_404(PackageOrder, pid=pid)
         package.seller_memo = note
         package.save()
+        return Response({'res': 'success'})
+
+    @detail_route(methods=['post'])
+    def change_wuliu(self, request, pk, *args, **kwargs):
+        content = request.POST or request.data
+        print content,pk
+        serializer = PackageOrderChangeWuliuForm(data=content)
+        if serializer.is_valid():
+            lc = LogisticsCompany.objects.filter(id=serializer.data.get('logistics_company')).first()
+            out_sid = serializer.data.get('out_sid')
+            if lc and PackageSkuItemChangeWuliuForm(data={"logistics_company_name": lc.name, 'out_sid': out_sid}).is_valid():
+                PackageOrder.objects.filter(pid=pk).update(**serializer.data)
+                PackageSkuItem.objects.filter(package_order_pid=pk).update(**{"logistics_company_name": lc.name, 'out_sid': out_sid})
+        else:
+            return Response(serializer.errors)
         return Response({'res': 'success'})
 
     @list_route(methods=['post'])

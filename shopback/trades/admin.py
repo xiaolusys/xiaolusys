@@ -1405,7 +1405,10 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
     #change_list_template = "admin/trades/package_change_list.html"
     ordering = ['-sys_status']
     list_per_page = 50
-    readonly_fields = get_class_fields(PackageSkuItem)
+    g = get_class_fields(PackageSkuItem)
+    g.remove('out_sid')
+    g.remove('logistics_company_name')
+    readonly_fields = g
     PACKAGE_ORDER_LINK = (
         '<a href="%(package_order_url)s" target="_blank">'
         '%(package_order_pid)s</a>')

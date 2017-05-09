@@ -5,7 +5,7 @@ from django import forms
 
 from core.forms import BaseForm
 
-from .models import MergeTrade, LogisticsCompany, PackageOrder
+from .models import MergeTrade, LogisticsCompany, PackageOrder,PackageSkuItem
 
 
 class YundaCustomerForm(forms.ModelForm):
@@ -82,3 +82,13 @@ class PackageOrderNoteForm(forms.Form):
 class PackageOrderLogisticsCompanyForm(forms.Form):
     pid = forms.IntegerField()
     logistics_company_id = forms.IntegerField()
+
+class PackageOrderChangeWuliuForm(forms.ModelForm):
+    class Meta:
+        model = PackageOrder
+        fields = ['out_sid', 'logistics_company']
+
+class PackageSkuItemChangeWuliuForm(forms.ModelForm):
+    class Meta:
+        model = PackageSkuItem
+        fields = ['out_sid', 'logistics_company_name']
