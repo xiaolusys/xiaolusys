@@ -1126,10 +1126,6 @@ class ModelProduct(BaseTagModel):
             is_topic=is_topic,
             is_flatten=is_flatten,
             is_boutique=is_boutique)
-        try:
-            model_product.salecategory = product.category.get_sale_category()
-        except:
-            pass
         if not extras:
             model_product.extras = default_modelproduct_extras_tpl()
         else:
@@ -1144,7 +1140,10 @@ class ModelProduct(BaseTagModel):
         model_product.set_title_imgs_key()
         model_product.set_title_imgs_values()
         model_product.set_lowest_price()
-
+        try:
+            model_product.salecategory = product.category.get_sale_category()
+        except:
+            pass
         if model_product.is_boutique_product:
             model_product.rebeta_scheme_id = constants.BOUTIQUE_PRODUCT_REBETA_SCHEME_ID
 

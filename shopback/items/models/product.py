@@ -254,7 +254,7 @@ class Product(models.Model):
         return self.eskus.count() == 1
 
     def get_skus_by_color(self, color):
-        if color == self.properties_name:
+        if color == self.properties_name or color == u'统一规格':
             return self.normal_skus
         else:
             return self.normal_skus.filter(properties_name__startswith=color)

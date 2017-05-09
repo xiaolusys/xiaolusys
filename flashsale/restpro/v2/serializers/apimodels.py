@@ -161,6 +161,8 @@ class APIModelProductSerializer(serializers.Serializer):
         model_saleout = True
         for color in sku_dict:
             sku_items = sku_dict[color]
+            if not sku_items:
+                continue
             sku_ids = [sku.id for sku in sku_items]
             product = product_dict[color]
             stats = SkustatCtl.multiple(sku_ids)
