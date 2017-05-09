@@ -725,9 +725,9 @@ class EnvelopAdmin(admin.ModelAdmin):
 admin.site.register(Envelop, EnvelopAdmin)
 
 class ModelProductAdmin(ApproxAdmin):
-    list_display = ('id', 'name', 'sale_time', 'salecategory', 'product_type', 'is_onsale', 'is_recommend', 'is_topic',
-                    'is_flatten', 'is_teambuy', 'is_boutique', 'product_type', 'status', 'shelf_status', 'onshelf_time', 'offshelf_time',
-                    'lowest_agent_price', 'lowest_std_sale_price', 'order_weight', 'created')
+    list_display = ('id', 'name', 'salecategory', 'product_type', 'is_onsale', 'is_recommend', 'is_topic',
+                    'is_flatten', 'is_teambuy', 'is_boutique', 'status', 'shelf_status', 'onshelf_time', 'offshelf_time',
+                    'lowest_agent_price', 'lowest_std_sale_price', 'scheme_label','order_weight', 'created')
 
     list_filter = ('status',
                    'product_type',
@@ -765,6 +765,11 @@ class ModelProductAdmin(ApproxAdmin):
             self.readonly_fields += ('onshelf_time', 'offshelf_time')
         return self.readonly_fields
 
+    def scheme_label(self, obj):
+        scheme = obj.get_rebate_scheme()
+        return scheme and '{}|{}'.format(scheme.id, scheme.name) or ''
+
+    scheme_label.short_description = u"佣金计划"
 
 admin.site.register(ModelProduct, ModelProductAdmin)
 
