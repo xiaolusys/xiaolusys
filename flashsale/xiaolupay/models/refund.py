@@ -63,6 +63,9 @@ class RefundOrder(BaseModel):
         verbose_name = u'小鹿支付/退款'
         verbose_name_plural = u'小鹿支付/退款列表'
 
+    def is_failed(self):
+        return self.status == RefundOrder.FAILED
+
     def refund_failed(self, failure_code, failure_msg):
         self.failure_code = failure_code
         self.failure_msg = failure_msg

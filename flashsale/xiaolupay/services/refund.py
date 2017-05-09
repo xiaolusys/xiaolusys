@@ -9,21 +9,28 @@ from ..models.refund import RefundOrder
 from ..models.charge import ChargeOrder
 from ..libs.alipay import AliPay, AlipayConf, AliPayException
 from ..libs.wxpay import WXPay, WXPayConf
+from ..exceptions import XiaoluPayException
 
 import logging
 logger = logging.getLogger(__name__)
 
 def create_refund(charge, refund_amount, description, out_refund_no):
 
-    refund_order = RefundOrder.objects.create(
-        refund_no = out_refund_no or charge.order_no,
-        amount=refund_amount,
-        description=description,
-        failure_code='',
-        failure_msg='',
-        charge_id=charge.id,
-        charge_order_no=charge.order_no,
-    )
+    refund_order = RefundOrder.objects.filter(refund_no = out_refund_no or charge.order_no).first()
+    if refund_order and not refund_order.is_failed():
+        raise XiaoluPayException('退款单生成，请勿重复申请退款!!!')
+
+    if not refund_order:
+        refund_order = RefundOrder.objects.create(
+            refund_no = out_refund_no or charge.order_no,
+            amount=refund_amount,
+            description=description,
+            failure_code='',
+            failure_msg='',
+            charge_id=charge.id,
+            charge_order_no=charge.order_no,
+        )
+
     channel = charge.channel
     refund_success = False
     time_succeed   = None

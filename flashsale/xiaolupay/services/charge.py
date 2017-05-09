@@ -11,7 +11,7 @@ from ..libs.wxpay import WXPay, WXPayUtil, WXPayConf
 from ..libs.alipay.exceptions import AliPayAPIError
 from ..libs.wxpay.exceptions import WxPayException
 from ..models.charge import ChargeOrder
-from ..apis.v1.exceptions import XiaoluPayException, ChannelNotCompleteException
+from ..exceptions import XiaoluPayException, ChannelNotCompleteException
 from ..utils import get_time_number
 
 import logging
