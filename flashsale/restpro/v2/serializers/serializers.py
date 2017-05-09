@@ -598,10 +598,10 @@ class ProductPictureSerializer(serializers.Serializer):
 
     def save(self, data, model_product):
         model_product.head_imgs = data.get('head_imgs')
+        model_product.detail_first_img = data.get('detail_first_img')
         content_imgs = [model_product.detail_first_img] if model_product.detail_first_img else []
         content_imgs.extend(data.get('content_imgs', []))
         model_product.content_imgs = '\n'.join(content_imgs)
-        model_product.detail_first_img = data.get('detail_first_img')
         respective_imgs = dict(data.get('respective_imgs', []))
         model_product.set_title_imgs_values(respective_imgs)
         model_product.save()
