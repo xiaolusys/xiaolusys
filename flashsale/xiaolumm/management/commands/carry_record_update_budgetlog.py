@@ -16,7 +16,7 @@ class Command(BaseCommand):
         budget_log_status = CarryRecord.budget_log_status_map(carry.status)
 
         referal_id = 'carryrecord-%s' % carry.id
-        bg = BudgetLog.objects.select_for_update().filter(referal_id=referal_id).first()
+        bg = BudgetLog.objects.filter(referal_id=referal_id).first()
         if bg:
             bg.confirm_budget_log()
         else:
