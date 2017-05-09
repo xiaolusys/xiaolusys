@@ -276,6 +276,7 @@ def notifyTradeRefundTask(notify):
         saleservice = FlashSaleService(strade)
         saleservice.payTrade()
     except Exception, exc:
+        logger.error(str(exc), exc_info=True)
         raise notifyTradeRefundTask.retry(exc=exc)
 
 

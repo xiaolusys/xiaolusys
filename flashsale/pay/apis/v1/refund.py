@@ -24,17 +24,17 @@ def create_refund_order(user_id, order_id, reason, num, refund_fee, refund_chann
                         desc=None, good_status=None, modify=None, proof_pic=None, **kwargs):
     saleorder = SaleOrder.objects.get(id=order_id)
     refund = saleorder.refund
-    if not refund:
-        refund = saleorder.do_refund(reason=reason,
-                                     refund_num=num,
-                                     refund_fee=refund_fee,
-                                     good_status=good_status,
-                                     desc=desc,
-                                     refund_channel=refund_channel,
-                                     proof_pic=proof_pic)
-        log_action(user_id, refund, ADDITION, u'创建退款单')
-    else:
+    if refund:
         return refund
+
+    refund = saleorder.do_refund(reason=reason,
+                                 refund_num=num,
+                                 refund_fee=refund_fee,
+                                 good_status=good_status,
+                                 desc=desc,
+                                 refund_channel=refund_channel,
+                                 proof_pic=proof_pic)
+    log_action(user_id, refund, ADDITION, u'创建退款单')
 
     update_fields = []
     for name, value in kwargs.iteritems():

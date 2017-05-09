@@ -183,7 +183,7 @@ class User(models.Model):
         else:
             seller, state = User.objects.get_or_create(visitor_id=vid)
 
-        if state:
+        if not seller.user:
             seller.user = seller.user or cls.getSystemOAUser()
             seller.save()
 

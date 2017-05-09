@@ -379,7 +379,7 @@ class SaleRefund(PayBaseModel):
         if self.is_fastrefund:
             self.refund_payment_2_budget()  # 退款到钱包
         else:
-            self.refund_confirm()
+            self.refund_charge_approve()
 
 
     def refund_charge_approve(self):

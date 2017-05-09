@@ -70,7 +70,7 @@ class RefundOrder(BaseModel):
         self.save(update_fields=['failure_code', 'failure_msg', 'status'])
 
     def confirm_refunded(self, succeed_time, **kwargs):
-        update_fields = ['succeed', 'time_succeed']
+        update_fields = ['succeed', 'time_succeed', 'status']
         for k, v in kwargs.iteritems():
             if hasattr(self, k):
                 setattr(self, k, v)
@@ -78,6 +78,7 @@ class RefundOrder(BaseModel):
 
         self.time_succeed = succeed_time
         self.succeed = True
+        self.status = RefundOrder.SUCCESSED
         self.save(update_fields=update_fields)
 
         signal_message = create_signal_message(
@@ -85,7 +86,7 @@ class RefundOrder(BaseModel):
             {
                 'id': self.id,
                 'object': 'refund',
-                'refund_no': self.order_no,
+                'refund_no': self.refund_no,
                 'order_no': self.charge_order_no,
                 'refund_amount': self.amount,
                 'amount': self.amount,
