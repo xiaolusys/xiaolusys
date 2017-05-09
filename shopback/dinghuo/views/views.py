@@ -21,8 +21,7 @@ from rest_framework.response import Response
 from rest_framework import exceptions
 from core.options import log_action, ADDITION, CHANGE
 from core.utils.csvutils import CSVUnicodeWriter
-from core.xlmm_response import make_response, SUCCESS_RESPONSE
-from core import xlmm_rest_exceptions
+from core.rest.response import make_response, SUCCESS_RESPONSE
 from shopback.dinghuo import paramconfig as pcfg
 from shopback.dinghuo.models import (OrderDraft, OrderDetail, OrderList,
                                       InBound, InBoundDetail,

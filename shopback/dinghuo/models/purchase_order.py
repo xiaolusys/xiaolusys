@@ -52,7 +52,6 @@ def gen_batch_no():
     ol = OrderList.objects.order_by('-batch_no').first()
     if ol:
         order_count = format_char_to_number(ol.batch_no)
-        print 'ol.batch_no', ol.batch_no
     return parse_number_to_char(order_count + 1)
 
 

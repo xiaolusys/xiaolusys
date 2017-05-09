@@ -10,7 +10,7 @@ from django.db.models import Sum, Count
 from django_statsd.clients import statsd
 from django.shortcuts import get_object_or_404
 from rest_framework import authentication
-from core import xlmm_rest_exceptions as exceptions
+from core.rest import exceptions
 from rest_framework import permissions
 from rest_framework import renderers
 from rest_framework import viewsets

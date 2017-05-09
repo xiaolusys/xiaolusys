@@ -15,7 +15,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import authentication
 
 from common.auth import WeAppAuthentication
-from core import xlmm_rest_exceptions as exceptions
+from core.rest import exceptions
 from rest_framework import permissions
 from rest_framework import renderers
 from rest_framework import viewsets
@@ -25,7 +25,7 @@ from rest_framework.views import APIView
 
 from django.shortcuts import redirect
 
-from core.xlmm_response import make_response, SUCCESS_RESPONSE
+from core.rest.response import make_response, SUCCESS_RESPONSE
 from shopapp.weixin.apis import WeiXinAPI
 from flashsale.pay.models import Customer, ModelProduct
 from flashsale.restpro import permissions as perms

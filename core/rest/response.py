@@ -1,4 +1,5 @@
-import json
+# coding: utf8
+from __future__ import absolute_import, unicode_literals
 
 
 def make_response(info='error', code=1, extra={}):
@@ -20,3 +21,6 @@ def success_response(info, extra={}):
 
 
 SUCCESS_RESPONSE = make_response(info='SUCCESS', code=0)
+
+
+

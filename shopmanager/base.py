@@ -401,4 +401,4 @@ REST_FRAMEWORK_EXTENSIONS = {
     'DEFAULT_CACHE_RESPONSE_TIMEOUT': 60 * 15,
     'DEFAULT_CACHE_KEY_FUNC': 'rest_framework_extensions.utils.default_cache_key_func'
 }
-JSONFIELD_ENCODER_CLASS = 'django.core.serializers.json.DjangoJSONEncoder'
+JSONFIELD_ENCODER_CLASS = 'core.rest.serializers.RestApiJSONEncoder'

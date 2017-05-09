@@ -388,7 +388,7 @@ WHERE p.status = 'normal' and not p.outer_id like 'RMB%' and p.category_id=1;"""
         cursor.execute(sql)
         res = cursor.fetchall()[0][0]
         cursor.close()
-        return res
+        return res or 0
 
 
     @staticmethod

@@ -1,3 +1,6 @@
+# coding: utf8
+from __future__ import absolute_import, unicode_literals
+
 from rest_framework.exceptions import APIException, ValidationError as OriValidationError, \
     ParseError as OriParseError, AuthenticationFailed as OriAuthenticationFailed, NotAuthenticated as OriNotAuthenticated, \
     PermissionDenied, NotFound as OriNotFound, NotAcceptable as OriNotAcceptable, \

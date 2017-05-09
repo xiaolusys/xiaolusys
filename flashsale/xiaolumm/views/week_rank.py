@@ -2,9 +2,9 @@
 __author__ = 'yan.huang'
 import datetime
 from rest_framework.response import Response
-from core import xlmm_rest_exceptions
+from core.rest import exceptions
 from rest_framework import exceptions
-from core.xlmm_response import make_response
+from core.rest.response import make_response
 from rest_framework import generics, viewsets, permissions, authentication, renderers
 from rest_framework.decorators import detail_route, list_route
 from django.shortcuts import get_object_or_404

@@ -375,7 +375,12 @@ class SaleRefund(PayBaseModel):
         sorder = self.saleorder
         if sorder.is_post() and not self.refundproduct:  # 订单已经发货了　申请退款　但是没有退回仓库则不能退款
             raise Exception(u'退货商品还没有到达仓库,不予退款')
-        self.refund_payment_2_budget()  # 退款到钱包
+
+        if self.is_fastrefund:
+            self.refund_payment_2_budget()  # 退款到钱包
+        else:
+            self.refund_confirm()
+
 
     def refund_charge_approve(self):
         # type: () -> None
@@ -407,6 +412,8 @@ class SaleRefund(PayBaseModel):
             self.refund_fast_approve()
         elif self.refund_fee > 0 and self.charge:
             self.refund_charge_approve()
+        else:
+            raise Exception('can not refund: refund_id = %s'%self.id)
 
     def roll_back_usercoupon(self):
         # type: () -> bool
