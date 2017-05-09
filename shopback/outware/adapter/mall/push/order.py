@@ -3,6 +3,7 @@ from __future__ import absolute_import, unicode_literals
 
 from shopback.items.models import ProductSku
 from pms.supplier.models import SaleSupplier, SaleProduct
+from pms.supplier.constants import VENDOR_TO_CUSTOMER
 from shopback.outware.adapter.ware.pull import oms, pms
 from flashsale.pay.models import UserAddress, SaleOrder
 from ....models import OutwarePackageSku, OutwareOrderSku, OutwareSku
@@ -88,7 +89,7 @@ def push_outware_order_by_package(package):
         params['vendor_code'] = sdks.FENGCHAO_SLYC_VENDOR_CODE
 
     # TODO#MENTION,处理直发供应订单,不同直发供应商不能合单　直发条件(三方仓, 供应商直发，并且不能合单)
-    elif source_type == SaleProduct.SOURCE_TTP and not any(stocking_modes):
+    elif source_type == SaleProduct.SOURCE_TTP and all(map(lambda x: int(x) == VENDOR_TO_CUSTOMER ,stocking_modes)):
         if len(set(vendor_codes)) > 1:
             raise Exception('直发供应商之间不能混单: package=%s' % package.pid)
         params['vendor_to_customer'] = '1'

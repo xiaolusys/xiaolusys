@@ -12,6 +12,7 @@ from django.core.cache import cache
 
 from shopback.trades.constants import PSI_STATUS, PSI_TYPE
 from shopback.warehouse import WARE_SH, WARE_CHOICES, WARE_NONE
+
 from django.db.models import Manager
 from pms.supplier.models import SaleProduct
 import logging
@@ -580,6 +581,7 @@ class SkuStock(models.Model):
         from shopback.dinghuo.models import OrderDetail
         from .product import Product
         from shopback.dinghuo.models import ReturnGoods, RGDetail
+        from pms.supplier.constants import VENDOR_TO_CUSTOMER
         rg_sku = RGDetail.objects.filter(return_goods__status__in=[1, 3, 31]).values('skuid')
         rg_sku = [i['skuid'] for i in rg_sku]
         order_skus = [o['chichu_id'] for o in OrderDetail.objects.values(
@@ -591,7 +593,7 @@ class SkuStock(models.Model):
             if sku_stock.product:
                 sp_id = sku_stock.product.sale_product
                 sale_product = SaleProduct.objects.filter(id=sp_id).first()
-                if sale_product.stocking_mode == 0:
+                if sale_product.stocking_mode == VENDOR_TO_CUSTOMER:
                     rg_sku2.append(i)
             else:
                 rg_sku2.append(i)
