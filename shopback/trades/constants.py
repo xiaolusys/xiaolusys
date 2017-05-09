@@ -19,7 +19,7 @@ class PSI_STATUS:
         ('booked', u'待备货'),
         ('third_send', u'待第三方发货'),
         ('assigned', u'待合单'),
-        ('merged', u'待打单'),
+        ('merged', u'已合单'),
         ('waitscan', u'待扫描'),
         ('waitpost', u'待称重'),
         ('sent', u'待收货'),
