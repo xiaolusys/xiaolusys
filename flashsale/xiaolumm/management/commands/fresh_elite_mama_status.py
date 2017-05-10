@@ -21,15 +21,13 @@ class Command(BaseCommand):
         now = datetime.datetime.now()
         sys_oa = get_systemoa_user()
 
-        # 续费　状态处理
         effect_elite_mms = XiaoluMama.objects.filter(
-            charge_status=XiaoluMama.UNCHARGE,
-            last_renew_type=XiaoluMama.FULL).exclude(referal_from__in=[XiaoluMama.DIRECT, XiaoluMama.INDIRECT])
+            status=XiaoluMama.EFFECT,
+            last_renew_type=XiaoluMama.SCAN)
         for emm in effect_elite_mms.iterator():
             try:
-                emm.last_renew_type = XiaoluMama.SCAN
                 emm.status = XiaoluMama.FROZEN
-                emm.save(update_fields=['last_renew_type', 'status'])
+                emm.save(update_fields=['status'])
                 log_action(sys_oa, emm, CHANGE, u'schedule task: renew timeout,chg to frozen')
             except TypeError as e:
                 logger.error(u" FROZEN mama:%s, error info: %s" % (emm.id, e))
