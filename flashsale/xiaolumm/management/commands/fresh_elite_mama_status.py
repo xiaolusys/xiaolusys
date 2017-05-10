@@ -23,7 +23,7 @@ class Command(BaseCommand):
 
         effect_elite_mms = XiaoluMama.objects.filter(
             charge_status=XiaoluMama.UNCHARGE,
-            last_renew_type=XiaoluMama.FULL).exclude(referal_from__in=[XiaoluMama.DIRECT, XiaoluMama.INDIRECT])
+            last_renew_type=XiaoluMama.FULL)
         for emm in effect_elite_mms.iterator():
             try:
                 emm.last_renew_type = XiaoluMama.SCAN
