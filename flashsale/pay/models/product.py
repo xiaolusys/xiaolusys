@@ -1163,12 +1163,15 @@ class ModelProduct(BaseTagModel):
         return ModelProduct.objects.filter(id__in=model_product_ids)
 
     @staticmethod
-    def get_by_suppliers(supplier_ids):
+    def get_by_suppliers(supplier_ids, main=False):
         from pms.supplier.models import SaleProduct, SaleSupplier
         from pms.supplier.models.product import SaleProductRelation
         spids = list(SaleProduct.objects.filter(sale_supplier_id__in=supplier_ids).values_list('id', flat=True))
-        product_ids = list(SaleProductRelation.get_products(spids).values_list('id', flat=True))
-        model_product_ids = Product.objects.filter(id__in=product_ids).values_list('model_id', flat=True)
+        if main:
+            model_product_ids = Product.objects.filter(sale_product__in=spids).values_list('model_id', flat=True)
+        else:
+            product_ids = list(SaleProductRelation.get_products(spids).values_list('id', flat=True))
+            model_product_ids = Product.objects.filter(id__in=product_ids).values_list('model_id', flat=True)
         return ModelProduct.objects.filter(id__in=model_product_ids)
 
 def invalid_apimodelproduct_cache(sender, instance, *args, **kwargs):

@@ -45,3 +45,8 @@ def alarm_psi_not_merge():
 def alarms_shopback_trades():
     alarm_saleorder_not_create_packageskuitem()
     alarm_psi_not_merge()
+    from shopback.trades.models.packet import PackageOrder, PackageSkuItem
+    PackageSkuItem.batch_merge()
+    for po in PackageOrder.objects.filter(sys_status=PackageOrder.WAIT_PREPARE_SEND_STATUS, logistics_company_id=None,
+                                          ware_by__in=[1, 2]):
+        po.set_logistics_company()
