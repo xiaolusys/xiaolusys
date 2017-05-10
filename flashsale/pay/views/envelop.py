@@ -58,7 +58,14 @@ class SendBudgetEnvelopAPIView(APIView):
     permission_classes = (IsAccessSendBudgetEnvelop,)
     def get_budget_data(self, customer_id):
         # type: (int) -> UserBudget
-        budget = self.queryset.filter(user_id=customer_id).first()
+        from flashsale.pay.models import Customer
+        customer = Customer.objects.get(id=customer_id)
+        budget, created = UserBudget.objects.get_or_create(user=customer, defaults={
+            'amount': 0,
+            'total_income': 0,
+            'total_expense': 0
+        })
+
         data = {'id': budget.id,
                 'customer_id': customer_id,
                 'nick': budget.user.nick,
