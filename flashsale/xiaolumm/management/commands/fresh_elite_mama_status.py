@@ -23,9 +23,8 @@ class Command(BaseCommand):
 
         # 续费　状态处理
         effect_elite_mms = XiaoluMama.objects.filter(
-            status=XiaoluMama.EFFECT,
-            charge_status=XiaoluMama.CHARGED,
-            last_renew_type__lt=XiaoluMama.ELITE)
+            charge_status=XiaoluMama.UNCHARGE,
+            last_renew_type=XiaoluMama.FULL).exclude(referal_from__in=[XiaoluMama.DIRECT, XiaoluMama.INDIRECT])
         for emm in effect_elite_mms.iterator():
             try:
                 emm.status = XiaoluMama.FROZEN
