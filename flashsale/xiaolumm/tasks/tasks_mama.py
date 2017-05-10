@@ -659,6 +659,7 @@ def task_update_group_awardcarry(relationship):
 
 def validate_self_mama(mama, order_created_time):
     if (mama and mama.status == XiaoluMama.EFFECT and mama.charge_status == XiaoluMama.CHARGED and
+                mama.last_renew_type > XiaoluMama.ELITE and
             mama.charge_time and mama.charge_time < order_created_time):
         return True
     if (mama and mama.status == XiaoluMama.EFFECT and mama.charge_status == XiaoluMama.CHARGED and

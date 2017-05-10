@@ -734,11 +734,10 @@ def task_period_check_mama_renew_state():
     effect_elite_mms = XiaoluMama.objects.filter(
         status=XiaoluMama.EFFECT,
         charge_status=XiaoluMama.CHARGED,
-        referal_from__in=[XiaoluMama.DIRECT, XiaoluMama.INDIRECT],
-        renew_time__lte=now).exclude(last_renew_type=XiaoluMama.ELITE)  # 有效并接管的
+        referal_from__in=[XiaoluMama.DIRECT, XiaoluMama.INDIRECT]).exclude(last_renew_type=XiaoluMama.ELITE)  # 有效并接管的
     for emm in effect_elite_mms.iterator():
         try:
-            if now >= emm.renew_time:
+            if emm.renew_time and now >= emm.renew_time:
                 # 2017-2-7 精英妈妈不冻结,变为单纯精英妈妈，老的99／188妈妈冻结
                 if emm.last_renew_type != XiaoluMama.ELITE:
                     emm.last_renew_type = XiaoluMama.ELITE
@@ -750,15 +749,14 @@ def task_period_check_mama_renew_state():
     max_mmid = 0
     effect_no_elite_mms = XiaoluMama.objects.filter(
         status=XiaoluMama.EFFECT,
-        charge_status=XiaoluMama.CHARGED,
-        renew_time__lte=now).exclude(referal_from__in=[XiaoluMama.DIRECT, XiaoluMama.INDIRECT])
+        charge_status=XiaoluMama.CHARGED).exclude(referal_from__in=[XiaoluMama.DIRECT, XiaoluMama.INDIRECT])
 
     max_mmid = XiaoluMama.objects.all().count()
 
     if effect_no_elite_mms.count() < 10000:
         for emm in effect_no_elite_mms.iterator():
             try:
-                if now >= emm.renew_time:
+                if (emm.renew_time and now >= emm.renew_time) or ((not emm.renew_time) and emm.last_renew_type < XiaoluMama.ELITE):
                     emm.status = XiaoluMama.FROZEN
                     emm.save(update_fields=['status'])
                     log_action(sys_oa, emm, CHANGE, u'schedule task: renew timeout,chg to frozen')
@@ -774,7 +772,8 @@ def task_period_check_mama_renew_state():
                 referal_from__in=[XiaoluMama.DIRECT, XiaoluMama.INDIRECT])
             for emm in effect_no_elite_mms.iterator():
                 try:
-                    if now >= emm.renew_time:
+                    if (emm.renew_time and now >= emm.renew_time) or (
+                        (not emm.renew_time) and emm.last_renew_type < XiaoluMama.ELITE):
                         emm.status = XiaoluMama.FROZEN
                         emm.save(update_fields=['status'])
                         log_action(sys_oa, emm, CHANGE, u'schedule task: renew timeout,chg to frozen')
