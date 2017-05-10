@@ -21,7 +21,6 @@ class Command(BaseCommand):
         now = datetime.datetime.now()
         sys_oa = get_systemoa_user()
 
-        # 续费　状态处理
         effect_elite_mms = XiaoluMama.objects.filter(
             charge_status=XiaoluMama.UNCHARGE,
             last_renew_type=XiaoluMama.FULL).exclude(referal_from__in=[XiaoluMama.DIRECT, XiaoluMama.INDIRECT])
