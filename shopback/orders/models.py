@@ -332,7 +332,7 @@ class Order(models.Model):
         sku_item = PackageSkuItem(sale_order_id=None, ware_by=ware_by, oid=self.get_tb_oid())
         sku_item.sku_id = self.sku.id
         #　sku_item.product = self.product
-        sku_item.outer_sku_id = self.outer_sku_id
+        sku_item.outer_sku_id = self.sku.outer_id
         sku_item.outer_id = self.product.outer_id
         sku_item.num = self.num
         sku_item.type = PSI_TYPE.TIANMAO

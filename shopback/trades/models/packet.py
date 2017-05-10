@@ -1248,6 +1248,8 @@ class PackageSkuItem(BaseModel):
         psi = PackageSkuItem(
             type=PSI_TYPE.BYHAND,
             sku_id=sku.id,
+            outer_id=sku.product.outer_id,
+            outer_sku_id=sku.outer_id,
             num=num,
             package_order_id=package_order_id,
             package_order_pid=package_order_pid,
@@ -1255,6 +1257,7 @@ class PackageSkuItem(BaseModel):
             ware_by=ware_by,
             pay_time=datetime.datetime.now()
         )
+
         psi.status = PSI_STATUS.MERGED
         psi.assign_status = PackageSkuItem.ASSIGNED
         psi.save()

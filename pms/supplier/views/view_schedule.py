@@ -35,7 +35,7 @@ class ScheduleManageViewSet(viewsets.ModelViewSet):
         else:
             sale_supplier_ids = [ss.id for ss in spm.sale_suppliers.all()]
             if sale_supplier_ids:
-                queryset = ModelProduct.get_by_suppliers(sale_supplier_ids)
+                queryset = ModelProduct.get_by_suppliers(sale_supplier_ids, main=True)
             else:
                 # 搜索填写了供应商的所有ModelProduct
                 from shopback.items.models import Product
