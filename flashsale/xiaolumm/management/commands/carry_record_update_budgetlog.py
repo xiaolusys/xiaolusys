@@ -10,7 +10,7 @@ class Command(BaseCommand):
         """
         根据carryrecord更新budgetlog
         """
-        carry = CarryRecord.objects.filter(id=9636130).first()
+        carry = CarryRecord.objects.filter(id=9634889).first()
         customer = carry.mama.get_mama_customer()
         budget_log_type = CarryRecord.budget_log_type_map(carry.carry_type)
         budget_log_status = CarryRecord.budget_log_status_map(carry.status)
