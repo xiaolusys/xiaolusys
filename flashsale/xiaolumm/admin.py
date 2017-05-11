@@ -38,7 +38,8 @@ from .models import (
     MamaReferalTree,
     EliteMamaStatus,
     XiaoluCoin,
-    XiaoluCoinLog
+    XiaoluCoinLog,
+    AccountEntry
 )
 from .models.models_rebeta import AgencyOrderRebetaScheme
 from .filters import UserNameFilter
@@ -875,20 +876,20 @@ class WeixinPushEventAdmin(ApproxAdmin):
 admin.site.register(WeixinPushEvent, WeixinPushEventAdmin)
 
 
-class XlmmEffectScoreAdmin(admin.ModelAdmin):
-    list_display = ('mama_id', 'score', 'stat_time', 'created', 'modified')
-    list_filter = (('created', DateFieldListFilter),)
-    search_fields = ('mama_id', )
-
-admin.site.register(XlmmEffectScore, XlmmEffectScoreAdmin)
-
-
-class XlmmTeamEffScoreAdmin(admin.ModelAdmin):
-    list_display = ('mama_id', 'score', 'stat_time', 'created', 'modified', 'member_ids')
-    list_filter = (('created', DateFieldListFilter),)
-    search_fields = ('mama_id', )
-
-admin.site.register(XlmmTeamEffScore, XlmmTeamEffScoreAdmin)
+# class XlmmEffectScoreAdmin(admin.ModelAdmin):
+#     list_display = ('mama_id', 'score', 'stat_time', 'created', 'modified')
+#     list_filter = (('created', DateFieldListFilter),)
+#     search_fields = ('mama_id', )
+#
+# admin.site.register(XlmmEffectScore, XlmmEffectScoreAdmin)
+#
+#
+# class XlmmTeamEffScoreAdmin(admin.ModelAdmin):
+#     list_display = ('mama_id', 'score', 'stat_time', 'created', 'modified', 'member_ids')
+#     list_filter = (('created', DateFieldListFilter),)
+#     search_fields = ('mama_id', )
+#
+# admin.site.register(XlmmTeamEffScore, XlmmTeamEffScoreAdmin)
 
 
 class EliteMamaStatusAdmin(admin.ModelAdmin):
@@ -970,4 +971,9 @@ class ExchangeSaleOrderAdmin(admin.ModelAdmin):
 admin.site.register(ExchangeSaleOrder, ExchangeSaleOrderAdmin)
 
 
+class AccountEntryAdmin(admin.ModelAdmin):
+    list_display = ('id', 'customer_id', 'subject', 'amount', 'obj_id', 'referal_id', 'created')
+    list_filter = ('created',)
+    search_fields = ('=customer_id', '=id')
 
+admin.site.register(AccountEntry, AccountEntryAdmin)
