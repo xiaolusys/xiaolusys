@@ -1049,10 +1049,9 @@ class Product(models.Model):
                     raise ValueError('请输入正确的精品商品链接(商品需打上精品汇标记)')
 
                 # 创建精品券
-                logger.error({'ids': '%s%s' % (str(usual_modle_product.id), usual_product_ids)})
                 coupon_template = get_or_create_boutique_template(
                     model_pro.id, usual_modle_product.lowest_agent_price, model_title=model_pro.name,
-                    modelproduct_ids=str(usual_modle_product.id),product_ids=usual_product_ids,
+                    usual_modelproduct_ids=str(usual_modle_product.id), usual_product_ids=usual_product_ids,
                     model_img=model_pro.head_img_url
                 )
 
