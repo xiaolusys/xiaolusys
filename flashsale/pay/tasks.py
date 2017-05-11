@@ -474,9 +474,7 @@ from flashsale.pay.models import BudgetLog, UserBudget
 from django.db.models import Sum
 
 @app.task(max_retries=3, default_retry_delay=6)
-def task_budgetlog_update_userbudget(budget_log):
-    customer_id = budget_log.customer_id
-
+def task_budgetlog_update_userbudget(customer_id):
     bglogs = BudgetLog.objects.filter(customer_id=customer_id).exclude(status=BudgetLog.CANCELED)
     records = bglogs.values('budget_type', 'status').annotate(total=Sum('flow_amount'))
 
