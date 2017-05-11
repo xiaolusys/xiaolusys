@@ -168,9 +168,6 @@ class OutwarePackage(BaseWareModel):
         from shopback.outware.models import OutwareAccount,OutwareOrder
         ware_account = OutwareAccount.get_fengchao_account()
         ow_packages = []
-        # 更新outware_order status
-        outware_order = OutwareOrder.objects.get(union_order_code=order_code, order_type=constants.ORDER_SALE['code'])
-        outware_order.change_order_status(constants.SENDED)
 
         with transaction.atomic():
             for package in dict_obj.packages:
@@ -198,8 +195,15 @@ class OutwarePackage(BaseWareModel):
                         uni_key=OutwarePackageSku.generate_unikey(item.sku_code, item.batch_no, ow_package.id)
                     )
                 ow_packages.append(ow_package)
-
         ow_packages = runner.get_runner(order_type)(ow_packages).execute()
+
+        try:
+            # 更新outware_order status
+            outware_order = OutwareOrder.objects.get(union_order_code=order_code, order_source=constants.ORDER_SALE['code'])
+            outware_order.change_order_status(constants.SENDED)
+        except Exception, exc:
+            logger.error(str(exc), exc_info=True)
+
         return ow_packages
 
 
