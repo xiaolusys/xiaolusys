@@ -219,21 +219,21 @@ class SMSLoginBackend(object):
             if not register.is_submitable():
                 return AnonymousUser()
 
-            try:
-                user = User.objects.get(username=mobile)
-            except User.DoesNotExist, err:
-                customers = Customer.objects.filter(mobile=mobile)
-                if not customers.exists():
-                    raise err
-                user = customers[0].user
+            customers = Customer.objects.filter(mobile=mobile, status=Customer.NORMAL)
+            customer  = None
+            if customers.count() > 1:
+                customer = customers.filter(user__username=mobile).first()
 
+            if not customer:
+                customer = customers.first()
+
+            if not customer:
+                return AnonymousUser
+
+            user = customer.user
             if not user.is_active:
                 user.is_active = True
                 user.save()
-            # if not normal user ,no login allowed
-            customer = Customer.objects.get(user=user)
-            if customer.status != Customer.NORMAL:
-                return AnonymousUser()
 
         except Register.DoesNotExist:
             return AnonymousUser()
