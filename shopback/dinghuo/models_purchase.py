@@ -8,6 +8,7 @@ from django.conf import settings
 from core.models import BaseModel
 from shopback.dinghuo import utils
 from shopback.trades.constants import PSI_STATUS
+from shopback.items.models import SkuStock
 import logging
 
 logger = logging.getLogger(__name__)
