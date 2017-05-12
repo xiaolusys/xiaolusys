@@ -164,6 +164,8 @@ class SkuStock(models.Model):
     @property
     def wait_assign_num(self):
         if self.product.type == 0:
+            if self.sold_num - self.assign_num - self.post_num < 0:
+                return 0
             return self.sold_num - self.assign_num - self.post_num
         else:
             return 0
