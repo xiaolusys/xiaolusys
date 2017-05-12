@@ -153,6 +153,7 @@ class SkuStock(models.Model):
         if self.product.type == 0:
             if self.sold_num - self.post_num < 0:
                 return 0
+            return self.sold_num - self.post_num
         else:
             return 0
 
