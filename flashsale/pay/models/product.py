@@ -882,7 +882,7 @@ class ModelProduct(BaseTagModel):
                 setattr(self, k, v)
                 update_fields.append(k)
 
-        if source_type is not None and source_type != self.source_type:
+        if source_type is not None and int(source_type) != self.source_type:
             self.set_product_source_type(source_type)
             update_fields.append('extras')
 
@@ -895,7 +895,7 @@ class ModelProduct(BaseTagModel):
     def set_product_source_type(self, source_type):
         from pms.supplier.models import SaleProduct
         self.extras.setdefault('sources', {'source_type': SaleProduct.SOURCE_SELF})
-        self.extras['sources']['source_type'] = source_type
+        self.extras['sources']['source_type'] = int(source_type)
         if 'saleinfos' not in self.extras:
             self.extras['saleinfos'] = {}
         self.extras['saleinfos']['is_bonded_goods'] = \
