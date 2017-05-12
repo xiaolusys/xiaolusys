@@ -193,6 +193,11 @@ class Product(models.Model):
                 self.sale_time = self.upshelf_time.date()
         return super(Product, self).save(*args, **kwargs)
 
+    def delete(self, using=None, keep_parents=False):
+        #　禁止商品被删除
+        self.status = Product.DELETE
+        self.save(update_fields=['status'])
+
     def get_product_model(self):
         """ 获取商品款式 """
         if self.model_id == 0:
@@ -1339,6 +1344,11 @@ class ProductSku(models.Model):
         for field in self._meta.fields:
             if isinstance(field, (models.CharField, models.TextField)):
                 setattr(self, field.name, getattr(self, field.name).strip())
+
+    def delete(self, using=None, keep_parents=False):
+        # 　禁止商品sku被删除
+        self.status = ProductSku.DELETE
+        self.save(update_fields=['status'])
 
     @property
     def stat(self):

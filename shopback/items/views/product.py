@@ -589,3 +589,9 @@ class ProductViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(res)
         serializer = SaleProductSerializer(queryset, many=True)
         return Response(serializer.data)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.status = Product.DELETE
+        instance.save(update_fields=['status'])
+        return Response(status=status.HTTP_204_NO_CONTENT)

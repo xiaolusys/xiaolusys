@@ -1,4 +1,8 @@
+# coding: utf-8
+from __future__ import unicode_literals
+
 from rest_framework import serializers
+from rest_framework.exceptions import ErrorDetail, ValidationError
 from .models import Product, ProductSku, Item, ProductLocation
 from shopback.archives.models import DepositeDistrict
 from shopback.categorys.models import Category
@@ -178,6 +182,7 @@ class UpdateProductSerializer(serializers.ModelSerializer):
             ref_link = content['ref_link']
             memo = content['memo']
             skus = content['sku_extras']
+
             if product_id:
                 product = Product.objects.get(id=product_id)
                 product.name = name
@@ -217,6 +222,9 @@ class CreateProductSerializer(serializers.Serializer):
         ref_link = content['ref_link']
         memo = content.get('memo', '')
         skus = content['sku_extras']
+        if len(skus) == 0:
+            raise ValidationError(u'商品需录入至少一个规格')
+
         if product_id:
             product = Product.objects.get(id=product_id)
             product.name = name

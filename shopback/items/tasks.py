@@ -428,7 +428,9 @@ def updateItemNum(user_id, num_iid):
                 if p_outer_id != outer_id or sku['status'] != pcfg.NORMAL or not outer_sku_id:
                     continue
 
-                product_sku = product.prod_skus.get(outer_id=outer_sku_id)
+                product_sku = product.prod_skus.filter(outer_id=outer_sku_id).first()
+                if not product_sku:
+                    continue
 
                 order_nums = 0
                 wait_nums = max(product_sku.wait_post_num, 0)

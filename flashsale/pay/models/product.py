@@ -605,6 +605,7 @@ class ModelProduct(BaseTagModel):
                 product_list.append(self.product_simplejson(p))
             return product_list
         else:
+            if not self.product: return product_list
             for color in self.get_properties():
                 skus = self.product.get_skus_by_color(color)
                 product_list.append(self.product_sku_simplejson(self.product, skus))
