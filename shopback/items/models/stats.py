@@ -151,7 +151,8 @@ class SkuStock(models.Model):
     @property
     def wait_post_num(self):
         if self.product.type == 0:
-            return self.sold_num - self.post_num
+            if self.sold_num - self.post_num < 0:
+                return 0
         else:
             return 0
 
