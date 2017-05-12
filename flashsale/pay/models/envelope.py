@@ -81,7 +81,7 @@ class Envelop(PayBaseModel):
                               choices=STATUS_CHOICES, verbose_name=u'状态')
 
     send_status = models.CharField(max_length=8, db_index=True, default=UNSEND,
-                                   choices=SEND_STATUS_CHOICES, verbose_name=u'发送状态')
+                                   choices=SEND_STATUS_CHOICES, verbose_name=u'微信发送状态')
 
     referal_id = models.CharField(max_length=32, blank=True, db_index=True, verbose_name=u'引用ID')
     send_time = models.DateTimeField(db_index=True, blank=True, null=True, verbose_name=u'发送时间')
@@ -284,9 +284,13 @@ class Envelop(PayBaseModel):
             else:
                 cashout.fail_and_return()
 
+    def is_weixin_send_fail(self):
+        return self.send_status in (Envelop.FAIL, Envelop.SEND_FAILED)
+
     def cancel_envelop(self):
         # 取消红包，同时退款
-        if not self.envelop_id:  # 只有待发放状态可以取消红包
+        # TODO@需要调用微信红包接口, 如果微信红包状态为失败，给予退款
+        if not self.envelop_id or self.is_weixin_send_fail():  # 只有待发放状态可以取消红包
             self.status = Envelop.CANCEL
             self.save(update_fields=['status'])
             self.refund_envelop()

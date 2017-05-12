@@ -71,8 +71,8 @@ class WeixinRedEnvelope(BaseModel):
             self.err_code_des = result.get('err_code_des', '')
 
             if self.result_code == 'FAIL':
-                # 微信拦截
-                if self.err_code == 'NO_AUTH':
+                # 微信拦截, 参数错误，　确认已发送失败
+                if self.err_code in ('NO_AUTH', 'PARAM_ERROR', 'SEND_FAILED'):
                     return self.set_status_fail()
                 # 微信处理中
                 if self.err_code == 'PROCESSING':
@@ -107,6 +107,8 @@ class WeixinRedEnvelope(BaseModel):
                 rcv_time = result.get('hblist', {}).get('hbinfo', {}).get('rcv_time', '')
                 if rcv_time:
                     self.rcv_time = datetime.strptime(rcv_time, '%Y-%m-%d %H:%M:%S')
+            elif self.result_code == 'SEND_FAILED':
+                self.status = WeixinRedEnvelope.FAILED
         self.save()
         return self
 
