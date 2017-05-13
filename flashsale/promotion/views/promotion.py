@@ -100,7 +100,7 @@ def get_customer(request):
     根据http request 对象　返回 特卖用户，不存在则返回None, 存在返回用户对象
     """
     user = request.user
-    if not user or user.is_anonymous():
+    if not user or user.is_anonymous:
         return None
     try:
         customer = Customer.objects.get(user_id=request.user.id)

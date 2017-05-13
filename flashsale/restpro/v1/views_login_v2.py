@@ -1,5 +1,6 @@
 # coding=utf-8
 import time, re
+import datetime
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.shortcuts import HttpResponseRedirect
@@ -19,7 +20,7 @@ from core.weixin.options import gen_wxlogin_sha1_sign
 import logging
 import serializers
 
-logger = logging.getLogger('django.request')
+logger = logging.getLogger(__name__)
 
 from flashsale.pay.models import Customer, Integral, Register
 
@@ -68,7 +69,11 @@ def check_sign(request):
     if origin_sign and origin_sign == new_sign:
         return True
     params.update({'sign': origin_sign})
-    logger.error('%s' % params)
+    logger.error({
+        'action': 'weixinapp_login_sign_error',
+        'action_time': datetime.datetime.now(),
+        'params': params
+    })
     return False
 
 
@@ -95,7 +100,7 @@ class LoginViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.Gene
             return HttpResponseRedirect(next_url)
 
         user = request.user
-        if not user or user.is_anonymous():
+        if not user or user.is_anonymous:
             return HttpResponseRedirect(next_url)
 
         redirect_url = next_url
@@ -124,7 +129,7 @@ class LoginViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.Gene
             username = customers[0].user.username
 
         user = authenticate(username=username, password=password)
-        if not user or user.is_anonymous():
+        if not user or user.is_anonymous:
             return Response({"code": 2, "message": u"用户名或密码错误呢！", 'next': ''})
         login(request, user)
 
@@ -151,7 +156,7 @@ class LoginViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.Gene
 
         params = request.data
         user = authenticate(request=request, **params)
-        if not user or user.is_anonymous():
+        if not user or user.is_anonymous:
             return Response({"code": 2, "message": u'登陆异常'})
 
         login(request, user)
@@ -171,7 +176,7 @@ class LoginViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.Gene
             return Response({"code": 3, "message": u"验证码有误"})
 
         user1 = authenticate(request=request, **req_params)
-        if not user1 or user1.is_anonymous():
+        if not user1 or user1.is_anonymous:
             return Response({"code": 1, "message": u"登录验证失败"})
         login(request, user1)
 

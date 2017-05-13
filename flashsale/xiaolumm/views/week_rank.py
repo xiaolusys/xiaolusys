@@ -75,7 +75,7 @@ class WeekMamaCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.Retriev
 
     @list_route(methods=['GET'])
     def self_rank(self, request):
-        if request.user.is_anonymous():
+        if request.user.is_anonymous:
             raise exceptions.PermissionDenied(u'用户未登录或并非小鹿妈妈')
         mama = request.user.customer.get_xiaolumm()
         if not mama:
@@ -126,7 +126,7 @@ class WeekMamaCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.Retriev
 
     @list_route(methods=['GET'])
     def activity_self_rank(self, request):
-        if request.user.is_anonymous():
+        if request.user.is_anonymous:
             raise exceptions.PermissionDenied(u'用户未登录或并非小鹿妈妈')
         mama = request.user.customer.getXiaolumm()
         if not mama:
@@ -160,7 +160,7 @@ class WeekMamaTeamCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.Ret
 
     @list_route(methods=['GET'])
     def self_rank(self, request):
-        if request.user.is_anonymous():
+        if request.user.is_anonymous:
             raise exceptions.PermissionDenied(u'用户未登录或并非小鹿妈妈')
         mama = request.user.customer.get_xiaolumm()
         if not mama:
@@ -240,7 +240,7 @@ class WeekMamaTeamCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.Ret
 
     @list_route(methods=['GET'])
     def activity_self_rank(self, request):
-        if request.user.is_anonymous():
+        if request.user.is_anonymous:
             raise exceptions.PermissionDenied(u'用户未登录或并非小鹿妈妈')
         mama = request.user.customer.getXiaolumm()
         if not mama:
@@ -284,7 +284,7 @@ class ActivityMamaCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.Ret
         return Response(res)
 
     def retrieve(self, request, pk):
-        if request.user.is_anonymous():
+        if request.user.is_anonymous:
             raise exceptions.PermissionDenied(u'用户未登录或并非小鹿妈妈')
         mama = get_object_or_404(XiaoluMama, id=pk)
         if not mama:
@@ -310,7 +310,7 @@ class ActivityMamaCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.Ret
 
     @detail_route(methods=['GET'])
     def self_rank(self, request, pk):
-        if request.user.is_anonymous():
+        if request.user.is_anonymous:
             raise exceptions.PermissionDenied(u'用户未登录或并非小鹿妈妈')
         mama = request.user.customer.getXiaolumm()
         if not mama:
@@ -373,7 +373,7 @@ class ActivityMamaTeamCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins
 
     @detail_route(methods=['GET'])
     def activity_self_rank(self, request, pk):
-        if request.user.is_anonymous():
+        if request.user.is_anonymous:
             raise exceptions.PermissionDenied(u'用户未登录或并非小鹿妈妈')
         activity = RankActivity.objects.filter(id=pk).first() or RankActivity.now_activity()
         mama = request.user.customer.getXiaolumm()

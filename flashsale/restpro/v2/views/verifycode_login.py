@@ -374,7 +374,7 @@ class VerifyCodeView(views.APIView):
             # request.data._mutable = False  # 关闭可变
 
             user = authenticate(request=request, **content)
-            if not user or user.is_anonymous():
+            if not user or user.is_anonymous:
                 return Response({"rcode": 5, "msg": u'登录异常！'})
 
             login(request, user)
@@ -449,8 +449,8 @@ class PasswordLoginView(views.APIView):
             # 若是微信授权创建的账户，django user的username不是手机号。
             username = customer.user.username
 
-        user = authenticate(username=username, password=password)
-        if not user or user.is_anonymous():
+        user = authenticate(request=request, username=username, password=password)
+        if not user or user.is_anonymous:
             return Response({"rcode": 2, "msg": u"用户名或密码错误呢！", 'next': ''})
 
         login(request, user)
@@ -517,7 +517,7 @@ class WeixinAppLoginView(views.APIView):
             return Response({"rcode": 1, "msg": u'登录失败'})
 
         user = authenticate(request=request, **params)
-        if not user or user.is_anonymous():
+        if not user or user.is_anonymous:
             return Response({"rcode": 2, "msg": u'登录异常'})
 
         login(request, user)

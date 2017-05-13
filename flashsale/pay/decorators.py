@@ -41,7 +41,7 @@ def sale_buyer_required(view_func):
 
             else:
                 user = authenticate(request=request, handle_backends=[wxcon.WEIXIN_AUTHENTICATE_KEY])
-                if not user or user.is_anonymous():
+                if not user or user.is_anonymous:
                     return HttpResponseRedirect(reverse('flashsale_login'))
 
                 request.session[SESSION_KEY] = user.id
@@ -95,7 +95,7 @@ def weixin_xlmm_auth(redirecto=None):
                     return redirect(redirect_url)
 
             user = authenticate(request=request, handle_backends=[wxcon.WEIXIN_AUTHENTICATE_KEY])
-            if not user or user.is_anonymous():
+            if not user or user.is_anonymous:
                 return HttpResponseRedirect(redirect_url)
 
             auth_login(request, user)
@@ -143,7 +143,7 @@ def weixin_test_auth(redirecto=None):
 
             else:
                 user = authenticate(request=request, handle_backends=[wxcon.WEIXIN_AUTHENTICATE_KEY])
-                if not user or user.is_anonymous():
+                if not user or user.is_anonymous:
                     return HttpResponseRedirect(redirecto)
                 auth_login(request, user)
                 return view_func(request, *args, **kwargs)

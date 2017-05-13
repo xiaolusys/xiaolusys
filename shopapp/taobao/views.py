@@ -31,7 +31,7 @@ def login_taobao(request):
     if not user:
         return HttpResponseRedirect('/admin/')
 
-    if user.is_anonymous():
+    if user.is_anonymous:
         return HttpResponseRedirect(reverse('home_page'))
 
     request.session[SESSION_KEY] = user.id

@@ -1,4 +1,5 @@
 # -*- encoding:utf-8 -*-
+from __future__ import unicode_literals
 
 from django.db import models
 from django.db import transaction
@@ -24,32 +25,34 @@ class FlashSaleBackend(object):
     supports_inactive_user = False
     supports_object_permissions = False
 
-    def authenticate(self, request, **kwargs):
+    def authenticate(self, request, username, password, **kwargs):
 
-        if not request.path.endswith(reverse('flashsale_login')):
+        if not request.path.startswith('/rest'):
             return None
 
-        username = request.POST.get('username')
-        password = request.POST.get('password')
         if not username or not password:
-            messages.add_message(request, messages.ERROR, u'请输入用户名及密码')
             return AnonymousUser()
 
         try:
-            user = User.objects.get(username=username)
-            customer = Customer.objects.get(user=user)
-            if not customer.is_loginable():
-                messages.add_message(request, messages.ERROR, u'用户状态异常')
-                return AnonymousUser()
+            customers = Customer.objects.filter(mobile=username, status=Customer.NORMAL)
+            customer = None
+            if customers.count() > 1:
+                customer = customers.filter(user__username=username).first()
+
+            if not customer:
+                customer = customers.first()
+
+            if not customer:
+                return AnonymousUser
+
+            user = customer.user
             if not user.check_password(password):
-                messages.add_message(request, messages.ERROR, u'用户名或密码错误')
                 return AnonymousUser()
         except Customer.DoesNotExist:
-            messages.add_message(request, messages.ERROR, u'用户信息异常')
+            logger.error('the backend login user %s not exist'%username)
             return AnonymousUser()
 
         except User.DoesNotExist:
-            messages.add_message(request, messages.ERROR, u'用户名或密码错误')
             return AnonymousUser()
 
         return user
@@ -73,7 +76,7 @@ class WeixinPubBackend(object):
         except WeixinUnionID.DoesNotExist:
             return ''
 
-    def authenticate(self, request, authen_keys=[], **kwargs):
+    def authenticate(self, request, **kwargs):
         content = request.GET
         if (not request.path.startswith(("/mm/", "/rest/", "/sale/", "/m/"))
             or kwargs.get('username')

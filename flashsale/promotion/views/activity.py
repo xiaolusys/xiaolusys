@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 def get_customer(request):
     user = request.user
-    if not user or user.is_anonymous():
+    if not user or user.is_anonymous:
         return None
     try:
         customer = Customer.objects.get(user_id=request.user.id)

@@ -34,7 +34,7 @@ class XiaoluAdministratorViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
 
     @list_route(methods=['POST', 'GET'])
     def mama_join(self, request):
-        if not request.user.is_anonymous():
+        if not request.user.is_anonymous:
             xiaoumama = request.user.customer.getXiaolumm() if request.user.customer else None
         else:
             # 1. check whether event_id is valid
@@ -72,7 +72,7 @@ class XiaoluAdministratorViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
 
     @list_route(methods=['GET'])
     def mamawx_join(self, request):
-        if not request.user.is_anonymous():
+        if not request.user.is_anonymous:
             xiaoumama = request.user.customer.getXiaolumm() if request.user.customer else None
         else:
             # 1. check whether event_id is valid
@@ -300,7 +300,7 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
         group = GroupMamaAdministrator.objects.filter(group_uni_key=group_uni_key).first()
         if not group:
             raise exceptions.NotFound(u'此妈妈尚未加入微信群组')
-        if not request.user.is_anonymous():
+        if not request.user.is_anonymous:
             xiaoumama = request.user.customer.getXiaolumm() if request.user.customer else None
         else:
             raise exceptions.ValidationError(u'粉丝详情请从APP进入页面查看')

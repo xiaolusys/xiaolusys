@@ -53,7 +53,7 @@ class CustomShareViewSet(viewsets.ReadOnlyModelViewSet):
     def get_xlmm(self, request):
         if self._xlmm:
             return self._xlmm
-        if not request.user or request.user.is_anonymous():
+        if not request.user or request.user.is_anonymous:
             return None
         customer = Customer.objects.normal_customer.filter(user_id=request.user.id).first()
         if not customer or not customer.unionid.strip():

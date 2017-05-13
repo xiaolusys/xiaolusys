@@ -212,7 +212,7 @@ class NinePicViewSet(viewsets.GenericViewSet):
         except:
             q_hour = None
 
-        if not req.user.is_anonymous():
+        if not req.user.is_anonymous:
             customer = Customer.objects.filter(user=req.user).first()
             if customer:
                 mama = customer.get_xiaolumm()

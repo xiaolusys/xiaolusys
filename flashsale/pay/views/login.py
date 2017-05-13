@@ -32,7 +32,7 @@ def flashsale_login(request):
     else:
         req_params = request.POST
         user = authenticate(request=request, **req_params)
-        if not user or user.is_anonymous():
+        if not user or user.is_anonymous:
             defaults = {
                 "title": u'登录',
                 REDIRECT_FIELD_NAME: next_url
@@ -81,7 +81,7 @@ def weixin_auth_and_redirect(request):
         return HttpResponseRedirect(next_url)
 
     user = request.user
-    if not user or user.is_anonymous():
+    if not user or user.is_anonymous:
         return HttpResponseRedirect(next_url)
 
     if not code:

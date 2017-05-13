@@ -22,7 +22,7 @@ class ModelProductForm(forms.ModelForm):
         if shelf_status == ModelProduct.ON_SHELF and not (onshelf_time and offshelf_time):
             raise forms.ValidationError('请输入上下架时间')
 
-        if onshelf_time >= offshelf_time:
+        if shelf_status == ModelProduct.ON_SHELF and onshelf_time >= offshelf_time:
             raise forms.ValidationError('上架时间必须在下架时间之前')
 
 

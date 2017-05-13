@@ -250,7 +250,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         already_exist = Customer.objects.filter(mobile=mobile).exclude(status=Customer.DELETE)
         if not already_exist.exists():
             user = request.user
-            if not user or user.is_anonymous():
+            if not user or user.is_anonymous:
                 return Response({"result": "1"})  # 尚无用户或者手机未绑定
             already_exist = Customer.objects.filter(user=user).exclude(status=Customer.DELETE)
         customer = already_exist[0]
@@ -331,7 +331,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
                 username = customer.user.username
 
             user1 = authenticate(username=username, password=password)
-            if not user1 or user1.is_anonymous():
+            if not user1 or user1.is_anonymous:
                 return Response({"code": 2, "result": "p_error"})  # 密码错误
             login(request, user1)
 
@@ -403,7 +403,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
 
         req_params = request.data
         user1 = authenticate(request=request, **req_params)
-        if not user1 or user1.is_anonymous():
+        if not user1 or user1.is_anonymous:
             return Response({"code": 2, "is_login": False, "info": "invalid user"})
         login(request, user1)
 
@@ -447,7 +447,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             return Response({"code": 3, "info": "验证码有误"})
 
         user1 = authenticate(request=request, **req_params)
-        if not user1 or user1.is_anonymous():
+        if not user1 or user1.is_anonymous:
             return Response({"code": 1, "info": "登录验证失败"})
         login(request, user1)
 
@@ -493,7 +493,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def get_owner_queryset(self, request):
-        if request.user.is_anonymous():
+        if request.user.is_anonymous:
             return self.queryset.none()
         return self.queryset.filter(user=request.user)
 
