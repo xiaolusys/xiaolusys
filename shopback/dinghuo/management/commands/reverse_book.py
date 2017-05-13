@@ -45,6 +45,9 @@ def reverse_book(self, third_package=False):
     ol.save()
     self.sync_order_list()
 
+####这样处理之后,仓库那边要求改仓库地址,这样的话,我还需要不仅把packageorder的地址改了,还要把packageskuitem的地址改了.并且还要把packageskuitem的packageorderpid给设置为空,然后重新merge下分配包裹号.防止
+####合单跑到已经发的包裹里面去了
+
 class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
