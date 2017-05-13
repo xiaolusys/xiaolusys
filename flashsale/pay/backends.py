@@ -25,19 +25,19 @@ class FlashSaleBackend(object):
     supports_inactive_user = False
     supports_object_permissions = False
 
-    def authenticate(self, request, username, password, **kwargs):
+    def authenticate(self, request, mobile, password, **kwargs):
 
         if not request.path.startswith('/rest'):
             return None
 
-        if not username or not password:
+        if not mobile or not password:
             return AnonymousUser()
 
         try:
-            customers = Customer.objects.filter(mobile=username, status=Customer.NORMAL)
+            customers = Customer.objects.filter(mobile=mobile, status=Customer.NORMAL)
             customer = None
             if customers.count() > 1:
-                customer = customers.filter(user__username=username).first()
+                customer = customers.filter(user__username=mobile).first()
 
             if not customer:
                 customer = customers.first()
@@ -49,7 +49,7 @@ class FlashSaleBackend(object):
             if not user.check_password(password):
                 return AnonymousUser()
         except Customer.DoesNotExist:
-            logger.error('the backend login user %s not exist'%username)
+            logger.error('the backend login user %s not exist'%mobile)
             return AnonymousUser()
 
         except User.DoesNotExist:
