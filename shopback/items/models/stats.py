@@ -254,7 +254,7 @@ class SkuStock(models.Model):
             if attr == 'post_num':
                 params[attr] = PackageSkuItem.objects.filter(sku_id=self.sku_id,
                                                              type__in=[PSI_TYPE.NORMAL, PSI_TYPE.TIANMAO,
-                                                                       PSI_TYPE.BYHAND, PSI_TYPE.RETURN_GOODS],
+                                                                       PSI_TYPE.BYHAND],
                                                              pay_time__gt=SkuStock.PRODUCT_SKU_STATS_COMMIT_TIME,
                                                              assign_status=2).aggregate(total=Sum('num')).get(
                     'total') or 0
