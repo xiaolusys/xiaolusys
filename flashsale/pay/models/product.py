@@ -408,7 +408,7 @@ class ModelProduct(BaseTagModel):
 
     @property
     def attributes(self):
-        new_properties = self.extras.get('new_properties',{}).copy()
+        new_properties = self.extras.get('new_properties')
         if new_properties :
             new_properties.insert(0, {'name': u'商品编码', 'value':self.model_code})
             for props in new_properties:
