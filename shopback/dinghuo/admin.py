@@ -8,6 +8,7 @@ from django.core.urlresolvers import reverse
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
+from django.db import models
 
 from core.admin import BaseModelAdmin
 from core.options import log_action, CHANGE
@@ -39,6 +40,37 @@ class orderdetailInline(admin.TabularInline):
                 'arrival_quantity')
         return self.readonly_fields
 
+class StageFieldListFilter(admin.SimpleListFilter):
+    title = (u'数量非0')
+    parameter_name = 'stage'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('0', (u'草稿')),
+        )
+    def queryset(self, request, queryset):
+        from shopback.items.models import ProductSku
+        if self.value() == '0':
+            result = []
+            # alldetails = OrderDetail.objects.filter(orderlist_id=obj.id, buy_quantity__gt=0)
+            # quantityofoneorder = 0
+            # for detail in alldetails:
+            #     quantityofoneorder += detail.buy_quantity
+            order_detail = OrderDetail.objects.filter(id=-9999)
+            queryset = queryset.filter(stage=0)
+            for i in queryset:
+                alldetails = OrderDetail.objects.filter(orderlist_id=i.id, buy_quantity__gt=0)
+                quantityofoneorder = 0
+                not_assign_num = 0
+                for detail in alldetails:
+                    quantityofoneorder += detail.buy_quantity
+                    not_assign_num += ProductSku.objects.get(id=detail.chichu_id).not_assign_num
+                if quantityofoneorder != 0 and not_assign_num != 0:
+                    result.append(i.id)
+
+            print result
+            queryset = queryset.filter(id__in=result)
+            return queryset
 
 class OrderListAdmin(BaseModelAdmin):
     fieldsets = ((u'订单信息:', {
@@ -52,7 +84,7 @@ class OrderListAdmin(BaseModelAdmin):
         'id', 'batch_no', 'buyer_select', 'order_amount','quantity', 'created', 'press_num', 'stage', 'get_receive_status', 'is_postpay', 'changedetail', 'supplier', 'note_name',
         'purchase_order_unikey_link', 'shelf_status', 'remind_link')
     list_filter = (('created', DateFieldListFilter), 'stage', 'arrival_process', 'is_postpay', 'press_num',
-                   'pay_status', BuyerNameFilter, 'last_pay_date', 'created_by')
+                   'pay_status', BuyerNameFilter, StageFieldListFilter,'last_pay_date', 'created_by')
     search_fields = ['id', 'supplier__supplier_name', 'supplier_shop', 'note', 'purchase_order_unikey']
     date_hierarchy = 'created'
     readonly_fields = ['status']
