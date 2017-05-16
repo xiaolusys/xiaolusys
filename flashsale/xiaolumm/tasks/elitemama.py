@@ -16,9 +16,19 @@ logger = logging.getLogger(__name__)
 
 @app.task()
 def task_fresh_elitemama_active_status():
+    active_mama_ids = CouponTransferRecord.objects.values_list(
+        'coupon_to_mama_id', flat=True).distinct()
+
+    print 'elite mama total:', len(active_mama_ids)
+
+    for mama_id in active_mama_ids.iterator():
+        task_fresh_singal_elitemama_active_status.delay(mama_id)
+
+@app.task()
+def task_fresh_singal_elitemama_active_status(mama_id):
 
     base_qs = CouponTransferRecord.objects.filter(
-        # Q(coupon_from_mama_id=2219502)|Q(coupon_to_mama_id=2219502),
+        Q(coupon_from_mama_id=mama_id)|Q(coupon_to_mama_id=mama_id),
         transfer_status=CouponTransferRecord.DELIVERED,
         status=CouponTransferRecord.EFFECT,
     )
@@ -72,14 +82,12 @@ def task_fresh_elitemama_active_status():
             agg_dict['gift_amount_out'] = agg['record_amount']
         elite_mamas[agg['coupon_from_mama_id']].update(agg_dict)
 
-    print 'elite mama total:', len(elite_mamas)
-
-    min_join_records = CouponTransferRecord.objects.filter(date_field__isnull=False)\
+    min_join_records = CouponTransferRecord.objects.filter(coupon_from_mama_id=mama_id,date_field__isnull=False)\
         .values('coupon_from_mama_id').annotate(joined_date=Min('date_field'))\
         .values_list('coupon_from_mama_id','joined_date')
     mama_joined_date_maps = dict(min_join_records)
 
-    max_active_records = CouponTransferRecord.objects.filter(date_field__isnull=False) \
+    max_active_records = CouponTransferRecord.objects.filter(coupon_from_mama_id=mama_id, date_field__isnull=False) \
         .values('coupon_from_mama_id').annotate(last_active_time=Max('date_field')) \
         .values_list('coupon_from_mama_id', 'last_active_time')
     mama_active_date_maps = dict(max_active_records)

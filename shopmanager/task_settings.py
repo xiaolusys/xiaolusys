@@ -654,6 +654,11 @@ STATISTICS_ROUTES = {
         'queue': 'statistics',
         'routing_key': 'statistics.task_calculate_supplier_stats_data',
     },
+    'flashsale.xiaolumm.tasks.elitemama.task_fresh_singal_elitemama_active_status': {
+        'queue': 'statistics',
+        'routing_key': 'statistics.task_fresh_singal_elitemama_active_status',
+    },
+
 }
 
 LOGISTICS_ROUTES = {
@@ -1026,12 +1031,12 @@ SYNC_MODEL_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.updateProductWaitPostNumTask'}
     },
-    u'定时更新淘宝商品库存': {  # 更新库存
-        'task': 'shopback.items.tasks.updateAllUserItemNumTask',
-        'schedule': crontab(minute="0", hour="7"),  #
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.updateAllUserItemNumTask'}
-    },
+    # u'定时更新淘宝商品库存': {  # 更新库存
+    #     'task': 'shopback.items.tasks.updateAllUserItemNumTask',
+    #     'schedule': crontab(minute="0", hour="7"),  #
+    #     'args': (),
+    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.updateAllUserItemNumTask'}
+    # },
     u'定时下载更新小鹿特卖订单': {
         'task': 'flashsale.pay.tasks.pull_Paid_SaleTrade',
         'schedule': crontab(minute="30", hour="*/1"),
@@ -1041,7 +1046,7 @@ SYNC_MODEL_SCHEDULE = {
     },
     u'每小时更新精英妈妈活跃状态数据': {
         'task': 'flashsale.xiaolumm.tasks.elitemama.task_fresh_elitemama_active_status',
-        'schedule': crontab(minute="30", hour="*/1"),
+        'schedule': crontab(minute="30", hour="*/2"),
         'args': (),
         'kwargs': {},
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_fresh_elitemama_active_status'}
