@@ -317,7 +317,7 @@ class APIModelProductListSerializer(serializers.Serializer):
 
     # model product elite score
     def get_elite_score(self, obj):
-        return obj.sku_info[0]['elite_score']
+        return obj.sku_info and obj.sku_info[0]['elite_score'] or 0
 
 
 class APIMamaProductListSerializer(serializers.Serializer):

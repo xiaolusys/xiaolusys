@@ -63,6 +63,7 @@ class ModelProduct(object):
             else:
                 for color in colors:
                     pro = Product.objects.filter(model_id=self.id, name__contains=color).first()
+                    if not pro: continue
                     p = ProductCtl.retrieve(pro.id)
                     res[color] = p
             self._divide_products_ = res
