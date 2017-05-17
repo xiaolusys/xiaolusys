@@ -50,7 +50,7 @@ class SaleRefundTestCase(TestCase):
         self.assertEqual(refund['refund_num'], pdata['num'])
         self.assertNotEqual(refund['reason'],'')
         self.assertEqual(refund['desc'], pdata['description'])
-        self.assertEqual(refund['proof_pic'][0], pdata['proof_pic'])
+        self.assertEqual(len(refund['proof_pic']), 1)
         self.assertEqual(refund['status'], 7)
 
     def testCreateFastRefund(self):
@@ -72,7 +72,7 @@ class SaleRefundTestCase(TestCase):
         self.assertEqual(refund['refund_num'], pdata['num'])
         self.assertNotEqual(refund['reason'], '')
         self.assertEqual(refund['desc'], pdata['description'])
-        self.assertEqual(refund['proof_pic'][0], pdata['proof_pic'])
+        self.assertEqual(len(refund['proof_pic']), 1)
         self.assertEqual(refund['refund_channel'], pdata['refund_channel'])
         self.assertEqual(refund['status'], 7)
 
