@@ -273,8 +273,8 @@ ALIAPY_APPID     = '2016012701123211'
 ALIPAY_GATEWAY_URL = 'https://openapi.alipay.com/gateway.do'
 ALIPAY_NOTIFY_URL = 'http://i.xiaolumm.com/rest/notify/alipay/'
 
-ALIPAY_RSA_PRIVATE_KEY_PATH = '/data/certs/alipay/rsa_private_key.pem'
-ALIPAY_RSA_PUBLIC_KEY_PATH = '/data/certs/alipay/rsa_public_key_ali.pem'
+ALIPAY_RSA_PRIVATE_KEY_PATH = '/data/certs/alipay_key.pem'
+ALIPAY_RSA_PUBLIC_KEY_PATH = '/data/certs/alipay.pem'
 
 #################### TAOBAO SETTINGS ###################
 APPKEY = '21532915'   #app name super ERP test ,younixiaoxiao
@@ -318,8 +318,8 @@ SECURE_REQUIRED_PATHS = (
 )
 
 # ================ 微信支付 ======================
-WX_PUB_KEY_PEM_PATH = '/data/certs/wx_pub/apiclient_key.pem'
-WX_PUB_CERT_PEM_PATH = '/data/certs/wx_pub/apiclient_cert.pem'
+WX_PUB_KEY_PEM_PATH = '/data/certs/wxpub_key.pem'
+WX_PUB_CERT_PEM_PATH = '/data/certs/wxpub.pem'
 
 ################### WEIXIN SETTINGS ##################
 WEIXIN_API_HOST = "https://api.weixin.qq.com"
@@ -334,8 +334,8 @@ WEAPP_SECRET = '1246301cdb41c6336d82a12600189283'
 WEAPP_MCHID = "1410583302" #受理商ID，身份标识
 WEAPP_KEY   = "t5UXHfwR7QEv2jMLFuZm8DdqnAT0ON9a" #支付密钥
 
-WEAPP_CERT_PEM_PATH = '/data/certs/weapp/apiclient_cert.pem'
-WEAPP_KEY_PEM_PATH  = '/data/certs/weapp/apiclient_key.pem'
+WEAPP_CERT_PEM_PATH = '/data/certs/weapp_key.pem'
+WEAPP_KEY_PEM_PATH  = '/data/certs/weapp.pem'
 
 ################### Ntalker SETTINGS ##################
 NTALKER_NOTIFY_URL = 'http://wx.ntalker.com/agent/weixin'
