@@ -1,6 +1,8 @@
 # coding=utf-8
 import datetime
 import logging
+from urlparse import urlparse
+from django.conf import settings
 from core.options import log_action, ADDITION, CHANGE
 from rest_framework import exceptions
 from common.modelutils import update_model_fields
@@ -91,7 +93,11 @@ def refund_Handler(request):
                 return {"code": 11, "info": "订单正在操作中，请稍后退款", "apply_fee": 0}
         pfcl = []
         if proof_pic != "":
-            pfcl = proof_pic.split(',')
+            pics = proof_pic.split(',')
+            for pic in pics:
+                url_ps = urlparse(pic)
+                pfcl.append('http://%s%s' % (settings.QINIU_PUBLIC_DOMAIN, url_ps.path))
+
         proof_p = pfcl
         if order.status == SaleOrder.WAIT_SELLER_SEND_GOODS:  # 已经付款
             good_status = SaleRefund.BUYER_NOT_RECEIVED

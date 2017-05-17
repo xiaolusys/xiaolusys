@@ -139,7 +139,7 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
     def qiniu_token(self, request, **kwargs):
         q = Auth(settings.QINIU_ACCESS_KEY, settings.QINIU_SECRET_KEY)
         token = q.upload_token(settings.QINIU_PUBLIC_BUCKET, expires=3600)
-        return Response({'uptoken': token})
+        return Response({'uptoken': token, 'updomain': 'http://%s'%settings.QINIU_PUBLIC_DOMAIN})
 
 
 class UserAddressViewSet(viewsets.ModelViewSet):
