@@ -1267,6 +1267,13 @@ class PackageSkuItem(BaseModel):
     def sku_stock(self):
         return SkuStock.get_by_sku(self.sku_id)
 
+    def get_supplier_ifdirect_and_vendor_code(self):
+        p_sku = ProductSku.objects.get(id=self.sku_id)
+        sale_supplier = p_sku.product.get_supplier()
+        if sale_supplier and sale_supplier.is_vendor_to_customer():
+            return (True, sale_supplier.vendor_code)
+        return (False, sale_supplier.vendor_code)
+
     def gen_arrangement(self):
         from shopback.dinghuo.models_purchase import PurchaseArrangement
         return PurchaseArrangement.create(self)
@@ -1367,16 +1374,11 @@ class PackageSkuItem(BaseModel):
                 self.status = PSI_STATUS.MERGED
                 self.merge_time = datetime.datetime.now()
                 # 获取sku对应供应商的 存货模式及直发供应商编码
-                p_sku = ProductSku.objects.get(id=self.sku_id)
-                sale_supplier = p_sku.product.get_supplier()
-                direct_vendor_code = ''
-                if sale_supplier and sale_supplier.is_vendor_to_customer():
-                    direct_vendor_code = sale_supplier.vendor_code
-
+                vendor_to_customer , vendor_code = self.get_supplier_ifdirect_and_vendor_code()
                 package_order_id = PackageOrder.gen_new_package_id(self.sale_trade.buyer_id,
                                                                    self.sale_trade.user_address_id,
                                                                    self.ware_by,
-                                                                   direct_vendor_code=direct_vendor_code)
+                                                                   direct_vendor_code=vendor_to_customer and vendor_code or '')
                 po = PackageOrder.objects.filter(id=package_order_id).first()
                 if po:
                     if po.sys_status == PackageOrder.PKG_NEW_CREATED:
@@ -1454,9 +1456,12 @@ class PackageSkuItem(BaseModel):
             return_user_id = self.get_return_user_id()
             supplier_nick  = self.get_supplier_nick()
             return_user_id = return_user_id
+
+            vendor_to_customer, vendor_code = self.get_supplier_ifdirect_and_vendor_code()
             package_order_id = PackageOrder.gen_new_package_id(return_user_id,
                                                                return_addr_id,
-                                                               self.product_sku.ware_by)
+                                                               self.product_sku.ware_by,
+                                                               direct_vendor_code=vendor_to_customer and vendor_code or '')
             po = PackageOrder.objects.filter(id=package_order_id).first()
             if po:
                 if po.sys_status == PackageOrder.PKG_NEW_CREATED:
@@ -1683,8 +1688,13 @@ class PackageSkuItem(BaseModel):
         sale_trade = self.sale_trade
         if not (sale_trade.buyer_id and sale_trade.user_address_id and self.product_sku.ware_by):
             raise Exception('packagize_sku_item error: sale_trade loss some info:' + str(sale_trade.id))
-        package_order_id = PackageOrder.gen_new_package_id(sale_trade.buyer_id, sale_trade.user_address_id,
-                                                           self.product_sku.ware_by, merge)
+
+        vendor_to_customer, vendor_code = self.get_supplier_ifdirect_and_vendor_code()
+        package_order_id = PackageOrder.gen_new_package_id(sale_trade.buyer_id,
+                                                           sale_trade.user_address_id,
+                                                           self.product_sku.ware_by,
+                                                           direct_vendor_code=vendor_to_customer and vendor_code or '',
+                                                           merge=merge)
         package_order = PackageOrder.objects.filter(id=package_order_id).first()
         if not package_order:
             package_order = PackageOrder.create(package_order_id, sale_trade, self)

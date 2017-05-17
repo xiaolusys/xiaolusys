@@ -25,9 +25,9 @@ import logging
 
 logger = logging.getLogger('celery.handler')
 LOGISTIC_DIR = 'logistic'
-ORDER_DIR    = 'order'
-REPORT_DIR   = 'report'
-FINANCE_DIR  = 'finance'
+ORDER_DIR = 'order'
+REPORT_DIR = 'report'
+FINANCE_DIR = 'finance'
 
 
 class SubTradePostException(Exception):
@@ -917,7 +917,8 @@ def task_packageskuitem_update_productskusalestats_num(sku_id, pay_time):
     if (sale_stat.sale_start_time and pay_time < sale_stat.sale_start_time) \
             or (sale_stat.sale_end_time and pay_time > sale_stat.sale_end_time):
         return
-    assign_num_res = PackageSkuItem.objects.filter(sku_id=sku_id, type=PSI_TYPE.NORMAL, pay_time__gte=sale_stat.sale_start_time,
+    assign_num_res = PackageSkuItem.objects.filter(sku_id=sku_id, type=PSI_TYPE.NORMAL,
+                                                   pay_time__gte=sale_stat.sale_start_time,
                                                    pay_time__lte=sale_stat.sale_end_time). \
         values('assign_status').annotate(total=Sum('num'))
     total = sum([line['total'] for line in assign_num_res if line['assign_status'] != 3])
@@ -936,7 +937,6 @@ def task_update_package_stat_num(stat_id):
         PackageStat(id=stat_id, num=1).save()
 
 
-
 @app.task()
 def task_set_sale_order(instance):
     instance.set_sale_order_id()
@@ -950,8 +950,13 @@ def task_update_package_order(skuitem_id):
     if not (sale_trade.buyer_id and sale_trade.user_address_id and instance.product_sku.ware_by):
         logger.error('packagize_sku_item error: sale_trade loss some info:' + str(sale_trade.id))
         return
-    package_order_id = PackageOrder.gen_new_package_id(sale_trade.buyer_id, sale_trade.user_address_id,
-                                                       instance.product_sku.ware_by)
+    vendor_to_customer, vendor_code = instance.get_supplier_ifdirect_and_vendor_code()
+    package_order_id = PackageOrder.gen_new_package_id(
+        sale_trade.buyer_id,
+        sale_trade.user_address_id,
+        instance.product_sku.ware_by,
+        direct_vendor_code=vendor_to_customer and vendor_code or ''
+    )
     if instance.assign_status == PackageSkuItem.ASSIGNED:
         if not instance.package_order_id:
             package_order = PackageOrder.objects.filter(id=package_order_id).first()
@@ -1075,7 +1080,8 @@ def task_saleorder_check_packageskuitem():
             if so.is_teambuy() and not so.teambuy_can_send():
                 teambuy_count += 1
                 continue
-            psi = PackageSkuItem.objects.filter(oid=so.oid).exclude(assign_status=PackageSkuItem.CANCELED, type=0).first()
+            psi = PackageSkuItem.objects.filter(oid=so.oid).exclude(assign_status=PackageSkuItem.CANCELED,
+                                                                    type=0).first()
             if not psi:
                 so.save()
         target_num = sos.count() - deposit_count - teambuy_count
