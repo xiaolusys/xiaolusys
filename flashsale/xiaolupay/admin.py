@@ -6,6 +6,8 @@ from .models.charge import ChargeOrder, Credential
 from .models.refund import RefundOrder
 from .models.weixin_red_envelope import WeixinRedEnvelope
 from .models.weixin_transfers import WeixinTransfers
+from .models.transfer import TransferOrder
+
 
 @admin.register(ChargeOrder)
 class ChargeOrderAdmin(admin.ModelAdmin):
@@ -52,6 +54,16 @@ class WeixinTransfersAdmin(admin.ModelAdmin):
     search_fields = ['=mch_billno', '=payment_no']
 
     readonly_fields = ['payment_no']
+
+
+@admin.register(TransferOrder)
+class TransferOrderAdmin(admin.ModelAdmin):
+    list_display = ('id', 'order_code', 'channel', 'mch_id', 'amount', 'return_code', 'return_msg', 'status', 'order_time')
+    ordering = ['-id']
+    list_filter = ['order_time']
+    search_fields = ['=order_code', '=tran_code']
+
+    readonly_fields = ['tran_code', 'extras']
 
 
 

@@ -6,6 +6,7 @@ from django.db import models
 from django.db import transaction, IntegrityError
 from core.models import BaseModel
 from core.fields import JSONCharMyField
+from .. import conf
 from signals import signal_charge_success, create_signal_message
 
 class ChargeOrder(BaseModel):
@@ -15,21 +16,14 @@ class ChargeOrder(BaseModel):
         (CNY, u'人民币'),
     )
 
-    WX = 'wx'
-    WEAPP = 'weapp'
-    ALIPAY = 'alipay'
-    WX_PUB = 'wx_pub'
-    ALIPAY_WAP = 'alipay_wap'
-    UPMP_WAP = 'upmp_wap'
+    WX =  conf.WX
+    WEAPP = conf.WEAPP
+    ALIPAY = conf.ALIPAY
+    WX_PUB = conf.WX_PUB
+    ALIPAY_WAP = conf.ALIPAY_WAP
+    UPMP_WAP = conf.UPMP_WAP
 
-    CHANNEL_CHOICES = (
-        (WX, u'微信支付'),
-        (WEAPP, u'小程序支付'),
-        (ALIPAY, u'支付宝支付'),
-        (WX_PUB, u'公众号支付'),
-        (ALIPAY_WAP, u'支付宝网页支付'),
-        (UPMP_WAP, u'银联支付'),
-    )
+    CHANNEL_CHOICES = conf.CHANNEL_CHOICES
 
     order_no = models.CharField(max_length=64, unique=True, verbose_name=u'商家订单号')
     channel  = models.CharField(max_length=16, choices=CHANNEL_CHOICES, verbose_name=u'支付渠道')

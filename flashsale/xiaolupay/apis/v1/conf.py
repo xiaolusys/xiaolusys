@@ -1,7 +1,7 @@
 # coding: utf8
 from __future__ import absolute_import, unicode_literals
 
-class UnionPayConf(object):
+class UnionPayConf:
 
     CLIENT_IP = '118.178.116.5'
 

@@ -154,6 +154,12 @@ ALIAPY_APPID     = '2016012701123211'
 ALIPAY_GATEWAY_URL = 'https://openapi.alipay.com/gateway.do'
 ALIPAY_NOTIFY_URL = 'http://warden.xiaolumm.com/rest/notify/alipay/'
 
+################### SANDPAY SETTINGS ##################
+SANDPAY_API_GETWAY           = "http://61.129.71.103:7970/agent-main/openapi"
+SANDPAY_RSA_KEY_PATH         = '/data/certs/sandpay_key.pem'
+SANDPAY_RSA_CERT_PATH        = "/data/certs/sandpay.pem"
+SANDPAY_AGENT_PAY_NOTICE_URL = ""
+
 ######################## 小米推送 CONFIG ########################
 IOS_APP_SECRET = ''
 ANDROID_APP_SECRET = ''

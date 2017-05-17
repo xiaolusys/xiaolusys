@@ -129,7 +129,6 @@ class ReturnGoods(models.Model):
                         product.detail_skus = []
                     product.detail_skus.append(sku)
                     break
-                    continue
         for product in products:
             product.detail_sku_ids = [sku.id for sku in product.detail_skus]
             product.detail_length = len(product.detail_sku_ids)

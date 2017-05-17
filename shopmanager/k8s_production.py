@@ -161,6 +161,12 @@ ALIPAY_NOTIFY_URL = 'http://api.xiaolumeimei.com/rest/notify/alipay/'
 ALIPAY_RSA_PUBLIC_KEY_PATH = '/data/certs/alipay.pem'
 ALIPAY_RSA_PRIVATE_KEY_PATH = '/data/certs/alipay_key.pem'
 
+################### SANDPAY SETTINGS ##################
+SANDPAY_API_GETWAY           = "https://caspay.sandpay.com.cn/agent-main/openapi/"
+SANDPAY_RSA_KEY_PATH         = '/data/certs/sandpay_key.pem'
+SANDPAY_RSA_CERT_PATH        = "/data/certs/sandpay.pem"
+SANDPAY_AGENT_PAY_NOTICE_URL = ""
+
 ######################## 小米推送 CONFIG ########################
 IOS_APP_SECRET = 'UN+ohC2HYHUlDECbvVKefA=='
 ANDROID_APP_SECRET = 'WHdmdNYgnXWokStntg87sg=='

@@ -149,7 +149,7 @@ class PurchaseAdmin(admin.ModelAdmin):
             for purchase_item in purchase.effect_purchase_items:
                 product_id = purchase_item.product_id
                 sku_id = purchase_item.sku_id
-                prod = Product.objects.get(outer_id=outer_id)
+                prod = Product.objects.get(id=product_id)
                 if sku_id:
                     prod_sku = ProductSku.objects.get(id=sku_id, product=prod)
                     prod_sku.cost = purchase_item.cost

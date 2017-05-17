@@ -6,7 +6,6 @@ from shopback.categorys.models import ProductCategory
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework import permissions
 from rest_framework.response import Response
-from flashsale.signals import signal_kefu_operate_record
 from .tasks import task_record_kefu_performance
 from flashsale.kefu.models import KefuPerformance
 import datetime

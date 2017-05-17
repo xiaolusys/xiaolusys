@@ -835,7 +835,6 @@ def getTradeSortedItems(order_qs, is_sale=False):
                 'sales': payment,
                 'sale_charger': prod and prod.sale_charger or '',
                 'storage_charger': prod and prod.storage_charger or '',
-                'sales': payment,
                 'skus': {outer_sku_id: {
                     'sku_name': prod_sku_name,
                     'num': order_num,

@@ -226,6 +226,7 @@ class Envelop(PayBaseModel):
             trade_id = envelope_unikey
 
             try:
+                # 此处使用微信转账, 也可以使用sandpay的实时待付功能 eg: xiaolupay.apis.v1.transfer
                 success = transfers.transfer(self.recipient, name, flow_amount, desc, trade_id)
                 if success:
                     self.status = Envelop.CONFIRM_SEND

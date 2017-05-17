@@ -12,3 +12,5 @@ signal_refund_success = Signal(providing_args=['message'])
 signal_red_envelop_sent = Signal(providing_args=['message'])
 
 signal_red_envelope_received = Signal(providing_args=['message'])
+
+signal_card_transfer = Signal(providing_args=['message'])

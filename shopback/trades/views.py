@@ -531,7 +531,7 @@ class StatisticMergeOrderAsyncView(APIView):
 
 from django.forms.models import model_to_dict
 from shopback.trades.service import TradeService
-from flashsale.signals import signal_kefu_operate_record
+from signals.kefu import signal_kefu_operate_record
 from flashsale.kefu.models import KefuPerformance
 
 
