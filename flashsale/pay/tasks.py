@@ -1098,7 +1098,7 @@ def task_schedule_check_boutique_modelproduct(days=1):
                     not (mp.extras.has_key('sources') and mp.extras['sources']['source_type'] == 3)):
                 right = False
         if not right:
-            wrong_product.append(mp.detail_content['name'])
+            wrong_product.append(mp.detail_content['name'] + str(mp.id))
 
     # 反向检查，有些商品忘记或错误设置了精品汇标志
     for product_id in product_ids:
@@ -1130,7 +1130,7 @@ def task_schedule_check_boutique_modelproduct(days=1):
                     mp.extras['payinfo']['coupon_template_ids']) > 0):
                 right = False
         if not right:
-            non_boutiques.append(mp.detail_content['name'])
+            non_boutiques.append(mp.detail_content['name']+str(mp.id))
 
     # 再检查精品汇的券字段配置对不对
     coupon_queryset = get_virtual_modelproducts()
@@ -1151,7 +1151,7 @@ def task_schedule_check_boutique_modelproduct(days=1):
                     mp.extras['saleinfos']['is_coupon_deny'] == True):
                 right = False
         if (not right) and (mp.id != 25115) and (mp.id != 25339):
-            wrong_coupons.append(mp.detail_content['name'])
+            wrong_coupons.append(mp.detail_content['name']+str(mp.id))
 
     onshelf_products = []
     onshelf_time = datetime.datetime.now()
@@ -1159,14 +1159,14 @@ def task_schedule_check_boutique_modelproduct(days=1):
     onshelf_mps = get_onshelf_modelproducts()
     for mp in onshelf_mps:
         if not mp.onshelf_time:
-            onshelf_products.append(mp.detail_content['name'])
+            onshelf_products.append(mp.detail_content['name']+str(mp.id))
             mp.onshelf_time = onshelf_time
             if not mp.offshelf_time:
                 mp.offshelf_time = offshelf_time
             mp.save(update_fields=['onshelf_time', 'offshelf_time'])
         for one_product in mp.products:
             if not one_product.upshelf_time:
-                onshelf_products.append(mp.detail_content['name'])
+                onshelf_products.append(mp.detail_content['name']+str(mp.id))
                 one_product.upshelf_time = onshelf_time
                 if not one_product.offshelf_time:
                     one_product.offshelf_time = offshelf_time
