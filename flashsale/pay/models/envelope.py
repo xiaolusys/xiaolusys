@@ -67,6 +67,8 @@ class Envelop(PayBaseModel):
 
     VALID_SEND_STATUS = (SENDING, SENT, RECEIVED)
 
+    customer_id = models.IntegerField(default=0, db_index=True, verbose_name='接收客户ID',
+                                      help_text='之前数据可能为0, 2017.5.18添加')
     envelop_id = models.CharField(max_length=28, blank=True, db_index=True, verbose_name=u'红包ID')
 
     amount = models.IntegerField(default=0, verbose_name=u'红包金额')

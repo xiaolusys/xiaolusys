@@ -478,7 +478,8 @@ class UserBudget(PayBaseModel):
                     body=name,
                     receiver=self.user.mobile,
                     description=description,
-                    referal_id=budget_log.id
+                    referal_id=budget_log.id,
+                    customer_id=self.user.id,
                 )
             else:
                 envelop = Envelop.objects.create(
@@ -489,7 +490,8 @@ class UserBudget(PayBaseModel):
                     body=body,
                     receiver=self.user.mobile,
                     description=description,
-                    referal_id=budget_log.id
+                    referal_id=budget_log.id,
+                    customer_id=self.user.id,
                 )
             budget_log.referal_id = envelop.id
             budget_log.save()

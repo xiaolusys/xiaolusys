@@ -661,7 +661,7 @@ get_mama_created.short_description = '小鹿妈妈创建时间'
 
 class EnvelopAdmin(admin.ModelAdmin):
     list_display = (
-        'id', 'receiver', get_mama_id, get_customer_id, 'get_amount_display', 'platform', 'subject',
+        'id', 'receiver', get_mama_id, 'customer_id', 'get_amount_display', 'platform', 'subject',
         'send_time', 'created', 'send_status', 'status', 'description',
         get_mama_created
     )
