@@ -17,13 +17,16 @@ from rest_framework.response import Response
 from flashsale.restpro import permissions as perms
 from flashsale.pay.models import Customer, BankAccount
 from .. import serializers
+from flashsale.pay import constants
 from core.ocr import bankcard
 
 
 class BankAccountViewset(viewsets.ModelViewSet):
     """
     ## 用户银行卡API:
+    > ## 获取支持银行卡类型参数列表 GET: [/rest/v2/bankcards/preferances](/rest/v2/bankcards/preferances):
     > ## 银行卡列表 GET: [/rest/v2/bankcards](/rest/v2/bankcards):
+    > ## 创建银行卡 POST: /rest/v2/bankcards:
     > ## 设置默认银行卡 POST: /rest/v2/bankcards/[cardid]/set_default:
     > ## 获取默认银行卡 GET: /rest/v2/bankcards/get_default:
     > ## 删除银行卡 POST: /rest/v2/bankcards/[cardid]/delete:
@@ -34,6 +37,22 @@ class BankAccountViewset(viewsets.ModelViewSet):
 
     def get_userbanks(self, request):
         return self.queryset.filter(user=request.user)
+
+    @list_route(methods=['get'])
+    def preferances(self, request, *args, **kwargs):
+        bank_list = constants.BANK_LIST
+        return Response({'banks': bank_list})
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_userbanks(request)
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         data = request.data.copy()

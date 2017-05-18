@@ -63,3 +63,12 @@ IS_USERBUDGET_COULD_CASHOUT = 1  # 等于１的时候允许提现
 
 CHILD_CID_LIST = [12, 13, 14, 15, 16, 17, 23, 25, 26]
 FEMALE_CID_LIST = [18, 19, 20, 21, 22, 24, 27]
+
+BANK_LIST = [
+    {'bank_name': '中国银行', 'bank_img': 'http://img.nidepuzi.com/banks/bank_zgyh.png'},
+    {'bank_name': '中国工商银行', 'bank_img': 'http://img.nidepuzi.com/banks/bank_gsyh.png'},
+    {'bank_name': '中国建设银行', 'bank_img': 'http://img.nidepuzi.com/banks/bank_jsyh.png'},
+    {'bank_name': '中国农业银行', 'bank_img': 'http://img.nidepuzi.com/banks/bank_nyyh.png'},
+    {'bank_name': '招商银行', 'bank_img': 'http://img.nidepuzi.com/banks/bank_zsyh.png'},
+    {'bank_name': '交通银行', 'bank_img': 'http://img.nidepuzi.com/banks/bank_jtyh.png'},
+]
