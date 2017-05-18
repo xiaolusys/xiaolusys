@@ -306,7 +306,7 @@ class ModelProductFilter(filters.FilterSet):
 
 class ProductManageV2ViewSet(viewsets.ModelViewSet):
     """
-    ### 款式及产品接口
+    ### 款式及产品接口  -----！！！！！废弃，移到pay modelproduct模块！！！！！！！
     - [/apis/items/v2/product](/apis/items/v2/product)
         * method: POST  新增款式
         * args:
