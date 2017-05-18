@@ -192,6 +192,12 @@ WEAPP_KEY   = "t5UXHfwR7QEv2jMLFuZm8DdqnAT0ON9a" #支付密钥
 WEAPP_CERT_PEM_PATH = '/data/certs/weapp/apiclient_cert.pem'
 WEAPP_KEY_PEM_PATH  = '/data/certs/weapp/apiclient_key.pem'
 
+################### SANDPAY SETTINGS ##################
+SANDPAY_API_GETWAY           = "http://61.129.71.103:7970/agent-main/openapi"
+SANDPAY_RSA_KEY_PATH         = '/data/certs/sandpay_key.pem'
+SANDPAY_RSA_CERT_PATH        = "/data/certs/sandpay.pem"
+SANDPAY_AGENT_PAY_NOTICE_URL = ""
+
 ################### PING++ SETTINGS ##################
 PINGPP_APPID           = "app_qPCaj95Serj5PKOq"
 PINGPP_APPKEY          = "sk_test_8y58u9zbPWTKTGGa1GrTi1mT" #TEST KEY

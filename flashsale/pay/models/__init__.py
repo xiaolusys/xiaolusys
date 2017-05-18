@@ -1,7 +1,7 @@
 from .address import UserAddress, District, UserAddressChange, DistrictVersion
 from .brand import ProductBrand
 from .coupon import CouponTemplate, UserCoupon, CouponsPool, default_coupon_no
-from .envelope import Envelop
+from .envelope import Envelop, BankAccount
 from .external import TradeCharge
 from .faq import SaleFaq, FaqMainCategory, FaqsDetailCategory
 from .poster import GoodShelf, default_chd_poster, default_wen_poster

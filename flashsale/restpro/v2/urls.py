@@ -18,7 +18,8 @@ from flashsale.restpro.v2.views import (
     xiaolucoin,
     fandian,
     mmcarry,
-    elite_score
+    elite_score,
+    bankcard,
 )
 
 v2_router = routers.DefaultRouter(trailing_slash=False)
@@ -46,7 +47,7 @@ v2_router.register(r'qrcode', views.QRcodeViewSet)
 v2_router.register(r'ocr', ocr.OcrIndentifyViewSet, 'ocr')
 v2_router.register(r'exchgorder', views.CouponExchgOrderViewSet)
 v2_router.register(r'poster', views.PosterViewSet)
-
+v2_router.register(r'bankcards', bankcard.BankAccountViewset)
 
 v2_router.register(r'usercoupons', views_coupon_new.UserCouponsViewSet)
 v2_router.register(r'usercoupon', usercoupon.UserCouponsViewSet)

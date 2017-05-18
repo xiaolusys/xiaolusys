@@ -40,13 +40,14 @@ from .models import (
     SaleFaq,
     CuShopPros,
     CustomerShops,
-    Envelop,
+    Envelop, BankAccount,
     Integral,
     IntegralLog,
     TeamBuy,
     ADManager,
     UserSearchHistory,
     ModelProduct, ProductBrand,
+
 )
 
 import cStringIO as StringIO
@@ -1018,4 +1019,10 @@ class UserSearchHistoryAdmin(admin.ModelAdmin):
     list_filter = ('status', 'target')
 
 admin.site.register(UserSearchHistory, UserSearchHistoryAdmin)
+
+@admin.register(BankAccount)
+class BankAccountAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'account_no', 'account_name', 'bank_name', 'default', 'status', 'created', 'modified')
+    list_filter = ('created', 'status')
+    search_fields = ['=user', '=account_no']
 

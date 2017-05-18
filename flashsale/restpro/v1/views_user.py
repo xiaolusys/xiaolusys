@@ -32,8 +32,9 @@ from core.options import log_action, ADDITION, CHANGE, get_systemoa_user
 from core.weixin.options import gen_weixin_redirect_url
 from core.weixin.options import gen_wxlogin_sha1_sign
 from core.utils.httputils import get_client_ip
+from core.ocr import bankcard
 from django.db.models import Q
-from flashsale.pay.models import Register, Customer, Integral, BudgetLog, UserBudget
+from flashsale.pay.models import Register, Customer, Integral, BudgetLog, UserBudget, Envelop, BankAccount
 from shopapp.smsmgr.tasks import task_register_code
 from flashsale.restpro import permissions as perms
 from . import serializers
@@ -867,9 +868,9 @@ class CustomerViewSet(viewsets.ModelViewSet):
         POST /rest/v1/users/budget_cash_out
         参数：
         - cashout_amount  必填，提现金额（单位：元）
-        - channel  选填，可选项（wx：提现请求来源于微信公众号, wx_transfer: 使用微信企业转账）
+        - channel  选填，可选项（wx：提现请求来源于微信公众号, wx_transfer: 使用微信企业转账, sandpay: 银行卡转账）
         - name 收款人姓名(必须和微信绑定的银行卡姓名一致)(当channel是wx_transfer时必填.其他选填.)
-
+        - card_id 当channel 为sandpay　时必须传入, 可通过 /rest/v2/bankcards/get_default 获取默认转账银行卡ID
         返回：
         {'code': xx, 'message': xxx, 'qrcode': xxx}
         - 返回`code`:
@@ -887,7 +888,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
         channel = content.get('channel', None)
         name = content.get('name', None)
         verify_code = content.get('verify_code', None)
-        default_return = collections.defaultdict(code=0, message='', qrcode='')
+        card_id   = content.get('card_id', None)
 
         if not cashout_amount:
             return Response({'code': 3, 'message': '参数错误', 'qrcode': ''})
@@ -897,10 +898,24 @@ class CustomerViewSet(viewsets.ModelViewSet):
             info = u'你的帐号已被冻结，请联系管理员！'
             return Response({"code": 10, "message": info, "info": info})
 
+        # TODO 校验是否属于当前用户
+        if channel == Envelop.SANDPAY and not card_id:
+            info = u'请选择需要转账的银行卡！'
+            return Response({"code": 20, "message": info, "info": info})
+
+        if channel == Envelop.SANDPAY:
+            bank_card = BankAccount.objects.filter(user=request.user, id=card_id).first()
+            if not bank_card:
+                info = u'非法的银行卡ID！'
+                logger.error('%s: account_id=%s, user_id=%s' % (info, card_id, request.user.id))
+                return Response({"code": 20, "message": info, "info": info})
+
         budget = get_object_or_404(UserBudget, user=customer)
         amount = int(decimal.Decimal(cashout_amount) * 100)  # 以分为单位(提现金额乘以100取整)
 
-        code, info = budget.action_budget_cashout(amount, verify_code=verify_code, channel=channel, name=name)
+        code, info = budget.action_budget_cashout(
+            amount, verify_code=verify_code, channel=channel, name=name, card_id=card_id)
+
         qrcode = ''
         return Response({'code': code, "message": info, "info": info, "qrcode": qrcode})
 

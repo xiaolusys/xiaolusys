@@ -400,7 +400,7 @@ class UserBudget(PayBaseModel):
         """ 设置普通用户钱包是否可以提现控制字段 """
         return constants.IS_USERBUDGET_COULD_CASHOUT
 
-    def action_budget_cashout(self, cash_out_amount, verify_code=None, channel=None, name=None):
+    def action_budget_cashout(self, cash_out_amount, verify_code=None, channel=None, name=None, card_id=None):
         """
         用户钱包提现
         cash_out_amount　整型　以分为单位
@@ -456,18 +456,23 @@ class UserBudget(PayBaseModel):
         if bl:
             return 7, '您两次提交间隔太短，稍等下再试哦！'
 
-        with transaction.atomic():
-            if channel == 'wx_transfer' and (not name):
-                return 101, '请填写真实姓名'
+        if channel == 'wx_transfer' and (not name):
+            return 101, '请填写真实姓名'
 
+        with transaction.atomic():
             # 创建钱包提现记录
-            budget_log = BudgetLog.create(customer_id, BudgetLog.BUDGET_OUT, cash_out_amount, BudgetLog.BG_CASHOUT,
+            budget_log = BudgetLog.create(customer_id, BudgetLog.BUDGET_OUT,
+                                          cash_out_amount, BudgetLog.BG_CASHOUT,
                                           status=BudgetLog.PENDING, uni_key=uni_key)
 
-            if channel == 'wx_transfer':
+            # TODO@meron后面如果要改公众号转账, 则platform需要修改
+            if channel in ('wx_transfer', Envelop.SANDPAY):
+                platform = channel == Envelop.SANDPAY and Envelop.SANDPAY or Envelop.WX_TRANSFER
+                if channel == Envelop.SANDPAY :
+                    recipient = card_id
                 envelop = Envelop.objects.create(
                     amount=cash_out_amount,
-                    platform=Envelop.WX_TRANSFER,
+                    platform=platform,
                     recipient=recipient,
                     subject=Envelop.XLAPP_CASHOUT,
                     body=name,

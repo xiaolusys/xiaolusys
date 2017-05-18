@@ -11,14 +11,16 @@ class IsOwnerOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         # Write permissions are only allowed to the owner of the snippet.
         obj_class_name = obj.__class__.__name__
-        if obj_class_name in ('SaleTrade', 'SaleRefund', 'ShoppingCart'):
+        if obj_class_name in ('Customer',):
+            buyer_id = obj.id
+        elif obj_class_name in ('SaleTrade', 'SaleRefund', 'ShoppingCart'):
             buyer_id = obj.buyer_id
         elif obj_class_name in ('SaleOrder',):
             buyer_id = obj.sale_trade.buyer_id
         elif obj_class_name in ('UserAddress',):
             buyer_id = obj.cus_uid
-        elif obj_class_name in ('Customer',):
-            buyer_id = obj.id
+        elif obj_class_name in ('BankAccount',):
+            return request.user == obj.user
         else:
             return True
         try:

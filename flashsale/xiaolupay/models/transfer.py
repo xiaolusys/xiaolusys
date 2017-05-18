@@ -142,6 +142,7 @@ class TransferOrder(models.Model):
             'amount': self.amount,
             'desc': self.desc,
             'status': self.status,
+            'success': self.is_success(),
             'order_time': self.order_time,
             'extras': self.extras.get(self.channel, {}).copy()
         }

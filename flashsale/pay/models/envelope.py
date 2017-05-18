@@ -11,6 +11,8 @@ from .base import PayBaseModel
 from flashsale.xiaolupay import apis as xiaolupay
 from flashsale.xiaolupay.apis.v1 import envelope, transfers
 from flashsale.xiaolupay.models.weixin_red_envelope import WeixinRedEnvelope
+from core.fields import JSONCharMyField
+
 
 logger = logging.getLogger(__name__)
 
@@ -18,9 +20,11 @@ logger = logging.getLogger(__name__)
 class Envelop(PayBaseModel):
     WXPUB = 'wx_pub'
     WX_TRANSFER = 'transfer'
+    SANDPAY     = 'sandpay'
     ENVELOP_CHOICES = (
         (WXPUB, u'微信公众红包'),
         (WX_TRANSFER, u'微信企业转账'),
+        (SANDPAY, u'杉德实时代付'),
     )
 
     WAIT_SEND = 'wait'
@@ -70,7 +74,7 @@ class Envelop(PayBaseModel):
     platform = models.CharField(max_length=8, db_index=True, choices=ENVELOP_CHOICES, verbose_name=u'红包发放类型')
     livemode = models.BooleanField(default=True, verbose_name=u'是否有效')
 
-    recipient = models.CharField(max_length=28, db_index=True, verbose_name=u'接收者OPENID')
+    recipient = models.CharField(max_length=28, db_index=True, verbose_name=u'接收者OPENID/银行卡ID')
     receiver = models.CharField(max_length=64, blank=True, db_index=True, verbose_name=u'用户标识')
 
     subject = models.CharField(max_length=8, db_index=True, choices=SUBJECT_CHOICES, verbose_name=u'红包主题')
@@ -81,7 +85,7 @@ class Envelop(PayBaseModel):
                               choices=STATUS_CHOICES, verbose_name=u'状态')
 
     send_status = models.CharField(max_length=8, db_index=True, default=UNSEND,
-                                   choices=SEND_STATUS_CHOICES, verbose_name=u'微信发送状态')
+                                   choices=SEND_STATUS_CHOICES, verbose_name=u'渠道发送状态')
 
     referal_id = models.CharField(max_length=32, blank=True, db_index=True, verbose_name=u'引用ID')
     send_time = models.DateTimeField(db_index=True, blank=True, null=True, verbose_name=u'发送时间')
@@ -219,7 +223,7 @@ class Envelop(PayBaseModel):
             raise Exception(u'不能重复发送')
 
         envelope_unikey = 'xlmm%s' % (self.id)
-        if self.platform == Envelop.WX_TRANSFER:
+        if self.platform in (Envelop.WX_TRANSFER, Envelop.SANDPAY):
             flow_amount = self.amount
             name = self.body
             desc = u'小鹿美美提现'
@@ -227,7 +231,25 @@ class Envelop(PayBaseModel):
 
             try:
                 # 此处使用微信转账, 也可以使用sandpay的实时待付功能 eg: xiaolupay.apis.v1.transfer
-                success = transfers.transfer(self.recipient, name, flow_amount, desc, trade_id)
+                if self.platform == Envelop.WX_TRANSFER:
+                    success = transfers.transfer(self.recipient, name, flow_amount, desc, trade_id)
+                else:
+                    band_card = BankAccount.objects.get(id=self.recipient)
+                    transfer = transfers.Transfer.create(
+                        trade_id,
+                        'sandpay',
+                        flow_amount,
+                        desc,
+                        mch_id=settings.SANDPAY_MERCHANT_ID,
+                        extras={
+                            'accNo': band_card.account_no,
+                            'accName': band_card.account_name,
+                            'payMode': 1,
+                            'channelType': '07'
+                        },
+                    )
+                    success = transfer.success
+
                 if success:
                     self.status = Envelop.CONFIRM_SEND
                     self.send_status = Envelop.RECEIVED
@@ -245,6 +267,7 @@ class Envelop(PayBaseModel):
                     self.refund_envelop()
             except Exception, exc:
                 logger.error('转账错误%s' % exc, exc_info=True)
+
         else:
             try:
                 redenvelope = envelope.create(
@@ -309,3 +332,56 @@ def push_envelop_get_msg(sender, instance, created, **kwargs):
 
 
 post_save.connect(push_envelop_get_msg, sender=Envelop)
+
+class BankAccount(models.Model):
+    """ 是否考虑可被供应商使用? """
+    NORMAL = 0
+    DELETE = 1
+    STATUS_CHOICES = (
+        (NORMAL, u'正常'),
+        (DELETE, u'作废'),
+    )
+
+    user = models.ForeignKey('auth.user', verbose_name='所属用户')
+    account_no   = models.CharField(max_length=32, verbose_name='银行卡账号')
+    account_name = models.CharField(max_length=32, verbose_name='银行卡持有人名称')
+    bank_name    = models.CharField(max_length=32, verbose_name='银行全称')
+
+    created  = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name='创建时间')
+    modified = models.DateTimeField(auto_now=True, verbose_name='创建时间')
+
+    default = models.BooleanField(default=False, verbose_name='默认使用')
+    status  = models.SmallIntegerField(default=NORMAL, choices=STATUS_CHOICES, db_index=True, verbose_name='状态')
+
+    # uni_key = models.CharField(max_length=96, unique=True, verbose_name='唯一键')
+    extras  = JSONCharMyField(max_length=512, default={}, verbose_name='附加信息')
+
+    class Meta:
+        db_table = 'flashsale_bankaccount'
+        app_label = 'pay'
+        verbose_name = u'用户/银行卡'
+        verbose_name_plural = u'用户/银行卡'
+
+    @classmethod
+    def gen_uni_key(cls, account_no, account_name, user_id):
+        return '{}-{}-{}'.format(account_no, account_name, user_id)
+
+    def set_invalid(self):
+        self.status = self.DELETE
+        self.save()
+
+        if self.default:
+            first_card = BankAccount.objects.filter(user=self.user, status=self.NORMAL).first()
+            if first_card:
+                first_card.set_default()
+
+
+    def set_default(self):
+        self.default = True
+        self.save()
+
+        user_banks = BankAccount.objects.filter(user=self.user , status=self.NORMAL).exclude(id=self.id)
+        if user_banks.exists():
+            user_banks.update(default=False)
+
+

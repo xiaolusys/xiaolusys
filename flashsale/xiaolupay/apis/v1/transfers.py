@@ -20,12 +20,10 @@ class Transfer(DictObject):
         """
         ###### sandpay:
         extras: {
-            'productId': '',
-            'accAttr': '',
-            'tranTime': '',
-            'accType': '',
-            'currencyCode': '',
-            'noticeUrl': '',
+            'accNo':'6216261000000000018',
+            'accName':'全渠道',
+            'payMode':1,
+            'channelType': '07'
         }
         """
         transfer_order = create_transfer(
