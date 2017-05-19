@@ -906,7 +906,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
         if channel == Envelop.SANDPAY:
             bank_card = BankAccount.objects.filter(user=request.user, id=card_id).first()
             if not bank_card:
-                info = u'非法的银行卡ID！'
+                info = u'当前用户没有该银行卡记录'
                 logger.error('%s: account_id=%s, user_id=%s' % (info, card_id, request.user.id))
                 return Response({"code": 20, "message": info, "info": info})
 
