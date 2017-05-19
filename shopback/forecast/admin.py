@@ -59,8 +59,8 @@ STATUS_LABEL_DICT = dict((
 OUTWARE_STATUS_LABEL_DICT = dict((
     (1, 'label label-info'),
     (2, 'label label-success'),
-    (3, 'label label-primary'),
-    (4, 'label label-default'),
+    (4, 'label label-primary'),
+    (100, 'label '),
 ))
 
 @admin.register(ForecastInbound)

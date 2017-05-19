@@ -165,10 +165,10 @@ def strip_forecast_inbound(forecast_inbound_id):
     forecast_inbound = ForecastInbound.objects.get(id=forecast_inbound_id)
 
     # 如果有多个到货单关联一个预测单，需要聚合计算
-    real_inbound_details_qs = RealInboundDetail.objects.filter(inbound__forecast_inbound=forecast_inbound,
-                                                               status=RealInboundDetail.NORMAL)
+    real_inbound_details_qs = RealInboundDetail.objects.filter(
+        inbound__forecast_inbound=forecast_inbound, status=RealInboundDetail.NORMAL)
     real_inbound_qs_values = real_inbound_details_qs.values('sku_id')\
-        .annotate(total_arrival_num=Sum('arrival_quantity'),total_inferior_num=Sum('inferior_quantity'))
+        .annotate(total_arrival_num=Sum('arrival_quantity'), total_inferior_num=Sum('inferior_quantity'))
     real_inbound_detail_dict = dict([(d['sku_id'], d) for d in real_inbound_qs_values])
 
     sku_delta_dict = {}
@@ -204,6 +204,8 @@ def strip_forecast_inbound(forecast_inbound_id):
                 forecast_detail.save()
 
         new_forecast.save()
+
+        new_forecast.forecast.fresh_forecast_forecast_num_and_arrive_num()
         return new_forecast
     return None
 

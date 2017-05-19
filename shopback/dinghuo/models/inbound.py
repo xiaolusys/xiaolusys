@@ -246,7 +246,7 @@ class InBound(models.Model):
             ibd.inbound = inbound
             ibd.save()
         if inbound.type == InBound.AUTOMATIC:
-            inbound.allocate()
+            inbound.allocate() # 此处会创建 预测单
             inbound.finish_check()
         return inbound
 

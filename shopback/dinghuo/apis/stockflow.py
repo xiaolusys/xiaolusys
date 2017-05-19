@@ -6,6 +6,10 @@ from django.db import IntegrityError
 from shopback.items.models import ProductSku
 from ..models import StockBatchFlowRecord
 
+######
+# 由于系统内采购单具有批次号属性，如果仓库扫描出库商品条码带有批次信息则,则将批次及商品数量信息信息记录下来
+######
+
 def get_or_create_stock_batch_record(sku_id, record_num, batch_no, referal_id, record_type, row_split=False):
     psku = ProductSku.objects.get(id=sku_id)
     model_id = psku.product.model_id

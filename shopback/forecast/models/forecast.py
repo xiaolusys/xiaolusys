@@ -258,16 +258,20 @@ class ForecastInbound(BaseModel):
         else:
             forecast = forecasts.first()
         if forecast:
-            forecast.forecast_no = 'inbound-%s' % (inbound.id, )
+            # forecast.forecast_no = 'inbound-%s' % (inbound.id, )
+            forecast.memo  += ',入仓inbound_id=%s@%s' % (inbound_id, datetime.datetime.now())
             forecast.status = ForecastInbound.ST_ARRIVED
             forecast.save()
             order_list_ids = [f.id for f in forecast.relate_order_set.all()]
+            #  update forecast stats number
+            forecast.fresh_forecast_forecast_num_and_arrive_num()
+
         return ForecastInbound._generate(order_list_ids)
 
     @staticmethod
     def merge(orderlist_ids):
         """
-            合并预测单（依据预测单关联的orderlist进行预测单重算，而非直接预测单相加，以减少错误）
+        合并预测单（依据预测单关联的orderlist进行预测单重算，而非直接预测单相加，以减少错误）
         :param orderlist_ids:
         :param forecast_arrive_time:
         :return:
@@ -345,9 +349,12 @@ class ForecastInbound(BaseModel):
                 forecast_detail.product_name = '%s:%s' % (od.product.name, od.sku.name)
                 forecast_detail.product_img = od.product.pic_path
                 details[od.chichu_id] = forecast_detail
-        for odd in OrderDetailInBoundDetail.objects.filter(orderdetail__orderlist_id__in=orderlist_ids,
-                                                    inbounddetail__inbound__status__in=[InBound.PENDING, InBound.WAIT_CHECK, InBound.COMPLETED,
-                                                                                        InBound.COMPLETE_RETURN]):
+        for odd in OrderDetailInBoundDetail.objects.filter(
+                orderdetail__orderlist_id__in=orderlist_ids,
+                inbounddetail__inbound__status__in=[InBound.PENDING,
+                                                    InBound.WAIT_CHECK,
+                                                    InBound.COMPLETED,
+                                                    InBound.COMPLETE_RETURN]):
             od = odd.orderdetail
             sku_got_nums[od.chichu_id] = sku_got_nums.get(od.chichu_id, 0) + odd.arrival_quantity
         sku_need_nums = {key:sku_buy_nums[key] - sku_got_nums.get(key, 0) for key in sku_buy_nums}
@@ -357,7 +364,19 @@ class ForecastInbound(BaseModel):
         for forecast_detail in details.values():
             if forecast_detail.forecast_arrive_num > 0:
                 forecast_detail.save()
+
+        forecast_ib.fresh_forecast_forecast_num_and_arrive_num()
         return forecast_ib
+
+    def fresh_forecast_forecast_num_and_arrive_num(self):
+        from .inbound import RealInbound
+        detail_list_num = self.normal_details.values_list('forecast_arrive_num', flat=True)
+        arrival_list_num = self.real_inbound_manager.exclude(status=RealInbound.CANCELED) \
+            .values_list('total_inbound_num', flat=True)
+        self.total_forecast_num = sum(detail_list_num)
+        self.total_arrival_num = sum(arrival_list_num)
+        self.save(update_fields=['total_forecast_num', 'total_arrival_num'])
+
 
 # def pre_save_update_forecastinbound_data(sender, instance, raw, *args, **kwargs):
 #     logger.info('forecast pre_save:%s, %s' % (raw, instance))
