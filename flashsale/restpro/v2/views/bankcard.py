@@ -90,6 +90,8 @@ class BankAccountViewset(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def get_default(self, request, *args, **kwargs):
         default_account = self.get_userbanks(request).filter(default=True).first()
+        if not default_account:
+            return Response({})
         # print 'default_account', default_account
         serializer = self.get_serializer(instance=default_account)
         return Response(serializer.data)
