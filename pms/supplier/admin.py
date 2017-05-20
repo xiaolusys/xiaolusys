@@ -379,7 +379,7 @@ class SaleProductAdmin(ApproxAdmin):
     category_list = []
     list_display = ('outer_id_link', 'pic_link', 'title_link', "memo_display", 'librarian_select',
                     'select_Contactor', 'supplier_link', 'category_select',
-                    'sale_price', 'on_sale_price', 'sale_time_select',  'status_link')
+                    'sale_price', 'on_sale_price', 'sale_time_select',  'status_link','is_shelf')
     # list_display_links = ('outer_id',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
@@ -655,6 +655,21 @@ class SaleProductAdmin(ApproxAdmin):
 
     status_link.allow_tags = True
     status_link.short_description = u"状态／操作"
+
+    def is_shelf(self, obj):
+        a = u'找不到商品ID'
+        product = Product.objects.filter(sale_product=obj.id).first()
+        if product:
+            models_product = ModelProduct.objects.filter(id=product.model_id).first()
+            print models_product.shelf_status
+            if models_product.shelf_status == 'on':
+                a = 'on'
+            if models_product.shelf_status == 'off':
+                a= 'off'
+        return a
+
+    is_shelf.allow_tags = True
+    is_shelf.short_description = u"是否上架"
 
     def select_Contactor(self, obj):
 

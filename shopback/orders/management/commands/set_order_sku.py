@@ -24,6 +24,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         oid = options.get('order_oid')
         sku = options.get('SkuStock')
+        print oid,sku
         order = Order.objects.get(oid=oid)
         ss = SkuStock.objects.get(sku_id=sku)
         order.outer_id = ss.sku.product.outer_id
