@@ -899,6 +899,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
             6 提现不能超过200
            11　已经提现过一次无审核２元
         """
+        # TODO@mention 此接口已转移到 /rest/v2/redenvelope/budget_cash_out
         content = request.data
         cashout_amount = content.get('cashout_amount', None)
         channel = content.get('channel', None)
