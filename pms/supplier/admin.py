@@ -661,11 +661,11 @@ class SaleProductAdmin(ApproxAdmin):
         product = Product.objects.filter(sale_product=obj.id).first()
         if product:
             models_product = ModelProduct.objects.filter(id=product.model_id).first()
-            print models_product.shelf_status
-            if models_product.shelf_status == 'on':
-                a = 'on'
-            if models_product.shelf_status == 'off':
-                a= 'off'
+            if models_product:
+                if models_product.shelf_status == 'on':
+                    a = 'on'
+                if models_product.shelf_status == 'off':
+                    a= 'off'
         return a
 
     is_shelf.allow_tags = True
