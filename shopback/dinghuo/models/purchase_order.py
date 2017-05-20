@@ -1126,10 +1126,6 @@ class OrderDetail(models.Model):
         self.check_if_finished()
 
 
-
-
-
-
 # def update_productskustats_inbound_quantity(sender, instance, created,
 #                                             **kwargs):
 #     # instance.reset_sku_stock()

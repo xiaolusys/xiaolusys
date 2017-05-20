@@ -3,4 +3,4 @@ from .category import SaleCategorySerializer
 from .modelproduct import ModelProductSerializer, SimpleModelProductSerializer, MamaChoiceProductSerializer, ElectronicProductSerializer
 from .apimodels import APIModelProductSerializer, APIModelProductListSerializer, APIMamaProductListSerializer
 from .coupon_serializers import CouponTransferRecordSerializer
-from .bankcard import BankAccountSerializer
+from .envelop import BankAccountSerializer, EnvelopSerializer

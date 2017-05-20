@@ -32,7 +32,7 @@ from core.options import log_action, ADDITION, CHANGE, get_systemoa_user
 from core.weixin.options import gen_weixin_redirect_url
 from core.weixin.options import gen_wxlogin_sha1_sign
 from core.utils.httputils import get_client_ip
-from core.ocr import bankcard
+
 from django.db.models import Q
 from flashsale.pay.models import Register, Customer, Integral, BudgetLog, UserBudget, Envelop, BankAccount
 from shopapp.smsmgr.tasks import task_register_code
@@ -486,6 +486,22 @@ class CustomerViewSet(viewsets.ModelViewSet):
     - code: 0,修改成功；2,手机密码格式不对;3,验证码不对;4,验证码过期;5,系统异常;
     > ### /check_code: `params={username, valid_code}`验证码判断、验证码过时功能;
     - code: 0,验证通过；1,已经绑定用户;2,手机验证码不对;3,手机未注册;4,验证码过期;5,验证码不对;
+    > ### /budget_cash_out: 转账接口　
+    - cashout_amount  必填，提现金额（单位：元）
+    - channel  选填，可选项（wx：提现请求来源于微信公众号, wx_transfer: 使用微信企业转账, sandpay: 银行卡转账）
+    - name 收款人姓名(必须和微信绑定的银行卡姓名一致)(当channel是wx_transfer时必填.其他选填.)
+    - card_id 当channel 为sandpay　时必须传入, 可通过 /rest/v2/bankcards/get_default 获取默认转账银行卡ID
+    返回：
+    {'code': xx, 'message': xxx, 'qrcode': xxx}
+    - 返回`code`:
+        0 成功;
+        1　提现金额小于0;
+        2 提现金额大于当前账户金额;
+        3 参数错误;
+        4　用户没有公众号账号;
+        5　用户unionid不存在
+        6 提现不能超过200
+        11　已经提现过一次无审核２元
     """
     queryset = Customer.objects.all()
     serializer_class = serializers.CustomerSerializer
@@ -898,7 +914,6 @@ class CustomerViewSet(viewsets.ModelViewSet):
             info = u'你的帐号已被冻结，请联系管理员！'
             return Response({"code": 10, "message": info, "info": info})
 
-        # TODO 校验是否属于当前用户
         if channel == Envelop.SANDPAY and not card_id:
             info = u'请选择需要转账的银行卡！'
             return Response({"code": 20, "message": info, "info": info})
@@ -918,6 +933,11 @@ class CustomerViewSet(viewsets.ModelViewSet):
 
         qrcode = ''
         return Response({'code': code, "message": info, "info": info, "qrcode": qrcode})
+
+    @list_route(methods=['get'])
+    def get_cashout_detail(self, request, *args, **kwargs):
+        return {}
+
 
     @list_route(methods=['get'])
     def get_wxpub_authinfo(self, request):

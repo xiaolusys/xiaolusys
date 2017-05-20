@@ -24,7 +24,7 @@ class Envelop(PayBaseModel):
     ENVELOP_CHOICES = (
         (WXPUB, u'微信公众红包'),
         (WX_TRANSFER, u'微信企业转账'),
-        (SANDPAY, u'杉德实时代付'),
+        (SANDPAY, u'银行卡转账'),
     )
 
     WAIT_SEND = 'wait'
@@ -86,11 +86,13 @@ class Envelop(PayBaseModel):
     status = models.CharField(max_length=8, db_index=True, default=WAIT_SEND,
                               choices=STATUS_CHOICES, verbose_name=u'状态')
 
+    fail_msg    = models.CharField(max_length=64, blank=True, verbose_name='错误提示')
     send_status = models.CharField(max_length=8, db_index=True, default=UNSEND,
                                    choices=SEND_STATUS_CHOICES, verbose_name=u'渠道发送状态')
 
     referal_id = models.CharField(max_length=32, blank=True, db_index=True, verbose_name=u'引用ID')
     send_time = models.DateTimeField(db_index=True, blank=True, null=True, verbose_name=u'发送时间')
+    success_time = models.DateTimeField(blank=True, null=True, verbose_name='成功时间')
 
     class Meta:
         db_table = 'flashsale_envelop'
@@ -100,6 +102,16 @@ class Envelop(PayBaseModel):
 
     def __unicode__(self):
         return '%s' % (self.id)
+
+    @property
+    def bank_card(self):
+        if not hasattr(self, '_bank_account_'):
+            if self.platform == self.SANDPAY:
+                self._bank_account_ = BankAccount.objects.filter(id=self.recipient).first()
+            else:
+                self._bank_account_ = None
+        return self._bank_account_
+
 
     @property
     def amount_cash(self):
@@ -218,40 +230,47 @@ class Envelop(PayBaseModel):
             else:
                 self.handle_envelop_by_pingpp(redenvelope)
 
+    def handle_sandpay_transfer_result(self, transfer):
+        from flashsale.pay.models import BudgetLog
+        if self.send_status in (Envelop.RECEIVED, Envelop.FAIL):
+            return
+
+        self.send_time = self.send_time or datetime.datetime.now()
+        self.envelop_id = transfer.order_code
+
+        if transfer.success:
+            self.status = Envelop.CONFIRM_SEND
+            self.send_status = Envelop.RECEIVED
+            self.save()
+            bg = BudgetLog.objects.filter(id=self.referal_id).first()
+            if bg:
+                bg.confirm_budget_log()
+        elif transfer.fail:
+            self.status = Envelop.FAIL
+            self.send_status = Envelop.SEND_FAILED
+            self.save()
+            self.refund_envelop()
+        else:
+            # 处理中 pending
+            self.status = Envelop.CONFIRM_SEND
+            self.send_status = Envelop.SENDING
+            self.save()
+
     def send_envelop(self):
         from flashsale.pay.models import BudgetLog
 
         if self.envelop_id or self.status != Envelop.WAIT_SEND:
             raise Exception(u'不能重复发送')
 
-        envelope_unikey = 'xlmm%s' % (self.id)
-        if self.platform in (Envelop.WX_TRANSFER, Envelop.SANDPAY):
+        envelope_unikey = 'ndpz%s' % (self.id)
+        if self.platform == Envelop.WX_TRANSFER:
             flow_amount = self.amount
             name = self.body
             desc = u'小鹿美美提现'
             trade_id = envelope_unikey
 
             try:
-                # 此处使用微信转账, 也可以使用sandpay的实时待付功能 eg: xiaolupay.apis.v1.transfer
-                if self.platform == Envelop.WX_TRANSFER:
-                    success = transfers.transfer(self.recipient, name, flow_amount, desc, trade_id)
-                else:
-                    band_card = BankAccount.objects.get(id=self.recipient)
-                    transfer = transfers.Transfer.create(
-                        trade_id,
-                        'sandpay',
-                        flow_amount,
-                        desc,
-                        mch_id=settings.SANDPAY_MERCHANT_ID,
-                        extras={
-                            'accNo': band_card.account_no,
-                            'accName': band_card.account_name,
-                            'payMode': 1,
-                            'channelType': '07'
-                        },
-                    )
-                    success = transfer.success
-
+                success = transfers.transfer(self.recipient, name, flow_amount, desc, trade_id)
                 if success:
                     self.status = Envelop.CONFIRM_SEND
                     self.send_status = Envelop.RECEIVED
@@ -259,7 +278,8 @@ class Envelop(PayBaseModel):
                     self.envelop_id = trade_id
                     self.save()
                     bg = BudgetLog.objects.filter(id=self.referal_id).first()
-                    bg.confirm_budget_log() if bg else None
+                    if bg:
+                        bg.confirm_budget_log()
                 else:
                     self.status = Envelop.FAIL
                     self.send_status = Envelop.SEND_FAILED
@@ -269,7 +289,31 @@ class Envelop(PayBaseModel):
                     self.refund_envelop()
             except Exception, exc:
                 logger.error('转账错误%s' % exc, exc_info=True)
+                self.fail_msg = str(exc)
+                self.save()
 
+        elif self.platform == Envelop.SANDPAY:
+            # TODO 红包异步发送回调结果,　需主动查询, 目前通过取消红包时去检查转账状态
+            try:
+                band_card = BankAccount.objects.get(id=self.recipient)
+                transfer  = transfers.Transfer.create(
+                    envelope_unikey,
+                    'sandpay',
+                    self.amount,
+                    u'你的铺子提现',
+                    mch_id=settings.SANDPAY_MERCHANT_ID,
+                    extras={
+                        'accNo': band_card.account_no,
+                        'accName': band_card.account_name,
+                        'payMode': 1,
+                        'channelType': '07'
+                    },
+                )
+                self.handle_sandpay_transfer_result(transfer)
+            except Exception, exc:
+                logger.error('转账错误%s' % exc, exc_info=True)
+                self.fail_msg = str(exc)
+                self.save()
         else:
             try:
                 redenvelope = envelope.create(
@@ -315,6 +359,12 @@ class Envelop(PayBaseModel):
 
     def cancel_envelop(self):
         # 取消红包，同时退款
+        # 如果银行卡转账，需要去查询当前渠道的转账记录状态
+        if self.envelop_id and self.platform == Envelop.SANDPAY:
+            from flashsale.pay.models import BudgetLog
+            transfer = transfers.Transfer.retrieve(self.envelop_id)
+            self.self.handle_sandpay_transfer_result(transfer)
+
         # TODO@需要调用微信红包接口, 如果微信红包状态为失败，给予退款
         if not self.envelop_id or self.is_weixin_send_fail():  # 只有待发放状态可以取消红包
             self.status = Envelop.CANCEL
