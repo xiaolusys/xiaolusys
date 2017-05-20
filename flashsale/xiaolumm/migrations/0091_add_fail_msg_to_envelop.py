@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('xiaolumm', '0090_add_customer_id_to_envelop'),
+        ('xiaolumm', '0088_add_customer_id_to_envelop'),
     ]
 
     operations = [
