@@ -324,7 +324,7 @@ class OrderCarryViewSet(viewsets.ModelViewSet):
         if carry_type == "direct":
             exclude_statuses = None  # show all orders excpet indirect ones
 
-        datalist = self.get_owner_queryset(request, carry_type, exclude_statuses=exclude_statuses).filter(order_value__gt=0)
+        datalist = self.get_owner_queryset(request, carry_type, exclude_statuses=exclude_statuses)
         datalist = self.paginate_queryset(datalist)
 
         # find from_date and end_date in datalist
