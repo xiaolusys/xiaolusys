@@ -98,6 +98,8 @@ def post(self, request):
                               last_renew_type=XiaoluMama.ELITE, status=XiaoluMama.EFFECT,
                               charge_status=XiaoluMama.CHARGED, agencylevel=XiaoluMama.VIP_LEVEL)
             mama.save()
+        else:
+            return Response({'code': 4, 'info': '小鹿妈妈已经存在，无需再创建'})
 
         log_action(request.user, mama, CHANGE, 'create妈妈信息 upper=%s direct_info=%s' % (upper_mama_id, direct_info))
         if upper_mama_id == 0:
