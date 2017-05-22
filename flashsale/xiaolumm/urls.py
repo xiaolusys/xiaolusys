@@ -21,6 +21,7 @@ router.register(r'ninepic', views_advertis.NinePicAdverViewSet)
 router_urls = router.urls
 router_urls += ([
     url(r'^mm/change_upper_mama$', staff_member_required(xiaolumama.ChangeUpperMama.as_view())),  # 更换上级妈妈
+    url(r'^mm/create_mama$', staff_member_required(xiaolumama.CreateMama.as_view())),  # 更换上级妈妈
 ])
 
 
