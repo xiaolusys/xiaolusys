@@ -197,6 +197,9 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
 
     from flashsale.pay.models.trade import SaleOrder
     sale_order = SaleOrder.objects.filter(oid=order_carry.order_id).first()
+    # 如果订单支付金额为0，那么上级是无任何收益的，不用生成第2级及以上ordercarry了，只需要第一级妈妈看看就好 20170522
+    if sale_order.payment == 0:
+        return
     # 这个订单第一级获得收益的妈妈
     mm_linkid_mama = XiaoluMama.objects.filter(id=order_carry.mama_id, status=XiaoluMama.EFFECT,
                                                charge_status=XiaoluMama.CHARGED).first()
