@@ -3,13 +3,14 @@ from __future__ import absolute_import, unicode_literals
 
 from django.core.management.base import BaseCommand
 
+from django.conf import settings
 import datetime
 import requests
 
 import logging
 logger = logging.getLogger(__name__)
 
-ELASTICSEARCH_LOGGING_HOST = 'elasticsearch-logging.kube-system.svc.cluster.local:9200'
+ELASTICSEARCH_LOGGING_HOST = settings.E
 
 class Command(BaseCommand):
 

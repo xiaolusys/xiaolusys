@@ -254,6 +254,7 @@ LOGGER_HANDLERS = [
     ('shopapp', 'sentry,jsonfile'),
     ('flashsale', 'sentry,jsonfile'),
     ('core', 'sentry,jsonfile'),
+    ('celery_statsd', 'sentry,jsonfile'),
     ('auth', 'sentry,jsonfile'),
     ('pms', 'sentry,jsonfile'),
     ('statistics', 'sentry,jsonfile'),

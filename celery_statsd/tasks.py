@@ -1,11 +1,17 @@
 # coding: utf8
 from __future__ import absolute_import, unicode_literals
 
+import datetime
 import requests
 from requests.auth import HTTPBasicAuth
 
+from django.conf import settings
+
 from shopmanager import celery_app as app
 from .conf import FLOWER_QUEUE_LENGTH_API, FLOWER_USERNAME, FLOWER_PASSWORD
+
+import logging
+logger = logging.getLogger(__name__)
 
 @app.task
 def task_celery_queue_message_statsd():
@@ -21,3 +27,17 @@ def task_celery_queue_message_statsd():
     queue_stats = resp.json().get('active_queues',[])
     for stat in queue_stats:
         statsd.gauge('celery.queue.%s'% stat['name'], stat['messages'])
+
+
+@app.task()
+def task_periodic_flush_elasticsearch_logging(remain_days=3):
+    today = datetime.datetime.now()
+    try:
+        for i in (remain_days, 10):
+            dt = today - datetime.timedelta(days=i)
+            req_url = 'http://{}/{}'.format(settings.ELASTICSEARCH_LOGGING_HOST, '-' + dt.strftime('%Y.%m.%d'))
+            resp = requests.delete(req_url)
+            if resp.status_code > 400 and resp.status_code != 404:
+                logger.error('delete-es-logging-error:%s, %s' % (req_url, resp.text))
+    except Exception, exc:
+        logger.error(str(exc), exc_info=True)

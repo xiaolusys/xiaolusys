@@ -352,6 +352,8 @@ TAOBAO_PAGE_SIZE = 50  # the page_size of  per request
 # sale order regular days
 REGULAR_DAYS = 10
 
+ELASTICSEARCH_LOGGING_HOST = 'elasticsearch-logging.kube-system.svc.cluster.local:9200'
+
 ############################# ALIYUN OCR CONFIG ##############################
 ALIYUN_APPCODE = '[OVERRIDE PLEASE]'
 IDCARD_OCR_URL = 'https://dm-51.data.aliyun.com/rest/160601/ocr/ocr_idcard.json'
