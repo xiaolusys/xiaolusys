@@ -41,6 +41,8 @@ class EnvelopViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_customer_envelops(self, request):
         customer = Customer.objects.filter(user=request.user).first()
+        if not customer:
+            return self.queryset.none()
         return self.get_queryset().filter(customer_id=customer.id)
 
     def list(self, request, *args, **kwargs):
