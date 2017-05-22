@@ -10,7 +10,7 @@ import requests
 import logging
 logger = logging.getLogger(__name__)
 
-ELASTICSEARCH_LOGGING_HOST = settings.E
+ELASTICSEARCH_LOGGING_HOST = settings.ELASTICSEARCH_LOGGING_HOST
 
 class Command(BaseCommand):
 
