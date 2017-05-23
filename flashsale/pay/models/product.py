@@ -1134,6 +1134,7 @@ class ModelProduct(BaseTagModel):
         model_product.save()
         product.model_id = model_product.id
         product.save()
+        model_product.set_sale_product()
 
         if model_product.is_boutique_coupon:
             model_product.set_boutique_coupon()
@@ -1149,8 +1150,7 @@ class ModelProduct(BaseTagModel):
             model_product.rebeta_scheme_id = constants.BOUTIQUE_PRODUCT_REBETA_SCHEME_ID
 
         model_product.save()
-        model_product.set_sale_product()
-
+        
         return model_product
 
     @staticmethod
