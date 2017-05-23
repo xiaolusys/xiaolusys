@@ -568,9 +568,10 @@ class CreateModelProductSerializer(serializers.Serializer):
             except:
                 pass
             instance.save()
+            instance.set_sale_product()
             if instance.is_boutique and instance.product_type == 1 and not instance.extras.get("template_id"):
                 instance.set_boutique_coupon()
-            instance.set_sale_product()
+
             return instance
         else:
             modelproduct = ModelProduct.create(
