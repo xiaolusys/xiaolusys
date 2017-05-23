@@ -1150,7 +1150,6 @@ class ModelProduct(BaseTagModel):
             model_product.rebeta_scheme_id = constants.BOUTIQUE_PRODUCT_REBETA_SCHEME_ID
 
         model_product.save()
-        
         return model_product
 
     @staticmethod
