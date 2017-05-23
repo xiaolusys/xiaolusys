@@ -182,7 +182,7 @@ class WeixinAppBackend(object):
             user, state = User.objects.get_or_create(username=unionid, is_active=True)
             profile, state = Customer.objects.get_or_create(unionid=unionid, user=user)
             if profile.nick == '':
-                profile.nick = params.get('nickname')
+                profile.set_nickname(params.get('nickname'))
                 profile.thumbnail = params.get('headimgurl')
                 profile.save()
             # if not normal user ,no login allowed

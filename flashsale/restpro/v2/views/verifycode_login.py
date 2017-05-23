@@ -325,6 +325,7 @@ class VerifyCodeView(views.APIView):
     /verify_code
     mobile: mobile number
     action: one of 4 actions (sms_login, find_pwd, change_pwd, bind)
+    nickname： if action is bind , this field need
     """
     throttle_scope = 'auth'
 

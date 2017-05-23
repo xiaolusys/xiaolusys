@@ -279,6 +279,11 @@ class Customer(BaseTagModel):
         else:
             return False
 
+    def set_nickname(self, nickname, force_update=False):
+        if self.nick and not force_update:
+            return
+        self.nick = nickname
+
     @property
     def nick_name(self):
         """

@@ -45,7 +45,7 @@ def task_Update_Sale_Customer(unionid, openid=None, app_key=None):
         if wxusers.exists():
             wxuser = wxusers[0]
             # profile.openid = profile.openid or openid or ''
-            profile.nick = wxuser.nickname or profile.nick
+            profile.set_nickname(wxuser.nickname, force_update=state)
             profile.mobile = profile.mobile.strip() or wxuser.mobile
             profile.thumbnail = wxuser.headimgurl or profile.thumbnail
             update_model_fields(
@@ -79,7 +79,7 @@ def task_Refresh_Sale_Customer(user_params, app_key=None):
         if not profile.mobile and wxusers.exists():
             profile.mobile = wxusers[0].mobile
 
-        profile.nick = user_params.get('nickname') or profile.nick
+        profile.set_nickname(user_params.get('nickname'))
         # profile.openid = profile.openid or user_params.get('openid') #not save weixin app auth openid
         profile.thumbnail = user_params.get('headimgurl') or profile.thumbnail
         update_model_fields(profile,
@@ -107,7 +107,7 @@ def task_Merge_Sale_Customer(user, code):
         profile, state = Customer.objects.get_or_create(user=user)
         wxuser = WeiXinUser.objects.get(models.Q(openid=openid) | models.Q(
             unionid=unionid))
-        profile.nick = wxuser.nickname
+        profile.set_nickname(wxuser.nickname)
         profile.mobile = profile.mobile or wxuser.mobile
         profile.openid = profile.openid.strip() or openid
         profile.unionid = profile.unionid.strip() or unionid
