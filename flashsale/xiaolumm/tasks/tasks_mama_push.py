@@ -132,9 +132,16 @@ def task_weixin_push_ordercarry(ordercarry):
                                                                   is_boutique=True, product_type=ModelProduct.VIRTUAL_TYPE).first()
                 if goods_model_product:
                     is_boutique = True
+                    all_price = []
+                    if len(goods_model_product.products) == 5:
+                        for product in goods_model_product.products:
+                            all_price.append(product.agent_price)
+                    elif len(goods_model_product.products) == 1 and len(goods_model_product.products[0].eskus) == 5:
+                        for sku in goods_model_product.products[0].eskus:
+                            all_price.append(sku.agent_price)
+                    all_price.sort(reverse=True)
                     total_carry += abs(round(
-                        goods_model_product.sku_info[3]['agent_price'] * 100 - goods_model_product.sku_info[4][
-                            'agent_price'] * 100))
+                        all_price[0] * 100 - all_price[1] * 100))
 
     if total_carry == 0:
         return

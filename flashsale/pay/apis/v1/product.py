@@ -67,8 +67,12 @@ def get_level_differential_from_coupon_modelproduct(model_product, lowest_agent_
     result = []
     if model_product:
         all_price = []
-        for product in model_product.products:
-            all_price.append(product.agent_price)
+        if len(model_product.products) == 5:
+            for product in model_product.products:
+                all_price.append(product.agent_price)
+        elif len(model_product.products) == 1 and len(model_product.products[0].eskus) == 5:
+            for sku in model_product.products[0].eskus:
+                all_price.append(sku.agent_price)
         all_price.sort(reverse=True)
         for price in all_price:
             result.append(lowest_agent_price - price)
