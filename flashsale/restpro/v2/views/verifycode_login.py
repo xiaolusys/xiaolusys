@@ -335,6 +335,7 @@ class VerifyCodeView(views.APIView):
 
         mobile = content.get("mobile", "0")
         action = content.get("action", "")
+        nickname = content.get('nickname', "")
         verify_code = content.get("verify_code", "")
 
         if not validate_mobile(mobile):
@@ -363,6 +364,9 @@ class VerifyCodeView(views.APIView):
             # django_user, state = DjangoUser.objects.get_or_create(username=mobile, is_active=True)
             # customer, state = Customer.objects.get_or_create(user=django_user)
             return Response({"rcode": 5, "msg": u"该用户还不存在呢,请使用微信登录然后绑定手机号，就可以使用手机号登录了！"})
+
+        if action == 'bind' and nickname:
+            customer.nick = nickname
 
         customer.mobile = mobile
         customer.save()
