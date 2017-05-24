@@ -625,9 +625,10 @@ class ModelProduct(BaseTagModel):
         if not usual_modleproduct or not usual_modleproduct.is_boutique_product:
             raise ValueError('请输入正确的精品商品链接(商品需打上精品汇标记)')
 
+        #  精品券的价值必须是实物商品sku最高价格
         # 创建精品券
         coupon_template = get_or_create_boutique_template(
-            self.id, self.lowest_agent_price, model_title=self.name,
+            self.id, usual_modleproduct.lowest_agent_price, model_title=self.name,
             usual_modelproduct_ids=str(usual_model_id), usual_product_ids=usual_product_ids,
             model_img=self.head_img_url
         )
