@@ -784,9 +784,14 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 elite_score += cart.num * cart.product.elite_score
                 goods_num += cart.num
                 # 找到这个商品与妈妈等级一致的价格，累加起来方便后面核对价格
-                for product in mp.products:
-                    if mm and (mm.elite_level in product.name):
-                        mm_level_payment += product.agent_price * cart.num
+                if len(mp.products) == 5:
+                    for product in mp.products:
+                        if mm and (mm.elite_level in product.name):
+                            mm_level_payment += product.agent_price * cart.num
+                elif len(mp.products) == 1 and len(mp.products[0].eskus) == 5:
+                    for sku in mp.products[0].eskus:
+                        if mm and (mm.elite_level in sku.name):
+                            mm_level_payment += sku.agent_price * cart.num
 
         budget_dicts = self.calc_extra_budget(pay_extras, type_list=[CONS.BUDGET, CONS.XIAOLUCOIN])
         budget_payment = budget_dicts.get(CONS.ETS_BUDGET) or 0
