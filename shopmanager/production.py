@@ -193,8 +193,8 @@ INSTALLED_APPS.extend([
 
 MIDDLEWARE_CLASSES = (
     'django_prometheus.middleware.PrometheusBeforeMiddleware',
-    'django_statsd.middleware.GraphiteRequestTimingMiddleware',
-    'django_statsd.middleware.GraphiteMiddleware',
+    # 'django_statsd.middleware.GraphiteRequestTimingMiddleware',
+    # 'django_statsd.middleware.GraphiteMiddleware',
 ) + MIDDLEWARE_CLASSES
 
 MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + (

@@ -3,7 +3,7 @@ import os
 from .base import *
 
 DEBUG = False
-
+DEPLOY_ENV = False
 
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_COOKIE_AGE = 24 * 15 * 60 * 60
@@ -102,9 +102,15 @@ STATSD_PORT = 9125
 # STATSD_CLIENT = 'celery_statsd.oneapm'
 # STATSD_CELERY_SIGNALS = True
 MIDDLEWARE_CLASSES = (
-    'django_statsd.middleware.GraphiteRequestTimingMiddleware',
-    'django_statsd.middleware.GraphiteMiddleware',
+    'django_prometheus.middleware.PrometheusBeforeMiddleware',
+    # 'django_statsd.middleware.GraphiteRequestTimingMiddleware',
+    # 'django_statsd.middleware.GraphiteMiddleware',
 ) + MIDDLEWARE_CLASSES
+
+MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + (
+    'django_prometheus.middleware.PrometheusAfterMiddleware',
+    # 'dogslow.WatchdogMiddleware',
+)
 
 ######################## WEIXIN CONFIG ########################
 
