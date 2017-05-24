@@ -367,7 +367,7 @@ class VerifyCodeView(views.APIView):
             return Response({"rcode": 5, "msg": u"该用户还不存在呢,请使用微信登录然后绑定手机号，就可以使用手机号登录了！"})
 
         if action == 'bind' and nickname:
-            customer.nick = nickname
+            customer.set_nickname(nickname, force_update=True)
 
         customer.mobile = mobile
         customer.save()

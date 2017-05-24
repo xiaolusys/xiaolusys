@@ -28,12 +28,12 @@ SITE_URL = 'http://staging.xiaolumm.com/'
 #######################  WAP AND WEIXIN CONFIG ########################
 M_SITE_URL = 'http://staging.xiaolumm.com'
 
-MYSQL_HOST = 'rm-bp17ea269uu21f9i1o.mysql.rds.aliyuncs.com'
-MYSQL_AUTH = 'Xiaolu_test123'
+MYSQL_HOST = 'rm-bp17ea269uu21f9i1.mysql.rds.aliyuncs.com'
+MYSQL_AUTH = os.environ.get('MYSQL_AUTH')
 
-REDIS_HOST = '121.196.219.80:31838'
+REDIS_HOST = 'r-bp1b4317ea5c3714.redis.rds.aliyuncs.com:6379'
 REDIS_AUTH = os.environ.get('REDIS_AUTH')
-# REDIS_AUTH = ''
+
 
 DATABASES = {
     'default': {
@@ -63,7 +63,7 @@ CACHES = {
         'BACKEND': 'redis_cache.RedisCache',
         'LOCATION': REDIS_HOST,
         'OPTIONS': {
-            'DB': 11,
+            'DB': 17,
             'PASSWORD': REDIS_AUTH,
             "SOCKET_CONNECT_TIMEOUT": 5,  # in seconds
             "SOCKET_TIMEOUT": 5,  # in seconds
@@ -84,7 +84,7 @@ CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
 
 # CELERY_BROKER_URL = 'redis://:{0}@{1}:6379/19'.format(REDIS_AUTH, REDIS_HOST)
-CELERY_BROKER_URL = 'redis://:%s@121.196.219.80:31838/19' % REDIS_AUTH
+CELERY_BROKER_URL = 'redis://:{0}@{1}/19'.format(REDIS_AUTH, REDIS_HOST)
 CELERY_RESULT_BACKEND = 'django-db'
 
 ##########################SENTRY RAVEN##########################
@@ -108,7 +108,7 @@ MIDDLEWARE_CLASSES = (
 
 ######################## WEIXIN CONFIG ########################
 
-WX_NOTIFY_URL = 'http://warden.xiaolumm.com/apis/notify/weixin/'
+WX_NOTIFY_URL = 'http://staging.xiaolumm.com/apis/notify/weixin/'
 WX_JS_API_CALL_URL ='http://staging.xiaolumm.com/pay/?showwxpaytitle=1'
 
 # ================ 小鹿美美特卖[公众号] ==================
@@ -125,6 +125,7 @@ WX_PUB_KEY   = "t5UXHfwR7QEv2jMLFuZm8DdqnAT0ON9a" #支付密钥
 WX_PUB_CERT_PEM_PATH = '/data/certs/wx_pub/apiclient_cert.pem'
 WX_PUB_KEY_PEM_PATH = '/data/certs/wx_pub/apiclient_key.pem'
 
+WX_PUB_REFUND_USER_ID = 'refundem1@1236482102'
 # ================ 小鹿美美[ APP客户端] ==================
 WX_APPID = "wx25fcb32689872499"
 WX_APPSECRET = "3c7b4e3eb5ae4cfb132b2ac060a872ee"
@@ -135,6 +136,7 @@ WX_KEY   = "t5UXHfwR7QEv2jMLFuZm8DdqnAT0ON9a" #支付密钥
 WX_CERT_PEM_PATH = '/data/certs/wx/apiclient_cert.pem'
 WX_KEY_PEM_PATH = '/data/certs/wx/apiclient_key.pem'
 
+WX_REFUND_USER_ID = 'refundem2'
 # ================ 小鹿美美[微信小程序] ==================
 WEAPP_APPID  = 'wxea4fd45c52e4a20e'
 WEAPP_SECRET = '1246301cdb41c6336d82a12600189283'
@@ -151,6 +153,12 @@ ALIAPY_APPID     = '2016012701123211'
 
 ALIPAY_GATEWAY_URL = 'https://openapi.alipay.com/gateway.do'
 ALIPAY_NOTIFY_URL = 'http://warden.xiaolumm.com/rest/notify/alipay/'
+
+################### SANDPAY SETTINGS ##################
+SANDPAY_API_GETWAY           = "http://61.129.71.103:7970/agent-main/openapi"
+SANDPAY_RSA_KEY_PATH         = '/data/certs/sandpay_key.pem'
+SANDPAY_RSA_CERT_PATH        = "/data/certs/sandpay.pem"
+SANDPAY_AGENT_PAY_NOTICE_URL = ""
 
 ######################## 小米推送 CONFIG ########################
 IOS_APP_SECRET = ''
@@ -180,6 +188,7 @@ QINIU_PUBLIC_DOMAIN = '7xrst8.com2.z0.glb.qiniucdn.com'
 ############### REMOTE MEDIA STORAGE ################
 QINIU_BUCKET_NAME   = 'mediaroom'
 QINIU_BUCKET_DOMAIN = '7xogkj.com1.z0.glb.clouddn.com'
+
 QINIU_SECURE_URL    = 0
 DEFAULT_FILE_STORAGE = 'qiniustorage.backends.QiniuStorage'
 MEDIA_URL = "http://%s/" % QINIU_BUCKET_DOMAIN
@@ -187,32 +196,31 @@ MEDIA_URL = "http://%s/" % QINIU_BUCKET_DOMAIN
 ######################## RESTFRAME WORK #########################
 REST_FRAMEWORK.update({
     'DEFAULT_THROTTLE_RATES': {
-        'auth': '10000/hour',
-        'anon': '10000/hour',
-        'user': '10000/hour'
+        'auth': '500/hour',
+        'anon': '2000/hour',
+        'user': '2000/hour'
     },
 })
-
 
 LOGGER_HANDLERS = [
     ('outware', 'sentry,jsonfile'),
     ('service', 'sentry,jsonfile'),
-    ('shopback', 'sentry,file'),
-    ('shopapp', 'sentry,file'),
-    ('flashsale', 'sentry,file'),
-    ('core', 'sentry,file'),
-    ('auth', 'sentry,file'),
-    ('pms', 'sentry,file'),
-    ('statistics', 'sentry,file'),
-    ('django.request', 'sentry,file'),
-    ('sentry.errors', 'sentry,file'),
-    ('celery.handler', 'sentry,file'),
-    ('notifyserver.handler', 'sentry,file'),
-    ('yunda.handler', 'sentry,file'),
-    ('mail.handler', 'sentry,file'),
-    ('xhtml2pdf', 'sentry,file'),
-    ('restapi.errors', 'sentry,file'),
-    ('weixin.proxy', 'sentry,file'),
+    ('shopback', 'sentry,jsonfile'),
+    ('shopapp', 'sentry,jsonfile'),
+    ('flashsale', 'sentry,jsonfile'),
+    ('core', 'sentry,jsonfile'),
+    ('auth', 'sentry,jsonfile'),
+    ('pms', 'sentry,jsonfile'),
+    ('statistics', 'sentry,jsonfile'),
+    ('django.request', 'sentry,jsonfile'),
+    ('sentry.errors', 'sentry,jsonfile'),
+    ('celery.handler', 'sentry,jsonfile'),
+    ('notifyserver.handler', 'sentry,jsonfile'),
+    ('yunda.handler', 'sentry,jsonfile'),
+    ('mail.handler', 'sentry,jsonfile'),
+    ('xhtml2pdf', 'sentry,jsonfile'),
+    ('restapi.errors', 'sentry,jsonfile'),
+    ('weixin.proxy', 'sentry,jsonfile'),
 ]
 
 LOGGER_TEMPLATE = {
@@ -244,20 +252,13 @@ LOGGING = {
         },
     },
     'handlers': {
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': '/data/log/django/debug-staging.log',
-            'formatter': 'json'
-        },
         'jsonfile': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': '/data/log/django/service-staging.log',
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
             'formatter': 'json'
         },
         'sentry': {
-            'level': 'INFO',
+            'level': 'ERROR',
             'class': 'raven.contrib.django.handlers.SentryHandler'
         },
         'console': {
