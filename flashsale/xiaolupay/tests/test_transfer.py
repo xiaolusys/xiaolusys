@@ -29,9 +29,7 @@ class XiaoluPayTransferTestCase(TestCase):
         self.assertEqual(tr.order_code, self.data['order_code'])
         self.assertEqual(tr.channel, self.data['channel'])
 
+        ts = Transfer.retrieve(self.data['order_code'])
+        self.assertEqual(ts.order_code, self.data['order_code'])
+        self.assertEqual(ts.channel, self.data['channel'])
 
-    @tag('C')
-    def test_transfer_retrieve(self):
-        tr = Transfer.retrieve(self.data['order_code'])
-        self.assertEqual(tr.order_code, self.data['order_code'])
-        self.assertEqual(tr.channel, self.data['channel'])
