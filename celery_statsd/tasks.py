@@ -30,7 +30,7 @@ def task_celery_queue_message_statsd():
 
 
 @app.task()
-def task_periodic_flush_elasticsearch_logging(remain_days=3):
+def task_periodic_flush_elasticsearch_logging(remain_days=7):
     today = datetime.datetime.now()
     try:
         for i in (remain_days, 10):

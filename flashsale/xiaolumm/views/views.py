@@ -28,6 +28,8 @@ from shopapp.weixin.options import get_unionid_by_openid
 from shopapp.weixin.views.views import valid_openid
 from flashsale.xiaolumm.models import XiaoluMama, CashOut, CarryLog
 from flashsale.xiaolumm.serializers import CashOutSerializer, CarryLogSerializer
+from shopback.monitor.models import XiaoluSwitch
+
 
 logger = logging.getLogger(__name__)
 json_logger = logging.getLogger('service.xiaolumama')
@@ -554,23 +556,19 @@ class ClickLogView(WeixinAuthMixin, View):
         # print 'next_page:', next_page
         # logger.error('next_page %s-path:%s' % (next_page, content))
         click_time = datetime.datetime.now()
-        json_logger.info({
-            'stype': 'click', 'mm_linkid': linkid, 'click_time': click_time,
-            'http_referal': request.META.get('HTTP_REFERER'),
-            'http_agent': request.META.get('HTTP_USER_AGENT')
-        })
         if not self.is_from_weixin(request):
             share_url = get_share_url(next_page=next_page, mm_linkid=linkid, ufrom='web')
             response = redirect(share_url)
             response.set_cookie('mm_linkid', linkid, max_age=86400)
-            logger.info({
-                'action': 'ClickLogView',
-                'desc': 'not from weixin',
-                'mm_linkid': linkid,
-                'redirect_url': share_url,
-                'click_url': click_url,
-                'created': datetime.datetime.now(),
-            })
+            if XiaoluSwitch.is_switch_open(10):
+                logger.info({
+                    'action': 'ClickLogView',
+                    'desc': 'not from weixin',
+                    'mm_linkid': linkid,
+                    'redirect_url': share_url,
+                    'click_url': click_url,
+                    'created': datetime.datetime.now(),
+                })
             return response
 
         self.set_appid_and_secret(settings.WX_PUB_APPID, settings.WX_PUB_APPSECRET)
@@ -579,12 +577,6 @@ class ClickLogView(WeixinAuthMixin, View):
             redirect_url = self.get_wxauth_redirct_url(request)
             return redirect(redirect_url)
 
-        json_logger.info({
-            'stype': 'auth_click', 'mm_linkid': linkid, 'click_time': click_time,
-            'openid': openid, 'unionid': unionid,
-            'http_referal': request.META.get('HTTP_REFERER'),
-            'http_agent': request.META.get('HTTP_USER_AGENT')
-        })
         ctasks.task_Create_Click_Record.delay(linkid, openid, unionid, click_time, settings.WX_PUB_APPID, click_url)
 
         if not valid_openid(unionid):

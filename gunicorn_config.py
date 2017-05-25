@@ -21,5 +21,5 @@ backlog = multiprocessing.cpu_count() * 250
 # accesslog='/var/log/taobao/gunicorn.out'
 # access_log_format="%(h)s %(l)s %(t)s %(r)s %(l)s %(s)s %(l)s %(b)s %(l)s %(D)s "
 # access_log_format="%(h)s %(l)s %(u)s %(t)s %(r)s %(s)s %(b)s %(f)s %(a)s"
-errorlog = '/data/log/django/gunicorn.err'
+# errorlog = '/data/log/django/gunicorn.err'
 loglevel = 'error'

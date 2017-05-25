@@ -340,16 +340,13 @@ class PortalSerializer(serializers.ModelSerializer):
     promotion_brands   = serializers.SerializerMethodField(read_only=True)
 
     def __init__(self, *args, **kwargs):
-        print self.fields, kwargs
         exclude = kwargs.pop('exclude', None)
-
         super(PortalSerializer, self).__init__(*args, **kwargs)
-
         if exclude:
             exclude = filter(lambda x: x, exclude)
             for item in exclude:
                 if item in self.fields.keys():
-                    self.fields.pop(item)
+                    t = self.fields.pop(item)
 
     class Meta:
         model = GoodShelf
@@ -535,7 +532,7 @@ class SaleTradeDetailSerializer(serializers.HyperlinkedModelSerializer):
     logistics_company = LogisticsCompanySerializer(read_only=True)
     status = serializers.ChoiceField(choices=SaleTrade.TRADE_STATUS)
     status_display = serializers.CharField(source='status_name', read_only=True)
-    package_orders = PackageOrderSerializer(many=True, read_only=True)
+    # package_orders = PackageOrderSerializer(many=True, read_only=True)
     package_orders = serializers.SerializerMethodField('gen_package_orders', read_only=True)
     extras = serializers.SerializerMethodField('gen_extras_info', read_only=True)
     class Meta:
