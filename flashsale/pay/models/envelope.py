@@ -289,6 +289,7 @@ class Envelop(PayBaseModel):
                     self.refund_envelop()
             except Exception, exc:
                 logger.error('转账错误%s' % exc, exc_info=True)
+                self.status = Envelop.FAIL
                 self.fail_msg = str(exc)
                 self.save()
 
@@ -312,6 +313,7 @@ class Envelop(PayBaseModel):
                 self.handle_sandpay_transfer_result(transfer)
             except Exception, exc:
                 logger.error('转账错误%s' % exc, exc_info=True)
+                self.status = Envelop.FAIL
                 self.fail_msg = str(exc)
                 self.save()
         else:
@@ -327,6 +329,7 @@ class Envelop(PayBaseModel):
                 self.status = Envelop.CONFIRM_SEND
                 self.save()
             except Exception, exc:
+                self.fail_msg = str(exc)
                 self.status = Envelop.FAIL
                 self.save()
                 self.refund_envelop()

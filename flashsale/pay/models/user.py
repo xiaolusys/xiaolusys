@@ -480,7 +480,7 @@ class UserBudget(PayBaseModel):
                     platform=platform,
                     recipient=recipient,
                     subject=Envelop.XLAPP_CASHOUT,
-                    body=name,
+                    body=name or '',
                     receiver=self.user.mobile,
                     description=description,
                     referal_id=budget_log.id,
