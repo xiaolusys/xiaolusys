@@ -60,11 +60,14 @@ class SendBudgetEnvelopAPIView(APIView):
         # type: (int) -> UserBudget
         from flashsale.pay.models import Customer
         customer = Customer.objects.get(id=customer_id)
-        budget, created = UserBudget.objects.get_or_create(user=customer, defaults={
-            'amount': 0,
-            'total_income': 0,
-            'total_expense': 0
-        })
+        if customer:
+            budget, created = UserBudget.objects.get_or_create(user=customer, defaults={
+                'amount': 0,
+                'total_income': 0,
+                'total_expense': 0
+            })
+        else:
+            raise Exception('用户id不存在')
 
         data = {'id': budget.id,
                 'customer_id': customer_id,
