@@ -107,13 +107,16 @@ class XiaoluSwitch(BaseModel):
         switch = cls.objects.filter(id=id).first()
         if not switch:
             return False
-        
+
+        if switch.status == 0:
+            return False
+
         now = datetime.datetime.now()
-        if switch.status == 1:
-            if switch.start_time and now < switch.start_time:
-                return False
-            if switch.end_time and now > switch.end_time:
-                return False
+        if switch.start_time and now < switch.start_time:
+            return False
+        if switch.end_time and now > switch.end_time:
+            return False
         return True
+
         
         
