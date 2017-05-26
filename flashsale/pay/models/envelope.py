@@ -262,7 +262,7 @@ class Envelop(PayBaseModel):
         if self.envelop_id or self.status != Envelop.WAIT_SEND:
             raise Exception(u'不能重复发送')
 
-        envelope_unikey = 'ndpz%s' % (self.id)
+        envelope_unikey = 'xlmm%s' % (self.id)
         if self.platform == Envelop.WX_TRANSFER:
             flow_amount = self.amount
             name = self.body
@@ -366,7 +366,7 @@ class Envelop(PayBaseModel):
         if self.envelop_id and self.platform == Envelop.SANDPAY:
             from flashsale.pay.models import BudgetLog
             transfer = transfers.Transfer.retrieve(self.envelop_id)
-            self.self.handle_sandpay_transfer_result(transfer)
+            self.handle_sandpay_transfer_result(transfer)
 
         # TODO@需要调用微信红包接口, 如果微信红包状态为失败，给予退款
         if not self.envelop_id or self.is_weixin_send_fail():  # 只有待发放状态可以取消红包
