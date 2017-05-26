@@ -1406,6 +1406,7 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
     ordering = ['-sys_status']
     list_per_page = 50
     g = get_class_fields(PackageSkuItem)
+    g.append('note_recorder')
     g.remove('out_sid')
     g.remove('logistics_company_name')
     readonly_fields = g
