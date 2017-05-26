@@ -71,7 +71,7 @@ class Envelop(PayBaseModel):
                                       help_text='之前数据可能为0, 2017.5.18添加')
     envelop_id = models.CharField(max_length=28, blank=True, db_index=True, verbose_name=u'红包ID')
 
-    amount = models.IntegerField(default=0, verbose_name=u'红包金额')
+    amount = models.IntegerField(default=0, verbose_name=u'红包金额', help_text='精度(分)')
 
     platform = models.CharField(max_length=8, db_index=True, choices=ENVELOP_CHOICES, verbose_name=u'红包发放类型')
     livemode = models.BooleanField(default=True, verbose_name=u'是否有效')
@@ -116,6 +116,17 @@ class Envelop(PayBaseModel):
     @property
     def amount_cash(self):
         return self.amount / 100.0
+
+    @property
+    def service_fee(self):
+        """ 服务费精度分 """
+        if self.platform == Envelop.SANDPAY:
+            return 100
+        return 0
+
+    @property
+    def real_transfer_amount(self):
+        return max(self.amount - self.service_fee, 0)
 
     def get_amount_display(self):
         return self.amount_cash
@@ -262,15 +273,16 @@ class Envelop(PayBaseModel):
         if self.envelop_id or self.status != Envelop.WAIT_SEND:
             raise Exception(u'不能重复发送')
 
+
         envelope_unikey = 'xlmm%s' % (self.id)
+        real_transfer_amount = self.real_transfer_amount
         if self.platform == Envelop.WX_TRANSFER:
-            flow_amount = self.amount
             name = self.body
             desc = u'小鹿美美提现'
             trade_id = envelope_unikey
 
             try:
-                success = transfers.transfer(self.recipient, name, flow_amount, desc, trade_id)
+                success = transfers.transfer(self.recipient, name, real_transfer_amount, desc, trade_id)
                 if success:
                     self.status = Envelop.CONFIRM_SEND
                     self.send_status = Envelop.RECEIVED
@@ -300,7 +312,7 @@ class Envelop(PayBaseModel):
                 transfer  = transfers.Transfer.create(
                     envelope_unikey,
                     'sandpay',
-                    self.amount,
+                    real_transfer_amount,
                     u'你的铺子提现',
                     mch_id=settings.SANDPAY_MERCHANT_ID,
                     extras={
@@ -320,7 +332,7 @@ class Envelop(PayBaseModel):
             try:
                 redenvelope = envelope.create(
                     order_no=envelope_unikey,
-                    amount=self.amount,
+                    amount=real_transfer_amount,
                     subject=self.get_subject_display(),
                     body=self.body,
                     recipient=self.recipient,
