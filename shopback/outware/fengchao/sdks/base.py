@@ -9,6 +9,7 @@ import datetime
 from ... import constants
 from django.conf import settings
 from shopback.outware.models.base import log_ware_action
+from shopback.monitor.models import XiaoluSwitch
 
 from .exceptions import FengchaoApiException
 
@@ -26,11 +27,13 @@ def sign_string(string, secret):
     return hashlib.md5(str(string + secret)).hexdigest().upper()
 
 def request_getway(data, notify_type, account):
-    logger.info({
-        'action': 'fengchao_notify_type_%s'%notify_type,
-        'action_time': datetime.datetime.now(),
-        'data': data,
-    })
+    if XiaoluSwitch.is_switch_open(11):
+        logger.info({
+            'action': 'fengchao_request',
+            'action_time': datetime.datetime.now(),
+            'notify_type': notify_type,
+            'data': data,
+        })
 
     data_str = str(json.dumps(data, ensure_ascii=False, encoding='utf8'))
     req_params = {
@@ -55,7 +58,7 @@ def request_getway(data, notify_type, account):
 # @action_decorator(constants.ACTION_ORDER_CHANNEL_CREATE['code'])
 def create_fengchao_order_channel(channel_client_id, channel_name, channel_type, channel_id):
     """　创建蜂巢订单来源渠道 """
-    # TODO 该方法已失效，channelid 通过两个商议来对接
+    # TODO 该方法已失效，channelid 通过双方商议来对接
 
     from ..models import FengchaoOrderChannel
     from shopback.outware.models import OutwareAccount

@@ -3,6 +3,8 @@ from __future__ import absolute_import, unicode_literals
 
 import datetime
 import json
+from copy import deepcopy
+
 from rest_framework import viewsets
 from rest_framework import authentication, permissions
 from rest_framework.decorators import detail_route, list_route
@@ -14,6 +16,7 @@ from shopback.outware.models import OutwareAccount, OutwarePackage
 from shopback.outware.adapter.ware.push import pms, oms
 from ... import constants
 from core.apis.models import DictObject
+from shopback.monitor.models import XiaoluSwitch
 
 import logging
 logger = logging.getLogger(__name__)
@@ -36,18 +39,21 @@ class FengchaoCallbackViewSet(viewsets.GenericViewSet):
         return Response({'code': 0, 'info': 'success'})
 
     def verify_request(self, data):
+        if XiaoluSwitch.is_switch_open(11):
+            logger.info({
+                'action': 'fengchao_callback',
+                'action_time': datetime.datetime.now(),
+                'data': data,
+            })
+
         owapp = OutwareAccount.objects.filter(app_id=data.get('app_id','')).first()
-        sign = data.pop('sign', '')
-        return owapp and owapp.sign_verify(data, sign) or False
+        verify_data = deepcopy(data)
+        sign  = verify_data.pop('sign', '')
+        return owapp and owapp.sign_verify(verify_data, sign) or False
 
     @list_route(methods=['POST'])
     def po_confirm(self, request, *args, **kwargs):
         req_data = request.POST.dict()
-        logger.info({
-            'action': 'fengchao_poconfirm',
-            'action_time': datetime.datetime.now(),
-            'data': req_data,
-        })
         if not self.verify_request(req_data):
             return Response({'code': 1, 'info': '签名无效'})
 
@@ -102,11 +108,6 @@ class FengchaoCallbackViewSet(viewsets.GenericViewSet):
         received(85, "收货确认"),
         """
         req_data = request.POST.dict()
-        logger.info({
-            'action': 'fengchao_orderstate',
-            'action_time': datetime.datetime.now(),
-            'data': req_data,
-        })
         if not self.verify_request(req_data):
             return Response({'code': 1, 'info': '签名无效'})
 
@@ -140,11 +141,6 @@ class FengchaoCallbackViewSet(viewsets.GenericViewSet):
         }
         """
         req_data = request.POST.dict()
-        logger.info({
-            'action': 'fengchao_goodlack',
-            'action_time': datetime.datetime.now(),
-            'data': req_data,
-        })
         if not self.verify_request(req_data):
             return Response({'code': 1, 'info': '签名无效'})
 
@@ -176,11 +172,6 @@ class FengchaoCallbackViewSet(viewsets.GenericViewSet):
     @list_route(methods=['POST'])
     def order_delivery(self, request, *args, **kwargs):
         req_data = request.POST.dict()
-        logger.info({
-            'action': 'fengchao_orderdelivery',
-            'action_time': datetime.datetime.now(),
-            'data': req_data,
-        })
         if not self.verify_request(req_data):
             return Response({'code': 1, 'info': '签名无效'})
 

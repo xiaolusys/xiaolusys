@@ -25,8 +25,9 @@ def task_push_packageorder_to_fengchao():
 
     batch_no = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     logger.info({
-        'action': 'task_push_packages_to_fengchao_start',
+        'action': 'task_push_packages_to_fengchao',
         'action_time': datetime.datetime.now(),
+        'stage': 'start',
         'count': packages.count(),
         'push_deadline': push_deadline,
         'batch_no': batch_no,
@@ -38,12 +39,13 @@ def task_push_packageorder_to_fengchao():
         except Exception, exc:
             logger.error(str(exc), exc_info=True)
         else:
-            package.status = PackageOrder.WAIT_OUTWARE_SEND_CALLBACK
+            package.sys_status = PackageOrder.WAIT_OUTWARE_SEND_CALLBACK
             package.save()
 
     logger.info({
-        'action': 'task_push_packages_to_fengchao_end',
+        'action': 'task_push_packages_to_fengchao',
         'action_time': datetime.datetime.now(),
+        'stage': 'end',
         'batch_no': batch_no,
     })
 
