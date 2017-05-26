@@ -1310,7 +1310,7 @@ class PackageOrderAdmin(BaseModelAdmin):
     list_filter = ('sys_status', 'ware_by', 'status', 'redo_sign', 'is_qrcode', ('weight_time', DateFieldListFilter),)
     change_list_template = "admin/trades/package_change_list.html"
     ordering = ['-sys_status']
-    readonly_fields = ['sys_status','out_sid','logistics_company_name','ware_by']
+    readonly_fields = ['sys_status','ware_by']
     list_per_page = 50
 
     def pid_link(self, obj):
