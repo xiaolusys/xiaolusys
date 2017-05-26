@@ -1305,12 +1305,15 @@ class PackageOrderAdmin(BaseModelAdmin):
         'operator', 'is_picking_print', 'is_express_print', 'redo_sign',
         'is_send_sms', 'has_refund', 'ware_by_select', 'created', 'send_time', 'weight_time',
         'consign_time', 'weight', 'merge_trade_id')
-
+    g = get_class_fields(PackageOrder)
     search_fields = ['pid', 'id', 'out_sid', 'receiver_name', 'receiver_mobile']
     list_filter = ('sys_status', 'ware_by', 'status', 'redo_sign', 'is_qrcode', ('weight_time', DateFieldListFilter),)
     change_list_template = "admin/trades/package_change_list.html"
     ordering = ['-sys_status']
-    readonly_fields = ['sys_status','ware_by']
+    g.remove('merged')
+    g.remove('out_sid')
+    g.remove('logistics_company_id')
+    readonly_fields = g
     list_per_page = 50
 
     def pid_link(self, obj):
