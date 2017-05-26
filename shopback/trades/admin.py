@@ -1412,6 +1412,8 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
     g.append('note_recorder')
     g.remove('out_sid')
     g.remove('logistics_company_name')
+    g.remove('assign_status')
+    g.remove('status')
     readonly_fields = g
     PACKAGE_ORDER_LINK = (
         '<a href="%(package_order_url)s" target="_blank">'
