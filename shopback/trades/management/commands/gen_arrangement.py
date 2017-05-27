@@ -18,6 +18,4 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         id = options.get("packageskuitem_id")
-        ids = json.loads(id)
-        for i in ids:
-            PackageSkuItem.objects.filter(id=i).first().gen_arrangement()
+        PackageSkuItem.objects.filter(id=id).first().gen_arrangement()
