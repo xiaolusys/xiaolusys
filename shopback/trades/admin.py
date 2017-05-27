@@ -1313,6 +1313,7 @@ class PackageOrderAdmin(BaseModelAdmin):
     g.remove('merged')
     g.remove('out_sid')
     g.remove('logistics_company_id')
+    g.remove('sys_status')
     readonly_fields = g
     list_per_page = 50
 
