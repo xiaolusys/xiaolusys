@@ -814,6 +814,13 @@ admin.site.register(SaleInventoryStat, SaleInventoryStatAdmin)
 
 from .models import InBound, InBoundDetail, OrderDetailInBoundDetail
 
+class InBoundDetailInline(admin.TabularInline):
+    model = InBoundDetail
+    fields = ('product_name', 'outer_id', 'properties_name', 'arrival_quantity', 'inferior_quantity', 'checked', 'wrong',
+              'out_stock', 'status', 'sku')
+    extra = 3
+    readonly_fields = ['arrival_quantity', 'inferior_quantity', 'sku']
+
 
 class InBoundAdmin(BaseModelAdmin):
     fieldsets = ((
@@ -830,6 +837,8 @@ class InBoundAdmin(BaseModelAdmin):
 
     search_fields = ('=id', '=ori_orderlist_id', '=supplier__id', '=supplier__supplier_name', '=express_no')
     list_per_page = 20
+
+    inlines = [InBoundDetailInline]
 
     def show_creator(self, obj):
         return obj.creator_name
@@ -869,8 +878,8 @@ class InBoundDetailAdmin(admin.ModelAdmin):
                  ),)
     list_display = (
         'id', 'show_inbound', 'product', 'sku', 'product_name', 'properties_name', 'arrival_quantity',
-        'inferior_quantity',
-        'created', 'modified', 'status')
+        'inferior_quantity', 'created', 'modified', 'status')
+    search_fields = ('=id', '=product__id', '=sku__id')
 
     def show_inbound(self, obj):
         return '<a href="/sale/dinghuo/inbound/%(id)d" target="_blank">%(id)d</a>' % {
