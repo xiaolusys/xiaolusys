@@ -197,6 +197,8 @@ class PackageOrder(models.Model):
             now_num = ori_sku_dict[sku_id] - sku_dict.get(sku_id, 0)
             if now_num < 0:
                 raise Exception(u'%s此sku%s数目%s超出包裹数%s'% (self.id, sku_id, new_dict['num'], ori_sku_dict[sku_id]))
+            if now_num == 0:
+                continue
             new_dict[sku_id] = now_num
 
         if not new_dict or new_dict == ori_sku_dict:
