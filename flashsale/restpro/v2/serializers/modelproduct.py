@@ -8,7 +8,7 @@ from django.conf import settings
 from rest_framework import serializers
 
 from flashsale.pay.models import ModelProduct, Favorites, Customer
-from flashsale.restpro.local_cache import image_watermark_cache
+from flashsale.restpro.local_cache import get_image_watermark_cache
 
 class SimpleModelProductSerializer(serializers.HyperlinkedModelSerializer):
 
@@ -28,7 +28,7 @@ class SimpleModelProductSerializer(serializers.HyperlinkedModelSerializer):
     def get_watermark_op(self, obj):
         if not obj.is_watermark:
             return ''
-        return image_watermark_cache.latest_qs or ''
+        return get_image_watermark_cache() or ''
 
 
 class MamaChoiceProductSerializer(serializers.ModelSerializer):

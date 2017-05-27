@@ -20,7 +20,7 @@ from django.utils.functional import cached_property
 from shopapp.taobao import apis
 from common.modelutils import update_model_fields
 from core.models import AdminModel
-from flashsale.restpro.local_cache import image_watermark_cache
+from flashsale.restpro.local_cache import get_image_watermark_cache
 
 from shopback import paramconfig as pcfg
 from shopback.categorys.models import Category, ProductCategory
@@ -318,7 +318,7 @@ class Product(models.Model):
     def watermark_op(self):
         if not self.is_watermark:
             return ''
-        return image_watermark_cache.latest_qs or ''
+        return get_image_watermark_cache() or ''
 
     def get_stock_dict(self):
         from shopback.items.models import SkuStock

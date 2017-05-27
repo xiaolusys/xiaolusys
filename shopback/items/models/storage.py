@@ -215,6 +215,11 @@ post_save.connect(invalid_contrast_maps_cache,
 
 
 class ImageWaterMark(models.Model):
+
+    WATERMARK_TPL = 'watermark/1/image/%s/dissovle/50/gravity/Center/dx/0/dy/0/ws/1'
+    CACHE_KEY = '%s.%s' % (__name__, 'ImageWaterMark')
+    CACHE_TIME = 24 * 60 * 60  # 30 * 50
+
     NORMAL = 1
     CANCELED = 0
     STATUSES = (
@@ -231,3 +236,26 @@ class ImageWaterMark(models.Model):
         app_label = 'items'
         verbose_name = u'图片水印'
         verbose_name_plural = u'图片水印'
+
+    @classmethod
+    def get_global_watermark_op(cls):
+        if not hasattr(cls, '_watermark_op_'):
+            cache_value = cache.get(cls.CACHE_KEY)
+            if not cache_value:
+                # TODO@meron cache失效应过期
+                water_mark = ImageWaterMark.objects.filter(status=ImageWaterMark.NORMAL) \
+                    .order_by('-update_time').first()
+
+                if water_mark:
+                    from qiniu import urlsafe_base64_encode
+                    cache_value = cls.WATERMARK_TPL % urlsafe_base64_encode(water_mark.url)
+                    cache.set(cls.CACHE_KEY, cache_value, cls.CACHE_TIME)
+            cls._watermark_op_ = cache_value
+        return cls._watermark_op_
+
+
+def invalid_watermark_cache_key( instance, *args, **kwargs):
+    if hasattr(instance, 'CACHE_KEY'):
+        cache.delete(ImageWaterMark.CACHE_KEY)
+
+post_save.connect(invalid_watermark_cache_key, sender=ImageWaterMark)

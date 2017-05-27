@@ -4,6 +4,8 @@ from rest_framework import serializers
 from flashsale.pay.models import Favorites, Customer
 from flashsale.pay.models.product import ModelProduct
 
+from flashsale.restpro.local_cache import get_image_watermark_cache
+
 
 class APISKUSerializer(serializers.Serializer):
     sku_id = serializers.SerializerMethodField()
@@ -127,6 +129,7 @@ class APIModelProductSerializer(serializers.Serializer):
         return obj.id
 
     def get_detail_content(self, obj):
+        obj.detail_content['watermark_op'] = get_image_watermark_cache()
         return obj.detail_content
 
     def get_extras(self, obj):
@@ -313,7 +316,7 @@ class APIModelProductListSerializer(serializers.Serializer):
         return obj.detail_content['web_url']
 
     def get_watermark_op(self, obj):
-        return obj.detail_content['watermark_op']
+        return get_image_watermark_cache()
 
     # model product elite score
     def get_elite_score(self, obj):
