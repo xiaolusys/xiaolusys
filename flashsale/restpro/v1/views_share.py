@@ -50,17 +50,24 @@ class CustomShareViewSet(viewsets.ReadOnlyModelViewSet):
     def list(self, request, *args, **kwargs):
         raise exceptions.APIException('该方法不被允许')
 
-    def get_xlmm(self, request):
-        if self._xlmm:
-            return self._xlmm
+    def get_request_user_xlmm(self, request):
         if not request.user or request.user.is_anonymous:
             return None
+
         customer = Customer.objects.normal_customer.filter(user_id=request.user.id).first()
         if not customer or not customer.unionid.strip():
             return None
+
         xiaolumms = XiaoluMama.objects.filter(openid=customer.unionid)
-        self._xlmm = xiaolumms.first()
-        return self._xlmm
+        return xiaolumms.first()
+
+
+    def get_xlmm(self, request):
+        xlmm = self.get_request_user_xlmm(request)
+        if not xlmm:
+            mama_id = request.COOKIES.get('mm_linkid')
+            return XiaoluMama.objects.filter(id=mama_id).first()
+        return xlmm
 
     def is_request_from_weixin(self, request):
         user_agent = request.META.get('HTTP_USER_AGENT')
