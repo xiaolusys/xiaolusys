@@ -316,7 +316,7 @@ class APIModelProductListSerializer(serializers.Serializer):
         return obj.detail_content['web_url']
 
     def get_watermark_op(self, obj):
-        return get_image_watermark_cache()
+        return get_image_watermark_cache(mark_size=200)
 
     # model product elite score
     def get_elite_score(self, obj):

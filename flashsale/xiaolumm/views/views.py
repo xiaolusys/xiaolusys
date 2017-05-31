@@ -581,10 +581,13 @@ class ClickLogView(WeixinAuthMixin, View):
 
         if not valid_openid(unionid):
             unionid = get_unionid_by_openid(openid, settings.WX_PUB_APPID)
+
         # 2017-2-27 正式的小鹿妈妈为精英妈妈及以上
-        xlmms = XiaoluMama.objects.filter(openid=unionid, status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED,
-                                          last_renew_type__gte=XiaoluMama.ELITE)
-        mm_linkid = xlmms.exists() and xlmms[0].id or linkid
+        if int(linkid) <= 0:
+            xlmms = XiaoluMama.objects.filter(openid=unionid, status=XiaoluMama.EFFECT,
+                                              charge_status=XiaoluMama.CHARGED,
+                                              last_renew_type__gte=XiaoluMama.ELITE)
+            linkid = xlmms.exists() and xlmms[0].id or linkid
 
         # 2017-2-27 如果打开链接的人是个小鹿妈妈，以前是会用小鹿妈妈id替换next里面的mamaid，现在不这样做，还是使用原来的linkid
         # share_url = get_share_url(next_page=next_page, mm_linkid=mm_linkid, ufrom='wx')

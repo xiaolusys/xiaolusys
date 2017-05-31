@@ -184,12 +184,13 @@ class SaleTradeAdmin(BaseExportActionModelAdmin):
 
     def buyer_info(self, obj):
         # type : () -> SaleTrade
-        mama_id = obj.order_buyer.mama_id
+        # 计算订单所属妈妈
+        mama_id = obj.order_carry_mama_id
         customer_i = u'<a target="_blank" href="/admin/pay/customer/?id=%s">C: %s</a>' % (obj.buyer_id, obj.buyer_id)
         mama_i = u'<a target="_blank" href="/admin/xiaolumm/xiaolumama/?id=%s">M: %s</a>' % (mama_id, mama_id)
         return u' | '.join([customer_i, mama_i])
     buyer_info.allow_tags = True
-    buyer_info.short_description = u"用户id | 妈妈id"
+    buyer_info.short_description = u"用户id | 分拥妈妈id"
 
     def get_readonly_fields(self, request, obj=None):
 

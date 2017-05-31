@@ -216,8 +216,10 @@ post_save.connect(invalid_contrast_maps_cache,
 
 class ImageWaterMark(models.Model):
 
+    MARK_SIZE_LIST = (-1, 200)
+
     WATERMARK_TPL = 'watermark/1/image/%s/dissovle/50/gravity/Center/dx/0/dy/0/ws/1'
-    CACHE_KEY = '%s.%s' % (__name__, 'ImageWaterMark')
+    CACHE_KEY_TPL = '%s_%s_%%s' % (__name__, 'ImageWaterMark')
     CACHE_TIME = 24 * 60 * 60  # 30 * 50
 
     NORMAL = 1
@@ -238,24 +240,31 @@ class ImageWaterMark(models.Model):
         verbose_name_plural = u'图片水印'
 
     @classmethod
-    def get_global_watermark_op(cls):
-        if not hasattr(cls, '_watermark_op_'):
-            cache_value = cache.get(cls.CACHE_KEY)
+    def get_global_watermark_op(cls, mark_size=-1):
+        watermark_key = '_watermark_op_%s_' % mark_size
+        if not hasattr(cls, watermark_key):
+            cache_key = cls.CACHE_KEY_TPL % mark_size
+            cache_value = cache.get(cache_key)
             if not cache_value:
                 # TODO@meron cache失效应过期
                 water_mark = ImageWaterMark.objects.filter(status=ImageWaterMark.NORMAL) \
                     .order_by('-update_time').first()
 
                 if water_mark:
+                    watermark_url = water_mark.url
+                    if mark_size > 0:
+                        watermark_url += '?imageMogr2/strip/format/png/quality/90/interlace/1/thumbnail/%s/' % mark_size
+
                     from qiniu import urlsafe_base64_encode
-                    cache_value = cls.WATERMARK_TPL % urlsafe_base64_encode(water_mark.url)
-                    cache.set(cls.CACHE_KEY, cache_value, cls.CACHE_TIME)
-            cls._watermark_op_ = cache_value
-        return cls._watermark_op_
+                    cache_value = cls.WATERMARK_TPL % urlsafe_base64_encode(watermark_url)
+                    cache.set(cache_key, cache_value, cls.CACHE_TIME)
+            setattr(cls, watermark_key, cache_value)
+        return getattr(cls, watermark_key)
 
 
 def invalid_watermark_cache_key( instance, *args, **kwargs):
-    if hasattr(instance, 'CACHE_KEY'):
-        cache.delete(ImageWaterMark.CACHE_KEY)
+    if hasattr(instance, 'CACHE_KEY_TPL'):
+        for size in instance.MARK_SIZE_LIST:
+            cache.delete(ImageWaterMark.CACHE_KEY_TPL % size)
 
 post_save.connect(invalid_watermark_cache_key, sender=ImageWaterMark)

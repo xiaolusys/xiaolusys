@@ -22,6 +22,7 @@ from flashsale.xiaolumm.models.models_advertis import XlmmAdvertis, NinePicAdver
 from flashsale.xiaolumm.tasks import task_mama_daily_tab_visit_stats
 from flashsale.xiaolumm.apis.v1.ninepic import get_nine_pic_by_modelids
 from flashsale.pay.apis.v1.customer import get_customer_by_django_user
+from flashsale.restpro.local_cache import get_image_watermark_cache
 from . import serializers
 import logging
 from .permission import IsAccessNinePicAdver
@@ -274,7 +275,8 @@ class NinePicViewSet(viewsets.GenericViewSet):
                     'start_time': item['start_time'],
                     'hour': item['start_time'].hour,
                     'model_id': model_id,
-                    'activity_id': item['activity_id']
+                    'activity_id': item['activity_id'],
+                    'watermark_op': get_image_watermark_cache(mark_size=200),
                 }
                 if not show_profit:
                     data_item['profit'] = {'min': 0, 'max': 0}
@@ -283,7 +285,6 @@ class NinePicViewSet(viewsets.GenericViewSet):
             except Exception, exc:
                 logger.error(u'九张图首页接口报错,err=%s' % exc.message, exc_info=True)
                 continue
-
 
         data = sorted(data, key=lambda x: x['hour'])
         import itertools

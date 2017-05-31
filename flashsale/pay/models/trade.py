@@ -287,6 +287,17 @@ class SaleTrade(BaseModel):
         return Customer.objects.get(id=self.buyer_id)
 
     @property
+    def order_carry_mama_id(self):
+        from flashsale.xiaolumm.models import OrderCarry
+        so = self.sale_orders.first()
+        if not so:
+            return None
+        oc = OrderCarry.objects.filter(order_id=so.oid).first()
+        if not oc:
+            return None
+        return oc.mama_id
+
+    @property
     def user_adress(self):
         user_addr = UserAddress.objects.filter(id=self.user_address_id).first()
         return {
