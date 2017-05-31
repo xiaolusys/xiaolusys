@@ -28,7 +28,7 @@ class SimpleModelProductSerializer(serializers.HyperlinkedModelSerializer):
     def get_watermark_op(self, obj):
         if not obj.is_watermark:
             return ''
-        return get_image_watermark_cache() or ''
+        return get_image_watermark_cache(mark_size=640) or ''
 
 
 class MamaChoiceProductSerializer(serializers.ModelSerializer):

@@ -216,9 +216,9 @@ post_save.connect(invalid_contrast_maps_cache,
 
 class ImageWaterMark(models.Model):
 
-    MARK_SIZE_LIST = (-1, 200)
+    MARK_SIZE_LIST = (-1, 200, 640)
 
-    WATERMARK_TPL = 'watermark/1/image/%s/dissovle/50/gravity/Center/dx/0/dy/0/ws/1'
+    WATERMARK_TPL = 'watermark/1/image/%s/dissovle/80/gravity/Center/dx/0/dy/0/ws/1'
     CACHE_KEY_TPL = '%s_%s_%%s' % (__name__, 'ImageWaterMark')
     CACHE_TIME = 24 * 60 * 60  # 30 * 50
 
@@ -253,7 +253,7 @@ class ImageWaterMark(models.Model):
                 if water_mark:
                     watermark_url = water_mark.url
                     if mark_size > 0:
-                        watermark_url += '?imageMogr2/strip/format/png/quality/90/interlace/1/thumbnail/%s/' % mark_size
+                        watermark_url += '?imageMogr2/strip/format/png/interlace/1/thumbnail/%s/' % mark_size
 
                     from qiniu import urlsafe_base64_encode
                     cache_value = cls.WATERMARK_TPL % urlsafe_base64_encode(watermark_url)

@@ -129,7 +129,7 @@ class APIModelProductSerializer(serializers.Serializer):
         return obj.id
 
     def get_detail_content(self, obj):
-        obj.detail_content['watermark_op'] = get_image_watermark_cache()
+        obj.detail_content['watermark_op'] = get_image_watermark_cache(mark_size=640)
         return obj.detail_content
 
     def get_extras(self, obj):
