@@ -171,7 +171,8 @@ def api_create_or_update_realinbound_by_inbound(inbound_id):
             except Exception,exc:
                 logger.error('inbound error:%s'%exc.message, exc_info=True)
 
-        forecast_inbound.fresh_forecast_forecast_num_and_arrive_num()
+        if forecast_inbound:
+            forecast_inbound.fresh_forecast_forecast_num_and_arrive_num()
 
         # if forecast_inbound:
         #     forecast_inbound.inbound_arrive_update_status(arrival_time=inbound.created)
