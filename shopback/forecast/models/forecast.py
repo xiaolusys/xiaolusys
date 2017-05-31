@@ -369,12 +369,12 @@ class ForecastInbound(BaseModel):
         return forecast_ib
 
     def fresh_forecast_forecast_num_and_arrive_num(self):
-        from .inbound import RealInbound
+        from .inbound import RealInbound, RealInboundDetail
         detail_list_num = self.normal_details.values_list('forecast_arrive_num', flat=True)
-        arrival_list_num = self.real_inbound_manager.exclude(status=RealInbound.CANCELED) \
-            .values_list('total_inbound_num', flat=True)
+        arrival_list_num = RealInboundDetail.objects.filter(inbound__forecast_inbound=self, status=RealInboundDetail.NORMAL)\
+            .exclude(inbound__status=RealInbound.CANCELED).values_list('arrival_quantity', flat=True)
         self.total_forecast_num = sum(detail_list_num)
-        self.total_arrival_num = sum(arrival_list_num)
+        self.total_arrival_num  = sum(arrival_list_num)
         self.save(update_fields=['total_forecast_num', 'total_arrival_num'])
 
 
