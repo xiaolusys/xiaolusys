@@ -75,7 +75,7 @@ class OcrIndentifyViewSet(viewsets.GenericViewSet):
             h_size_x, h_size_y = resp['face_rect']['size']['height'], resp['face_rect']['size']['width']
             img = Image.open(StringIO(base64.b64decode(card_base64)))
             img_size = img.size
-            if (img_size[0] - h_size_x - center['x']) < 0.05 * img_size[0] or h_size_y < 10 or 20 < ract_angle % 90 < 60:
+            if (img_size[0] - h_size_x - center['x']) > 0.2 * img_size[0] or h_size_y < 10 or 20 < ract_angle % 90 < 60:
                 logger.info({
                     'action': 'idcard_indentify',
                     'action_time': datetime.datetime.now(),
