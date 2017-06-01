@@ -563,7 +563,7 @@ class ClickLogView(WeixinAuthMixin, View):
             if XiaoluSwitch.is_switch_open(10):
                 logger.info({
                     'action': 'ClickLogView',
-                    'desc': 'not from weixin',
+                    'code': 1,
                     'mm_linkid': linkid,
                     'redirect_url': share_url,
                     'click_url': click_url,
@@ -589,7 +589,19 @@ class ClickLogView(WeixinAuthMixin, View):
                                               last_renew_type__gte=XiaoluMama.ELITE)
             linkid = xlmms.exists() and xlmms[0].id or linkid
 
-        # 2017-2-27 如果打开链接的人是个小鹿妈妈，以前是会用小鹿妈妈id替换next里面的mamaid，现在不这样做，还是使用原来的linkid
+        if int(linkid) <= 0 and XiaoluSwitch.is_switch_open(10):
+            logger.info({
+                'action': 'ClickLogView',
+                'code': 2,
+                'unionid': unionid,
+                'mm_linkid': linkid,
+                'http_referer': request.META.get('HTTP_REFERER'),
+                'click_url': click_url,
+                'cookies': request.COOKIES,
+                'created': datetime.datetime.now(),
+            })
+
+        # 2017-2-27 如果打开链接的人是个你的铺子妈妈，以前是会用你的铺子妈妈id替换next里面的mamaid，现在不这样做，还是使用原来的linkid
         # share_url = get_share_url(next_page=next_page, mm_linkid=mm_linkid, ufrom='wx')
         share_url = get_share_url(next_page=next_page, mm_linkid=linkid, ufrom='wx')
         response = redirect(share_url)
