@@ -22,9 +22,9 @@ class Command(BaseCommand):
         计算精品汇返点, 并发放
         """
 
-        month = '201704'  # 哪个月的返点, 需要你自己填
-        start_date = datetime(2017, 4, 1)  # 这里要改
-        end_date = datetime(2017, 5, 1)  # 这里也要改
+        month = '201705'  # 哪个月的返点, 需要你自己填
+        start_date = datetime(2017, 5, 1)  # 这里要改
+        end_date = datetime(2017, 6, 1)  # 这里也要改
 
         mamas = self.get_mamas_score_gte()
 
