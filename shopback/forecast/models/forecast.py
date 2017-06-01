@@ -130,6 +130,12 @@ class ForecastInbound(BaseModel):
     def orderlist_id(self):
         return self.relate_order_set.first().id
 
+    @cached_property
+    def dinghuo_inbound_id(self):
+        from .inbound import RealInbound
+        ri = RealInbound.objects.filter(forecast_inbound=self).first()
+        return ri and ri.wave_no.replace('ref', '') or None
+
     def get_outware_status_pair(self):
         from shopback.outware.models import OutwareInboundOrder
         ow_inbound = OutwareInboundOrder.objects.filter(inbound_code=self.forecast_no).first()

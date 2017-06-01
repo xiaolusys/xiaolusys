@@ -75,25 +75,28 @@ class OcrIndentifyViewSet(viewsets.GenericViewSet):
             h_size_x, h_size_y = resp['face_rect']['size']['height'], resp['face_rect']['size']['width']
             img = Image.open(StringIO(base64.b64decode(card_base64)))
             img_size = img.size
-            if (img_size[0] - h_size_x - center['x']) > 0.2 * img_size[0] or h_size_y < 10 or 20 < ract_angle % 90 < 60:
-                logger.info({
-                    'action': 'idcard_indentify',
-                    'action_time': datetime.datetime.now(),
-                    'code': 4,
-                    'message': '未识别成功: img_size=(%s,%s)'%(img_size[0], img_size[1]),
-                    'data': resp,
-                })
-                return Response({'code': 4, 'info': '请在明光下拍摄，并调整角度至边框平行'})
+            # １,图片距离边框两边的距离不能超过图片总宽度的20%, 头像高度不能小于10像素, 图片拍摄倾斜角度不能超过20度
+            # if (img_size[0] - h_size_x - center['x']) > 0.2 * img_size[0] or h_size_y < 10 or 20 < ract_angle % 90 < 60:
+            #     logger.info({
+            #         'action': 'idcard_indentify',
+            #         'action_time': datetime.datetime.now(),
+            #         'code': 4,
+            #         'message': '未识别成功: img_size=(%s,%s)'%(img_size[0], img_size[1]),
+            #         'data': resp,
+            #         'image_size': img_size,
+            #     })
+            #     return Response({'code': 4, 'info': '请在明光下拍摄，并调整角度至边框平行'})
 
-            if (h_size_x * h_size_y * 1.0) / (img_size[0] * img_size[1]) < 0.015:
+            if (h_size_x * h_size_y * 1.0) / (img_size[0] * img_size[1]) < 0.015 or 20 < ract_angle % 90 < 60:
                 logger.info({
                     'action': 'idcard_indentify',
                     'action_time': datetime.datetime.now(),
                     'code': 5,
                     'message': '未识别成功: img_size=(%s,%s)' % (img_size[0], img_size[1]),
                     'data': resp,
+                    'image_size': img_size,
                 })
-                return Response({'code': 5, 'info': '请调整拍摄距离让身份证居中'})
+                return Response({'code': 5, 'info': '请调整拍摄距离和角度让身份证居中'})
 
         customer = Customer.getCustomerByUser(request.user)
         resp.update({

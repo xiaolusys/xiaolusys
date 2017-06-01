@@ -68,7 +68,7 @@ class ForecastInboundAdmin(BaseAdmin):
 
     list_display = (
         'id', 'forecast_no', 'supplier', 'ware_house', 'express_no', 'forecast_arrive_time','total_forecast_num',
-        'total_arrival_num', 'status_label', 'orderlist_link', 'purchaser', 'has_lack', 'has_defact',
+        'total_arrival_num_link', 'status_label', 'orderlist_link', 'purchaser', 'has_lack', 'has_defact',
         'outware_status_label', 'created', 'arrival_time', 'delivery_time'
     )
     list_filter = ('status', 'ware_house', ('created', DateFieldListFilter),
@@ -115,6 +115,14 @@ class ForecastInboundAdmin(BaseAdmin):
 
     outware_status_label.allow_tags = True
     outware_status_label.short_description = u'蜂巢订单状态'
+
+    def total_arrival_num_link(self, obj):
+        if not obj.dinghuo_inbound_id:
+            return obj.total_arrival_num
+        return u'<a href="/admin/dinghuo/inbound/%s/change/">%s</a>' % (obj.dinghuo_inbound_id, obj.total_arrival_num)
+
+    total_arrival_num_link.allow_tags = True
+    total_arrival_num_link.short_description = u'总到货数'
 
     actions = ['action_merge_or_split',
                'action_strip_inbound',
