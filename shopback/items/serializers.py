@@ -233,6 +233,7 @@ class CreateProductSerializer(serializers.Serializer):
             product.pic_path = pic_path
             product.ref_link = ref_link
             product.memo = memo
+            product.elite_score = skus[0].get('elite_score', 0)
             product.save()
             product.update_skus(skus)
             product.update_model_product()
