@@ -1453,7 +1453,7 @@ BOUTIQUE_SCHEDULE = {
     },
     u'定时检查超过2天未兑换的券订单': {
         'task': 'flashsale.xiaolumm.tasks.tasks_mama_dailystats.task_auto_exchg_xlmm_order',
-        'schedule': crontab(minute="0", hour="19"),
+        'schedule': crontab(minute="0", hour="7, 19"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_auto_exchg_xlmm_order'}
     },
