@@ -168,6 +168,7 @@ INSTALLED_APPS =[
     'shopback.archives',
     'shopback.purchases',
     'shopback.warehouse',
+    'shopback.forecast',
 
     'shopapp.autolist',
     'shopapp.memorule',
@@ -218,7 +219,8 @@ INSTALLED_APPS =[
     'flashsale.apprelease',
     'flashsale.protocol',
     'flashsale.coupon',
-    'shopback.forecast',
+    'flashsale.jimay',
+
     # 'test.celery',
     'shopapp.notify',
     # 'shopapp.zhongtong'
@@ -305,7 +307,7 @@ JD_API_ENDPOINT = 'http://%s/routerjson' % JD_API_HOSTNAME
 
 #################### PRINT CONFIG ###################
 BASE_FONT_PATH = '/data/fonts/'
-FANGZHENG_LANTINGHEI_FONT_PATH = '/data/fonts/方正兰亭黑.TTF'
+FANGZHENG_LANTINGHEI_FONT_PATH = '/data/fonts/fzltbold.ttf'
 FONT_PATH = '/usr/share/fonts/truetype/ttf-dejavu/DejaVuSerif-Bold.ttf'
 ASYNC_FILE_PATH = os.path.join(PROJECT_ROOT, "site_media", "asyncfile")
 

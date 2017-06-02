@@ -241,25 +241,24 @@ class ImageWaterMark(models.Model):
 
     @classmethod
     def get_global_watermark_op(cls, mark_size=-1):
-        watermark_key = '_watermark_op_%s_' % mark_size
-        if not hasattr(cls, watermark_key):
-            cache_key = cls.CACHE_KEY_TPL % mark_size
-            cache_value = cache.get(cache_key)
-            if not cache_value:
-                # TODO@meron cache失效应过期
-                water_mark = ImageWaterMark.objects.filter(status=ImageWaterMark.NORMAL) \
-                    .order_by('-update_time').first()
+        cache_key = cls.CACHE_KEY_TPL % mark_size
+        cache_value = cache.get(cache_key)
+        if cache_value is  None:
+            # TODO@meron cache失效应过期
+            water_mark = ImageWaterMark.objects.filter(status=ImageWaterMark.NORMAL) \
+                .order_by('-update_time').first()
 
-                if water_mark:
-                    watermark_url = water_mark.url
-                    if mark_size > 0:
-                        watermark_url += '?imageMogr2/strip/format/png/interlace/1/thumbnail/%s/' % mark_size
+            cache_value = ''
+            if water_mark:
+                watermark_url = water_mark.url
+                if mark_size > 0:
+                    watermark_url += '?imageMogr2/strip/format/png/interlace/1/thumbnail/%s/' % mark_size
 
-                    from qiniu import urlsafe_base64_encode
-                    cache_value = cls.WATERMARK_TPL % urlsafe_base64_encode(watermark_url)
-                    cache.set(cache_key, cache_value, cls.CACHE_TIME)
-            setattr(cls, watermark_key, cache_value)
-        return getattr(cls, watermark_key)
+                from qiniu import urlsafe_base64_encode
+                cache_value = cls.WATERMARK_TPL % urlsafe_base64_encode(watermark_url)
+
+            cache.set(cache_key, cache_value, cls.CACHE_TIME)
+        return cache_value
 
 
 def invalid_watermark_cache_key( instance, *args, **kwargs):

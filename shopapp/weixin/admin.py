@@ -1,7 +1,10 @@
 # -*- coding:utf-8 -*-
+from __future__ import absolute_import, unicode_literals
+
 import re
 import urllib
 import time
+import json
 from django.contrib import admin
 import cStringIO as StringIO
 from django.db import models
@@ -631,7 +634,13 @@ admin.site.register(WeixinFans, WeixinFansAdmin)
 
 
 class WeixinQRcodeTempalteAdmin(admin.ModelAdmin):
-    list_display = ('params', 'preview_display', 'status')
+    list_display = ('id', 'params_json', 'preview_display', 'type', 'status', 'modified')
+    list_filter = ('type',)
+
+    def params_json(self, obj):
+        return '<textarea style="width:800px; height:180px">%s</textarea>' % json.dumps(json.loads(obj.params), indent=2)
+
+    params_json.allow_tags = True
 
     def preview_display(self, obj):
         html = u'<a href="%s"><img src="%s" style="width:120px;"></a>' % (obj.preview_url, obj.preview_url)

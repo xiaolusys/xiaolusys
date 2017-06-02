@@ -71,7 +71,7 @@ def fetch_wxpub_mama_custom_qrcode_url(mama_id):
     customer = mama.get_customer()
     thumbnail = customer.thumbnail or DEFAULT_MAMA_THUMBNAIL
 
-    qrcode_tpls = WeixinQRcodeTemplate.objects.filter(status=True)
+    qrcode_tpls = WeixinQRcodeTemplate.get_agent_invite_templates()
     qrcode_tpl = random.choice(qrcode_tpls)
     params = simplejson.loads(qrcode_tpl.params)
     if params.get('avatar'):
@@ -97,7 +97,7 @@ def fetch_wxpub_mama_custom_qrcode_media_id(mama_id, userinfo, wxpubId):
         logger.info('fetch_wxpub_mama_custom_qrcode_media_id cache miss: %s, %s' % (wxpubId, mama_id))
         thumbnail = userinfo['headimgurl'] or DEFAULT_MAMA_THUMBNAIL
 
-        qrcode_tpls = WeixinQRcodeTemplate.objects.filter(status=True)
+        qrcode_tpls = WeixinQRcodeTemplate.get_agent_invite_templates()
         qrcode_tpl = random.choice(qrcode_tpls)
         params = simplejson.loads(qrcode_tpl.params)
         if params.get('avatar'):
@@ -174,13 +174,16 @@ def generate_colorful_qrcode(params):
     params:
     {
         'background_url': '',
-        'text': {
-            'content': u'',
-            'font': '/home/aladdin/download/fonts/方正兰亭黑.TTF',  # 选填
-            'font_size': 24,  # 选填
-            'y': 174,  # Y坐标
-            'color': '#f1c40f'
-        },
+        'font': '/home/aladdin/download/fonts/fzltbold.ttf',  # 选填
+        'font_size': 24,  # 选填
+        'texts': [
+            {
+                'content': u'',
+                'x': 0,    # X坐标
+                'y': 174,  # Y坐标
+                'color': '#f1c40f'
+            }
+        ],
         'avatar': {
             'url': '',
             'size': 120,
@@ -205,9 +208,9 @@ def generate_colorful_qrcode(params):
         bg_img = Image.open(StringIO.StringIO(resp.content))
         cache.set(cache_key, resp.content, 24*3600)
     else:
-        bg_img = Image.open(StringIO.StringIO(cache_value))
-    bg_width, bg_height = bg_img.size
+        bg_img = Image.open(StringIO.StringIO(str(cache_value)))
 
+    bg_width, bg_height = bg_img.size
     avatar_size = params.get('avatar', {}).get('size', 120)
     size = (avatar_size, avatar_size)
 
@@ -224,14 +227,8 @@ def generate_colorful_qrcode(params):
     else:
         avatar = None
 
-    text = params.get('text', {}).get('content', '')
-    text_x = params.get('text', {}).get('x', None)
-    text_y = params.get('text', {}).get('y', 174)
-    text_align = params.get('text', {}).get('align', 'center')
-    text_color = params.get('text', {}).get('color', '#f1c40f')
-    text_spacing = params.get('text', {}).get('spacing', 4)
-    font_path = params.get('text', {}).get('font', settings.FANGZHENG_LANTINGHEI_FONT_PATH)
-    font_size = params.get('text', {}).get('font_size', 24)
+    font_path = params.get('font', settings.FANGZHENG_LANTINGHEI_FONT_PATH)
+    font_size = params.get('font_size', 24)
     font = ImageFont.truetype(type(font_path) == unicode and font_path.encode('utf8') or font_path, font_size)
 
     qrcode_url = params.get('qrcode', {}).get('url', '')
@@ -260,22 +257,32 @@ def generate_colorful_qrcode(params):
     draw = ImageDraw.Draw(mask)
     draw.ellipse((0, 0) + size, fill=255)
 
-    if text:
+    texts = params.get('texts')
+    if texts:
         draw = ImageDraw.Draw(bg_img)
-        text_size = draw.textsize(text, font)
-        text_width, text_height = text_size
-        text_x = (bg_width / 2 - text_width / 2) if not text_x else text_x
-        draw.multiline_text(
-            (text_x, text_y),
-            text,
-            fill=ImageColor.getrgb(text_color),
-            font=font,
-            align=text_align,
-            spacing=text_spacing
-        )
+        for text_param in texts:
+            text = text_param.get('content', '')
+            text_x = text_param.get('x', None)
+            text_y = text_param.get('y', 174)
+            text_align = text_param.get('align', 'center')
+            text_color = text_param.get('color', '#f1c40f')
+            text_spacing = text_param.get('spacing', 4)
+
+            text_size = draw.textsize(text, font)
+            text_width, text_height = text_size
+            text_x = (bg_width / 2 - text_width / 2) if not text_x else text_x
+            draw.multiline_text(
+                (text_x, text_y),
+                text,
+                fill=ImageColor.getrgb(text_color),
+                font=font,
+                align=text_align,
+                spacing=text_spacing
+            )
 
     if avatar:
         bg_img.paste(avatar, box=(avatar_x, avatar_y, avatar_x+avatar_size, avatar_y+avatar_size), mask=mask)
+
     if qrcode:
         bg_img.paste(qrcode, box=(qrcode_x, qrcode_y, qrcode_x+qrcode_size, qrcode_y+qrcode_size))
 

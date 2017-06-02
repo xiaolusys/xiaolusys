@@ -226,9 +226,18 @@ class WeixinUserInfo(BaseModel):
 class WeixinQRcodeTemplate(BaseModel):
     """
     """
+    TYPE_INVITE = 0
+    TYPE_CERT  = 1
+    TYPE_CHOICES = (
+        (TYPE_INVITE, u'分享邀请模板'),
+        (TYPE_CERT, u'代理授权模板'),
+    )
+
     params = models.TextField(verbose_name=u'模板参数')
     preview_url = models.CharField(max_length=512, blank=True, null=True, verbose_name=u'图片预览链接')
     status = models.BooleanField(default=True, verbose_name=u"使用")
+
+    type  = models.IntegerField(default=TYPE_INVITE, db_index=True, choices=TYPE_CHOICES, verbose_name=u'模板类型')
 
     class Meta:
         db_table = 'shop_weixin_qrcode_templates'
@@ -248,7 +257,15 @@ class WeixinQRcodeTemplate(BaseModel):
         m.update(self.params)
         filepath = 'qrcode/%s.jpg' % m.hexdigest()
 
-        print upload_public_to_remote(filepath, img)
+        upload_public_to_remote(filepath, img)
         self.preview_url = generate_public_url(filepath)
 
         super(WeixinQRcodeTemplate, self).save(*args, **kwargs)
+
+    @classmethod
+    def get_agent_cert_templates(cls):
+        return cls.objects.filter(type=cls.TYPE_CERT, status=True)
+
+    @classmethod
+    def get_agent_invite_templates(cls):
+        return cls.objects.filter(type=cls.TYPE_INVITE, status=True)
