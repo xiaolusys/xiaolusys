@@ -752,6 +752,10 @@ QRCODE_ROUTES = {
         'queue': 'qrcode',
         'routing_key': 'qrcode.task_fetch_wxpub_mama_custom_qrcode_url',
     },
+    'shopapp.weixin.tasks.qrcode.task_generate_colorful_qrcode': {
+        'queue': 'qrcode',
+        'routing_key': 'qrcode.task_generate_colorful_qrcode',
+    },
 }
 
 BOUTIQUE_ROUTES = {

@@ -10,7 +10,7 @@ from django.http import HttpResponse
 from .models import JimayAgent
 
 from shopapp.weixin.models.base import WeixinQRcodeTemplate
-from shopapp.weixin.utils import generate_colorful_qrcode
+from shopapp.weixin.tasks import task_generate_colorful_qrcode
 
 @admin.register(JimayAgent)
 class JimayAgentAdmin(admin.ModelAdmin):
@@ -34,7 +34,8 @@ class JimayAgentAdmin(admin.ModelAdmin):
         params['texts'][1]['content'] = agent.idcard_no
         params['texts'][2]['content'] = agent.weixin
 
-        media_stream = generate_colorful_qrcode(params)
+        qrcode_task = task_generate_colorful_qrcode.delay(params)
+        media_stream = qrcode_task.get()
         response = HttpResponse(media_stream.getvalue(), content_type='application/octet-stream')
         media_stream.close()
         response['Content-Disposition'] = 'attachment; filename=cf-{name}-{id}-{date}.csv'.format(
