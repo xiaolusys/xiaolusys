@@ -100,6 +100,8 @@ def task_ordercarry_update_carryrecord(carry):
                 upper_mama = XiaoluMama.objects.filter(id=carry.mama_id,
                                                        status=XiaoluMama.EFFECT,
                                                        charge_status=XiaoluMama.CHARGED).first()
+                if not upper_mama:
+                    return 
                 customer = upper_mama.get_mama_customer()
                 uni_key_in = "elite_in-%s-%s" % (customer.id, carry.order_id)
                 cts = CouponTransferRecord.objects.filter(uni_key=uni_key_in).first()
