@@ -17,12 +17,12 @@ class Command(BaseCommand):
     #     )
 
     def handle(self, *args, **options):
-        # ss = SkuStock.objects.filter(product__category__in=[8,5,9,12,13,14,15,16,17,18,19,20,21,22,25,26,27,59,60,61,62,63,64,])
-        ss = SkuStock.objects.filter(product_id__in=SkuStock.filter_by_supplier(28802))
+        ss = SkuStock.objects.filter(product__category__in=[8,5,9,12,13,14,15,16,17,18,19,20,21,22,25,26,27,59,60,61,62,63,64,4,10,11,23,24,66])
         for i in ss:
             if i.realtime_quantity != 0:
                 i.history_quantity = i.history_quantity - i.realtime_quantity
                 i.save()
+        # ss = SkuStock.objects.filter(product_id__in=SkuStock.filter_by_supplier(28802))
         # for i in ss:
         #     if i.realtime_quantity != 0:
         #         i.history_quantity = i.history_quantity - i.realtime_quantity
