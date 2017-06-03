@@ -120,9 +120,10 @@ class WeixinPubBackend(object):
         except Customer.DoesNotExist:
             if not self.create_unknown_user or not unionid:
                 return AnonymousUser()
-
+            nick = userinfo.get('nickname')
+            thumbnail = userinfo.get('headimgurl')
             user, state = User.objects.get_or_create(username=unionid, is_active=True)
-            profile, state = Customer.objects.get_or_create(unionid=unionid, openid=openid, user=user)
+            profile, state = Customer.objects.get_or_create(unionid=unionid, openid=openid, user=user, nick=nick, thumbnail=thumbnail)
             # if not normal user ,no login allowed
             if profile.status != Customer.NORMAL:
                 return AnonymousUser()
