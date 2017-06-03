@@ -247,6 +247,7 @@ class WeixinQRcodeTemplate(BaseModel):
 
     def save(self, *args, **kwargs):
         import hashlib
+        import cStringIO
         from shopapp.weixin.tasks.qrcode import task_generate_colorful_qrcode
         from core.upload.upload import upload_public_to_remote, generate_public_url
         import simplejson
@@ -256,7 +257,7 @@ class WeixinQRcodeTemplate(BaseModel):
         m = hashlib.md5()
         m.update(self.params)
         filepath = 'qrcode/%s.jpg' % m.hexdigest()
-        img = qrcode_task.get()
+        img = cStringIO.StringIO(qrcode_task.get())
         upload_public_to_remote(filepath, img)
         self.preview_url = generate_public_url(filepath)
 

@@ -6,4 +6,5 @@ from ..utils import generate_colorful_qrcode
 
 @app.task(ignore_result=False)
 def task_generate_colorful_qrcode(params):
-    return generate_colorful_qrcode(params)
+    io_stream = generate_colorful_qrcode(params)
+    return io_stream.getvalue()

@@ -2,6 +2,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import json
+import cStringIO as StringIO
 
 from django.contrib import admin
 from django.contrib import messages
@@ -35,9 +36,8 @@ class JimayAgentAdmin(admin.ModelAdmin):
         params['texts'][2]['content'] = agent.weixin
 
         qrcode_task = task_generate_colorful_qrcode.delay(params)
-        media_stream = qrcode_task.get()
-        response = HttpResponse(media_stream.getvalue(), content_type='application/octet-stream')
-        media_stream.close()
+        media_value = qrcode_task.get()
+        response = HttpResponse(media_value, content_type='application/octet-stream')
         response['Content-Disposition'] = 'attachment; filename=cf-{name}-{id}-{date}.csv'.format(
             name=agent.name, id=agent.id, date=agent.modified.strftime('%Y%m%d')
         )
