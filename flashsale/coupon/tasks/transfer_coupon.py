@@ -195,12 +195,13 @@ def _check_virtual_trade_status(time_from=None, time_to=None):
     ordersv = orders.values('id', 'status', 'oid')
     paid = []
     success_no_transfer = []
-    for order in ordersv:
-        if order['status'] == SaleOrder.WAIT_SELLER_SEND_GOODS:
-            paid.append(order['id'])
-        if order['status'] == SaleOrder.TRADE_FINISHED:
-            if not CouponTransferRecord.objects.filter(order_no=order['oid']).exists():
-                success_no_transfer.append(order['id'])
+    for order in orders:
+        if order.status == SaleOrder.WAIT_SELLER_SEND_GOODS:
+            paid.append(order.id)
+        if order.status == SaleOrder.TRADE_FINISHED:
+            if not CouponTransferRecord.objects.filter(order_no=order.oid).exists():
+                success_no_transfer.append(order.id)
+                order.save()
     return paid, success_no_transfer
 
 
