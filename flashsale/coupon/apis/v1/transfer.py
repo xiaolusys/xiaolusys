@@ -44,9 +44,16 @@ def get_elite_score_by_templateid(templateid, mama):
         if not mama:
             return find_mp.products[0].id, find_mp.products[0].elite_score, find_mp.products[0].agent_price
         else:
-            for product in find_mp.products:
-                if mama.elite_level in product.name:
-                    return product.id, product.elite_score, product.agent_price
+            if len(find_mp.products) == 5:
+                for product in find_mp.products:
+                    if mama.elite_level in product.name:
+                        return product.id, product.elite_score, product.agent_price
+            elif len(find_mp.products) == 1 and len(find_mp.products[0].eskus) == 5:
+                for sku in find_mp.products[0].eskus:
+                    if mama.elite_level in sku.name:
+                        return find_mp.products[0].id, find_mp.products[0].elite_score, sku.agent_price
+
+
     return 0, 0, 0.0
 
 
