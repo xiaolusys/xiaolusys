@@ -108,16 +108,14 @@ def task_boutique_sale_and_refund_stats(stat_date, modelproduct_id):
 def fresh_coupontemplate_extras_modelproduct_ids():
     """ 更新精品券模板款式商品ID参数 """
     cptls = CouponTemplate.objects.filter(coupon_type=CouponTemplate.TYPE_TRANSFER)
-    for cpt in cptls:
+    for cpt in cptls.iterator():
         model_id = cpt.extras['scopes'].get('modelproduct_ids')
         product_ids = cpt.extras['scopes'].get('product_ids') or ''
         if isinstance(product_ids, list):
-            print 'invalid: coupon_template_id=', cpt.id, product_ids
             continue
 
         modelps = Product.objects.filter(id__in=[int(i) for i in product_ids.split(',') if i])
         if model_id or not modelps:
-            print cpt.id, cpt.extras['scopes']
             continue
 
         model_id = modelps.first().model_id
