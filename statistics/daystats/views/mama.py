@@ -245,7 +245,9 @@ def carry(req):
 
     has_carry_count = len(queryset)
     sum_carry = sum([x['money'] for x in queryset]) / 100
-    avg_carry = '%.2f' % (sum_carry / has_carry_count)
+    avg_carry = None
+    if has_carry_count:
+        avg_carry = '%.2f' % (sum_carry / has_carry_count)
 
     return render(req, 'yunying/mama/carry.html', locals())
 
@@ -415,12 +417,12 @@ def new_mama(req):
         mamas, xaris='created', key=None, yaris=finish_task_func, start_date=start_date, end_date=end_date)
 
     z_items = {}
-    yaoqing_data = chart_items.values()[0]
+    yaoqing_data = chart_items and chart_items.values()[0]
     # yaoqing_count_data = yaoqing_count_chart_items.values()[0]
-    new_mama_data = new_chart_items.values()[0]
-    xufei_mama_data = xufei_chart_items.values()[0]
-    finish_task_data = finish_task_chart_items.values()[0]
-    open_app_task_data = open_app_chart_items.values()[0]
+    new_mama_data = new_chart_items and new_chart_items.values()[0]
+    xufei_mama_data = xufei_chart_items and xufei_chart_items.values()[0]
+    finish_task_data = finish_task_chart_items and finish_task_chart_items.values()[0]
+    open_app_task_data = open_app_chart_items and open_app_chart_items.values()[0]
     # buy_mama_data = buy_chart_items.values()[0]
 
     ratio_data = []
@@ -433,9 +435,9 @@ def new_mama(req):
         ratio_data.append(ratio)
 
     charts = [generate_chart('小鹿妈妈', x_axis, z_items, width='1000px')]
-    y1 = max(new_mama_data) + 100
+    y1 = new_mama_data and max(new_mama_data) or 0 + 100
     y1_interval = int(y1 / 10)
-    y2 = max(ratio_data) + 10
+    y2 = ratio_data and max(ratio_data) or 0 + 10
     y2_interval = int(y2 / 10)
 
     return render(req, 'yunying/mama/new_mama.html', locals())
@@ -737,13 +739,14 @@ def rank(req):
         WHERE
             xiaolumm_xiaolumama.id IN %s
     """
-    mamas = execute_sql(get_cursor(), sql, [mama_ids])
-    for mama in mamas:
-        money = items[mama['id']]
-        if isinstance(money, dict):
-            continue
-        mama['money'] = money
-        items[mama['id']] = mama
+    if mama_ids:
+        mamas = execute_sql(get_cursor(), sql, [mama_ids])
+        for mama in mamas:
+            money = items[mama['id']]
+            if isinstance(money, dict):
+                continue
+            mama['money'] = money
+            items[mama['id']] = mama
 
     items = sorted(items.items(), key=lambda x: x[1]['money'], reverse=True)
     items = [x[1] for x in items]
