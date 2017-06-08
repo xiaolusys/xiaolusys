@@ -155,7 +155,7 @@ class ProductAdmin(ApproxAdmin):
     search_fields = ['=id', '^outer_id', 'name', '=barcode', '=sale_charger',
                      '=storage_charger', '=model_id']
 
-    inlines = [ProductdetailInline, ProductSkuInline]
+    inlines = [ProductSkuInline]
 
     # --------设置页面布局----------------
     fieldsets = (('商品基本信息:', {

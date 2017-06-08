@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 WASH_INSTRUCTION ='''洗涤时请深色、浅色衣物分开洗涤。最高洗涤温度不要超过40度，不可漂白。
 有涂层、印花表面不能进行熨烫，会导致表面剥落。不可干洗，悬挂晾干。'''.replace('\n','')
 
-
+################## 该MODEL已废弃，新功能开发请不要引用 #####################
 class Productdetail(PayBaseModel):
     """　DEPRECATED 该MODEL已废弃，新功能开发请不要引用 """
     OUT_PERCENT = 0  # 未设置代理返利比例
@@ -127,6 +127,7 @@ class Productdetail(PayBaseModel):
             self.save(update_fields=p_detail_update_fields)
             return True
 
+################## 该MODEL已废弃，新功能开发请不要引用 #####################
 
 def default_modelproduct_extras_tpl():
     return {
@@ -941,9 +942,10 @@ class ModelProduct(BaseTagModel):
     def set_lowest_price(self):
         """ 设置款式最低价格 """
         product_ids = self.products.values_list('id', flat=True)
-        skus = ProductSku.objects.filter(product_id__in=product_ids).values_list('agent_price', 'std_sale_price')
-        lowest_agent_price = min([sku[0] for sku in skus])
-        lowest_std_sale_price = min([sku[1] for sku in skus])
+        skus = ProductSku.objects.filter(product_id__in=product_ids, status=ProductSku.NORMAL)\
+            .values_list('agent_price', 'std_sale_price')
+        lowest_agent_price = skus.exists() and min([sku[0] for sku in skus]) or 0
+        lowest_std_sale_price = skus.exists() and min([sku[1] for sku in skus]) or 0
         self.update_fields_with_kwargs(**{
             'lowest_agent_price': lowest_agent_price,
             'lowest_std_sale_price': lowest_std_sale_price
