@@ -1314,6 +1314,12 @@ class PackageOrderAdmin(BaseModelAdmin):
     g.remove('out_sid')
     g.remove('logistics_company_id')
     g.remove('sys_status')
+    g.remove('receiver_name')
+    g.remove('receiver_state')
+    g.remove('receiver_city')
+    g.remove('receiver_district')
+    g.remove('receiver_address')
+    g.remove('receiver_mobile')
     readonly_fields = g
     list_per_page = 50
 
