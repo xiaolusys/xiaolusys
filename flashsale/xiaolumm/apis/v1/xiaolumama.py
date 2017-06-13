@@ -294,13 +294,7 @@ def get_mama_buy_coupon_score(mama_id, start_date, end_date):
 
     for record in out_records:
         try:
-            if record.order_no.startswith('return-money') or record.order_no.startswith('return-coin'):
-                _, _, money = record.order_no.split('-')
-            else:
-                if record.order_no.startswith('return-'):
-                    _, _, _, money = record.order_no.split('-')
-                else:
-                    money = 0
+            _, _, money = record.order_no.split('-')
         except Exception, e:
             print e
             continue
