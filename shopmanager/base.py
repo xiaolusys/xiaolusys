@@ -237,7 +237,7 @@ INSTALLED_APPS =[
 AUTH_PROFILE_MODULE = 'users.user'
 
 AUTHENTICATION_BACKENDS = (
-    'flashsale.pay.backends.FlashSaleBackend',
+    # 'flashsale.pay.backends.FlashSaleBackend',
     'flashsale.pay.backends.SMSLoginBackend',
     'flashsale.pay.backends.WeixinPubBackend',
     'flashsale.pay.backends.WeixinAppBackend',
@@ -338,6 +338,9 @@ WEAPP_KEY   = "t5UXHfwR7QEv2jMLFuZm8DdqnAT0ON9a" #支付密钥
 
 WEAPP_CERT_PEM_PATH = '/data/certs/weapp_key.pem'
 WEAPP_KEY_PEM_PATH  = '/data/certs/weapp.pem'
+
+# ================ 己美医学[公众号] ==================
+WX_JIMAY_APPID  = 'wxaf62312f812ce0d8'
 
 ################### Ntalker SETTINGS ##################
 NTALKER_NOTIFY_URL = 'http://wx.ntalker.com/agent/weixin'

@@ -9,6 +9,7 @@ from . import views
 # from .views.kdn import KdnView
 from flashsale.xiaolumm.views import views_rank, views_message, award, week_rank
 from flashsale.pay.views import teambuy
+from flashsale.pay.views.login import jimay_weixin_login
 from flashsale.restpro.v1 import views_coupon_new
 from flashsale.restpro.v2.views import ocr
 from flashsale.restpro.v2.views import (
@@ -21,6 +22,7 @@ from flashsale.restpro.v2.views import (
     elite_score,
     bankcard,
     envelop,
+    jimay,
 )
 
 v2_router = routers.DefaultRouter(trailing_slash=False)
@@ -57,6 +59,7 @@ v2_router.register(r'cpntmpl', views_coupon_new.CouponTemplateViewSet)
 v2_router.register(r'sharecoupon', views_coupon_new.OrderShareCouponViewSet)
 v2_router.register(r'tmpsharecoupon', views_coupon_new.TmpShareCouponViewset)
 
+v2_router.register(r'jimay/order', jimay.JimayWeixinAgentOrder)
 
 # v2_router.register(r'rank', views_rank.MamaCarryTotalViewSet)
 # v2_router.register(r'teamrank', views_rank.MamaTeamCarryTotalViewSet)
@@ -103,8 +106,9 @@ v2_router_urls += format_suffix_patterns([
     url(r'^rebate/history$', fandian.FandianViewSet.as_view({'get': 'history'})),
 
     url(r'^mmcarry$', mmcarry.MMCarryViewSet.as_view({'get': 'index'})),
-
     url(r'^mama/elite_score$', elite_score.EliteScoreViewSet.as_view({'get': 'index'})),
+
+    url(r'^jimay/weixin_login/$', jimay_weixin_login, name='jimay-weixin-login'),
 ])
 
 lesson_router = routers.DefaultRouter(trailing_slash=False)

@@ -93,19 +93,33 @@ class WeiXinAccount(models.Model):
         return 'weixin_account_list_cache_key'
 
     @classmethod
+    def gen_account_appid_and_secret_cache_key(cls):
+        return 'weixin_account_appid_and_secret_cache_key'
+
+    @classmethod
     def getWeixinAccountValueList(cls):
         list_cache_key = cls.gen_account_list_cache_key()
         cache_value = cache.get(list_cache_key)
         if not cache_value:
             cache_value = list(cls.objects.all().values(
                 'account_id', 'token', 'app_id', 'app_secret', 'access_token', 'js_ticket'))
-            cache.set(list_cache_key, cache_value, 24 * 3600)
+            cache.set(list_cache_key, cache_value, 3600)
 
         return cache_value
 
     @classmethod
     def getAnonymousAccount(self):
         return AnonymousWeixinAccount()
+
+    @classmethod
+    def get_wxpub_account_secret(cls, wxpub_appid):
+        list_cache_key = cls.gen_account_appid_and_secret_cache_key()
+        cache_value = cache.get(list_cache_key)
+        if not cache_value:
+            cache_value = dict(cls.objects.all().values_list('app_id', 'app_secret'))
+            cache.set(list_cache_key, cache_value, 3600)
+
+        return cache_value[wxpub_appid]
 
     def isNone(self):
         return False
@@ -140,8 +154,9 @@ class WeiXinAccount(models.Model):
 
 def invalid_wxaccount_cache_value(sender, instance, created, **kwargs):
     """ invalid wxaccount cache value  """
-    cache_key = WeiXinAccount.gen_account_list_cache_key()
-    cache.delete(cache_key)
+    for cache_key in [WeiXinAccount.gen_account_list_cache_key(),
+                WeiXinAccount.gen_account_appid_and_secret_cache_key()]:
+        cache.delete(cache_key)
 
 post_save.connect(invalid_wxaccount_cache_value, sender=WeiXinAccount,
                    dispatch_uid='post_save_invalid_wxaccount_cache_value')

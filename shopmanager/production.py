@@ -151,6 +151,9 @@ WEAPP_KEY   = "t5UXHfwR7QEv2jMLFuZm8DdqnAT0ON9a" #支付密钥
 WEAPP_CERT_PEM_PATH = '/data/certs/weapp.pem'
 WEAPP_KEY_PEM_PATH  = '/data/certs/weapp_key.pem'
 
+# ================ 己美医学[公众号] ==================
+WX_JIMAY_APPID  = 'wxaf62312f812ce0d8'
+
 ################### ALIPAY SETTINGS ##################
 ALIPAY_MCHID     = '2088911223385116'
 ALIAPY_APPID     = '2016012701123211'

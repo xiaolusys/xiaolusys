@@ -1520,12 +1520,6 @@ STATSD_SCHEDULE = {
     #     'args': (),
     #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task_sms_send_count_gauge_statsd'}
     # },
-    u'每天定时删除elasticsearch日志记录index': {
-        'task': 'celery_statsd.tasks.task_periodic_flush_elasticsearch_logging',
-        'schedule': crontab(minute="0", hour="0"),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_periodic_flush_elasticsearch_logging'}
-    },
 }
 
 

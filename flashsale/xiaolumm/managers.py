@@ -107,4 +107,4 @@ class XlmmFansManager(BaseManager):
 class NinePicAdverManager(BaseManager):
 
     def filter_by_modelproduct(self, model_id):
-        return self.filter(detail_modelids__regex=r'(,|^)\s*%s\s*(,|$)*' % model_id)
+        return self.filter(detail_modelids__regex=r'(,|^)\s*%s\s*(,|$)' % model_id)

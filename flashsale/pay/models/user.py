@@ -134,7 +134,7 @@ class Customer(BaseTagModel):
     email = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'邮箱')
     phone = models.CharField(max_length=18, blank=True, verbose_name=u'电话')
 
-    openid = models.CharField(max_length=28, db_index=True, blank=True, verbose_name=u'微信ID')
+    openid = models.CharField(max_length=28, db_index=True, blank=True, verbose_name=u'微信ID', help_text='准备作废@2017.6.14')
     unionid = models.CharField(max_length=28, db_index=True, verbose_name=u'联合ID')
 
     status = models.IntegerField(choices=USER_STATUS_CHOICES, default=NORMAL, verbose_name=u'状态')

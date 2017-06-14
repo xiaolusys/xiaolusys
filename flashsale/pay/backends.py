@@ -12,7 +12,7 @@ from .models import Customer, Register
 from core.weixin import options
 from .tasks import task_Update_Sale_Customer, task_Refresh_Sale_Customer
 from shopapp.weixin.views.views import valid_openid
-from shopapp.weixin.models import WeiXinUser, WeixinUnionID
+from shopapp.weixin.models import WeiXinUser, WeixinUnionID, WeiXinAccount
 
 import logging
 
@@ -76,26 +76,21 @@ class WeixinPubBackend(object):
         except WeixinUnionID.DoesNotExist:
             return ''
 
-    def authenticate(self, request, **kwargs):
-        content = request.GET
-        if (not request.path.startswith(("/mm/", "/rest/", "/sale/", "/m/"))
-            or kwargs.get('username')
-            or kwargs.get('unionid')
-            or content.get('unionid')):
-            return None
+    def authenticate(self, request, auth_code, wxpub_appid, **kwargs):
 
-        code = content.get('code')
+        code = auth_code
+        wxpub_appsecret = WeiXinAccount.get_wxpub_account_secret(wxpub_appid)
         userinfo = options.get_auth_userinfo(code,
-                                             appid=settings.WX_PUB_APPID,
-                                             secret=settings.WX_PUB_APPSECRET,
+                                             appid=wxpub_appid,
+                                             secret=wxpub_appsecret,
                                              request=request)
         openid, unionid = userinfo.get('openid'), userinfo.get('unionid')
         if not openid or not unionid:
-            openid, unionid = options.get_cookie_openid(request.COOKIES, settings.WX_PUB_APPID)
+            openid, unionid = options.get_cookie_openid(request.COOKIES, wxpub_appid)
 
         if openid and not unionid:
             logger.warn('weixin unionid not return:openid=%s' % openid)
-            unionid = self.get_unoinid(openid, settings.WX_PUB_APPID)
+            unionid = self.get_unoinid(openid, wxpub_appid)
 
         if not valid_openid(unionid):
             return AnonymousUser()
@@ -105,7 +100,7 @@ class WeixinPubBackend(object):
                 profile = Customer.objects.get(unionid=unionid, status=Customer.NORMAL)
                 # 如果openid有误，则重新更新openid
                 if unionid:
-                    task_Refresh_Sale_Customer.delay(userinfo, app_key=settings.WX_PUB_APPID)
+                    task_Refresh_Sale_Customer.delay(userinfo, app_key=wxpub_appid)
 
                 if profile.user:
                     if not profile.user.is_active:
@@ -120,17 +115,19 @@ class WeixinPubBackend(object):
         except Customer.DoesNotExist:
             if not self.create_unknown_user or not unionid:
                 return AnonymousUser()
+
             nick = userinfo.get('nickname')
             thumbnail = userinfo.get('headimgurl')
             user, state = User.objects.get_or_create(username=unionid, is_active=True)
             if nick and thumbnail:
-                profile, state = Customer.objects.get_or_create(unionid=unionid, openid=openid, user=user, nick=nick, thumbnail=thumbnail)
+                profile, state = Customer.objects.get_or_create(unionid=unionid, user=user, nick=nick, thumbnail=thumbnail)
             else:
-                profile, state = Customer.objects.get_or_create(unionid=unionid, openid=openid, user=user)
+                profile, state = Customer.objects.get_or_create(unionid=unionid, user=user)
             # if not normal user ,no login allowed
             if profile.status != Customer.NORMAL:
                 return AnonymousUser()
-            task_Refresh_Sale_Customer.delay(userinfo, app_key=settings.WX_PUB_APPID)
+
+            task_Refresh_Sale_Customer.delay(userinfo, app_key=wxpub_appid)
 
         return user
 
@@ -209,18 +206,12 @@ class SMSLoginBackend(object):
     supports_inactive_user = False
     supports_object_permissions = False
 
-    def authenticate(self, request, **kwargs):
+    def authenticate(self, request, mobile, sms_code, **kwargs):
         """
         1, get django user first;
         2, if not,then get customer user;
         3, if not else,then create django user
         """
-        content = request.POST
-        mobile = kwargs.get('mobile') or content.get('sms_code')
-        sms_code = kwargs.get('sms_code') or content.get('sms_code')
-        if not (request.path.startswith("/rest/") and mobile and sms_code):
-            return None
-
         try:
             register = Register.objects.get(vmobile=mobile)
             if not register.is_submitable():

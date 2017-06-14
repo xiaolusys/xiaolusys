@@ -45,7 +45,7 @@ def weixin_authlogin_required(redirecto=None):
                     return redirect(redirect_url)
 
             logger.info('weixin authenticate:%s,%s' % (code, user_agent))
-            user = authenticate(request=request, handle_backends=[constants.WEIXIN_AUTHENTICATE_KEY])
+            user = authenticate(request=request, auth_code=code, wxpub_appid=settings.WX_PUB_APPID)
             if not user or user.is_anonymous:
                 return HttpResponseRedirect(redirecto)
 

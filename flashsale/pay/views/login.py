@@ -8,13 +8,12 @@ from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth import authenticate, login as auth_login, SESSION_KEY
 
 from urlparse import urljoin
-from flashsale.pay.decorators import weixin_xlmm_auth, weixin_test_auth
+from flashsale.pay.decorators import weixin_xlmm_auth, weixin_test_auth, union_wxpub_auth
 from core.weixin import options
 from flashsale.pay.models import Customer
 
 import logging
-
-logger = logging.getLogger('django.request')
+logger = logging.getLogger(__name__)
 
 
 def flashsale_login(request):
@@ -50,7 +49,31 @@ def productlist_redirect(request):
     return HttpResponseRedirect(urljoin(settings.M_SITE_URL, reverse('rest_v1:weixin-login')))
 
 
-@weixin_xlmm_auth(redirecto=urljoin(settings.M_SITE_URL, '/pages/denglu.html'))
+@weixin_xlmm_auth(redirecto=urljoin(settings.M_SITE_URL, '/mall/user/login'))
+def weixin_login(request):
+    next_url = request.GET.get('next', '/')
+    response = HttpResponseRedirect(next_url)
+
+    customer = Customer.objects.get(user=request.user.id)
+    openid, unionid = customer.get_openid_and_unoinid_by_appkey(settings.WX_PUB_APPID)
+
+    options.set_cookie_openid(response, settings.WX_PUB_APPID, openid, unionid)
+    return response
+
+
+@union_wxpub_auth(settings.WX_JIMAY_APPID, none_wxauth_url='/404.html')
+def jimay_weixin_login(request):
+    next_url = request.GET.get('next', '/')
+    response = HttpResponseRedirect(next_url)
+
+    customer = Customer.objects.get(user=request.user.id)
+    openid, unionid = customer.get_openid_and_unoinid_by_appkey(settings.WX_JIMAY_APPID)
+
+    options.set_cookie_openid(response, settings.WX_JIMAY_APPID, openid, unionid)
+    return response
+
+
+@weixin_xlmm_auth(redirecto=urljoin(settings.M_SITE_URL, '/mall/user/login'))
 def weixin_login(request):
     next_url = request.GET.get('next', '/')
     response = HttpResponseRedirect(next_url)
@@ -71,8 +94,6 @@ def weixin_test(request):
 
 
 from flashsale.pay.tasks import task_Merge_Sale_Customer
-
-
 def weixin_auth_and_redirect(request):
     next_url = request.GET.get('next')
     code = request.GET.get('code')

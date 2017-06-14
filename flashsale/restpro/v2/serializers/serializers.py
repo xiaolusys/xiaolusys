@@ -224,7 +224,7 @@ class OrderCarrySerializer(serializers.ModelSerializer):
         order = PackageSkuItem.objects.filter(oid=obj.order_id).first()
         if not order:
             return ''
-        return order.out_sid
+        return order.out_sid.strip()
 
     def get_company_code(self, obj):
         order = PackageSkuItem.objects.filter(oid=obj.order_id).first()

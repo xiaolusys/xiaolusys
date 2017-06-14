@@ -18,6 +18,7 @@ from rest_framework import exceptions
 from core.pagination import ConsoleResultSetPagination
 
 from flashsale.xiaolumm import serializers
+from flashsale.pay.models import ModelProduct
 from flashsale.xiaolumm.models.models_advertis import NinePicAdver
 from shopback.items.models import Product
 from pms.supplier.models import SaleProductManageDetail
@@ -114,12 +115,19 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
+        # 数据提交方式为application/json 所以数据为request.data数据结构为dict
+        req_data = request.data
         try:
             auther = request.user.username
-            title = request.data.pop('title')
-            start_time = datetime.datetime.strptime(request.data.pop('start_time'),
-                                                    '%Y-%m-%d %H:%M:%S')
-            n = create_nine_pic_advertisement(auther, title, start_time, **request.data)
+            title = req_data.pop('title')
+            start_time = datetime.datetime.strptime(req_data.pop('start_time'), '%Y-%m-%d %H:%M:%S')
+            detail_modelids = req_data.get('detail_modelids')
+            if detail_modelids:
+                model_ids = set([i.strip() for i in detail_modelids.split(',') if i.strip()])
+                mps = ModelProduct.objects.filter(id__in=model_ids)
+                if mps.count() != len(model_ids):
+                    raise exceptions.APIException('传入款式ID: %s 未找到或不合法' % detail_modelids)
+            n = create_nine_pic_advertisement(auther, title, start_time, **req_data)
         except Exception as e:
             raise exceptions.APIException(e.message)
         serializer = self.get_serializer(n)
@@ -127,7 +135,16 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=201, headers=headers)
 
     def update(self, request, *args, **kwargs):
-        update_nine_pic_advertisement_by_id(int(kwargs.get('pk')), **request.data)
+        # 数据提交方式为application/json 所以数据为request.data数据结构为dict
+        req_data = request.data
+        detail_modelids = req_data.get('detail_modelids')
+        if detail_modelids:
+            model_ids = set([i.strip() for i in detail_modelids.split(',') if i.strip()])
+            mps = ModelProduct.objects.filter(id__in=model_ids)
+            if mps.count() != len(model_ids):
+                raise exceptions.APIException('传入款式ID: %s 未找到或不合法' % detail_modelids)
+
+        update_nine_pic_advertisement_by_id(int(kwargs.get('pk')), **req_data)
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         return Response(serializer.data)

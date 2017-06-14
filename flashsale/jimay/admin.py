@@ -8,15 +8,15 @@ from django.contrib import admin
 from django.contrib import messages
 from django.http import HttpResponse
 
-from .models import JimayAgent
+from .models import JimayAgent, JimayAgentOrder
 
 from shopapp.weixin.models.base import WeixinQRcodeTemplate
 from shopapp.weixin.tasks import task_generate_colorful_qrcode
 
 @admin.register(JimayAgent)
 class JimayAgentAdmin(admin.ModelAdmin):
-    list_display = ('id', 'nick', 'name', 'mobile', 'weixin', 'level', 'parent_agent_id', 'modified')
-    list_filter = ('level', 'created')
+    list_display = ('id', 'nick', 'name', 'mobile', 'weixin', 'level', 'parent_agent_id', 'manager', 'modified')
+    list_filter = ('level', 'created', 'manager')
     search_fields = ['=id', '=mobile', '=name', '=weixin']
 
     def action_create_certification(self, request, queryset):
@@ -45,3 +45,14 @@ class JimayAgentAdmin(admin.ModelAdmin):
 
     action_create_certification.short_description = "创建授权证书"
     actions = ['action_create_certification']
+
+
+@admin.register(JimayAgentOrder)
+class JimayAgentOrderAdmin(admin.ModelAdmin):
+    list_display = ('id', 'order_no', 'buyer', 'title', 'num', 'total_fee', 'payment', 'status', 'ensure_time', 'pay_time', 'send_time', 'created')
+    list_filter = ('status', 'created')
+    search_fields = ['=id', '=order_no', '=buyer_id', '=unionid']
+
+    readonly_fields = ['buyer', 'address']
+
+
