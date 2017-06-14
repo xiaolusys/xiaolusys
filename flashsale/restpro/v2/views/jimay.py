@@ -82,7 +82,7 @@ class JimayWeixinAgentOrder(mixins.CreateModelMixin,
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     @list_route(methods=['GET'])
-    def apply_info(self, request, *args, **kwargs):
+    def pay_info(self, request, *args, **kwargs):
         buyer = get_object_or_404(Customer, user=request.user)
         product_sku   = ProductSku.objects.get(id=287874)
         model_product = product_sku.product.product_model
