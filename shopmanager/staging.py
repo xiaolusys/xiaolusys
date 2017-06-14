@@ -122,11 +122,11 @@ WEIXIN_SECRET = 'bc41b3a535b095afc55cd40d2e808d9c'
 WEIXIN_APPID = 'wxc2848fa1e1aa94b5'
 
 # ================ 小鹿美美[公众号] ==================
-WX_PUB_APPID = "wx3f91056a2928ad2d"
+WX_PUB_APPID = "wxc2848fa1e1aa94b5"
 WX_PUB_APPSECRET = "bc41b3a535b095afc55cd40d2e808d9c"
 
-WX_PUB_MCHID = "1236482102" #受理商ID，身份标识
-WX_PUB_KEY   = "t5UXHfwR7QEv2jMLFuZm8DdqnAT0ON9a" #支付密钥
+WX_PUB_MCHID = "1219468801" #受理商ID，身份标识
+WX_PUB_KEY   = "ff86c2112994affe1ccb6e32770c4b5e" #支付密钥
 
 WX_PUB_CERT_PEM_PATH = '/data/certs/wx_pub/apiclient_cert.pem'
 WX_PUB_KEY_PEM_PATH = '/data/certs/wx_pub/apiclient_key.pem'
