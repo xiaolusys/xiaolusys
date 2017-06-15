@@ -79,7 +79,7 @@ class JimayWeixinAgentOrder(mixins.CreateModelMixin,
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response({'code': 0, 'info': '', 'order': serializer.data})
 
     @list_route(methods=['GET'])
     def pay_info(self, request, *args, **kwargs):

@@ -55,6 +55,7 @@ class JimayAgentOrder(models.Model):
     ST_PAID  = 2
     ST_SEND   = 3
     ST_COMPLETED = 4
+    ST_CANCEL = 5
 
     ST_CHOICES = (
         (ST_CREATE, '已申请'),
@@ -62,6 +63,7 @@ class JimayAgentOrder(models.Model):
         (ST_PAID, '已付款'),
         (ST_SEND, '已发货'),
         (ST_COMPLETED, '已完成'),
+        (ST_CANCEL, '已取消'),
     )
 
     buyer = models.ForeignKey('pay.Customer', verbose_name='原始用户')
@@ -72,8 +74,8 @@ class JimayAgentOrder(models.Model):
     model_id = models.IntegerField(default=0, verbose_name='款式ID')
     sku_id   = models.IntegerField(default=0, verbose_name='SKUID')
     num      = models.IntegerField(default=0, verbose_name='数量')
-    total_fee = models.IntegerField(default=0, verbose_name='商品总价', help_text='精度分')
-    payment = models.IntegerField(default=0, verbose_name='支付金额', help_text='精度分,现默认由运营人员填写')
+    total_fee = models.IntegerField(default=0, verbose_name='商品总价(分)', help_text='精度分')
+    payment = models.IntegerField(default=0, verbose_name='支付金额(分)', help_text='精度分,现默认由运营人员填写')
 
     address = models.ForeignKey('pay.UserAddress', verbose_name='用户地址')
 
@@ -82,7 +84,7 @@ class JimayAgentOrder(models.Model):
     ensure_time = models.DateTimeField(blank=True, null=True, verbose_name='审核时间')
     pay_time = models.DateTimeField(blank=True, null=True, verbose_name='付款时间')
 
-    logistic = models.ForeignKey('logistics.LogisticsCompany', null=True, verbose_name='物流公司')
+    logistic = models.ForeignKey('logistics.LogisticsCompany', null=True, blank=True, verbose_name='物流公司')
     logistic_no = models.CharField(max_length=32, blank=True, verbose_name='物流单号')
     send_time = models.DateTimeField(blank=True, null=True, verbose_name='发货时间')
 
@@ -92,8 +94,8 @@ class JimayAgentOrder(models.Model):
     class Meta:
         db_table = 'jimay_agentorder'
         app_label = 'jimay'
-        verbose_name = '己美医学/单品订单'
-        verbose_name_plural = '己美医学/单品订单'
+        verbose_name = '己美医学/订货记录'
+        verbose_name_plural = '己美医学/订货记录'
 
     def __unicode__(self):
         return '%s,%s' % (self.id, self.buyer)
