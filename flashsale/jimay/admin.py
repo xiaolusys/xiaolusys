@@ -51,7 +51,7 @@ class JimayAgentAdmin(admin.ModelAdmin):
 class JimayAgentOrderAdmin(admin.ModelAdmin):
     list_display = ('id', 'order_no', 'buyer', 'title', 'num', 'total_fee', 'payment', 'status', 'ensure_time', 'pay_time', 'send_time', 'created')
     list_filter = ('status', 'created')
-    search_fields = ['=id', '=order_no', '=buyer_id', '=unionid']
+    search_fields = ['=id', '=order_no', '=buyer_id']
 
     readonly_fields = ['buyer', 'address']
 

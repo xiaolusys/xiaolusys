@@ -65,10 +65,7 @@ class JimayAgentOrder(models.Model):
     )
 
     buyer = models.ForeignKey('pay.Customer', verbose_name='原始用户')
-
     order_no = models.CharField(max_length=24, default=gen_uuid_order_no, unique=True, verbose_name='订单编号')
-    unionid = models.CharField(max_length=32, db_index=True, blank=True, verbose_name='UNIONID'
-                               ,help_text='微信unionid')
 
     title    = models.CharField(max_length=64, blank=True, verbose_name='商品名称')
     pic_path = models.CharField(max_length=256, blank=True, verbose_name='商品图片')

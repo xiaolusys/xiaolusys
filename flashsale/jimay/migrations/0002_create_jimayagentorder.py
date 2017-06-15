@@ -20,7 +20,6 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('order_no', models.CharField(default=flashsale.jimay.models.gen_uuid_order_no, max_length=24, unique=True, verbose_name='\u8ba2\u5355\u7f16\u53f7')),
-                ('unionid', models.CharField(blank=True, db_index=True, help_text='\u5fae\u4fe1unionid', max_length=32, verbose_name='UNIONID')),
                 ('title', models.CharField(blank=True, max_length=64, verbose_name='\u5546\u54c1\u540d\u79f0')),
                 ('model_id', models.IntegerField(default=0, verbose_name='\u6b3e\u5f0fID')),
                 ('sku_id', models.IntegerField(default=0, verbose_name='SKUID')),
