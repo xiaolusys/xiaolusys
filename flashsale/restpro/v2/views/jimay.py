@@ -62,7 +62,7 @@ class JimayWeixinAgentOrder(mixins.CreateModelMixin,
         buyer = get_object_or_404(Customer, user=request.user)
 
         if not JimayAgentOrder.is_createable(buyer):
-            return Response({'code': 1, 'info': '你有已申请订单，不可重复申请'})
+            return Response({'code': 1, 'info': '你有未完成订货单，如果长时间未处理请联系管理员'})
 
         data['buyer']  = buyer.id
         data['status'] = JimayAgentOrder.ST_CREATE

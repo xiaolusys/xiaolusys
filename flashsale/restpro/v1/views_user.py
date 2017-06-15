@@ -556,7 +556,13 @@ class CustomerViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def islogin(self, request, *args, **kwargs):
-        return Response({"code": 0, 'result': 'login'})
+        resp = {"code": 0, 'result': 'login'}
+        if request.GET.get('extras') == '1':
+            customer = Customer.getCustomerByUser(request.user)
+            resp['extras'] = {
+                'valid_mobile': bool(customer and customer.mobile)
+            }
+        return Response(resp)
 
     @list_route(methods=['get'])
     def need_set_info(self, request):

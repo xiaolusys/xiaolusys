@@ -10,6 +10,7 @@ from django.contrib.auth.models import User as DjangoUser
 from django.db import models, transaction
 from django.db.models.signals import post_save
 from django.db.models import Sum, F
+from django.core.cache import cache
 
 from core.models import BaseModel, BaseTagModel
 from .base import PayBaseModel
@@ -158,12 +159,18 @@ class Customer(BaseTagModel):
         return False
 
     @classmethod
-    def getCustomerByUser(cls, user):
+    def getCustomerCacheKey(cls, request_user_id):
+        return 'flashsale_customer_cache_by_user_id_{}'.format(request_user_id)
 
-        customers = cls.objects.filter(user=user.id)
-        if customers.count() > 0:
-            return customers[0]
-        return None
+    @classmethod
+    def getCustomerByUser(cls, user):
+        cache_key = cls.getCustomerCacheKey(user.id)
+        cache_value = cache.get(cache_key)
+        if not cache_value:
+            customers = cls.objects.filter(user=user.id)
+            cache_value = customers.first()
+            cache.set(cache_key, cache_value, 60 * 60)
+        return cache_value
 
     @property
     def mama_id(self):
@@ -301,6 +308,12 @@ class Customer(BaseTagModel):
         queryset = UserAddress.objects.filter(cus_uid=self.id, status=UserAddress.NORMAL).order_by('-default')
         return queryset.first()
 
+def post_save_invalid_customer_cache(sender, instance, created, **kwargs):
+    cache_key = Customer.getCustomerCacheKey(instance.user_id)
+    cache.delete(cache_key)
+
+post_save.connect(post_save_invalid_customer_cache, sender=Customer,
+                  dispatch_uid='post_save_invalid_customer_cache')
 
 def sync_xlmm_fans_nick_thumbnail(sender, instance, created, **kwargs):
     if not created:
