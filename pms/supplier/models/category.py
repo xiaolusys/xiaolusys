@@ -48,6 +48,7 @@ def default_salecategory_cid():
 
 
 class SaleCategory(BaseModel):
+    """ 注意接口使用的类目Id一般是cid,用非外键做查询过滤的时候请使用cid """
     NORMAL = 'normal'
     DELETE = 'delete'
 
@@ -63,8 +64,8 @@ class SaleCategory(BaseModel):
     DELIMITER_CHAR = '-'
     ROOT_ID = '0'
 
-    cid = models.CharField(max_length=32, null=False, blank=False,
-                           default=default_salecategory_cid, unique=True, verbose_name=u'类目ID')
+    cid = models.CharField(max_length=32, null=False, blank=False, default=default_salecategory_cid,
+                           unique=True, verbose_name=u'类目ID', help_text=u'注意接口使用的类目Id一般是cid')
     parent_cid = models.CharField(max_length=32, null=False, blank=False,
                                   default=ROOT_ID, db_index=True, verbose_name=u'父类目ID')
     name = models.CharField(max_length=64, blank=True, verbose_name=u'类目名')

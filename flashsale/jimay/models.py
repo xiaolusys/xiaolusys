@@ -88,6 +88,8 @@ class JimayAgentOrder(models.Model):
     logistic_no = models.CharField(max_length=32, blank=True, verbose_name='物流单号')
     send_time = models.DateTimeField(blank=True, null=True, verbose_name='发货时间')
 
+    manager = models.ForeignKey('auth.user', blank=True, null=True, verbose_name='管理员')
+
     created = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name='创建日期')
     modified = models.DateTimeField(auto_now=True, verbose_name='修改日期')
 

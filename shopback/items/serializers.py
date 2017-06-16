@@ -216,7 +216,7 @@ class CreateProductSerializer(serializers.Serializer):
         content = self.data
         name = content['name']
         sale_category = content['category']
-        product_category = SaleCategory.objects.get(id=sale_category).get_product_category()
+        product_category = SaleCategory.objects.get(cid=sale_category).get_product_category()
         type = content['type']
         pic_path = content['pic_path']
         ref_link = content['ref_link']
