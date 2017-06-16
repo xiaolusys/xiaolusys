@@ -2133,7 +2133,7 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         response = HttpResponse(buff.getvalue(),
                                 content_type='application/octet-stream')
         response[
-            'Content-Disposition'] = 'attachment;filename=packagedetail-%s.csv' % orderlist.id
+            'Content-Disposition'] = 'attachment;filename="packagedetail-%s.csv"' % orderlist.id
         return response
 
     @detail_route(methods=['POST'])

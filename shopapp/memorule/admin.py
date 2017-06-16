@@ -138,7 +138,7 @@ class ComposeRuleAdmin(admin.ModelAdmin):
 
         response = HttpResponse(tmpfile.getvalue(), content_type='application/octet-stream')
         tmpfile.close()
-        response['Content-Disposition'] = 'attachment; filename=compose-rule-%s.csv' % str(int(time.time()))
+        response['Content-Disposition'] = 'attachment; filename="compose-rule-%s.csv"' % str(int(time.time()))
 
         return response
 

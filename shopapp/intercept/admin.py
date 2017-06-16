@@ -84,7 +84,7 @@ class InterceptTradeAdmin(admin.ModelAdmin):
 
         response = HttpResponse(tmpfile.getvalue(), content_type='application/octet-stream')
         tmpfile.close()
-        response['Content-Disposition'] = 'attachment;filename=intercept-tradeinfo-%s.csv' % str(int(time.time()))
+        response['Content-Disposition'] = 'attachment;filename="intercept-tradeinfo-%s.csv"' % str(int(time.time()))
 
         return response
 
@@ -120,7 +120,7 @@ class InterceptTradeAdmin(admin.ModelAdmin):
 
         response = HttpResponse(tmpfile.getvalue(), content_type='application/octet-stream')
         tmpfile.close()
-        response['Content-Disposition'] = 'attachment;filename=intercept-tradedetail-%s.csv' % str(int(time.time()))
+        response['Content-Disposition'] = 'attachment;filename="intercept-tradedetail-%s.csv"' % str(int(time.time()))
 
         return response
 

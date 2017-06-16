@@ -867,7 +867,7 @@ class ProductAdmin(ApproxAdmin):
                                 content_type='application/octet-stream')
         tmpfile.close()
         response[
-            'Content-Disposition'] = 'attachment; filename=product-sku-info-%s.csv' % str(
+            'Content-Disposition'] = 'attachment; filename="product-sku-info-%s.csv"' % str(
             int(time.time()))
 
         return response
@@ -1210,7 +1210,7 @@ class ProductScanStorageAdmin(admin.ModelAdmin):
                                 content_type='application/octet-stream')
         tmpfile.close()
         response[
-            'Content-Disposition'] = 'attachment; filename=product-scan-%s.csv' % str(
+            'Content-Disposition'] = 'attachment; filename="product-scan-%s.csv"' % str(
             int(time.time()))
 
         return response

@@ -132,7 +132,7 @@ class BillAdmin(admin.ModelAdmin):
             buff.getvalue(),
             content_type=
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        response['Content-Disposition'] = 'attachment;filename=%s' % filename
+        response['Content-Disposition'] = 'attachment;filename="%s"' % filename
         return response
 
     generate_excel.short_description = u'导出excel'

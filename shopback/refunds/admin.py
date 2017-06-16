@@ -187,7 +187,7 @@ class RefundProductAdmin(admin.ModelAdmin):
 
         response = HttpResponse(tmpfile.getvalue(), content_type='application/octet-stream')
         tmpfile.close()
-        response['Content-Disposition'] = 'attachment; filename=refund-pro-info-%s.csv' % str(int(time.time()))
+        response['Content-Disposition'] = 'attachment; filename="refund-pro-info-%s.csv"' % str(int(time.time()))
 
         return response
 

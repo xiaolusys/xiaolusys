@@ -599,7 +599,7 @@ class SaleRefundAdmin(BaseModelAdmin):
         writer.writerows(pcsv)
         response = HttpResponse(tmpfile.getvalue(), content_type='application/octet-stream')
         tmpfile.close()
-        response['Content-Disposition'] = 'attachment; filename=sale_refund-info-%s.csv' % str(int(time.time()))
+        response['Content-Disposition'] = 'attachment; filename="sale_refund-info-%s.csv"' % str(int(time.time()))
         return response
 
     export_Refund_Product_Action.short_description = u"导出订单信息"

@@ -367,7 +367,7 @@ class ChangeDetailExportView(View):
         response = HttpResponse(buff.getvalue(),
                                 content_type='application/octet-stream')
         response[
-            'Content-Disposition'] = 'attachment;filename=dinghuodetail-%s.csv' % order_list_id
+            'Content-Disposition'] = 'attachment;filename="dinghuodetail-%s.csv"' % order_list_id
         return response
 
     @staticmethod
@@ -538,7 +538,7 @@ class ChangeDetailExportView(View):
             buff.getvalue(),
             content_type=
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        response['Content-Disposition'] = 'attachment;filename=%s' % filename
+        response['Content-Disposition'] = 'attachment;filename="%s"' % filename
         return response
 
 
@@ -618,5 +618,5 @@ class DinghuoStatsExportView(View):
             buff.getvalue(),
             content_type=
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        response['Content-Disposition'] = 'attachment;filename=%s' % filename
+        response['Content-Disposition'] = 'attachment;filename="%s"' % filename
         return response

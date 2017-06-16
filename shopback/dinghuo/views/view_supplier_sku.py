@@ -59,7 +59,7 @@ def get_supplier_sku_excel(request,salesupplier_id):
     response = HttpResponse(buff.getvalue(),
                             content_type='application/octet-stream')
     response[
-        'Content-Disposition'] = 'attachment;filename=packagedetail-%s.csv' % "zuile"
+        'Content-Disposition'] = 'attachment;filename="packagedetail-%s.csv"' % "zuile"
     return response
     # supplier_sku_data = supplier_sku.get_supplier_sku(salesupplier_id)
     # buff = StringIO()

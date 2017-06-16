@@ -631,7 +631,7 @@ def export_return_goods(request):
         buff.getvalue(),
         content_type=
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = 'attachment;filename=%s' % filename
+    response['Content-Disposition'] = 'attachment;filename="%s"' % filename
     return response
 
 

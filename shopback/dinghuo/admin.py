@@ -358,7 +358,7 @@ class OrderListAdmin(BaseModelAdmin):
         writer.writerows(orderlist_csvdata)
         response = HttpResponse(tmpfile.getvalue(), content_type='application/octet-stream')
         tmpfile.close()
-        response['Content-Disposition'] = 'attachment; filename=orderlist-%s.csv' % str(int(time.time()))
+        response['Content-Disposition'] = 'attachment; filename="orderlist-%s.csv"' % str(int(time.time()))
         return response
 
     export_orderlist_action.short_description = u'订货单信息导出'
