@@ -275,6 +275,7 @@ class ForecastInbound(BaseModel):
         return ForecastInbound._generate(order_list_ids)
 
     @staticmethod
+    @transaction.atomic
     def merge(orderlist_ids):
         """
         合并预测单（依据预测单关联的orderlist进行预测单重算，而非直接预测单相加，以减少错误）
@@ -284,6 +285,10 @@ class ForecastInbound(BaseModel):
         """
         forcasts = ForecastInbound.objects.filter(relate_order_set__in=orderlist_ids,
                                                   status__in=['draft', 'approved'])
+        if forcasts.count() == 1:
+            return forcasts.first()
+
+        forcast_ids = [f.id for f in forcasts]
         supplier = forcasts.first().supplier
         forecast_ib = ForecastInbound(supplier=supplier)
         forecast_ib.ware_house = supplier.ware_by
@@ -292,17 +297,21 @@ class ForecastInbound(BaseModel):
         forecast_ib.save()
         details = {}
         res = {}
+        # 注意django 环境下forecasts 的查询及更新具有延时性,前面查询的的结果后面更新时会重新查询，新加入的结果也会算入在内
         for forcast in forcasts:
             for fd in forcast.details_manager.all():
                 if fd.sku_id not in details:
                     forecast_detail = ForecastInboundDetail(forecast_inbound=forecast_ib,
-                                                                sku_id=fd.sku_id,
-                                                                product_id=fd.product_id,
+                                                            sku_id=fd.sku_id,
+                                                            product_id=fd.product_id,
                                                             product_name=fd.product_name,
                                                             product_img=fd.product_img)
                     details[forecast_detail.sku_id] = forecast_detail
                 res[forecast_detail.sku_id] = res.get(forecast_detail.sku_id, 0) + fd.forecast_arrive_num
-        forcasts.update(status=ForecastInbound.ST_CANCELED)
+
+        # TODO@注意django 环境下forecasts 的查询及更新具有延时性,前面查询的的结果后面更新时会重新查询，
+        # 新加入的结果也会算入在内, 所有处理时应直接传入id list来限制范围
+        forcasts.filter(id__in=forcast_ids).update(status=ForecastInbound.ST_CANCELED)
         for sku_id in details:
             details[sku_id].forecast_arrive_num = res[sku_id]
             details[sku_id].save()
