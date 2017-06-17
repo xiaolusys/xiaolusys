@@ -216,7 +216,10 @@ class CreateProductSerializer(serializers.Serializer):
         content = self.data
         name = content['name']
         sale_category = content['category']
-        product_category = SaleCategory.objects.get(cid=sale_category).get_product_category()
+        sc = SaleCategory.objects.filter(id=sale_category).first()
+        if not sc:
+            raise ValidationError(u'你所选的类目id不存在，如有疑问请联系管理员')
+        product_category = sc.get_product_category()
         type = content['type']
         pic_path = content['pic_path']
         ref_link = content['ref_link']
