@@ -760,6 +760,10 @@ QRCODE_ROUTES = {
         'queue': 'qrcode',
         'routing_key': 'qrcode.task_generate_jimay_agent_certification',
     },
+    'flashsale.jimay.tasks.task_weixin_asynchronous_send_certification': {
+        'queue': 'qrcode',
+        'routing_key': 'qrcode.task_weixin_asynchronous_send_certification',
+    },
 }
 
 BOUTIQUE_ROUTES = {

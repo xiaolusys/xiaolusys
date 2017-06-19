@@ -14,7 +14,7 @@ from shopapp.weixin.tasks import task_generate_colorful_qrcode
 
 @admin.register(JimayAgent)
 class JimayAgentAdmin(admin.ModelAdmin):
-    list_display = ('agent_link', 'parent_agent_link', 'nick', 'name', 'mobile', 'weixin', 'level',  'manager', 'modified')
+    list_display = ('id','agent_link', 'parent_agent_link', 'nick', 'name', 'mobile', 'weixin', 'level',  'manager', 'modified')
     list_filter = ('level', 'created', 'manager')
     search_fields = ['=id', '=mobile', '=parent_agent_id', '=weixin']
     list_per_page = 25

@@ -168,7 +168,7 @@ def handleWeiXinMenuRequest(openid, wxpubId, event, eventKey):
             # tips = u'(友情提示: 小鹿美美从未也不会发起任何形式的积赞活动，传播积赞活动者均为诈骗，请大家不要参与！)'
             ret_params.update({
                 'MsgType': WeiXinAutoResponse.WX_TEXT,
-                'Content': u"么么哒！终于等到你！\n请点击下方菜单\n[我的收入]->[开店二维码]，\n获取您的专属开店二维码吧！\n"
+                'Content': u"么么哒！终于等到你！点击底部菜单选择您需要的服务吧!"
                 #u'[玫瑰]亲，这是您的专属二维码，快告诉好友来开店赚佣金吧！'
             })
 
@@ -212,40 +212,24 @@ def handleWeiXinMenuRequest(openid, wxpubId, event, eventKey):
         if eventKey == 'JIMAY_AGENT_CERTIFICATION':
             from flashsale.pay.models import Customer
             from flashsale.jimay.models import JimayAgent
-            from flashsale.jimay.tasks import task_generate_jimay_agent_certification
+            from flashsale.jimay.tasks import task_weixin_asynchronous_send_certification
             customer = Customer.objects.filter(unionid=unionid).order_by('status').first()
             agent    = None
             if customer:
                 agent = JimayAgent.objects.filter(mobile=customer.mobile).first()
 
             if not agent:
-                return ret_params.update({
+                ret_params.update({
                     'MsgType': WeiXinAutoResponse.WX_TEXT,
                     'Content': u'[爱心]亲，您还不是正式的己美医学特约代理,请联系管理员申请加入.'
                 })
-
-            certification_url = agent.certification
-            if not certification_url:
-                task_result = task_generate_jimay_agent_certification.delay(agent.id)
-                certification_url = task_result.get()
-
-            media_body = urllib2.urlopen(certification_url).read()
-            media_stream = StringIO.StringIO(media_body)
-
-            response = wx_api.upload_media(media_stream)
-            cache_value = response['media_id']
-            if cache_value:
-                ret_params.update({
-                    'MsgType': WeiXinAutoResponse.WX_IMAGE,
-                    'Image': {
-                        'MediaId': cache_value
-                    }
-                })
                 return ret_params
+
+            task_weixin_asynchronous_send_certification.delay(wxpubId, agent.id)
 
             ret_params.update({
                 'MsgType': WeiXinAutoResponse.WX_TEXT,
-                'Content': u'亲，系统繁忙请稍后再试![撇嘴]'
+                'Content': u'[爱心]亲，您的证书正在生成(若5秒内未返回请重试).'
             })
 
     except Exception, exc:

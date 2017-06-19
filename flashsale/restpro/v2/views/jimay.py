@@ -1,6 +1,7 @@
 # coding: utf8
 from __future__ import absolute_import, unicode_literals
 
+from collections import OrderedDict
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 
@@ -39,7 +40,7 @@ class JimayWeixinAgent(mixins.ListModelMixin,
         if not buyer_agent:
             return Response({})
 
-        resp = { 'id': buyer_agent.id, 'parent_agent': {} }
+        resp = { 'id': buyer_agent.id, 'parent_agent': {} ,'is_purchase_enable': buyer_agent.is_purchase_enable}
         parent_agent = JimayAgent.objects.filter(id=buyer_agent.parent_agent_id).first()
         sub_agents   = JimayAgent.objects.filter(parent_agent_id=buyer_agent.id)
 
@@ -85,15 +86,24 @@ class JimayWeixinAgentOrder(mixins.CreateModelMixin,
         return UserAddress.objects.filter(cus_uid=buyer.id, id=address_id).first()
 
     def list(self, request, *args, **kwargs):
+
+        buyer = get_object_or_404(Customer, user=request.user)
+        buyer_agent = JimayAgent.objects.filter(mobile=buyer.mobile).first()
+
         queryset = self.get_agentorder_qs(request)
         queryset = queryset.order_by('-created')
         page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
 
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        serializer = self.get_serializer(page, many=True)
+        response_data = OrderedDict([
+            ('count', self.paginator.page.paginator.count),
+            ('next', self.paginator.get_next_link()),
+            ('previous', self.paginator.get_previous_link()),
+            ('results', serializer.data),
+            ('is_purchase_enable', bool(buyer_agent and buyer_agent.is_purchase_enable)),
+        ])
+        return Response(response_data)
+
 
     def retrieve(self, request, pk, *args, **kwargs):
         instance = self.get_agentorder_qs(request).filter(id=pk).first()
@@ -105,6 +115,9 @@ class JimayWeixinAgentOrder(mixins.CreateModelMixin,
     def create(self, request, *args, **kwargs):
         data = request.data.dict()
         buyer = get_object_or_404(Customer, user=request.user)
+        buyer_agent = JimayAgent.objects.filter(mobile=buyer.mobile).first()
+        if not buyer_agent.is_purchase_enable:
+            return Response({'code': 3, 'info': '您还没有达到直接订货等级，请联系你的导师订货'})
 
         if not JimayAgentOrder.is_createable(buyer):
             return Response({'code': 1, 'info': '你有未完成订货单，如果长时间未处理请联系管理员'})

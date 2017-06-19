@@ -55,12 +55,18 @@ class JimayAgent(models.Model):
 
     def gen_certification_filename(self):
         agent_key_str =  '%s-%s-%s' % (self.name, self.idcard_no, self.weixin)
-        return '{mobile}-{sha1}'.format(mobile=self.mobile, sha1=hashlib.sha1(agent_key_str))
+        sha1_str = hashlib.sha1(agent_key_str).hexdigest()
+        return '{mobile}-{sha1}'.format(mobile=self.mobile, sha1=sha1_str)
 
     @cached_property
     def buyer(self):
         from flashsale.pay.models import Customer
         return Customer.objects.filter(mobile=self.mobile).order_by('status', '-unionid').first()
+
+    @property
+    def is_purchase_enable(self):
+        """ 如果没有上级就允许直接订货 """
+        return self.parent_agent_id == 0
 
     def set_certification(self, certification_url):
         self.certification = certification_url
