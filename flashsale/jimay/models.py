@@ -2,13 +2,25 @@
 from __future__ import absolute_import, unicode_literals
 
 import datetime
+import hashlib
 from django.db import models
+from django.utils.functional import cached_property
 
 from core.utils.unikey import uniqid
 
 
-
 class JimayAgent(models.Model):
+
+    LEVEL_SPE = 0
+    LEVEL_CIT = 1
+    LEVEL_PRO = 2
+    LEVEL_TOP = 3
+    LEVEL_CHOICES = (
+        (LEVEL_TOP, '总代'),
+        (LEVEL_PRO, '省代'),
+        (LEVEL_CIT, '市代'),
+        (LEVEL_SPE, '特约'),
+    )
 
     nick = models.CharField(max_length=32, db_index=True, blank=True, verbose_name='昵称')
 
@@ -17,7 +29,7 @@ class JimayAgent(models.Model):
 
     weixin = models.CharField(max_length=24, db_index=True, blank=True, verbose_name='微信')
     mobile = models.CharField(max_length=11, unique=True, blank=True, verbose_name='手机')
-    level = models.IntegerField(default=0, db_index=True, verbose_name='级别')
+    level = models.IntegerField(default=LEVEL_SPE, choices=LEVEL_CHOICES, db_index=True, verbose_name='级别')
 
     parent_agent_id = models.IntegerField(default=0, db_index=True, verbose_name='父级特约代理ID')
 
@@ -41,6 +53,17 @@ class JimayAgent(models.Model):
     def __unicode__(self):
         return '%s,%s' % (self.id, self.name)
 
+    def gen_certification_filename(self):
+        agent_key_str =  '%s-%s-%s' % (self.name, self.idcard_no, self.weixin)
+        return '{mobile}-{sha1}'.format(mobile=self.mobile, sha1=hashlib.sha1(agent_key_str))
+
+    @cached_property
+    def buyer(self):
+        from flashsale.pay.models import Customer
+        return Customer.objects.filter(mobile=self.mobile).order_by('status', '-unionid').first()
+
+    def set_certification(self, certification_url):
+        self.certification = certification_url
 
 def gen_uuid_order_no():
     return uniqid('%s%s' % (JimayAgentOrder.PREFIX_CODE, datetime.date.today().strftime('%y%m%d')))

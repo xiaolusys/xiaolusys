@@ -4,7 +4,8 @@ import random
 import time
 import datetime
 import json
-from lxml import etree
+import urllib2
+import cStringIO as StringIO
 from xml.dom import minidom
 from django.core.cache import cache
 from django.conf import settings
@@ -206,6 +207,45 @@ def handleWeiXinMenuRequest(openid, wxpubId, event, eventKey):
             ret_params.update({
                 'MsgType': WeiXinAutoResponse.WX_TEXT,
                 'Content': u'[爱心]亲，请长按识别图中二维码, 添加您的专属管理员微信 (若5秒内未返回请重试):'
+            })
+
+        if eventKey == 'JIMAY_AGENT_CERTIFICATION':
+            from flashsale.pay.models import Customer
+            from flashsale.jimay.models import JimayAgent
+            from flashsale.jimay.tasks import task_generate_jimay_agent_certification
+            customer = Customer.objects.filter(unionid=unionid).order_by('status').first()
+            agent    = None
+            if customer:
+                agent = JimayAgent.objects.filter(mobile=customer.mobile).first()
+
+            if not agent:
+                return ret_params.update({
+                    'MsgType': WeiXinAutoResponse.WX_TEXT,
+                    'Content': u'[爱心]亲，您还不是正式的己美医学特约代理,请联系管理员申请加入.'
+                })
+
+            certification_url = agent.certification
+            if not certification_url:
+                task_result = task_generate_jimay_agent_certification.delay(agent.id)
+                certification_url = task_result.get()
+
+            media_body = urllib2.urlopen(certification_url).read()
+            media_stream = StringIO.StringIO(media_body)
+
+            response = wx_api.upload_media(media_stream)
+            cache_value = response['media_id']
+            if cache_value:
+                ret_params.update({
+                    'MsgType': WeiXinAutoResponse.WX_IMAGE,
+                    'Image': {
+                        'MediaId': cache_value
+                    }
+                })
+                return ret_params
+
+            ret_params.update({
+                'MsgType': WeiXinAutoResponse.WX_TEXT,
+                'Content': u'亲，系统繁忙请稍后再试![撇嘴]'
             })
 
     except Exception, exc:

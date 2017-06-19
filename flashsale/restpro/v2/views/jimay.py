@@ -15,9 +15,54 @@ from rest_framework import generics, mixins
 from core.rest import exceptions
 
 from flashsale.pay.models import Customer, UserAddress, ModelProduct
-from flashsale.jimay.models import JimayAgentOrder
+from flashsale.jimay.models import JimayAgent, JimayAgentOrder
 from flashsale.jimay import serializers
+from flashsale.jimay.tasks import task_generate_jimay_agent_certification
 from shopback.items.models import Product, ProductSku
+
+
+class JimayWeixinAgent(mixins.ListModelMixin,
+                        viewsets.GenericViewSet):
+
+    queryset = JimayAgent.objects.all()
+    serializer_class = serializers.JimayAgentSerializer  # Create your views here.
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated, )
+
+    def list(self, request, *args, **kwargs):
+        raise exceptions.APIException('该方法未实现')
+
+    @list_route(methods=['get'])
+    def relationship(self, request, *args, **kwargs):
+        buyer = get_object_or_404(Customer, user=request.user)
+        buyer_agent  = JimayAgent.objects.filter(mobile=buyer.mobile).first()
+        if not buyer_agent:
+            return Response({})
+
+        resp = { 'id': buyer_agent.id, 'parent_agent': {} }
+        parent_agent = JimayAgent.objects.filter(id=buyer_agent.parent_agent_id).first()
+        sub_agents   = JimayAgent.objects.filter(parent_agent_id=buyer_agent.id)
+
+        resp['sub_agents'] = serializers.JimayAgentSerializer(sub_agents, many=True).data
+        if parent_agent:
+            resp['parent_agent'] = serializers.JimayAgentSerializer(parent_agent).data
+
+        return Response(resp)
+
+    @list_route(methods=['get'])
+    def certificate(self, request, *args, **kwargs):
+        buyer = get_object_or_404(Customer, user=request.user)
+        buyer_agent = JimayAgent.objects.filter(mobile=buyer.mobile).first()
+        if not buyer_agent:
+            return Response({})
+
+        certification_url = buyer_agent.certification
+        if not certification_url:
+            task_result = task_generate_jimay_agent_certification(buyer_agent.id)
+            certification_url = task_result.get()
+
+        return Response({'certification': certification_url})
+
 
 
 class JimayWeixinAgentOrder(mixins.CreateModelMixin,
@@ -31,7 +76,7 @@ class JimayWeixinAgentOrder(mixins.CreateModelMixin,
     permission_classes = (permissions.IsAuthenticated, )
 
     def get_agentorder_qs(self, request):
-        buyer = Customer.objects.filter(user=request.user)
+        buyer = Customer.objects.filter(user=request.user).first()
         return self.queryset.filter(buyer=buyer)
 
     def get_buyer_address(self, buyer, address_id):

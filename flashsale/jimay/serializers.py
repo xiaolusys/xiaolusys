@@ -3,7 +3,13 @@ from __future__ import absolute_import, unicode_literals
 
 from rest_framework import serializers
 
-from .models import JimayAgentOrder
+from .models import JimayAgentOrder, JimayAgent
+
+class JimayAgentSerializer(serializers.ModelSerializer):
+    thumbnail = serializers.CharField(source='buyer.thumbnail', read_only=True)
+    class Meta:
+        model = JimayAgent
+        fields = ('id', 'nick', 'name', 'thumbnail', 'mobile', 'level', 'created')
 
 class JimayAgentOrderSerializer(serializers.ModelSerializer):
 

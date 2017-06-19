@@ -59,6 +59,7 @@ v2_router.register(r'cpntmpl', views_coupon_new.CouponTemplateViewSet)
 v2_router.register(r'sharecoupon', views_coupon_new.OrderShareCouponViewSet)
 v2_router.register(r'tmpsharecoupon', views_coupon_new.TmpShareCouponViewset)
 
+v2_router.register(r'jimay/agent', jimay.JimayWeixinAgent)
 v2_router.register(r'jimay/order', jimay.JimayWeixinAgentOrder)
 
 # v2_router.register(r'rank', views_rank.MamaCarryTotalViewSet)

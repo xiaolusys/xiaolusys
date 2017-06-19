@@ -756,6 +756,10 @@ QRCODE_ROUTES = {
         'queue': 'qrcode',
         'routing_key': 'qrcode.task_generate_colorful_qrcode',
     },
+    'flashsale.jimay.tasks.task_generate_jimay_agent_certification': {
+        'queue': 'qrcode',
+        'routing_key': 'qrcode.task_generate_jimay_agent_certification',
+    },
 }
 
 BOUTIQUE_ROUTES = {

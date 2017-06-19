@@ -14,17 +14,22 @@ from shopapp.weixin.tasks import task_generate_colorful_qrcode
 
 @admin.register(JimayAgent)
 class JimayAgentAdmin(admin.ModelAdmin):
-    list_display = ('id', 'nick', 'name', 'mobile', 'weixin', 'level', 'parent_agent_link', 'manager', 'modified')
+    list_display = ('agent_link', 'parent_agent_link', 'nick', 'name', 'mobile', 'weixin', 'level',  'manager', 'modified')
     list_filter = ('level', 'created', 'manager')
-    search_fields = ['=id', '=mobile', '=name', '=weixin']
+    search_fields = ['=id', '=mobile', '=parent_agent_id', '=weixin']
+    list_per_page = 25
+
+    def agent_link(self, obj):
+        return '<a href="/admin/jimay/jimayagent/?q=%s">%s &gt;&gt;</a>' % (obj.id, obj.id)
+
+    agent_link.allow_tags = True
+    agent_link.short_description = '代理链接'
 
     def parent_agent_link(self, obj):
-        if obj.parent_agent_id > 0:
-            agent = JimayAgent.objects.filter(id=obj.parent_agent_id).first()
-            return '%s(%s)' % (agent and agent.name, agent and agent.id)
-        return 0
+        return '<a href="/admin/jimay/jimayagent/?q=%s">%s &gt;&gt;</a>' % (obj.parent_agent_id, obj.parent_agent_id)
 
-    parent_agent_link.short_description = '父极代理名称'
+    parent_agent_link.allow_tags =True
+    parent_agent_link.short_description = '父极代理链接'
 
     def action_create_certification(self, request, queryset):
         if queryset.count() != 1:
