@@ -85,7 +85,7 @@ class StatisticsShoppingChangeList(ChangeList):
 class StatisticsShoppingAdmin(ApproxAdmin):
     form = StatisticsShoppingForm
     list_display = (
-    'linkid', 'linkname', 'openid', 'wxordernick', 'wxorderid', 'order_cash', 'ticheng_cash', 'shoptime', 'status')
+        'linkid', 'linkname', 'openid', 'wxordernick', 'wxorderid', 'order_cash', 'ticheng_cash', 'shoptime', 'status')
 
     list_filter = ('status', ('shoptime', DateFieldListFilter),)
 

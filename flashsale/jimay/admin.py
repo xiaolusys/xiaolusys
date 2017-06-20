@@ -3,12 +3,14 @@ from __future__ import absolute_import, unicode_literals
 
 import json
 
+from django import forms
 from django.contrib import admin
 from django.contrib import messages
 from django.http import HttpResponse
+from django.contrib.auth.models import User
 
 from .models import JimayAgent, JimayAgentOrder
-
+from flashsale.pay.models import UserAddress
 from shopapp.weixin.models.base import WeixinQRcodeTemplate
 from shopapp.weixin.tasks import task_generate_colorful_qrcode
 
@@ -59,6 +61,18 @@ class JimayAgentAdmin(admin.ModelAdmin):
     actions = ['action_create_certification']
 
 
+class JimayAgentOrderForm(forms.ModelForm):
+    sys_memo =  forms.CharField(label='备注', widget=forms.Textarea(attrs={'size': '40'}))
+    manager  = forms.ModelChoiceField(
+        label='管理员',
+        queryset=User.objects.filter(is_staff=True, groups__name=u'小鹿推广员')
+    )
+
+    class Meta:
+        model = JimayAgentOrder
+        fields = '__all__'
+
+
 @admin.register(JimayAgentOrder)
 class JimayAgentOrderAdmin(admin.ModelAdmin):
     list_display = ('id', 'order_no', 'buyer', 'title', 'num', 'total_fee', 'payment', 'address_link', 'status', 'manager', 'pay_time', 'created')
@@ -66,6 +80,32 @@ class JimayAgentOrderAdmin(admin.ModelAdmin):
     search_fields = ['=id', '=order_no', '=buyer_id']
     list_per_page = 20
     readonly_fields = ['buyer', 'address']
+
+    form = JimayAgentOrderForm
+    # -------------- 页面布局 --------------
+    fieldsets = (
+        (u'订单基本信息:', {
+            'classes': ('expand',),
+            'fields': (
+                ('order_no', 'title'),
+                ('model_id', 'sku_id', 'num', ),
+                ('status', 'sys_memo'),
+                ('address',)
+            )
+        }),
+        (u'运营审核:', {
+            'classes': ('expand',),
+            'fields': (('total_fee', 'payment', 'manager', 'ensure_time',),)
+        }),
+        (u'财务审核:', {
+            'classes': ('expand',),
+            'fields': (('pay_time',),)
+        }),
+        (u'仓库审核:', {
+            'classes': ('expand',),
+            'fields': (('logistic', 'logistic_no', 'send_time'),)
+        }),
+    )
 
     def address_link(self, obj):
         ud = obj.address
@@ -75,10 +115,10 @@ class JimayAgentOrderAdmin(admin.ModelAdmin):
     address_link.allow_tags = True
     address_link.short_description = '收货人/省/市'
 
-    def get_form(self, request, obj=None, **kwargs):
-        form = super(JimayAgentOrderAdmin, self).get_form(request, obj=obj, **kwargs)
-        if obj:
-            from django.contrib.auth.models import User
-            form.base_fields['manager'].queryset = User.objects.filter(is_staff=True, groups__name=u'小鹿推广员')
-        return form
+    # def get_form(self, request, obj=None, **kwargs):
+    #     form = super(JimayAgentOrderAdmin, self).get_form(request, obj=obj, **kwargs)
+    #     if obj:
+    #
+    #         form.base_fields['manager'].queryset =
+    #     return form
 

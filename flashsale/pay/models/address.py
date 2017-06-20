@@ -2,14 +2,15 @@
 from __future__ import unicode_literals
 
 from django.db import models
-import logging
+from django.forms import model_to_dict
 
 from .base import PayBaseModel, BaseModel
 from ..managers import useraddress
 from core.fields import EncryptedCharField, JSONCharMyField
 from core.ocr import idcard
 
-logger = logging.getLogger('django.request')
+import logging
+logger = logging.getLogger(__name__)
 
 
 class District(PayBaseModel):
@@ -156,7 +157,7 @@ class UserAddress(BaseModel):
         verbose_name_plural = u'特卖用户/地址列表'
 
     def __unicode__(self):
-        return '<%s,%s>' % (self.id, self.cus_uid)
+        return '<%s,%s>' % (self.id, self.get_inline_address())
 
     def set_default_address(self):
         """ 设置默认地址 """
@@ -174,7 +175,6 @@ class UserAddress(BaseModel):
         else:
             return False
 
-
     def set_logistic_company(self, company_code):
         """ 设置物流公司 """
         self.logistic_company_code = company_code
@@ -190,6 +190,11 @@ class UserAddress(BaseModel):
                 changed = True
                 setattr(self, attr, val.strip())
         return changed
+
+    def get_inline_address(self):
+        return '{cus_uid}-{receiver_name}-{receiver_mobile}-{receiver_state},{receiver_city},{receiver_district},{receiver_address}'.format(
+            **model_to_dict(self)
+        )
 
     def set_idcard_image(self, side, card_imgpath):
         """ side choices: face and back """

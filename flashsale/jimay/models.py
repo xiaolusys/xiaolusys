@@ -87,12 +87,12 @@ class JimayAgentOrder(models.Model):
     ST_CANCEL = 5
 
     ST_CHOICES = (
-        (ST_CREATE, '已申请'),
-        (ST_ENSURE, '已接单'),
-        (ST_PAID, '已付款'),
-        (ST_SEND, '已发货'),
-        (ST_COMPLETED, '已完成'),
-        (ST_CANCEL, '已取消'),
+        (ST_CREATE, '已提交申请'),
+        (ST_ENSURE, '已确认订金'),
+        (ST_PAID, '已确认付款'),
+        (ST_SEND, '已打包出库'),
+        (ST_COMPLETED, '已签收完成'),
+        (ST_CANCEL, '已取消订货'),
     )
 
     buyer = models.ForeignKey('pay.Customer', verbose_name='原始用户')
@@ -106,7 +106,7 @@ class JimayAgentOrder(models.Model):
     total_fee = models.IntegerField(default=0, verbose_name='商品总价(分)', help_text='精度分')
     payment = models.IntegerField(default=0, verbose_name='支付金额(分)', help_text='精度分,现默认由运营人员填写')
 
-    address = models.ForeignKey('pay.UserAddress', verbose_name='用户地址')
+    address = models.ForeignKey('pay.UserAddress', related_name='jimay_agent_manager', verbose_name='用户地址')
 
     status  = models.IntegerField(default=ST_CREATE, db_index=True, choices=ST_CHOICES, verbose_name='状态')
 
@@ -119,7 +119,8 @@ class JimayAgentOrder(models.Model):
 
     manager = models.ForeignKey('auth.user', blank=True, null=True, verbose_name='管理员')
 
-    created = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name='创建日期')
+    sys_memo = models.CharField(max_length=512, blank=True, verbose_name='系统备注')
+    created  = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name='创建日期')
     modified = models.DateTimeField(auto_now=True, verbose_name='修改日期')
 
     class Meta:
