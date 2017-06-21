@@ -1067,7 +1067,8 @@ class ModelProduct(BaseTagModel):
 
     @cached_property
     def sale_product(self):
-        sp = self.product.get_sale_product()
+        """ 由于新商品的关系结构 product -> multi saleproduct : SaleProductRelation 目前过渡"""
+        sp = self.saleproduct
         if not sp:
             l = self.products.values_list('sale_product', flat=True).distinct()
             l = list(set(l))

@@ -147,8 +147,8 @@ class ModelProductSerializer(serializers.ModelSerializer):
 
 
 class ModelProductScheduleSerializer(serializers.ModelSerializer):
-    sale_supplier = SaleSupplierSimpleSerializer(read_only=True)
-    sale_category = SaleCategorySerializer(read_only=True)
+    # sale_supplier = SaleSupplierSimpleSerializer(read_only=True)
+    # sale_category = SaleCategorySerializer(read_only=True)
     status = serializers.CharField(source='product.get_status_display', read_only=True)
     contactor = serializers.CharField(source='charger', read_only=True)
     latest_figures = ModelStatsSimpleSerializer(source='sale_product_figures', read_only=True)
@@ -171,8 +171,8 @@ class ModelProductScheduleSerializer(serializers.ModelSerializer):
         model = ModelProduct
         fields = (
             'id', 'outer_id', 'name', 'agent_price', 'pic_path', 'ref_link', 'status', 'sale_supplier',
-            'contactor', 'sale_category', 'std_sale_price', 'agent_price', 'cost', 'latest_figures', 'total_figures',
-            'source_type', 'in_schedule', 'extras', 'product_id')
+            'contactor', 'sale_category', 'std_sale_price', 'agent_price', 'cost', 'latest_figures',
+            'total_figures', 'source_type', 'in_schedule', 'extras', 'product_id')
 
     def get_in_schedule(self, obj):
         """ 判断选品是否在指定排期里面 """

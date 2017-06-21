@@ -29,6 +29,10 @@ def task_generate_jimay_agent_certification(agent_id):
         return ''
 
     params = json.loads(cert_qr.params)
+    certification_urls = params.get('certification_urls', [])
+    if certification_urls and agent.level < len(certification_urls):
+        params['background_url'] = certification_urls[agent.level]
+
     params['texts'][0]['content'] = agent.name
     params['texts'][1]['content'] = agent.idcard_no
     params['texts'][2]['content'] = agent.weixin

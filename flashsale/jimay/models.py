@@ -54,7 +54,7 @@ class JimayAgent(models.Model):
         return '%s,%s' % (self.id, self.name)
 
     def gen_certification_filename(self):
-        agent_key_str =  '%s-%s-%s' % (self.name, self.idcard_no, self.weixin)
+        agent_key_str =  '%s-%s-%s-%s' % (self.name, self.idcard_no, self.weixin, self.level)
         sha1_str = hashlib.sha1(agent_key_str).hexdigest()
         return '{mobile}-{sha1}'.format(mobile=self.mobile, sha1=sha1_str)
 

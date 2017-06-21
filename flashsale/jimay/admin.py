@@ -62,7 +62,7 @@ class JimayAgentAdmin(admin.ModelAdmin):
 
 
 class JimayAgentOrderForm(forms.ModelForm):
-    sys_memo =  forms.CharField(label='备注', widget=forms.Textarea(attrs={'size': '40'}))
+    sys_memo =  forms.CharField(label='备注', required=False, widget=forms.Textarea(attrs={'size': '40'}))
     manager  = forms.ModelChoiceField(
         label='管理员',
         queryset=User.objects.filter(is_staff=True, groups__name=u'小鹿推广员')
@@ -90,7 +90,7 @@ class JimayAgentOrderAdmin(admin.ModelAdmin):
                 ('order_no', 'title'),
                 ('model_id', 'sku_id', 'num', ),
                 ('status', 'sys_memo'),
-                ('address',)
+                ('buyer','address',)
             )
         }),
         (u'运营审核:', {
