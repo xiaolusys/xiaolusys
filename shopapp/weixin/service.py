@@ -215,7 +215,7 @@ def handleWeiXinMenuRequest(openid, wxpubId, event, eventKey):
             from flashsale.jimay.tasks import task_weixin_asynchronous_send_certification
             customer = Customer.objects.filter(unionid=unionid).order_by('status').first()
             agent    = None
-            if customer:
+            if customer and customer.mobile:
                 agent = JimayAgent.objects.filter(mobile=customer.mobile).first()
 
             if not agent:

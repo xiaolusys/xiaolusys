@@ -12,7 +12,7 @@ from django.views.decorators.csrf import csrf_protect
 from django.forms import TextInput, Textarea, Select
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
-from django.template import RequestContext
+from django.contrib import messages
 from django.utils.encoding import force_unicode
 from core.utils.modelutils import get_class_fields
 
@@ -1610,7 +1610,16 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
         return response
     export_xls.short_description = "导出发货excel"
 
-    actions = ['export_xls']
+    def action_merge_skuitems(self, request, queryset):
+        count = queryset.count()
+        for q in queryset:
+            q.merge()
+        self.message_user(request, '%s个商品订单已成功生成包裹.'%count)
+        return
+
+    action_merge_skuitems.short_description = "生成包裹号"
+
+    actions = ['export_xls', 'action_merge_skuitems']
     # def get_actions(self, request):
     #     actions = super(PackageSkuItemAdmin, self).get_actions(request)
     #     actions.pop('delete_selected')
