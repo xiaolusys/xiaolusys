@@ -62,6 +62,41 @@ def cancel_outware_inbound_by_forecast(forecast):
 
     return resp
 
+def return_outware_inbound():
+    """ 方法实为创建蜂巢退仓单"""
+    # TODO@meron.2017.6.23 方法未完成测试
+    from shopback.warehouse.models import WareHouse
+    from shopback.warehouse.constants import WARE_FCSZ
+    warehouse   = WareHouse.objects.filter(id=WARE_FCSZ).first()
+    product_skus = ProductSku.objects.filter(product__model_id=505, status=ProductSku.NORMAL)
+
+    order_items = []
+    for sku in product_skus:
+        order_items.append({
+            'sku_id': sku.outer_id,
+            'inventory_type': 'ZP', # ZP正品，CC次品
+            'quantity': 10,
+            'object': 'OutwareOrderSku',
+        })
+
+    params = {
+        'order_code': '',
+        'whse_code': '',
+        'vdr_code': '',
+        'receiver_info': {
+            'receiver_province': warehouse.province,
+            'receiver_city': warehouse.city,
+            'receiver_area': warehouse.district,
+            'receiver_address': warehouse.address,
+            'receiver_name': warehouse.manager,
+            'receiver_mobile': warehouse.mobile,
+            'receiver_phone': warehouse.phone,
+            'object': 'UserAddress',
+        },
+        'order_items': order_items,
+        'object': 'OutwareOrder',
+    }
+
 
 
 
