@@ -139,6 +139,19 @@ class JimayWeixinAgentOrder(mixins.CreateModelMixin,
         headers = self.get_success_headers(serializer.data)
         return Response({'code': 0, 'info': '', 'order': serializer.data})
 
+
+    @detail_route(methods=['POST'])
+    def cancel(self, request, pk, *args, **kwargs):
+        agent_order = self.get_agentorder_qs(request).filter(pk=pk).first()
+        if not agent_order or not agent_order.is_cancelable():
+            return Response({'code': 1, 'info': '该订货单不可被取消'})
+
+        agent_order.set_status_canceled()
+        agent_order.save()
+        serializer = self.get_serializer(agent_order)
+        return Response({'code': 0, 'info': '取消成功', 'order': serializer.data})
+
+
     @list_route(methods=['GET'])
     def pay_info(self, request, *args, **kwargs):
         buyer = get_object_or_404(Customer, user=request.user)

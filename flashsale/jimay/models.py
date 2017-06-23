@@ -140,3 +140,9 @@ class JimayAgentOrder(models.Model):
     def is_createable(cls, buyer):
         return not cls.objects.filter(buyer=buyer,status=JimayAgentOrder.ST_CREATE).exists()
 
+    def is_cancelable(self):
+        return self.status == JimayAgentOrder.ST_CREATE
+
+    def set_status_canceled(self):
+        self.status = JimayAgentOrder.ST_CANCEL
+

@@ -206,7 +206,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         coupon_ids = sale_trade.extras_info.get('coupon', [])
         for coupon_id in coupon_ids:
             user_coupon = UserCoupon.objects.get(id=coupon_id, customer_id=sale_trade.buyer_id)
-            if sale_trade.tid != user_coupon.trade_tid:
+            if user_coupon.trade_tid and sale_trade.tid != user_coupon.trade_tid:
                 user_coupon.coupon_basic_check()  # 优惠券基础检查
 
     def wallet_charge(self, sale_trade, check_coupon=True,  **kwargs):
@@ -1443,13 +1443,13 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         try:
             if instance.channel == SaleTrade.WALLET:
                 # 小鹿钱包支付
-                response_charge = self.wallet_charge(instance, check_coupon=False)
+                response_charge = self.wallet_charge(instance, check_coupon=True)
             elif instance.channel == SaleTrade.BUDGET:
                 # 小鹿钱包
-                response_charge = self.budget_charge(instance, check_coupon=False)
+                response_charge = self.budget_charge(instance, check_coupon=True)
             else:
                 # pingpp 支付
-                response_charge = self.pingpp_charge(instance, check_coupon=False)
+                response_charge = self.pingpp_charge(instance, check_coupon=True)
             if sale_trade:
                 sale_trade.pay_status = SaleTrade.SALE_TRADE_PAY_FINISHED
                 sale_trade.save(update_fields=['pay_status'])
