@@ -92,5 +92,3 @@ def task_weixin_asynchronous_send_certification(wx_pubid, agent_id):
         })
 
 
-
-

@@ -12,3 +12,4 @@ def create_signal_message(msg_type, data):
         "data": data,
         "object": "signal",
     }
+
