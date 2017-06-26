@@ -100,8 +100,9 @@ class ForecastInbound(BaseModel):
         return '<%s,%s>' % (self.id, self.supplier and self.supplier.supplier_name or u'未知供应商')
 
     def delete(self, using=None):
-        self.status = self.ST_CANCELED
-        self.save()
+        raise Exception("forecast inbound can't be deleted.")
+        # self.status = self.ST_CANCELED
+        # self.save()
 
     def clean(self):
         for field in self._meta.fields:
@@ -312,6 +313,12 @@ class ForecastInbound(BaseModel):
         # TODO@注意django 环境下forecasts 的查询及更新具有延时性,前面查询的的结果后面更新时会重新查询，
         # 新加入的结果也会算入在内, 所有处理时应直接传入id list来限制范围
         forcasts.filter(id__in=forcast_ids).update(status=ForecastInbound.ST_CANCELED)
+        logging.warning({
+            'action': 'forecast_inbound_merge',
+            'action_time': datetime.datetime.now(),
+            'orderlist_ids': orderlist_ids,
+            'forcast_ids': forcast_ids,
+        })
         for sku_id in details:
             details[sku_id].forecast_arrive_num = res[sku_id]
             details[sku_id].save()
