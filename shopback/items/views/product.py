@@ -19,7 +19,7 @@ from core.options import log_action, ADDITION, CHANGE
 from flashsale.pay.models import ModelProduct, Productdetail
 from flashsale.pay.models import default_modelproduct_extras_tpl
 from flashsale.pay.signals import signal_record_supplier_models
-from core.filters import ConditionFilter
+from core.rest.filters import ConditionFilter
 from shopback.categorys.models import ProductCategory
 from shopback.items import constants
 from shopback.items.models import (Product, ProductSku, SkuStock)

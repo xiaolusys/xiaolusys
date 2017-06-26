@@ -8,8 +8,6 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 from django.contrib.admin import SimpleListFilter, FieldListFilter
 
-from rest_framework import filters
-
 
 class DateScheduleFilter(FieldListFilter):
     def __init__(self, field, request, params, model, model_admin, field_path):
@@ -163,20 +161,3 @@ class DateFieldListFilter(FieldListFilter):
 
 FieldListFilter.register(
     lambda f: isinstance(f, models.DateField), DateFieldListFilter)
-
-
-class ConditionFilter(filters.BaseFilterBackend):
-    def filter_queryset(self, request, queryset, view):
-        condition = {}
-        for k in view.search_fields:
-            if type(k) is tuple and k[1] is list:
-                v = request.GET.get(k[0])
-                if v and v.strip():
-                    v = v.strip().split(',')
-                if v:
-                    condition[k[0]] = v
-            else:
-                v = request.GET.get(k)
-                if v:
-                    condition[k] = v
-        return queryset.filter(**condition)

@@ -13,12 +13,14 @@ from .models import JimayAgent, JimayAgentOrder, JimayAgentStat
 from flashsale.pay.models import UserAddress
 from shopapp.weixin.models.base import WeixinQRcodeTemplate
 from shopapp.weixin.tasks import task_generate_colorful_qrcode
+from .filters import AgentInviteCountFieldListFilter
+
 
 @admin.register(JimayAgent)
 class JimayAgentAdmin(admin.ModelAdmin):
     list_display = ('id','agent_link', 'parent_agent_link', 'nick', 'name', 'mobile', 'weixin', 'level',
                     'manager', 'modified', 'direct_invite_num', 'indirect_invite_num')
-    list_filter = ('level', 'created', 'manager')
+    list_filter = ('level', 'created', 'manager', ('unionid', AgentInviteCountFieldListFilter)) # unionid只是用来做媒介
     search_fields = ['=id', '=mobile', '=parent_agent_id', '=weixin']
     list_per_page = 25
 

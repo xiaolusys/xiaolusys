@@ -49,11 +49,11 @@ class JimayAgentStat(models.Model):
             sub_sub_agent_ids = list(sub_sub_agents.values_list('id', flat=True))
 
             sub_agents_agg = JimayAgentStat.objects.filter(agent__in=sub_sub_agent_ids)\
-            .annotate(models.Sum('direct_invite_num'), models.Sum('indirect_invite_num'))
-
+            .aggregate(models.Sum('direct_invite_num'), models.Sum('indirect_invite_num'))
+            print 'sub_agents_agg',sub_agents_agg
             direct_invite_num =  (
-                sub_agents_agg['direct_invite_num__sum'] or 0 +
-                sub_agents_agg['indirect_invite_num__sum'] or 0
+                (sub_agents_agg['direct_invite_num__sum'] or 0) +
+                (sub_agents_agg['indirect_invite_num__sum'] or 0)
             )
 
         agent_stat.indirect_invite_num = direct_invite_num
