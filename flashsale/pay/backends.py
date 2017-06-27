@@ -99,7 +99,10 @@ class WeixinPubBackend(object):
             with transaction.atomic():
                 profile = Customer.objects.get(unionid=unionid, status=Customer.NORMAL)
                 # 如果openid有误，则重新更新openid
-                if unionid:
+                if unionid and openid:
+                    WeixinUnionID.objects.get_or_create(openid=openid,
+                                                        app_key=wxpub_appid,
+                                                        unionid=unionid)
                     task_Refresh_Sale_Customer.delay(userinfo, app_key=wxpub_appid)
 
                 if profile.user:

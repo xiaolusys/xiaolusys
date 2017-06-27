@@ -41,7 +41,7 @@ from shopback.items.models import Product
 from flashsale.pay.models import ProductSku
 from shopback.base import log_action, ADDITION, CHANGE
 from shopback.logistics.models import LogisticsCompany
-from shopapp.weixin import options
+from shopapp.weixin import options, models
 from common.utils import update_model_fields
 from flashsale.restpro import constants as CONS
 from flashsale.xiaolumm.models import XiaoluMama,CarryLog, XiaoluCoin
@@ -470,7 +470,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             except:
                 teambuy = None
 
-        buyer_openid = form.get('openid') or customer.openid
+        buyer_openid = form.get('openid') or customer.openid # openid移到charge的时候去获取
         # if not buyer_openid:
         #     buyer_openid = options.get_openid_by_unionid(customer.unionid, settings.WX_PUB_APPID)
 

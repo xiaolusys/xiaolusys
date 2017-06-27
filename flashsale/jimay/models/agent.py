@@ -77,14 +77,19 @@ class JimayAgent(models.Model):
     def set_certification(self, certification_url):
         self.certification = certification_url
 
-    def action_enroll(self):
+    def action_enroll(self, time_enrolled):
         """ 代理注册 """
-
         transaction.on_commit(lambda : signal_jimay_agent_enrolled.send_robust(
             sender=JimayAgent,
             obj=self,
-            time_enrolled=self.created
+            time_enrolled=time_enrolled
         ))
+
+    def save(self, *args, **kwargs):
+        resp = super(JimayAgent, self).save(*args, **kwargs)
+        self.action_enroll(self.created)
+        return resp
+
 
 @receiver(signal_jimay_agent_enrolled, sender=JimayAgent, dispatch_uid='jimay_agent_enroll_update_stat')
 def jimay_agent_enroll_update_stat(sender, obj, time_enrolled, **kwargs):
