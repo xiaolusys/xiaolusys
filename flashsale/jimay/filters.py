@@ -17,7 +17,7 @@ class AgentInviteCountFieldListFilter(FieldListFilter):
         gte = request.GET.get(self.lookup_kwarg_gte)
         lte  = request.GET.get(self.lookup_kwarg_lt)
         self.lookup_kwarg_gte_val = gte and gte.isdigit() and float(gte)
-        if lte.lower() == 'inf':
+        if lte and lte.lower() == 'inf':
             lte = str(sys.maxint)
         self.lookup_kwarg_lte_val = lte and lte.isdigit() and float(lte)
         field.verbose_name = '邀请人数区间'
