@@ -130,6 +130,9 @@ class WeixinPubBackend(object):
             if profile.status != Customer.NORMAL:
                 return AnonymousUser()
 
+            WeixinUnionID.objects.get_or_create(openid=openid,
+                                                app_key=wxpub_appid,
+                                                unionid=unionid)
             task_Refresh_Sale_Customer.delay(userinfo, app_key=wxpub_appid)
 
         return user
