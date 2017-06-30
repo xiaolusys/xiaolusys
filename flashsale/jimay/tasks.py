@@ -9,6 +9,7 @@ from shopmanager import celery_app as app
 from django.conf import settings
 from django.core.cache import cache
 
+from flashsale.pay.models import Customer
 from flashsale.jimay.models import JimayAgent
 
 import logging
@@ -93,27 +94,27 @@ def task_weixin_asynchronous_send_certification(wx_pubid, agent_id):
 
 
 @app.task
-def task_weixin_asynchronous_send_payqrcode(wx_pubid, agent_id, pay_key):
+def task_weixin_asynchronous_send_payqrcode(wx_pubid, buyer_id, pay_key, tips=''):
 
     from shopapp.weixin.apis.wxpubsdk import WeiXinAPI
     from shopapp.weixin.models import WeixinUnionID, WeiXinAutoResponse
 
     pay_key = pay_key.lower()
-    agent  = JimayAgent.objects.get(id=agent_id)
+    buyer = Customer.objects.get(id=buyer_id)
     wx_api = WeiXinAPI(wxpubId=wx_pubid)
 
     cacke_key = JimayAgent.gen_pay_qrcode_cache_key(wx_pubid, pay_key)
     cache_value = cache.get(cacke_key)
     if not cache_value:
         from shopapp.weixin.models.base import WeixinQRcodeTemplate
-        agent = JimayAgent.objects.get(id=agent_id)
-        pay_qr = WeixinQRcodeTemplate.get_agent_cert_templates().first()
+        pay_qr = WeixinQRcodeTemplate.get_agent_pay_templates().first()
         if not pay_qr:
-            logger.error('己美医学授权证书无法生成，请先去[微信二维码模板]创建证书模板: agent_id=%s' % agent_id)
+            logger.error('己美医学授权证书无法生成，请先去[微信二维码模板]创建证书模板: buyer_id=%s' % buyer_id)
             return ''
 
         params = json.loads(pay_qr.params)
         pay_qrcode_url = params.get('pay_qrocdes', {}).get(pay_key, '')
+        print 'pay_qrcode_url', params, pay_qrcode_url
         media_body = urllib2.urlopen(pay_qrcode_url).read()
         media_stream = StringIO.StringIO(media_body)
 
@@ -121,7 +122,7 @@ def task_weixin_asynchronous_send_payqrcode(wx_pubid, agent_id, pay_key):
         cache_value = response['media_id']
         cache.set(cacke_key, cache_value, 12 * 60 * 60)
 
-    openid = WeixinUnionID.get_openid_by_unionid(agent.buyer.unionid, wx_api.getAppKey())
+    openid = WeixinUnionID.get_openid_by_unionid(buyer.unionid, wx_api.getAppKey())
     try:
         # 调用客服回复接口返回二维码图片消息
         wx_api.send_custom_message({
@@ -131,6 +132,16 @@ def task_weixin_asynchronous_send_payqrcode(wx_pubid, agent_id, pay_key):
                 "media_id": cache_value
             }
         })
+        # 支付文字提示
+        if tips:
+            wx_api.send_custom_message({
+                "touser": openid,
+                'msgtype': WeiXinAutoResponse.WX_TEXT,
+                'text': {
+                    "content": tips
+                }
+            })
+
     except Exception, exc:
         logger.error(str(exc), exc_info=True)
         wx_api.send_custom_message({

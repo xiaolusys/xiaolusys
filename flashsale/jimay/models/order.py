@@ -4,8 +4,12 @@ from __future__ import absolute_import, unicode_literals
 import datetime
 import hashlib
 from django.db import models, transaction
+from django.dispatch import receiver
+from django.utils.functional import cached_property
 
+from signals.jimay import signal_jimay_agent_order_ensure, signal_jimay_agent_order_paid
 from core.utils.unikey import uniqid
+
 
 def gen_uuid_order_no():
     return uniqid('%s%s' % (JimayAgentOrder.PREFIX_CODE, datetime.date.today().strftime('%y%m%d')))
@@ -76,18 +80,49 @@ class JimayAgentOrder(models.Model):
     def is_createable(cls, buyer):
         return not cls.objects.filter(buyer=buyer,status=JimayAgentOrder.ST_CREATE).exists()
 
+    def save(self, *args, **kwargs):
+        if self.status == JimayAgentOrder.ST_ENSURE and not self.pay_time:
+            self.action_ensure(self.ensure_time or datetime.datetime.now())
+
+        resp = super(JimayAgentOrder, self).save(*args, **kwargs)
+        return resp
+
     def is_cancelable(self):
         return self.status == JimayAgentOrder.ST_CREATE
 
     def set_status_canceled(self):
         self.status = JimayAgentOrder.ST_CANCEL
 
-    def action_paid(self, time_paid):
-        """ 代理注册 """
+    def action_ensure(self, time_ensure):
+        """ 订单审核通过 """
+        transaction.on_commit(lambda: signal_jimay_agent_order_ensure.send_robust(
+            sender=JimayAgentOrder,
+            obj=self,
+            time_ensure=time_ensure
+        ))
 
-        from signals import jimay
-        transaction.on_commit(lambda: jimay.signal_jimay_agent_enroll.send_robust(
+    def action_paid(self, time_paid):
+        """ 订单支付通知 """
+        transaction.on_commit(lambda: signal_jimay_agent_order_paid.send_robust(
             sender=JimayAgentOrder,
             obj=self,
             time_paid=time_paid
         ))
+
+@receiver(signal_jimay_agent_order_ensure, sender=JimayAgentOrder)
+def jimay_order_ensure_weixin_paynotify(sender, obj, time_ensure, **kwargs):
+    try:
+        from shopapp.weixin.models import WeiXinAccount
+        from ..tasks import task_weixin_asynchronous_send_payqrcode
+        from django.conf import settings
+
+        wx_account = WeiXinAccount.objects.get(app_id=settings.WX_JIMAY_APPID)
+        task_weixin_asynchronous_send_payqrcode.delay(
+            wx_account.account_id, obj.buyer.id,
+            'wxpub',
+            ('您的订货单已审核通过, 需支付金额:￥%s元, 请长按识别二维码转账, '
+                +'转账时请备注: %s_的订货号_%s .(如果需要支付宝付款, 请点击菜单[己美医学]/[支付宝付款码])'
+            ) % (obj.payment * 0.01, obj.buyer.mobile, obj.id)
+        )
+    except Exception, exc:
+        print exc

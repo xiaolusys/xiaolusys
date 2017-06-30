@@ -95,7 +95,7 @@ class JimayAgent(models.Model):
         return resp
 
 
-@receiver(signal_jimay_agent_enrolled, sender=JimayAgent, dispatch_uid='jimay_agent_enroll_update_stat')
+@receiver(signal_jimay_agent_enrolled, sender=JimayAgent)
 def jimay_agent_enroll_update_stat(sender, obj, time_enrolled, **kwargs):
 
     from .stat import JimayAgentStat
