@@ -92,3 +92,52 @@ def task_weixin_asynchronous_send_certification(wx_pubid, agent_id):
         })
 
 
+@app.task
+def task_weixin_asynchronous_send_payqrcode(wx_pubid, agent_id, pay_key):
+
+    from shopapp.weixin.apis.wxpubsdk import WeiXinAPI
+    from shopapp.weixin.models import WeixinUnionID, WeiXinAutoResponse
+
+    pay_key = pay_key.lower()
+    agent  = JimayAgent.objects.get(id=agent_id)
+    wx_api = WeiXinAPI(wxpubId=wx_pubid)
+
+    cacke_key = JimayAgent.gen_pay_qrcode_cache_key(wx_pubid, pay_key)
+    cache_value = cache.get(cacke_key)
+    if not cache_value:
+        from shopapp.weixin.models.base import WeixinQRcodeTemplate
+        agent = JimayAgent.objects.get(id=agent_id)
+        pay_qr = WeixinQRcodeTemplate.get_agent_cert_templates().first()
+        if not pay_qr:
+            logger.error('己美医学授权证书无法生成，请先去[微信二维码模板]创建证书模板: agent_id=%s' % agent_id)
+            return ''
+
+        params = json.loads(pay_qr.params)
+        pay_qrcode_url = params.get('pay_qrocdes', {}).get(pay_key, '')
+        media_body = urllib2.urlopen(pay_qrcode_url).read()
+        media_stream = StringIO.StringIO(media_body)
+
+        response = wx_api.upload_media(media_stream)
+        cache_value = response['media_id']
+        cache.set(cacke_key, cache_value, 12 * 60 * 60)
+
+    openid = WeixinUnionID.get_openid_by_unionid(agent.buyer.unionid, wx_api.getAppKey())
+    try:
+        # 调用客服回复接口返回二维码图片消息
+        wx_api.send_custom_message({
+            "touser": openid,
+            "msgtype": WeiXinAutoResponse.WX_IMAGE,
+            "image": {
+                "media_id": cache_value
+            }
+        })
+    except Exception, exc:
+        logger.error(str(exc), exc_info=True)
+        wx_api.send_custom_message({
+            "touser": openid,
+            'msgtype': WeiXinAutoResponse.WX_TEXT,
+            'text': {
+                "content": u'[委屈]支付码创建失败， 请稍后重试或联系客服，谢谢！'
+            }
+        })
+

@@ -58,6 +58,10 @@ class JimayAgent(models.Model):
         sha1_str = hashlib.sha1(agent_key_str).hexdigest()
         return '{mobile}-{sha1}'.format(mobile=self.mobile, sha1=sha1_str)
 
+    @classmethod
+    def gen_pay_qrcode_cache_key(cls, wx_pubid, pay_key):
+        return 'jimay-payqrcode-{}-{}'.format(wx_pubid, pay_key)
+
     @cached_property
     def buyer(self):
         from flashsale.pay.models import Customer

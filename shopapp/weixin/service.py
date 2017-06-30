@@ -232,6 +232,30 @@ def handleWeiXinMenuRequest(openid, wxpubId, event, eventKey):
                 'Content': u'[爱心]亲，您的证书正在生成(若5秒内未返回请重试).'
             })
 
+        if eventKey.startswith('JIMAY_PAY_'):
+            from flashsale.pay.models import Customer
+            from flashsale.jimay.models import JimayAgent
+            from flashsale.jimay.tasks import task_weixin_asynchronous_send_payqrcode
+            customer = Customer.objects.filter(unionid=unionid).order_by('status').first()
+            agent = None
+            qrcodeKey = eventKey.split('_')[-1]
+            if customer and customer.mobile:
+                agent = JimayAgent.objects.filter(mobile=customer.mobile).first()
+
+            if not agent:
+                ret_params.update({
+                    'MsgType': WeiXinAutoResponse.WX_TEXT,
+                    'Content': u'[爱心]亲，您还不是正式的己美医学特约代理,请联系管理员申请加入.'
+                })
+                return ret_params
+
+            task_weixin_asynchronous_send_payqrcode.delay(wxpubId, agent.id, qrcodeKey)
+
+            ret_params.update({
+                'MsgType': WeiXinAutoResponse.WX_TEXT,
+                'Content': u'[爱心]亲，您的付款码正在生成(若5秒内未返回请重试).'
+            })
+
     except Exception, exc:
         logger.error(u'handleWeiXinMenuRequest error: %s' % exc.message, exc_info=True)
         ret_params.update({

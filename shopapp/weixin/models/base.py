@@ -227,10 +227,12 @@ class WeixinQRcodeTemplate(BaseModel):
     """
     """
     TYPE_INVITE = 0
-    TYPE_CERT  = 1
+    TYPE_CERT   = 1
+    TYPE_PAY    = 2
     TYPE_CHOICES = (
         (TYPE_INVITE, u'分享邀请模板'),
         (TYPE_CERT, u'代理授权模板'),
+        (TYPE_PAY,  u'代理付款码模板'),
     )
 
     params = models.TextField(verbose_name=u'模板参数')
@@ -269,4 +271,8 @@ class WeixinQRcodeTemplate(BaseModel):
 
     @classmethod
     def get_agent_invite_templates(cls):
-        return cls.objects.filter(type=cls.TYPE_INVITE, status=True)
+        return cls.objects.filter(type=cls.TYPE_INVITE, status=True)\
+
+    @classmethod
+    def get_agent_pay_templates(cls):
+        return cls.objects.filter(type=cls.TYPE_PAY, status=True)
