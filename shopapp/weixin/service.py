@@ -249,7 +249,7 @@ def handleWeiXinMenuRequest(openid, wxpubId, event, eventKey):
                 })
                 return ret_params
 
-            task_weixin_asynchronous_send_payqrcode.delay(wxpubId, agent.id, qrcodeKey)
+            task_weixin_asynchronous_send_payqrcode.delay(wxpubId, customer.id, qrcodeKey)
 
             ret_params.update({
                 'MsgType': WeiXinAutoResponse.WX_TEXT,
