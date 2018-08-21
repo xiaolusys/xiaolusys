@@ -1,0 +1,195 @@
+[
+{
+  "model": "supplier.saleproduct",
+  "pk": 558607,
+  "fields": {
+    "created": "2017-02-18T16:03:47",
+    "modified": "2017-02-18T16:36:08",
+    "tags": "",
+    "outer_id": "a8da7bacaa87cb12d0c0e122cfd6fa73",
+    "title": "vivo X9Plus\u624b\u673a",
+    "price": 3200.0,
+    "pic_url": "http://img.xiaolumeimei.com/nine_pic1487404951130",
+    "product_link": "https://detail.tmall.com/item.htm?spm=a220o.1000855.0.da321h.A52COm&id=543191928989&sku_properties=5919063:6536025;12304035:3222911;122216431:27772",
+    "sale_supplier": 29780,
+    "sale_category": 111,
+    "platform": "manual",
+    "hot_value": 0,
+    "stocking_mode": 0,
+    "voting": false,
+    "sale_price": 2000.0,
+    "on_sale_price": 3200.0,
+    "std_sale_price": 3800.0,
+    "product_material": "",
+    "memo": "\u6d4b\u8bd5\u5546\u54c1",
+    "is_changed": false,
+    "status": "passed",
+    "contactor": null,
+    "librarian": null,
+    "buyer": null,
+    "sale_time": null,
+    "reserve_time": null,
+    "supplier_sku": "",
+    "orderlist_show_memo": false,
+    "source_type": 0,
+    "sku_extras": [
+      {
+        "properties_name": "\u7ea2\u8272",
+        "agent_price": 3200,
+        "supplier_skucode": "SP00002AA",
+        "std_sale_price": 3800,
+        "color": "\u7ea2\u8272",
+        "remain_num": 0,
+        "cost": 2000,
+        "elite_score": 0,
+        "pic_path": "http://img.xiaolumeimei.com/nine_pic1487406955454",
+        "properties_alias": ""
+      }
+    ],
+    "extras": {
+      "is_boutique": false,
+      "product_type": 0
+    }
+  }
+},
+{
+  "model": "pay.modelproduct",
+  "pk": 25439,
+  "fields": {
+    "created": "2017-02-18T16:14:13",
+    "modified": "2017-02-18T16:36:10",
+    "tags": "",
+    "name": "vivo X9Plus\u624b\u673a",
+    "head_imgs": "http://img.xiaolumeimei.com/nine_pic1487404951130",
+    "content_imgs": "http://img.xiaolumeimei.com/nine_pic1487406965123",
+    "salecategory": 111,
+    "lowest_agent_price": 3200.0,
+    "lowest_std_sale_price": 3800.0,
+    "is_onsale": false,
+    "is_teambuy": false,
+    "is_recommend": false,
+    "is_topic": false,
+    "is_flatten": true,
+    "is_watermark": false,
+    "is_boutique": false,
+    "teambuy_price": 0.0,
+    "teambuy_person_num": 3,
+    "shelf_status": "off",
+    "onshelf_time": null,
+    "offshelf_time": null,
+    "order_weight": 50,
+    "rebeta_scheme_id": 0,
+    "saleproduct": 558607,
+    "extras": {
+      "new_properties": [
+        {
+          "name": "\u4ea7\u54c1\u6750\u8d28",
+          "value": "\u597d\u624b\u673a\u5662"
+        }
+      ],
+      "tables": [
+        {
+          "table": [
+            [
+              "\u5c3a\u7801"
+            ]
+          ]
+        }
+      ],
+      "saleinfos": {
+        "per_limit_buy_num": 20,
+        "is_product_buy_limit": true
+      },
+      "properties": {}
+    },
+    "status": "normal",
+    "product_type": 0
+  }
+}, {
+  "model": "items.product",
+  "pk": 81239,
+  "fields": {
+    "outer_id": "SP111111A",
+    "name": "vivo X9Plus\u624b\u673a/\u7ea2\u8272",
+    "model_id": 25439,
+    "barcode": "",
+    "category": 91,
+    "type": 0,
+    "pic_path": "http://img.xiaolumeimei.com/nine_pic1487406955454",
+    "collect_num": 0,
+    "warn_num": 0,
+    "remain_num": 0,
+    "wait_post_num": 0,
+    "sale_num": 0,
+    "reduce_num": 0,
+    "lock_num": 0,
+    "inferior_num": 0,
+    "cost": 2000.0,
+    "std_purchase_price": 0.0,
+    "std_sale_price": 3800.0,
+    "agent_price": 3200.0,
+    "staff_price": 0.0,
+    "weight": "",
+    "created": "2017-02-18T16:14:15",
+    "modified": "2017-02-18T16:36:10",
+    "sale_time": null,
+    "upshelf_time": null,
+    "offshelf_time": null,
+    "is_split": false,
+    "is_match": false,
+    "sync_stock": true,
+    "is_assign": false,
+    "post_check": false,
+    "is_flatten": true,
+    "is_watermark": false,
+    "status": "normal",
+    "match_reason": "",
+    "buyer_prompt": "",
+    "memo": "",
+    "sale_charger": "yanhuang",
+    "storage_charger": "",
+    "sale_product": 558607,
+    "is_verify": false,
+    "shelf_status": 0,
+    "ware_by": 4,
+    "elite_score": 0
+  }
+},
+{
+  "model": "items.productsku",
+  "pk": 296547,
+  "fields": {
+    "outer_id": "SP111111AA",
+    "supplier_skucode": "SP111111AA",
+    "barcode": "SP111111AA",
+    "product": 81239,
+    "quantity": 0,
+    "warn_num": 0,
+    "remain_num": 0,
+    "wait_post_num": 0,
+    "sale_num": 0,
+    "reduce_num": 0,
+    "lock_num": 0,
+    "sku_inferior_num": 0,
+    "cost": 2000.0,
+    "std_purchase_price": 0.0,
+    "std_sale_price": 3800.0,
+    "agent_price": 3200.0,
+    "staff_price": 0.0,
+    "weight": "",
+    "properties_name": "\u7ea2\u8272",
+    "properties_alias": "",
+    "is_split": false,
+    "is_match": false,
+    "sync_stock": true,
+    "is_assign": false,
+    "post_check": false,
+    "created": "2017-02-18T16:14:15",
+    "modified": "2017-02-18T16:36:10",
+    "status": "normal",
+    "match_reason": "",
+    "buyer_prompt": "",
+    "memo": ""
+  }
+}
+]

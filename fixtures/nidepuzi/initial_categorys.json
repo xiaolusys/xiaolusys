@@ -1,0 +1,19 @@
+[
+{
+  "model": "supplier.salecategory",
+  "pk": 3,
+  "fields": {
+    "created": "2016-07-22T22:38:38",
+    "modified": "2017-03-15T16:01:12",
+    "cid": "3",
+    "parent_cid": "0",
+    "name": "\u98df\u54c1\u4fdd\u5065",
+    "cat_pic": "https://img.xiaolumeimei.com/shipinbaojian.jpg",
+    "grade": 1,
+    "is_parent": true,
+    "sort_order": 10,
+    "is_view": true,
+    "status": "normal"
+  }
+}
+]

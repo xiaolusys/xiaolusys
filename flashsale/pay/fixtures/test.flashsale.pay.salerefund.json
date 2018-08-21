@@ -1,0 +1,46 @@
+[
+{
+  "fields": {
+    "status": 7,
+    "sku_id": 136471,
+    "feedback": "",
+    "refund_id": "re_GinHKOOifzjLTK0SKGqX5aHC",
+    "amount_flow": {
+      "desc": ""
+    },
+    "good_status": 0,
+    "title": "\u9ad8\u54c1\u8d28\u5bbd\u677e\u7834\u6d1e\u725b\u4ed4\u88e4/\u6d45\u84dd\u8272",
+    "proof_pic": [],
+    "refund_num": 1,
+    "refund_fee": 39.9,
+    "charge": "ch_G8iXn1KenXb1H4a180WDuf90",
+    "lackorder_id": null,
+    "company_name": "",
+    "sid": "",
+    "reason": "\u5176\u4ed6",
+    "has_good_return": false,
+    "channel": "wx_pub",
+    "has_good_change": false,
+    "is_lackrefund": false,
+    "order_id": 368347,
+    "sku_name": "30",
+    "refund_channel": "",
+    "phone": "",
+    "ware_by": 0,
+    "item_id": 34499,
+    "payment": 39.9,
+    "desc": "\u88e4\u5b50\u5df2\u7ecf\u4e708\u5929\u4e86\u8fd8\u6ca1\u53d1\u8d27\u3002\n",
+    "created": "2016-03-13T19:11:05",
+    "mobile": "13773425***",
+    "buyer_nick": "",
+    "trade_id": 332233,
+    "modified": "2016-04-11T23:03:28",
+    "success_time": "2016-03-14T10:49:45",
+    "total_fee": 39.9,
+    "refund_no": "RF16031356e54ac9a5466",
+    "buyer_id": 1
+  },
+  "model": "pay.salerefund",
+  "pk": 1
+}
+]

@@ -1,0 +1,58 @@
+[
+  {
+    "model": "coupon.coupontransferrecord",
+    "pk": 50,
+    "fields": {
+      "created": "2016-11-08T00:00:00",
+      "modified": "2016-11-08T00:00:00",
+      "coupon_from_mama_id": 44,
+      "from_mama_thumbnail": "http://wx.qlogo.cn/mmopen/n24ek7Oc1iaXyxqzHobN7BicG5W1ljszSRWSdzaFeRkGGVwqjmQKTmicTylm8IkclpgDiaamWqZtiaTlcvLJ5z6x35wCKMWVbcYPU/0",
+      "from_mama_nick": "meron@\u5c0f\u9e7f\u7f8e\u7f8e",
+      "coupon_to_mama_id": 25839,
+      "to_mama_thumbnail": "http://wx.qlogo.cn/mmopen/n24ek7Oc1iaXyxqzHobN7BibXe74QB700qE66BumtjmBJY3RheuHMVgsGWvAvlh7NckTCTMEFMk5ViaRMJFKTtRotvx2mY5o4Xp/0",
+      "to_mama_nick": "\u98ce\u4e91@\u5c0f\u9e7f\u7f8e\u7f8e",
+      "init_from_mama_id": 25839,
+      "order_no": "24275-153-2016-11-01-1",
+      "template_id": 153,
+      "product_img": "http://img.xiaolumeimei.com/MG_14768841503551_01.jpg?imageMogr2/strip/format/jpg/quality/90/interlace/1/thumbnail/320",
+      "coupon_value": 128,
+      "coupon_num": 1,
+      "transfer_type": 2,
+      "transfer_status": 1,
+      "status": 1,
+      "uni_key": "44-24275-153-2016-11-01-1",
+      "date_field": "2016-11-01",
+      "elite_level": "Associate",
+      "elite_score": 10,
+      "product_id": 75770
+    }
+  },
+  {
+    "model": "coupon.coupontransferrecord",
+    "pk": 144,
+    "fields": {
+      "created": "2016-11-05T00:00:00",
+      "modified": "2016-11-05T00:00:00",
+      "coupon_from_mama_id": 0,
+      "from_mama_thumbnail": "http://7xogkj.com2.z0.glb.qiniucdn.com/222-ohmydeer.png?imageMogr2/thumbnail/60/format/png",
+      "from_mama_nick": "SYSTEM",
+      "coupon_to_mama_id": 44,
+      "to_mama_thumbnail": "http://wx.qlogo.cn/mmopen/0v06jdfpoVJicdicpGWelGJ20rSRhicwc1J3L0SFLCvVTkAwxVpkdGJyCUAN1uiatZ6lolZiapvPsyib9RjEUy95lYzia18mn5WxQrg/0",
+      "to_mama_nick": "meron@\u5c0f\u9e7f\u7f8e\u7f8e",
+      "init_from_mama_id": 44,
+      "order_no": "xo1612145850f4c59797a",
+      "template_id": 153,
+      "product_img": "http://img.xiaolumeimei.com/MG_14768841503551_01.jpg",
+      "coupon_value": 128,
+      "coupon_num": 7,
+      "transfer_type": 4,
+      "transfer_status": 3,
+      "status": 1,
+      "uni_key": "44-521468",
+      "date_field": "2016-12-14",
+      "elite_level": null,
+      "elite_score": 0,
+      "product_id": 75771
+    }
+  }
+]

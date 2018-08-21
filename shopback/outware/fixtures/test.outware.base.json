@@ -1,0 +1,127 @@
+[
+{
+  "model": "outware.outwareaccount",
+  "pk": 1,
+  "fields": {
+    "created": "2017-03-14 11:22:59",
+    "modified": "2017-03-14 11:22:59",
+    "nick": "\u8702\u5de2\u4f9b\u5e94\u94fe",
+    "app_id": "app20170308hnabcpls",
+    "app_secret": "e8e1f648a5e02492e1584e5413cef158",
+    "sign_method": "md5",
+    "ware_from": "fengchao",
+    "order_prefix": "test_",
+    "extras": {}
+  }
+},
+  {
+  "model": "logistics.logisticscompany",
+  "pk": -2,
+  "fields": {
+    "code": "YUNDA_QR",
+    "name": "\u97f5\u8fbe\u5feb\u9012",
+    "reg_mail_no": "\t^(10|11|12|13|14|15|16|17|19|18|50|55|58|80|88|66|31|77|39)[0-9]{11}$|^[0-9]{13}$",
+    "district": "",
+    "priority": 1000,
+    "status": true,
+    "type": 1,
+    "express_key": "yunda",
+    "kd100_express_key": "yunda"
+  }
+},
+  {
+  "model": "warehouse.warehouse",
+  "pk": 4,
+  "fields": {
+    "store_code": "SZWH01",
+    "ware_name": "\u8702\u5de2\u82cf\u5dde\u4ed3",
+    "manager": "\u4ed8\u603b",
+    "province": "\u6c5f\u82cf",
+    "city": "\u82cf\u5dde",
+    "district": "\u5e02\u533a",
+    "address": "\u8702\u5de2\u4ed3\u5e93",
+    "mobile": "18621623915",
+    "phone": "",
+    "in_active": true,
+    "extra_info": "",
+    "extras": {}
+  }
+},
+{
+  "model": "outware.outwaresupplier",
+  "pk": 1,
+  "fields": {
+    "created": "2017-03-14T16:14:00",
+    "modified": "2017-03-14T16:14:00",
+    "outware_account": 1,
+    "vendor_code": "lxh0001",
+    "vendor_name": "\u6765\u4eab\u6c470001",
+    "uni_key": "lxh0001-1",
+    "extras": {}
+  }
+},
+{
+  "model": "outware.outwaresku",
+  "pk": 1,
+  "fields": {
+    "created": "2017-03-14T16:31:07",
+    "modified": "2017-03-14T16:31:07",
+    "outware_supplier": 1,
+    "sku_code": "SP111111AA",
+    "ware_sku_code": "SP111111AA",
+    "uni_key": "SP111111AA-1",
+    "extras": {
+      "bar_code": "SP111111AA",
+      "sku_name": "vivo X9Plus\u624b\u673a/\u7ea2\u8272",
+      "sku_code": "SP111111AA",
+      "sku_type": 10,
+      "object": "OutwareSku"
+    }
+  }
+},
+{
+  "model": "fengchao.fengchaoorderchannel",
+  "pk": 1,
+  "fields": {
+    "created": "2017-03-14T17:58:16",
+    "modified": "2017-03-14T17:58:21",
+    "channel_id": "1",
+    "channel_name": "\u6765\u4eab\u6c47\u5546\u57ce",
+    "channel_type": "20",
+    "channel_client_id": "SRE001",
+    "status": false,
+    "extras": {}
+  }
+},
+{
+  "model": "supplier.salecategory",
+  "pk": 111,
+  "fields": {
+    "created": "2016-09-07T15:05:13",
+    "modified": "2017-02-11T11:05:47",
+    "cid": "8-139-111",
+    "parent_cid": "8-139",
+    "name": "\u5c0f\u7535\u5668",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/jiaju/dianqi.png",
+    "grade": 3,
+    "is_parent": false,
+    "sort_order": 0,
+    "is_view": true,
+    "status": "normal"
+  }
+},
+{
+  "model": "categorys.productcategory",
+  "pk": 91,
+  "fields": {
+    "created": "2017-02-18T16:14:15",
+    "modified": "2017-02-18T16:14:15",
+    "parent_cid": 90,
+    "name": "\u7efc\u5408\u767e\u8d27",
+    "grade": 0,
+    "is_parent": true,
+    "status": "normal",
+    "sort_order": 0
+  }
+}
+]

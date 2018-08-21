@@ -1,0 +1,48 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls static admin_list %}
+
+{% block object-tools %}
+  {% if has_add_permission %}
+    <ul class="object-tools">
+      {% block object-tools-items %}
+        <li>
+            <a href="/items/batch_settime/" target="_blank">设置上下架时间
+            </a>
+        </li>
+        <li>
+            <a href="/mm/aggregeta_product/" target="_blank">聚合商品
+            </a>
+        </li>
+        <li>
+            <a href="/items/product/scan/" target="_blank">扫描入库
+            </a>
+        </li>
+        <li>
+            <a href="/sale/dinghuo/top_stock/"  target="_blank">库存分析
+            </a>
+        </li>
+        <li>
+            <a href="/sale/dinghuo/sale_status/"  target="_blank">热销商品
+            </a>
+        </li>
+        <li>
+            <a href="/items/product/sale/" target="_blank">销量分析
+            </a>
+        </li>
+        <li>
+            <a href="/items/product/barcode/" target="_blank">条码管理
+            </a>
+        </li>
+        <li>
+            <a href="/items/product/warn/"  target="_blank">库存警告
+            </a>
+        </li>
+        <li>
+          <a href="{% url cl.opts|admin_urlname:'add' %}{% if is_popup %}?_popup=1{% endif %}" class="addlink">
+            {% blocktrans with cl.opts.verbose_name as name %}Add {{ name }}{% endblocktrans %}
+          </a>
+        </li>
+      {% endblock %}
+    </ul>
+  {% endif %}
+{% endblock %}

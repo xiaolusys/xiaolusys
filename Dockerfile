@@ -1,7 +1,6 @@
-from registry.aliyuncs.com/xiaolu-img/xiaolusys-base:78a9e53f221ca41896124f9fe438452cd483203a
+from registry.aliyuncs.com/xiaolu-img/xiaolusys-base:a3464951565161bb9831e48e6e7a1b1fa5476c64
 
 run mkdir -p /var/log/taobao;mkdir -p /var/www/deploy/taobao;mkdir -p /data/log/django
-add . /var/www/deploy/taobao/taobao-backend
-workdir /var/www/deploy/taobao/taobao-backend/shopmanager
+add . /var/www/deploy/taobao/xiaolusys
+workdir /var/www/deploy/taobao/xiaolusys
 
-run blueware-admin generate-config BAAGUgBTVAs065dBFQpCVFgfC06fb3VaWUgEVlMFG49d7QlVGgkNH1cB843eBwBJB1RPAQI= blueware.ini

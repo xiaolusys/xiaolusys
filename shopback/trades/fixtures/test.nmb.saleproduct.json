@@ -1,0 +1,40 @@
+[
+{
+ "model": "users.user",
+ "pk": 12,
+ "fields": {
+  "user": 641,
+  "top_session": "",
+  "top_appkey": "",
+  "top_parameters": "",
+  "visitor_id": "flashsale",
+  "uid": "flashsale",
+  "nick": "\u5c0f\u9e7f\u7f8e\u7f8e\u7279\u5356\u5e73\u53f0",
+  "user_code": "XLMM",
+  "sex": "",
+  "contacter": "",
+  "phone": "021-53939326",
+  "mobile": "",
+  "area_code": "201602",
+  "buyer_credit": "",
+  "seller_credit": "",
+  "has_fenxiao": false,
+  "location": "\u4e0a\u6d77\u5e02\u677e\u6c5f\u533a\u4f58\u5c71\u9547\u4f58\u5317\u5409\u4e1a\u8def245\u53f75\u53f7\u697c",
+  "created": "",
+  "birthday": "",
+  "type": "SALE",
+  "item_img_num": 0,
+  "item_img_size": 0,
+  "prop_img_num": 0,
+  "prop_img_size": 0,
+  "auto_repost": "",
+  "alipay_bind": "",
+  "alipay_no": "",
+  "sync_stock": false,
+  "percentage": 0,
+  "is_primary": false,
+  "created_at": "2015-12-18T17:07:20",
+  "status": "normal"
+ }
+}
+]

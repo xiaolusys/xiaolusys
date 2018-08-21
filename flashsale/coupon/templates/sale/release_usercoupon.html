@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>优惠券发放</title>
+    <link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link href="https://cdn.bootcss.com/bootstrap-datetimepicker/4.17.37/css/bootstrap-datetimepicker.min.css"
+          rel="stylesheet">
+    <script type="text/javascript" src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+    <script type="text/javascript" src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/static/script/slaerefund_poppage.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}layer-v1.9.2/layer/layer.js"></script>
+    <script src="//cdn.bootcss.com/moment.js/2.15.2/moment.js"></script>
+    <script src="https://cdn.bootcss.com/bootstrap-datetimepicker/4.17.37/js/bootstrap-datetimepicker.min.js"></script>
+</head>
+<body class="container" style="background: #F5F5F5">
+<div class="col-xs-12" style="background: white;margin-top: 70px">
+    <h3>查询条件</h3>
+
+    <div class="col-xs-12">
+
+        <form role="form">
+            <div class="col-xs-6">
+                <div class="form-group">
+                    <label for="exampleInputPassword1">开始时间</label>
+                    <input type="text" class="form-control date-picker" id="time_from" name="time_from"
+                           placeholder="开始时间"
+                           value="{{ time_from }}">
+                </div>
+            </div>
+            <div class="col-xs-6">
+                <div class="form-group">
+                    <label for="exampleInputPassword1">结束时间</label>
+                    <input type="text" class="form-control date-picker" id="time_to" name="time_to" placeholder="截止时间"
+                           value="{{ time_to }}">
+                </div>
+            </div>
+            <div class="col-xs-10">
+                <div class="form-group">
+                    <label for="exampleInputPassword2">购买款式id</label>
+                    <input type="text" class="form-control" id="model_ids" name="model_ids" placeholder="款式id"
+                           value="{{ model_ids }}">
+                </div>
+            </div>
+            <div class="col-xs-2">
+                <div class="form-group">
+                    <label for="exampleInputPassword1">用户id</label>
+                    <input type="number" min="1" class="form-control" id="buyer_id" name="buyer_id"
+                           placeholder="buyer_id"
+                           value="{{ buyer_id }}">
+                </div>
+            </div>
+            <div class="col-xs-12" style="margin-bottom: 10px">
+                <button type="submit" class="btn btn-default" style="float: right">查询</button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<div class="col-xs-5" style="background: white;margin-top: 10px; margin-right: 40px">
+    <p class="collapsed" data-toggle="collapse"
+       data-target="#demo"
+       aria-controls="demo"
+       aria-expanded="false">订单信息
+        <span class="glyphicon glyphicon-collapse-down"> {{ sale_orders.count }} 个订单</span>
+    </p>
+
+    <div class="col-xs-12 collapse" id="demo" style="margin-top: 5px">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <td>交易id</td>
+                <td>状态</td>
+                <td>订单id</td>
+                <td>状态</td>
+                <td>数量</td>
+                <td>名称</td>
+            </tr>
+            </thead>
+            <tbody>
+            {% for order in sale_orders %}
+                <tr>
+                    <td><a target="_blank"
+                           href="/admin/pay/saletrade/?id={{ order.sale_trade_id }}">{{ order.sale_trade_id }}</a></td>
+                    <td>{{ order.sale_trade.get_status_display }}</td>
+                    <td><a target="_blank" href="/admin/pay/saleorder/?id={{ order.sale_trade_id }}">{{ order.id }}</a>
+                    </td>
+                    <td>{{ order.get_status_display }}</td>
+                    <td>{{ order.num }}</td>
+                    <td>{{ order.title }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="col-xs-6" style="background: white;margin-top: 10px">
+    <p class="collapsed" data-toggle="collapse"
+       data-target="#demo2"
+       aria-controls="demo2"
+       aria-expanded="false">精品券信息
+        <span class="glyphicon glyphicon-collapse-down"> {{ usercoupons.count }} 张</span>
+    </p>
+
+    <div class="col-xs-12 collapse" id="demo2" style="margin-top: 5px">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <td>模板id</td>
+                <td>名称</td>
+                <td>券id</td>
+                <td>状态</td>
+                <td>用户id</td>
+            </tr>
+            </thead>
+            <tbody>
+            {% for coupon in usercoupons %}
+                <tr>
+                    <td>{{ coupon.self_template.id }} </td>
+                    <td>{{ coupon.self_template.title }}</td>
+                    <td>{{ coupon.id }}</td>
+                    <td>{{ coupon.get_status_display }}</td>
+                    <td>{{ coupon.customer_id }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="col-xs-12" style="background: white;margin-top: 10px;margin-bottom: 100px">
+    <h3>点击按钮发放</h3>
+
+    <div class="col-xs-12 row">
+        <div class="form-group col-xs-3">
+            <label for="exampleInputPassword2">活动id</label>
+            <input type="text" class="form-control" id="activity_id" value="1">
+        </div>
+    </div>
+
+    {% for k, templates in templates_data.iteritems %}
+        <div class="col-xs-12">
+            <p class="collapsed" data-toggle="collapse"
+               data-target="#demo{{ k }}"
+               aria-controls="demo{{ k }}"
+               aria-expanded="false">价值:{{ k }}元
+                <span class="glyphicon glyphicon-collapse-down"></span>
+            </p>
+
+            <div class="col-xs-12 collapse" id="demo{{ k }}" style="margin-top: 5px">
+                <ul class="list-group">
+                    {% for template in templates %}
+                        <li class="list-group-item">{{ template.id }} : {{ template.title }}   {{ template.value }} 元  点击发放
+                            <a class="releaseCoupon" onclick="release_coupon_action({{ template.id }})">>>></a> </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+</body>
+<script>
+    function getLinkParam(url, name) {
+        var reg = new RegExp('[\\?&]' + name + '=([^&#]*)');
+        var r = url.substr(1).match(reg);
+        if (r != null) return unescape(r[1]);
+        return null;
+    }
+
+    function getUrlParam(name) {
+        var local_link = window.location.href;
+        return getLinkParam(local_link, name);
+    }
+    $(document).ready(function () {
+        var dp = $('.date-picker');
+        dp.datetimepicker({
+            format: 'YYYY-MM-DD HH:mm'
+        });
+        // var buyer_id = getUrlParam('buyer_id');
+        // var model_ids = getUrlParam('model_ids');
+        // $('#buyer_id').val(buyer_id);
+        // $('#model_ids').val(model_ids);
+    });
+    function release_coupon_action(template_id) {
+        var btn = $(".releaseCoupon");
+        if (btn.hasClass('loading')) {
+            return
+        }
+        btn.addClass('loading');
+        var coupon_url = "/coupon/release_coupon/";
+        var buyer_id = $("#buyer_id").val();
+        var time_from = $("#time_from").val();
+        var time_to = $("#time_to").val();
+        var activity_id = $("#activity_id").val();
+
+        var data = {
+            "buyer_id": buyer_id,
+            "template_id": template_id,
+            "time_from": time_from,
+            "time_to": time_to,
+            "activity_id": activity_id
+        };
+        console.log('data:', data);
+        $.ajax({
+            url: coupon_url,
+            type: "post",
+            data: data,
+            success: couponCallBack,
+            error: function (err) {
+                var resp = JSON.parse(err.responseText);
+                if (resp.detail) {
+                    layer.msg(resp.detail);
+                }
+            }
+        });
+        function couponCallBack(res) {
+            btn.removeClass('loading');
+            console.log("debug res:", res);
+            layer.msg(res.message)
+        }
+    }
+</script>
+</html>
+
+

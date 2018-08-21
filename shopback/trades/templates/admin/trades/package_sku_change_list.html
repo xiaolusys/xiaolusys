@@ -1,0 +1,206 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_static admin_list %}
+{% load url from future %}
+{% load admin_urls %}
+{% load trade_tags %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" type="text/css" href="{% static "admin/css/changelists.css" %}" />
+  <script type="text/javascript" src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+  <script src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/bootstrap/3.3.2/css/bootstrap.min.css">
+  <script type="text/javascript" src="//cdn.bootcss.com/bootstrap-daterangepicker/2.1.23/moment.min.js"></script>
+  <script type="text/javascript" src="//cdn.bootcss.com/bootstrap-daterangepicker/2.1.23/daterangepicker.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/bootstrap-daterangepicker/2.1.23/daterangepicker.min.css" />
+  {% if cl.formset %}
+    <link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />
+  {% endif %}
+  {% if cl.formset or action_form %}
+    {% url 'admin:jsi18n' as jsi18nurl %}
+    <script type="text/javascript" src="{{ jsi18nurl|default:'../../jsi18n/' }}"></script>
+  {% endif %}
+  {{ media.css }}
+  {% if not actions_on_top and not actions_on_bottom %}
+    <style>
+      #changelist table thead th:first-child {width: inherit}
+    </style>
+  {% endif %}
+{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+{{ media.js }}
+{% if action_form %}{% if actions_on_top or actions_on_bottom %}
+<script type="text/javascript">
+(function($) {
+    $(document).ready(function($) {
+        $("tr input.action-select").actions();
+    });
+})(django.jQuery);
+</script>
+{% endif %}{% endif %}
+{% endblock %}
+
+{% block bodyclass %}change-list{% endblock %}
+
+{% if not is_popup %}
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label=cl.opts.app_label %}">{{ app_label|capfirst|escape }}</a>
+&rsaquo; {{ cl.opts.verbose_name_plural|capfirst }}
+</div>
+{% endblock %}
+{% endif %}
+
+{% block coltype %}flex{% endblock %}
+
+{% block content %}
+  <div id="content-main">
+    {% block object-tools %}
+      {% if has_add_permission %}
+        <ul class="object-tools">
+          {% block object-tools-items %}
+            <li>
+                <a href="/admin/trades/packageorder/" class="addlink" target="_blank">包裹列表</a>
+            </li>
+            <li>
+                <a href="/trades/package_order/new" class="addlink" target="_blank">新手工单</a>
+            </li>
+            <li>
+                <a href="/admin/trades/packageskuitem/?type__in=2,3,4" class="addlink" target="_blank">所有退货单</a>
+            </li>
+          {% endblock %}
+        </ul>
+      {% endif %}
+    {% endblock %}
+    {% if cl.formset.errors %}
+        <p class="errornote">
+        {% blocktrans count cl.formset.errors|length as counter %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}
+        </p>
+        {{ cl.formset.non_form_errors }}
+    {% endif %}
+    <div class="module{% if cl.has_filters %} filtered{% endif %}" id="changelist">
+      {% block search %}
+        <div><!-- DIV needed for valid HTML -->
+          <form id="changelist-search" method="get">
+            <label for="searchbar"><img src="/static/admin/img/search.svg" alt="Search"></label>
+            <input type="text" size="40" name="q" value="{{ cl.query }}" id="searchbar" autofocus="" placeholder="输id，包裹号，skuid,用户手机，物流单号">
+            <label>供应商</label>
+            <input type="text" size="40" name="purchase_order_unikey__startswith" value="" placeholder="输供应商id">
+            <input type="submit" value="Search">
+          </form>
+          <label>付款时间</label><input class="inline" name="daterange">
+        </div>
+      {% endblock %}
+      {% block date_hierarchy %}{% date_hierarchy cl %}{% endblock %}
+      {% block filters %}
+        {% if cl.has_filters %}
+          <div id="changelist-filter">
+            <h2>{% trans 'Filter' %}</h2>
+            {% for spec in cl.filter_specs %}{% admin_list_filter cl spec %}{% endfor %}
+          </div>
+        {% endif %}
+      {% endblock %}
+      <form id="changelist-form" action="" method="post"{% if cl.formset.is_multipart %} enctype="multipart/form-data"{% endif %}>{% csrf_token %}
+      {% if cl.formset %}
+        <div>{{ cl.formset.management_form }}</div>
+      {% endif %}
+
+      {% block result_list %}
+          {% if action_form and actions_on_top and cl.full_result_count %}{% admin_actions %}{% endif %}
+          {% trade_result_list cl %}
+          {% if action_form and actions_on_bottom and cl.full_result_count %}{% admin_actions %}{% endif %}
+      {% endblock %}
+      {% block pagination %}{% pagination cl %}{% endblock %}
+      </form>
+    </div>
+  </div>
+	<script type="text/javascript">
+		if(!document.getElementsByClassName){
+		    document.getElementsByClassName = function(className, element){
+		        var children = (element || document).getElementsByTagName('*');
+		        var elements = new Array();
+		        for (var i=0; i<children.length; i++){
+		            var child = children[i];
+		            var classNames = child.className.split(' ');
+		            for (var j=0; j<classNames.length; j++){
+		                if (classNames[j] == className){
+		                    elements.push(child);
+		                    break;
+		                }
+		            }
+		        }
+		        return elements;
+		    };
+		}
+		function getLinkParam(url,name){
+            var reg = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var r = url.substr(1).match(reg);
+            if (r != null) return unescape(r[1]);
+            return null;
+        }
+        function getQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) return unescape(r[2]); return null;
+        }
+
+      function GetRequest() {
+        var url = location.search; //获取url中"?"符后的字串
+         var theRequest = new Object();
+         if (url.indexOf("?") != -1) {
+            var str = url.substr(1);
+            strs = str.split("&");
+            for(var i = 0; i < strs.length; i ++) {
+               theRequest[strs[i].split("=")[0]]=(strs[i].split("=")[1]);
+            }
+         }
+         return theRequest;
+      }
+
+		var actions = document.getElementsByClassName('actions');
+		if (actions.length>0){
+			var submit_btns = document.getElementsByClassName('button',actions[0]);
+			if (submit_btns.length>0){
+				var submit_btn = submit_btns[0];
+				submit_btn.onclick = function(evt){
+					submit_btn.style.display = "none";
+				};
+			}
+		}
+		$(function(){
+		    $('input[name="daterange"]').daterangepicker(
+            {
+                locale: {
+                  format: 'YYYY-MM-DD'
+                },
+                startDate: '2015-01-01',
+                endDate: moment(),
+                ranges: {
+                   '今日': [moment(), moment()],
+                   '昨日': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                   '过去七天': [moment().subtract(6, 'days'), moment()],
+                   '过去一月': [moment().subtract(29, 'days'), moment()],
+                   '本月': [moment().startOf('month'), moment().endOf('month')],
+                   '上个月': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                }
+            },function(start, end, label) {
+                var path = window.location.href;
+                var ori_path = window.location.pathname;
+                var params = GetRequest();
+                var s = [];
+                for( var key in params){
+                  if(key!="pay_time__gte" && key != "pay_time__lte"){
+                    s.push(key+"="+params[key])
+                  }
+                }
+                p = s.join("&")
+                var new_href = ori_path+'?'+p
+                new_href = new_href + '&pay_time__gte='+ start.format('YYYY-MM-DD 00:00:00') + '&pay_time__lte=' + end.format('YYYY-MM-DD 23:59:59');
+                window.location.href = new_href;
+            });
+		});
+	</script>
+{% endblock %}

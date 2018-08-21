@@ -1,0 +1,27 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls static admin_list %}
+
+{% block object-tools %}
+  {% if has_add_permission %}
+    <ul class="object-tools">
+      {% block object-tools-items %}
+        <li>
+          <a href="/purchases/add/" class="addlink" target="_blank">
+            新采购单
+          </a>
+        </li>
+        <li>
+          <a href="/purchases/storage/add/" class="addlink" target="_blank">
+            新入库单
+          </a>
+        </li>
+        <li>
+          <a href="/purchases/payment/" class="addlink" target="_blank">
+            新付款单
+          </a>
+        </li>
+      {% endblock %}
+    </ul>
+  {% endif %}
+{% endblock %}
+

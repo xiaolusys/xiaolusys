@@ -1,0 +1,24 @@
+[{
+  "fields": {
+    "arrival_quantity": 4,
+    "arrival_time": "2015-07-01T11:08:12",
+    "buy_quantity": 4,
+    "buy_unitprice": 21.5,
+    "chichu_id": "22788",
+    "created": "2015-06-27T11:08:12",
+    "inferior_quantity": 0,
+    "non_arrival_quantity": 0,
+    "orderlist_id": 2772,
+    "outer_id": "9030497903",
+    "product_chicun": "90/80",
+    "product_id": "5632",
+    "product_name": "\u5361\u901a\u8fea\u58eb\u5c3c\u5957\u88c5-\u7c89\u8272\u7c73\u59ae",
+    "purchase_detail_unikey": null,
+    "purchase_order_unikey": "",
+    "status": 0,
+    "total_price": 86.0,
+    "updated": "2015-07-01T11:08:12"
+  },
+  "model": "dinghuo.orderdetail",
+  "pk":19929
+}]

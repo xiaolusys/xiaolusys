@@ -1,0 +1,605 @@
+{% load custom_filter %}
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="utf-8">
+    <title>入库单分配</title>
+    <link rel="stylesheet" href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link href="{{ STATIC_URL }}animate.css" rel="stylesheet">
+    <link href="{{ STATIC_URL }}wap/css/sweet-alert.css" rel="stylesheet">
+    <link href="{{ STATIC_URL }}admin/css/forms.css" rel="stylesheet" type="text/css"/>
+    <style>
+
+        .typeahead:focus {
+        border: 2px solid #0097cf;
+        }
+
+        .tt-query {
+        -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+        -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+        box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+        }
+
+        .tt-hint {
+        color: #999
+        }
+
+        .tt-menu {
+        margin: 14px 0;
+        padding: 8px 0;
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        -webkit-border-radius: 8px;
+        -moz-border-radius: 8px;
+        border-radius: 8px;
+        -webkit-box-shadow: 0 5px 10px rgba(0,0,0,.2);
+        -moz-box-shadow: 0 5px 10px rgba(0,0,0,.2);
+        box-shadow: 0 5px 10px rgba(0,0,0,.2);
+        }
+
+        .tt-suggestion {
+        padding: 3px 20px;
+        line-height: 24px;
+        }
+
+        .tt-suggestion:hover {
+        cursor: pointer;
+        color: #fff;
+        background-color: #0097cf;
+        }
+
+        .tt-suggestion.tt-cursor {
+        color: #fff;
+        background-color: #0097cf;
+        }
+
+        .tt-suggestion p {
+        margin: 0;
+        }
+
+        input.total-arrival-quantity, input.total-inferior-quantity{
+        width: 80px;
+        }
+        #panel-1, #panel-2 {
+        width: 80%;
+        margin: 20px auto
+        }
+        #tips {
+        width: 100%;
+        display: block;
+        }
+        #form-2 input.error[type="number"]{
+        border-color: #ff0000;
+        }
+
+        #memo {
+        width: 100%;
+        background-color: #b4eeb4;
+        }
+        #action {
+        width: 100%;
+        margin: 0;
+        }
+
+        #action > .row {
+        margin: 15px 0;
+        }
+        #action .btn-group > a {
+        }
+        i.glyphicon:hover {
+        color: #ff4500;
+        }
+
+        #form-2 tr.sku:not(.candidate) input[type="number"] {
+        display: none;
+        }
+        #form-2 tr.sku:not(.candidate) img {
+        display: none;
+        }
+
+        .candidate span.properties-name {
+        color: #66CC33;
+        font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+<div id="tips"></div>
+<div class="panel panel-default" id="panel-1">
+    <div class="panel-heading">
+        <div class="col-md-10">入库单</div>
+        <div class="text-right"><a href="">新增</a></div>
+    </div>
+    <div class="panel-body">
+        <div class="row">
+            <label class="col-md-1" for="inbound_id">入库单编号</label>
+            <label class="col-md-1" id="inbound_id">{{inbound.id}}</label>
+            <label class="col-md-1" for="supplier">供应商</label>
+            <label class="col-md-2" id="supplier">{{supplier_name}}({{supplier_id}})</label>
+            <label class="col-md-1" for="express_no">快递单号</label>
+            <label class="col-md-2" id="express_no">{{inbound.express_no}}</label>
+        </div>
+        <div class="row">
+            <label class="col-md-1" for="inbound-status">当前状态</label>
+            <label class="col-md-1" id="inbound-status">{{inbound.get_status_display}}</label>
+            <label class="col-md-1" for="creator">负责人</label>
+            <label class="col-md-2" id="creator">{{inbound.creator_name}}</label>
+            <label class="col-md-1" for="created">创建时间</label>
+            <label class="col-md-2" id="created">{{inbound.created}}</label>
+        </div>
+        <div class="row">
+            <label class="col-md-1">关联订货单:</label>
+            {% for orderlist_id in inbound.orderlist_ids %}
+            <a href="/sale/dinghuo/changedetail/{{orderlist_id}}/" target="_blank">
+                {{orderlist_id}}
+            </a>
+            {% endfor %}
+        </div>
+        <div class="row">
+            <div class="col-md-1"><label>备注：</label></div>
+            <div class="col-md-9">
+                <textarea class="form-control" id="memo" rows="5" readonly>{{inbound.memo|safe}}</textarea>
+            </div>
+        </div>
+        <div class="row input-group">
+            <div class="col-md-10" style="padding:0">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="添加备注" id="memo-input">
+                        <span class="input-group-btn">
+                            <a href="javascript:;" class="btn btn-default" id="add-memo-btn">添加</a>
+                        </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="panel-heading">
+        <div class="col-md-10">入库明细</div>
+        <div class="text-right"><a href="">修改</a></div>
+    </div>
+    <div class="panel-body">
+        <table class="table table-striped" style="width:100%" id="inbound_table">
+            <tr>
+                <th width="200px">商品名</th>
+                <th>商品ID</th>
+                <th>编码</th>
+                <th>图片</th>
+                <th>SkuID</th>
+                <th>尺寸</th>
+                <th>条码</th>
+                <th>总数</th>
+                <th>正品</th>
+                <th>次品</th>
+                <th>设置库位</th>
+            </tr>
+            {% for products_item in inbound.products_item_sku %}
+            {% for detail in products_item.detail_items %}
+            <tr class="sku" data-product-id="{{detail.product.id}}" data-sku-id="{{detail.sku.id}}">
+                {% if forloop.first %}
+                <td rowspan="{{products_item.detail_length}}" style="min-width:150px">{{products_item.name}}</td>
+                <td rowspan="{{products_item.detail_length}}">
+                    <a href="/items/product/district/{{products_item.id}}/" target="_blank" title="商品库位">
+                        {{products_item.id}}
+                    </a>
+                </td>
+                <td rowspan="{{products_item.detail_length}}">
+                    <a href="/admin/items/product/?outer_id={{products_item.outer_id}}" target="_blank"
+                       title="库存商品列表">
+                        {{products_item.outer_id}}
+                    </a>
+                </td>
+                <td rowspan="{{products_item.detail_length}}">
+                    <div class="portfolio-box">
+                        <a href="{{products_item.product_link}}" target="_blank">
+                            <img src="{{products_item.pic_path}}?imageView2/0/w/120"
+                                 data-pic-path="{{products_item.pic_path}}" width="120px">
+                        </a>
+                    </div>
+                </td>
+                {% endif %}
+                <td>
+                    <a href="/admin/items/productsku/{{detail.sku.id}}/" target="_blank" title="Sku历史记录">{{detail.sku.id}}</a>
+                </td>
+                <td>{{detail.sku.properties_name}}</td>
+                <td>
+                    <a href="/admin/items/skustock/?sku_id={{detail.sku.id}}" target="_blank" title="Sku明细">{{detail.sku.barcode}}</a>
+                </td>
+                <td>
+                    {{detail.arrival_quantity|add:detail.inferior_quantity}}
+                </td>
+                <td>
+                    {{detail.arrival_quantity}}
+                </td>
+                <td>
+                    {{detail.inferior_quantity}}
+                </td>
+                <td>
+                    <input class="district form-control" style="width:100px"
+                           value="{{detail.sku.district|default:''}}">
+                </td>
+            </tr>
+            {% endfor %}
+            {% endfor %}
+        </table>
+    </div>
+    <div class="panel-heading">
+        <div class="col-md-10">商品分配—关联订货</div>
+        <div class="text-right">
+            <button id="orderlists-toggle" class="matching">展示订货详清</button>
+            <button id="change_allocate">重新分配</button>
+        </div>
+    </div>
+    <div class="panel-body">
+        <div id="orderlists">
+        </div>
+    </div>
+</div>
+<footer class="text-center clearfix font-xxs footer">
+    <p>
+        <a href="/admin/dinghuo/inbound" target="_blank">
+            入仓列表
+        </a>
+        <a href="http://7xkyoy.com1.z0.glb.clouddn.com/inbound-v2.1.html" target="_blank">
+            帮助文档
+        </a>
+    </p>
+    <p>Copyright © 2014-2016 小鹿美美，All Rights Reserved</p>
+    <p> 沪ICP备15013901号-1</p>
+</footer>
+<script src="{{ STATIC_URL }}jquery/jquery-2.1.1.min.js"></script>
+<script src="{{ STATIC_URL }}jquery.noty.packaged.js"></script>
+<script src="{{ STATIC_URL }}underscore/underscore-min.js"></script>
+<script src="{{ STATIC_URL }}underscore/underscore.string.min.js"></script>
+<script src="{{ STATIC_URL }}bootstrap-3.3.4-dist/js/bootstrap.min.js" rel="stylesheet" type="text/javascript"></script>
+<script src="{{ STATIC_URL }}typeahead.bundle.min.js"></script>
+<script src="{{ STATIC_URL }}wap/js/sweet-alert.min.js"></script>
+<script src="{{ STATIC_URL }}jquery.noty.packaged.js"></script>
+<script src="/static/wap/js/template.js"></script>
+<script id="orderlists-tpl" type="text/html">
+    {% verbatim %}
+    <table class="table table-striped" style="width:100%;border:1;" id="allocate_table">
+        <tr>
+            <th width="80px" class="text-center">订货单</th>
+            <th width="150px" class="text-center">商品名</th>
+            <th width="80px" class="text-center">商品ID</th>
+            <th width="110px" class="text-center">编码</th>
+            <th width="80px" class="text-center">图片</th>
+            <th width="80px" class="text-center">SKUID</th>
+            <th width="60px" class="text-center">尺寸</th>
+            <th width="60px" class="text-center">购买数</th>
+            <th width="60px" class="text-center">待入库数</th>
+            <th width="60px" class="text-center">本次入库数</th>
+            <th width="85px" class="text-center">正品</th>
+            <th width="85px" class="text-center">次品</th>
+        </tr>
+        {{each orderlists as orderlist}}
+        {{each orderlist.products as product i}}
+        {{each product.skus as sku j}}
+        <tr class="sku intro text-center" data-orderlist-id="{{orderlist.id}}" data-product-id="{{product.id}}"
+            data-sku-id="{{sku.id}}" data-orderdetail-id="{{sku.orderdetail_id}}">
+            {{if i == 0 && j == 0}}
+            <td rowspan="{{orderlist.len_of_skus}}">
+                <p><a href="/sale/dinghuo/changedetail/{{orderlist.id}}/"
+                      target="_blank">{{orderlist.id}}</a>
+                </p>
+                <p>负责人:</p>
+                <p>{{orderlist.buyer_name}}</p>
+                <p>创建时间:</p>
+                <p>{{orderlist.created}}</p>
+                <p>状态:</p>
+                <p>{{orderlist.status}}</p>
+            </td>
+            {{/if}}
+            {{if j == 0 }}
+            <td rowspan="{{product.skus.length}}">
+                {{product.name}}
+            </td>
+            <td rowspan="{{product.skus.length}}">
+                {{product.id}}
+            </td>
+            <td rowspan="{{product.skus.length}}">
+                {{product.outer_id}}
+            </td>
+            <td rowspan="{{product.skus.length}}">
+                <div class="portfolio-box">
+                    <a href="{{product.product_link}}" target="_blank">
+                        <img src="{{product.pic_path}}?imageView2/0/w/120"
+                             data-pic-path="{{product.pic_path}}" width="120px">
+                    </a>
+                </div>
+            </td>
+            {{/if}}
+            <td>
+                <a href="/admin/items/productsku/{{sku.id}}/history/" target="_blank">{{sku.id}}</a>
+            </td>
+            <td>
+            <span class="properties-name">
+                {{sku.properties_name}}
+            </span>
+            </td>
+            <td>{{sku.buy_quantity}}</td>
+            <td>{{sku.plan_quantity}}</td>
+            <td>{{if sku.in_inbound}}
+                <input type="number" class="col-lg-6 allocate_quantity" value="{{sku.plan_quantity}}"/>
+                {{else}}
+                0
+                {{/if}}
+            </td>
+            <td>
+                {{sku.arrival_quantity}}
+            </td>
+            <td>
+                {{sku.inferior_quantity}}
+            </td>
+
+        </tr>
+        {{/each}}
+        {{/each}}
+        {{/each}}
+        <tr>
+            <td colspan="2">XX个订货单全部到货</td>
+            <td colspan="2">XX个订货单存在次品</td>
+            <td><strong>SKU总计：</strong></td>
+            <td></td>
+            <td><strong>正品：</strong></td>
+            <td></td>
+            <td><strong>次品:</strong></td>
+            <td><input type="number" class="total-arrival-quantity form-control" style="width:80px"
+                       readonly></td>
+            <td></td>
+            <td>
+                <button class="btn btn-primary" href="javascript:;" id="allocate">确认分配</button>
+            </td>
+        </tr>
+    </table>
+    {% endverbatim %}
+</script>
+<script>
+var IDENTIFY_ALLOCATED = 1;
+var IDENTIFY_OUTQUANTITY = 2;
+var IDENTIFY_WRONG = 3;
+var IDENTIFY_BOTHWRONG = 4;
+var IMAGE_PREVIEW_TPL = _.template('<img src="<%= pic_path %>" width=800 height=800>');
+var INBOUND_ID = {{inbound.id}};
+function tip(text, type){
+ $('#tips').noty({
+     text: text,
+     type: type,
+     theme: 'bootstrapTheme',
+     closeWith: ['button', 'click'],
+     maxVisible: 20,
+     modal: false
+ });
+}
+var inbound_data = {{inbound.sku_data|jsonify}};
+var allocate_orderlist = null;
+
+function getSkuData(){
+    var skuData = {};
+    $('tr.sku', '#allocate_table').each(function(){
+     var $this = $(this);
+     var allocate_quantity = parseInt($this.find('.allocate_quantity').val()) || 0;
+     if(!(allocate_quantity))
+         return;
+     var skuId = parseInt($this.attr('data-sku-id'));
+     if(_.isEmpty(skuData[skuId])){
+         skuData[skuId] = allocate_quantity;
+     }
+     else{
+         skuData[skuId] += allocate_quantity;
+     }
+    });
+    return skuData;
+}
+
+ function getAllocateData(){
+    var allocate_data = {};
+    $('tr.sku', '#allocate_table').each(function(){
+     var $this = $(this);
+     var allocate_quantity = parseInt($this.find('.allocate_quantity').val()) || 0;
+     if(!(allocate_quantity))
+         return;
+     var orderDetailId = parseInt($this.attr('data-orderdetail-id'));
+     allocate_data[orderDetailId] = allocate_quantity;
+    });
+    return allocate_data;
+ }
+ function allocateInbound(indentify){
+    var allocateData = getAllocateData();
+    console.dir(allocateData);
+    $('#allocate').attr('disabled', true);
+    $.ajax({
+         url: '/sale/dinghuo/inbound/'+ INBOUND_ID +'/allocate',
+         type: 'post',
+         dataType: 'json',
+         data: {data: JSON.stringify(allocateData), 'indentify': indentify},
+         success: function(result){
+             if(result.error)
+                 swal('错误', result.error, 'error');
+             else{
+                 swal('分配成功', '', 'success');
+                 window.location = '/admin/dinghuo/inbound/?id='+inbound.id;
+             }
+         }
+     });
+ }
+
+function orderlists_filter_inbound_sku(orderlists){
+     var i;
+     var newOrderLists = [];
+     _.each(orderlists, function(orderlist){
+         var newOrderList = _.extend(_.clone(orderlist), {products: []});
+         i = 0;
+         _.each(orderlist.products, function(product){
+             var newProduct = _.extend(_.clone(product), {skus: []});
+             _.each(product.skus, function(sku){
+                 if(inbound_data[sku.id]){
+                     newProduct.skus.push(sku);
+                     i += 1;
+                 }
+             });
+             if(newProduct.skus.length > 0)
+                 newOrderList.products.push(newProduct);
+         });
+         if(newOrderList.products.length > 0){
+             newOrderList.len_of_skus = i;
+             newOrderLists.push(newOrderList);
+         }
+     });
+     return newOrderLists;
+ }
+
+$(function(){
+ $.noty.defaults = $.extend($.noty.defaults, {
+     animation: {
+         open: 'animated bounceInLeft',
+         close: 'animated bounceOutRight',
+         easing: 'swing',
+         speed: 500
+     }
+ });
+ _.mixin(_.string.exports());
+
+ $('#set-invalid').click(function(){
+     swal({
+         title: '警告',
+         text: '作废后无法恢复',
+         type: 'warning',
+         showCancelButton: true,
+         confirmButtonText: '确认',
+         cancelButtonText: '取消'
+     }, function(){
+         $('#set-invalid').attr('disabled', true);
+         $.ajax({
+             url: '/sale/dinghuo/inbound/' + INBOUND_ID + '/set_invalid',
+             type: 'post',
+             dataType: 'json',
+             success: function(result){
+                 if(result.error){
+                     swal('错误', result.error, 'error');
+                 }
+                 else{
+                     swal('成功', '', 'success');
+                     updateInboundStatus(INVALID);
+                     window.location = '/admin/dinghuo/inbound/?id='+inbound.id;
+                 }
+             }
+         });
+     });
+ });
+
+ $.ajax({
+     url: '/sale/dinghuo/inbound/'+ INBOUND_ID +'/get_allocate_order_lists',
+     type: 'get',
+     dataType: 'json',
+     success: function(result){
+         allocate_orderlist = result.order_lists;
+         $('#orderlists').html(template('orderlists-tpl', {orderlists: orderlists_filter_inbound_sku(allocate_orderlist)}));
+         //$('#orderlists').html(template('orderlists-tpl', {orderlists: allocate_orderlist}));
+
+     }
+ });
+
+ $('#orderlists-toggle').click(function(){
+     var $this = $(this);
+     if($this.hasClass('matching')){
+         $this.removeClass('matching').addClass('all');
+         $this.html('隐藏无关SKU');
+         $('#orderlists').html(template('orderlists-tpl', {orderlists: allocate_orderlist}));
+     }
+     else{
+         $this.removeClass('all').addClass('matching');
+         $this.html('展示订货详情');
+         $('#orderlists').html(template('orderlists-tpl', {orderlists: orderlists_filter_inbound_sku(allocate_orderlist)}));
+     }
+ });
+
+ $('.portfolio-box img', '#inbound_table').popover({
+     html: true,
+     trigger: 'hover',
+     container: 'body',
+     content: function(){
+         return IMAGE_PREVIEW_TPL({pic_path: $(this).attr('data-pic-path')});
+     }
+ });
+
+
+ $('body').on('click', '#allocate', function(){
+     var skuData = getSkuData();
+     var errorSkuIds = _.difference(_.keys(skuData), _.keys(inbound_data));
+     console.dir(errorSkuIds);
+
+     if(errorSkuIds && errorSkuIds.length > 0){
+         _.each(errorSkuIds, function(el){
+             $(TR_SELECTOR_TPL({skuId: el}), '#form-2').addClass('error');
+         });
+         return false;
+     }
+     var warnSkuNums = [];
+     var errorSkuNums = [];
+     for (var sku in inbound_data){
+         if (inbound_data[sku] < skuData[sku]){
+            errorSkuNums.push(sku)
+         }
+         if (inbound_data[sku] > skuData[sku]){
+            warnSkuNums.push(sku)
+         }
+     }
+    console.log("num");
+     console.dir(warnSkuNums);
+     console.dir(errorSkuNums);
+     if(errorSkuNums && errorSkuNums.length > 0){
+         _.each(errorSkuIds, function(el){
+                 $(TR_SELECTOR_TPL({skuId: el}), '#form-2').addClass('error');
+             });
+         return false;
+     }
+     if(errorSkuNums && errorSkuNums.length > 0){
+         swal({
+             title: '警告',
+             text: '此入仓单多货，这些SKU没有完成分配：' + warnSkuNums.join(','),
+             type: 'warning',
+             showCancelButton: true,
+             confirmButtonText: '确认多货',
+             cancelButtonText: '继续分配'
+         }, function(){
+            allocateInbound(IDENTIFY_OUTQUANTITY);
+         });
+     }
+     else{
+        allocateInbound(IDENTIFY_ALLOCATED);
+     }
+
+ });
+
+
+ $('#add-memo-btn').click(function(){
+     var text = $('#memo-input').val();
+     text = _.trim(text);
+     if(_.isEmpty(text))
+         return;
+
+     $.ajax({
+         url: '/sale/dinghuo/inbound/add_memo',
+         type: 'get',
+         dataType: 'json',
+         data: {content: text},
+         success: function(result){
+             if(!_.isEmpty(result.memo)){
+                 var tmp = [];
+                 var oldText = $('#memo').val();
+                 if(!_.isEmpty(oldText))
+                     tmp.push(oldText);
+                 tmp.push(result.memo);
+                 $('#memo').val(tmp.join('\n'));
+             }
+         }
+     });
+ });
+});
+
+
+
+</script>
+</body>
+</html>

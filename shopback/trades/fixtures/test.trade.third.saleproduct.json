@@ -1,0 +1,59 @@
+[
+{
+ "model": "supplier.saleproduct",
+ "pk": 553808,
+ "fields": {
+  "created": "2016-09-15T16:50:23",
+  "modified": "2016-09-29T11:07:57",
+  "tags": "",
+  "outer_id": "OO1473929423",
+  "title": "\u513f\u7ae5\u8d34\u7eb8_\u624b\u5de5 \u521b\u610fdiy\u6750\u6599\u53053d\u7acb\u4f53\u7eb8\u76d8\u753b\u8d34\u7eb8 - \u963f\u91cc\u5df4\u5df4",
+  "price": 0.0,
+  "pic_url": "https://cbu01.alicdn.com/img/ibank/2015/257/277/2502772752_2103832436.400x400.jpg",
+  "product_link": "https://detail.1688.com/offer/521476218674.html?spm=a2615.7691456.0.0.QelHae",
+  "sale_supplier": 29644,
+  "sale_category": 93,
+  "platform": "manual",
+  "hot_value": 0,
+  "stocking_mode": 0,
+  "voting": false,
+  "sale_price": 12.0,
+  "on_sale_price": 29.9,
+  "std_sale_price": 56.0,
+  "product_material": "",
+  "memo": "\u989c\u8272\u67092\u79cd",
+  "is_changed": false,
+  "status": "passed",
+  "contactor": 923802,
+  "librarian": null,
+  "buyer": null,
+  "sale_time": "2016-09-23T00:00:00",
+  "reserve_time": null,
+  "supplier_sku": "1698TDDZSW.SG0001",
+  "orderlist_show_memo": true,
+  "sku_extras": [
+   {
+    "properties_name": "A\u6b3e",
+    "agent_price": 29.9,
+    "remain_num": 50,
+    "color": "\u513f\u7ae5\u521b\u610f\u7eb8\u76d8\u8d34\u7eb8\u753b/A\u6b3e",
+    "std_sale_price": 56.0,
+    "cost": 12.0,
+    "pic_path": "http://img.xiaolumeimei.com/MG_1474253705373.jpg",
+    "properties_alias": "A\u6b3e"
+   },
+   {
+    "properties_name": "B\u6b3e",
+    "agent_price": 29.9,
+    "remain_num": 50,
+    "color": "\u513f\u7ae5\u521b\u610f\u7eb8\u76d8\u8d34\u7eb8\u753b/B\u6b3e",
+    "std_sale_price": 56.0,
+    "cost": 12.0,
+    "pic_path": "http://img.xiaolumeimei.com/MG_14742537094781.jpg",
+    "properties_alias": "B\u6b3e"
+   }
+  ],
+  "extras": {}
+ }
+}
+]

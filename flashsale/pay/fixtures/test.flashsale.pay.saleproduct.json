@@ -1,0 +1,98 @@
+[
+{
+  "model": "supplier.saleproduct",
+  "pk": 536011,
+  "fields": {
+    "created": "2016-04-18T12:15:04",
+    "modified": "2016-09-29T11:01:48",
+    "tags": "",
+    "outer_id": "OO1460952904",
+    "title": "\u9632\u55ee\u670d\u5973\u4e2d\u957f\u6b3e\u590f\u88c5\u65b0\u6b3e2016\u97e9\u7248\u4e03\u5206\u8896\u8584\u6b3e\u5916\u5957\u5bbd\u677e\u4f11\u95f2\u9632\u6652\u8863\u6f6e-\u6dd8\u5b9d\u7f51",
+    "price": 0.0,
+    "pic_url": "//gd3.alicdn.com/bao/uploaded/i3/1073243564/TB2DtgpnXXXXXbZXXXXXXXXXXXX_!!1073243564.jpg",
+    "product_link": "https://item.taobao.com/item.htm?spm=a1z10.3-c.w4002-1190943021.50.J2A97m&id=530157374974",
+    "sale_supplier": 29100,
+    "sale_category": 59,
+    "platform": "manual",
+    "hot_value": 0,
+    "stocking_mode": 0,
+    "voting": false,
+    "sale_price": 69.0,
+    "on_sale_price": 99.9,
+    "std_sale_price": 299.0,
+    "product_material": "",
+    "memo": "",
+    "is_changed": false,
+    "status": "scheduling",
+    "contactor": 56,
+    "librarian": "shu.zhang",
+    "buyer": null,
+    "sale_time": "2016-04-26T00:00:00",
+    "reserve_time": null,
+    "supplier_sku": "",
+    "orderlist_show_memo": false,
+    "sku_extras": [
+      {
+        "properties_name": "M",
+        "agent_price": 99.9,
+        "remain_num": 0,
+        "color": "\u4e03\u5206\u8896\u4f11\u95f2\u9632\u6652\u5916\u5957/\u73ab\u7ea2\u8272",
+        "std_sale_price": 299.0,
+        "cost": 69.0,
+        "pic_path": "http://image.xiaolu.so/MG_14615708116541.jpg",
+        "properties_alias": "M"
+      },
+      {
+        "properties_name": "L",
+        "agent_price": 99.9,
+        "remain_num": 0,
+        "color": "\u4e03\u5206\u8896\u4f11\u95f2\u9632\u6652\u5916\u5957/\u73ab\u7ea2\u8272",
+        "std_sale_price": 299.0,
+        "cost": 69.0,
+        "pic_path": "http://image.xiaolu.so/MG_14615708116541.jpg",
+        "properties_alias": "L"
+      },
+      {
+        "properties_name": "M",
+        "agent_price": 99.9,
+        "remain_num": 0,
+        "color": "\u4e03\u5206\u8896\u4f11\u95f2\u9632\u6652\u5916\u5957/\u8367\u5149\u9ec4",
+        "std_sale_price": 299.0,
+        "cost": 69.0,
+        "pic_path": "http://image.xiaolu.so/MG_14615708155422.jpg",
+        "properties_alias": "M"
+      },
+      {
+        "properties_name": "L",
+        "agent_price": 99.9,
+        "remain_num": 0,
+        "color": "\u4e03\u5206\u8896\u4f11\u95f2\u9632\u6652\u5916\u5957/\u8367\u5149\u9ec4",
+        "std_sale_price": 299.0,
+        "cost": 69.0,
+        "pic_path": "http://image.xiaolu.so/MG_14615708155422.jpg",
+        "properties_alias": "L"
+      },
+      {
+        "properties_name": "M",
+        "agent_price": 99.9,
+        "remain_num": 0,
+        "color": "\u4e03\u5206\u8896\u4f11\u95f2\u9632\u6652\u5916\u5957/\u6a58\u7ea2\u8272",
+        "std_sale_price": 299.0,
+        "cost": 69.0,
+        "pic_path": "http://image.xiaolu.so/MG_14615708193163.jpg",
+        "properties_alias": "M"
+      },
+      {
+        "properties_name": "L",
+        "agent_price": 99.9,
+        "remain_num": 1,
+        "color": "\u4e03\u5206\u8896\u4f11\u95f2\u9632\u6652\u5916\u5957/\u6a58\u7ea2\u8272",
+        "std_sale_price": 299.0,
+        "cost": 69.0,
+        "pic_path": "http://image.xiaolu.so/MG_14615708193163.jpg",
+        "properties_alias": "L"
+      }
+    ]
+  }
+}
+]

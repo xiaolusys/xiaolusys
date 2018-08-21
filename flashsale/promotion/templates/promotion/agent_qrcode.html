@@ -1,0 +1,61 @@
+{% extends "weixin/weixin_base.html" %}
+
+{% block title %}
+加二维码，咨询活动相关人员
+{% endblock %}
+
+{% block container %}
+
+<div class="container-fluid">
+
+    <div class="panel panel-default" style="margin-top:5px">
+        <div class="panel-heading" style="color:white;background-color:rgb(255,124,0);text-align:center;">
+            {% if is_weixin %}
+                <b>长按图片，识别图中二维码，咨询活动相关人员</b>
+            {% else %}
+                <b>请将管理员二维码截图保存，并打开微信扫描添加管理员咨询活动详情</b>
+            {% endif %}
+        </div>
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="thumbnail">
+                        <img src="{{admin_qrcode}}"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            <p style="text-align:center">© 弘国堂 2017</p>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block tail_script %}
+<script type="text/javascript" src="{{ STATIC_URL }}script/WeixinApi.js"></script>
+<script type="text/javascript">
+
+
+
+    // 隐藏微信网页分享插件
+    function onBridgeReady() {
+        WeixinJSBridge.call('hideOptionMenu');
+    }
+
+    if (typeof WeixinJSBridge == "undefined") {
+        if (document.addEventListener) {
+            document.addEventListener('WeixinJSBridgeReady', onBridgeReady, false);
+        } else if (document.attachEvent) {
+            document.attachEvent('WeixinJSBridgeReady', onBridgeReady);
+            document.attachEvent('onWeixinJSBridgeReady', onBridgeReady);
+        }
+    } else {
+        onBridgeReady();
+    }
+
+</script>
+{% endblock %}
+

@@ -1,0 +1,36 @@
+[
+{
+ "model": "items.skustock",
+ "pk": 282384,
+ "fields": {
+  "sku": 280052,
+  "product": 75471,
+  "psi_paid_num": 0,
+  "psi_prepare_book_num": 0,
+  "psi_booked_num": 0,
+  "psi_ready_num": 0,
+  "psi_third_send_num": 0,
+  "psi_assigned_num": 0,
+  "psi_merged_num": 0,
+  "psi_waitscan_num": 0,
+  "psi_waitpost_num": 0,
+  "psi_sent_num": 0,
+  "psi_finish_num": 0,
+  "adjust_quantity": 0,
+  "history_quantity": 5,
+  "inbound_quantity": 0,
+  "return_quantity": 0,
+  "rg_quantity": 0,
+  "assign_num": 0,
+  "post_num": 0,
+  "shoppingcart_num": 0,
+  "waitingpay_num": 1,
+  "sold_num": 0,
+  "paid_num": 0,
+  "inferior_num": 0,
+  "created": "2016-10-18T11:23:54",
+  "modified": "2016-12-15T17:59:05",
+  "status": 0
+ }
+}
+]

@@ -1,0 +1,28 @@
+{% extends 'layout.html' %}
+
+{% block main %}
+
+<div class="row">
+  <h1>{{ name }}</h1>
+  <table class="table table-bordered">
+    <tr>
+      <th>Field</th>
+      <th>Type</th>
+      <th>Null</th>
+      <th>Key</th>
+      <th>Default</th>
+      <th>Extra</th>
+    </tr>
+    {% for item in items %}
+    <tr>
+      <td>{{ item.Field }}</td>
+      <td>{{ item.Type }}</td>
+      <td>{{ item.Null }}</td>
+      <td>{{ item.Key }}</td>
+      <td>{{ item.Default }}</td>
+      <td>{{ item.Extra }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

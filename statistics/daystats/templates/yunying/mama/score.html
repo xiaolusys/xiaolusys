@@ -1,0 +1,62 @@
+{% extends 'layout.html' %}
+
+{% block main %}
+
+<div class="row">
+  <h3>{{ start_date }} - {{ end_date }}</h3>
+  <form action="{{ req.path }}" method="GET">
+    <div class="col-xs-2">
+      <input size="16" type="text" class="form-control datepicker" value="{{ p_start_date }}" name="start_date">
+    </div>
+    <div class="col-xs-2">
+      <input size="16" type="text" class="form-control datepicker" value="{{ p_end_date }}" name="end_date">
+    </div>
+    <button type="submit" class="btn btn-default">QUERY</button>
+  </form>
+</div>
+
+<div class="row">
+  <table class="table table-bordered">
+    <tr>
+      <th>质量分</th>
+      <th>人数</th>
+    </tr>
+    {% for item in data %}
+    <tr>
+      <td>{{ item.0 }}</td>
+      <td>{{ item.1 }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  <table class="table table-bordered">
+    <tr>
+      <th>妈妈ID</th>
+      <th>邀请分</th>
+      <th>质量分</th>
+      <th>邀请人数</th>
+      <th>再邀请人数</th>
+      <th>登陆APP次数</th>
+      <th>购买次数</th>
+      <th>提现次数</th>
+    </tr>
+<!--     {% for mama in mamas %}
+    <tr>
+      <td>{{ mama.mama_id }}</td>
+      <td>{{ mama.invite_score }}</td>
+      <td>{{ mama.score.score }}</td>
+      <td>{{ mama.score.invite_count }}</td>
+      <td>{{ mama.score.second_invite_count }}</td>
+      <td>{{ mama.score.login_app_count }}</td>
+      <td>{{ mama.score.buy_count }}</td>
+      <td>{{ mama.score.cashout_count }}</td>
+    </tr>
+    {% endfor %} -->
+  </table>
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+
+{% endblock %}

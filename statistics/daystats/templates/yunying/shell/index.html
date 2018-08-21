@@ -1,0 +1,24 @@
+{% extends 'layout.html' %}
+
+{% block main %}
+
+<div class="row">
+
+    <form action="{% url 'yy-shell-index' %}" method="post">
+        <textarea name="code" cols="120" rows="20">{{ code }}</textarea>
+        <input type="submit">
+    </form> 
+
+</div>
+
+<div class="row">
+    <!--<pre>-->
+        <!--{{ code }}-->
+    <!--</pre>-->
+    <pre>
+        {{ out }}
+    </pre>
+
+</div>
+
+{% endblock %}

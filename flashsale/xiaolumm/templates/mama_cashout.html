@@ -1,0 +1,327 @@
+{% extends "mama_base.html" %}
+
+{% block title %} 补贴详情 {% endblock %}
+
+{% block head_script %}
+<link href='{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css' rel='stylesheet'  />	
+<link href='{{ STATIC_URL }}css/mama_profile.css' rel='stylesheet' />
+    <style type="text/css">
+        .col-xs-4 {
+            padding-left: 0px;
+            padding-right: 0px;
+        }
+
+        #id-carry-list .table {
+            font-size: 12px;
+        }
+
+        .pager {
+            margin: 0px 0px;
+        }
+
+        .js-goods-size {
+            padding-top: 8px;
+            height: 34px;
+            position: relative;
+            -webkit-padding-start: 10px;
+        }
+		ul {
+			margin-bottom: auto;
+		}
+        .js-goods-size li {
+            height: 34px;
+            float: left;
+            border-width: 1px;
+            border-style: solid;
+            margin-left: 10px;
+            text-align: center;
+            font-weight: bold;
+            line-height: 30px;
+            position: relative;
+            overflow: hidden;
+            padding-bottom: 0px;
+        }
+
+        .js-goods-size li.active {
+            border-color: #fdb916;
+            color: #fdb916;
+        }
+
+        .js-goods-size li.normal {
+            border-color: #bab7b7;
+            color: #bab7b7;
+        }
+
+</style>
+<script id="ntkf_template" type="text/html">
+var NTKF_PARAM = {
+	siteid:"kf_9645",		//企业ID，必填，取值参见文档开始表
+	settingid:"kf_9645_1445414087979",		//缺省客服配置ID，必填，取值参见文档开始表
+	uid:"xlmm_{{xlmm.id}}",		//用户ID,未登录可以为空
+	uname:"{{xlmm.weikefu}}({{xlmm.mobile}})",		//用户名，未登录可以为空
+	isvip:"0" ,         //是否为vip用户
+	userlevel:"1" ,    //网站自定义会员级别
+};
+</script>
+{% endblock %}
+
+{% block container %}
+<div class="row">
+<div class="page-header col-xs-9">
+  <h3>妈妈数据列表</h3>
+</div>
+<div class="col-xs-3" >
+	  <a href="/m/m/" class="home glyphicon glyphicon-home " target="_self"></a>
+</div>
+</div>
+
+<div role="tabpanel">
+	<ul class="nav nav-tabs" style="margin-top:10px">
+	  <li role="presentation" class="col-xs-4 active"><a href="#id-cashout-list" aria-controls="id-cashout-list" role="tab" data-toggle="tab" class="btn">提现</a></li>
+	  <li role="presentation" class="col-xs-4 "><a href="#id-carry-list" aria-controls="id-cashout-list" role="tab" data-toggle="tab" class="btn">收支</a></li>
+	  <li role="presentation" class="col-xs-4"><a href="#id-referal-list" aria-controls="id-referal-list" role="tab" data-toggle="tab" class="btn">推荐</a></li>
+	</ul>
+  	<div class="tab-content" >
+	<div id="id-cashout-list" role="tabpanel" class="tab-pane active">
+	  <p style="color:orange">&nbsp;您的待提现金额为￥<span style="font-size:26px">{{ could_cash_out }}</span>。</p>
+	  <p style="color:#428bca">提现将由小鹿美美公众号向当前提交申请的微信号发送<span style="font-size:20px">微信红包</span>方式完成，请确认后再申请。</p>
+	  <div id="id-cashout-area" {% if cashout > 0 %} style="display:none" {% endif %}>
+      <div class="alert alert-danger">钱包提现需在APP上申请<a href="/sale/promotion/appdownload/">点击下载>></a></div>
+{#	    <p>&nbsp;提现需100元或者200元,请选择提现金额：</p>#}
+{#	    <div class="input-group" style="margin-top:5px">#}
+{#        <ul class="js-goods-size">#}
+{#            <li value="100" class="col-xs-5 normal" id="value_100" onclick="select_value100(this)">￥100元</li>#}
+{#            <li value="200" class="col-xs-5 normal" id="value_200" onclick="select_value200(this)">￥200元</li>#}
+{#        </ul>#}
+{#	      {% csrf_token %}#}
+{#	      <span class="input-group-btn">#}
+{#		    <button class="btn btn-warning" type="button" style="margin-left:10px;" id="cashout_confirm">确认提交</button>#}
+{#	      </span>#}
+{#	    </div>#}
+	    <p id="id-submit-message" style="color:red"></p>
+	  </div>
+	  <ul id="id-cashout-notice" style="color:red;margin-top:6px;{% if cashout < 1 %}display:none{% endif %}" class="list-group">
+	    <li class="list-group-item">提现申请已提交！<br/>请关注公众号:小鹿美美;我们将在48小时内将提现金额以微信红包方式发送,超过48小时未收到红包请联系微信号({{kefu_mobile}}).</li>
+		<!-- <a class="btn btn-info btn-service" href="javascript:void(0);"><i class="glyphicon glyphicon-headphones"></i>小鹿客服</a> -->	 
+	 </ul>
+	  <div style="margin-top:20px">
+	    <h5>最近提现记录：</h5>
+	    <table class="table table-bordered" >
+	      <thead>
+			<tr><th class="col-xs-4">金额</th><th class="col-xs-4">时间</th><th class="col-xs-4">状态</th></tr>
+	      </thead>
+	      <tbody id="id-cashout-tbody">
+	      </tbody>
+	    </table>
+	  </div>
+	  <div class="row">
+		<nav>
+		  <ul class="pager">
+		    <div class="col-xs-4">
+		    <li class="previous"><a id="id-cashout-prev" href="#" url="null"><span aria-hidden="true">&larr;</span>上一页</a></li>
+		    </div>
+		    <div class="col-xs-4">
+			</div>
+			<div class="col-xs-4">
+		    <li class="next"><a id="id-cashout-next" href="#" url="null">下一页 <span aria-hidden="true">&rarr;</span></a></li>
+		    </div>
+		  </ul>
+		</nav>
+	 </div>
+	</div>
+	
+	<div id="id-carry-list" role="tabpanel" class="tab-pane">
+	  <div style="margin-top:20px">
+	  <h5>我的收支记录：</h5>
+	    <table class="table table-bordered" style="margin-top:10px">
+	      <thead>
+			<tr><th class="col-xs-3">时间</th><th class="col-xs-3">金额</th><th class="col-xs-3">类型</th><th class="col-xs-3">状态</th></tr>
+	      </thead>
+	      <tbody id="id-carry-tbody">
+	      </tbody>
+	    </table>
+	  </div>
+	  <div class="row">
+		<nav>
+		  <ul class="pager">
+		    <div class="col-xs-4">
+		    <li class="previous"><a id="id-carry-prev" href="#" url="null"><span aria-hidden="true">&larr;</span>上一页</a></li>
+		    </div>
+		    <div class="col-xs-4">
+			</div>
+			<div class="col-xs-4">
+		    <li class="next"><a id="id-carry-next" href="#" url="null">下一页 <span aria-hidden="true">&rarr;</span></a></li>
+		    </div>
+		  </ul>
+		</nav>
+	 </div>
+	</div>
+	
+	<div id="id-referal-list" role="tabpanel" class="tab-pane">
+	  <div style="margin-top:20px">
+	  <h5>我推荐的代理：</h5>
+	    <table class="table table-bordered" style="margin-top:10px">
+	      <thead>
+		<th>序号</th><th>昵称</th><th>时间</th>
+	      </thead>
+	      <tbody id="id-referal-tbody">
+		{% for referal in referal_list %}
+		<tr><td>{{ forloop.counter }}</td><td>{{ referal.weikefu }}</td><td>{{ referal.created }}</td></tr>
+		{% endfor %}
+	      </tbody>
+	    </table>
+	  </div>
+	</div>
+  	</div>
+</div>
+{% endblock %}
+
+{% block tail_script %}
+  <script type="text/javascript">
+
+  $(function () {
+    var cashout_url = "/m/cashoutlist/?xlmm={{ xlmm.pk }}";
+    get_cashout_list(cashout_url);
+    var carry_url = "/m/carrylist/?xlmm={{ xlmm.pk }}";
+    get_carry_list(carry_url);
+    
+  });
+
+  $("#id-cashout-prev").click(function () {
+    var url= $("#id-cashout-prev").attr("url");
+    if (url != "null") {
+      get_cashout_list(url);
+    }
+  });
+
+
+  $("#id-cashout-next").click(function () {
+    var url= $("#id-cashout-next").attr("url");
+    if (url != "null") {
+      get_cashout_list(url);
+    }
+  });
+
+  $("#id-carry-prev").click(function () {
+    var url= $("#id-carry-prev").attr("url");
+    if (url != "null") {
+      get_carry_list(url);
+    }
+  });
+
+
+  $("#id-carry-next").click(function () {
+    var url= $("#id-carry-next").attr("url");
+    if (url != "null") {
+      get_carry_list(url);
+    }
+  });
+
+  function get_carry_list(url) {
+    var callback = function (res) {
+      var results = res["results"];
+      var previous = res["previous"];
+      var next = res["next"];
+      if (previous != null) {
+        $("#id-carry-prev").attr("url",previous);
+      } else {
+        $("#id-carry-prev").attr("url","null");
+      }
+      if (next != null) {
+        $("#id-carry-next").attr("url",next);
+      } else {
+        $("#id-carry-next").attr("url","null");
+      }
+      $("#id-carry-tbody")[0].innerHTML = "";
+      for (var i=0; i<results.length; ++i) {
+        var entry = results[i];
+        var carry_date = entry["carry_date"];
+        var td_money = '<span class="text-success" >'+entry['value_money']+'</span>';
+        if (entry['carry_type'] == 'out'){
+        	td_money = '<span class="text-danger" >-'+entry['value_money']+'</span>';
+        }
+        var row = "<tr><td>"+carry_date+"</td><td>"+td_money+"</td><td>"+entry["log_type_name"]+"</td><td>"+entry["status_name"]+"</td></tr>";
+        $("#id-carry-tbody").append(row);
+      }
+    };
+    $.ajax({url:url, success:callback});
+  }
+
+  function get_cashout_list(url) {
+    var callback = function (res) {
+      var results = res["results"];
+      var previous = res["previous"];
+      var next = res["next"];
+      if (previous != null) {
+        $("#id-cashout-prev").attr("url",previous);
+      } else {
+        $("#id-cashout-prev").attr("url","null");
+      }
+      if (next != null) {
+        $("#id-cashout-next").attr("url",next);
+      } else {
+        $("#id-cashout-next").attr("url","null");
+      }
+      $("#id-cashout-tbody")[0].innerHTML = "";
+      for (var i=0; i<results.length; ++i) {
+        var entry = results[i];
+        var row = "<tr><td>"+entry["value_money"]+"</td><td>"+entry["created"]+"</td><td>"+entry["status"]+"</td></tr>";
+        $("#id-cashout-tbody").append(row);
+      }
+    };
+    $.ajax({url:url, success:callback});
+  }
+  /*
+  $('#cashout_confirm').on('click', function(e) {
+        e.preventDefault(); // <-- important
+        var url = "/m/cashout/";
+        var subtn = $('#cashout_confirm');
+        var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+        if (subtn.hasClass('loading')){
+        	$("#id-submit-message")[0].innerHTML = "提现申请正在处理中...";
+        	return ;
+        }
+        subtn.addClass('loading');
+        var value = $(".js-goods-size li.active").val() || 0;
+		if (value == 0 || value == 'undifined'){
+			$("#id-submit-message")[0].innerHTML = "请选择提现金额";
+			return;
+		}
+        var callback = function (res) {
+          subtn.removeClass('loading');
+	      if (res["code"] == 0) {
+	        $("#id-cashout-notice").css("display","block");
+	        $("#id-cashout-area").css("display","none");
+	      }
+	      if (res["code"] == 1) {
+	        $("#id-submit-message")[0].innerHTML = "系统错误，请联系微客服解决！";
+	      }
+	      if (res["code"] == 2) {
+	        $("#id-submit-message")[0].innerHTML = "金额错误！请刷新页面重新尝试。";
+	      }
+            if (res["code"] == 3) {
+	        $("#id-submit-message")[0].innerHTML = "金额出错！刷新页面重新尝试";
+	      }
+	    };
+        var data = {"v":value, "csrfmiddlewaretoken":csrf_token};
+        $.ajax({url:url, data:data, type:"post", success:callback});
+    });*/
+  </script>
+<script>
+    function select_value100(v) {
+        $(v).removeClass("normal").addClass("active");
+        $("#value_200").removeClass("active").addClass("normal");
+    }
+    function select_value200(v) {
+        $(v).removeClass("normal").addClass("active");
+        $("#value_100").removeClass("active").addClass("normal");
+    }
+    $(document).ready(function(){
+    	$('.btn-service').click(function(){
+    		//对应小鹿妈妈提现接待组
+            NTKF.im_openInPageChat("kf_9645_1445414087979");
+    	});
+    });
+</script>
+<script type="text/javascript" src="http://dl.ntalker.com/js/xn6/ntkfstat.js?siteid=kf_9645" charset="utf-8"></script>
+{% endblock %}

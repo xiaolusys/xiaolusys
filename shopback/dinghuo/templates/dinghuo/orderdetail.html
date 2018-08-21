@@ -1,0 +1,112 @@
+{% extends "dinghuo/dinghuo_base.html" %}
+{% block title %}订单详情页{% endblock %}
+{% block head_script %}
+    <script type="text/javascript">
+        function changestatus(id, button) {
+            var url = "/sale/dinghuo/changestatus/";
+            var data = {"orderid": id, "func": button.value};
+            var orderstatus = $("#order_status");
+            var callback = function (res) {
+                if (res == "OK") {
+                    if (button.id == "shenhebutton") {
+                        orderstatus.text("审核");
+                    } else if (button.id == "zuifeibutton") {
+                        orderstatus.text("作废");
+                    }
+                }
+
+
+            };
+            if (orderstatus.text() == "草稿") {
+                $.ajax({url: url, data: data, type: "post", success: callback});
+            }
+        }
+        function closefunction() {
+            var index = parent.layer.getFrameIndex(window.name); //获取当前窗体索引
+            {#            $('#提交的元素').on('click', function () {#}
+            parent.layer.close(index); //执行关闭
+            {#            });#}
+        }
+        function savefunction() {
+            console.log("fdfdfdfdf");
+            var index = parent.layer.getFrameIndex(window.name);
+            var receiver = $("#receiver_id").val();
+            var orderlistid = $("#orderlistid").val();
+            var supplier_name = $("#supplier_name_id").val();
+            var express_company = $("#express_company_id").val();
+            var express_no = $("#express_no_id").val();
+            var note = $("#note_id").val();
+            var order_amount = $("#order_amount_id").val();
+            if (order_amount.length < 0 || isNaN(order_amount)) {
+                alert("金额填错");
+            } else {
+                var url = "/sale/dinghuo/changeorderlist/";
+                var data = {
+                    "receiver": receiver,
+                    "orderlistid": orderlistid,
+                    "supplier_name": supplier_name,
+                    "express_company": express_company,
+                    "express_no": express_no,
+                    "note": note,
+                    "order_amount": order_amount
+                };
+
+                var callback = function (res) {
+                    if (res == "OK") {
+                        parent.layer.close(index); //执行关闭
+                    } else if (res = "False") {
+                        alert("更新错误");
+                    }
+                };
+                $.ajax({url: url, data: data, type: "post", success: callback});
+            }
+        }
+
+    </script>
+{% endblock %}
+{% block container %}
+
+    <div class="input-group span9" style="margin-top: 50px">
+        <span class="input-group-addon"><strong>大货负责人:</strong></span>
+        <input id="orderlistid" value="{{ orderlist.id }}" hidden="hidden">
+        <input type="text" id="receiver_id" class="form-control"
+               value="{{ orderlist.buyer_id }}">
+    </div>
+    <div class="input-group span9" style="margin-top: 20px">
+        <span class="input-group-addon"><strong>商品链接:</strong></span>
+        <input type="text" id="supplier_name_id" class="form-control"
+               value="{{ orderlist.supplier_name }}">
+    </div>
+    <div class="input-group span9" style="margin-top: 20px">
+        <span class="input-group-addon"><strong>快递公司:</strong></span>
+        <select class="form-control" id="express_company_id" >
+            <option value="">--</option>
+            {% for e in express %}<option value="{{ e.0 }}" {% ifequal orderlist.express_company e.0 %}selected="selected" {% endifequal %}>{{ e.1 }}</option>{% endfor %}
+            </select>
+
+    </div>
+    <div class="input-group span9" style="margin-top: 20px">
+        <span class="input-group-addon"><strong>快递单号:</strong></span>
+        <input type="text" id="express_no_id" class="form-control"
+               value="{{ orderlist.express_no }}">
+    </div>
+    <div class="input-group span9" style="margin-top: 20px">
+        <span class="input-group-addon"><strong>总金额:</strong></span>
+        <input type="text" min="0" id="order_amount_id" class="form-control"
+               value="{{ orderlist.order_amount }}">
+    </div>
+    <div class="input-group span9" style="margin-top: 20px">
+        <span class="input-group-addon"><strong>添加备注:</strong></span>
+        <textarea class="form-control" id="note_id" rows="3"></textarea>
+    </div>
+
+
+    <div class="row" style="text-align: right">
+        <input type="button" class="btn btn-info" value="保存"
+               onclick="savefunction()">
+        <input type="button" class="btn btn-danger" value="取消"
+               onclick="closefunction()">
+    </div>
+{% endblock %}
+{% block tail_script %}
+{% endblock %}

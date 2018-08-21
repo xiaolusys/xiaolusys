@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+        <meta charset="utf-8">
+        <link href="{{ STATIC_URL }}bootstrap/css/bootstrap3.2.0.min.css" rel="stylesheet">
+        <style>
+	 body {
+	     margin: 0;
+             font-family: STHeiti, sans-serif;
+             font-size: 14px;
+             color: #320C08;
+	 }
+
+         em.n-ss-delay{
+             color: #ff0000;
+             font-size: 220%;
+         }
+
+         em.n-s-delay {
+             color: #ff6600;
+             font-size: 220%;
+         }
+
+         em.n-delay {
+             color: #ffc125;
+             font-size: 220%;
+         }
+
+         em.n-total {
+             font-size: 220%;
+         }
+
+	 tr:first-child {
+	     background-color: #669999;
+	 }
+
+	 tr:nth-child(2) {
+	     background-color: #9999cc;
+	 }
+
+     tr:nth-child(3) {
+         background-color: #99ffcc;
+     }
+
+     #sellout {
+         background-color: #f1c40f;
+     }
+
+	 #dinghuo {
+	     background-color: #bc8f8f;
+
+	 }
+
+     #transfer_coupon_order {
+        background-color: #0884F1;
+     }
+
+     table {
+         width: 100%;
+         height: 100%;
+         position: absolute;
+         top: 0;
+         bottom: 0;
+         rules: none;
+     }
+
+     tr {
+         text-align: center;
+     }
+
+     td:nth-child(n+2) p:first-child{
+         margin-top: 10px;
+     }
+
+     .full-screen {
+         position: fixed;
+         width: 80px;
+         z-index: 1;
+         bottom: 5px;
+         left: 5px;
+     }
+    </style>
+    </head>
+    <body>
+        <table>
+            <tr id="order">
+                <td style="width:24%">
+                    <h2>后台订单Package</h2>
+                </td>
+                <td style="width:19%">
+                    <p><em class="n-ss-delay">1</em></p>
+                    <p>超过十五天未关闭</p>
+                </td>
+                <td style="width:19%;">
+                    <p><em class="n-s-delay">1</em></p>
+                    <p>超过五天未关闭</p>
+                </td>
+                <td style="width:19%">
+                    <p><em class="n-delay">1</em></p>
+                    <p>超过三天未关闭</p>
+                </td>
+                <td style="width:19%">
+                    <p><em class="n-total">1</em></p>
+                    <p>总计</p>
+                </td>
+            </tr>
+            <tr id="saleorder">
+                <td style="width:24%">
+                    <h2>用户订单Trade</h2>
+                </td>
+                <td style="width:19%">
+                    <p><em class="n-ss-delay">1</em></p>
+                    <p>超过十五天未关闭</p>
+                </td>
+                <td style="width:19%;">
+                    <p><em class="n-s-delay">1</em></p>
+                    <p>超过五天未关闭</p>
+                </td>
+                <td style="width:19%">
+                    <p><em class="n-delay">1</em></p>
+                    <p>超过三天未关闭</p>
+                </td>
+                <td style="width:19%">
+                    <p><em class="n-total">1</em></p>
+                    <p>总计</p>
+                </td>
+            </tr>
+            <tr id="refund">
+                <td>
+                    <h2>退款/退货单</h2>
+                </td>
+                <td>
+                    <p><em class="n-ss-delay">1</em></p>
+                    <p>超过十五天未关闭</p>
+                </td>
+                <td>
+                    <p><em class="n-s-delay">1</em></p>
+                    <p>超过五天未关闭</p>
+                </td>
+                <td>
+                    <p><em class="n-delay">1</em></p>
+                    <p>超过三天未关闭</p>
+                </td>
+                <td>
+                    <p><em class="n-total">1</em></p>
+                    <p>总计</p>
+                </td>
+            </tr>
+            <tr id="return">
+                <td>
+                    <h2>客户等待返款</h2>
+                </td>
+                <td>
+                    <p><em class="n-ss-delay">1</em></p>
+                    <p>超过十五天未关闭</p>
+                </td>
+                <td>
+                    <p><em class="n-s-delay">1</em></p>
+                    <p>超过五天未关闭</p>
+                </td>
+                <td>
+                    <p><em class="n-delay">1</em></p>
+                    <p>超过三天未关闭</p>
+                </td>
+                <td>
+                    <p><em class="n-total">1</em></p>
+                    <p>总计</p>
+                </td>
+            </tr>
+            <tr id="transfer_coupon_order">
+                <td>
+                    <h2>精品汇订单</h2>
+                </td>
+                <td>
+                    <p><em class="n-ss-delay">０</em></p>
+                    <p>超过3天未发货</p>
+                </td>
+                <td>
+                    <p><em class="n-s-delay">０</em></p>
+                    <p>超过2天未发货</p>
+                </td>
+                <td>
+                    <p><em class="n-delay">０</em></p>
+                    <p>超过1天未发货</p>
+                </td>
+                <td>
+                    <p><em class="n-total">０</em></p>
+                    <p>总计</p>
+                </td>
+            </tr>
+            <tr id="weidinghuo">
+                <td>
+                    <h2>未订货</h2>
+                </td>
+                <td>
+                    <p><em class="n-ss-delay">1</em></p>
+                    <p>超过三天未订货</p>
+                </td>
+                <td>
+                    <p><em class="n-s-delay">1</em></p>
+                    <p>超过二天未订货</p>
+                </td>
+                <td>
+                    <p><em class="n-delay">1</em></p>
+                    <p>超过一天未订货</p>
+                </td>
+                <td>
+                    <p><em class="n-total">1</em></p>
+                    <p>总计</p>
+                </td>
+            </tr>
+            <tr id="dinghuo">
+                <td>
+                    <h2>订货单</h2>
+                </td>
+                <td>
+                    <p><em class="n-ss-delay">1</em></p>
+                    <p>超过十五天未关闭</p>
+                </td>
+                <td>
+                    <p><em class="n-s-delay">1</em></p>
+                    <p>超过五天未关闭</p>
+                </td>
+                <td>
+                    <p><em class="n-delay">1</em></p>
+                    <p>超过三天未关闭</p>
+                </td>
+                <td>
+                    <p><em class="n-total">1</em></p>
+                    <p>总计</p>
+                </td>
+            </tr>
+            <tr id="sellout">
+                <td>
+                    <h2>已抢光</h2>
+                </td>
+                <td>
+                    <p><em class="n-ss-delay"></em></p>
+                    <p>已抢光数量</p>
+                </td>
+                <td colspan="3">
+                    <p><em class="n-s-delay"></em></p>
+                    <p>已抢光前５个商品ID</p>
+                </td>
+            </tr>
+
+        </table>
+        <div class="full-screen">
+            <button class="btn btn-default btn-block" id="full-screen-btn">全屏</button>
+        </div>
+        <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}underscore/underscore-min.js"></script>
+        <script src="{{ STATIC_URL }}bootstrap/js/bootstrap-3.2.0.min.js"></script>
+        <script>
+         function toggleFullScreen() {
+             if (!document.fullscreenElement &&
+                 !document.mozFullScreenElement &&
+                 !document.webkitFullscreenElement &&
+                 !document.msFullscreenElement ) {
+                     if (document.documentElement.requestFullscreen) {
+                         document.documentElement.requestFullscreen();
+                     } else if (document.documentElement.msRequestFullscreen) {
+                         document.documentElement.msRequestFullscreen();
+                     } else if (document.documentElement.mozRequestFullScreen) {
+                         document.documentElement.mozRequestFullScreen();
+                     } else if (document.documentElement.webkitRequestFullscreen) {
+                         document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+                     }
+             } else {
+                 if (document.exitFullscreen) {
+                     document.exitFullscreen();
+                 } else if (document.msExitFullscreen) {
+                     document.msExitFullscreen();
+                 } else if (document.mozCancelFullScreen) {
+                     document.mozCancelFullScreen();
+                 } else if (document.webkitExitFullscreen) {
+                     document.webkitExitFullscreen();
+                 }
+             }
+         }
+
+         function reload(statsType, targetId){
+             $.ajax({
+                 url: '/sale/daystats/daily_stats',
+                 type: 'get',
+                 dataType: 'json',
+                 data: {type: statsType},
+                 success: function(result){
+                     var elSSDelay = $(targetId + ' em.n-ss-delay').first();
+                     var elSDelay = $(targetId+' em.n-s-delay').first();
+                     var elDelay = $(targetId+' em.n-delay').first();
+                     var elTotal = $(targetId+' em.n-total').first();
+
+                     $(targetId).css('background-color', result.bgcolor)
+
+                     elSDelay.html(result.n_s_delay);
+                     elSSDelay.html(result.n_ss_delay);
+                     if(result.n_delay != elDelay.html() - 0){
+                         elDelay.html(result.n_delay);
+                         elDelay.animate({fontSize: '+=6px'}, 1000, function(){
+                             elDelay.animate({fontSize: '-=6px'}, 500);
+                         });
+                     }
+                     if(result.n_total != elTotal.html() - 0){
+                         elTotal.html(result.n_total);
+                         elTotal.animate({fontSize: '+=6px'}, 1000, function(){
+                             elTotal.animate({fontSize: '-=6px'}, 500);
+                         });
+                     }
+                     _.delay(reload, 30000, statsType, targetId);
+                 }
+             })
+         }
+         $(function(){
+             _.delay(reload, 10, 1, '#order');
+             _.delay(reload, 10, 5, '#saleorder');
+             _.delay(reload, 10, 2, '#refund');
+             _.delay(reload, 10, 3, '#return');
+             _.delay(reload, 10, 7, '#weidinghuo');
+             _.delay(reload, 10, 4, '#dinghuo');
+             _.delay(reload, 10, 6, '#sellout');
+             _.delay(reload, 10, 8, '#transfer_coupon_order');
+             $('#full-screen-btn').click(function(){
+                 toggleFullScreen();
+             });
+         });
+        </script>
+    </body>
+</html>

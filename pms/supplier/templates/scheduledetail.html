@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+        <meta charset="utf-8">
+        <title>上架前确认</title>
+        <link href="{{ STATIC_URL }}bootstrap/css/bootstrap3.2.0.min.css" rel="stylesheet">
+        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}DataTables/DataTables-1.10.11/css/dataTables.bootstrap.min.css"/>
+        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}DataTables/Select-1.1.2/css/select.bootstrap.min.css"/>
+        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}Editor-1.5.5/css/editor.bootstrap.min.css">
+        <style>
+         body{font-size:16px;}
+         #main-table{width:100%;margin-left:auto;margin-right:auto;}
+         .portfolio-box img {
+             box-shadow: 2px 2px 5px rgba(187, 187, 187, 0.5);
+             -webkit-transition: -webkit-transform 0.2s ease-out;
+             -moz-transition: -moz-transform 0.2s ease-out;
+             -o-transition: -o-transform 0.2s ease-out;
+             transition: transform 0.2s ease-out;
+         }
+         .portfolio-box img:hover {
+             -webkit-transform: scale(1) rotate(20deg);
+             -moz-transform: scale(1) rotate(20deg);
+             -o-transform: scale(1) rotate(20deg);
+             -ms-transform: scale(1) rotate(20deg);
+             transform: scale(1) rotate(20deg);
+         }
+         #collect-nums, #remain-nums {min-height: 100px;}
+         #collect-nums td:first-child {width: 300px;}
+         #collect-nums td:nth-child(2){width: 150px;}
+         #collect-nums td:nth-child(3){width: 300px;}
+         #remain-nums td:first-child {width: 150px;}
+         #remain-nums td:nth-child(2){width: 100px;}
+         #remain-nums td:nth-child(3){width: 100px;}
+         .panel-message {
+             width: 100%;
+             z-index: 1;
+             text-align: center;
+             top: 0px;
+             height: 30px;
+         }
+         .panel-message .panel-body {
+             padding: 0;
+             margin-bottom: 0;
+         }
+         tr.odd {background-color: #e5ebf5;}
+         i.ok {color: #00cc33;}
+         i.remove{color:#ff0033;}
+        </style>
+    </head>
+    <body>
+        <div id="m1" class="panel-message panel collapse">
+            <div class="panel-body">
+                <p class="bg-danger"></p>
+            </div>
+        </div>
+        <p class="bg-info" style="text-align:center">
+            排期商品总计: <span class="text-warning">{{scheduled_n}}</span>
+            上架商品总计: <span class="text-warning">{{total_n}}</span>
+            {% if q1 %}
+            <a href="/admin/items/product/?id__in={{q1}}" target="_blank">错误上架</a>
+            {% endif %}
+            {% if q2 %}
+            <a href="/admin/items/product/?id__in={{q2}}" target="_blank">遗漏上架</a>
+            {% endif %}
+        </p>
+        <div class="container" style="width:98%">
+            <div class="row" style="margin-top:60px">
+                <table id="main-table" class="display"></table>
+            </div>
+        </div>
+        <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}underscore/underscore-min.js"></script>
+        <script src="{{ STATIC_URL }}bootstrap/js/bootstrap-3.2.0.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}DataTables/datatables.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}DataTables/Select-1.1.2/js/dataTables.select.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}Editor-1.5.5/js/dataTables.editor.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}Editor-1.5.5/js/editor.bootstrap.js"></script>
+        <script src="/static/wap/js/template.js"></script>
+        {% verbatim %}
+        <script id="image-tpl" type="text/html">
+            <a href="{{product_link}}" target="_blank">
+                <img src="{{pic_path}}" style="width:80px" class="img-circle">
+            </a>
+        </script>
+        <script id="supplier-tpl" type="text/html">
+            <a href="/supplychain/supplier/product/?status=passed&sale_supplier={{supplier_id}}" target="_blank">
+                {{value}}
+            </a>
+        </script>
+        <script id="sale-product-tpl" type="text/html">
+            <a href="/admin/supplier/saleproduct/?q={{sale_product_id}}" target="_blank">
+                {{value}}
+            </a>
+        </script>
+        <script id="product-tpl" type="text/html">
+            <a href="/admin/items/product/?q={{outer_id}}" target="_blank">
+                {{value}}
+            </a>
+        </script>
+        <script id="collect-num-tpl" type="text/html">
+            <a href="javascript:;" class="collect-num" data-sale-product-id="{{sale_product_id}}"
+               data-schedule-detail-id="{{schedule_detail_id}}">
+                {{value}}
+            </a>
+        </script>
+        <script id="remain-num-tpl" type="text/html">
+            <a href="javascript:;" class="remain-num" data-sale-product-id="{{sale_product_id}}"
+               data-schedule-detail-id="{{schedule_detail_id}}">
+                {{value}}
+            </a>
+        </script>
+        <script id="complete-tpl" type="text/html">
+            <a href="{{preview_url}}" target="_blank">{{value}}</a>
+            {{if is_verify }}
+            <i class="glyphicon glyphicon-ok-circle ok"></i>
+            {{else}}
+            <i class="glyphicon glyphicon-remove-circle remove"></i>
+            {{/if}}
+        </script>
+        <script id="sync-stock-tpl" type="text/html">
+            <a href="javascript:;" class="sync-stock" data-sale-product-id="{{sale_product_id}}"
+               data-schedule-detail-id="{{schedule_detail_id}}">
+                {{value}}
+            </a>
+        </script>
+        <script id="approve-tpl" type="text/html">
+            <a href="javascript:;" class="to-approve" data-schedule-detail-id="{{schedule_detail_id}}">
+                {{value}}
+            </a>
+        </script>
+        <script id="name-tpl" type="text/html">
+            {{name}}
+            <p class="note" data-sale-product-id="{{sale_product_id}}" style="color:#999999;min-width:200px;">{{note}}</p>
+            <a href="javascript:;" class="product-name" data-sale-product-id="{{sale_product_id}}">
+                修改
+            </a>
+        </script>
+        {% endverbatim %}
+        <div class="modal fade" id="modal-collect-num" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div id="m2" class="panel-message panel collapse">
+                        <div class="panel-body">
+                            <p class="bg-danger"></p>
+                        </div>
+                    </div>
+                    <div class="modal-body">
+                        <table id="collect-nums" class="display"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="modal-remain-num" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div id="m3" class="panel-message panel collapse">
+                        <div class="panel-body">
+                            <p class="bg-danger"></p>
+                        </div>
+                    </div>
+                    <div class="modal-body">
+                        <table id="remain-nums" class="display"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="modal-note" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-sm">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <textarea id="note" rows="20" style="width:100%"></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" id="save-note">确定</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+         function parseUrlParams(myUrl) {
+             var vars = [], hash;
+             var hashes = window.location.href.slice(myUrl.indexOf('?') + 1).split('&');
+             for (var i = 0; i < hashes.length; i++) {
+                 hash = hashes[i].split('=');
+                 vars.push(hash[0]);
+                 vars[hash[0]] = hash[1];
+             }
+             return vars;
+         }
+         $(function(){
+             var remainNumIsDirty = false;
+             var urlParams = parseUrlParams(window.location.href);
+             var scheduleId = urlParams['schedule_id'];
+             var mainEditor = new $.fn.dataTable.Editor({
+                 ajax: '/supplychain/supplier/schedule_detail_api/',
+                 table: '#main-table',
+                 idSrc: 'schedule_detail_id',
+                 fields: [
+                     {label: '款式名', name: 'name'},
+                     {label: '库存数', name: 'collect_num'},
+                     {label: '预留数', name: 'remain_num'},
+                     {label: '采购价', name: 'sale_price'},
+                     {label: '吊牌价', name: 'std_sale_price'},
+                     {label: '销售价', name: 'on_sale_price'},
+                     {label: '权值', name: 'order_weight'}
+                 ]
+             });
+             var remainNumEditor = new $.fn.dataTable.Editor({
+                 ajax: '/supplychain/supplier/remain_num_api/',
+                 table: '#remain-nums',
+                 idSrc: 'sku_id',
+                 fields: [
+                     {label: '预留数', name: 'remain_num'}
+                 ]
+             });
+             mainEditor.on('submitError', function(e, xhr, err, thrown, data){
+                 $('#m1 p.bg-danger').html(thrown);
+                 $('#m1').collapse('show');
+                 _.delay(function(){
+                     $('#m1').collapse('hide');
+                     mainEditor.close();
+                 }, 800);
+             });
+             mainEditor.on('submitComplete', function(e, json, data){
+                 if(json.error){
+                     $('#m1 p.bg-danger').html(json.error);
+                     $('#m1').collapse('show');
+                     _.delay(function(){
+                         $('#m1').collapse('hide');
+                         mainEditor.close();
+                     }, 800);
+                 }
+             });
+             remainNumEditor.on('submitError', function(e, xhr, err, thrown, data){
+                 $('#m3 p.bg-danger').html(thrown);
+                 $('#m3').collapse('show');
+                 _.delay(function(){
+                     $('#m3').collapse('hide');
+                     remainNumEditor.close();
+                 }, 800);
+             });
+             remainNumEditor.on('submitComplete', function(e, json, data){
+                 if(json.error){
+                     $('#m3 p.bg-danger').html(json.error);
+                     $('#m3').collapse('show');
+                     _.delay(function(){
+                         $('#m3').collapse('hide');
+                         remainNumEditor.close();
+                     }, 800);
+                 }
+                 else{
+                     remainNumIsDirty = true;
+                 }
+             });
+
+             var mainTable = $('#main-table').DataTable({
+                 language: {
+                     url: '{{ STATIC_URL }}DataTables/i18n/Chinese.json'
+                 },
+                 order: [[11, 'desc']],
+                 dom: "Bfrtip",
+                 pageLength: 100,
+                 ajax: '/supplychain/supplier/schedule_detail_api/?schedule_id=' + scheduleId,
+                 select: false,
+                 columns: [
+                     {data: 'outer_id', title: '商品编码', width: '80px', render: function(data, type, full, meta){
+                         return type == 'display' && data ?
+                                template('product-tpl', {outer_id: data, value: data}) : data;
+                     }},
+                     {data: 'supplier_sku', title: '供应商货号', width: '120px', render: function(data, type, full, meta){
+                         return type == 'display' && data ?
+                                template('sale-product-tpl', {sale_product_id: full.sale_product_id, value: data}) : data;
+                     }},
+                     {data: 'name', width: '350px', title: '款式名', render: function(data, type, full, meta){
+                         return type == 'display' && data ?
+                                template('name-tpl', {sale_product_id: full.sale_product_id, name: data, note: full.note}) : data;
+                     }},
+                     {data: 'level_1_category_name', title: '一级分类'},
+                     {data: 'level_2_category_name', title: '二级分类'},
+                     {data: 'supplier_id', width: '180px', title: '供应商', render: function(data, type, full, meta){
+                         return type == 'display' && data ?
+                                template('supplier-tpl', {supplier_id: data, value: full.supplier_name}) : data;
+                     }},
+                     {data: 'pic_path', title: '商品图片', width: '100px', className: 'portfolio-box', render: function(data, type, full, meta){
+                         return type == 'display' && data && data.length > 1 ?
+                                template('image-tpl', {pic_path: data, sale_product_id: full.sale_product_id, product_link: full.product_link || '#'}) : data;
+                     }},
+                     {data: 'collect_num', width: '80px', title: '库存数', render: function(data, type, full, meta){
+                         return type == 'display' && full.model_id ?
+                                template('collect-num-tpl', {value: data, model_id: full.model_id, sale_product_id: full.sale_product_id}) : data;
+                     }},
+                     {data: 'remain_num', width: '80px', title: '<a href="javascript:;" id="pop1">预留数</a>', render: function(data, type, full, meta){
+                         return type == 'display' && full.model_id ?
+                                template('remain-num-tpl', {value: data, model_id: full.model_id, sale_product_id: full.sale_product_id}) : data;
+                     }},
+                     {data: 'sale_price', width: '80px', title: '采购价', className: 'editable'},
+                     {data: 'std_sale_price', width: '80px', title: '吊牌价', className: 'editable'},
+                     {data: 'on_sale_price', width: '80px', title: '销售价', className: 'editable'},
+                     {data: 'order_weight', width: '80px', title: '权值'},
+                     {data: 'contactor_name', width: '100px', title: '采购负责'},
+                     {data: null, width: '100px', title: '录入状态', defaultContent: '', render: function(data, type, full, meta){
+                         if(type != 'display')
+                             return data;
+                         if(full.model_id){
+                             if(full.preview_url)
+                                 return template('complete-tpl', {preview_url: full.preview_url, value: '完成', is_verify: full.is_verify});
+                             else
+                                 return '完成';
+                         }
+                         return '<span style="color:red">未录入</span>'
+                     }},
+                     {data: null, width: '120px', title: '库存同步', defaultContent: '', render: function(data, type, full, meta){
+                         if(type != 'display')
+                             return data;
+                         if(!full.model_id)
+                             return '-';
+                         if(full.is_sync_stock)
+                             return '是';
+                         return template('sync-stock-tpl', {sale_product_id: full.sale_product_id, value: '否'});
+                     }},
+                     {data: 'is_approved', title: '审核通过', width: '80px', render: function(data, type, full, meta){
+                         if(type == 'display')
+                             return template('approve-tpl', {schedule_detail_id: full.schedule_detail_id, value: data});
+                         else
+                             return data;
+                     }}
+                 ],
+                 buttons: [],
+                 initComplete: function(settings, json){
+                     var suppliers_dict = {};
+                     _.each(json.data, function(row){
+                         suppliers_dict[row.supplier_id] = row.supplier_name;
+                     });
+
+                     this.api().columns([3,4,13,16]).every(function(){
+                         var column = this;
+                         var select = $('<select class="form-control" style="width:90px"><option value=""></option></select>')
+                             .appendTo($(column.header()))
+                             .on('change', function(){
+                                 var val = $.fn.dataTable.util.escapeRegex($(this).val());
+                                 column.search( val ? '^'+val+'$' : '', true, false ).draw();
+                             });
+                         column.data().unique().sort().each(function(d, j){
+                             select.append('<option value="'+d+'">'+d+'</option>');
+                         });
+                     });
+
+                     var column = this.api().column(5);
+                     var n = _.keys(suppliers_dict).length;
+                     $(column.header()).append('(' + n + ')');
+                     var select = $('<select class="form-control" style="width:90px;height:auto;word-wrap:break-word"><option value=""></option></select>')
+                         .appendTo($(column.header()))
+                         .on('change', function(){
+                             var val = $.fn.dataTable.util.escapeRegex($(this).val());
+                             column.search( val ? '^'+val+'$' : '', true, false ).draw();
+                         });
+                     column.data().unique().sort().each(function(d, j){
+                         select.append('<option value="'+d+'">'+suppliers_dict[d]+'</option>');
+                     });
+
+                 }
+             });
+             var collectNumTable = $('#collect-nums').DataTable({
+                 language: {
+                     url: '{{ STATIC_URL }}DataTables/i18n/Chinese.json'
+                 },
+                 pageLength: 100,
+                 select: false,
+                 columns: [
+                     {data: 'name', title: '款式名'},
+                     {data: 'color', title: '颜色'},
+                     {data: 'properties_name', title: '尺码'},
+                     {data: 'quantity', title: '库存数'}
+                 ],
+                 buttons: []
+             });
+             var remainNumTable = $('#remain-nums').DataTable({
+                 language: {
+                     url: '{{ STATIC_URL }}DataTables/i18n/Chinese.json'
+                 },
+                 pageLength: 100,
+                 select: false,
+                 columns: [
+                     {data: 'name', title: '款式名'},
+                     {data: 'color', title: '颜色'},
+                     {data: 'properties_name', title: '尺码'},
+                     {data: 'sale_num', title: '待发数'},
+                     {data: 'buy_num', title: '在途数'},
+                     {data: 'num', title: '库存数'},
+                     {data: 'left_num', title: '可用数'},
+                     {data: 'remain_num', title: '预留数', className: 'editable'}
+                 ],
+                 buttons: []
+             });
+             var ROW_TPL = _.template('tr:has([data-schedule-detail-id="<%= value %>"])');
+
+             function onCollectNumClick(){
+                 var sale_product_id = $(this).attr('data-sale-product-id') - 0;
+                 collectNumTable.ajax.url('/supplychain/supplier/collect_num_api/?sale_product_id='+sale_product_id).load();
+                 $('#modal-collect-num').modal();
+             }
+
+             function onRemainNumClick(){
+                 var sale_product_id = $(this).attr('data-sale-product-id') - 0;
+                 remainNumTable.ajax.url('/supplychain/supplier/remain_num_api/?sale_product_id='+sale_product_id).load();
+                 $('#modal-remain-num').modal();
+             }
+             function onSyncStockClick(){
+                 var that = this;
+                 var sale_product_id = $(this).attr('data-sale-product-id') - 0;
+                 $.ajax({
+                     url: '/supplychain/supplier/sync_stock_api/',
+                     type: 'post',
+                     dataType: 'json',
+                     data: {sale_product_id: sale_product_id},
+                     success: function(result){
+                         if(result.error){
+                             $('#m1 p.bg-danger').html(result.error);
+                             $('#m1').collapse('show');
+                             _.delay(function(){
+                                 $('#m1').collapse('hide');
+                                 mainEditor.close();
+                             }, 1500);
+                         }
+                         else{
+                             $(that).html('是');
+                             window.location.reload();
+                         }
+                     },
+                     error: function(xhr, status, thrown){
+                         $('#m1 p.bg-danger').html(thrown);
+                         $('#m1').collapse('show');
+                         _.delay(function(){
+                             $('#m1').collapse('hide');
+                             mainEditor.close();
+                         }, 1500);
+                     }
+                 });
+             }
+             function onApproveScheduleDetailClick(){
+                 var that = this;
+                 var schedule_detail_id = $(this).attr('data-schedule-detail-id') - 0;
+                 var is_approved = $(this).html();
+                 var cell = mainTable.cell($(this).closest('td'));
+                 $.ajax({
+                     url: '/supplychain/supplier/approve_schedule_detail_api/',
+                     type: 'post',
+                     dataType: 'json',
+                     data: {schedule_detail_id: schedule_detail_id, is_approved: is_approved},
+                     success: function(result){
+                         $(that).html(result.is_approved);
+                         cell.data(result.is_approved);
+                         var select = $(mainTable.column(16).header()).find('select').empty();
+                         select.append('<option value=""></option>');
+                         mainTable.column(16).data().unique().sort().each(function(d, j){
+                             select.append('<option value="'+d+'">'+d+'</option>');
+                         });
+                         var el = $(ROW_TPL({value: schedule_detail_id}));
+                         $('a.to-approve', el).click(onApproveScheduleDetailClick);
+                     }
+                 });
+             }
+
+             function onNoteClick(){
+                 var $this = $(this);
+                 var sale_product_id = parseInt($this.attr('data-sale-product-id'));
+                 $('#modal-note').data('sale_product_id', sale_product_id);
+                 $.ajax({
+                     url: '/supplychain/supplier/saleproduct_note',
+                     type: 'get',
+                     dataType: 'json',
+                     data: {saleproduct_id: sale_product_id},
+                     success: function(result){
+                         $('#note').val(result.note);
+                         $('#modal-note').modal('show');
+                     }
+                 });
+             }
+
+             mainEditor.on('postEdit', function(e, json, data){
+                 var schedule_detail_id = json.data[0].schedule_detail_id - 0;
+                 //重新绑定事件
+                 var el = $(ROW_TPL({value: schedule_detail_id}));
+                 $('td:nth-child(3), td:nth-last-child(5), td:nth-child(9)', el).removeClass('editable').addClass('editable');
+                 $('a.collect-num', el).click(onCollectNumClick);
+                 $('a.remain-num', el).click(onRemainNumClick);
+                 $('a.sync-stock', el).click(onSyncStockClick);
+                 $('a.to-approve', el).click(onApproveScheduleDetailClick);
+             });
+
+             mainTable.on('init.dt', function(){
+                 $('td:nth-child(3), td:nth-last-child(5), td:nth-child(9)', 'tr:has(a.collect-num)').addClass('editable');
+                 $('a.collect-num').click(onCollectNumClick);
+                 $('a.remain-num').click(onRemainNumClick);
+                 $('a.sync-stock').click(onSyncStockClick);
+                 $('a.to-approve').click(onApproveScheduleDetailClick);
+                 $('#pop1').popover({
+                     container: 'body',
+                     trigger: 'hover',
+                     content: '取的是各款中的最小值, 双击可以批量修改'
+                 });
+                 $('a.product-name').click(onNoteClick);
+             });
+             $('#main-table').on('dblclick', 'tbody td.editable', function(el){
+                 mainEditor.inline(this);
+             });
+             $('#remain-nums').on('click', 'tbody td.editable', function(el){
+                 remainNumEditor.inline(this);
+             });
+             $('#modal-remain-num').on('hidden.bs.modal', function(e){
+                 if(remainNumIsDirty)
+                     window.location.reload();
+             });
+             $('#save-note').click(function(){
+                 var note = $('#note').val() || '';
+                 var sale_product_id = $('#modal-note').data('sale_product_id');
+                 $.ajax({
+                     url: '/supplychain/supplier/saleproduct_note/',
+                     type: 'post',
+                     dataType: 'json',
+                     data: {saleproduct_id: sale_product_id, note: note},
+                     success: function(result){
+                         var tpl = _.template('p.note[data-sale-product-id="<%= saleProductId %>"]');
+                         $(tpl({saleProductId: sale_product_id})).html(result.note);
+                         $('#modal-note').modal('hide');
+                     }
+                 });
+             });
+         });
+        </script>
+    </body>
+</html>

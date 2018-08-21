@@ -1,0 +1,34 @@
+[
+{
+  "model": "supplier.salecategory",
+  "pk": 2,
+  "fields": {
+    "created": "2014-12-09T06:49:09",
+    "modified": "2016-11-16T22:31:03",
+    "cid": "2",
+    "parent_cid": "0",
+    "name": "\u5973\u88c5",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/women1013.png",
+    "grade": 1,
+    "is_parent": true,
+    "sort_order": 100,
+    "status": "normal"
+  }
+},
+  {
+  "model": "supplier.salecategory",
+  "pk": 59,
+  "fields": {
+    "created": "2015-07-02T09:11:49",
+    "modified": "2016-10-13T16:54:43",
+    "cid": "2-59",
+    "parent_cid": "2",
+    "name": "\u5916\u5957",
+    "cat_pic": "http://7xkyoy.com1.z0.glb.clouddn.com/category/image/lady/waitao.png",
+    "grade": 2,
+    "is_parent": false,
+    "sort_order": 93,
+    "status": "normal"
+  }
+}
+]

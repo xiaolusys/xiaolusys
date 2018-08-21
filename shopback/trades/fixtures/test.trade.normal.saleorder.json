@@ -1,0 +1,33 @@
+[
+  {
+    "model": "pay.saleorder",
+    "pk": 521465,
+    "fields": {
+      "created": "2016-12-14T14:21:21",
+      "modified": "2016-12-14T14:55:19",
+      "oid": "xo1612145850e4e189a1a",
+      "sale_trade": 468659,
+      "buyer_id": 1,
+      "item_id": "75471",
+      "title": "\\u6027\\u611f\\u857e\\u4e1d\\u8c03\\u6574\\u578b\\u6587\\u80f8/\\u7ea2\\u8272",
+      "price": 49.9,
+      "sku_id": "280052",
+      "num": 1,
+      "outer_id": "827287410731",
+      "outer_sku_id": "8272874107311",
+      "total_fee": 49.9,
+      "payment": 49.9,
+      "discount_fee": 0.0,
+      "sku_name": "70A",
+      "pic_path": "http://img.xiaolumeimei.com/MG_14767716767163.jpg",
+      "pay_time": null,
+      "consign_time": null,
+      "sign_time": null,
+      "refund_id": null,
+      "refund_fee": 0.0,
+      "refund_status": 0,
+      "status": 1,
+      "extras": {}
+    }
+  }
+]

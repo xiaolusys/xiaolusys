@@ -1,0 +1,15 @@
+[
+{
+ "model": "logistics.logisticscompany",
+ "pk": -2,
+ "fields": {
+  "code": "YUNDA_QR",
+  "name": "\u97f5\u8fbe\u5feb\u9012",
+  "reg_mail_no": "\t^(10|11|12|13|14|15|16|17|19|18|50|55|58|80|88|66|31|77|39)[0-9]{11}$|^[0-9]{13}$",
+  "district": "",
+  "priority": 1000,
+  "status": true,
+  "express_key": "yunda"
+ }
+}
+]

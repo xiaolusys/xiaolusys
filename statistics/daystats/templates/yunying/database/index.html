@@ -1,0 +1,12 @@
+{% extends 'layout.html' %}
+
+{% block main %}
+
+<div class="row">
+  {% for item in items %}
+  <li>
+    <a href="{% url 'yy-database-table' item.Tables_in_xiaoludb %}">{{ item.Tables_in_xiaoludb }}</a>
+  </li>
+  {% endfor %}
+</div>
+{% endblock %}

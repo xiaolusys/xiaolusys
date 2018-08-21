@@ -1,0 +1,61 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls static admin_list %}
+
+{% block object-tools %}
+  {% if has_add_permission %}
+    <ul class="object-tools">
+      {% block object-tools-items %}
+        <li>
+            <a href="/sale/dinghuo/inbound" target="_blank">
+                入仓单
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'forecast_v1:forecastinbound-dashboard' %}?staff_name={{user.get_username}}" class="historylink" target="_blank">
+                预测到货单管理
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'dinghuo_v1:purchase-stats' %}" class="historylink" target="_blank">
+                采购绩效统计
+            </a>
+        </li>
+        <li>
+          <a href="{% url 'forecast_v1:forecaststats-list' %}.html" class="historylink" target="_blank">
+             订/到货统计
+          </a>
+        </li>
+        <li>
+            <a href="/sale/dinghuo/instant_dinghuo/advance" target="_blank">
+                提前订货
+            </a>
+        </li>
+        <li>
+            <a href="/sale/dinghuo/instant_dinghuo" target="_blank">
+                实时大货统计
+            </a>
+        </li>
+        <li>
+            <a href="/sale/dinghuo/pending_dinghuo" target="_blank">
+                待处理订货单汇总
+            </a>
+        </li>
+        <li>
+            <a href="/sale/dinghuo/daily/" target="_blank">
+                每日大货统计
+            </a>
+        </li>
+        <li>
+            <a href="/sale/dinghuo/begin_ding_huo/" target="_blank">
+                大货进度查看
+            </a>
+        </li>
+        <li>
+            <a href="/admin/items/product/" target="_blank">
+                创建订货单
+            </a>
+        </li>
+      {% endblock %}
+    </ul>
+  {% endif %}
+{% endblock %}

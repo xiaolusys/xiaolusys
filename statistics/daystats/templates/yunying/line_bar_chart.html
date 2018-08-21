@@ -1,0 +1,97 @@
+
+
+
+<div class="row">
+{% for chart in charts %}
+  <div class="col-md-6">
+    <div id="pie-chart" style="width: 1200px;height:600px;"></div>
+    <script type="text/javascript">
+        var pieChart = echarts.init(document.getElementById('pie-chart'));
+        option = {
+            tooltip: {
+                trigger: 'axis'
+            },
+            toolbox: {
+                feature: {
+                    dataView: {show: true, readOnly: false},
+                    magicType: {show: true, type: ['line', 'bar']},
+                    restore: {show: true},
+                    saveAsImage: {show: true}
+                }
+            },
+            legend: {
+                data:['蒸发量','降水量','平均温度']
+            },
+            xAxis: [
+                {
+                    type: 'category',
+                    data: {{ x_axis|safe }}
+                }
+            ],
+            yAxis: [
+                {
+                    type: 'value',
+                    name: '人数',
+                    min: 0,
+                    max: {{ y1 }},
+                    interval: {{ y1_interval }},
+                    axisLabel: {
+                        formatter: '{value} 个'
+                    }
+                },
+                {
+                    type: 'value',
+                    name: '比例',
+                    min: 0,
+                    max: {{ y2 }},
+                    interval: {{ y2_interval }},
+                    axisLabel: {
+                        formatter: '{value} %'
+                    }
+                }
+            ],
+            series: [
+                {
+                    name:'新增一元妈妈',
+                    type:'bar',
+                    data: {{ new_mama_data }}
+                },
+                {
+                    name:'多少人去邀请',
+                    type:'bar',
+                    data: {{ yaoqing_data }}
+                },
+                {
+                    name:'多少人续费',
+                    type:'bar',
+                    data: {{ xufei_mama_data }}
+                },
+                {
+                    name:'完成点击收益',
+                    type:'bar',
+                    data: {{ finish_task_data }}
+                },
+                {
+                    name:'多少人打开APP妈妈主页',
+                    type:'bar',
+                    data: {{ open_app_task_data }}
+                },
+                {
+                    name:'去邀请人占比',
+                    type:'line',
+                    yAxisIndex: 1,
+                    data: {{ ratio_data }}
+                }
+            ]
+        };
+        pieChart.setOption(option);
+    </script>
+
+  </div>
+{% endfor %}
+</div>
+
+
+
+
+

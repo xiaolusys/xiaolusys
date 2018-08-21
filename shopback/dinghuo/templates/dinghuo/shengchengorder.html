@@ -1,0 +1,235 @@
+{% extends "dinghuo/dinghuo_base.html" %}
+{% block title %}新建订单{% endblock %}
+{% block head_script %}
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            $('#error_tip').hide();
+            $('#submit_form').click(function (event) {
+                var receiver = $('#id_consigneeName');
+                var data1 = receiver.val();
+                data1 = $.trim(data1);
+
+                if (data1.length < 1) {
+                    $('#error_tip').show(3000).html('收货人为空');
+                    $('#error_tip').hide(1000);
+                    receiver.focus();
+                    event.preventDefault();
+                } else {
+                    $('#error_tip').hide();
+                }
+            });
+        });
+
+        function plusQuantity(draftid) {
+            var index = "quantity_" + draftid;
+            p = $("#" + index);
+
+            var url = "/sale/dinghuo/plusquantity/";
+            var data = {"draftid": draftid};
+            var callback = function (res) {
+                if (res == "OK") {
+                    p.text(parseInt(p.text()) + 1);
+                }
+            };
+            $.ajax({url: url, data: data, type: "post", success: callback});
+        }
+        function minusQuantity(draftid) {
+            var index = "quantity_" + draftid;
+            p = $("#" + index);
+            if (p.text() != "0") {
+                var url = "/sale/dinghuo/minusquantity/";
+                var data = {"draftid": draftid};
+                var callback = function (res) {
+                    if (res == "OK") {
+                        p.text(parseInt(p.text()) - 1);
+                    }
+                };
+                $.ajax({url: url, data: data, type: "post", success: callback});
+            } else {
+                alert("已经为零")
+            }
+
+        }
+        function removedraft(draftid, tr_id) {
+            var tb = $("#" + "draft_" + tr_id);
+            var url = "/sale/dinghuo/removedraft/";
+            var data = {"draftid": draftid};
+            var callback = function (res) {
+                if (res == "OK") {
+                    tb.remove();
+                }
+            };
+            $.ajax({url: url, data: data, type: "post", success: callback});
+
+
+        }
+
+
+    </script>
+    <style type="text/css">
+        body {
+            margin: 0px auto;
+            padding: 0px;
+        }
+
+        body {
+            width: 1000px;
+        }
+
+        .simple-text {
+            width: 120px;
+            height: 16px;
+            display: inline;
+            margin: 0px 0px;
+            color: #808080;
+        }
+
+        .head-title label {
+            font-size: 24px;
+            line-height: 24px;
+        }
+
+        .content-main {
+            margin-top: 40px;
+        }
+
+        label {
+            display: inline;
+            margin: 0px 10px;
+        }
+
+        select {
+            width: 200px;
+            display: inline;
+            margin-bottom: 2px;
+        }
+
+        .inputerror {
+            border: 3px solid red;
+            width: 300px;
+        }
+    </style>
+{% endblock %}
+{% block container %}
+    <div class="content-main">
+        <fieldset>
+            <legend>
+                <h2 class="head-title">订货单
+                </h2>
+            </legend>
+            <div>
+                <form novalidate="novalidate" id="purchase-form" method="POST" action="/sale/dinghuo/dingdan/">
+                    <table class="table table-bordered table-striped table-condensed">
+                        <tbody>
+                        <tr>
+                            <td>
+                                <div class="input-group">
+                                    <span class="input-group-addon">负&nbsp;&nbsp;责&nbsp;&nbsp;人</span>
+                                    <input id="id_consigneeName" name="consigneeName" type="text"
+                                           class="form-control required" placeholder="必填"
+                                           placeholder="" aria-describedby="sizing-addon2" value="{{ buyer_name }}" readonly>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="input-group">
+                                    <span class="input-group-addon">供&nbsp;&nbsp;应&nbsp;&nbsp;商</span>
+                                    <input id="id_supplierId" name="supplierId" type="text"
+                                           class="form-control"
+                                           placeholder="" aria-describedby="sizing-addon2" value="{{ supplier_name }}" readonly>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="input-group">
+                                    <span class="input-group-addon">快递公司</span>
+                                    <select class="form-control" id="express_company" name="express_company">
+                                    <option value="">---</option>
+                                        {% for e in express %}
+                                            <option value="{{ e.0 }}"
+                                                    {% ifequal orderlist.express_company e.0 %}selected="selected" {% endifequal %}>{{ e.1 }}</option>{% endfor %}
+                                    </select>
+
+                                </div>
+                            </td>
+                            <td>
+                                <div class="input-group">
+                                    <span class="input-group-addon">快递单号</span>
+                                    <input id="express_no" name="express_no" type="text" class="form-control"
+                                           placeholder="快递单号" aria-describedby="sizing-addon2">
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="input-group">
+                                    <span class="input-group-addon">快递费</span>
+                                    <input id="costofemsid" name="costofems" type="number"
+                                           class="form-control"
+                                           placeholder="" aria-describedby="sizing-addon2">
+                                </div>
+                            </td>
+                            <td rowspan="2">
+                                <div class="input-group">
+                                    <span class="input-group-addon">备注</span>
+                                    <textarea style="width: 400px;resize: none;" id="id_remarks" name="remarks"
+                                              type="text" class="form-control"></textarea>
+                                    <button id="submit_form" type="submit" value="保存" class="btn btn-warning"
+                                            style="margin-left: 50px">保存
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <span id="error_tip" hidden="hidden">数据项为空！</span>
+                        </tbody>
+                    </table>
+
+                </form>
+            </div>
+        </fieldset>
+    </div>
+    <fieldset>
+        <legend>
+            <h2 class="head-title">详细列表
+            </h2>
+        </legend>
+        <br>
+        <table id="drafttable" border="1" class="table table-striped table-bordered table-hover">
+            <tr>
+                <td width="100px">商品名称</td>
+                <td width="100px">产品编码</td>
+                <td width="100px">规格</td>
+                <td width="100px">数量</td>
+                <td width="100px">买入价格</td>
+                <td width="100px">操作</td>
+            </tr>
+            {% for draft in OrderDraft %}
+                <tr id="draft_{{ forloop.counter }}">
+                    <td>{{ draft.product_name }}</td>
+                    <td>{{ draft.outer_id }}</td>
+                    <td>{{ draft.product_chicun }}</td>
+                    <td align="center"><a onclick="plusQuantity({{ draft.id }})">
+                        <span class="glyphicon glyphicon-plus"></span></a>&nbsp;
+                        <span id="quantity_{{ draft.id }}">{{ draft.buy_quantity }}</span>&nbsp;
+                        <a onclick="minusQuantity({{ draft.id }})">
+                            <span class="glyphicon glyphicon-minus"></span>
+                        </a>
+                    </td>
+                    <td>{{ draft.buy_unitprice }}</td>
+                    <td><span onclick="removedraft({{ draft.id }},{{ forloop.counter }})"
+                              class="glyphicon glyphicon-remove"
+                              aria-hidden="true"></span></td>
+                </tr>
+            {% endfor %}
+        </table>
+        <input id="orderAdd" class="btn btn-default" type="button" value="继续添加"
+               onclick="window.location.href='/admin/items/product'"/>
+    </fieldset>
+
+
+{% endblock %}
+
+<script type="text/javascript">
+    $(".chosen-select").chosen({enable_split_word_search: true, search_contains: true});
+</script>

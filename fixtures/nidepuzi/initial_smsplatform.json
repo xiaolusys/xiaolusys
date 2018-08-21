@@ -1,0 +1,92 @@
+[
+{
+  "model": "smsmgr.smsplatform",
+  "pk": 1,
+  "fields": {
+    "created": null,
+    "modified": null,
+    "code": "cshx",
+    "name": "\u521b\u4e16\u534e\u4fe1",
+    "user_id": "603",
+    "account": "",
+    "password": "",
+    "remainums": 230308,
+    "sendnums": 298100,
+    "sign_name": "",
+    "is_force_sign": false,
+    "is_default": false
+  }
+},
+{
+  "model": "smsmgr.smsplatform",
+  "pk": 2,
+  "fields": {
+    "created": null,
+    "modified": null,
+    "code": "dxt",
+    "name": "591\u77ed\u4fe1\u5e73\u53f0",
+    "user_id": "118",
+    "account": "",
+    "password": "",
+    "remainums": 0,
+    "sendnums": 170053,
+    "sign_name": "",
+    "is_force_sign": false,
+    "is_default": false
+  }
+},
+{
+  "model": "smsmgr.smsplatform",
+  "pk": 3,
+  "fields": {
+    "created": null,
+    "modified": null,
+    "code": "ipyy",
+    "name": "\u521b\u4e16\u534e\u4fe1\uff08\u65b0\uff09",
+    "user_id": "0000",
+    "account": "",
+    "password": "",
+    "remainums": 0,
+    "sendnums": 3100123,
+    "sign_name": "\u3010\u5c0f\u9e7f\u7f8e\u7f8e\u3011",
+    "is_force_sign": true,
+    "is_default": true
+  }
+},
+{
+  "model": "smsmgr.smsplatform",
+  "pk": 4,
+  "fields": {
+    "created": null,
+    "modified": null,
+    "code": "18sms",
+    "name": "\u793a\u8fdc\u79d1\u6280",
+    "user_id": "666",
+    "account": "",
+    "password": "",
+    "remainums": 222200,
+    "sendnums": 162005,
+    "sign_name": "",
+    "is_force_sign": false,
+    "is_default": false
+  }
+},
+{
+  "model": "smsmgr.smsplatform",
+  "pk": 5,
+  "fields": {
+    "created": null,
+    "modified": null,
+    "code": "alidayu",
+    "name": "\u963f\u91cc\u5927\u9c7c",
+    "user_id": "0",
+    "account": "",
+    "password": "",
+    "remainums": 0,
+    "sendnums": 0,
+    "sign_name": "\u5c0f\u9e7f\u7f8e\u7f8e",
+    "is_force_sign": true,
+    "is_default": false
+  }
+}
+]

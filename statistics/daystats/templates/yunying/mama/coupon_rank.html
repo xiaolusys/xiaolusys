@@ -1,0 +1,70 @@
+{% extends 'layout.html' %}
+
+{% block main %}
+
+<div class="row">
+  <h3>妈妈精品券查询</h3>
+  <p>找到{{total_count}}个妈妈(积分>0) {{ data_levels }}</p>
+
+  <form action="{{ req.path }}" method="GET">
+    <div class="col-xs-2">
+      <!-- <input size="16" type="text" class="form-control datepicker" value="{{ date_field }}" name="day_date"> -->
+      <input type="text" class="form-control" name="mama_id" placeholder="请输入妈妈ID">
+    </div>
+    <button type="submit" class="btn btn-default">QUERY</button>
+  </form>
+</div>
+
+<div class="row">
+
+  <table class="table table-bordered table-striped table-hover">
+    <tr>
+      <th></th>
+      <th>妈妈ID</th>
+      <th>昵称</th>
+      <th>等级</th>
+      <th></th>
+      <th>积分</th>
+      <th>昨日积分</th>
+      <th>总进券</th>
+      <th>总出券</th>
+      <th>买券</th>
+      <th>出货</th>
+      <th>转下属</th>
+      <th>团队情况</th>
+      <th>管理员</th>
+    </tr>
+    {% for item in data %}
+    <tr>
+      <td>{{ forloop.counter }}</td>
+      <td><a href="{% url 'yy-mama-show'  %}?mama_id={{ item.id }}" target="_blank">{{ item.id }}</a></td>
+      <td>{{ item.customer.nick|truncatechars:9 }}</td>
+      <td>{{ item.elite_level }}</td>
+      <td>{{ item.referal_from }}</td>
+      <td>{{ item.elite_score }}</td>
+      <td>{{ item.yesterday_score }}</td>
+      <td>面额: {{ item.in.val }}<br>张数: {{ item.in.num }}</td>
+      <td>面额: {{ item.out.val }}<br>张数: {{ item.out.num }}</td>
+      <td>面额: {{ item.in_buy_coupon.val }}<br>张数: {{ item.in_buy_coupon.num }}</td>
+      <td>面额: {{ item.out_consumed.val }}<br>张数: {{ item.out_consumed.num }}</td>
+      <td>面额: {{ item.out_transfer.val }}<br>张数: {{ item.out_transfer.num }}</td>
+      <td>
+        <ul>
+        {% for level, num in item.team %}
+          {% if level != 'indirect' %}
+          <li>{{ level }}, {{ num }}</li>
+          {% endif %}
+        {% endfor %}
+        </ul>
+      </td>
+      <td>{{ item.manager.last_name }}{{ item.manager.first_name }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% include 'yunying/_page.html'%}
+{% endblock %}
+
+{% block scripts %}
+
+{% endblock %}

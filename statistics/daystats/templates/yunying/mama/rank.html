@@ -1,0 +1,57 @@
+{% extends 'layout.html' %}
+{% load mytags %}
+
+{% block main %}
+
+{% include 'yunying/datepicker.html' %}
+
+
+<div class="row">
+  <div class="col-xs-12">
+    <div class="btn-group">
+      <a href="?{% replace_url_params 'tab' 'invite' %}" type="button" class="btn {% if tab == 'invite' %}btn-primary{% else %}btn-default{% endif %}">邀请人数</a>
+      <a href="?{% replace_url_params 'tab' 'order' %}" type="button" class="btn {% if tab == 'order' %}btn-primary{% else %}btn-default{% endif %}">订单收益</a>
+      <a href="?{% replace_url_params 'tab' 'click' %}" type="button" class="btn {% if tab == 'click' %}btn-primary{% else %}btn-default{% endif %}">点击收益</a>
+      <a href="?{% replace_url_params 'tab' 'award' %}" type="button" class="btn {% if tab == 'award' %}btn-primary{% else %}btn-default{% endif %}">奖金收益</a>
+      <a href="?{% replace_url_params 'tab' 'total' %}" type="button" class="btn {% if tab == 'total' %}btn-primary{% else %}btn-default{% endif %}">总收益</a>
+    </div>
+  </div>
+
+</div>
+
+<div class="row">
+  <div class="col-xs-12">
+  <table class="table table-bordered  sortable-theme-bootstrap" data-sortable>
+    <thead>
+      <tr>
+        <th></th>
+        <th>mama_id</th>
+        <th>昵称</th>
+        <th>收益(元)(预计+确定)</th>
+        <th>手机号</th>
+        <th>用户创建时间</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for item in items %}
+    <tr>
+      <td>{{ forloop.counter }}</td>
+      <td><a href="{% url 'yy-mama-show' %}?mama_id={{ item.id }}" target="_blank">{{ item.id }}</a></td>
+      <td>{{ item.nick }}</td>
+      <td>{{ item.money }}</td>
+      <td>{{ item.mobile }}</td>
+      <td>{{ item.created }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+
+{% endblock %}
