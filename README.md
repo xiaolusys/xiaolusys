@@ -93,6 +93,17 @@ post请求: 请求参数接受参数为json格式
 - 原则
 ``` text
 项目上线后：不能删除字段，只能新加字段替换原来字段的功能，原来字段保留；
+$ python manage.py makemigrations [appname]
+Migrations for 'books':
+  books/migrations/0003_auto.py:
+    - Alter field author on book
+
+$ python manage.py migrate [appname]
+Operations to perform:
+  Apply all migrations: books
+Running migrations:
+  Rendering model states... DONE
+  Applying books.0003_auto... OK
 ```
 
 ## Logger 

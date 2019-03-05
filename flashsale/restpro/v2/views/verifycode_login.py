@@ -74,6 +74,7 @@ def get_register(mobile):
     return reg, True
 
 
+
 def validate_code(mobile, verify_code):
     """
     Only indicate whether or not verify_code is valid.
@@ -217,18 +218,18 @@ class SendCodeView(views.APIView):
             else:
                 return Response({"rcode": 0, "code": 0, "msg": u"验证码已发送", "info": u"验证码已发送"})
 
-        # 稳定后，日志可以移到valid_request　之后，降低系统负担
-        if XiaoluSwitch.is_switch_open(9):
-            logger.info({
-                'action': 'api.v2.send_code',
-                'ip': request.META.get('REMOTE_ADDR', ''),
-                'http_user_agent': request.META.get('HTTP_USER_AGENT', ''),
-                'cookie': request.META.get('HTTP_COOKIE', ''),
-                'http_origin': request.META.get('HTTP_ORIGIN', ''),
-                'http_referer': request.META.get('HTTP_REFERER', ''),
-                'mobile': mobile,
-                'type': action,
-            })
+        # # 稳定后，日志可以移到valid_request　之后，降低系统负担
+        # if XiaoluSwitch.is_switch_open(9):
+        #     logger.info({
+        #         'action': 'api.v2.send_code',
+        #         'ip': request.META.get('REMOTE_ADDR', ''),
+        #         'http_user_agent': request.META.get('HTTP_USER_AGENT', ''),
+        #         'cookie': request.META.get('HTTP_COOKIE', ''),
+        #         'http_origin': request.META.get('HTTP_ORIGIN', ''),
+        #         'http_referer': request.META.get('HTTP_REFERER', ''),
+        #         'mobile': mobile,
+        #         'type': action,
+        #     })
 
         if not validate_mobile(mobile):
             info = u"亲，手机号码错啦！"

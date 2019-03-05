@@ -66,11 +66,15 @@ class WeiXinAPI(object):
     # 微信原生支付URL
     _native_url = "weixin://wxpay/bizpayurl"
     _deliver_notify_url = "/pay/delivernotify"
-    _wxpub_id = None
-    _account_data = {}
+
+    # 微信公众号群发消息
+    _message_mass_send_uri = "/cgi-bin/message/mass/send"
 
     # 客服消息接口
     _send_custom_message_uri = '/cgi-bin/message/custom/send'
+
+    _wxpub_id = None
+    _account_data = {}
 
     def __init__(self, wxpubId=None, appKey=None, **kwargs):
         if wxpubId or appKey:
@@ -450,6 +454,14 @@ class WeiXinAPI(object):
         response = self.handleRequest(
             self._send_custom_message_uri,
             json.dumps(params).decode('unicode-escape').encode('utf8'), #, ensure_ascii=False is confilct
+            method='POST'
+        )
+        return response
+
+    def send_mass_message(self, params):
+        response = self.handleRequest(
+            self._message_mass_send_uri,
+            json.dumps(params).decode('unicode-escape').encode('utf8'),  # , ensure_ascii=False is confilct
             method='POST'
         )
         return response

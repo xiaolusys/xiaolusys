@@ -152,6 +152,7 @@ class WeiXinAccount(models.Model):
         return self.app_id in (settings.WX_PUB_APPID,)
 
 
+
 def invalid_wxaccount_cache_value(sender, instance, created, **kwargs):
     """ invalid wxaccount cache value  """
     for cache_key in [WeiXinAccount.gen_account_list_cache_key(),

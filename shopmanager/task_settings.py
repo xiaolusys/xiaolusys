@@ -1500,6 +1500,16 @@ FENGCHAO_SCHEDULE = {
     },
 }
 
+# 弘利基金
+FUND_SCHEDULE = {
+    u'每周一发送上周基金收益到公众号': {
+        'task': 'games.fund.tasks.task_send_fund_profit_message',
+        'schedule': crontab(minute="30", hour="10", day_of_week='mon'),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_send_fund_profit_message'}
+    },
+}
+
 # 业务指数据标监控任务
 STATSD_SCHEDULE = {
     u'每分钟发送任务队列待处理消息数量': {
@@ -1554,5 +1564,6 @@ CELERYBEAT_SCHEDULE.update(BOUTIQUE_SCHEDULE)
 CELERYBEAT_SCHEDULE.update(STATSD_SCHEDULE)
 CELERYBEAT_SCHEDULE.update(STATISTIC_SCHEDULE)
 CELERYBEAT_SCHEDULE.update(FENGCHAO_SCHEDULE)
+CELERYBEAT_SCHEDULE.update(FUND_SCHEDULE)
 
 CELERY_BEAT_SCHEDULE = CELERYBEAT_SCHEDULE

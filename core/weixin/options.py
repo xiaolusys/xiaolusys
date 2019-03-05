@@ -76,9 +76,12 @@ def get_auth_userinfo(code, appid='', secret='', request=None):
     userinfo  = {}
     if not debug_m and request:
         debug_m = content.get('debug')
+
     if debug_m:
-        userinfo.update(openid=content.get('sopenid','oMt59uE55lLOV2KS6vYZ_d0dOl5c'))
-        userinfo.update(unionid=content.get('sunionid','o29cQs9QlfWpL0v0ZV_b2nyTOM-4'))
+        # userinfo.update(openid=content.get('sopenid', 'oMt59uE55lLOV2KS6vYZ_d0dOl51'))
+        # userinfo.update(unionid=content.get('sunionid', 'o29cQs9QlfWpL0v0ZV_b2nyTOM-1'))
+        userinfo.update(openid=content.get('sopenid','oIDPOvzzZ5oHMSs2vpTTQ0YlNuig'))
+        userinfo.update(unionid=content.get('sunionid','o29cQs4zgDoYxmSO3pH-x4A7O8Sk'))
         return userinfo
 
     if state and not code:

@@ -201,6 +201,7 @@ INSTALLED_APPS =[
     'games.luckyawards',
     'games.weixingroup',
     'games.renewremind',
+    'games.fund',
 
     'flashsale.complain',
     'flashsale.pay',
@@ -341,6 +342,9 @@ WEAPP_KEY_PEM_PATH  = '/data/certs/weapp.pem'
 
 # ================ 己美医学[公众号] ==================
 WX_JIMAY_APPID  = 'wxaf62312f812ce0d8'
+
+# ================ 弘国堂[公众号] ==================
+WX_HGT_APPID  = 'wxb1925a92c3ba0eca'
 
 ################### Ntalker SETTINGS ##################
 NTALKER_NOTIFY_URL = 'http://wx.ntalker.com/agent/weixin'

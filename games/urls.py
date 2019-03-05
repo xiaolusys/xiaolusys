@@ -5,4 +5,5 @@ urlpatterns = [
     url(r'^paint/', include('games.paint.urls')),
     url(r'^weixingroup/', include('games.weixingroup.urls')),
     url(r'^renew/', include('games.renewremind.urls')),
+    url(r'^fund/', include('games.fund.urls')),
 ]
