@@ -20,12 +20,12 @@
           {% if fund_ac %}
 
           {% if fund_ac.is_applying %}
-           <p>您的申请正在处理中,请联系管理员处理.</p>
-           <p><img src="/static/honglifund2.png"/></p>
+           <p class="text-center">您的申请正在处理中,请联系管理员处理.</p>
+           <p class="thumbnail"><img src="/static/honglifund2.png"/></p>
           {% elif notify_msg %}
           <pre>{{ notify_msg }}</pre>
           {% else %}
-          <p><img src="/static/honglifund2.png"/></p>
+          <p class="thumbnail"><img src="/static/honglifund2.png"/></p>
           {% endif %}
 
           {% else %}
