@@ -11,7 +11,11 @@
     <div class="panel-body">
       <div class="row">
         <div class="col-xs-12">
+          {% if fund_ac %}
+          <p style="color:#e8792a;text-align:center;font-size:32px;">弘利基金收益查询</p>
+          {% else %}
           <p style="color:#e8792a;text-align:center;font-size:32px;">弘利基金购买申请</p>
+          {% endif %}
         </div>
       </div>
 
