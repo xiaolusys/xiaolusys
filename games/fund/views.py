@@ -28,7 +28,6 @@ class FundAccountMgrView(WeixinAuthMixin, View):
             return redirect(redirect_url)
 
         data = {
-            'is_valid': False,
             'customer': None,
             'notify_msg': None,
             'fund_ac': None,
@@ -51,7 +50,6 @@ class FundAccountMgrView(WeixinAuthMixin, View):
             customer, state = Customer.objects.get_or_create(user=dj_user, unionid=unionid)
 
         if customer:
-            data.update({'is_valid': True})
             data.update({'customer': customer})
             fund_ac = FundBuyerAccount.objects.filter(customer_id=customer.id).first()
             if fund_ac:

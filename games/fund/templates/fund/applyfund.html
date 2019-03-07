@@ -28,7 +28,7 @@
           <p class="thumbnail"><img src="/static/honglifund2.png"/></p>
           {% endif %}
 
-          {% else %}
+          {% elif customer %}
           <form method="POST" action="/games/fund/fundmgr/" onsubmit="return check()">
             {% csrf_token %}
             <input name="openid" type="hidden" value="{{openid}}">
@@ -57,6 +57,9 @@
               </div>
             </div>
           </form>
+          {% else %}
+          <p class="text-center label-warn">用户授权失败,请联系管理员.</p>
+          <p class="thumbnail"><img src="/static/honglifund2.png"/></p>
           {% endif %}
         </div>
       </div>
