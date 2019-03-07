@@ -96,7 +96,7 @@ class FundAccountMgrView(WeixinAuthMixin, View):
         openid  = content.get('openid')
         unionid = content.get('unionid')
 
-        customer = get_object_or_404(Customer, user=request.user ,unionid=unionid, mobile=mobile)
+        customer = get_object_or_404(Customer, user=request.user)
 
         fund_ac  = FundBuyerAccount.objects.create(
             customer_id=customer.id,
