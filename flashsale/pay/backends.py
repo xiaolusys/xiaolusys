@@ -153,11 +153,11 @@ class WeixinAppBackend(object):
     def authenticate(self, request, **kwargs):
 
         content = request.POST
-        if not (request.path.startswith("/rest/") and content.get('unionid')):
+        unionid = content.get('unionid') or kwargs.get('unionid')
+        openid = content.get('openid') or kwargs.get('unionid')
+        if not ((request.path.startswith("/rest/") or request.path.startswith("/fund/")) and unionid):
             return None
 
-        openid = content.get('openid')
-        unionid = content.get('unionid')
         if not valid_openid(openid) or not valid_openid(unionid):
             return AnonymousUser()
 

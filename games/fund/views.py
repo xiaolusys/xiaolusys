@@ -36,7 +36,16 @@ class FundAccountMgrView(WeixinAuthMixin, View):
             'openid': openid
         }
 
-        dj_user, state  = DjangoUser.objects.get_or_create(username=unionid)
+        dj_user = authenticate(request=request, unionid=unionid, openid=openid)
+        if not dj_user or dj_user.is_anonymous:
+            return render(
+                request,
+                "fund/applyfund.html",
+                data,
+            )
+
+        login(request, dj_user)
+
         customer = Customer.objects.filter(user=dj_user, unionid=unionid).first()
         if not customer:
             customer, state = Customer.objects.get_or_create(user=dj_user, unionid=unionid)
@@ -87,8 +96,7 @@ class FundAccountMgrView(WeixinAuthMixin, View):
         openid  = content.get('openid')
         unionid = content.get('unionid')
 
-        dj_user = get_object_or_404(DjangoUser, username=unionid)
-        customer = get_object_or_404(Customer, user=dj_user ,unionid=unionid)
+        customer = get_object_or_404(Customer, user=request.user ,unionid=unionid, mobile=mobile)
 
         fund_ac  = FundBuyerAccount.objects.create(
             customer_id=customer.id,
