@@ -37,6 +37,14 @@
             {% csrf_token %}
             <input name="openid" type="hidden" value="{{openid}}">
             <input name="unionid" type="hidden" value="{{unionid}}">
+
+            <div  class="input-group">
+              <span class="input-group-addon">姓名</span>
+              <input id="id_buyername_input" type="text" name="buyer_name" class="form-control">
+              <span class="input-group-btn">
+              </span>
+            </div>
+
             <h5 style="color:#3071a9">验证手机</h5>
             <span style="color:red" id="id_verify_msg"></span>
             <div class="input-group">
@@ -46,6 +54,7 @@
             <button id="id_requestcode_button" class="btn btn-primary" type="button" onclick="requestcode();" status="0">获验证码</button>
               </span>
             </div>
+
             <div id="id_verifycode_group" class="input-group">
               <span class="input-group-addon">验证码</span>
               <input id="id_code_input" type="text" class="form-control">
@@ -136,7 +145,7 @@
 
     var openid = $("#id_openid").val();
     var url = "/rest/v2/send_code";
-    var data = {"mobile":mobile, "action":"bind"};
+    var data = {"mobile":mobile, "action":"recheck"};
 
     var callback = function (res) {
 
@@ -153,6 +162,7 @@
 
   function verifycode() {
     var verifycode = $("#id_code_input").val();
+    var mobile = $("#id_mobile_input").val();
     if (validateVerifyCode(verifycode) == false) {
       $("#id_verify_msg")[0].innerHTML = "验证码错误！";
       return;
@@ -167,15 +177,20 @@
       window.clearInterval(global_timer);
       $("#id_verifycode_group").css("display","none");
       $("#id_requestcode_button").removeClass("btn-primary").addClass("btn-success")[0].innerHTML="已验证";
-      $("#id_mobile_input").attr("disabled","disabled");
+      $("#id_mobile_input").attr("readonly","readonly");
       $("#id_requestcode_button").attr("status", "2");
     };
-    var mobile = $("#id_mobile_input").val();
-    var data = {"verify_code":verifycode, "mobile":mobile, "action":"bind"};
+
+    var data = {"verify_code":verifycode, "mobile":mobile, "action":"recheck"};
     $.ajax({type: "POST", url:url, data:data, success:callback});
   };
 
   function check() {
+
+    if (!$("#id_buyername_input").val()) {
+      $("#id_msg")[0].innerHTML = "请填写真实姓名！";
+      return false;
+    }
 
     if ($("#id_requestcode_button").attr("status") != "2") {
       $("#id_msg")[0].innerHTML = "请先验证手机号！";

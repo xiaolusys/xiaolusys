@@ -131,7 +131,7 @@ def validate_action(action):
     """
     check whether the action is legal.
     """
-    d = ["register", "find_pwd", "change_pwd", "bind", "sms_login"]
+    d = ["register", "find_pwd", "change_pwd", "bind", "sms_login", "recheck"]
     if action in d:
         return True
     return False
@@ -196,11 +196,11 @@ def valid_send_request(request):
 class SendCodeView(views.APIView):
     """
     处理所有和验证码相关的请求，暂有5类：
-    register，sms_login, find_pwd, change_pwd, bind.
+    register，sms_login, find_pwd, change_pwd, bind, recheck.
 
     /send_code
     mobile: mobile number
-    action: one of 5 actions (register，sms_login, find_pwd, change_pwd, bind)
+    action: one of 5 actions (register，sms_login, find_pwd, change_pwd, bind, recheck)
     """
     throttle_scope = 'auth'
 
@@ -246,7 +246,7 @@ class SendCodeView(views.APIView):
                 info = u"该用户已经存在啦！"
                 return Response({"rcode": 2, "code": 2, "msg": info, "info": info})
         else:
-            if action in ['find_pwd', 'change_pwd', 'bind', 'sms_login']:
+            if action in ['find_pwd', 'change_pwd', 'bind', 'sms_login', 'recheck']:
                 info = u"该用户还不存在呢！"
                 return Response({"rcode": 3, "code": 3, "msg": info, "info": info})
 
@@ -325,7 +325,7 @@ class VerifyCodeView(views.APIView):
 
     /verify_code
     mobile: mobile number
-    action: one of 4 actions (sms_login, find_pwd, change_pwd, bind)
+    action: one of 4 actions (sms_login, find_pwd, change_pwd, bind, recheck)
     nickname： if action is bind , this field need
     """
     throttle_scope = 'auth'

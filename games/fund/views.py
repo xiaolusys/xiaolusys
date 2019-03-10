@@ -92,7 +92,7 @@ class FundAccountMgrView(WeixinAuthMixin, View):
         content = request.POST
         mobile  = content.get('mobile')
         openid  = content.get('openid')
-        unionid = content.get('unionid')
+        buyer_name = content.get('buyer_name')
 
         customer = get_object_or_404(Customer, user=request.user)
 
@@ -100,6 +100,7 @@ class FundAccountMgrView(WeixinAuthMixin, View):
             customer_id=customer.id,
             mobile=mobile,
             openid=openid,
+            buyer_name=buyer_name,
             status=FundBuyerAccount.APPLYING
         )
 
