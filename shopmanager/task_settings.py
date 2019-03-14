@@ -1504,7 +1504,7 @@ FENGCHAO_SCHEDULE = {
 FUND_SCHEDULE = {
     u'每周一发送上周基金收益到公众号': {
         'task': 'games.fund.tasks.task_send_fund_profit_message',
-        'schedule': crontab(minute="30", hour="10", day_of_week='mon'),
+        'schedule': crontab(minute="30", hour="7", day_of_week='mon'),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_send_fund_profit_message'}
     },

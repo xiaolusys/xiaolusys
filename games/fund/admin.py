@@ -19,7 +19,7 @@ class FundBuyerAccountAdmin(admin.ModelAdmin):
 @admin.register(FundNotifyMsg)
 class FundNotifyMsgAdmin(admin.ModelAdmin):
     list_display = ('id', 'fund_buyer', 'send_type', 'pre_send_message', 'is_send','send_time', 'created')
-    list_filter = ('is_send', 'send_time', 'created')
+    list_filter = ('send_type', 'is_send', 'send_time', 'created')
     search_fields = ['=id', '=fund_buyer__mobile']
     list_per_page = 40
 
