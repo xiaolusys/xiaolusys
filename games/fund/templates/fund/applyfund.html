@@ -26,6 +26,9 @@
           {% if fund_ac.is_applying %}
            <p class="text-center">您的申请正在处理中,请联系管理员处理.</p>
            <p class="thumbnail"><img src="/static/honglifund2.png"/></p>
+          {% elif fund_ac.is_exited %}
+           <p class="text-center">该账号已清退,如有疑问请联系管理员.</p>
+           <p class="thumbnail"><img src="/static/honglifund2.png"/></p>
           {% elif notify_msg %}
           <pre>{{ notify_msg }}</pre>
           {% else %}

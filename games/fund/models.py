@@ -11,7 +11,7 @@ from core.utils.timeutils import get_previous_byday
 
 NOTIFY_WEEKMSG = """
 弘利基金上周收益(单位:美元)
-=======================
+=====================
 截止日期：{cur_date}
 账户姓名：{buyer_name}
 上周收益：{lastweek_profit:.2f}
@@ -20,7 +20,7 @@ NOTIFY_WEEKMSG = """
 新购日期：{last_buy_date}
 有效天数：{valid_days}
 累计收益：{earned_profit:.2f}
-=========说明===========
+=========说明=========
 年化利率: 即购买时约定的年收益率;
 购入本金: 累计购入基金金额的总和;
 新购日期: 最后一次购买的日期;
@@ -96,6 +96,10 @@ class FundBuyerAccount(models.Model):
     @property
     def is_applying(self):
         return self.status == self.APPLYING
+
+    @property
+    def is_exited(self):
+        return self.status == self.EXITED
 
     @property
     def daily_profit_rate(self):
