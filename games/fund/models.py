@@ -102,6 +102,13 @@ class FundBuyerAccount(models.Model):
         return self.status == self.EXITED
 
     @property
+    def valid_profit_days(self):
+        if not self.last_buy_date:
+            return 0
+
+        return max((date.today() - self.last_buy_date).days, 0)
+
+    @property
     def daily_profit_rate(self):
         return self.annual_yield_rate / 365.0
 
