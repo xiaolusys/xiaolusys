@@ -19,7 +19,7 @@ class FundBuyerAccountAdmin(admin.ModelAdmin):
         return '%d'%(obj.settled_earned_profit + obj.buy_amount * obj.annual_yield_rate / 365 * obj.valid_profit_days * 0.01)
 
     text_current_profit.allow_tags = True
-    text_current_profit.short_description = "当前总收益(新购前收益+新购后收益)"
+    text_current_profit.short_description = "当前总收益(新购前收益+新购后收益$分)"
 
 
 @admin.register(FundNotifyMsg)
