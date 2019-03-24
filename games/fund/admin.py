@@ -9,14 +9,14 @@ from .models import FundBuyerAccount, FundNotifyMsg
 @admin.register(FundBuyerAccount)
 class FundBuyerAccountAdmin(admin.ModelAdmin):
     list_display = ('id', 'status', 'buyer_name', 'mobile', 'buy_amount', 'settled_earned_profit', 'annual_yield_rate',
-                    'total_buy_amount', 'text_current_profit', 'last_buy_date', 'valid_profit_days', 'created')
+                    'total_buy_amount', 'text_current_profit', 'last_buy_date', 'valid_profit_days', 'total_buy_amount','total_earned_profit', 'created')
     list_filter = ('status','last_buy_date', 'created')
     search_fields = ['=id', '=buyer_name', '=mobile']
     readonly_fields = ['customer_id','mobile', 'openid']
     list_per_page = 100
 
     def text_current_profit(self, obj):
-        return obj.merge_trade.get_sys_status_display()
+        return '%d'%(obj.settled_earned_profit + obj.buy_amount * obj.annual_yield_rate / 365 * obj.valid_profit_days * 0.01)
 
     text_current_profit.allow_tags = True
     text_current_profit.short_description = "当前总收益(新购前收益+新购后收益)"
