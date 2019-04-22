@@ -66,7 +66,7 @@ class FundBuyerAccount(models.Model):
     buyer_name = models.CharField(max_length=16, blank=False, db_index=True, verbose_name=u'姓名')
 
     buy_amount = models.IntegerField(default=0, verbose_name=u'当前购买金额($分)')
-    settled_earned_profit = models.IntegerField(default=0, verbose_name=u'新购前结算收益($分)',
+    settled_earned_profit = models.IntegerField(default=0, verbose_name=u'新购前未结算收益($分)',
                                         help_text='在用户多次购入时需将前一笔收益结算完才能处理,这里就是用户新购前未赎回累计收益')
 
     annual_yield_rate   = models.FloatField(default=0, verbose_name=u'基金年收益率(%)')
