@@ -5,9 +5,12 @@ import json
 import urllib
 import urllib2
 from django.conf import settings
+import logging
 
-OPENID_RE = '^[a-zA-Z0-9-_]{28}$'
-AUTHCODE_RE = '^[a-zA-Z0-9]{20,40}$'
+logger = logging.getLogger('django.request')
+
+OPENID_RE = re.compile('^[a-zA-Z0-9-_]{28}$')
+AUTHCODE_RE = re.compile('^[a-zA-Z0-9]{20,40}$')
 
 WEIXIN_SNS_USERINFO_URI = '{0}/sns/userinfo?access_token={1}&openid={2}&lang=zh_CN'
 WEIXIN_SNS_BASEINFO_URI = '{0}/sns/oauth2/access_token?appid={1}&secret={2}&code={3}&grant_type=authorization_code'
@@ -20,7 +23,7 @@ def is_from_weixin(request):
 
 def valid_openid(openid):
     """ 验证微信授权ID是否有效 """
-    if openid and re.compile(OPENID_RE).match(openid):
+    if openid and OPENID_RE.match(openid):
         return True
     return False
 
@@ -78,16 +81,14 @@ def get_auth_userinfo(code, appid='', secret='', request=None):
         debug_m = content.get('debug')
 
     if debug_m:
-        # userinfo.update(openid=content.get('sopenid', 'oMt59uE55lLOV2KS6vYZ_d0dOl51'))
-        # userinfo.update(unionid=content.get('sunionid', 'o29cQs9QlfWpL0v0ZV_b2nyTOM-1'))
-        userinfo.update(openid=content.get('sopenid','oIDPOvzzZ5oHMSs2vpTTQ0YlNuig'))
-        userinfo.update(unionid=content.get('sunionid','o29cQs4zgDoYxmSO3pH-x4A7O8Sk'))
+        userinfo.update(openid=content.get('sopenid','oMt59uE55lLOV2KS6vYZ_d0dOl5c'))
+        userinfo.update(unionid=content.get('sunionid','o29cQs9QlfWpL0v0ZV_b2nyTOM-4'))
         return userinfo
 
     if state and not code:
         return {'errcode':9999,'msg':'The user cancel authorized!'}
 
-    if not code or not re.compile(AUTHCODE_RE).match(code):
+    if not code or not AUTHCODE_RE.match(code):
         return userinfo
 
     r = get_weixin_userbaseinfo(code, appid, secret)

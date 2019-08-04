@@ -1,0 +1,28 @@
+{% extends "apply/apply_base.html" %}
+
+{% block title %} 比特优品-申请成功 {% endblock %}
+
+{% block apply_script %}
+
+{% endblock %}
+
+
+{% block container %}
+
+<div class="wrapper">
+    <ul class="flow-steps">
+        <li class="col-xs-4 "><a href="#" class="btn btn-default">填写资料 &gt;</a></li>
+        <li class="col-xs-4 "><a href="#" class="btn btn-default">支付押金 &gt;</a></li>
+        <li class="col-xs-4 on"><a href="#" class="btn">加入比特优品 &gt;</a></li>
+    </ul>
+    <div class="arr"></div>
+</div>
+
+<div class="jumbotron" style="padding:5px;">
+  <div class="container">
+    <p>很抱歉，您没有支付成功!</p>
+    <p><a class="btn btn-success" href="/m/register/{{mama_id}}/">点击比特优品页面重新申请</a></p>
+  </div>
+</div>
+
+{% endblock %}

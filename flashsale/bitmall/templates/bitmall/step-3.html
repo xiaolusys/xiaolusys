@@ -1,0 +1,203 @@
+{% extends "bitmall/apply_base.html" %}
+
+{% block title %} 比特优品-邀请结果页面 {% endblock %}
+
+{% block head_script %}
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/invitation-letter.css">
+{% endblock %}
+
+{% block container %}
+
+<div class="container-fluid">
+  <div class="panel panel-default" style="margin-top:5px">
+    <div class="panel-heading" style="color:orange"><strong>注册比特优品会员</strong></div>
+    <div class="panel-body">
+      <div class="row ">
+          <!-- 比特优品介绍区域 -->
+          <div class="col-xs-12">
+            <div class="thumbnail">比特优品198会员礼品</div>
+          </div>
+      </div>
+      <div class="row">
+        <div class="col-xs-12">
+          <form method="POST" action="/games/fund/fundmgr/" onsubmit="return check()">
+            {% csrf_token %}
+            <input name="openid" type="hidden" value="{{openid}}">
+            <input name="unionid" type="hidden" value="{{unionid}}">
+
+            <div  class="input-group">
+              <span class="input-group-addon">姓名</span>
+              <input id="id_buyername_input" type="text" name="buyer_name" class="form-control">
+              <span class="input-group-btn">
+              </span>
+            </div>
+
+            <div  class="input-group">
+              <span class="input-group-addon">省市区</span>
+              <input id="id_province_city" type="text" name="buyer_name" class="form-control">
+              <span class="input-group-btn">
+              </span>
+                <!--触发按钮-->
+                <a id="citySelect" class="citySelect" href="javascript:void(0);">城市选择</a>
+                <!--显示省市区选择模块-->
+                <div id="cityBody" class="cityChoose clearfix">
+                    <div class="leftSelect">
+                    </div>
+                    <div class="rightSelect">
+                    </div>
+                </div>
+            </div>
+
+            <h5 style="color:#3071a9">验证手机</h5>
+            <span style="color:red" id="id_verify_msg"></span>
+            <div class="input-group">
+              <span class="input-group-addon">手机号</span>
+              <input id="id_mobile_input" name="mobile" type="text" class="form-control">
+              <span class="input-group-btn">
+            <button id="id_requestcode_button" class="btn btn-primary" type="button" onclick="requestcode();" status="0">获验证码</button>
+              </span>
+            </div>
+
+            <div id="id_verifycode_group" class="input-group">
+              <span class="input-group-addon">验证码</span>
+              <input id="id_code_input" type="text" class="form-control">
+              <span class="input-group-btn">
+            <button id="id_verifycode_button" class="btn btn-warning" type="button" onclick="verifycode();">点击验证</button>
+              </span>
+            </div>
+
+            <div class="row" style="margin-top:16px">
+              <p id="id_msg" style="text-align:center;color:red"></p>
+              <div class="col-xs-12" style="text-align:center">
+                <input type="submit" class="btn btn-warning" value="确认支付"/>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+      <hr/>
+
+      <!--
+      <div class="row">
+        <div class="col-xs-12"><p>本期睡袋免费试用活动已经结束申请了，亲们下期活动再会！</p></div>
+      </div>
+      -->
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-xs-12">
+      <h5 style="color:#3071a9">温馨提示</h5>
+      <p>提交申请后,请添加图片中管理员微信,获得帮助和支持.</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>© 弘国堂 2019</p>
+  </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block tail_script %}
+<script type="text/javascript">
+  function validateMobile(s) {
+    var validateReg = /^((\+?86)|(\(\+86\)))?1\d{10}$/;
+    return validateReg.test(s);
+  };
+
+  function validateVerifyCode(s) {
+    var validateReg = /^\d{6}$/;
+    return validateReg.test(s);
+  };
+
+  var global_timer;
+  function updateTime() {
+    var btn = $("#id_requestcode_button");
+    time_left = parseInt(btn[0].innerHTML) - 1;
+    if (time_left <= 0) {
+      btn.attr("status","0");
+      window.clearInterval(global_timer);
+      btn[0].innerHTML = "点击重发";
+    } else {
+      btn[0].innerHTML = time_left.toString();
+    }
+  };
+
+  function requestcode() {
+    var btn = $("#id_requestcode_button");
+    var status = btn.attr("status");
+    if (status == "1" || status == "2") {
+      return;
+    }
+
+    var mobile = $("#id_mobile_input").val();
+    if (validateMobile(mobile) == false) {
+      return;
+    }
+
+    btn.attr("status","1");
+    btn[0].innerHTML = "180";
+    global_timer = window.setInterval(updateTime, 1000);
+
+    var openid = $("#id_openid").val();
+    var url = "/rest/v2/send_code";
+    var data = {"mobile":mobile, "action":"recheck"};
+
+    var callback = function (res) {
+
+      if (res["code"] != 0) {
+        btn.attr("status","0");
+        $("#id_verify_msg")[0].innerHTML = res["info"];
+        window.clearInterval(global_timer);
+      }
+
+    };
+
+    $.ajax({type: "POST", url:url, data:data, success:callback});
+  };
+
+  function verifycode() {
+    var verifycode = $("#id_code_input").val();
+    var mobile = $("#id_mobile_input").val();
+    if (validateVerifyCode(verifycode) == false) {
+      $("#id_verify_msg")[0].innerHTML = "验证码错误！";
+      return;
+    }
+    var url = "/rest/v2/verify_code";
+    var callback = function (res) {
+      if (res["rcode"] != 0) {
+        $("#id_verifycode_button")[0].innerHTML = res["msg"];
+        return;
+      }
+
+      window.clearInterval(global_timer);
+      $("#id_verifycode_group").css("display","none");
+      $("#id_requestcode_button").removeClass("btn-primary").addClass("btn-success")[0].innerHTML="已验证";
+      $("#id_mobile_input").attr("readonly","readonly");
+      $("#id_requestcode_button").attr("status", "2");
+    };
+
+    var data = {"verify_code":verifycode, "mobile":mobile, "action":"recheck"};
+    $.ajax({type: "POST", url:url, data:data, success:callback});
+  };
+
+  function check() {
+
+    if (!$("#id_buyername_input").val()) {
+      $("#id_msg")[0].innerHTML = "请填写真实姓名！";
+      return false;
+    }
+
+    if ($("#id_requestcode_button").attr("status") != "2") {
+      $("#id_msg")[0].innerHTML = "请先验证手机号！";
+      return false;
+    }
+
+    return true;
+  }
+
+</script>
+{% endblock %}

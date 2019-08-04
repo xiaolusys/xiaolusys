@@ -1,0 +1,40 @@
+{% extends "apply/apply_base.html" %}
+
+{% block title %} 比特优品-申请失败 {% endblock %}
+
+{% block head_script %}
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/invitation-success.css">
+{% endblock %}
+
+{% block container-body %}
+    <div class="page-panel">
+
+        <div class="success-title">
+            <h1>申请失败</h1>
+        </div>
+        <div class="">
+            <img class="carousel-inner img-responsive img-rounded pub-img"
+                 src="http://7xogkj.com2.z0.glb.qiniucdn.com/apply-success.png"/>
+        </div>
+        <div class="success-content">
+            <p>
+                申请加入!<br/>
+                高额佣金等着你哦~ <br/>
+                <a class="" onclick="history.go(-1)">返回支付</a>
+            </p>
+        </div>
+
+    </div>
+
+{% endblock %}
+
+{% block container-foot %}
+    <div class="download-btn-div">
+        <a class="btn download-btn" href="tel:021-5093936">联系客服</a>
+    </div>
+{% endblock %}
+
+
+{% block apply_script %}
+
+{% endblock %}

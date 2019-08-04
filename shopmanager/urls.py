@@ -74,6 +74,7 @@ urlpatterns = [
     url(r'^luntan/', include('flashsale.luntan.urls')),
     url(r'^thermal/', include('shopapp.STOthermal.urls')),
     url(r'^sale/', include('flashsale.urls')),
+    url(r'^bitmall/', include('flashsale.bitmall.urls')),
     url(r'^statistics/', include('statistics.urls')),
     url(r'^djcelery/(?P<task_id>.*)/status/$', celery_state, name="task_state"),
 

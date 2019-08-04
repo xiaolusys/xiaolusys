@@ -80,7 +80,6 @@ DATABASES = {
 
 MONGODB_URI = '192.168.1.102:27017'
 
-FANGZHENG_LANTINGHEI_FONT_PATH = '/data/fonts/方正兰亭黑.TTF'
 if DEBUG:
     STATICFILES_DIRS = (
        os.path.join(PROJECT_ROOT, "site_media", "static"),

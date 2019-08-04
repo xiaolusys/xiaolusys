@@ -214,17 +214,19 @@ APPSECRET = '5d845250d49aea44c3a07d8c1d513db5'
 JD_APP_KEY = 'F9653439C316A32BF49DFFDE8381CBC9'
 JD_APP_SECRET = 'f4fe333676af4f4eaeaa00ed20c82086'
 
-################### QINIU SETTINGS ##################
-QINIU_ACCESS_KEY = "M7M4hlQTLlz_wa5-rGKaQ2sh8zzTrdY8JNKNtvKN"
-QINIU_SECRET_KEY = "8MkzPO_X7KhYQjINrnxsJ2eq5bsxKU1XmE8oMi4x"
-QINIU_PRIVATE_BUCKET = 'invoiceroom'
-QINIU_PRIVATE_DOMAIN = '7xrpt3.com2.z0.glb.qiniucdn.com'
-QINIU_PUBLIC_BUCKET = 'xiaolumm'
-QINIU_PUBLIC_DOMAIN = 'img.xiaolumeimei.com'
+################### QINIU SETTINGS[from shanghaidanlai2017@qq.com] ##################
+QINIU_ACCESS_KEY = "AeJdr1yBmZhMe56bJ3OpRJ8enHpHa-ShXWc8PHLZ"
+QINIU_SECRET_KEY = "a80RgU1FPEh8uh_YEvZKO69KzZc7DxWbP7d4m3Us"
 
-############### REMOTE MEDIA STORAGE ################
-QINIU_BUCKET_NAME   = 'mediaroom'
-QINIU_BUCKET_DOMAIN = '7xogkj.com1.z0.glb.clouddn.com'
+QINIU_PRIVATE_BUCKET = 'private'
+QINIU_PRIVATE_DOMAIN = 'p.nidepuzi.com'
+QINIU_PUBLIC_BUCKET = 'image'
+QINIU_PUBLIC_DOMAIN = 'img.nidepuzi.com'
+
+############### REMOTE MEDIA STORAGE[from shanghaidanlai2017@qq.com] ################
+QINIU_BUCKET_NAME   = 'image'
+QINIU_BUCKET_DOMAIN = 'img.nidepuzi.com'
+
 QINIU_SECURE_URL    = 0
 DEFAULT_FILE_STORAGE = 'qiniustorage.backends.QiniuStorage'
 MEDIA_URL = "http://%s/" % QINIU_BUCKET_DOMAIN

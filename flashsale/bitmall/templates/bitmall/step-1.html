@@ -1,0 +1,56 @@
+{% extends "bitmall/apply_base.html" %}
+
+{% block title %} 比特优品-邀请函 {% endblock %}
+
+{% block head_script %}
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/invitation-letter.css">
+{% endblock %}
+
+{% block container %}
+
+<div class="container-fluid">
+  <div class="panel panel-default" style="margin-top:5px">
+    <div class="panel-heading" style="color:orange"><strong>比特优品</strong></div>
+    <div class="panel-body">
+      <div class="row ">
+          <!-- 比特优品介绍区域 -->
+          <div class="col-xs-12">
+            <div class="thumbnail">比特优品介绍区域</div>
+          </div>
+      </div>
+
+      <div class="row ">
+          <div class="col-xs-12">
+            <div class="thumbnail">支付198会员有礼</div>
+          </div>
+      </div>
+
+      <div class="row">
+        <div class="col-xs-12">
+            <a href="/bitmall/register/?parent=" type="button" class="btn btn-primary btn-lg btn-block">申请成为比特优品198会员</a>
+        </div>
+      </div>
+
+      <hr/>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-xs-12">
+      <h5 style="color:#3071a9">温馨提示</h5>
+      <p>提交申请后,请添加图片中管理员微信,获得帮助和支持.</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>© 弘国堂 2019</p>
+  </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block tail_script %}
+
+{% endblock %}

@@ -1,0 +1,284 @@
+{% extends "bitmall/apply_base.html" %}
+
+{% block title %} 比特优品-邀请结果页面 {% endblock %}
+
+{% block head_script %}
+    <!--<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/invitation-letter.css">-->
+{% endblock %}
+
+{% block container %}
+
+<div class="container-fluid">
+  <div class="panel panel-default" style="margin-top:5px">
+    <div class="panel-heading" style="color:orange"><strong>注册比特优品会员</strong></div>
+    <div class="panel-body">
+      <div class="row ">
+          <!-- 比特优品介绍区域 -->
+          <div class="col-xs-12">
+            <h5>比特优品198会员礼品</h5>
+            <div class="thumbnail"></div>
+          </div>
+      </div>
+      <div class="row">
+        <div class="col-xs-12">
+          <form id="order-form" method="POST" onsubmit="return check()">
+            {% csrf_token %}
+            <input type="hidden" name="item_id" value="{{ product.id }}" />
+            <input type="hidden" name="sku_id" value="{{ sku.id }}" />
+            <input type="hidden" name="num" value="{{ num }}" />
+            <input type="hidden" name="order_no" value="{{ order_no }}" />
+            <input type="hidden" name="post_fee" value="{{ post_fee }}" />
+            <input type="hidden" name="discount_fee" value="{{ discount_fee }}" />
+            <input type="hidden" name="payment" value="{{ payment }}" />
+            <input type="hidden" name="channel" />
+
+            <div class="form-group">
+              <label for="receiver_name">名称</label>
+              <input type="text" class="form-control" id="receiver_name" placeholder="真实名称,可作为收货人名称">
+            </div>
+
+            <div id="city_china" class="form-group ">
+
+              <h5 style="color:#3071a9">收货地址</h5>
+              <!--显示省市区选择模块-->
+              <div class="input-group" style="margin-bottom:15px;">
+                <label class="input-group-addon" for="receiver_state">省</label>
+                <select name="receiver_state" class="province form-control" >
+                  <option>请选择</option>
+                </select>
+              </div>
+
+              <div class="input-group" style="margin-bottom:15px;">
+                <label class="input-group-addon" for="receiver_city">市</label>
+                <select name="receiver_city" class="city form-control">
+                  <option>请选择</option>
+                </select>
+              </div>
+
+              <div class="input-group" style="margin-bottom:15px;">
+                <label class="input-group-addon" for="receiver_district">区</label>
+                <select name="receiver_district" class="area form-control">
+                  <option>请选择</option>
+                </select>
+              </div>
+
+              <label for="receiver_address">详细地址</label>
+              <input type="text" class="form-control" id="receiver_address" placeholder="区/县/镇/街道/门牌号等">
+
+            </div>
+
+            <div class="form-group">
+              <h5 style="color:#3071a9">验证手机</h5>
+              <span style="color:red" id="id_verify_msg"></span>
+              <div class="input-group">
+                <span class="input-group-addon">手机号</span>
+                <input id="id_mobile_input" name="mobile" type="text" class="form-control">
+                <span class="input-group-btn">
+              <button id="id_requestcode_button" class="btn btn-primary" type="button" onclick="requestcode();" status="0">获验证码</button>
+                </span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div id="id_verifycode_group" class="input-group">
+                <span class="input-group-addon">验证码</span>
+                <input id="id_code_input" type="text" class="form-control">
+                <span class="input-group-btn">
+                  <button id="id_verifycode_button" class="btn btn-warning" type="button" onclick="verifycode();">点击验证</button>
+                </span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <p id="id_msg" style="text-align:center;color:red"></p>
+              <div class="col-xs-12" style="text-align:center">
+                <input type="submit" class="btn btn-warning" value="提交并支付198"/>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+      <hr/>
+
+      <!--
+      <div class="row">
+        <div class="col-xs-12"><p>本期睡袋免费试用活动已经结束申请了，亲们下期活动再会！</p></div>
+      </div>
+      -->
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>© 弘国堂 2019</p>
+  </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block tail_script %}
+<script type="text/javascript" src="{{ STATIC_URL }}cxSelect/js/jquery.cxselect.min.js" ></script>
+<script src="{{ STATIC_URL }}script/pingpp_pay.js"></script>
+<script type="text/javascript">
+  function validateMobile(s) {
+    var validateReg = /^((\+?86)|(\(\+86\)))?1\d{10}$/;
+    return validateReg.test(s);
+  };
+
+  function validateVerifyCode(s) {
+    var validateReg = /^\d{6}$/;
+    return validateReg.test(s);
+  };
+
+  var global_timer;
+  function updateTime() {
+    var btn = $("#id_requestcode_button");
+    time_left = parseInt(btn[0].innerHTML) - 1;
+    if (time_left <= 0) {
+      btn.attr("status","0");
+      window.clearInterval(global_timer);
+      btn[0].innerHTML = "点击重发";
+    } else {
+      btn[0].innerHTML = time_left.toString();
+    }
+  };
+
+  function requestcode() {
+    var btn = $("#id_requestcode_button");
+    var status = btn.attr("status");
+    if (status == "1" || status == "2") {
+      return;
+    }
+
+    var mobile = $("#id_mobile_input").val();
+    if (validateMobile(mobile) == false) {
+      return;
+    }
+
+    btn.attr("status","1");
+    btn[0].innerHTML = "180";
+    global_timer = window.setInterval(updateTime, 1000);
+
+    var openid = $("#id_openid").val();
+    var url = "/rest/v2/send_code";
+    var data = {"mobile":mobile, "action":"recheck"};
+
+    var callback = function (res) {
+
+      if (res["code"] != 0) {
+        btn.attr("status","0");
+        $("#id_verify_msg")[0].innerHTML = res["info"];
+        window.clearInterval(global_timer);
+      }
+
+    };
+
+    $.ajax({type: "POST", url:url, data:data, success:callback});
+  };
+
+  function verifycode() {
+    var verifycode = $("#id_code_input").val();
+    var mobile = $("#id_mobile_input").val();
+    if (validateVerifyCode(verifycode) == false) {
+      $("#id_verify_msg")[0].innerHTML = "验证码错误！";
+      return;
+    }
+    var url = "/rest/v2/verify_code";
+    var callback = function (res) {
+      if (res["rcode"] != 0) {
+        $("#id_verifycode_button")[0].innerHTML = res["msg"];
+        return;
+      }
+
+      window.clearInterval(global_timer);
+      $("#id_verifycode_group").css("display","none");
+      $("#id_requestcode_button").removeClass("btn-primary").addClass("btn-success")[0].innerHTML="已验证";
+      $("#id_mobile_input").attr("readonly","readonly");
+      $("#id_requestcode_button").attr("status", "2");
+    };
+
+    var data = {"verify_code":verifycode, "mobile":mobile, "action":"recheck"};
+    $.ajax({type: "POST", url:url, data:data, success:callback});
+  };
+
+  function check() {
+    // 表单提交验证
+    if (!$("#id_buyername_input").val()) {
+      $("#id_msg")[0].innerHTML = "请填写真实姓名！";
+      return false;
+    }
+
+    if ($("#id_requestcode_button").attr("status") != "2") {
+      $("#id_msg")[0].innerHTML = "请先验证手机号！";
+      return false;
+    }
+
+    return true;
+  }
+
+  // city select
+  $.cxSelect.defaults.url = '{{ STATIC_URL }}cxSelect/js/cityData.min.json';
+
+  // 默认
+  $('#city_china').cxSelect({
+    selects: ['province', 'city', 'area']
+  });
+
+
+  //确认订单后的付款操作，后续操作请自行添加
+  function Ctrl_sure_pay(){
+    if ($('#pay_now').hasClass('charged')){return;}
+
+    var CHARGE_URL  = '/mm/charge/';
+    var WALLET_PAY  = 'wallet';
+    var channel     = $('.pay_way .wrapper.selected').attr('id');
+
+    if (typeof channel === "undefined"){
+        alert('请选择支付方式！');
+        return
+    }
+    $('#message').val($('#to_seller').val());//买家留言
+    $('#channel').val(channel);//支付方式
+
+    var payment = $('#payment').val();
+    var form_array = $('#order-form').serializeArray();
+    var params = {};
+
+    $.map(form_array,function(n, i){
+        params[n['name']] = n['value'];
+    });
+
+    if (params.receiver_name == ''||params.receiver_mobile =='' ){
+        alert('请填写您的收货地址！');
+        return
+    }
+    console.log('channel:'+channel);
+    if(channel == WALLET_PAY && !confirm("确认使用比特优品钱包支付金额（￥"+payment+'元)吗？')){
+        return
+    }
+
+    $('#pay_now').addClass('charged');
+    $('#pay_now #btn').addClass('pressed');
+
+    var callback = function(data){
+
+      if(typeof data.errcode === "undefined"){
+        if (data.channel == WALLET_PAY){//使用钱包支付
+            window.location.href = '/mm/orderlist/';
+        }else{
+          pingpp.createPayment(data, function(result, err) {
+              window.location.href = '/mm/orderlist/';
+          });
+        }
+       }else{
+         alert('err:' + data.errmsg);
+       }
+    }
+
+    $.post(CHARGE_URL, params, callback, 'json');
+
+  }
+
+</script>
+{% endblock %}
