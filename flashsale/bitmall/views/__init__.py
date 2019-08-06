@@ -1,2 +1,4 @@
-from .register import BitMallView, BitMallRegisterView
+from .register import BitMallView, \
+    BitMallRegStatusView, \
+    BitMallRegisterView
 

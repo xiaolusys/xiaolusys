@@ -1,7 +1,7 @@
 # coding: utf8
 from __future__ import absolute_import, unicode_literals
 
-class XiaoluPayException(BaseException):
+class XiaoluPayException(Exception):
     pass
 
 class ChannelNotCompleteException(XiaoluPayException):

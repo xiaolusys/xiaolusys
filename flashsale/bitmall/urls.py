@@ -2,9 +2,10 @@
 from django.conf.urls import url
 from django.views.decorators.csrf import csrf_exempt
 
-from .views import BitMallView, BitMallRegisterView
+from .views import BitMallView, BitMallRegisterView, BitMallRegStatusView
 
 urlpatterns = (
     url(r'^$', csrf_exempt(BitMallView.as_view())),
     url(r'^register/$', csrf_exempt(BitMallRegisterView.as_view())),
+    url(r'^register/success/$', csrf_exempt(BitMallRegStatusView.as_view())),
 )

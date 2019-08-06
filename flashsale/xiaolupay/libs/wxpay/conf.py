@@ -46,12 +46,12 @@ class WXPayConf:
     @staticmethod
     def pub_configs():
         return {
-            'app_id': getattr(settings, 'WX_PUB_APPID', ''),
-            'mch_id': getattr(settings, 'WX_PUB_MCHID', ''),
-            'key': getattr(settings, 'WX_PUB_KEY', ''),
-            'cert_pem_path': getattr(settings, 'WX_PUB_CERT_PEM_PATH', ''),
-            'key_pem_path': getattr(settings, 'WX_PUB_KEY_PEM_PATH', ''),
-            'refund_user_id': getattr(settings, 'WX_PUB_REFUND_USER_ID', '')
+            'app_id': getattr(settings, 'WX_HGT_APPID', ''),
+            'mch_id': getattr(settings, 'WX_HGT_MCHID', ''),
+            'key': getattr(settings, 'WX_HGT_KEY', ''),
+            'cert_pem_path': getattr(settings, 'WX_HGT_CERT_PEM_PATH', ''),
+            'key_pem_path': getattr(settings, 'WX_HGT_KEY_PEM_PATH', ''),
+            'refund_user_id': getattr(settings, 'WX_HGT_REFUND_USER_ID', '')
         }
 
     @staticmethod

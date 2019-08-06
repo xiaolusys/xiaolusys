@@ -221,6 +221,7 @@ INSTALLED_APPS =[
     'flashsale.protocol',
     'flashsale.coupon',
     'flashsale.jimay',
+    'flashsale.bitmall',
 
     # 'test.celery',
     'shopapp.notify',
@@ -343,7 +344,7 @@ WEAPP_KEY_PEM_PATH  = '/data/certs/weapp.pem'
 # ================ 己美医学[公众号] ==================
 WX_JIMAY_APPID  = 'wxaf62312f812ce0d8'
 
-# ================ 弘国堂[公众号] ==================
+# ================ 弘国堂[公众号] ====================
 WX_HGT_APPID  = 'wxb1925a92c3ba0eca'
 
 ################### Ntalker SETTINGS ##################

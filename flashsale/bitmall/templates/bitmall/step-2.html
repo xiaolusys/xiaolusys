@@ -16,7 +16,7 @@
           <!-- 比特优品介绍区域 -->
           <div class="col-xs-12">
             <h5>比特优品198会员礼品</h5>
-            <div class="thumbnail"></div>
+            <div class="thumbnail"><img src="{{product.head_img}}"/></div>
           </div>
       </div>
       <div class="row">
@@ -24,17 +24,15 @@
           <form id="order-form" method="POST" onsubmit="return check()">
             {% csrf_token %}
             <input type="hidden" name="item_id" value="{{ product.id }}" />
-            <input type="hidden" name="sku_id" value="{{ sku.id }}" />
+            <input type="hidden" name="sku_id" value="{{ product.sku_id }}" />
             <input type="hidden" name="num" value="{{ num }}" />
             <input type="hidden" name="order_no" value="{{ order_no }}" />
-            <input type="hidden" name="post_fee" value="{{ post_fee }}" />
-            <input type="hidden" name="discount_fee" value="{{ discount_fee }}" />
             <input type="hidden" name="payment" value="{{ payment }}" />
             <input type="hidden" name="channel" />
 
             <div class="form-group">
               <label for="receiver_name">名称</label>
-              <input type="text" class="form-control" id="receiver_name" placeholder="真实名称,可作为收货人名称">
+              <input type="text" class="form-control" id="receiver_name" placeholder="真实名称,收货人名称">
             </div>
 
             <div id="city_china" class="form-group ">
@@ -92,7 +90,7 @@
             <div class="form-group">
               <p id="id_msg" style="text-align:center;color:red"></p>
               <div class="col-xs-12" style="text-align:center">
-                <input type="submit" class="btn btn-warning" value="提交并支付198"/>
+                <input type="submit" class="btn btn-default" value="提交并支付198"/>
               </div>
             </div>
           </form>
@@ -204,13 +202,23 @@
 
   function check() {
     // 表单提交验证
-    if (!$("#id_buyername_input").val()) {
+    if ($("[name='receiver_name']").val() == '') {
       $("#id_msg")[0].innerHTML = "请填写真实姓名！";
       return false;
     }
 
     if ($("#id_requestcode_button").attr("status") != "2") {
       $("#id_msg")[0].innerHTML = "请先验证手机号！";
+      return false;
+    }
+
+    if ($("[name='receiver_state']").val() == '') {
+      $("#id_msg")[0].innerHTML = "请填写收货省市！";
+      return false;
+    }
+
+    if ($("[name='receiver_address']").val() == '') {
+      $("#id_msg")[0].innerHTML = "请填写详细收货地址！";
       return false;
     }
 
@@ -231,17 +239,6 @@
     if ($('#pay_now').hasClass('charged')){return;}
 
     var CHARGE_URL  = '/mm/charge/';
-    var WALLET_PAY  = 'wallet';
-    var channel     = $('.pay_way .wrapper.selected').attr('id');
-
-    if (typeof channel === "undefined"){
-        alert('请选择支付方式！');
-        return
-    }
-    $('#message').val($('#to_seller').val());//买家留言
-    $('#channel').val(channel);//支付方式
-
-    var payment = $('#payment').val();
     var form_array = $('#order-form').serializeArray();
     var params = {};
 
@@ -251,10 +248,6 @@
 
     if (params.receiver_name == ''||params.receiver_mobile =='' ){
         alert('请填写您的收货地址！');
-        return
-    }
-    console.log('channel:'+channel);
-    if(channel == WALLET_PAY && !confirm("确认使用比特优品钱包支付金额（￥"+payment+'元)吗？')){
         return
     }
 

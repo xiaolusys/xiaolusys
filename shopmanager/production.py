@@ -154,6 +154,15 @@ WEAPP_KEY_PEM_PATH  = '/data/certs/weapp_key.pem'
 # ================ 己美医学[公众号] ==================
 WX_JIMAY_APPID  = 'wxaf62312f812ce0d8'
 
+# ================ 弘国堂[公众号] ====================
+WX_HGT_APPID  = 'wxb1925a92c3ba0eca'
+
+WX_HGT_MCHID = "1488522602" #受理商ID，身份标识
+WX_HGT_KEY   = "t5UXHfwR7QEv2jMLFuZm8DdqnAT0ON9a" #支付密钥
+
+WX_HGT_KEY_PEM_PATH = '/data/certs/wxhgt_key.pem'
+WX_HGT_CERT_PEM_PATH = '/data/certs/wxhgt.pem'
+
 ################### ALIPAY SETTINGS ##################
 ALIPAY_MCHID     = '2088911223385116'
 ALIAPY_APPID     = '2016012701123211'

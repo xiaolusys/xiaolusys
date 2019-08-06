@@ -155,7 +155,11 @@ class WeixinAppBackend(object):
         content = request.POST
         unionid = content.get('unionid') or kwargs.get('unionid')
         openid = content.get('openid') or kwargs.get('unionid')
-        if not ((request.path.startswith("/rest/") or request.path.startswith("/games/")) and unionid):
+        request_path = request.path
+        if not ((request_path.startswith("/rest/") or
+                 request_path.startswith("/games/") or
+                 request_path.startswith("/bitmall/"))
+                and unionid):
             return None
 
         if not valid_openid(openid) or not valid_openid(unionid):
