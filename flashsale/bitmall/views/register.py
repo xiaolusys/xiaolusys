@@ -305,4 +305,4 @@ class BitMallRegisterView(WeixinAuthMixin, PayInfoMethodMixin, APIView):
         except Exception, exc:
             response = {'code': 1, 'message': exc.message}
 
-        return Response(json.dumps(response), content_type="application/json")
+        return Response(response, content_type="application/json")
