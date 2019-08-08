@@ -96,6 +96,7 @@ def create_credential(
                 raise XiaoluPayException('%s' % resp)
 
             credential.update({
+                "appId": wxpay.app_id,
                 "timeStamp": '%s' % get_time_number(),
                 'package': 'prepay_id=%s' % resp['prepay_id']
             })
