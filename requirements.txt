@@ -23,7 +23,7 @@ django-qiniu-storage==2.3.0
 django-redis-cache==1.7.1
 django-statsd-mozilla==0.3.16
 django-tagging==0.4.3
-djangorestframework==3.5.2
+djangorestframework==3.11.2
 dogslow==0.9.7
 drf-extensions==0.3.1
 flower==0.9.1
