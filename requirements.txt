@@ -85,7 +85,7 @@ django-encrypted-fields==1.1.2
 # sudo apt-get install libcurl4-openssl-dev
 # pycurl==7.4.3
 ##################### Debug Requirement #########################
-django-debug-toolbar==1.6
+django-debug-toolbar==1.11.1
 
 
 ###################### Extras Requirement #########################
