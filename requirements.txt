@@ -54,7 +54,7 @@ pyasn1==0.1.9
 pyExcelerator==0.6.4.1
 pymongo==3.3.0
 PyMySQL==0.7.9
-PyPDF2==1.19
+PyPDF2==1.27.5
 python-dateutil==2.5.0
 python-memcached==1.53
 pytz==2016.10
